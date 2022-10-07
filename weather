@@ -1,0 +1,174 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : weather
+# Description  : Displays local weather conditions in the terminal.
+# Dependencies : curl, jq (JSON processor), wget
+# Arguments    : None
+# Author       : Richard B. Romig, 14 Jul 2021
+# Email        : rick.romig@gmail.com
+# Comments     : Based on script by Kris Occhipinti https://filmsbykris.com
+#              : 3-day forecast is ASCII text and does not scale.
+# 19 Jul 2021  : added 3-day forecast & moved operations into functions.
+# 22 Jul 2021  : added city and state to current_wx.
+# 07 Aug 2021  : added while loop and quit option.
+# 13 Aug 2021  : added separate colors for heat index temperature
+# 24 Nov 2021  : added default location, ability to pass a location, help
+# 25 Feb 2022  : Added location to menu.
+# 28 Apr 2022  : Help from the menu returns you to the menu.
+# 05 May 2022  : Checks to see if weather data available.
+# 07 May 2022  : Changed wget to curl to download weather data.
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.3.6"
+readonly _updated="01 Jul 2022"
+
+## Functions ##
+
+check_dependencies() {
+  check_package curl
+  check_package jq
+}
+
+show_help() {
+  clear
+  echo "$_script v$_version ($_updated)"
+  print_line "-" 28
+  echo "${orange}Usage:${normal} $_script [location]"
+  echo "Example 1: $_script Cincinnati"
+  echo "Example 2: $_script New+York"
+  echo "* Locations with spaces must have a '+' in place of the space."
+  echo "* If no location is passed, the default location will be used."
+  echo "* For help: $_script -h or $_script --help"
+  anykey
+}
+
+wx_forecast() {
+  local url="http://wttr.in"
+  local wx_loc="${1:-Huber+Heights}"
+  clear
+  curl -s "$url/$wx_loc" | sed '1 s/:.*//'
+  anykey
+}
+
+current_wx() {
+  local wx_loc="${1:-Huber+Heights}"
+  local url="http://wttr.in/$wx_loc?format=j1"
+  json=$(curl -s "$url")
+  # Location data
+  city=$(echo "$json"|jq -r ."nearest_area[0]|(.areaName[0].value)")
+  state=$(echo "$json"|jq -r ."nearest_area[0]|(.region[0].value)")
+  # country=$(echo "$json"|jq -r ."nearest_area[0]|(.country[0].value)")
+  # Weather conditions
+  description=$(echo "$json"|jq -r ."current_condition[0]|(.weatherDesc[0].value)")
+  temp_F=$(echo "$json"|jq -r ."current_condition[0]|(.temp_F)")
+  temp_C=$(echo "$json"|jq -r ."current_condition[0]|(.temp_C)")
+  feels_F=$(echo "$json"|jq -r ."current_condition[0]|(.FeelsLikeF)")
+  feels_C=$(echo "$json"|jq -r ."current_condition[0]|(.FeelsLikeC)")
+  humidity=$(echo "$json"|jq -r ."current_condition[0]|.humidity")
+  pressure=$(echo "$json"|jq -r ."current_condition[0]|.pressureInches")
+  wind_dir=$(echo "$json"|jq -r ."current_condition[0]|.winddir16Point")
+  wind_spd=$(echo "$json"|jq -r ."current_condition[0]|.windspeedMiles")
+  precip=$(echo "$json"|jq -r ."current_condition[0]|.precipInches")
+  uv_index=$(echo "$json"|jq -r ."current_condition[0]|.uvIndex")
+
+  # Set color for temperature
+  if [[ "$temp_F" -ge 90 ]]; then
+    tcolor=${red}
+  elif [[ "$temp_F" -ge 75 ]]; then
+    tcolor=${orange}
+  elif [[ "$temp_F" -lt 50 ]]; then
+    tcolor=${blue}
+  else
+    tcolor=${default} # Temperature is between 50 and 74 degrees Fahrenheit
+  fi
+
+  # Set color for heat index temperature
+  if [[ "$feels_F" -ge 90 ]]; then
+    fcolor=${red}
+  elif [[ "$feels_F" -ge 75 ]]; then
+    fcolor=${orange}
+  elif [[ "$feels_F" -lt 50 ]]; then
+    fcolor=${blue}
+  else
+    fcolor=${default} # Temperature is between 50 and 74 degrees Fahrenheit
+  fi
+
+  # Set color for UV index.
+  if [[ "$uv_index" -ge 11 ]]; then
+    ucolor=${red}; uvwarn="Extreme Risk"
+  elif [[ "$uv_index" -ge 8 ]]; then
+    ucolor=${lightred}; uvwarn="Very High Risk"
+  elif [[ "$uv_index" -ge 6 ]]; then
+    ucolor=${orange}; uvwarn="High Risk"
+  elif [[ "$uv_index" -ge 3 ]]; then
+    ucolor=${lightyellow}; uvwarn="Moderate Risk"
+  else
+    ucolor=${default}; uvwarn="Low Risk"  # UV index is less than 3
+  fi
+
+# Display current conditions
+  clear
+  if [[ -n "$json" ]]; then
+    echo $'\n'$"Current contitions for $city, $state"
+    echo "$description"
+    echo -e "  Temperature: ${tcolor}$temp_F\U2109 ($temp_C\U2103 )${normal}"
+    echo -e "   Feels like: ${fcolor}$feels_F\U2109 ($feels_C\U2103 )${normal}"
+    echo "     UV index: ${ucolor}$uv_index - $uvwarn${normal}"
+    echo "     Humidity: $humidity%"
+    echo "    Barometer: $pressure inches"
+    echo "Precipitation: $precip inches"
+    echo "         Wind: $wind_dir at $wind_spd mph"
+  else
+    echo "Current weather data is not available."
+    echo "Try again later."
+  fi
+  anykey
+}
+
+## Execution ##
+
+if [[ $# -gt 0 ]]; then
+  case "$1" in
+    -h|--help ) show_help; exit ;;
+    * ) location="$1" ;;
+  esac
+else
+  location="Huber+Heights"
+fi
+
+check_dependencies
+
+COLUMNS=40
+
+while true; do
+  clear
+  echo "$_script v$_version ($_updated)"
+  under_line "Location: $(echo $location | sed 's/+/ /')"
+  PS3="Choice: "
+  select opt in "Current conditions" "3-day forecast" "Usage/Help" "Quit"; do
+    case $REPLY in
+      1 ) current_wx "$location"; break ;;
+      2 ) wx_forecast "$location"; break ;;
+      3 ) show_help; break ;;
+      4 ) clear; box "$_script v$_version ($_updated)"; exit ;;
+      * ) echo "${lightred}Invalid choice.${normal} Choose 1, 2, 3, or 4" >&2 ;;
+    esac
+  done
+done

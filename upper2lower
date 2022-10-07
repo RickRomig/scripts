@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : upper2lower
+# Description  : Renames uppercase in filenames to lowercase
+# Dependencies : rename
+# Args         : --all, --help, filename(s) to be renamed
+# Author       : Richard Romig, 2018
+# Email        : rick.romig@gmail.com
+# Comment      :
+# 10 Nov 2021  : Added the ability to rename multiple files in CWD.
+# 11 Jan 2022  : Added options for help and to rename all files in CWD
+# License      : GNU General Public License, version 2.0
+##############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="3.1.1"
+readonly _updated="04 May 2022"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  cat << EOF
+${orange}Usage:${normal} $_script [option] [filename1] [filename2] ...
+${orange}Options:${normal}
+  --all    change all files in the current directory.
+  --help   display this help message.
+One or more filenames may be entered to be renamed.
+EOF
+  exit "$errcode"
+}
+
+## Execution ##
+
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Changes filenames from uppercase to lowercase.\n\n"
+
+if [[ $# -eq 0 || "$1" == "--help" ]]; then
+  usage 0
+elif [[ "$1" == "--all" ]]; then
+  printf "Changing all files in the current directory to lowercase.\n"
+  rename -v 'y/A-Z/a-z/' ./*
+elif [[ $# -eq 1 ]]; then
+  printf "Changing %s to lowercase.\n" "$1"
+  if [[ -f "$1" ]]; then
+    rename -v 'y/A-Z/a-z/' "$1"
+  else
+    die "$1 not found." 1
+  fi
+else # more than one argument
+  for fname in "$@"; do
+    if [[ -f "$fname" ]]; then
+      echo "Changing $fname to lowercase."
+      rename -v 'y/A-Z/a-z/' "$fname"
+    else
+      echo "${lightred}ERROR:${normal} $fname not found." >&2
+    fi
+  done
+fi
+
+exit

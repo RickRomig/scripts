@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : insert-license
+# Description  : Insert a license into a shell script or C source code.
+# Dependencies : bat, sed, select
+# Arguments    : Shell script or C source file
+# Author       : Richard B. Romig, 05 June 2019
+# Email        : rick.romig@gmail.com
+# Comments     : Inserts the license immediately after the file's header.
+#              : bat - https://github.com/sharkdp/bat/releases/
+#              : less or cat can be substituted for bat
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="2.0.10"
+readonly _updated="04 May 2022"
+
+# Data to be inserted into license
+
+readonly cur_yr=$(date +%Y)
+readonly copy_holder="Richard B. Romig"
+readonly email_addr="rick.romig@gmail.com"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  echo "Usage: $_script <source-file>"
+  echo "Example: $_version shell-script"
+  echo "Example: $_updated source.c"
+  exit "$errcode"
+}
+
+cleanup() {
+  [[ -f "TempLicense" ]] && rm "TempLicense"
+}
+
+## Execution ##
+
+trap cleanup EXIT
+
+## Check arguments
+if  [[ $# -eq 0 ]]; then
+  echo "${lightred}Error:${normal} No argument passed." >&2
+  usage 2
+elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+  usage 0
+elif [[ ! -f "$1" ]]; then
+  echo "${lightred}Error:${normal} $1 not found." >&2
+  usage 2
+else
+  code_file="$1"
+fi
+
+clear
+box "$_script v$_version ($_updated)"
+echo "Inserts an Open Source license into a shell script or a source code file."
+echo "Licensed under the GNU General Public License, version 2."
+echo "Copyright 2019-2022, Richard B. Romig"
+
+# Select the type of license
+
+echo $'\n'$"${bold}${orange}License type:${normal}"
+options=("GPL v1" "GPL v2" "GPL v3" "MIT")
+PS3="Select the type of license: "
+select opt in "${options[@]}"; do
+  case $REPLY in
+    1 ) lic_type="$opt"; lic_file="gpl_v1"; break ;;
+    2 ) lic_type="$opt"; lic_file="gpl_v2"; break ;;
+    3 ) lic_type="$opt"; lic_file="gpl_v3"; break ;;
+    4 ) lic_type="$opt"; lic_file="mit_lic"; break ;;
+    * ) echo "${lightred}Invalid option. Try again.${normal}" >&2
+  esac
+done
+
+# Select code type
+
+echo $'\n'$"${bold}${orange}Code type:${normal}"
+options=("Shell script" "C source" "C++ source")
+PS3="Select the type of source file: "
+select opt in "${options[@]}"; do
+  case $REPLY in
+    1 ) code_type="Shell"; break ;;
+    2 ) code_type="C"; break ;;
+    3 ) code_type="C++"; break ;;
+    * ) echo "${lightred}Invalid choice! Please try again.${normal}" >&2 ;;
+  esac
+done
+
+# Insert the license into the source file
+
+echo $'\n'$"${bold}${orange}Inserting $lic_type license into $code_file...${normal}"
+case $code_type in
+  "Shell" )
+    sed -e '1d' \
+        -e "s/<YEAR>/$cur_yr/" \
+        -e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
+        -e "s/<EMAIL>/$email_addr/" \
+        -e "s/^/# /" "$HOME/Templates/$lic_file" > TempLicense
+    sed -i -e "12r TempLicense" "$code_file" ;;
+  "C" )
+    sed -e '1d' \
+        -e "s/<YEAR>/$cur_yr/" \
+        -e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
+        -e "s/<EMAIL>/$email_addr/" \
+        -e "s/^/ * /" "$HOME/Templates/$lic_file" > TempLicense
+    sed -i -e "21r TempLicense" "$code_file" ;;
+  "C++" )
+    sed -e '1d' \
+        -e "s/<YEAR>/$cur_yr/" \
+        -e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
+        -e "s/<EMAIL>/$email_addr/" \
+        -e "s/^/\/\/ /" "$HOME/Templates/$lic_file" > TempLicense
+    sed -i -e "20r TempLicense" "$code_file" ;;
+  * ) die "Invalid code type. Exiting the script." 1 ;;
+esac
+
+echo $'\n'$"$lic_type license has been inserted into $code_file."
+edit_view_quit "$code_file"
+
+exit

@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+#############################################################################
+# Script Name  : dl-webpage
+# Description  : Downloads a page from the web to the current directory.
+# Dependencies : wget
+# Arguments    : URL of page to be downloaded
+# Author       : Richard B. Romig, 02 Nov 2019
+# Email        : rick.romig@gmail.com
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+#############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.8"
+readonly _updated="04 May 2022"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  echo "Usage: $_script <URL>"
+  echo "Example: $_script https://example.com/index.html"
+  exit "$errcode"
+}
+
+## Execution ##
+
+# Install wget if not already installed
+echo "Checking dependencies..."
+check_package wget
+
+# Check for argument
+
+if [[ $# -eq 0 ]]; then
+  echo "${lightred}\Error:${normal} No argument passed." >&2
+  usage 2
+elif [[ "$1" = "--help" || "$1" = "-h" ]]; then
+  usage 0
+else
+  url="$1"
+  domain=$(echo "$url" | sed -e 's|^[^/]*//||' -e 's|^www\.||' -e 's|/.*$||')
+fi
+
+echo "$_script v$_version ($_updated)"
+echo "Downloads a web page to the current directory."
+echo $'\n'$"Downloading $url..."
+
+# Download the requested web page to the current directory
+
+if wget --recursive --no-clobber --page-requisites --html-extension \
+    --convert-links --restrict-file-names=windows --domains "$domain" \
+    --no-parent "$url"; then
+  leave "$url successfully downloaded."
+else
+  status="$?"
+  die "Download failed." "$status"
+fi

@@ -1,0 +1,17 @@
+# Extract version numbers for Atom Editor
+
+# Extract latest version from GitHub releases page
+curl -s -o "$tmp_file" https://github.com/atom/atom/releases
+new_ver="$(sed 's/\// /g' "$tmp_file" | grep -v 'beta' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/v//')"
+
+# Download Atom
+wget -q -P "$tmp_dir" https:/atom.io/download/deb/atom-amd64.deb
+wget -q -P "$tmp_dir" https://github.com/atom/atom/releases/v"$new_ver"/atom-amd64.deb
+
+# Extract currently installed version number
+dpkg -l | awk '$2 == "atom" {print $3}'
+atom --version | awk '/Atom/ {print $NF}'
+
+# sources.list.d
+cat /etc/apt/sources.list.d/atom.list
+deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main

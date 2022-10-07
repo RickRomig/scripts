@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : insert-header
+# Description  : Insert a header into a shell script or C source code.
+# Dependencies : bat, sed, select
+# Arguments    : Bash script or c source file
+# Author       : Richard B. Romig, 05 June 2019
+# Email        : rick.romig@gmail.com
+# Comments     : Assumes first line or the target file is either a hash-bang or
+#              : a C-style comment
+#              : bat - https://github.com/sharkdp/bat/releases/
+#              : less or cat can be substituted for bat
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="v2.0.10"
+readonly _updated="07 Oct 2022"
+
+# Data to be inserted into header
+
+readonly today=$(date +"%d %b %Y")
+readonly cur_yr=$(date +'%Y')
+readonly copy_holder="Richard B. Romig"
+readonly email_addr="rick.romig@gmail.com"
+readonly email_addr1="rick.romig@mymetronet.net"
+readonly coder="Rick"
+readonly license="GNU General Public License, version 2.0"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  echo "Usage: $_script <myscript>"
+  echo "Example: $_script my-script"
+  echo "Example: $_script source.c"
+  exit "$errcode"
+}
+
+cleanup() {
+  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+}
+
+## Execution ##
+
+tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+trap cleanup EXIT
+
+## Check arguments
+if  [[ $# -eq 0 ]]; then
+  echo "${lightred}Error:${normal} No argument passed." >&2
+  usage 2
+elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+  usage 0
+elif [[ ! -f "$1" ]]; then
+  echo "${lightred}Error:${normal} $1 not found." >&2
+  usage 2
+else
+  code_file="$1"
+fi
+
+clear
+box " $_script, $_version"
+echo "Inserts a header into either a shell script or a C/C++ source file."
+echo "Licensed under the GNU General Public License, version 2."
+echo "Copyright 2019-2021, Richard B. Romig"
+echo "Last updated: $_updated"
+
+# Select type of source
+COLUMNS=40
+echo $'\n'$"${bold}${orange}Code type:${normal}"
+options=("Shell script" "C source" "C++ source")
+PS3="Select the type of source file: "
+select opt in "${options[@]}"; do
+  case $REPLY in
+    1 )
+      header_type="Shell"
+      echo $'\n'$"${green}Inserting shell header into $code_file.${normal}"
+      sed -e '1d' \
+          -e "s/<FILE>/$code_file/" \
+          -e "/s<YEAR>/$cur_yr/" \
+          -e "s/<AUTHOR>/$copy_holder/" \
+          -e "s/<EMAIL>/$email_addr/" \
+          -e "s/<EMAIL1>/$email_addr1/" \
+          -e "s/<TODAY>/$today/" \
+          -e "s/<CODER>/$coder/" \
+          -e "s/<LICENSE>/$license/" "$HOME/Templates/bash-header" > "$tmp_file"
+      sed -i -e "1r ${tmp_file}" "$code_file"
+      break ;;
+    2 )
+      header_type="C"
+      echo $'\n'$"${green}Inserting C header into $code_file.${normal}"
+      sed -e '1d' \
+          -e "s/<PROGNAME>/$code_file/" \
+          -e "s/<YEAR>/$cur_yr/" \
+          -e "s/<AUTHOR>/$copy_holder/" \
+          -e "s/<ADDR>/$email_addr/" \
+          -e "s/<ADDR1>/$email_addr1/" \
+          -e "s/<TODAY>/$today/" \
+          -e "s/<LICENSE>/$license/" "$HOME/Templates/c-header" > "$tmp_file"
+      sed -i -e "1r ${tmp_file}" "$code_file"
+      break ;;
+    3 )
+      header_type="C++"
+      echo $'\n'$"${green}Inserting C++ header into $code_file.${normal}"
+      sed -e '1d' \
+          -e "s/<PROGNAME>/$code_file/" \
+          -e "s/<YEAR>/$cur_yr/" \
+          -e "s/<AUTHOR>/$copy_holder/" \
+          -e "s/<ADDR>/$email_addr/" \
+          -e "s/<ADDR1>/$email_addr1/" \
+          -e "s/<TODAY>/$today/" \
+          -e "s/<LICENSE>/$license/" "$HOME/Templates/cpp-header" > "$tmp_file"
+      sed -i -e "1r ${tmp_file}" "$code_file"
+      break ;;
+    * ) echo "${lightred}mInvalid option. Try again.${normal}" >&2 ;;
+  esac
+done
+
+echo "$header_type header has been inserted into $code_file."
+edit_view_quit "$code_file"
+
+exit

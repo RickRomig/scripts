@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : check-battery
+# Description  : Determine the health of a laptop battery
+# Dependencies : upower
+# Arguments    : None
+# Author       : Richard B. Romig, 30 Jul 2020
+# Email        : rick.romig@gmail.com
+# Comments     : Obtains battery data from upower utility.
+#              : Inspired by a script by Elias W (eliasw4u on Ezeetalk.com)
+# 19 Sep 2021  : Added charge status of HID++ battery, if present.
+# 16 Aug 2022  : Set variable for warning/status emojis.
+# 17 Aug 2022  : Battery name obtained from battery_data file.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.2.13"
+readonly _updated="17 Aug 2022"
+
+## Functions ##
+
+help() {
+  errcode="${1:-2}"
+  cat <<- EOF
+  ${green}Usage:${normal} $_script [option]
+  With no argument, displays battery health information.
+  ${orange}OPTIONS:${normal}
+  -h        # displays this help message.
+  --help    # displays this help message.
+  --version # displays the version and information about the script.
+  $_script $_version, Updated: $_updated
+EOF
+  exit "$errcode"
+}
+
+version() {
+  cat <<- EOF
+  $_script $_version, Upated: $_updated
+  Displays the charge state and health of a laptop battery using data obtained
+  from the upower utilty.
+EOF
+}
+
+cleanup() {
+  [[ -f "$battery_data" ]] && rm -f "$battery_data"
+  [[ -f "$hidpp_data" ]] && rm -f "$hidpp_data"
+}
+
+battery_status() {
+  echo $'\n'"${orange}Battery charge:${normal}"
+  grep --color=never -E "state|to\ full|to\ empty|percentage" "$battery_data"
+}
+
+battery_capacity() {
+  echo $'\n'"${orange}Battery health:${normal}"
+  grep --color=never -E "energy-full:|energy-full-design:|capacity:" "$battery_data"
+}
+
+warning_level() {
+  energy_des=$(awk '/energy-full-design:/ {printf "%i", $2}' "$battery_data")
+  energy_act=$(awk '/energy-full:/ {printf "%i", $2}' "$battery_data")
+
+  if [[ "$energy_act" -eq 0 || "$energy_des" -eq 0 ]]; then
+    return 0
+  else
+    capacity=$(awk '/capacity/ {printf "%i", $2}' "$battery_data")
+    return "$capacity"
+  fi
+}
+
+battery_condition() {
+  warning_level
+  warn_level="$?"
+  if [[ "$warn_level" -le "0" ]]; then
+    warn="\U1F4A9"
+    echo -e "    $warn  ${red}Replace the battery!${normal} $warn "
+  elif [[ "$warn_level" -le "35" ]]; then
+    warn="\U1F622"
+    echo -e "    $warn  ${red}The battery should be replaced.${normal} $warn "
+  elif [[ "$warn_level" -le "65" ]]; then
+    warn="\U26A0\UFE0F"
+    echo -e "    $warn  ${orange}The battery is getting weak.${normal} $warn "
+  else
+    warn="\U1F642"
+    echo -e "    $warn  ${green}The battery is in good condition.${normal} $warn"
+  fi
+}
+
+ac_status() {
+  status=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'AC')" | awk '/online:/ {print $NF}')
+  echo $'\n'"${orange}AC Power:${normal}"
+  echo -n "    Laptop is "
+  if [[ "$status" = "no" ]]; then
+    echo -n "not "
+    symbol="\U1F50B"
+  else
+    symbol="\U1F50C"
+  fi
+  echo -e "plugged in to AC power. ${symbol}"
+
+}
+
+hidpp_battery() {
+  echo $'\n'$"${orange}HID++ Battery:${normal}"
+  if /usr/bin/upower -e | grep mouse_hidpp_battery; then
+    hidpp_data=$(mktemp) || die "Failed to create temporary file." 1
+    /usr/bin/upower -i "$(/usr/bin/upower -e | grep hidpp)" > "$hidpp_data"
+    echo "    Device: $(awk '/native-path/ {print $NF}' "$hidpp_data")"
+    echo -n "    $(awk '/model/ {print $NF}' "$hidpp_data"):   "
+    awk '/percentage/ {print $NF}' "$hidpp_data"
+  else
+    echo "    No HID++ battery detected."
+  fi
+}
+
+## Execution ##
+
+clear
+if [[ $# -gt 0 ]]; then
+  case "$1" in
+    -h|--help ) help 0 ;;
+    --version ) version; exit ;;
+    * ) echo "${lightred}Invalid argument: $1${normal}" >&2; help 2 ;;
+  esac
+fi
+
+echo -e "${bold}${orange}Battery Status${normal}"
+if [[ -d /proc/acpi/button/lid/ ]]; then
+  check_package upower
+  hidpp=$(/usr/bin/upower -e | grep mouse_hidpp_battery)
+  if /usr/bin/upower -e | grep -q 'BAT'; then
+    battery_data=$(mktemp) || die "Failed to create temporary file." 1
+    trap cleanup EXIT
+    /usr/bin/upower -i "$(/usr/bin/upower -e | grep BAT)" > "$battery_data"
+    echo $'\n'$"${orange}Battery:${normal} $(awk '/native-path:/ {print $NF}' "$battery_data")"
+    battery_status
+    battery_capacity
+    battery_condition
+    ac_status
+    hidpp_battery
+  else
+    echo $'\n'"${lightred}No battery detected.${normal}" >&2
+  fi
+else
+  echo $'\n'$"This system is not a laptop." >&2
+fi
+
+echo $'\n'$"$_script v$_version ($_updated)"
+
+exit

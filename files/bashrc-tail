@@ -1,0 +1,25 @@
+
+# XDG directories
+[ -d ~/.config ] || mkdir -p ~/.conifg
+[ -d ~/.cache ] || mkdir -p ~/.cache
+[ -d ~/.local/share ] || mkdir -p ~/.local/share 
+[ -d ~/.local/state ] || mkdir -p ~/.local/state
+
+# Run mint fortunes if installed
+# if [ -x /usr/bin/mint-fortune ]; then
+#     /usr/bin/mint-fortune
+# fi
+
+# Parse git branch and set prompt
+parse_git_branch() {
+     git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+
+export PS1="\033[01;32m\\u@\h \[\033[34m\]\w\[\033[37m\]\$(parse_git_branch)\[\033[00m\]\n$ "
+
+# Neofetch
+[ -x /usr/bin/neofetch ] && /usr/bin/neofetch --off
+
+# Function Library
+# [ -f ~/bin/functionlib ] && . ~/bin/functionlib
+

@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : boxes-spice
+# Description  : Installs Spice Tools Guest Additions to a Gnome Boxes VM
+# Dependencies : none
+# Arguments    : none
+# Author       : Richard B. Romig, 16 Sep 2021
+# Email        : rick.romig@gmail.com
+# Comments     : Supports Arch and Debian-based operating systems.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.1"
+readonly _updated="04 Jan 2022"
+
+## Execution ##
+
+clear
+box "$_script v$_version ($_updated)"
+user_in_sudo
+if [[ -d /etc/pacman.d ]]; then
+  sudo pacman -Sy
+  sudo pacman -S spice-vdagent spice-webdavd
+elif [[ -d /etc/apt ]]; then
+  sudo apt install -yy spice-vdagent spice-webdavd
+else
+  die "Unsupported Operating System." 1
+fi
+
+exit

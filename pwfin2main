@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : pwfin2main
+# Description  : Synchronizes password database files with main PC
+# Dependencies : rsync
+# Arguments    : none
+# Author       : Richard B. Romig, 04 Mar 2022
+# Email        : rick.romig@gmail.com
+# Comments     : Only run from the Finance laptop (21) to the 800-G3 (10)
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.1"
+readonly _updated="22 Aug 2022"
+readonly fhost="hp-probook-6570"
+readonly lhost=$(uname -n)
+readonly mhost="hp-800g2-sff"
+readonly mhostip=10
+
+## Execution ##
+
+# clear
+printf "\U1F427 %s %s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Syncrhonizing password databases to %s\n" "$mhost"
+
+# Ensure script is being run from HP-ProBook-6570 (21)
+[[ "$lhost" != "$fhost" ]] && die "$_script must be run from $fhost."
+
+rsync -avzh --delete /home/"$USER"/Documents/Rick_pwds* /home/"$USER"/Documents/Passwords* "$localnet.$mhostip":Documents/mosfanet/
+
+exit

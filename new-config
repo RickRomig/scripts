@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : new-config
+# Description  : Sets up custom configurations for a new Linux system
+# Dependencies : sshfs
+# Arguments    : None
+# Author       : Richard B. Romig, 15 August 2019
+# Email        : rick.romig@gmail.com
+# Comments     :
+# TODO (rick)  : Convert to gethopts
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.7.8"
+readonly _updated="30 Sep 2022"
+readonly svr_ip="11"
+readonly cfg_bu="$HOME/.config/backup"
+
+count=0
+
+## Functions ##
+
+check_dependencies() {
+  check_package sshfs
+}
+
+mod_bashrc() {
+  local head_file="$HOME/bin/files/bashrc-head"
+  local tail_file="$HOME/bin/files/bashrc-tail"
+  local sed_file="$HOME/bin/files/bashrc.sed"
+
+  # Backup original .bashrc
+  cp -pv "$HOME/.bashrc" "$cfg_bu/.bashrc.orig"
+  echo "Original .bashrc backed up to $cfg_bu"
+
+  # Modify the .bashrc
+  sed -i -e "1 { r $head_file" -e "N; }" "$HOME/.bashrc"
+  sed -i -f "$sed_file" "$HOME/.bashrc"
+  cat "$tail_file" >> "$HOME/.bashrc"
+  echo "Customized .bashrc installed in the home directory."
+  (( count++ ))
+}
+
+cp_aliases() {
+  if [[ -f "$HOME/.bash_aliases" ]]; then
+    cp -pv "$HOME/.bash_aliases" "$cfg_bu/.bash_aliases.orig"
+    echo "Original .bash_aliases backed up to $cfg_bu"
+  fi
+  cp -pv "$cfg_src/.bash_aliases" "$HOME/"
+  echo "Customized .bash_aliases added to the home directory."
+  (( count++ ))
+}
+
+mod_profile() {
+  if [[ -f "$HOME/.profile" ]]; then
+    cp -pv "$HOME/.profile" "$cfg_bu/.profile.orig"
+    echo "Original .profile backed up to $cfg_bu"
+  fi
+  cat "$HOME/bin/files/profile-append" >> "$HOME/.profile"
+  [[ -d "$HOME/.local/state" ]] || mkdir -p  "$HOME/.local/state"
+  echo "Customized .profile installed in the home directory."
+  (( count++ ))
+}
+
+mod_nanorc() {
+  nano_ver=$(nano --version | awk '/version/ {print $NF}')
+  [[ -d "$cfg_bu/nano" ]] || mkdir -p "$cfg_bu/nano"
+  # Backup  original .nanorc
+  if [[ -f "$HOME/.nanorc" ]]; then
+    cp -pv "$HOME/.nanorc" "$cfg_bu/nano/nanorc.orig"
+    echo ".nanorc backed up to $cfg_bu/nano"
+  elif [[ -f "$HOME/.config/nano/nanorc" ]]; then
+    cp -pv "$HOME/.config/nano/nanorc" "$cfg_bu/nano/nanorc.orig"
+    echo "nanorc backed up to $cfg_bu"
+  fi
+  # Copy and configure nanorc
+  [[ -d "$HOME/.config/nano" ]] || mkdir -p "$HOME/.config/nano"
+  cp -v /etc/nanorc "$HOME/.config/nano/"
+  sed -i -f "$HOME/bin/files/nano.sed" "$HOME/.config/nano/nanorc"
+  # Remove old .nanorc files
+  [[ -f "$HOME/.nanorc" ]] && rm -v "$HOME/.nanorc"
+  [[ -f "$cfg_bu/.nanorc" ]] && rm -v "$cfg_bu/.nanorc"
+  echo "Customized nanorc for nano version $nano_ver added."
+  (( count++ ))
+}
+
+cp_face() {
+  if [[ -f "$HOME/.face" ]]; then
+    cp -pv "$HOME/.face" "$cfg_bu/.face.orig"
+    echo ".face backed up to $cfg_bu"
+  fi
+  cp -pv "$cfg_src/face" "$HOME/.face"
+  echo "Customized .face added to the home directory."
+  (( count++ ))
+}
+
+cinnamon_keybindings() {
+  if is_cinnamon; then
+    cp -pv "$cfg_src/keybindings-backup.dconf" "$tmp_dir"
+    dconf load /org/cinnamon/desktop/keybindings/ < "$tmp_dir/keybindings-backup.dconf"
+    dconf dump /org/cinnamon/desktop/keybindings/ > "/$HOME/.config/keybindings-backup.dconf"
+    echo "Cinnamon Custom Keybindings installed."
+    (( count++ ))
+  else
+    echo $'\n'$"The desktop environment is not Cinnamon." >&2
+  fi
+}
+
+main() {
+  while true; do
+    clear
+    echo "$_script v$_version ($_updated)"
+    echo "Installs custom configuration files for new Linux installations."
+    echo $'\n'$"${underline}${purple}Configuration files${normal}"
+    COLUMNS=60
+    options=( ".bashrc" ".bash_aliases" ".face" ".nanorc" ".profile" \
+    "Cinnamon Keybindings" "All" "Quit" )
+    PS3="Choose a configuration to install: "
+    select opt in "${options[@]}"; do
+      case "$REPLY" in
+        1 )
+          mod_bashrc
+          anykey
+          break ;;
+        2 )
+          cp_aliases
+          anykey
+          break ;;
+        3 )
+          cp_face
+          anykey
+          break ;;
+        4 )
+          mod_nanorc
+          anykey
+          break ;;
+        5 )
+          mod_profile
+          anykey
+          break ;;
+        6 )
+          cinnamon_keybindings
+          anykey
+          break ;;
+        7 )
+          mod_bashrc
+          cp_aliases
+          mod_profile
+          mod_nanorc
+          cp_face
+          cinnamon_keybindings
+          anykey
+          break ;;
+        8 )
+          if (( count == 0 )); then
+            leave "No custom configuration files installed."
+          else
+            leave "Custom configurations installed."
+          fi
+          break ;;
+        * )
+          echo "${lightred}Invalid choice.${normal} Try again" >&2 ;;
+      esac
+    done
+  done
+}
+
+## Execution ##
+
+check_dependencies
+
+# Check local IP address
+ip_addr="$(local_ip)"
+if [[ "$ip_addr" -eq "$svr_ip" ]]; then
+  cfg_src="/data/installation/configs"
+else
+  cfg_src="/mnt/HP-6005/installs/configs"
+  mount_server
+fi
+
+# Create directories if they don't exist
+[[ -d "$cfg_bu" ]] || mkdir -p "$cfg_bu"
+tmp_dir=$(mktemp -dq) || die "Failed to create temporary directory."
+tmp_file=$(mktemp -q) || die "Failed to create tempoary file."
+trap unmount_server EXIT
+
+main

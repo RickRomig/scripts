@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : corona
+# Description  : Status update for Corona (COVID-19) cases in US (selected states)
+# Dependencies : awk, curl, sed
+# Arguments    : none
+# Author       : Richard B. Romig, 16 Feb 2021
+# Email        : rick.romig@gmail.com
+# Comments     : Code: https://github.com/sagarkarira/coronavirus-tracker-cli
+#              : Twitter: https://twitter.com/ekrysi
+# TODO (Rick)  : Create a version for public dissemination.
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.3.6"
+readonly _updated="29 Aug 2022"
+readonly url="https://corona-stats.online/states/us/?minimal=true"
+
+readonly today=$(date '+%d %b %Y')
+readonly now=$(date '+%R %Z')
+tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+
+## Functions ##
+
+corona_data() {
+  local tfile="$1"
+  cfile=$HOME/"Documents/corona-USA-$(date '+%F').txt"
+  cp "$tfile" "$cfile"
+  chmod 664 "$cfile"
+  echo "Corona data copied to $cfile"
+}
+
+cleanup() {
+  [[ -f "$tmp_file" ]] && rm "$tmp_file"
+}
+
+## Execution ##
+
+trap cleanup EXIT
+
+check_package curl
+
+# Download the data to a temporary file
+curl -s -o "$tmp_file" "$url"
+# Remove the color codes
+sed -i 's/\x1b\[[0-9;]*m//g' "$tmp_file"
+
+clear
+echo -n "${bold}${blue}Corona (COVID-19) virus statistics for selected US states"
+echo -e " - $today${normal}\n"
+
+awk '/^Rank/' "$tmp_file"   # Header line
+print_line "=" 95
+awk '/Ohio/' "$tmp_file"
+print_line "-" 95
+awk '/Kentucky/' "$tmp_file"
+print_line "-" 95
+awk '/Indiana/' "$tmp_file"
+print_line "-" 95
+awk '/Michigan/' "$tmp_file"
+print_line "-" 95
+awk '/Pennsylvania/' "$tmp_file"
+print_line "-" 95
+awk '/West Virginia/' "$tmp_file"
+print_line "-" 95
+echo -e "Data downloaded $today, $now\n"
+echo "Save today's Corona data?"
+PS3="Choice: "
+select opt in "Yes" "No"; do
+  case $REPLY in
+    1 ) corona_data "$tmp_file"; break ;;
+    2 ) echo "Corona data not copied."; break ;;
+    * ) echo "${lightred}Invalid choice.${normal} 1 - Yes or 2 - No" ;;
+  esac
+done
+echo $'\n'$"${orange}Stay safe. Wear a mask! Wash your hands! Practice physical distancing.${normal}"
+leave "$_script v$_version ($_updated)"

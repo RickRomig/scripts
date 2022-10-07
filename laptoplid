@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : laptoplid
+# Description  : Settings to close laptop lid without suspend
+# Dependencies : laptoplid.sed
+# Arguments    : None
+# Author       : Richard B. Romig, 22 Oct 2020
+# Email        : rick.romig@gmail.com
+# Comments     :
+# 07 Sep 2021  : Replaced sed commands with a .sed file.
+# 07 Oct 2021  : Added conditional for missing sed file.
+# 15 Feb 2022  : Placed operational code within an if-else statement.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.2.3"
+readonly _updated="15 Feb 2022"
+readonly logind_conf="/etc/systemd/logind.conf"
+readonly sed_file="$HOME/bin/files/laptoplid.sed"
+
+## Execution ##
+
+clear
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "\U1F4BB Allows a laptop lid to be closed without going into suspend mode.\n\n"
+
+if is_laptop; then
+  [[ -f "$sed_file" ]] || die "A required file ($(basename "$sed_file")) was not found." 1
+  user_in_sudo
+  sudo sed -i.bak -f "$sed_file" "$logind_conf"
+  leave "$logind_conf modified. Backup (${logind_conf}.bak) created."
+else
+  leave "This system is not a laptop. $logind_conf was not modified."
+fi

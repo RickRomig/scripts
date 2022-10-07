@@ -1,0 +1,92 @@
+## Conky Template ##
+conky.config = {
+    own_window = true,
+    own_window_class = 'Conky',
+    own_window_type = 'desktop',
+    own_window_transparent = true,
+    own_window_hints = 'below',
+    own_window_colour = '660033',
+    own_window_title = 'NET',
+    double_buffer = true,
+    gap_x = 10,
+    gap_y = 10,
+    alignment = 'top_right',
+    use_xft = true,
+    font = 'Terminus:size=10',
+    xftalpha = 1,
+    override_utf8_locale = true,
+    draw_shades = false,
+    draw_outline = false,
+    default_outline_color = 'black',
+    uppercase = false,
+    default_color = 'ECEAE4',
+    color1 = 'FFFF00',
+    color2 = '01C400',
+    draw_borders = false,
+    stippled_borders = 0,
+    border_inner_margin = 5,
+    border_outer_margin = 0,
+    border_width = 0,
+    draw_graph_borders = false,
+    background = false,
+    use_spacer = 'right',
+    text_buffer_size = 256,
+    no_buffers = true,
+    short_units = true,
+    pad_percents = 2,
+    update_interval = 1.5
+}
+
+conky.text = [[
+${font AvantGardeLTMedium:bold:size=10}${color Tan1}System ${color slate grey}${hr 2}${font}
+${color1}Computer name      ${alignr}${color}${nodename}
+${color1}Kernel version     ${alignr}${color}${kernel}-${machine}
+${color1}Distribution: ${alignr}${color}${execi 99999 lsb_release --description | awk '{ print $2" "$3" "$4" "$5 }'}
+${color1}CPU frequency      ${alignr}${color}${freq_g}GHz
+${color1}Load (average)     ${alignr}${color}${loadavg 1}
+${color1}CPU temperature    ${alignr}${color}${acpitemp} degrees Celsius
+${color1}Uptime:${alignr}${color}${uptime}
+
+${if_existing /sys/class/power_supply/<BAT>/present}
+${font AvantGardeLTMedium:bold:size=10}${color Tan1}Laptop battery charge ${color slate grey}${hr 2}${font}
+${color1}Battery charge     ${alignr}${color}${battery_short <BAT>}
+${endif}
+
+${font AvantGardeLTMedium:bold:size=10}${color Tan1}Processors ${color slate grey}${hr 2}${font}
+${color1}CPU Model ${alignr} ${color}${execi 99999 grep 'model name' /proc/cpuinfo | sed -e 's/model name.*: //' | uniq | cut -c 1-25}
+${color1}Kernel 1     ${color}${cpu cpu1}%  ${cpubar cpu1}
+${color1}Kernel 2     ${color}${cpu cpu2}%  ${cpubar cpu2}
+${color1}Kernel 3     ${color}${cpu cpu3}%  ${cpubar cpu3}
+${color1}Kernel 4     ${color}${cpu cpu4}%  ${cpubar cpu4}
+${color1}Kernel 5     ${color}${cpu cpu5}%  ${cpubar cpu5}
+${color1}Kernel 6     ${color}${cpu cpu6}%  ${cpubar cpu6}
+${color1}Kernel 7     ${color}${cpu cpu7}%  ${cpubar cpu7}
+${color1}Kernel 8     ${color}${cpu cpu8}%  ${cpubar cpu8}
+
+${font AvantGardeLTMedium:bold:size=10}${color Tan1}Memory (RAM) ${color slate grey}${hr 2}${font}
+${color1}Memory free / total ${alignr}${color}${memeasyfree} / ${memmax}
+${color1}Now in use   ${color}${memperc}%   ${membar}
+${color1}Virtual memory (swap)  ${alignc}${color}${swap} / ${swapmax} ${color}${alignr}${swapperc} %
+
+${font AvantGardeLTMedium:bold:size=10}${color Tan1}File system ${color slate grey}${hr 2}${font}
+${color1}Root or /       ${alignc}${color}${fs_used /} / ${fs_size /} ${color}${alignr}${fs_free_perc /} %
+${color}${fs_bar 5,300 /}
+${color1}Home or /home   ${alignc}${color}${fs_used /home} / ${fs_size /home} ${color}${alignr}${fs_free_perc /home} %
+${color}${fs_bar 5,300 /home}
+
+${if_existing /proc/net/route <WL>}
+${font AvantGardeLTMedium:bold:size=10}${color Tan1}Wireless network ${color slate grey}${hr 2}${font}
+${color1}Wireless access point ${alignr}${color}${wireless_essid <WL>}
+${color1}Signal strength     ${alignr}${color}${wireless_link_qual_perc <WL>}   ${wireless_link_bar 10,100 <WL>}
+${color1}Private IP:${alignr}${color}${addr <WL>}
+${color1}Data traffic down / up   ${alignr}${color}${totaldown <WL>}  ${color1}/  ${color}${totalup <WL>}${endif}
+${if_existing /proc/net/route <EN>}
+${font AvantGardeLTMedium:bold:size=10}${color Tan1}Wired network ${color slate grey}${hr 2}${font}
+${color1}Private IP:${alignr}${color}${addr <EN>}
+${color1}Data traffic down / up   ${alignr}${color}${totaldown <EN>}  ${color1}/  ${color}${totalup <EN>}${endif}
+${color1}Default Gateway:${alignr}${color}${gw_ip}
+# ${color1}Public IP:${alignr}${color}${execi 3600 wget -qO- http://ipv4.icanhazip.com}
+
+${alignc}${font Arial Black:size=26}${time %H:%M}${font}
+${alignc}${time %A %m-%d-%y}
+]]

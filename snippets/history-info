@@ -1,0 +1,10 @@
+# Top 10 history commands
+# Normally, {print $3}. Use {print $5} if HISTTIMEFORMAT is set to include date and time.
+history | awk 'BEGIN {FS="[ \t]+|\\|"} {print $5}' | sort | uniq -c | sort -nr | head -10
+# All history counts
+history | awk 'BEGIN {FS="[ \t]+|\\|"} {print $5}' | sort | uniq -c | sort -nr
+
+# .bashrc history settings
+HISTCONTROL=erasedups:ignorespace
+# set format for time in bash history
+HISTTIMEFORMAT="%Y-%m-%d %T "

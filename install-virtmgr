@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-virtmgr
+# Description  : Installs virt-manager, KVM/QEMU, and associated utilities.
+# Dependencies : None
+# Arguments    : None
+# Author       : Richard B. Romig, 10 Feb 2021
+# Email        : rick.romig@gmail.com
+# Comments     : Based on Chris Titus video for installing virt-manager:
+#              : https://www.youtube.com/watch?v=ozYKkaVK0_A
+# 05 Aug 2021  : Creates necessary groups if they don't exist.
+# 25 Oct 2021  : Placed code to enable/start service in a function.
+# 08 Jan 2022  : Added code to enable & autostart default networking.
+# 04 Feb 2022  : Added functions to determine if system prerequisites are met.
+# 18 Feb 2022  : Place commands to start default network in a function.
+# TODO (Rick)  : Set up default image pool in home directory.
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.2.1"
+readonly _updated="18 Feb 2022"
+
+## Functions ##
+
+chk_cpu_64() {
+	proc64=$(grep -Ec ' lm ' /proc/cpuinfo)  # egrep -c ' lm ' /proc/cpuinfo
+	[[ "$proc64" -gt 0 ]] && return "$TRUE" || return "$FALSE"
+}
+
+chk_kern_64() {
+	kernel64=$(uname -m)
+	[[ "$kernel64" == "x86_64" ]] && return "$TRUE" || return "$FALSE"
+}
+
+chk_cpu_virt() {
+	vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo)  # egrep -c '(vmx|svm)' /proc/cpuinfo
+	[[ "$vcpu" -gt 0 ]] && return "$TRUE" || return "$FALSE"
+}
+
+check_cpu() {
+  declare -i virt_flag=0
+
+  printf "Kernel is "
+  if chk_kern_64; then
+	   printf "64-bit.\n"
+  else
+	    printf "not 64-bit.\n"
+	    (( virt_flag++ ))
+  fi
+
+  printf "Processor is "
+  if chk_cpu_64; then
+	  printf "64-bit.\n"
+  else
+	  printf "not 64-bit.\n"
+	  (( virt_flag++ ))
+  fi
+
+  printf "Virtualization is "
+  if chk_cpu_virt; then
+    printf "enabled in the BIOS\n"
+  else
+    printf "not enabled in the BIOS\n "
+    (( virt_flag++ ))
+  fi
+
+  if [[ "$virt_flag" -gt 0 ]]; then
+	  printf "KVM/QEMU requires a 64-bit kernel, a 64-bit processor,\n"
+	  printf "and virtualization to be enabled in the BIOS.\n"
+	  leave "KVM/QEMU cannot be installed."
+  else
+	  printf "System meets all requirements to install KVM/QEMU.\n"
+  fi
+}
+
+enable_libvirtd() {
+  printf "Enabling and starting the libvirtd service...\n"
+  sudo systemctl start libvirtd
+  sudo systemctl enable libvirtd
+  # sudo systemctl restart libvirtd
+  # sudo systemctl status libvirtd.service
+}
+
+start_networking() {
+  printf "Starting default network for networking...\n"
+  sudo virsh net-start default
+  sudo virsh net-autostart default
+  sudo virsh net-list --all
+}
+
+add_to_libvirt() {
+  # Add user to the libvirt group
+  getent group libvirt 2>&1 > /dev/null || sudo groupadd libvirt
+  libvirt_grp=$(awk '/libvirt:/ && /'"$USER"'/' /etc/group)
+  printf "User %s " "$USER"
+  if [[ -n "$libvirt_grp" ]]; then
+    printf "is already a member of "
+  else
+    sudo adduser "$USER" libvirt > /dev/null  # sudo usermod -aG libvirt "$USER"
+    printf "added to "
+  fi
+  printf "the libvirt group.\n"
+}
+
+add_to_libvirtqemu() {
+  # Add user to the libvirt-qemu group
+  getent group libvirt-qemu 2>&1 > /dev/null || sudo groupadd libvirt-qemu
+  libvirt_qemu_grp=$(awk '/libvirt-qemu:/ && /'"$USER"'/' /etc/group)
+  printf "User %s " "$USER"
+  if [[ -n "$libvirt_qemu_grp" ]]; then
+    printf "is already a member of "
+  else
+    sudo adduser "$USER" libvirt-qemu > /dev/null   # sudo usermod -aG libvirt-qemu "$USER"
+    printf "added to "
+  fi
+  printf "the libvirt-qemu group.\n"
+}
+
+add_to_kvm() {
+  # Add user to the kvm group
+  getent group kvm 2>&1 > /dev/null || sudo groupadd kvm
+  kvm_grp=$(awk '/kvm:/ && /'"$USER"'/' /etc/group)
+  printf "User %s " "$USER"
+  if [[ -n "$kvm_grp" ]]; then
+    printf "is already a member of "
+  else
+    sudo adduser "$USER" kvm > /dev/null  # sudo usermod -aG kvm "$USER"
+    printf "added to "
+  fi
+  printf "the kvm group.\n"
+}
+
+## Execution ##
+
+clear
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Installs Virt-Manager and KVM/QEMU...\n"
+
+is_systemd || die "Systemd is required to run background services." 1
+check_cpu
+user_in_sudo
+
+printf "Installing virt-manager, KVM/QEMU, and assoiciated tools...\n"
+# Absolutely required:
+sudo apt-get install qemu-kvm libvirt-daemon-system bridge-utils virt-manager -yy
+# Optional or installed as dependencies:
+sudo apt-get install virtinst virt-viewer qemu-utils libvirt-daemon \
+libguestfs-tools genisoimage libosinfo-bin libvirt-clients -yy
+# sudo apt-get install dnsmasq vde2 openbsd-netcat
+# sudo apt-get install spice-vdagent
+
+# Start Default Network for Networking
+start_networking
+printf "Adding %s to libvirt, libvirt-qemu, and kvm groups...\n" "$USER"
+add_to_libvirt
+add_to_libvirtqemu
+add_to_kvm
+printf "Starting and enabling the libvirt daemon"
+enable_libvirtd
+
+leave "Virt-Manager installed. $USER added to libvirt, libvirt-qemu, and kvm groups."

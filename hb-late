@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : hb-late
+# Description  : Create HomeBank archive after the end of the month.
+# Dependencies : zip
+# Arguments    : none
+# Author       : Richard B. Romig, 02 September 2019
+# Email        : rick.romig@gmail.com
+# Comments     : Use only if hb-cron.sh fails to run on 1st of the month.
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.2.0"
+readonly _updated="12 Jul 2021"
+readonly lhost=$HOSTNAME
+readonly fhost="hp-probook-6570b"
+readonly hb_dir=$HOME"/Documents/HomeBank"
+readonly arc_dir=$HOME"/Downloads/archive/homebank"
+
+# Previous month (2 calendar months)
+prev_month=$(date -d "$(date +%Y-%m-01) - 2 months" +"%B %Y")
+readonly prev_month
+
+# Set reference date to the first day of the previous month
+ref_date=$(date -d "$(date +%Y-%m-01) - 1 month" +%m%d%Y)
+readonly ref_date
+
+# Create filename for the archive file
+hb_archive=$(date -d "$(date +%Y-%m-01) - 2 months" +%Y-%m)-backup.zip
+readonly hb_archive
+
+## Execution ##
+
+# Is the script running from the correct host?
+[[ "$lhost" != "$fhost" ]] && die "$_script must be run from the $fhost."
+
+box "$_script v$_version ($_updated)"
+echo "Archive HomeBank backup files when I forget at the end of the month."
+
+if zip -qmtt "$ref_date" "$arc_dir/$hb_archive" "$hb_dir/*.bak" 2>/dev/null; then
+  echo "${orange}HomeBank backup files for $prev_month archived.${normal}"
+  echo "HomeBank Archives:"
+  ls -1 "$arc_dir"
+else
+  status="$?"
+  echo "No backup files for $prev_month available to be archived."
+  echo "Zip Error Code: $status" >&2
+fi
+
+exit

@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : checkiso
+# Description  : Verifies SHA256 and MD5 checksums of ISO files
+# Dependencies : None
+# Arguments    : ISO filename and checksum file
+# Author       : Copyright Richard B. Romig, 09 Apr 2022
+# Email        : rick.romig@gmail.com
+# Comments     : Checksum file must be one line only.
+#              : Each ISO file must have its own checksum file.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.3.1"
+readonly _updated="30 Sep 2022"
+readonly red_error="${lightred}ERROR:${normal}"
+readonly checksums_match="${green}The checksums match.${normal}"
+readonly checksums_nomatch="${red}The checksums do not match.${normal}"
+readonly invalid_choice="${lightred}Invalid choice.${normal}"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  printf "Usage:\n"
+  printf "%s <distro.iso> <checksum.txt>\n" "$_script "
+  printf "Should be run from the directory where the ISO and checksum files are located.\n"
+  printf "\U1F427 %s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+check_sha256() {
+	local iso_file="$1"
+	local sha_file="$2"
+	iso_sha=$(/usr/bin/sha256sum "$iso_file" | awk '{print $1}')
+	src_sha=$(awk '{print $1}' "$sha_file")
+  printf "\nISO: %s\n" "$iso_file"
+	printf "ISO checksum: %s\n" "$iso_sha"
+	printf "SHA checksum: %C\N" "$src_sha"
+	[[ "$iso_sha" == "$src_sha" ]] && return "$TRUE" || return "$FALSE"
+}
+
+check_md5() {
+  local iso_file="$1"
+  local md5_file="$2"
+  iso_md5=$(/usr/bin/md5sum "$iso_file" | awk '{print $1}') 
+  src_md5=$(awk '{print $1}' "$md5_file")
+  printf "\nISO: %s\n" "$iso_file"
+  printf "ISO checksum: %s\n" "$iso_md5"
+  printf "MD5 checksum: %s\n" "$src_md5"
+  [[ "$iso_md5" == "$src_md5" ]] && return "$TRUE" || return "$FALSE"
+}
+
+## Execution ##
+
+printf "Verifies SHA256/MD5 checksums of ISO files.\n\n"
+if [[ "$#" -lt 2 ]]; then
+  printf "%s Missing one or more arguments.\n" "$red_error" <&2
+	usage 2
+elif [[ -f "$1" && -f "$2" ]]; then
+  COLUMNS=40
+  PS3="Choice: "
+  select opt in "SHA256" "MD5" "Exit"; do
+    case "$REPLY" in
+      1 )
+        if check_sha256 "$1" "$2"; then
+          printf "%s\n" "$checksums_match"
+          error_code=0
+        else
+          printf "%s\n" "$checksums_nomatch" >&2
+          error_code=1
+        fi
+        printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+        exit "$error_code"
+        ;;
+      2 )
+        if check_md5 "$1" "$2"; then
+          printf "%s\n" "$checksums_match"
+          error_code=0
+        else
+           printf "%s\n" "$checksums_nomatch" >&2
+          error_code=1
+        fi
+        printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+        exit "$error_code"
+        ;;
+      3 )
+        printf "Exiting - No action taken\n"
+        printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+        exit
+        ;;
+      * )
+        printf "%s 1 = SHA256 2 = MD5 3 = Exit\n" "$invalid_choice" >&2
+        ;;
+    esac
+  done
+else
+  printf "%s File(s) not found.\n" "$red_error" >&2
+  [[ -f "$1" ]] || printf "%s not found.\n" "$1" >&2
+  [[ -f "$2" ]] || printf "%s not found.\n" "$2" >&2
+	usage 2
+fi

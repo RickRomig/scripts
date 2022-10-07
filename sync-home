@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+#############################################################################
+# Script Name  : sync-home
+# Description  : Synchronize ~/homepage with ~/Dropbox/homepage
+# Dependencies : none
+# Arguments    : none
+# Author       : Richard B. Romig, 24 Sep 2019
+# Email        : rick.romig@gmail.com
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+#############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2088
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.4.1"
+readonly _updated="11 Aug 2022"
+
+readonly start_dir=$PWD
+readonly homepage_dir=$HOME"/homepage"
+readonly dropbox_dir=$HOME"/Dropbox/homepage/"
+
+## Functions ##
+
+## Execution ##
+
+# Start timer
+SECONDS=0
+
+# check_package sshpass
+
+echo "${green}$_script v$_version $_updated)${normal}"
+echo "Synchronizes ~/homepage directory with Dropbox."
+
+# Move to homepage directory
+if [[ "$start_dir" != "$homepage_dir" ]]; then
+  pushd "$homepage_dir" > /dev/null 2>&1 || die "pushd failed"
+fi
+
+# Remove ~ backup files
+remove_tilde
+
+# Update homepage archive
+echo $'\n'$"${orange}Updating homepage archive...${normal}"
+zip -u homepage.zip ./*
+
+# Sync with Dropbox directory
+echo $'\n'$"${orange}Synchronizing ~/homepage with ~/Dropbox/homepage.${normal}"
+rsync -av --delete . "$dropbox_dir"
+
+# Move back to starting directory
+if [[ "$start_dir" != "$homepage_dir" ]]; then
+  popd > /dev/null 2>&1 || die "popd failed"
+fi
+
+echo $'\n'$"Script completed in $(format_time $SECONDS)"
+
+exit

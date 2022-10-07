@@ -1,0 +1,166 @@
+#!/usr/bin/env bash
+#############################################################################
+# Script Name  : local-ip-up
+# Description  : Scans local network to see which addresses are active.
+# Dependencies : iputils-arping, avahi-daemon, avahi-utils, libnss-mdns
+# Arguments    : none
+# Author       : Richard B. Romig, 01 Dec 2019
+# Email        : rick.romig@gmail.com
+# Comments     : Variables for IP range do not work, must be hard coded.
+#              : Local host will not respond to arping.
+#              : Local host will respond using arping in iputils-arping.
+#              : Installing arping will uninstall iputils-arping & sudo required.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+#############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.4.1"
+readonly _updated="02 Aug 2022"
+
+## Functions ##
+
+check_dependencies() {
+  check_package avahi-daemon
+  check_package avahi-utils
+  check_package libnss-mdns
+  check_package iputils-arping
+}
+
+arping_check() {
+  local addr="$1"
+  arping -c 1 "$addr" | grep -E "0 response|0 packets received" > /dev/null 2>&1 return 1 || return 0
+}
+
+scan_static_addresses() {
+  for ip_addr in $localnet.{1..25}; do
+    if arping_check "$ip_addr"; then
+      hname=$(avahi-resolve -a "$ip_addr" 2>/dev/null | awk '{print $NF}' | sed 's/\.local$//')
+      printf "%s" "$ip_addr"
+      if [[ -n "$hname" ]]; then
+        printf "\t%s\n" "$hname"
+      else
+        case $ip_addr in
+          "192.168.0.1" ) printf "\tGateway (TP Link AC1750)\n" ;;
+          "192.168.0.2" ) printf "\tD-Link AP\n" ;;
+          "192.168.0.3" ) printf "\tBelkin N600\n" ;;
+          "192.168.0.4" ) printf "\tNASD97167 (QNAP NAS)\n" ;;
+          "192.168.0.6" ) printf "\tRaspberry Pi 4\n" ;;
+          "192.168.0.8" ) printf "\tHP LaserJet P1505n\n" ;;
+          "192.168.0.9" ) printf "\tHP489EBDBB5940 (HP ENVY 6052e)\n" ;;
+          "192.168.0.10" ) printf "\thp-800g2-sff (Main PC)\n" ;;
+          "192.168.0.11" ) printf "\thp-6005 (Server)\n" ;;
+          "192.168.0.12" ) printf "\te6500-deb (Dell laptop)\n" ;;
+          "192.168.0.13" ) printf "\tprobook-6570b (HP laptop)\n" ;;
+          "192.168.0.14" ) printf "\thp-8300 (Network test)\n" ;;
+          "192.168.0.15" ) printf "\tlenovo-m91p (Lenovo PC)\n" ;;
+          "192.168.0.16" ) printf "\tRick-Win10 (Windows)\n" ;;
+          "192.168.0.17" ) printf "\thp-800-g1-usdt (Media PC)\n" ;;
+          "192.168.0.19" ) printf "\thp-800-g1-dm (Desktop Mini)\n" ;;
+          "192.168.0.20" ) printf "\tprobook-6570 (Travel laptop)\n" ;;
+          "192.168.0.21" ) printf "\thp-probook-6570 (Finance)\n" ;;
+          "192.168.0.22" ) printf "\thp-850-g3 (i3)\n" ;;
+          "192.168.0.23" ) printf "\thp-2560p (MX)\n" ;;
+          "192.168.0.24" ) printf "\te-475m (Gateway laptop)\n" ;;
+          "192.168.0.25" ) printf "\thp-mini-110 (Netbook)\n" ;;
+          * ) printf "\tUnknown host\n"
+        esac
+      fi
+      (( count++ ))
+    fi
+  done
+}
+
+scan_dhcp_addresses() {
+  for ip_addr in $localnet.{100..250}; do
+    if arping_check "$ip_addr"; then
+      hname=$(avahi-resolve -a "$ip_addr" 2>/dev/null | awk '{print $NF}' | sed 's/\.local$//')
+      printf "%s" "$ip_addr"
+      if [[ -n "$hname" ]]; then
+        printf "\t%s\n" "$hname"
+      else
+        printf "\tUnknown host\n"
+      fi
+      (( count++ ))
+    fi
+  done
+}
+
+help() {
+  local errorcode="${1:-2}"
+  cat << EOT
+${green}Usage:${normal} $_script [-a] [-d] [-h] [-s]
+${orange}OPTIONS:${normal}
+  -a  Scan entire network
+  -d  Scan DHCP assigned addresses
+  -h  Display Help
+  -s  Scan static addresses
+  ${orange}Note:${normal} Uses iputils-arping.
+EOT
+  exit "$errorcode"
+}
+
+## Execution ##
+
+check_dependencies
+
+SECONDS=0
+count=0
+
+if [[ $# -eq 0 ]]; then
+  echo "${lightred}ERROR:${normal} No argument passed." >&2
+  help 2
+else
+  optstr=":adhs"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      a )
+        tput civis
+        echo $'\n'$"Scanning  the network ..."
+        echo -e "${underline}${green}IP Address\tHostname${normal}"
+        scan_static_addresses
+        scan_dhcp_addresses
+        tput cnorm
+        ;;
+      d )
+        tput civis
+        echo $'\n'$"Scanning DHCP addresses on the network ..."
+        echo -e "${underline}${green}IP Address\tHostname${normal}"
+        scan_dhcp_addresses
+        tput cnorm
+        ;;
+      h )
+        help 0
+        ;;
+      s )
+        tput civis
+        echo $'\n'$"Scanning static IP addresses on the network ..."
+        echo -e "${underline}${green}IP Address\tHostname${normal}"
+        scan_static_addresses
+        tput cnorm
+        ;;
+      ? )
+        echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+        help 2
+        ;;
+    esac
+  done
+fi
+
+printf "\n%s active addresses discovered in %s.\n\n" "$count" "$(format_time SECONDS)"
+leave "$_script v$_version ($_updated)"

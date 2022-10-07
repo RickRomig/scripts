@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-kitty
+# Description  : Installs kitty terminal emulator with basic configuration.
+# Dependencies : None
+# Arguments    : -c -h -i -r (see help function for more information)
+# Author       : Copyright Richard B. Romig, 26 Sep 2022
+# Email        : rick.romig@gmail.com
+# Comments     : Configures as login terminal for Debian-based distros.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.3"
+readonly _updated="07 Oct 2022"
+readonly kitty_cfg="$HOME/.config/kitty"
+readonly red_error="${lightred}ERROR:${normal}"
+
+## Functions ##
+
+help() {
+  local errcode="${1:-2}"
+  cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}Options:${normal}
+  -c  Install Kitty configuration
+  -h  Display help
+  -i  Install Kitty from repositories
+  -r  Remove Kitty from system
+END_HELP
+	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+kitty_version() {
+  kitty --version | awk '{print $2}'
+}
+
+install_kitty() {
+  printf "Installing the kitty terminal emulator.\n"
+  sudo apt-get install kitty -yy
+  kitty_config
+  printf "Kitty %s installed and configured.\n" "$(kitty_version)"
+}
+
+remove_kitty() {
+  printf "Removing Kitty terminal emulator %s\n" "$(kitty_version)"
+  sudo apt-get remove kitty -yy
+  [[ -d "$kitty_cfg" ]] && rm -rf "$kitty_cfg"
+  printf "Kitty terminal emulator has been removed.\n"
+}
+
+kitty_config() {
+  local files_dir="$HOME/bin/files"
+  local doc_kitty="/usr/share/doc/kitty/examples"
+  printf "Setting up kitty.conf ...\n"
+  [[ -d "$kitty_cfg" ]] || mkdir -p "$kitty_cfg"
+  cp "$doc_kitty/kitty.conf" "$kitty_cfg/"
+  sed -i -f "$files_dir/kitty.sed" "$kitty_cfg/kitty.conf"
+  is_debian && sed -i 's/^shell \./#: shell ./ ; /#: shell \./a shell \/bin\/bash --login' "$kitty_cfg/kitty.conf"
+  printf "kitty.conf created and configured.\n"
+}
+
+## Execution ##
+
+# clear
+if [[ "$#" -eq 0 ]]; then
+  printf "%s No argument passed.\n" "$red_error" >&2
+  help 1
+else
+  optstr=":chir"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      c )
+        exists kitty || leave "Kitty is not installed."
+        printf "Configuring Kitty %s...\n" "$(kitty_version)"
+        kitty_config
+        break ;;
+      h )
+        help 0
+        ;;
+      i )
+        exists kitty && leave "Kitty terminal emulator $(kitty_version) already installed.\n"
+        user_in_sudo
+        install_kitty
+        break ;;
+      r )
+        exists kitty || leave "Kitty is not installed."
+        user_in_sudo
+        remove_kitty
+        break ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+        help 2
+        ;;
+    esac
+  done
+fi
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+
+exit

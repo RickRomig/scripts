@@ -1,0 +1,205 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : check-logs
+# Description  : Displays selected log files and information.
+# Dependencies : functionlib
+# Arguments    : None
+# Author       : Richard B. Romig, 29 August 2019
+# Email        : rick.romig@gmail.com
+# Comments     : sudo access required to view Timeshift snapshots
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.5.5"
+readonly _updated="31 Jul 2022"
+readonly lhost=$HOSTNAME
+readonly local_logs="$HOME/.local/share/logs"
+
+## Execution ##
+
+while true; do
+  clear
+  echo "${orange}I solemnly swear that I'm up to no good.${normal}"
+  echo -e "\U1F427 $_script v$_version ($_updated)"
+  echo "Displays the contents of selected log files."
+  echo "Not all logs will be available on all systems."
+  echo $'\n'$"${lightgreen}Log files on $lhost:${normal}"
+
+  COLUMNS=60
+  options=("System Information" "System Updates" "Timeshift Snapshots" \
+    "Defrag Report" "Youtube-dl Updates" "Script archive" "Password Databases" \
+    "HomeBank Archive" "Local Backup" "Exit the script")
+  PS3="Select a log to view: "
+  select opt in "${options[@]}"; do
+    case $REPLY in
+      1 )
+        clear
+        echo -e "${lightgreen}$lhost - System information:${normal}\n"
+        if [[ -f "$HOME/$lhost.info" ]]; then
+          viewtext "$HOME/$lhost.info"
+        else
+          echo -e "${orange}$HOME/$lhost.info not found on this system.${normal}\n"
+        fi
+        anykey; break ;;
+      2 )
+        clear
+        echo -e "${lightgreen}$lhost - Most recent unattended system update:${normal}\n"
+        if [[ -f "/var/log/update.log" ]]; then
+          viewtext "/var/log/update.log"
+        else
+          echo "${orange}The system update log does not exist on this system.${normal}"
+          echo -n "The job is"
+          if [[ -x "/etc/cron.weekly/z-update" || -x "/opt/bin/z-update" ]]; then
+            echo -e " scheduled but has not run.\n"
+          else
+            echo -e " not scheduled to run.\n"
+          fi
+        fi
+        anykey; break ;;
+      3 )
+        clear
+        echo -e "${lightgreen}$lhost - Timeshift Snapshots${normal}\n"
+        if exists timeshift; then
+          if pgrep timeshift > /dev/null 2>&1; then
+            echo -e "${orange}Timeshift is currently running.${normal} Try again later.\n"
+          else
+            sudo timeshift --list | awk 'NR!=1 && NR!=3' 2>/dev/null
+          fi
+        else
+          echo -e "${orange}Timeshift is not installed on this system.${normal}\n"
+        fi
+        anykey; break ;;
+      4 )
+        clear
+        echo -e "${lightgreen}$lhost - Defragmentation report:${normal}\n"
+        if [[ -f "/var/log/defrag.log" ]]; then
+          viewtext "/var/log/defrag.log"
+        else
+          echo "${orange}The defragmentation report does not exist on this system.${normal}"
+          echo -n "The job is"
+          if [[ -x "/etc/cron.monthly/z-defrag" || -x "/opt/bin/z-defrag" ]]; then
+            echo -e " scheduled but has not run.\n"
+          else
+            echo -e " not scheduled to run.\n"
+          fi
+        fi
+        anykey; break ;;
+      5 )
+        clear
+        echo -e "${lightgreen}$lhost - Youtube-dl Update Log:${normal}\n"
+				ytdlup_log="/var/log/ytdlup.log"
+        if [[ -f "$ytdlup_log" ]]; then
+					(printf "DATE|TIME|STATUS|VERSION\n"; cat "$ytdlup_log") | column -ts "|"
+          print_line "-" "25"
+          entries=$(wc -l "$ytdlup_log" | cut -d' ' -f1)
+          (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
+        else
+          echo "${orange}The youtube-dl update log does not exist on this system.${normal}"
+          echo -n "The job is"
+          if [[ -x "/etc/cron.daily/z-ytdlupdate" || -x "/opt/bin/z-ytdlupdate" ]]; then
+            echo -e " scheduled but has not run.\n"
+          else
+            echo -e " not scheduled to run.\n"
+          fi
+        fi
+        anykey; break ;;
+        6 )
+          clear
+          echo -e "${lightgreen}$lhost - Bash Script Archive Log:${normal}\n"
+					script_log="script-archive.log"
+          if [[ -f "$local_logs/$script_log" ]]; then
+						(printf "DAY|DATE|TIME|RESULT\n"; cat "$local_logs/$script_log") | column -ts "|"
+            print_line "-" "25"
+            entries=$(wc -l "$local_logs/$script_log" | cut -d' ' -f1)
+            (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
+          else
+            echo "${orange}The bash script archive log does not exist on this system.${normal}"
+            echo -n "The job is"
+            if [[ -x "$HOME/.local/bin/scriptarchive.sh" ]]; then
+              echo -e " scheduled but has not run.\n"
+            else
+              echo -e " not scheduled to run.\n"
+            fi
+          fi
+          anykey; break ;;
+      7 )
+        clear
+        echo -e "${lightgreen}$lhost - Password Database Change Log:${normal}\n"
+				pw_log="password-db.log"
+        if [[ -f "$local_logs/$pw_log" ]]; then
+          (printf "DATE|TIME|P.GORILLA|KEEPASSXC\n"; cat "$local_logs/$pw_log") | column -ts "|"
+          print_line "-" "25"
+          entries=$(wc -l "$local_logs/$pw_log" | cut -d' ' -f1)
+          (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
+        else
+          echo "${orange}The Password Database Change Log does not exist on this system.${normal}"
+          echo -n "The job is"
+          if [[ -x "$HOME/.local/bin/passwdsync.sh" ]]; then
+            echo -e " scheduled but has not run.\n"
+          else
+              echo -e " not scheduled to run.\n"
+          fi
+        fi
+        anykey; break ;;
+      8 )
+        clear
+        echo -e "${lightgreen}$lhost - HomeBank Archive Log:${normal}\n"
+				bank_log="HomeBank-archive.log"
+        if [[ -f "$local_logs/$bank_log" ]]; then
+          (printf "DAY|DATE|TIME|ARCHIVE|RESULT\n"; cat "$local_logs/$bank_log") | column -ts "|"
+          print_line "-" "25"
+          entries=$(wc -l "$local_logs/$bank_log" | cut -d' ' -f1)
+          (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
+        else
+          echo "${orange}The HomeBank archive log does not exist on this system.${normal}"
+          echo -n "The job is"
+          if [[ -x "$HOME/.local/bin/hb-archive.sh" ]]; then
+            echo -e " scheduled but has not run.\n"
+          else
+            echo -e " not scheduled to run.\n"
+          fi
+        fi
+        anykey; break ;;
+        9 )
+          clear
+          echo -e "${lightgreen}$lhost - Local Backup Log:${normal}\n"
+					backup_log="/var/log/backup.log"
+          if [[ -f "$backup_log" ]]; then
+						(printf "DAY|DATE|TIME|RESULT\n"; cat "$backup_log") | column -ts "|"
+            print_line "-" "25"
+            entries=$(wc -l "$backup_log" | cut -d' ' -f1)
+            (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
+          else
+            echo "${orange}The local backup log does not exist on this system.${normal}"
+            echo -n "The job is"
+            if [[ -x "/etc/cron.daily/z-backup" || -x "/opt/bin/z-backup" ]]; then
+              echo -e " scheduled but has not run.\n"
+            else
+              echo -e " not scheduled to run.\n"
+            fi
+          fi
+          anykey; break ;;
+      10 )
+        leave "${orange}Mischief managed.${normal}" ;;
+      * )
+        echo "${lightred}Invalid choice. Try again.${normal}" >&2 ;;
+    esac
+  done
+done

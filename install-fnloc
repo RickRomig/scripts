@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-fnloc
+# Description  : Installs fnloc/lloc - apps to count lines of code.
+# Dependencies : gdebi, sshfs
+# Arguments    : none
+# Author       : Richard B. Romig, 09 Feb 2021
+# Email        : rick.romig@gmail.com
+# Comments     :
+# Last updated : 09 Feb 2021
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.6"
+readonly _updated="22 Sep 2022"
+readonly package="fnloc_2.3.1_amd64.deb"
+readonly pkg_name="FnLoC"
+tmp_dir=$(mktemp -d) || die "Failed to create temporary directory."
+
+## Functions ##
+
+about_fnloc() {
+  cat <<- EOF
+  FnLoc (Funtion Lines of Code) is a program that counts lines of code in C source
+  code files, breaking out functions and then number of lines of code with them. The
+  program will also count lines of code in associated header files. A wrapper script
+  is included. View the README file for detailed information.
+EOF
+  echo "Files:"
+  dpkg --listfiles fnloc
+}
+
+install_fnloc() {
+  cp -pv "$pkg_dir/$package" "$TMP_DIR"
+  sudo gdebi -n "$tmp_dir/$package"
+  leave "$pkg_name installed."
+}
+
+remove_fnloc() {
+  if dpkg -l | grep -qw fnloc; then
+    sudo dpkg -r fnloc
+    leave "$pkg_name removed."
+  else
+    leave "$pkg_name not installed."
+  fi
+}
+
+check_dependencies() {
+  echo "Checking dependencies..."
+  check_package sshfs
+  check_package gdebi
+}
+
+## Execution ##
+
+check_dependencies
+
+ip_addr="$(local_ip)"
+if [[ "$ip_addr" -eq "11" ]]; then
+  pkg_dir="/data/installation/Packages"
+else
+  pkg_dir="/mnt/HP-6005/installs/Packages"
+  mount_server
+fi
+
+trap unmount_server EXIT
+
+clear
+echo "$_script v$_version ($_updated)"
+echo "Installs $pkg_name"
+
+PS3="Action: "
+select opt in "About FnLoC" "Install FnLoC" "Remove FnLoC" "Quit"; do
+  case "$REPLY" in
+    1 ) about_fnloc; break ;;
+    2 ) install_fnloc; break ;;
+    3 ) remove_fnloc; break ;;
+    4 ) leave "No action taken."; break ;;
+    * ) echo "${lightred}Invalid choice!${normal} Select 1, 2, 3, or 4" >&2 ;;
+  esac
+done

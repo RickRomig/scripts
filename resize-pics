@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : resize-pics
+# Description  : Resizes and changes the compression of images/
+# Dependencies : imagemagick
+# Arguments    : none
+# Author       : Copyright Richard B. Romig, 22 Jun 2022
+# Email        : rick.romig@gmail.com
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.0"
+readonly _updated="22 Jun 2022"
+
+## Functions ##
+
+check_dependencies() {
+  check_package imagemagick
+}
+
+resize_pics() {
+  [[ -d modpics ]] || mkdir -p modpics
+  for f in *.jpg; do convert "$f" -resize 800x800 modpics/"${f%}"; done
+  convert 'modpics/*.jpg[800x>]' -quality 90 -set filename:base "%[basename]" "modpics/%[filename:base].jpg"
+}
+
+## Execution ##
+
+# echo -e "\U1F427 $_script v$_version ($_updated)"
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+
+resize_pics
+
+exit

@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : mk-readme
+# Description  : Creates shell for a README.md file from a template
+# Dependencies : sed
+# Arguments    : name of project
+# Author       : Richard B. Romig, 09 April 2019
+# Email        : rick.romig@gmail.com
+# Comment      :
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="1.3.9"
+readonly _updated="06 Jul 2022"
+
+# Information to be inserted into README template
+# For sed, forward slashes have to be escaped with backslashes
+
+readonly today=$(date +"%d %B %Y")
+readonly copy_holder="Richard B. Romig"
+readonly github="github.com\/RickRomig"
+readonly blog_name="Rick's Tech Stuff"
+readonly blog_url="ricktech.wordpress.com"
+readonly twitter_name="@ludditegeek"
+readonly twitter_url="twitter.com\/ludditegeek"
+readonly emailaddr1="rick.romig@gmail.com"
+readonly emailaddr2="rick.romig@mymetronet.net"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  echo "${orange}Usage:${normal} $_script <project-name>"
+  echo "${orange}Example:${normal}  $_script my-project"
+  exit "$errcode"
+}
+
+## Execution ##
+
+# Check arguments
+
+if [[ $# -eq 0 ]]; then
+  echo "${lightred}Error:${normal} No argment passed." >&2
+  usage 2
+elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+  echo "$_script v$_version ($_updated)"
+  usage 0
+else
+  project=$1
+fi
+
+echo "$_script v$_version ($_updated)"
+echo "Creating a README.md template for project $project"
+
+# Fill in placeholders and create README.md
+
+sed -e '1d' \
+    -e "s/<PROJECT>/$project/" \
+    -e "s/<GITHUB>/$github/" \
+    -e "s/<BLOG>/$blog_name/" \
+    -e "s/<BLOGURL>/$blog_url/" \
+    -e "s/<TWITNAME>/$twitter_name/" \
+    -e "s/<TWITURL>/$twitter_url/" \
+    -e "s/<EMAIL1>/$emailaddr1/" \
+    -e "s/<EMAIL2>/$emailaddr2/" \
+    -e "s/<AUTHOR>/$copy_holder/" \
+    -e "s/<DATE>/$today/" "$HOME/Templates/readme" > README.md
+echo "The README.md for $project has been created."
+
+edit_view_quit README.md
+
+exit

@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+#####################################################################
+# Script Name  : check-cron
+# Description  : Shows when anacron jobs were last run and displays
+#              : crontabs for all normal and root users.
+# Dependencies : none
+# Arguments    : None
+# Author       : Richard Romig, 6 March 2018
+# Email        : rick.romig@gmail.com
+# Comments     : Requires sudo privileges
+# 16 Jul 2021  : displays cron jobs for all normal users.
+# 09 Feb 2022  : placed tasks in modular functions.
+# 04 Oct 2022  : allowed for case where anacron job has not run yet.
+#              : allowed for case where no jobs in /etc/cron.* .
+# License      : GNU General Public License, version 2.0
+#####################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  pirntf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Functions ##
+
+show_anacron() {
+  local daily="/var/spool/anacron/cron.daily"
+  local weekly="/var/spool/anacron/cron.weekly"
+  local monthly="/var/spool/anacron/cron.monthly"
+
+  echo $'\n'$"${orange}Anacron Daily: ${normal}Last run on $(sudo cat "$daily" 2>/dev/null)"
+  echo -n "${orange}Jobs: ${normal}"
+  ls /etc/cron.daily
+  [[ "$(ls -1 /etc/cron.daily | wc -l | cut -d' ' -f1)" == 0 ]] && echo "No jobs scheduled."
+
+  echo $'\n'$"${orange}Anacron Weekly: ${normal}Last run on $(sudo cat "$weekly" 2>/dev/null)"
+  echo -n "${orange}Jobs: ${normal}"
+  ls /etc/cron.weekly
+  [[ "$(ls -1 /etc/cron.weekly | wc -l | cut -d' ' -f1)" == 0 ]] &&echo "No jobs scheduled."
+
+  echo $'\n'$"${orange}Anacron Monthly: ${normal}Last run on $(sudo cat "$monthly" 2>/dev/null)"
+  echo -n "${orange}Jobs: ${normal}"
+  ls /etc/cron.monthly
+  [[ "$(ls -1 /etc/cron.monthly | wc -l | cut -d' ' -f1)" == 0 ]] && echo "No jobs scheduled."
+}
+
+show_user_cron() {
+  local passwd_file="/etc/passwd"
+  num_users=$(awk -F: '$3 >= 1000 && !($1 == "nobody" && $3 == 65534) {SUM+=1} END {print SUM}' "$passwd_file")
+  i=1000
+  max=$(( num_users + i ))
+
+  while [[ "$i" -le "$max" ]]; do
+    norm_user="$(awk -v pat="$i" -F: '$0~pat{print $1}' "$passwd_file")"
+    if [[ -n "$norm_user" ]]; then
+      echo $'\n'$"${orange}Cron jobs for $norm_user:${normal}"
+      sudo crontab -l -u "$norm_user" | grep -v '#'
+    fi
+    (( i++ ))
+  done
+}
+
+show_root_cron() {
+  echo $'\n'$"${orange}Cron jobs for root:${normal}"
+  sudo crontab -l | grep -v '#'
+}
+
+main() {
+  readonly _script=$(basename "$0")
+  readonly _version="0.4.0"
+  readonly _updated="04 Oct 2022"
+
+  clear
+  echo $'\n'$"${bold}${green}Jobs for $(uname -n)"
+  show_anacron
+  show_user_cron
+  show_root_cron
+  printf "\n\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  print_line "-" 34
+}
+
+## Execution ##
+
+user_in_sudo
+main
+leave ""

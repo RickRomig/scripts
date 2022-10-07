@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : mk-c-src
+# Description  : create C source file from template
+# Dependencies : sed
+# Arguments    : new C source file
+# Author       : Richard Romig
+# Email        : rick.romig@gmail.com
+# Comment      : C template includes GNU GPL v2 license
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="2.4.9"
+readonly _updated="30 Sep 2022"
+
+# Data to insert into new C source file
+
+readonly today=$(date +"%d %B %Y")
+readonly cur_yr=$(date +%Y)
+readonly copy_holder="Richard B. Romig"
+readonly email_addr="rick.romig@gmail.com"
+readonly email_addr1="rick.romig@mymetronet.net"
+readonly license="GNU General Public License, version 2.0"
+
+# readonly templates=$HOME"/Templates"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  echo "${orange}Usage:${normal} $_script <source_file>"
+  echo "${orange}Example:${normal} $_script my-source.c"
+  exit "$errcode"
+}
+
+## Check arguments ##
+
+if [[ -z "$1"  ]]; then
+  echo "${lightred}Error:${normal} No argment passed." >&2
+  usage 2
+elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+  echo "$_script v$_version ($_updated)"
+  usage 0
+elif [[ -f "$1" ]]; then
+  echo "${lightred}Error:${normal} $1 already exists." >&2
+  usage 2
+else
+  filename=$1
+fi
+
+## Execution ##
+
+echo "$_script v$_version ($_updated)"
+echo "Creating $FILE C source code file."
+
+COLUMNS=40
+echo "Which script template are you using?"
+PS3="Choice: "
+select opt in "C code" "C++ code"
+do
+  case "$REPLY" in
+    1 ) template_file="c-template"; break ;;
+    2 ) template_file="cpp-template"; break ;;
+    * ) echo "${lightred}Invalid choice.${normal} 1 = C code 2 = C++ code" >&2 ;;
+  esac
+done
+
+# Fill in the placeholders and create the source file
+
+sed -e '1d' \
+    -e "s/<PROGNAME>/$filename/" \
+    -e "s/<YEAR>/$cur_yr/" \
+    -e "s/<AUTHOR>/$copy_holder/" \
+    -e "s/<EMAIL>/$email_addr/" \
+    -e "s/<EMAIL1>/$email_addr1/" \
+    -e "s/<TODAY>/$today/" \
+    -e "s/<LICENSE>/$license/" "$HOME/Templates/$template_file" > "$filename"
+
+echo "$filename has been created."
+edit_view_quit "$filename"
+
+leave ""

@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : yt-dl-audio
+# Description  : Download mp3 audio from YouTube.com to current directory
+# Dependencies : youtube-dl
+# Arguments    : Video URL or ID number
+# Author       : Richard B. Romig, 14 Nov 2019
+# Email        : rick.romig@gmail.com
+# Comment      : Accepts both full URLs and video id's such as AQcQgfvfF1M
+#              : Downloads to current working directory
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+# Variables
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.9"
+readonly _updated="04 May 2022"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  echo "Usage: $_script [video-url] [video-ID]"
+  echo "$_script https://www.youtube.com/watch?v=8hLlU0EML4U"
+  echo "$_script 8hLlU0EML4U"
+  exit "$errcode"
+}
+
+check_dependencies() {
+  exists youtube-dl || die "youtube-dl must be installed. Run install-ytdl" 1
+}
+
+## Execution ##
+
+check_dependencies
+
+if [[ -z "$1" ]]; then
+  echo "${lightred}Error:${normal} No argument passed." >&2
+  usage 2
+elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
+  usage 0
+elif [[ "$1" =~ ^https?:\/\/.* ]]; then
+  # match by regex, starts with http:// or https://
+  # \/ in regex will be seen as / in this context
+  url=$*
+else
+  # match by video ID
+  url="https://www.youtube.com/watch?v=$*"
+fi
+
+clear
+print_line "=" 22
+echo "YouTube Audio Download"
+print_line "=" 22
+echo "$_script v$_version"
+echo "($_updated)"
+echo $'\n'$"${bold}${blue}Downloading m4a audio for $url${normal}"
+if /usr/local/bin/youtube-dl -f 140  -xic --embed-thumbnail \
+ --restrict-filename --output "%(title)s.%(ext)s" "$url"; then
+  leave "Download successful."
+else
+  EC="$?"
+  die "Download failed." "$EC"
+fi

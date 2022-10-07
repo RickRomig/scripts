@@ -1,0 +1,318 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : syncmosfa
+# Description  : Syncs directories with machines on the network via SSH
+# Dependencies : rsync
+# Arguments    : Last octet of target IP address, see usage()
+# Author       : Richard Romig, 29 Sep 2020
+# Email        : rick.romig@gmail.com
+# Comments     : Can sync to one or all machines on the network.
+#              : LOCALNET is declared in functionlib
+# 11 Jul 21    : Added check_host function.
+# 28 Jul 21    : Added Finance directories to sync to Probook 6570b (13)
+# 29 Jul 21    : Moved personal directories to sync to Probook 6570b (20)
+# 05 Aug 21    : Added ISO directories to lenovo m91p (15)
+# 12 Nov 21    : Added IPs 21, 22, 24, 25 to restricted addesses.
+# 29 Jan 2022  : Changed Finance directories sync to HP-6005 (11)
+# 17 Sep 2022  : Added Videos/Tech/ to synch to Probook 6570b (20)
+# 29 Sep 2022  : Replace if-elif with case in sync_script function.
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="1.2.0"
+readonly _updated="29 Sep 2022"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+	cat << EOF
+  $_script help
+  ${orange}Usage:${normal} $_script [OPTION]
+  OPTION   ACTION
+  -h       Displays usage instructions.
+  --help   Displays usage instructions.
+  -a       Synchronizes all designated machines on the network.
+  --all    Synchronizes all designated machines on the network.
+  1-255    Last octet of the IP address(es) of the machine(s) to synchronize.
+  ${orange}Examples:${normal}
+      $_script -h         # Displays usage instructions.
+      $_script --help     # Displays usage instructions.
+      $_script -a         # Synchronizes with all designated systems.
+      $_script --all      # Synchronizes with all designated systems.
+      $_script 13         # Synchronizes with the system with a last octet of 13.
+      $_script 12 13 14   # Synchronizes with systems whose last octets are 12, 13, 14.
+  ${orange}Notes:${normal}
+      - Multiple IP addresses can be entered.
+      - This script is limited to the range of static IP addresses (1 - 25).
+      - Certain addresses within that range have been marked as restricted and are not accessible.
+EOF
+  exit "$errcode"
+}
+
+transfer_status() {
+  # Exit script if transfer fails.
+  xfr_status="$1"
+  (( xfr_status != 0 )) && die "A transfer failed! Check network status."
+}
+
+transfer() {
+  # Skip local machine:
+  ip_addr="$(local_ip)"
+  if [ "$ip_addr" = "$hostip" ]; then
+    echo -e "${green}...Syncing from $hostip${normal}\n"
+    return
+  fi
+
+  # Check for machines and sync if on-line:
+  echo "${green}Checking for $hostip...${normal}"
+  if  ping -c 3 "$localnet.$hostip" >/dev/null 2>&1
+  then
+    echo "...Syncing to Machine $hostip"
+    sync_script
+    echo -e "...Machine $hostip Synced!\n"
+  else
+    echo -e "...Skipping $hostip! Not on network.\n"
+  fi
+}
+
+sync_script() {
+  # Synch to all.
+  echo $'\n'$"${orange}Syncing aliases...${normal}"
+  rsync -avzh --delete /home/"$USER"/.bash_aliases "$localnet.$hostip":
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing bin...${normal}"
+  rsync -avzh --delete /home/"$USER"/bin/ "$localnet.$hostip":bin/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing debpkgs...${normal}"
+  rsync -avzh --delete /home/"$USER"/debpkgs/ "$localnet.$hostip":debpkgs/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing homepage...${normal}"
+  rsync -avzh --delete /home/"$USER"/homepage/ "$localnet.$hostip":homepage/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing MOSFANET...${normal}"
+  rsync -avzh --delete /home/"$USER"/Documents/mosfanet/ "$localnet.$hostip":Documents/mosfanet/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Work..${normal}"
+  rsync -avzh --delete /home/"$USER"/Work/ "$localnet.$hostip":Work/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Projects...${normal}"
+  rsync -avzh --delete /home/"$USER"/Projects/ "$localnet.$hostip":Projects/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Templates...${normal}"
+  rsync -avzh --delete /home/"$USER"/Templates/ "$localnet.$hostip":Templates/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Pictures/wallpaper...${normal}"
+  rsync -avzh --delete /home/"$USER"/Pictures/wallpaper/ "$localnet.$hostip":Pictures/wallpaper/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  case "$hostip" in
+    11 )
+      # Sync financial files.
+      echo $'\n'$"${orange}Syncing Finance...${normal}"
+      rsync -avzh --delete /home/"$USER"/Documents/Finance/ "$localnet.$hostip":Documents/Finance/
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      echo $'\n'$"${orange}Syncing HomeBank...${normal}"
+      rsync -avzh --delete /home/"$USER"/Documents/HomeBank/ "$localnet.$hostip":Documents/HomeBank/
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      echo $'\n'$"${orange}Syncing HomeBank archives...${normal}"
+      rsync -avzh --delete /home/"$USER"/Downloads/archives/homebank/ "$localnet.$hostip":Downloads/archives/homebank/
+      exit_status="$?"
+      transfer_status "$exit_status"
+      ;;
+    15 )
+      # sync ISO files
+      echo $'\n'$"${orange}Syncing ISO images...${normal}"
+      rsync -avzh --delete /home/"$USER"/Downloads/ISO/ "$localnet.$hostip":Downloads/ISO/
+      exit_status="$?"
+      transfer_status "$exit_status"
+      ;;
+    20 )
+      # Sync personal files.
+      echo $'\n'$"${orange}Syncing Audio Books...${normal}"
+      rsync -avzh --delete /home/"$USER"/Audiobooks/ "$localnet.$hostip":Audiobooks/
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      echo $'\n'$"${orange}Syncing BP Readings...${normal}"
+      rsync -avzh --delete /home/"$USER"/BP-Daily.txt "$localnet.$hostip":BP-Daily.txt
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      echo $'\n'$"${orange}Syncing Blogs...${normal}"
+      rsync -avzh --delete /home/"$USER"/Documents/Blogs/ "$localnet.$hostip":Documents/Blogs/
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      echo $'\n'$"${orange}Syncing Dreams...${normal}"
+      rsync -avzh --delete /home/"$USER"/Documents/Dreams/ "$localnet.$hostip":Documents/Dreams/
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      echo $'\n'$"${orange}Syncing Journals...${normal}"
+      rsync -avzh --delete /home/"$USER"/Documents/Journals/ "$localnet.$hostip":Documents/Journals/
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      echo $'\n'$"${orange}Syncing Quotes...${normal}"
+      rsync -avzh --delete /home/"$USER"/Documents/Quotes/ "$localnet.$hostip":Documents/Quotes/
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      echo $'\n'$"${orange}Syncing Tech Videos...${normal}"
+      rsync -avzh --delete /home/"$USER/Videos/Tech/" "$localnet.$hostip":Videos/Tech/
+      exit_status="$?"
+      transfer_status "$exit_status"
+      ;;
+    * )
+      ;;
+  esac
+}
+
+sync_one() {
+  valid_ip "$1" && hostip="$1"
+
+  echo -e "Synchronizing directories with $localnet.$hostip.\n"
+
+  if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
+    # Restricted IP addresses on local network
+    case $hostip in
+      1|2|3|4|5|6|7|8|9|21|22|24|25 )
+        echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted address."
+        echo -e " Access denied.\n"; exit ;;
+      * )
+        echo "Synchronizing directories with $localnet.$hostip:"
+        sync_script
+        all_done ;;
+    esac
+  else
+    echo -n "${orange}Warning!${normal} $localnet.$hostip is outside the range"
+    echo -e " of static addresses.\n"
+  fi
+}
+
+sync_some() {
+  echo -e "Synchronizing directories with selected systems on the local network.\n"
+  xfr_flag=0
+  for hostip in "$@"; do
+    if [[ "$hostip" -eq "$hostip" ]] 2>/dev/null; then
+      if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
+        case "$hostip" in
+          1|2|3|4|5|6|7|8|9|21|22|24|25 )
+            echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted"
+            echo -e " address. Access denied.\n" ;;
+          * )
+            transfer
+            (( xfr_flag++ )) ;;
+        esac
+      elif [[ "$hostip" -gt 25 && "$hostip" -lt 255 ]]; then
+        echo -n "${orange}Warning!${normal} $localnet.$hostip is outside the range"
+        echo -e " of static addresses.\n"
+      else
+        echo -e "${lightred}ERROR!${normal} Invalid argument: $hostip\n" >&2
+      fi
+    else
+      echo -e "${lightred}ERROR!${normal} Integer argument expected.\n" >&2
+    fi
+  done
+  [ "$xfr_flag" -gt 0 ] && all_done
+}
+
+sync_all() {
+  echo -e "Synchronizing directories with systems on the local network.\n"
+
+  OCTETS=(10 11 12 13 14 15 16 17 18 19 20 23)
+  for hostip in "${OCTETS[@]}"; do transfer; done
+  all_done
+}
+
+all_done() {
+  print_line "-" 27
+  echo "- All directories synced! -"
+  print_line "-" 27
+  leave "Script completed in $(format_time $SECONDS)"
+}
+
+check_host() {
+  local lhost="hp-800g2-sff"
+  local chost=$HOSTNAME
+  cur_ip="$(local_ip)"
+  echo -n "Synchronizing from host: ${lightyellow}$chost${normal} at "
+  echo "IP: ${lightyellow}$localnet.$cur_ip${normal}"
+  if [[ "$lhost" != "$chost" ]]; then
+    while true ; do
+      read -rp "Do you wish to continue? [Yes|No] " choice
+      shopt -s nocasematch
+      case "$choice" in
+        "yes" )
+          echo $'\n'$"Continuing with the script..."
+          shopt -u nocasematch
+          break ;;
+        "no" )
+          echo $'\n'$"Synchronization canceled."
+          shopt -u nocasematch
+          leave "Exiting the script..." ;;
+        * )
+          echo "${lightred}Invalid choice.${normal} Enter Yes or No" ;;
+      esac
+    done
+  fi
+}
+
+## Execution ##
+
+box "$_script v$_version, ($_updated)"
+check_host
+
+# Start timer
+SECONDS=0
+
+if [[ "$#" -eq 0 ]]; then
+  usage 2
+elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+  usage 0
+elif [[ "$1" = "-a" || "$1" = "--all" ]]; then
+  sync_all
+elif [[ "$#" -gt 1 ]]; then
+  sync_some "$@"
+else
+  sync_one "$1"
+fi

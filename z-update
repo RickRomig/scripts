@@ -1,0 +1,78 @@
+#!/usr/bin/env sh
+
+set -e
+
+# Update Script
+# anacron job: Copy to /etc/cron.weekly as root (or sudo) user
+# cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
+# Last updated 27 Sep 2022
+# 25 Jun 2021 - cleans "reading database" lines from the log file.
+# 05 Jul 2021 - added flatpak updates.
+# 10 Jul 2021 - added code to purge outdated kernel config files
+# 14 Jul 2021 - placed purge code in a for loop.
+# 17 Jul 2021 - changed the order of cleanup operations
+# 21 Jul 2021 - added conditional if no '^rc' packages found.
+# 09 Nov 2021 - reverted to for loop for purge code.
+# 07 Jan 2022 - clean up flatpak updates in the log file.
+# 12 Jan 2022 - flatpak cleanup only if flatpak installed.
+# 17 Feb 2022 - uses sed control file to do flatpak cleanup.
+# 23 May 2022 - changed date formats.
+# 05 Jul 2022 - Added DEBIAN_FRONTEND=noninteractive to purge routine.
+# 27 Sep 2022 - Added --noninteractive switch to flatpak update.
+# License : GNU General Public License, version 2.0
+
+check_flatpak() {
+  printf "\\n*** Flatpak ***\\n"
+  flatpak update --noninteractive --force-remove --assumeyes
+}
+
+exists() {
+  command -v "$1" > /dev/null 2>&1 && return 0 || return 1
+}
+
+log_dir="/var/log"
+log_file="update.log"
+sed_file="/usr/share/misc/updatelog.sed"
+
+{
+  printf "Update started at: %s\\n" "$(date '+%a %F %T')"
+  printf "\\n*** Checking for updates ***\\n"
+  /usr/bin/apt-get update
+  nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
+  if [ "$nupd" -eq 1 ]; then
+    printf "%d package can be upgraded.\\n" "$nupd"
+  elif [ "$nupd" -gt 1 ]; then
+    printf "%d packages can be upgraded.\\n" "$nupd"
+  else
+    printf "All packages are up to date.\\n"
+  fi
+  if [ "$nupd" -gt 0 ]; then
+    printf "\\n*** Installing updates ***\\n"
+    DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get dist-upgrade -yy
+  else
+    printf "\\nNothing to update.\\n"
+  fi
+  printf "\\n*** Cleaning APT cache ***\\n"
+  /usr/bin/apt-get autoclean
+  printf "\\n*** Removing orphaned packages ***\\n"
+  DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove -yy
+  printf "\\n*** Purging obsolete configuration files ***\\n"
+  rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}' | wc -l)
+  if [ "$rcpkgs" -gt 0 ]; then
+    # /usr/bin/apt-get remove --purge "$(dpkg -l | awk '/^rc/ {print $2}')" -yy
+    for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
+      DEBIAN_FRONTEND=noninteractive apt-get remove --purge "$rcpkg" -yy
+    done
+  else
+    printf "No files to be purged found.\\n"
+  fi
+  exists flatpak && check_flatpak
+  printf "\\nCompleted at: %s\\n" "$(date '+%a %F %T')"
+} > "$log_dir/$log_file" 2>&1
+
+# Clean up log file.
+if exists flatpak; then
+  sed -i -f "$sed_file" "$log_dir/$log_file"
+else
+  sed -i '/Reading database/d' "$log_dir/$log_file"
+fi

@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : randpic
+# Description  : Copies random image file from ~/Pictures to ~/tmp/pics
+# Dependencies : cp, select
+# Arguments    : None
+# Author       : Richard Romig, 2 June 2019
+# Email        : rick.romig@gmail.com
+# Comments     :
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034,SC2119
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+##  Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="3.2.13"
+readonly _updated="06 Jul 2022"
+readonly tmp_dir=$HOME"/tmp/journal"
+
+## Functions ##
+
+# leave function and colors declared in functionlib
+
+is_valid_image() {
+  local filename="$1"
+  local ext="${filename##*.}"
+  shopt -s nocasematch
+  case $ext in
+    bmp|gif|jpeg|jpg|png|tiff ) shopt -u nocasematch; return "$TRUE" ;;
+    * ) shopt -u nocasematch; return "$FALSE" ;;
+  esac
+}
+
+# Create temporary picture directory if it doesn't exist
+[[ -d "$tmp_dir" ]] || mkdir -p "$tmp_dir"
+
+## Execution ##
+
+while true; do
+  # Randomly select an image folder from ~/Pictures/
+  pic_dir="$(shuf -en1 "$HOME/Pictures"/*)/"
+  [[ -d "$pic_dir" ]] || continue
+
+  # Selected image folder
+  sel_dir=$(basename "$pic_dir")
+
+  # Choose a random image file from the selected folder
+  random_file=$(shuf -en1 "$pic_dir"*)
+
+  # Validate the randomly selected file
+  if [[ -f "$random_file" ]]; then
+    # Extract the image's base filename from the path
+    pic_file="$(basename "$random_file")"
+    # Is it a valid image file?
+    is_valid_image "$pic_file" || continue
+  else
+    continue
+  fi
+
+  # Accept or reject selected file
+  clear
+  box "Random Image Selector"
+  echo "$_script v$_version ($_updated)"
+  echo -e "Selects a random image from ~/Pictures\n"
+  echo "${blue}Selected image: ${orange}$sel_dir/$pic_file${normal}"
+  cp -p "$pic_dir$pic_file" "$tmp_dir"
+  /usr/bin/display "$tmp_dir/$pic_file" &
+  pic_pid="$!"
+  echo $'\n'$"${blue}Image file options:${normal}"
+  COLUMNS=12
+  options=("Accept the selected image and select another image." \
+    "Accept the selected image and exit." \
+    "Reject the selected image and select another image." \
+    "Reject the selected image and exit.")
+  PS3="Chose an option: "
+  select opt in "${options[@]}"; do
+    case $REPLY in
+      1 )
+        echo $'\n'$"${blue}Accepted image:${normal} $sel_dir/$pic_file"
+        echo $'\n'$"Selecting another random image..."
+        kill $pic_pid
+        sleep 2
+        break ;;
+      2 )
+        echo -e "\n${blue}Accepted image:${normal} $sel_dir/$pic_file\n"
+        kill $pic_pid
+        leave ;;
+     3 )
+        echo $'\n'$"${blue}Rejected image:${normal} $sel_dir/$pic_file"
+        kill $pic_pid
+        echo $'\n'$"Selecting another random image..."
+        rm "$tmp_dir/$pic_file"
+        sleep 2
+        break ;;
+      4 )
+        echo -e "\n${blue}Rejected image:${normal} $sel_dir/$pic_file\n"
+        kill $pic_pid
+        rm "$tmp_dir/$pic_file"
+        leave ;;
+      * )
+        echo $'\n'$"${lightred}Invalid option. Try again.${normal}" ;;
+    esac
+  done
+done

@@ -1,0 +1,174 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-terminator
+# Description  : Installs the Terminator terminal emulator from repos.
+# Dependencies : sshfs
+# Arguments    : -c -h -i -r (See help function)
+# Author       : Richard B. Romig, 14 Dec 2020
+# Email        : rick.romig@gmail.com
+# Comments     : Installs config file & Cascadia Code font from HP-6005
+# 31 Jan 2022  : Added option to write config file. Updated help.
+# 23 Feb 2022  : Incorporated `getopts` to process options.
+# 25 Feb 2022  : Modified code to check if Debian-based distro.
+# 29 Mar 2022  : Added $OPTARG to Invalid option message.
+# 10 Jul 2022  : Added optstr and opt variables to getopts routine.
+# 10 Sep 2022  : Installs Cascadia-Code fonts as needed.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.5.0"
+readonly _updated="10 Sep 2022"
+readonly term_cfg=$HOME"/.config/terminator"
+readonly svr_ip="11"
+
+## Functions ##
+
+help() {
+  local errcode="${1:-2}"
+  cat << EOF
+${orange}Usage:${normal} $_script [-c] [-h] [-i] [-r]
+${green}OPTIONS:${normal}
+  -c  Writes custom configuration file.
+  -h  Displays help text.
+  -i  Installs Terminator & configuration files.
+  -r  Removes Terminator & configuration files.
+${bold}NOTES:${normal}
+  1. Script will not overwrite Terminator config for BunsenLabs installation.
+     Configuration changes should be made through the Preferences menu.
+  2. For Debian and Debian-based distributions (Antix, MX Linux, LMDE),
+     Terminator will be configured in the config file as a login shell.
+  3. Cascadia Code 14 font is installed by default (from local server).
+EOF
+  exit "$errcode"
+}
+
+remove_terminator() {
+  if exists terminator; then
+    sudo apt-get purge terminator
+    [[ -d "$HOME/.config/terminator" ]] && rm -rf "$HOME/.config/terminator"
+    leave "Terminator and its configuration files have been removed."
+  else
+    leave " Terminator is not installed."
+  fi
+}
+
+install_terminator() {
+  # sudo add-apt-repository ppa:gnome-terminator
+  sudo apt-get update
+  sudo apt-get install terminator -yy
+  cascadia_code
+  if bunsenlabs; then
+    echo "Terminator installed."
+    leave "Bunsen Labs uses its own profiles based on the version of the distribution."
+  else
+    [[ -f "$term_cfg/config" ]] || teminator_config
+    is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg/config"
+    leave "Terminator installed with configuration file and Cascadia Code font."
+  fi
+}
+
+teminator_config() {
+  [[ -d "$term_cfg" ]] || mkdir -p "$term_cfg"
+  cat << 'EOF' > "$term_cfg/config"
+[global_config]
+  always_split_with_profile = True
+  handle_size = 1
+  window_state = maximise
+  putty_paste_style = False
+  title_font = Cascadia Code 14
+  title_use_system_font = False
+[keybindings]
+[layouts]
+  [[default]]
+    [[[child1]]]
+      parent = window0
+      type = Terminal
+  [[[window0]]]
+      parent = ""
+      type = Window
+[plugins]
+[profiles]
+  [[default]]
+    audible_bell = True
+    background_darkness = 0.9
+    background_type = transparent
+    cursor_color = "#aaaaaa"
+    font = Cascadia Code 14
+    show_titlebar = False
+    scrollbar_position = hidden
+    palette =  "#282828:#cc241d:#98971a:#d79921:#458588:#b16286:#689d6a:#a89984:#928374:#fb4934:#b8bb26:#fabd2f:#83a598:#d3869b:#8ec07c:#ebdbb2"
+    login_shell = False
+    use_system_font = False
+EOF
+  echo "Terminator configuration file created."
+}
+
+cascadia_code() {
+  if [[ ! -d "$/usr/share/fonts/truetype/cascadia-code" ]]; then
+    echo "Installing Cascadia-Code fonts."
+    sudo apt upgrade -yyq
+    sudo apt-get install fonts-cascadia-code -yyq
+    echo "Cascadia-Code fonts installed."
+  fi
+}
+
+check_dependencies() {
+  check_package sshfs
+}
+
+## Execution ##
+
+check_dependencies
+
+echo "$_script v$_version ($_updated)"
+echo -e "Installs or removes Terminator with config and Cascadia Code font."
+
+if [[ "$#" -eq 0 ]]; then
+  echo $'\n'$"${lightred}ERROR:${normal} No argument passed." >&2
+  help 2
+else
+  optstr=":chir"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      c )
+        if bunsenlabs; then
+          echo "Terminator configuration for BunsenLabs was not overwritten."
+          leave "Configuration changes should be made through the Preferences menu."
+        elif exists terminator; then
+          teminator_config
+          is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg/config"
+          leave "Terminator configuration file written."
+        else
+          leave "Terminator is not installed."
+        fi ;;
+      h )
+        help 0 ;;
+      i )
+        user_in_sudo
+        install_terminator ;;
+      r )
+        user_in_sudo
+        remove_terminator ;;
+      ? )
+        echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+        help 2 ;;
+    esac
+  done
+fi

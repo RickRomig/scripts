@@ -1,0 +1,44 @@
+# Upgrade from Debian 10 Buster to Debian 11 Bullseye
+# Richard B. Romig, 15 Nov 2021
+# rick.romig@gmail.com
+# Updated: 21 Jan 2022
+
+# Backup data and update the system before upgrading.
+
+# Before upgrading, update current Buster installation and reboot.
+sudo apt update
+sudo apt upgrade
+sudo apt full-upgrade
+sudo apt --purge autoremove
+sudo systemctl reboot
+
+# Backup original sources.list.
+sudo cp -v /etc/apt/sources.list /root/
+
+# Change instances of buster to bullseye in /etc/apt/sources.list
+sudo sed -i '/debian-security/s/buster/bullseye-security/;s/buster/bullseye/' /etc/apt/sources.list
+# or
+sudo sed -i -f ~/bin/files/deb-10-11.sed /etc/apt/sources.list
+
+# Start the upgrade process.
+sudo apt update
+sudo apt full-upgrade
+
+# The upgrade will require about a Gigabyte or more of new packages to be downloaded.
+# There may be some prompts that require user intervention.
+# The installer will allow the services to be restarted as needed if the user chooses.
+
+# Reboot the system
+sudo systemctl reboot
+
+# After reboot run the following commands to clean out the apt cache and remove the old packages.
+sudo apt autoclean
+sudo apt autoremove
+
+# Notes:
+I did have to install newer fuse and Python packages.
+I did run into the following error when running the df command:
+	“df: /run/user/1000/doc: Operation not permitted”
+I resolved it by removing the `xdg-desktop-portal` package which provides a portal for sandboxing with Flatpak and Snaps.
+	Best resolution: alias df='df -h -x tmpfs -x fuse.portal'
+The sshfs package needs to be updated which will update fuse to fuse3 along with a couple of other dependencies.

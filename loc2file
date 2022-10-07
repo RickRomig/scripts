@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+#####################################################################
+# Script Name  : loc2file
+# Description  : Wrapper for fnloco/lloc. LOC data to stdout as it
+#              : redirects it to a file.
+# Dependencies : fnloc, lloc, tee
+# Arguments    : C/C++ source code or header file
+# Author       : Richard Romig, 26 January 2019
+# Email        : rick.romig@gmail.com
+# Comments     : Modified 01/26/19 to incorporate lloc and allow
+#              : .cc and .hh file extensions.
+#              : Modified 03/31/20 to improve checks for arguments and
+#              : processing of header files.
+# 09/24/20     : split processng of c source and
+#              : header files into separate functions in order to allow
+#              : procesing of header files without the C/C++ source.
+# 02/09/21     : Changed color of error messages.
+# 06/21/21     : double-bracket conditional statements
+# TODO (rick)  : Process multiple source & header files in a project.
+# License      : GNU General Public License, version 2.0
+#####################################################################
+
+# Copyright (C) 2018-2021  Richard Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+declare -r _version="2.3.4"
+declare -r COPYRIGHT="Copyright 2018-2021"
+declare -r AUTHOR="Richard B. Romig"
+declare -r _script=$(basename "$0")
+
+usage() {
+  local errcode="${1:-2}"
+  echo "Usage: $_script sourcefile.c"
+  echo "Acceptable extensions are: .c .cpp .cc .h .hh"
+  exit "$errcode"
+}
+
+process_source() {
+  # Process the source file with fnloc
+  fnloc "$CSOURCE" | tee "$LOCFILE"
+  # Process matching header file if it exists
+  [[ -f "$BASEFILE.h" || -f "$BASEFILE.hh" ]] && process_header
+}
+
+process_header() {
+  [[ -f "$BASEFILE.h" ]] && lloc "$BASEFILE.h" | tee -a "$LOCFILE"
+  [[ -f "$BASEFILE.hh" ]] && lloc "$BASEFILE.hh" | tee -a "$LOCFILE"
+}
+
+# Check for arguments
+if [[ -z "$1" ]]; then
+  echo -e "\e[91mError:\e[0m No argument provided." >&2
+  usage 2
+elif [[ ! -f "$1" ]]; then
+  echo -e "\e[91mError:\e[0m $1 not found." >&2
+  usage 2
+else
+  CSOURCE=$1
+fi
+
+# Get base filename and create filename for LOC data
+BASEFILE=${CSOURCE%%.*}
+LOCFILE="$BASEFILE.loc"
+EXT="${CSOURCE##*.}"
+
+echo "$_script $_version"
+echo "$COPYRIGHT, $AUTHOR"
+echo "====================================="
+echo "Writing LOC data to $LOCFILE..."
+case $EXT in
+  c|cc|cpp )
+    process_source
+    echo "Logical lines of code data for $CSOURCE written to $LOCFILE." ;;
+  h|hh )
+    process_header
+    echo "Logical lines of code data for $CSOURCE written to $LOCFILE." ;;
+  * ) echo -e "\e[91mError:\e[0m Invalid file extension." >&2; usage ;;
+esac
+
+exit

@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : sync-installs
+# Description  : Updates installation directories on HP 6005
+# Dependencies : None
+# Arguments    : None
+# Author       : Richard B. Romig, 07 Jun 2020
+# Email        : rick.romig@gmail.com
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.2.13"
+readonly _updated="01 Oct 2022"
+
+# Hostnames
+readonly lhost=$HOSTNAME
+readonly mhost="hp-800g2-sff"
+readonly fhost="hp-6005"
+readonly svr_ip="11"
+
+# Direectories and files
+readonly cfg_dir=$HOME"/.config"
+readonly cfg_defaults=$HOME"/Documents/mosfanet/configs/defaults"
+readonly cinnamon_keys=$HOME"/.config/keybindings-backup.dconf"
+readonly atom_cfg="$HOME/.atom"
+readonly atom_xdg="$HOME/.local/share/atom"
+readonly iso_src=$HOME"/Downloads/ISO"
+readonly remote_dest="/data/installation"
+
+## Execution ##
+
+# Ensure script is being run from the hp-800g2-sff (10)
+[["$lhost" != "$mhost" ]] && die "$_script must be run from the $mhost."
+
+# Start timer
+SECONDS=0
+
+clear
+echo "${orange}$_script v$_version ($_updated)${normal}"
+echo "Synchronizes installation scripts, configuration files and packages with $fhost"
+
+# Copy bat & micro config files to default configs folder
+echo $'\n'$"${orange}Updating bat, micro, terminator config files ...${normal}"
+if [[ -d "$atom_xdg" ]]; then
+	cp -puv "$atom_xdg/config.cson" "$atom_xdg/styles.less" "$cfg_defaults/atom"
+else
+	cp -puv "$atom_cfg/config.cson" "$atom_cfg/styles.less" "$cfg_defaults/atom"
+fi
+cp -puv "$cfg_dir/bat/config" "$cfg_defaults/bat/"
+cp -puv "$cfg_dir/micro/bindings.json" "$cfg_defaults/micro/"
+cp -puv "$cfg_dir/micro/settings.json" "$cfg_defaults/micro/"
+cp -puv "$cfg_dir/VSCodium/User/settings.json" "$cfg_defaults/VSCodium/User/"
+cp -puv "$cfg_dir/terminator/config" "$cfg_defaults/terminator/"
+cp -puv "$HOME/.bluefish/rcfile-2.0" "$cfg_defaults/bluefish/"
+cp -puv "$HOME/.bash_aliases" "$cfg_defaults/"
+cp -puv "$HOME/.bashrc" "$cfg_defaults/" 
+cp -puv "$HOME/.profile" "$cfg_defaults/"
+cp -puv "$cfg_dir/git/config" "$cfg_dir/git/credentials" "$cfg_defaults/git/"
+[[ -f "$cinnamon_keys" ]] && cp -puv "$cinnamon_keys" "$cfg_defaults/"
+
+# Sync scripts, configs, templates, & ISO files to /data/installations on remote server
+if ping -c 3 "$localnet.$svr_ip" > /dev/null 2>&1; then
+  echo $'\n'$"${orange}Synchronizing scripts...${normal}"
+  rsync -avzh --delete "$HOME/bin/" "$localnet.$svr_ip:$remote_dest/bin/"
+  echo $'\n'$"${orange}Synchronizing template files...${normal}"
+  rsync -avzh --delete "$HOME/Templates/" "$localnet.$svr_ip:$remote_dest/Templates/"
+  echo $'\n'$"${orange}Synchronizing configuration files...${normal}"
+  rsync -avzh --delete "$cfg_defaults/" "$localnet.$svr_ip:$remote_dest/configs/"
+  echo $'\n'$"${orange}Synchronizing Packages directory ...${normal}"
+  rsync -avzh --delete "$HOME/Downloads/Packages/" "$localnet.$svr_ip:$remote_dest/Packages/"
+  echo $'\n'$"${orange}Synchronizing ISO directory ...${normal}"
+  rsync -avzh --delete "$iso_src/" "$localnet.$svr_ip:$remote_dest/ISO/"
+  echo $'\n'$"Synchronization completed in $(format_time $SECONDS)"
+  leave "Installation Data Synchronization completed."
+else
+  echo $'\n'$"Local installation files updated and synchronized in $(format_time $SECONDS)"
+  die "$fhost is not on line. Check network connections."
+fi

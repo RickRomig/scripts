@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : mount-bu
+# Description  : mounts/unmounts USB backup drive if not auto-detected.
+# Dependencies : none
+# Arguments    : [-h] [-m] [-s] [-u] (See help function)
+# Author       : Copyright Richard B. Romig, 04 Jul 2022
+# Email        : rick.romig@gmail.com
+# Comments     : For use with Joe Collions BU backup script.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.2.0"
+readonly _updated="08 Jul 2022"
+readonly mount_location="/media/rick/BU_Drive"
+
+## Functions ##
+
+mount_bu() {
+  lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
+  printf "\n"
+  read -rp "Select the drive to mount (Enter to cancel): " usbdrv
+  [[ -z "$usbdrv" ]] && leave "Operation canceled."
+  user_in_sudo
+  printf "Mounting %s to %s ...\n" "$usbdrv" "$mount_location"
+  [[ -d "$mount_location" ]] || mkdir -p "$mount_location"
+  sudo mount /dev/"$usbdrv" "$mount_location"
+  printf "%s is mounted at %s\n" "$usbdrv" "$(lsblk | awk '/BU_Drive/ {print $NF}')"
+}
+
+umount_bu() {
+  usbdrv=$(mount | awk '/BU_Drive/ {print $1}')
+  user_in_sudo
+  printf "Unmounting USB Backup drive at %s ...\n" "$mount_location"
+  sudo umount "$mount_location"
+  printf "BU_Drive (%s) is unmounted.\n" "$usbdrv"
+}
+
+bu_status() {
+  printf "BU_Drive is "
+  if lsblk | grep -qw BU_Drive; then
+    printf "mounted.\n"
+    return "$TRUE"
+  else
+    printf "not mounted.\n"
+    return "$FALSE"
+  fi
+}
+
+help() {
+  local errcode="${1:=2}"
+  cat << EOL
+  ${green}Usage:${normal} $_script [-h] [-m] [-s] [-u]
+  ${orange}OPTIONS:${normal}
+    -h    Help
+    -m    Mount USB Backup Drive (BU_Drive)
+    -s    Status, is USB Backup Drive (BU_Drive) mounted?
+    -u    Unmount USB Backup Drive (BU_Drive)
+  ${green}NOTE:${normal} When prompted, enter only the drive, i.e., sdb1
+EOL
+  exit "$errcode"
+}
+
+## Execution ##
+
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Mount/Unmount USB Backup drive.\n\n"
+
+if [[ $# -eq 0 ]]; then
+  printf "\n\e[91mERROR:\e[0m No argument passed\n" >&2
+  help 2
+else
+  optstr=":hmsu"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      h )
+        help 0
+        break ;;
+      m )
+        if bu_status; then
+          printf "No further action necessary.\n"
+        else
+          mount_bu
+        fi
+        break ;;
+      s )
+        bu_status
+        break ;;
+      u )
+        if bu_status; then
+          umount_bu
+        else
+          printf "No further action necessary.\n"
+        fi
+        break ;;
+      ? )
+        printf "\n\e[91mERROR:\e[0m Invalid option -%s\n" "$OPTARG" >&2
+        help 2 ;;
+    esac
+  done
+fi
+exit

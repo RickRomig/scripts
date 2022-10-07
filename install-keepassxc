@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-keepassxc
+# Description  : Installs KeePassXC from PPA or repo for Debian, LMDE
+# Dependencies : none
+# Arguments    : none
+# Author       : Richard B. Romig, 26 Jan 2021
+# Email        : rick.romig@gmail.com
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.6"
+readonly _updated="09 Dec 2021"
+
+## Functions ##
+
+kpxc_ver() {
+  dpkg -l | awk '$2 == "keepassxc" {print $3}' | sed 's/[+-].*//'
+}
+
+install_ppa() {
+  sudo add-apt-repository ppa:phoerious/keepassxc -y
+  sudo apt-get update -qq
+  sudo apt-get install keepassxc libquazip-doc -yy
+  leave "KeePassXC $(kpxc_ver) installed from the PPA."
+}
+
+install_debian() {
+  sudo apt-get update -qq
+  sudo apt-get install keepassxc libquazip-doc -yy
+  leave "KeePassXC $(kpxc_ver) installed from the distro repository."
+}
+
+## Execution ##
+
+clear
+echo "$_script v$_version ($_updated)"
+echo "Installs KeePassXC password manager"
+
+if support_ppa; then
+  user_in_sudo
+  install_ppa
+elif is_debian; then
+  user_in_sudo
+  install_debian
+else
+  die "KeepassXC was not installed."
+fi

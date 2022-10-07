@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : syncfin
+# Description  : Synchronize files between main PC and finance laptop.
+# Dependencies : none
+# Arguments    : none
+# Author       : Richard B. Romig, 11 Mar 2022
+# Email        : rick.romig@gmail.com
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.2"
+readonly _updated="02 Aug 2022"
+readonly main_host="hp-800g2-sff"
+readonly fin_host="hp-probook-6570"
+readonly main_ip="10"
+readonly fin_ip="21"
+local_host="$(uname -n)"
+
+## Functions ##
+
+transfer_status() {
+  # Exit script if transfer fails.
+  xfr_status="$1"
+  (( xfr_status != 0 )) && die "A transfer failed! Check network status."
+}
+
+transfer() {
+  # Check remote host and sync if on line:
+  if [[ "$local_host" == "$main_host" ]]; then
+    if ping -c 3 "$localnet.$fin_ip" >/dev/null 2>&1; then
+      echo "Syncing $main_host to $fin_host ..."
+      sync_main
+      echo $'\n'$"$fin_host synced with $main_host."
+    else
+      echo $'\n'$"... $fin_host is not on the network."
+    fi
+  else
+    if ping -c 3 "$localnet.$main_ip" >/dev/null 2>&1; then
+      echo "Syncing $fin_host to $main_host ..."
+      sync_fin
+      echo $'\n'$"$main_host synced with $fin_host."
+    else
+      echo $'\n'$"... $main_host is not on the network."
+    fi
+  fi
+}
+
+sync_fin() {
+  echo  $'\n'$"${orange}Syncing Finance directory...${normal}"
+  rsync -avzh --delete /home/"$USER"/Documents/Finance/ "$localnet.$main_ip":Documents/Finance/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo  $'\n'$"${orange}Syncing HomeBank directory...${normal}"
+  rsync -avzh --delete /home/"$USER"/Documents/HomeBank/ "$localnet.$main_ip":Documents/HomeBank/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo  $'\n'$"${orange}Syncing HomeBank Archives..${normal}"
+  rsync -avzh --delete /home/"$USER"/Downloads/archives/homebank/ "$localnet.$main_ip":Downloads/archives/homebank/
+  exit_status="$?"
+  transfer_status "$exit_status"
+}
+
+sync_main() {
+  echo $'\n'$"${orange}Syncing bash aliases...${normal}"
+  rsync -avzh --delete /home/"$USER"/.bash_aliases "$localnet.$fin_ip":
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing bin directory...${normal}"
+  rsync -avzh --delete /home/"$USER"/bin/ "$localnet.$fin_ip":bin/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing homepage directory...${normal}"
+  rsync -avzh --delete /home/"$USER"/homepage/ "$localnet.$fin_ip":homepage/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Password Databases...${normal}"
+  rsync -avzh --delete /home/"$USER"/Documents/mosfanet/Rick_pwds* /home/"$USER"/Documents/mosfanet/Passwords* "$localnet.$fin_ip":Documents/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Templates directory...${normal}"
+  rsync -avzh --delete /home/"$USER"/Templates/ "$localnet.$fin_ip":Templates/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing wallpaper directory...${normal}"
+  rsync -avzh --delete /home/"$USER"/Pictures/wallpaper/ "$localnet.$fin_ip":Pictures/wallpaper/
+  exit_status="$?"
+  transfer_status "$exit_status"
+}
+
+## Execution ##
+
+SECONDS=0
+
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+
+# Check arguments
+if [[ "$local_host" == "$main_host" || "$local_host" == "$fin_host" ]]; then
+	transfer
+else
+	die "Invalid client. $_script must be run from $main_host or $fin_host."
+fi
+
+box "$_script completed in $(format_time $SECONDS)"
+
+exit

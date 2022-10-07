@@ -1,0 +1,109 @@
+## Shell Template ##
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : <FILE>
+# Description  :
+# Dependencies :
+# Arguments    :
+# Author       : Copyright <AUTHOR>, <TODAY>
+# Email        : <EMAIL> | <EMAIL1>
+# Comments     :
+# Last updated : <TODAY>
+# TODO (<CODER>)  :
+# License      : <LICENSE>
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.0"
+readonly _updated="<TODAY>"
+readonly red_error="${lightred}ERROR:${normal}"
+
+## Functions ##
+
+check_dependencies() {
+  check_package wget
+}
+
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+	-h 	Display help
+	-i 	Install application
+	-r 	Remove application
+	-s  Apply settings
+	-u 	Update application
+END_HELP
+	printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+## Execution ##
+
+# clear
+
+
+if [[ "$#" -eq 0 ]]; then
+	# printf "%s No argument passed.\n" "$red_error"  >&2
+	echo "${lightred}ERROR:${normal} No argument passed." >&2
+	help 1
+else
+	optstr=":hirsu"
+	# optstr=":h:i:r:s:u"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			h )
+				help 0
+				;;
+			i )
+				# argI="$OPTARG"
+				install_application
+				apply_settings	# optional custom configuration
+				break	# Remove break if multiple options or if functions exit
+				;;
+			r )
+				# argR="$OPTARG"
+				remove_application
+				break	# Remove break if multiple options or if functions exit
+				;;
+			s )
+				apply_settings
+				break	# Remove break if multiple options or if functions exit
+				;;
+			u )
+				exists application || leave "Application is not installed. run '$_script -i' to install."
+				update_application
+				break	# Remove break if multiple options or if functions exit
+				;;
+			: )
+				# printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
+			    echo "${lightred}ERROR:${normal} Must supply an argument to -${OPTARG}." >&2
+			    help 2
+			    ;;
+			? )
+				# printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+				echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+				help 2
+				;;
+		esac
+	done
+fi
+# echo -e "\U1F427 $_script v$_version ($_updated)"
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+exit

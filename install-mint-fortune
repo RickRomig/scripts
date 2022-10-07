@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+#####################################################################
+# Script Name  : install-mint-fortune
+# Description  : Installs mint-fortune, cowsay, fortune-mod
+# Dependencies : cowsay, fortune-mod, dpkg, apt
+# Arguments    : none
+# Author       : Richard B. Romig, 03 May 2019
+# Email        : rick.romig@gmail.com
+# Comments     : Recommended for Linux Mint Cinnamon or MATE
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.2.8"
+readonly _updated="18 Jul 2021"
+
+readonly homedir=$HOME
+
+## Execution ##
+
+echo "$_script v$_version ($_updated)"
+echo "Install fortune and mint-fortune script."
+
+user_in_sudo
+
+# Install fortune-mod package and fortunes-min if not already installed
+
+echo "Installing fortune..."
+check_package fortune-mod
+[[ -d /usr/share/games/fortunes ]] || sudo mkdir -p /usr/share/games/fortunes
+check_package fortunes-min
+
+# Install cowsay if not already installed
+
+echo "Installing cowsay ..."
+check_package cowsay
+
+# Install mint-fortune if not installed. Checks for pre-installed mint-fortune
+
+echo "Checking mint-fortune..."
+if [[ -f "/usr/bin/mint-fortune" ]]; then
+  chkschema="$(gsettings list-schemas | grep 'com.linuxmint.terminal' 2>/dev/null)"
+  if [[ "$chkschema" == "com.linuxmint.terminal" ]]; then
+    chkkeys="$(gsettings list-keys com.linuxmint.terminal | grep 'show-fortunes' 2>/dev/null)"
+    if [[ "$chkkeys" == "show-fortunes" ]]; then
+      showfortunes="$(gsettings get com.linuxmint.terminal show-fortunes 2>/dev/null)"
+      if [[ "$showfortunes" == "false" ]]; then
+        gsettings set com.linuxmint.terminal show-fortunes true
+        showfortunes="$(gsettings get com.linuxmint.terminal show-fortunes 2>/dev/null)"
+        echo "show-fortunes status is $showfortunes"
+      fi
+    fi
+  fi
+  [[ -x "/usr/bin/mint-fortune" ]] || sudo chmod 755 "/usr/bin/mint-fortune"
+else
+  sudo cp "$homedir/bin/mint-fortune" /usr/bin/
+fi
+
+## Copy custom fortune files ##
+
+echo "Copying custom fortune cookies..."
+sudo cp "$homedir/Documents/mosfanet/fortunes/*" /usr/share/games/fortunes/
+echo "Installation complete."
+leave "cowsay, fortune, mint-fortune, and custom fortune files installed"

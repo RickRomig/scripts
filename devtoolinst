@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+#####################################################################
+# Script Name  : devtoolinst
+# Description  : Installs C development tools if not installed
+# Dependencies : apt
+# Arguments    : none
+# Author       : Richard Romig
+# Email        : rick.romig@gmail.com
+# Comment      :
+# License      : GNU General Public License, version 2.0
+#####################################################################
+
+# Variables
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.2"
+readonly _updated="21 Jun 2021"
+
+clear
+box "$_script v$_version ($_updated)"
+echo -e "Checking and installing C devlopment tools...\n"
+
+if gcc -v > /dev/null 2>&1; then
+  echo "GCC is already installed."
+else
+  echo "GCC is not installed!"
+  echo "Installing GCC..."
+  sudo apt installgcc -yy
+fi
+
+if ld -v > /dev/null 2>&1; then
+  echo "binutils is already installed."
+else
+  echo "binutils not installed."
+  echo "Installing binutils..."
+  sudo apt install binutils -yy
+fi
+
+if [[ -d "/usr/include/" ]]; then
+  echo "build-essential already installed."
+else
+  echo "build-essential not installed."
+  echo "Installing build-essential..."
+  sudo apt install build-essential -yy
+fi
+
+if dpkg -l | grep -gw mingw; then
+  echo "minGW installed."
+else
+  echo "minGW not installed."
+  echo "Installing minGW..."
+  sudo apt install mingw -yy
+fi
+
+echo $'\n'$"C development installs complete."
+
+exit

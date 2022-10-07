@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+#############################################################################
+# Script Name  : catless
+# Description  : view text file with less or cat based on terminal window size.
+# Dependencies : functionlib (viewtext)
+# Arguments    : $1 -> file to be viewed
+# Author       : Richard B. Romig, 02 Jan 2020
+# Email        : rick.romig@gmail.com
+# Comments     : uses viewtext function from functionlib to view file.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+#############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+_script=$(basename "$0")
+_version="0.2.0"
+_updated="04 Jul 2022"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  echo "${orange}Usage:${normal} $_script <filename>" >&2
+  exit "$errcode"
+}
+
+cat_used() {
+  trows=$(tput lines)
+  line_count=$(( trows*90/100 ))
+  num_lines=$(wc -l "$filename" | cut -d " " -f1)
+  (( num_lines <= line_count )) && return "$TRUE" || return "$FALSE"
+}
+
+## Check arguments ##
+
+if [[ $# -eq 0 ]]; then
+  echo "${lightred}ERROR:${normal} No argument passed." >&2
+  usage 2
+elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+  usage 0
+elif [[ ! -f "$1" ]]; then
+  echo "${lightred}ERROR:${normal} $1 not found." >&2
+  usage 2
+else
+  filename="$1"
+fi
+
+## View the selected file ##
+
+clear
+cat_used && box "File: $filename"
+viewtext "$filename"
+
+if cat_used; then
+  print_line "*" 30
+else
+  box "File: $filename"
+fi
+
+leave "$_script v$_version ($_updated)"

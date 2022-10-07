@@ -1,0 +1,237 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : cronscripts
+# Description  : Copies cron scripts to the appropriate directories.
+# Dependencies : None
+# Arguments    : [-a] [-b] [-d] [-f] [-h] [-l] [-p] [-s] [-u] [-y] [-z]
+#              : (See help function.)
+# Author       : Richard B. Romig, 17 Feb 2022
+# Email        : rick.romig@gmail.com
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.2.14"
+readonly _updated="04 Oct 2022"
+readonly user_cron_path="$HOME/.local/bin/"
+readonly opt_cron_path="/opt/bin/"
+readonly red_error="${lightred}ERROR:${normal}"
+
+## Functions ##
+cp_passwdsync() {
+  local script="$HOME/bin/passwdsync.sh"
+  [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
+  if [[ "$localip" -eq 10 ]]; then
+    cp -pv "$script" "$user_cron_path"
+  else
+    no_copy "$script"
+  fi
+}
+
+cp_hbarchive() {
+  local script="$HOME/bin/hb-archive.sh"
+  [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
+  if [[ "$localip" -eq 21 ]]; then
+    cp -pv "$script" "$user_cron_path"
+  else
+    no_copy "$script"
+  fi
+}
+
+cp_scriptarchive() {
+  local script="$HOME/bin/scriptarchive.sh"
+  [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
+  case "$localip" in
+    10|11|12|13|14|15|16|17|19|20|21|23 )
+      cp -pv "$script" "$user_cron_path" ;;
+    * )
+      no_copy "$script" ;;
+  esac
+}
+
+cp_zbackup() {
+	local script="$HOME/bin/z-backup"
+	case "$localip" in
+		11 )
+		user_in_sudo
+		[[ -d "$opt_cron_path" ]] || sudo mkdir -p "$opt_cron_path"
+		sudo cp -v "$script" "$opt_cron_path" ;;
+		* )
+			no_copy "$script" ;;
+	esac
+}
+
+cp_zdefrag() {
+  local script="$HOME/bin/z-defrag"
+  local anacron_path="/etc/cron.monthly/"
+  case "$localip" in
+    10|12|13|15|17|20|21|23 )
+      user_in_sudo
+      sudo cp -v "$script" "$anacron_path" ;;
+    11|14|16|19 )
+      user_in_sudo
+      [[ -d "$opt_cron_path" ]] || sudo mkdir -p "$opt_cron_path"
+      sudo cp -v "$script" "$opt_cron_path" ;;
+    * )
+      no_copy "$script" ;;
+  esac
+}
+
+cp_zupdate() {
+  local script="$HOME/bin/z-update"
+  local anacron_path="/etc/cron.weekly/"
+  case "$localip" in
+    10|12|13|15|17|20|21|22|23|24|25 )
+      user_in_sudo
+      sudo cp -v "$script" "$anacron_path" ;;
+    11|14|16|19 )
+      user_in_sudo
+      [[ -d "$opt_cron_path" ]] || sudo mkdir -p "$opt_cron_path"
+      sudo cp -v "$script" "$opt_cron_path" ;;
+    * )
+      no_copy "$script" ;;
+  esac
+}
+
+cp_updatelogsed() {
+  local script="/home/rick/bin/files/updatelog.sed"
+  local sed_path="/usr/share/misc/"
+  # Does not apply to 12, 19, 22, 24, 25 - Flatpak not installed.
+  case "$localip" in
+    10|11|13|14|15|17|20|21|23 )
+      user_in_sudo
+      sudo cp -v "$script" "$sed_path" ;;
+    * )
+      no_copy "$script" ;;
+  esac
+}
+
+cp_zytdlupdate() {
+  local script="$HOME/bin/z-ytdlupdate"
+  local anacron_path="/etc/cron.daily/"
+  case "$localip" in
+    10|17|20 )
+      user_in_sudo
+      sudo cp -v "$script" "$anacron_path" ;;
+    * )
+      no_copy "$script" ;;
+  esac
+}
+
+cp_ytdluplogsed() {
+	local script="/home/rick/bin/files/ytdluplog.sed"
+  local sed_path="/usr/share/misc/"
+	case "$localip" in
+		10|17|20 )
+			user_in_sudo
+			sudo cp -v "$script" "$sed_path" ;;
+		* )
+			no_copy "$script" ;;
+	esac
+}
+
+no_copy() {
+  local script="$1"
+  printf "%s is not applicable to this system and was not copied.\n" "$(basename "$script")"
+}
+
+help() {
+  local errcode="${1:-2}"
+  cat << END_HELP
+${green}Usage:${normal} $_script [OPTIONS]
+${orange}OPTIONS:${normal}
+  -a    Copy all scripts to the appropriate directories.
+  -b    Copy HomeBank archive script.
+  -d    Copy Defrag script.
+  -f    Copy updatelog.sed file.
+  -h    Display Help.
+  -l    Copy Local Backup script.
+  -p    Copy Password Database script.
+  -s    Copy Script Archive script.
+  -u    Copy Update script.
+  -y    Copy YouTube-DL update script.
+  -z    Copy ytdluplog.sed file.
+  NOTE: Multiple arguments may be passed to the script.
+END_HELP
+  printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+## Execution ##
+
+printf "Copies updated cron scripts to the appropriate directories.\n"
+
+if [[ "$#" -eq 0 ]]; then
+  printf "%s No arguments passed.\n" "$red_error" >&2
+  help 2
+else
+  localip="$(local_ip)"
+  optstr=":abdfhlpsuyz"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      a )
+        cp_hbarchive
+        cp_passwdsync
+        cp_scriptarchive
+        cp_zdefrag
+        cp_zupdate
+				cp_updatelogsed
+        cp_zytdlupdate
+				cp_ytdluplogsed
+        ;;
+      b )
+        cp_hbarchive
+        ;;
+      d )
+        cp_zdefrag
+        ;;
+      f )
+        cp_updatelogsed
+        ;;
+      h )
+        help 0
+        ;;
+			l )
+				cp_zbackup
+				;;
+      p )
+        cp_passwdsync
+        ;;
+      s )
+        cp_scriptarchive
+        ;;
+      u )
+        cp_zupdate
+        ;;
+      y )
+        cp_zytdlupdate
+        ;;
+			z )
+				cp_ytdluplogsed
+				;;
+      ? )
+        printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+        help 2
+        ;;
+    esac
+  done
+fi
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+exit

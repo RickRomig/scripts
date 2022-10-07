@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : checkinit
+# Description  : Checks what init system is being used.
+# Dependencies : None
+# Arguments    : None
+# Author       : Copyright Richard B. Romig, 07 Sep 2022
+# Email        : rick.romig@gmail.com
+# Comments     : based on code by Jake@Linux <https://gitlab.com/jped>
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.0"
+readonly _updated="07 Sep 2022"
+
+## Functions ##
+
+find_init() {
+	if pidof systemd &> /dev/null; then
+		printf "SystemD"
+	elif pidof sysv &> /dev/null; then
+		printf "SysV"
+	elif [[ -f /sbin/openrc ]]; then
+		printf "OpenRC"
+	else
+		file='/proc/1/comm'
+		if [[ -r "$file" ]]; then
+			read -r data < "$file"
+			printf '%s' "${data%% *}"
+	  else
+	 		printf '?'
+		fi
+  fi
+}
+
+## Execution ##
+
+# clear
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+
+printf "Init System: %s \n" $(find_init)"
+
+exit

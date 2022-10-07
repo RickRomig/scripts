@@ -1,0 +1,202 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : install-fonts
+# Description  : Installs various Microsoft fonts
+# Dependencies : apt, cabextract, curl, wget
+# Arguments    : None
+# Author       : Richard B. Romig, 13 August 2019
+# Email        : rick.romig@gmail.com
+# Comments     :
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.3.1"
+readonly _updated="12 Sep 2022"
+
+font_flag=0  # 0 = no fonts installed. 1 = at least one font installed.
+
+## Functions ##
+
+cascadia_code() {
+  local github_url="https://github.com"
+  local release_path="microsoft/cascadia-code/releases"
+  local ccf_dir="/usr/share/fonts/truetype/cascadia-code" 
+  local user_ccf="$HOME/.local/share/fonts"
+  # Remove older versions of Caascadia Code fonts.
+  if dpkg -l | grep -qw fonts-cascadia-code; then
+    sudo apt-get remove fonts-cascadia-code -yy   # if installed from distro repo
+  elif [[ -d "$ccf_dir" ]]; then
+    if find "$ccf_dir" -type f; then
+      # installed from GitHub
+      sudo rm -rf "$ccf_dir"/otf/
+      sudo rm -rf "$ccf_dir"/ttf/
+      sudo rm -rf "$ccf_dir"/woff2/
+    fi
+  else
+    [[ -d "$ccf_dir" ]] || mkdir -p "$ccf_dir"
+  fi
+  echo "Installing Cascadia-Code fonts."
+  wget -qO "$tmp_file" "$github_url/$release_path"
+  new_ver=$(sed 's/\// /g' "$tmp_file" | grep -v 'beta\|rc' | awk '/download/ && /.zip/ {print $7;exit}' | sed 's/^v//')
+  font_pkg="CascadiaCode-${new_ver}.zip"
+  wget -q -P "$tmp_dir/" "$github_url/$release_path/download/v$new_ver/$font_pkg"
+  [[ -d "$ccf_dir" ]] || mkdir -p "$ccf_dir"
+  sudo unzip -d "$ccf_dir" "$tmp_dir/$font_pkg"
+  sudo cp "$ccf_dir"/ttf/*.ttf "$user_ccf"/
+  echo "Cascadia Code fonts version $new_ver installed."
+}
+
+carlito_caladea() {
+  # Installs into /usr/share/fonts/truetype/crosextra
+  # dpkg -l | grep -w fonts-crosextra-carlito
+  # dpkg -l | grep -w fonts-crosextra-caladea
+  if [[ -d /usr/share/fonts/truetype/crosextra ]]; then
+    echo "Carlito and Caladea fonts are already installed."
+  else
+    echo "Installing Carlito and Caladea fonts"
+    sudo apt upgrade -yyq
+    sudo apt install fonts-crosextra-carlito fonts-crosextra-caladea -yyq
+  fi
+}
+
+ms_core_fonts() {
+  # MS TTF core fonts: Andale Mono, Arial Black, Arial (Bold, Italic, Bold Italic),
+  # Comic Sans MS (Bold), Courier New (Bold, Italic, Bold Italic), Georgia (Bold,
+  # Italic, Bold Italic), Impact, Times New Roman (Bold, Italic, Bold Italic),
+  # Trebuchet (Bold, Italic, Bold Italic), Verdana (Bold, Italic, Bold Italic),
+  # Webdings
+  # Installs into /usr/share/fonts/truetype/msttcorefonts
+  # dpkg -l | grep -w ttf-mscorefonts-installer
+
+  if [[ -d /usr/share/fonts/truetype/msttcorefonts ]]; then
+    echo "MS core fonts are aleady installed."
+  else
+    echo "Installing MS core true-type fonts"
+    sudo apt upgrade -yyq
+    sudo apt install ttf-mscorefonts-installer -yyq
+  fi
+}
+
+vista_fonts() {
+  # Windows vista fonts: Calibri, Cambria, Candara, Consolas, Constantia, Corbel
+  local dl_host="sourceforge.net"
+  local dl_path="projects/mscorefonts2/files/cabs"
+  local archive="PowerPointViewer.exe"
+  local url="https://$dl_host/$dl_path/$archive"
+  local fonts_dir="/usr/share/fonts/truetype/vista"
+  local start_dir="$PWD"
+
+  if [[ -d /usr/share/fonts/truetype/vista ]]; then
+    echo "Vista fonts are already installed."
+  else
+    # Create font directory if required
+    [[ -d "$fonts_dir" ]] || sudo mkdir -p "$fonts_dir"
+
+    # Check to see if cabextract is installed
+    check_package cabextract
+
+    echo "Installing Vista true-type fonts"
+    # Download the fonts to the font download directory
+    if [[ "$start_dir" != "$font_dl_dir" ]]; then
+      pushd "$font_dl_dir" || die "pushd failed"
+    fi
+    if [[ ! -e "$archive" ]]; then
+      curl -A '' -LO "$url"
+      echo "$archive downloaded to $font_dl_dir"
+    fi
+
+    # Extract the fonts from the archive
+    /usr/bin/cabextract -L -F ppviewer.cab -d "$temp_dir" "$archive"
+    sudo /usr/bin/cabextract -L -F '*.TT[FC]' -d "$fonts_dir" "$temp_dir/ppviewer.cab"
+    if [[ "$start_dir" != "$font_dl_dir" ]]; then
+      popd || die "popd failed"
+    fi
+
+    # Rename and apply permissions to fonts
+    if [[ "$start_dir" != "$fonts_dir" ]]; then
+      pushd "$fonts_dir" || die "pushd failed"
+    fi
+    mv cambria.ttc cambria.ttf
+    chmod 600 calibri{,b,i,z}.ttf cambria{,b,i,z}.ttf candara{,b,i,z}.ttf \
+    consola{,b,i,z}.ttf constan{,b,i,z}.ttf corbel{,b,i,z}.ttf
+    if [[ "$start_dir" != "$fonts_dir" ]]; then
+      popd || die "popd failed"
+    fi
+  fi
+}
+
+cleanup() {
+  [[ -f "$tmp_file" ]] && rm "$tmp_file"
+  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+  [[ -d "$temp_dir" ]] && rm -rf "$temp_dir"
+  [[ -d "$font_dl_dir" ]] && rm -rf "$font_dl_dir"
+}
+
+## Execution ##
+
+# Check to see if curl is installed
+check_package curl
+check_package wget
+
+trap cleanup EXIT INT QUIT TERM
+
+while true; do
+  # clear
+  echo "$_script v$_version ($_updated)"
+  echo "Install extra fonts"
+  COLUMNS=40
+  options=("Cascadia Code" "MS TTF Core Fonts" "Carlito and Caladea Fonts" \
+    "Vista Fonts" "Quit and Exit")
+  PS3="Choose a font to install: "
+  select opt in "${options[@]}"
+  do
+    case $REPLY in
+      1 )
+        user_in_sudo
+        tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+        tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+        cascadia_code
+        font_flag=1
+        break ;;
+      2 )
+        user_in_sudo
+        ms_core_fonts
+        font_flag=1
+        break ;;
+      3 )
+        user_in_sudo
+        carlito_caladea
+        font_flag=1
+        break ;;
+      4 )
+        user_in_sudo
+        temp_dir=$(mktemp -d) || die "Failed to create temporary diectory!"
+        font_dl_dir=$(mktemp -d) || die "Failed to create temporary diectory!"
+        vista_fonts
+        font_flag=1
+        break ;;
+      5 )
+        (( font_flag != 0 )) && sudo /usr/bin/fc-cache -f > /dev/null 2>&1
+        leave "" ;;
+      * )
+        echo "${lightred}Invalid Choice!${normal}" >&2 ;;
+    esac
+  done
+done

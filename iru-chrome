@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : iru-chrome
+# Description  : Download and install the Google Chrome browser
+# Dependencies : wget
+# Arguments    : -h -i -r -u (See help function)
+# Author       : Richard B. Romig, 18 July 2019
+# Email        : rick.romig@gmail.com
+# Comments     : Google Chrome should update through apt
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.3.8"
+readonly _updated="30 Sep 2022"
+readonly chrome_list="/etc/apt/sources.list.d/google-chrome.list"
+readonly keyring_dir="/etc/apt/trusted.gpg.d"
+readonly trusted_key="google-chrome.gpg"
+
+## Functions ##
+
+check_dependencies() {
+  check_package wget
+}
+
+chrome_ver() {
+  google-chrome-stable --version | awk '{print $NF}'
+}
+
+install_chrome() {
+  local trusted_key_url="https://dl-ssl.google.com/linux/linux_signing_key.pub"
+  local source_list="deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main"
+  user_in_sudo
+  wget -q -O - "$trusted_key_url" | sudo apt-key add - 2>/dev/null # apt-key deprecated
+  echo "source_list" | sudo tee "$chrome_list" > /dev/null
+  sudo apt update
+  if sudo apt-get install -y google-chrome-stable; then
+    leave "Google Chrome $(chrome_ver) successfully installed."
+  else
+    die "Google Chrome installation failed." 1
+  fi
+}
+
+purge_chrome() {
+  user_in_sudo
+  sudo apt purge google-chrome-stable
+  [[ -f "$keyring_dir/$trusted_key" ]] && sudo rm -v "$keyring_dir/$trusted_key"
+  sudo apt-key del D38B4796 2>/dev/null #apt-key deprecated
+  [[ -f "$chrome_list" ]] && sudo rm -v "$chrome_list"
+  leave "Google Chrome removed from this computer."
+}
+
+update_chrome() {
+  user_in_sudo
+  sudo apt install google-chrome-stable
+  leave "Google Chrome updated to $(chrome_ver)."
+}
+
+help() {
+  local errcode="${1:-2}"
+  cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -h = Help
+  -i = Install Google Chrome
+  -r = Remove Google Chrome
+  -u = Update Google Chrome
+END_HELP
+  exit "$errcode"
+}
+
+## Execution ##
+
+echo "$_script v$_version ($_updated)"
+echo "${orange}Installs Google Chrome${normal}"
+check_dependencies
+
+if [[ "$#" -eq 0 ]]; then
+  echo "${lightred}ERROR:${normal} No argument passed." >&2
+  help 2
+else
+  optstr=":hiru"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      h )
+        help 0 ;;
+      i )
+        exists google-chrome-stable && leave "Google Chrome $(chrome_ver) already installed."
+        install_chrome ;;
+      r )
+        exists google-chrome-stable || leave "Google Chrome is not installed."
+        purge_chrome ;;
+      u )
+        exists google-chrome-stable || leave "Google Chrome is not installed."
+        update_chrome ;;
+      ? )
+        echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}." >&2
+        help 2 ;;
+    esac
+  done
+fi

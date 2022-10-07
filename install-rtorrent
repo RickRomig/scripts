@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-rtorrent
+# Description  : installs and configures rtorrent ncurses BitTorrent client
+# Dependencies : none
+# Arguments    : none
+# Author       : Richard B. Romig, 29 Jan 2022
+# Email        : rick.romig@gmail.com
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.4"
+readonly _updated="07 Sep 2022"
+
+## Functions ##
+
+make_dirs() {
+  local default_dir="$HOME/Downloads/torrents"
+  local session_dir="$HOME/session"
+  local watch_dir="$HOME/watch"
+  echo "Creating rtorrent working directories ..."
+  [[ -d "$default_dir" ]] || mkdir -pv "$default_dir"
+  [[ -d "$session_dir" ]] || mkdir -pv "$session_dir"
+  [[ -d "$watch_dir" ]] || mkdir -pv "$watch_dir"
+}
+
+make_rc() {
+  local rtorrent_sed="$HOME/bin/files/rtorrentrc.sed"
+  local rtorrent_gz="/usr/share/doc/rtorrent/examples/rtorrent.rc.gz"
+  echo "Creating and configuring .rtorrent.rc ..."
+  cp -v "$rtorrent_gz" "$HOME/"
+  gunzip "$HOME/rtorrent.rc.gz"
+  mv -v "$HOME/rtorrent.rc" "$HOME/.rtorrent.rc"
+  sed -i -f "$rtorrent_sed" "$HOME/.rtorrent.rc"
+  echo ".rtorrent.rc configured."
+}
+
+## Execution ##
+
+clear
+echo -e "\U1F427 $_script v$_version ($_updated)"
+echo "Installs rtorrent ncurses BitTorrent client and configures .rtorrent.rc"
+
+user_in_sudo
+echo "Installing rtorrent bit torrent client ..."
+sudo apt install rtorrent -yy
+make_dirs
+make_rc
+rt_ver=$(dpkg -l | awk '$2 == "rtorrent" {print $3}' | sed 's/[+-].*//')
+leave "rtorrent BitTorrent client (version $rt_ver) installed and configured."

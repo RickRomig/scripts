@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+#####################################################################
+# Script Name  : Brasero-bug-fix
+# Description  : Ubuntu 18.04/Linux Mint 19.x bug fix
+# Dependencies : None
+# Arguments    : None
+# Author       : Richard B. Romig, 12 February 2019
+# Email        : rick.romig@gmail.com
+# Comment      : Bug in Brasero where you can't burn CDs
+#              : Joe Collins & Matt Hartley
+# License      : GNU General Public License, version 2
+#####################################################################
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.2.0"
+readonly _updated="07 Oct 2021"
+
+## Functions ##
+
+intro () {
+  cat <<- EOF
+  There is a bug in Brasero in Ubuntu 18.04 and in distributions derived from it
+  (Linux Mint 19.x) that prevents the user from writng an audio CD. This script
+  will set the permissions on the files necessary to enable this functionality.
+EOF
+}
+
+set_permissions() {
+  echo "Setting permissions..."
+  sudo chmod -v 4711 /usr/bin/cdrdao
+  sudo chmod -v 4711 /usr/bin/wodim
+  sudo chmod -v 0755 /usr/bin/growisofs
+}
+
+mimeaps_list_add() {
+  local mimeaps_list=".local/share/applications/mimeapps.list"
+  if [[ -f "$HOME/$mimeaps_list" ]]; then
+    if grep -qw 'brasero' "$HOME/mimeaps_list"; then
+      {
+        echo "x-content/blank-cd=brasero.desktop;"
+        echo "x-content/blank-dvd=brasero.desktop;"
+      } >> "$HOME/$mimeaps_list"
+    fi
+  fi
+
+  # When a blank CD or DVD is inserted but pop-up screen
+  # gives no application to select or options are greyed out:
+  # cat ~/.local/share/applications/mimeapps.list | grep 'brasero' > /dev/null 2&>1
+  # Add to end of file:
+  # x-content/blank-cd=brasero.desktop;
+  # x-content/blank-dvd=brasero.desktop;
+}
+
+## Execution ##
+
+echo "$_script v$_version ($_updated)"
+intro
+
+if exists brasero; then
+  set_permissions
+  mimeaps_list_add
+fi
+
+exit

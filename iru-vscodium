@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : iru-vscodium
+# Description  : Install, update, remove VSCodium editor.
+# Dependencies : gdebi, wget
+# Arguments    : [-h] [-i] [-r] [-s] [-u] (See help function)
+# Author       : Copyright Richard B. Romig, 16 Jul 2022
+# Email        : rick.romig@gmail.com
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.8"
+readonly _updated="14 Sep 2022"
+readonly url="https://github.com/VSCodium/vscodium/releases"
+
+## Functions ##
+
+cleanup() {
+  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+}
+
+check_dependencies() {
+  check_package wget
+	check_package gdebi
+}
+
+newest_version() {
+  wget -qO "$tmp_file" "$url"
+  new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}')
+  echo "$new_ver"
+}
+
+compare_versions() {
+  cur_ver="$(dpkg -l | awk '$2 == "codium" {print $3}' | sed 's/[+-].*//')"
+  if [[ "$cur_ver" == "$new_ver" ]]; then
+    echo "${lightyellow}VSCodium $cur_ver is the current version. No update required.${normal}"
+  else
+    echo "${lightyellow}Current version of VSCodium is $cur_ver, updating to $new_ver...${normal}"
+    install_app
+  fi
+}
+
+install_app() {
+	new_pkg=$(sed 's/\// /g' "$tmp_file" | awk '/download/ && /amd64.deb/ {print $8;exit}' | sed 's/"$//')
+  user_in_sudo
+  echo "Downloading VSCodium from the VSCodium GitHub repository..."
+  wget -q -P "$tmp_dir/" "$url/download/$new_ver/$new_pkg"
+  sudo gdebi -n "$tmp_dir/$new_pkg"
+  echo "VSCodium $(codium_ver) successfully installed."
+}
+
+remove_app() {
+  local vsc_cfg="${HOME}/.config/VSCodium"
+  user_in_sudo
+  echo "Removing the VSCodium editor..."
+  sudo dpkg --remove codium
+  [[ -d "$vsc_cfg" ]] && rm -rf "$vsc_cfg"
+  echo "VSCodium editor has been removed."
+}
+
+apply_settings() {
+  local vsc_cfg="${HOME}/.config/VSCodium/User"
+  [[ -d "$vsc_cfg" ]] || mkdir -p "$vsc_cfg"
+  echo "Applying VSCodium settings..."
+  settings
+  echo "VSCodium settings applied."
+}
+
+settings() {
+  local vsc_cfg="${HOME}/.config/VSCodium/User"
+  cat << EOL > "$vsc_cfg/settings.json"
+{
+  "workbench.colorTheme": "Visual Studio Dark",
+  "editor.tabSize": 2,
+  "editor.fontFamily": "'Cascadia Code', 'Droid Sans Mono', 'monospace'",
+  "editor.fontLigatures": true,
+  "terminal.integrated.fontFamily": "'Cascadia Code'",
+  "editor.wordWrap": "on",
+  "editor.fontSize": 16,
+  "window.restoreFullscreen": true,
+  "editor.insertSpaces": false
+}
+EOL
+}
+
+codium_ver() {
+	codium --version | head -n 1
+}
+
+help() {
+  local errcode="${1:-2}"
+  cat << EOF
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -h    Displays help.
+  -i    Installs the VSCodium editor.
+  -r    Removes the VSCodium editor from the system.
+  -s    Applies VSCodium settings.
+  -u    Updates the VSCodium editor to the latest version.
+EOF
+  exit "$errcode"
+}
+
+## Execution ##
+
+check_dependencies
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Installs, updates, or removes the VSCodium editor.\n"
+
+if [[ "$#" -eq 0 ]]; then
+	echo "${lightred}ERROR:${normal} No argument passed." >&2
+	help 2
+else
+	optstr=":hirsu"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			h )
+				help 0 ;;
+			i )
+				exists codium || leave "VSCodium $(codium_ver) is already installed."
+        tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+				trap cleanup EXIT
+				new_ver="$(newest_version)"
+        echo "${lightyellow}Installing VSCodium $new_ver...${normal}"
+				install_app
+        apply_settings
+        ;;
+			r )
+        exists codium || leave "VSCodium is not installed. Run '$_script -i' to install."
+        remove_app
+        ;;
+			s )
+        exists codium || leave "VSCodium is not installed. Run '$_script -i' to install."
+        apply_settings
+        ;;
+			u )
+        exists codium || leave "VSCodium is not installed. Run '$_script -i' to install."
+				tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+				trap cleanup EXIT
+				new_ver="$(newest_version)"
+				compare_versions
+        ;;
+			? )
+				echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+				help 2
+        ;;
+		esac
+	done
+fi
+
+exit

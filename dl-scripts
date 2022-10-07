@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : dl-scripts
+# Description  : Downloads bash scripts and templates from HP 6004 server
+# Dependencies : rsync
+# Arguments    : None
+# Author       : Richard B. Romig, 07 Jun 2020
+# Email        : rick.romig@gmail.com
+# Comments     : Downloads from 192.168.0.11:/data/installation to
+#              : local machine.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.2.5"
+readonly _updated="21 Jun 2021"
+readonly server_ip="192.168.0.11"
+readonly server_dir="data/installation"
+
+## Execution ##
+
+clear
+echo "$_script v$_version ($_updated)"
+echo -e "Downloads bash scripts and templates from the HP 6005 server.\n"
+
+dpkg -l | grep -gw rsync || sudo apt-get install rsync -yy
+
+echo -e "$\e[33mCopying bin directory...\e[0m"
+[[ -d "$HOME/bin" ]] || mkdir -p "$HOME/bin"
+rsync -avz --delete "rick@${server_ip}:/${server_dir}/bin/" "$HOME/bin/"
+echo -e "\e[33mCopying Templates directory...\e[0m"
+rsync -avz --delete "rick@${server_ip}:/${server_dir}/Templates/" "$HOME/Templates/"
+echo -e "\e[33mScripts and Templates copied.\e[0m"
+
+exit

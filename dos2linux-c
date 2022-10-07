@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+#####################################################################
+# Script Name  : dos2linux-c
+# Description  : removes DOS carriage returns from C/C++ soruce files
+# Dependencies : find, sed
+# Arguments    : none
+# Author       : Richard Romig, 28 January 2019
+# Email        : rick.romig@gmail.com
+# Comment      :
+# License      : GNU General Public License, version 2.0
+#####################################################################
+
+readonly _script=$(basename "$0")
+readonly _version="1.0.1"
+readonly _updated="01 Sep 2019"
+
+echo "$_script v$_version ($_updated)"
+echo "Converts DOS text files to Linux format by removing carriage return characters."
+
+echo "Removing the carriage return characters from C source code files while creating"
+echo "a backup copy of the orginal files."
+
+find . -maxdepth 1 -type f -iname "*.c*" -exec sed -i.bak -e 's/\r//g' '{}' \;
+find . -maxdepth 1 -type f -iname "*.h*" -exec sed -i.bak -e 's/\r//g' '{}' \;
+
+exit

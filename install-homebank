@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+#####################################################################
+# Script Name  : install-homebank
+# Description  : Installs Homebank from PPA or distribution reposistory
+# Dependencies : none
+# Arguments    : none
+# Author       : Richard Romig, 29 November 2018
+# Email        : rick.romig@gmail.com
+# Comments     : Available as a flatpak
+#              : https://flathub.org/apps/details/fr.free.Homebank
+#              : Linux Mint Sofware Manager
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.3.2"
+readonly _updated="04 Mayr 2022"
+
+## Functions ##
+
+homebank_ver() {
+  homebank --version
+}
+
+add_ppa() {
+  echo "Adding repository and installing HomeBank..."
+  sudo add-apt-repository ppa:mdoyen/homebank
+}
+
+remove_ppa() {
+  sudo add-apt-repository --remove ppa:mdoyen/homebank
+}
+
+install_homebank() {
+  user_in_sudo
+  support_ppa && add_ppa
+  if sudo apt-get install homebank -yyq; then
+    leave "$(homebank_ver) installed."
+  else
+    leave "HomeBank installation failed." >&2
+  fi
+}
+
+remove_homebank() {
+  if exist homebank; then
+    echo "Removing $(homebank_ver)..."
+    user_in_sudo
+    support_ppa && remove_ppa
+    sudo apt-get remove homebank -yy > /dev/null 2>&1
+    leave "HomeBank has been removed."
+  else
+    leave "HomeBank is not installed."
+  fi
+}
+
+purge_homebank() {
+  if exist homebank; then
+    echo "Removing $(homebank_ver) and purging configuration files."
+    user_in_sudo
+    support_ppa && remove_ppa
+    sudo apt-get purge homebank -yy > /dev/null 2>&1
+    leave "HomeBank and its configuration files have been removed."
+  else
+    leave "HomeBank is not installed."
+  fi
+}
+
+help() {
+  local errcode="${1:-2}"
+  cat << EOT
+${green}Usage:${normal} $_script [-h] [-i] [-r]
+${orange}OPTIONS:${normal}
+  -h  Display help
+  -i  Install HomeBank from PPA or repository
+  -p  Remove HomeBank and purge configuration files (PPA or repository)
+  -r  Remove HomeBank (PPA or repository)
+      HomeBank is also available as a Flatpak (Flathub or Mint Softwware Manager)
+EOT
+  exit "$errcode"
+}
+
+## Execution ##
+
+clear
+echo "$_script v$_version ($_updated)"
+echo "Installs HomeBank Personal Finance Software."
+
+if [[ "$#" -eq 0 ]]; then
+  echo "${lightred}ERROR:${normal} No argument passed." >&2
+  help 2
+else
+  optstr=":hipr"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      h )
+        help 0 ;;
+      i )
+        install_homebank ;;
+      p )
+        purge_homebank ;;
+      r )
+        remove_homebank ;;
+      ? )
+        echo "${lightred}ERROR:${normal} Invalid option -$OPTARG" >&2
+        help 2 ;;
+    esac
+  done
+fi

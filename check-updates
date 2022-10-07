@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : check-updates
+# Description  : check for updates and install if necessary.
+# Dependencies : none
+# Arguments    : none
+# Author       : Richard Romig, 08 December 2018
+# Email        : rick.romig@gmail.com
+# Comments     : For Debian/Ubuntu-based Linux distributions
+#              : apt-get is better suited than apt for use in scripts.
+#              : Lists available updates. Updates can be deferred.
+# 15 Dec 2020  : added Flatpak updates.
+# 10 Jul 2021  : added purge of old kernel config files
+# 14 Jul 2021  : fixed purge routine with a for-loop
+# 17 Jul 2021  : changed the order of cleanup operations
+# 21 Jul 2021  : added conditional if no '^rc' packages found.
+# 21 Jul 2021  : placed purge routine in a separate function.
+# 01 Sep 2021  : commented out line to check for flatpak updates.
+# 09 Nov 2021  : reverted from single line purge routine to a for loop.
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+set -euo pipefail
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="1.5.10"
+readonly _updated="27 Sep 2022"
+
+## Functions ##
+
+install_updates() {
+  echo $'\n'$"${orange}Installing updates...${normal}"
+  sudo apt-get dist-upgrade -yy
+}
+
+clean_cache() {
+  echo $'\n'$"${orange}Cleaning up apt cache...${normal}"
+  sudo apt-get autoclean
+}
+
+remove_orphans() {
+  echo $'\n'$"${orange}Removing orphaned packages...${normal}"
+  sudo apt-get autoremove -yy
+}
+
+purge_configs() {
+  # Purge obsolete linux kernel configuration files
+  echo $'\n'$"${orange}Purging obsolete configuration files...${normal}"
+  rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}' | wc -l)
+  if [[ "$rcpkgs" -gt 0 ]]; then
+    # sudo apt-get remove --purge "$(dpkg -l | awk '/^rc/ {print $2}')" -yy
+    for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
+      sudo apt-get remove --purge "$rcpkg" -yy
+    done
+  else
+    echo "No files to be purged found."
+  fi
+}
+
+update_complete() {
+  echo -n $'\n'$"${orange}Update complete. $nupd "
+  (( nupd > 1 )) && echo -n "updates were" || echo -n "update was"
+  echo -e " installed.${normal}\n"
+}
+
+defer_updates() {
+  echo -n $'\n'$"${orange}No updates installed. $nupd "
+  (( nupd > 1 )) && echo -n "updates were" || echo -n "update was"
+  echo -e " deferred.${normal}\n"
+}
+
+update_flatpak() {
+  echo -n $'\n'$"${orange}Flatpak:${normal} "
+  sudo flatpak update --noninteractive --force-remove --assumeyes -y
+  printf "\n"
+}
+
+## Execution ##
+
+user_in_sudo
+
+SECONDS=0
+
+clear
+echo -e "\U1F427 ${bold}${orange}$_script v$_version ($_updated)"
+echo "System: $(uname -n) (# $(local_ip))"
+echo "Distro: $(get_distribution)"
+echo -e "Kernel: $(uname -sr)\n"
+echo -e "Checking for updates...${normal}\n"
+
+# Update apt cache
+sudo apt-get update
+
+# Get number of packages that can be upgraded
+nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
+
+# If there are packages to be upgraded
+if (( nupd > 0 )); then
+  echo -n "${orange}$nupd "
+  (( nupd > 1 )) && echo -n "packages" || echo -n "package"
+  echo " can be upgraded.${normal}"
+  # List upgradeable packages
+  apt list --upgradeable
+  # Options menu
+  COLUMNS=40
+  echo $'\n'$"${underline}${green}Update options:${normal}"
+  PS3="Choose an option: "
+  options=("Install updates." "Install updates & clean cache" \
+  "Install updates & remove orphaned packages." \
+  "Install updates, clean cache, & remove orphaned packages." \
+  "Defer updates until later.")
+  select opt in "${options[@]}"; do
+    case $REPLY in
+      1 )
+        install_updates
+        update_complete
+        break ;;
+      2 )
+        install_updates
+        clean_cache
+        update_complete
+        break ;;
+      3 )
+        install_updates
+        remove_orphans
+        purge_configs
+        update_complete
+        break ;;
+      4 )
+        install_updates
+        clean_cache
+        remove_orphans
+        purge_configs
+        update_complete
+        break ;;
+      5 )
+        defer_updates
+        break ;;
+      * )
+        echo "${lightred}Invalid option!${normal} Select 1..5" >&2 ;;
+    esac
+  done
+else
+  echo -e "\n${orange}All packages are up to date.${normal}\n"
+fi
+
+# Update flatpak if installed
+# exists flatpak && update_flatpak
+
+# Exit the script
+leave "Script completed in $(format_time $SECONDS)"

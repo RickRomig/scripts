@@ -1,0 +1,178 @@
+#!/usr/bin/env bash
+################################################################################
+# Script Name  : install-conky
+# Description  : Install and configure Conky
+# Dependencies : upower, wget
+# Arguments    : None
+# Author       : Richard Romig, 26 December 2018
+# Email        : rick.romig@gmail.com
+# Comment      : copies .conkyrc to conkyrc-hostname for archiving purposes.
+# TODO (rick)  : Look at if statements in functions.
+# License      : GNU General Public License, version 2
+###############################################################################
+
+# Shellcheck Directives ##
+# shellcheck disable=SC2034
+
+# Check Dependencies
+
+dpkg -l | grep -qu upower || sudo apt install upower -yy
+# upower is used to extract battery information
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.5.3"
+readonly _updated="05 May 2022"
+
+readonly hname=$HOSTNAME
+readonly TRUE=0
+readonly FALSE=1
+
+## Functions ##
+
+edit_view_quit() {
+  PS3="Choose an option: "
+  select opt in Edit View Quit
+  do
+    case $REPLY in
+      1 )
+        if exists micro; then
+          /usr/bin/micro "$HOME/.conkyrc"
+        else
+          /bin/nano "$HOME/.conkyrc"; remove_tilde
+        fi
+        break ;;
+      2 )
+        if exists bat; then
+          /usr/bin/bat "$HOME/.conkyrc"
+        else
+          /usr/bin/less "$HOME/.conkyrc"
+        fi
+        break ;;
+      3 )
+        echo $'\n'$"Exiting."; break ;;
+      * )
+        echo "Invalid option. Try again" >&2 ;;
+    esac
+  done
+}
+
+exists() {
+  command -v "$1" > /dev/null 2>&1 && return 0 || return 1
+}
+
+remove_tilde() {
+  nbu=$(find ./ -maxdepth 1 -type f -name \*~  | wc -l)
+  (( nbu > 0 )) && find . -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
+}
+
+die() {
+  local msg="$1"	    # message
+  local ec=${2-1}	    # default exit status 1
+  echo -e "\e[91m$msg\e[0m" >&2
+  exit "$ec"
+}
+
+antix_mx() {
+  dist_id=$(grep 'DISTRIB_ID' /etc/lsb-release 2> /dev/null | cut -d '=' -f2)
+  case $dist_id in
+    antiX|MX ) return "$TRUE" ;;
+    * ) return "$FALSE" ;;
+  esac
+}
+
+bunsenlabs() {
+  distro=$(lsb_release -d | awk '{print $2}')
+  [[ "$distro" = "BunsenLabs" ]] && return "$TRUE" || return "$FALSE"
+}
+
+cfg_desktop() {
+  [[ -d "$HOME/.config/autostart" ]] || mkdir -p "$HOME/.config/autostart"
+
+  pushd "$HOME/.config/autostart/" > /dev/null 2>&1 || die "pushd failed"
+
+  if [[ -f Conky.desktop || -f conky.desktop ]]; then
+    echo "conky.desktop aleady exits."
+    [[ -f Conky.desktop ]] && mv Conky.desktop conky.desktop
+  else
+    cp "$HOME/Templates/.desktop" .
+    echo "conky.desktop configured."
+  fi
+
+  popd > /dev/null 2>&1 || die "popd failed"
+}
+## Execution ##
+
+clear
+echo "$_script v$_version ($_updated)"
+echo "Installs conky, sets up conky.desktop and creates .conkyrc."
+
+# Install conky if not already installed
+
+if bunsenlabs || antix_mx; then
+  echo "Conky is pre-installed. Use the Conky Manager to configure conky."
+  exit
+elif exists conky; then
+  conky_ver=$(conky --version | awk '/Linux/ {print $2}')
+  echo $'\n'$"Conky version $conky_ver is already installed."
+else
+  echo $'\n'$"Installing conky..."
+  sudo apt update -qq
+  if sudo apt install -yyq conky; then
+    conky_ver=$(conky --version | awk '/Linux/ {print $2}')
+    echo "Conky version $conky_ver installed."
+  else
+    status="$?"
+    die "Conky installation failed." "$status"
+  fi
+fi
+
+# Copy Conky.desktop to ~/.config/autostart if not present
+cfg_desktop
+
+# Find the number of CPU cores/threads
+ncpu=$(/usr/bin/nproc --all)
+
+# Find device names
+if [[ -x /usr/bin/nmcli ]]; then
+  e_name=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
+  w_name=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
+else
+  e_name=$(ip ad show | awk '/: en/ {print $2}' | sed 's/:$//')
+  w_name=$(ip ad show | awk '/: wl/ {print $2}' | sed 's/:$//')
+fi
+[[ -z "$e_name" ]] && e_name="eth0"
+[[ -z "$w_name" ]] && w_name="wlan0"
+b_name=$(/usr/bin/upower -e | awk -F_ '/BAT/ {print $NF}')
+[[ -z "$b_name" ]] && b_name="BAT0"
+
+# Display network and battery device names and number of cores,
+echo -e "Battery device name:\t$b_name"
+echo -e "Ethernet device name:\t$e_name"
+echo -e "Wireless device name:\t$w_name"
+echo -e "CPU cores/threads:\t$ncpu"
+
+# Configure ~/.conkyrc using template
+
+sed -e '1d' \
+    -e "s/<BAT>/$b_name/g" \
+    -e "s/<EN>/$e_name/g" \
+    -e "s/<WL>/$e_name/g" "$HOME/Templates/conkyrc" > "$HOME/.conkyrc"
+case "$ncpu" in
+  1 ) sed -i '57,63d' "$HOME/.conkyrc" ;;
+  2 ) sed -i '58,63d' "$HOME/.conkyrc" ;;
+  3 ) sed -i '59,63d' "$HOME/.conkyrc" ;;
+  4 ) sed -i '60,63d' "$HOME/.conkyrc" ;;
+  5 ) sed -i '61,63d' "$HOME/.conkyrc" ;;
+  6 ) sed -i '62,63d' "$HOME/.conkyrc" ;;
+  7 ) sed -i '63d' "$HOME/.conkyrc" ;;
+esac
+
+echo $'\n'$".conkyrc created and configured."
+
+edit_view_quit
+
+echo "Please reboot or log out and log in again to complete the installation."
+
+exit

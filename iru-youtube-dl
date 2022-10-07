@@ -1,0 +1,217 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : iru-youtube-dl
+# Description  : Installs, updates, removes youtube-dl from yt-dl.org
+# Dependencies : curl, ffmpeg, atomicparsley, ytdluplog.sed, z-ytupdate
+# Arguments    : -h -i -r -u (see help function for more information)
+# Author       : Copyright Richard B. Romig, 02 Oct 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Consolidation of install-ytdl and remove-yt-dl scripts.
+#              : Removes distro repo version if installed.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.1"
+readonly _updated="03 Oct 2022"
+readonly red_error="${lightred}ERROR:${normal}"
+# Installation variables
+readonly ytdl_prg="youtube-dl"
+readonly update_script="z-ytdlupdate"
+readonly sed_file="ytdluplog.sed"
+readonly script_dir="$HOME/bin"
+readonly sed_dir="/$HOME/bin/files/"
+readonly ytdl_location="/usr/local/bin/"
+readonly sed_location="/usr/share/misc"
+readonly cron_location="/etc/cron.daily"
+
+## Functions ##
+
+check_dependencies() {
+  check_package curl
+	check_package ffmpeg
+  check_package ffmpeg-doc
+	check_package atomicparsley
+	[[ -x "$script_dir/$update_script" ]] || die "$update_script not found." 1
+	[[ -f "$sed_dir/$sed_file" ]] || die "$sed_file not found." 1
+}
+
+ytdl_version() {
+  /usr/local/bin/youtube-dl --version
+}
+
+update_youtubedl() {
+	printf "Updating youtube-dl %s\n" "$(ytdl_ver)"
+  sudo /usr/local/bin/youtube-dl --update
+}
+
+install_youtubedl() {
+  local url="https://yt-dl.org/downloads/latest/youtube-dl"
+  sudo curl -L "$url" -o "$ytdl_location/$ytdl_prg"
+  [[ -x /usr/bin/python3 ]] && sudo ln -s /usr/bin/python3 /usr/bin/python
+  sudo chmod 755 "$ytdl_location/$ytdl_prg"
+  # Copies update & log cleanup scripts
+  [[ -x "$script_dir/$update_script" ]] && sudo cp -v "$script_dir/$update_script" "$cron_location/"
+  [[ -f "$sed_dir/$sed_file" ]] && sudo cp -v "$sed_dir/$sed_file" "sed_location/"
+  printf "%s v%s installed.\n" "$ytdl_prg" "$(ytdl_version)"
+}
+
+remove_repo_ver() {
+  # Purges repo version of youtube-dl & removes orphaned dependencies
+	printf "%s v%s installed distro repos. Removing this version.\n" "$ytdl_prg" "$(dpkg -l | awk '$2 == "youtube-dl" {print $3}' | sed 's/[+-].*//')"
+  sudo apt-get purge -yyq youtube-dl
+  sudo apt-get autoremove -yyq
+  printf "Repository version of %s removed from the system.\n" "$ytdl_prg"
+}
+
+remove_ytdl() {
+  # Removes the yt-dl.org version
+  printf "Removing %s v%s...\n" "$ytdl_prg" "$(ytdl_version)"
+  sudo rm "$ytdl_location/$ytdl_prg"
+  remove_configs
+  remove_updater
+  remove_logs
+	printf "ytdl.org version of %s removed." "$ytdl_prg"
+}
+
+remove_configs() {
+  # Remove yt-dl.org configuration file, if it exists
+  if [[ -d "$HOME/.config/youtube-dl" ]]; then
+    printf "Removing user %s configuration file...\n" "$ytdl_prg"
+    rm -rf "$HOME/.config/youtube-dl"
+    printf "User %s configuration file removed.\n" "$ytdl_prg"
+  else
+    printf "No user %s configuration file found.\n" "$ytdl_prg"
+  fi
+  # Remove global configuration file, if it exists
+  if [[ -f "/etc/youtube-dl.conf" ]]; then
+    printf "Removing global %s configuration file...\n" "$ytdl_prg"
+    sudo rm "/etc/youtube-dl.conf"
+    printf "Global %s configuration file removed.\n" "$ytdl_prg"
+  else
+    printf "No global %s configuration file found.\n" "$ytdl_prg"
+  fi
+}
+
+remove_updater() {
+	[[ -f "$sed_location/$sed_file" ]] && sudo rm "$sed_location/$sed_file"
+	if [[ -x "$cron_location/$update_script" ]]; then
+		sudo rm "$cron_location/$update_script"
+  	printf "%s update script removed.\n" "$update_script"
+	else
+		printf "%sl update script not found.\n" "$update_script"
+	fi
+}
+
+remove_logs() {
+	local log_location="/var/log/ytdlup.log"
+  # Remove update log file if it exists
+  if [[ -f "$log_location" ]]; then
+    sudo rm "$log_location"
+    printf "%s update log file removed.\n" "$ytdl_prg"
+  else
+    printf "No %s log file found.\n" "$ytdl_prg"
+  fi
+}
+
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+	-h 	Display help
+	-i 	Install youtube-dl
+	-r 	Remove youtube-dl
+	-u 	Update youtube-dl
+	-x	Remove youtube-dl (repo version)
+END_HELP
+	printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+install_intro() {
+  cat << EOF
+Installs youtube-dl from yt-dl.org to /usr/local/bin along with an update
+script that runs as a daily anacron job which saves the results to a log
+file at /var/log/ytdlup.log. A sed file to cleanup and format the log file
+is installed at /usr/share/misc/ytdluplog.sed
+If the version from the distro's repostitory is installed, it will be removed.
+EOF
+}
+
+remove_intro() {
+  cat << EOF
+Removes youtube-dl and its configuration files, removing both the version
+installed via the distribution's repositories and the version downloaded
+from the yt-dl downloads page.
+EOF
+}
+
+## Execution ##
+
+# clear
+if [[ "$#" -eq 0 ]]; then
+	printf "%s No argument passed.\n" "$red_error"  >&2
+	help 1
+else
+	optstr=":hirux"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			h )
+				help 0
+				;;
+			i )
+				[[ -f "$ytdl_location/$ytdl_prg" ]] && leave "$ytdl_prg $(ytdl_version) already installed."
+				user_in_sudo
+				check_dependencies
+				install_intro
+				dpkg -l | grep -qw youtube-dl && remove_repo_ver
+				install_youtubedl
+				break
+				;;
+			r )
+				remove_intro
+				dpkg -l | grep -qw youtube-dl && remove_repo_ver
+				[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
+				user_in_sudo
+				remove_ytdl
+				break
+				;;
+			u )
+				[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
+				user_in_sudo
+				update_youtubedl
+				break
+				;;
+			x )
+				dpkg -l | grep -qw youtube-dl || leave "The repo version of $ytdl_prg is not installed."
+				printf "Removing %s installed from the distribution repository.\n" "$ytdl_prg"
+				user_in_sudo
+				remove_ytdl
+				break
+				;;
+			? )
+				printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+				help 2
+				;;
+		esac
+	done
+fi
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+exit

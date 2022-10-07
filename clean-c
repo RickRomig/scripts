@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : clean-c
+# Description  : Cleans up C programing in the current working directory
+# Dependencies : none
+# Arguments    : none
+# Author       : Richard Romig, 8 February 2019
+# Email        : rick.romig@gmail.com
+# Comment      : removes *~, *.o, and a.out in the current working directory
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+# Variables
+
+readonly _script=$(basename "$0")
+readonly _version="0.0.9"
+readonly _updated="03 May 2021"
+
+readonly work_dir=$(dirname "$(readlink -f "$0")")
+
+# Clean up current working directory, removing a.out, *.o *~ files
+
+clear
+box "$_script v$_version ($_updated)"
+echo $'\n'$"Cleaning up $work_dir..."
+find . -maxdepth 1 -type f \( -name "a.out" -o -iname "*.o" -o -iname "*~" \) -print -exec rm {} \;
+
+exit

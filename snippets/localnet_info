@@ -1,0 +1,14 @@
+# Methods to get the first 3 octets of the local network
+
+# Newer method - should work for all /24 networks
+localnet=$(ip route show | awk '/default via/ {print $3; exit}' | cut -d'.' -f1,2,3)
+192.168.0
+
+# Older method
+lnet=$(ip route show | awk '/default via/ {print $3; exit}')  # default gateway
+case $lnet in
+	"10.0.2.2" ) localnet=${lnet%2*} | sed 's/\.$//';;       # Gnome Boxes (10.0.2)
+    "192.168.122.1" ) localnet=${lnet%1*} | sed 's/\.$//' ;; # virt-manager QEMU (192.168.122)
+    "192.168.0.1" ) localnet=${lnet%1*} | sed 's/\.$//' ;;   # local network (192.168.0)
+    * ) localnet="192.168.0" ;;					             # local network
+esac

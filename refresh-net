@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : refresh-net
+# Description  : Refresh network connections
+# Dependencies : systemctl (if systemd), service (if sysvinit), strings
+# Args         : None
+# Author       : Richard Romig
+# Email        : rick.romig@gmail.com
+# Comment      :
+# TODO (Rick)  : Find solutions for other init systems.
+#              : Look at adapting check-init script.
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="2.0.3"
+readonly _updated="17 Aug 2022"
+
+## Functions ##
+
+restart_network() {
+  init_sys=$(strings /sbin/init | awk 'match($0, /(upstart|systemd|sysvinit)/) { print toupper(substr($0, RSTART, RLENGTH));exit; }')
+
+  case $init_sys in
+    # "SYSTEMD" ) sudo systemctl restart network-manager ;;
+    "SYSTEMD" ) sudo systemctl restart NetworkManager.service ;;
+    "SYSVINIT" ) sudo service network-manager restart ;;
+    "UPSTART" ) upstart_restart ;;
+    * ) die "Init system is undetermined." 1 ;;
+  esac
+}
+
+upstart_restart() {
+  sudo service networking stop
+  sleep 5
+  sudo service networking start
+}
+
+## Execution ##
+
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Refreshes network connection.\n"
+
+user_in_sudo
+printf "Restarting network...\n"
+restart_network
+sleep 5
+exit

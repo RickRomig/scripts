@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : mk-fortunes
+# Description  : Create fortune files for the fortune program
+# Dependencies : strfile
+# Arguments    : fortune-cookie file (text)
+# Author       : Richard B. Romig, 04 May 2019
+# Email        : rick.romig@gmail.com
+# Comments     :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+# Variables
+
+readonly _script=$(basename "$0")
+readonly _version="1.2.9"
+readonly _updated="04 May 2022"
+
+usage() {
+  local errcode="${1:-2}"
+  echo "${orange}Usage:${normal} $_script <cookie-file>"
+  exit "$errcode"
+}
+
+echo "$_script v$_version ($_updated)"
+echo "Creates fortune cookie files for the fortune program"
+
+# Check arguments
+
+if [[ $# -eq 0 ]]; then
+  echo "${lightred}Error:${normal} No argument passed." >&2
+  usage 2
+elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+  echo "$_script v$_version ($_updated)"
+  usage 0
+else
+  cookiefile=$1
+fi
+
+# Check if cookiefile exists and process if it does
+if [[ -f "$cookiefile" ]]; then
+  if strfile -c % "$cookiefile" "$cookiefile.dat"; then
+    sudo cp "$cookiefile" "$cookiefile.dat" /usr/share/games/fortunes/
+  else
+    die "strfile operation failed." 1
+  fi
+else
+  echo "${lightred}Error:${normal} $cookiefile does not exist. Check spelling." >&2
+  usage 2
+fi
+
+leave "Fortune cookie files created and copied to /usr/share/games/fortunes"

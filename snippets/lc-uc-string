@@ -1,0 +1,16 @@
+# Bash convert to lower/upper case
+
+foo="bar"
+echo "${foo^}"	# convert 1st letter to uppercase (Bash 4+)
+echo "${foo^^}"	# convert all letters to uppercase (Bash 4+)
+foo="BAR"
+echo "${foo,}"	# convert 1st letter to lowercase (Bash 4+)
+echo "${foo,,}"	# convert all letters to lowercase (Bash 4+)
+
+foo="$(tr '[:lower:]' '[:upper:]' <<< ${foo:0:1})${foo:1}"
+
+foo=$(echo "$foo" | sed 's/^./\U&\E/')	# convert 1st letter to uppercase
+echo "$(echo "$foo" | sed 's/.*/\U&/')"		# convert all letters to uppercase
+echo "$(echo "foo" | sed 's/^[^ ]*/\U&/E/'	# convert 1st workd to uppercase
+# Replace U with L to make lowercase.
+# \E = leave all preceding characters in their current state

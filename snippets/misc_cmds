@@ -1,0 +1,79 @@
+# Misc Commands
+
+# hostenamectl - hostname
+hostnamectl | grep 'hostname' | cut -d':' -f2 | sed 's/^ //'
+hostnamectl | grep 'hostname' | cut -d' ' -f6
+
+# hostenamectl - Operating System:
+hostnamectl | grep 'System' | cut -d':' -f2 | sed 's/^ //'
+hostnamectl | grep 'System' | cut -d' '  -f5-
+
+# hostenamectl - Kernel version:
+hostnamectl | grep 'Kernel' | cut -d':' -f2 | sed 's/^ //'
+hostnamectl | grep 'Kernel' | cut -d' ' -f14-
+
+# ps command to find init system
+# From the command line:
+ps -p 1 | awk '/1 ?/ {print $4}'	# Returns either systemd or init
+ps -p 1 | awk '/1 ?/ {print $NF}'	# Returns either systemd or init
+# As a function:
+check_init() {
+  echo -n "Initialization system is "
+  INIT_SYS=$(ps -p 1 | awk '/1 ?/ {print $4}')
+    case $INIT_SYS in
+     "systemd" ) echo "systemd" ;;
+     "init" ) echo "SysV or other non-systemd" ;;
+     * ) echo "an undetermined init system" ;;
+   esac
+}
+
+# Fix missing panel in Cinnamon
+dconf reset -f /    # forces reset of all settings to defaults
+# /usr/share/cinnamon/cinnamon-settings/cinnamon-settngs.py panel
+
+# nmcli - active connections
+nmcli -p con show | awk '/ethernet/ {print $NF}'
+nmcli -p con show | awk '/wifi/ {print $NF}'
+nmcli -p con show | awk '/bridge/ {print $NF}'
+
+# die function
+die() { exec 2>&1 ; for line ; do echo "$line" ; done ; exit 1 ; }
+
+die() {
+	exec 2>&1
+	for line; do
+		echo "$line"
+	done
+	exit 1
+}
+
+# Run a script on a remote host
+$ ssh rick@192.168.0.100 'bash -s' < local.sh
+
+# Run a script on a remote host with arguments
+$ ssh rick@192.168.0.100 'bash -s' -- < local2.sh arg1 arg2 arg3 ...
+
+# Run a section of a script (heredoc) on a remote host
+
+#!/bin/bash
+
+# local processing can done here
+
+# remote processing is done here
+ssh -T rick@192.168.0.100 << _remote_commands
+
+# commands to be run remotely would be added here
+cd /home/rick/Documents
+# etc.
+
+# Finally, update the timestamp file
+echo "Script3.sh:" $(date) >> /home/rick/timestamp.txt
+
+# this is the label that marks the end of the redirection
+_remote_commands
+
+# more local processing can be done here
+
+exit 0
+
+$ ./local3.sh

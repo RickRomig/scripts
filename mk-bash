@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : mkbash
+# Description  : Creates script file with header information
+# Dependencies : bat, chmod, sed, nano
+# Arguments    : Name of script to be created
+# Author       : Richard Romig
+# Email        : rick.romig@gmail.com
+# Comment      : Creates the script in the current working directory.
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="2.5.3"
+readonly _updated="07 Oct 2022"
+
+# Data to insert into new bash script
+
+readonly today=$(date +"%d %b %Y")
+
+readonly copy_holder="Richard B. Romig"
+readonly cur_yr=$(date +'%Y')
+readonly email_addr="rick.romig@gmail.com"
+readonly email_addr1="rick.romig@mymetronet.net"
+readonly coder="Rick"
+readonly license="GNU General Public License, version 2.0"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  echo "${orange}Usage:${normal} $SCRIPT <myscript>"
+  echo "${orange}Example:${normal} $SCRIPT my-script.sh"
+  exit "$errcode"
+}
+
+## Check arguments ##
+
+if [[ -z "$1"  ]]; then
+  echo "${lightred}Error:${normal} No argment passed." >&2
+  usage 2
+elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+  echo "$_script v$_version ($_updated)"
+  usage 0
+elif [[ -f "$1" ]]; then
+  echo "${lightred}Error:${normal} $1 already exists." >&2
+  usage 2
+else
+  filename="$1"
+fi
+
+## Execution ##
+
+echo "$_script v$_version ($_updated)"
+echo "Creating $filename BASH script."
+
+COLUMNS=40
+echo "Which script template are you using?"
+PS3="Choice: "
+select opt in "Standard script" "Getopts script"
+do
+  case "$REPLY" in
+    1 ) template_file="bash-template"; break ;;
+    2 ) template_file="bash-getopts"; break ;;
+    * ) echo "${lightred}Invalid choice.${normal} 1 = Standard script 2 = Getopts script" >&2 ;;
+  esac
+done
+
+# Fill in placeholders and create the script
+
+sed -e '1d' \
+    -e "s/<FILE>/$filename/" \
+    -e "s/<YEAR>/$cur_yr/" \
+    -e "s/<AUTHOR>/$copy_holder/" \
+    -e "s/<EMAIL>/$email_addr/" \
+    -e "s/<EMAIL1>/$email_addr1/" \
+    -e "s/<TODAY>/$today/" \
+    -e "s/<CODER>/$coder/" \
+    -e "s/<LICENSE>/$license/" "$HOME/Templates/$template_file" > "$filename"
+
+# Set file permissions for the new script to -rwxr-xr-xr
+chmod 755 "$filename"
+
+echo "The $filename script has been created."
+edit_view_quit "$filename"
+
+echo ""
+leave ""

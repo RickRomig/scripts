@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+#####################################################################
+# Script Name  : dos2linux
+# Description  : converts DOS text files to Linux format
+# Dependencies : sed
+# Arguments    : file to be converted
+# Author       : Richard Romig, 24 January 2019
+# Email        : rick.romig@gmail.com
+# Comment      : removes DOS carriage return ('\r') characters
+#####################################################################
+
+# Copyright (C) 2019  Richard Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+usage() {
+  local errcode="${1:-2}"
+  echo "Usage: $_script <file>"
+  exit "$errcode"
+}
+
+readonly _script=$(basename "$0")
+readonly _version="1.0.9"
+readonly _updated="04 May 2022"
+
+# check arguments
+
+if [[ $# -eq 0 ]]; then
+  echo -e "\e[91mError:\e[0m No arguments passed." >&2
+  usage 2
+elif [[ -f "$1" ]]; then
+  filename="$1"
+else
+  echo -e "\e[91mError:\e[0m $1 not found." >&2
+  usage 2
+fi
+
+echo "$_script v$_version ($_updated)"
+echo "Converts DOS text files to Linux format by removing carriage return characters."
+
+# convert the file
+
+echo "Removing the carriage return characters from $filename while creating a backup"
+echo "of the orginal file."
+sed -i.bak -e 's/\r//g' "$filename"
+
+exit

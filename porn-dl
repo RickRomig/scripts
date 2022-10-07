@@ -1,0 +1,197 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : porn-dl
+# Description  : Download videos from porn sites with best quality
+# Dependencies : youtube-dl
+# Arguments    : Video URL or ID number
+# Author       : Richard B. Romig, 05 April 2019
+# Email        : rick.romig@gmail.com
+# Comments     : match by regex, starts with http:// or https:// or by ID number
+#              : Downloads videos to ~/Videos/Pornography/<category>
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="1.0.15"
+readonly _updated="06 Jul 2022"
+
+readonly porn_dir=$HOME"/Videos/Pornography"
+vid_format=$(mktemp) || die "Failed to create temporary file." 1
+
+## Functions ##
+
+display_title() {
+  clear
+  box "Porn Site Download" "="
+  echo "$_script v$_version ($_updated)"
+}
+
+usage() {
+  local errcode="${1:-2}"
+  cat <<- EOF
+  Usage: $_script [video-url] [video-ID]
+  ${darkgray}PornHub${normal}
+  $_script https://www.pornhub.com/view_video.php?viewkey=ph5ccfa07f0e2a6
+  $_script ph5ccfa07f0e2a6
+  ${darkgray}RedTube${normal}
+  $_script https://redtube.com/5431551
+  $_script 5431551
+  ${darkgray}SparkBang${normal}
+  $_script https://spankbang.com/35tlo/video/luana+lani+comp
+  $_script 35tlo/video/luana+lani+comp
+
+  --help or -h will display these instructions.
+  --info or -i will display information about the script.
+EOF
+  exit "$errcode"
+}
+
+script_info() {
+  cat <<- EOF
+  $_script uses youtube-dl to download videos from adult sites such as PornHub
+  and RedTube. The video URL or ID is passed to the script on the command line.
+  If the full URL is passed, the script will extract the name of the site for
+  later use. If the video ID is passed, you are presented a menu of supported
+  sites and the ID will be appended to the URL for the chosen site.
+
+  The script will then present a menu of categories corresponding to
+  subdirectories under ~/Videos/Pornography/. Once the category is selected
+  youtube-dl will obtain the available formats and list them. By default, it
+  will choose the format marked as the recoommended best format. If only one
+  format is listed, that format is selected.
+
+  Then the video will be downloaded to the selected sub-directory in the chosen
+  format. The script is hard-coded to save the file as title.ext. Spaces in the
+  title will be replaced by underscores. Metadata will also be added to the file.
+
+  When the download is completed, success or failure is displayed. If the
+  download fails, the script exits with an error code.
+
+  Usage:
+    $_script [video-url]
+    $_script [video-ID]
+
+  Version: $_version
+  Updated: $_updated
+EOF
+  exit
+}
+
+check_dependencies() {
+  exists youtube-dl || die "youtube-dl must be installed. Run install-ytdl" 1
+}
+
+cleanup() {
+  [[ -f "$vid_format" ]] && rm -f "$vid_format"
+}
+
+## Execution ##
+
+trap cleanup EXIT
+
+check_dependencies
+
+display_title
+
+# Check arguments, fetch URL and extract site name
+
+if [[ $# -eq 0 ]]; then
+  echo "${lightred}Error:${normal} No argument passed." >&2
+  usage 2
+elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
+  script_info
+elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
+  usage 2
+elif [[ "$1" =~ ^https?:\/\/.* ]]; then
+  # match by regex, starts with http:// or https://
+  # \/ in regex will be seen as / in this context
+  url=$*
+  # Extract domain without www and .com. Capitalize site name
+  site=$(echo "$url" | sed -e 's|^[^/]*//||' -e 's|^www\.||' -e 's|/.*$||')
+  site=${site%%.*}
+  site=$(echo "$site" | sed -e 's/^./\U&\E/')  # 's/./\U&/g' All caps
+else
+  # Choose site and match by video ID
+  echo $'\n'$"${bold}${blue}Sites:${normal}"
+  sites=("PornHub" "RedTube" "SpankBang")
+  PS3="Choose site: "
+  select site in "${sites[@]}"; do
+    case "$REPLY" in
+      1 ) url="https://www.pornhub.com/view_video.php?viewkey=$*"; break ;;
+      2 ) url="https://www.redtube.com/$*"; break ;;
+      3 ) url="https://www.spankbang.com/$*"; break ;;
+      * ) echo "Invalid choice. Try again." >&2 ;;
+    esac
+  done
+fi
+
+# Choose the download folder
+
+echo $'\n'$"${bold}${blue}Categories:${normal}"
+COLUMNS=60
+options=("Anal" "Asian" "Bi Gay Trans" "Full movies" "Kink" \
+ "Masturbation" "Miscellaneous" "Oral" "Pinay" "Straight")
+PS3="Choose category: "
+select opt in "${options[@]}"
+do
+  case "$REPLY" in
+    1 ) subdir="Anal"; break ;;
+    2 ) subdir="Asian"; break ;;
+    3 ) subdir="Bi-gay-trans"; break ;;
+    4 ) subdir="Full-movies"; break ;;
+    5 ) subdir="Kink"; break ;;
+    6 ) subdir="Masturbation"; break ;;
+    7 ) subdir="Misc"; break ;;
+    8 ) subdir="Oral"; break ;;
+    9 ) subdir="Pinay"; break ;;
+    10 ) subdir="Straight"; break ;;
+    * ) subdir="none"; break ;;
+  esac
+done
+
+# Fetch best format
+
+echo $'\n'$"${bold}${blue}Fetching available formats:${normal}"
+/usr/local/bin/youtube-dl -F "$url" | sed '/Downloading/d' | tee "$vid_format"
+format=$(awk '/(best)/ {print $1}' "$vid_format")
+[[ -z "$format" ]] && format=$(tail -n1 "$vid_format" | cut -d " " -f1)
+
+# Download video to selected folder
+
+echo $'\n'$"${bold}${blue}Streaming from $site with format quality: $format${normal}"
+case "$subdir" in
+  "none" )
+    if /usr/local/bin/youtube-dl -f "$format" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"
+    then
+      leave "Download successful."
+    else
+      ec="$?"
+      die "Download failed." "$ec"
+    fi
+    ;;
+  * )
+    if /usr/local/bin/youtube-dl -f "$format" --add-metadata -ic --restrict-filename -o "$porn_dir/$subdir/%(title)s.%(ext)s" "$url"
+    then
+      leave "Download successful."
+    else
+      ec="$?"
+      die "Download failed." "$ec"
+    fi
+    ;;
+esac

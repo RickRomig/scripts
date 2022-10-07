@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+#####################################################################
+# Script Name  : devtoolchk
+# Description  : Check if C development tools are installed
+# Dependencies : n/a
+# Arguments    : none
+# Author       : Richard Romig
+# Email        : rick.romig@gmail.com
+# Comment      :
+# License      : GNU General Public License, version 2.0
+#####################################################################
+
+# Variables
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.4"
+readonly _updated="21 Jun 2021"
+
+# Execution
+
+clear
+box "$_script v$_version ($_updated)"
+echo -e "C development tools status: \n"
+
+gcc -v > /dev/null 2>&1 && echo -e "\tGCC installed." || \
+ echo -e "\tGCC is not installed!"
+
+ld -v > /dev/null 2>&1 && echo -e "\tbinutils installed." || \
+ echo -e "\tbinutils is not installed!"
+
+locate glibc > /dev/null 2>&1 && echo -e "\tGNU C standard library installed." || \
+ echo -e "\tGNU C standard library not installed."
+
+[[ -d "/usr/include/" ]] && echo -e "\tbuild-essential installed.\n" || \
+ echo -e "\tbuild-essential is not installed.\n"
+
+dpkg -l | grep -qw mingw && echo -e "\tminGW installed." || \
+ echo -e  "\tminGW not installed."
+
+exit

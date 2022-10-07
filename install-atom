@@ -1,0 +1,224 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : install-atom
+# Description  : Installs the Atom Editor from the GitHub repository.
+# Dependencies : sshfs
+# Args         : None
+# Author       : Richard Romig
+# Email        : rick.romig@gmail.com
+# Comments     : Debian and Ubuntu-based distributions
+#              : Atom to be sunsetted by GitHub 15 Dec 2022.
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2088
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="1.2.9"
+readonly _updated="10 Sep 2022"
+readonly sources_list="/etc/apt/sources.list.d/atom.list"
+readonly atom_dir=$HOME"/.atom/"
+readonly atom_cfg_dir=$HOME"/.local/share/atom"  # XDG_DATA_HOME
+readonly config_dir="$HOME/.config/Atom"
+
+## Functions ##
+
+atom_ver() {
+  atom --version | awk '/Atom/ {print $NF}'
+}
+
+install_atom() {
+  if exists atom; then
+    printf "Atom Editor v%s is already installed.\n" "$(atom_ver)"
+  else
+		[[ -d "$atom_cfg_dir" ]] || mkdir -p "$atom_cfg_dir"
+    local trusted_key_url="https://packagecloud.io/AtomEditor/atom/gpgkey"
+    local source_list="deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main"
+    printf "\nInstalling Atom Editor"
+    wget -qO - "$trusted_key_url" | sudo apt-key add - 2>/dev/null #apt-key deprecated
+    echo "$source_list" | sudo tee "$sources_list" < /dev/null
+    sudo apt update -qq
+    if sudo apt-get install -yy atom; then
+      cascadia_code
+      atom_config
+      atom_styles
+      leave "Atom Editor v$(atom_ver) installed."
+    else
+      die "Installation of Atom Editor failed."
+    fi
+  fi
+}
+
+purge_atom() {
+  if exists atom; then
+    sudo apt remove --autoremove atom -yy
+    sudo apt-key del DE9E3B09 2>/dev/null #apt-key deprecated
+    [[ -f "$sources_list" ]] && sudo rm "$sources_list"
+    [[ -d "$atom_cfg_dir" ]] && rm -rf "$atom_cfg_dir"
+    [[ -d "$atom_dir" ]] && rm -rf "$atom_dir"
+    [[ -d "$config_dir" ]] && rm -rf "$config_dir"
+    leave "Atom editor and configuration files removed."
+  else
+    leave "Atom Editor is not installed."
+  fi
+}
+
+cascadia_code() {
+  if [[ ! -d "$/usr/share/fonts/truetype/cascadia-code" ]]; then
+    echo "Installing Cascadia-Code fonts."
+    sudo apt upgrade -yyq
+    sudo apt-get install fonts-cascadia-code -yyq
+    echo "Cascadia-Code fonts installed."
+  fi
+}
+
+atom_config() {
+  [[ -d "$atom_cfg_dir" ]] || mkdir -p "$atom_cfg_dir"
+  cat << EOF > "$atom_cfg_dir/config.cson"
+"*":
+  core:
+    autoHideMenuBar: true
+    packagesWithSnippetsDisabled: []
+    projectHome: "/home/rick/Projects/"
+    telemetryConsent: "limited"
+    themes: [
+      "atom-dark-ui"
+      "base16-tomorrow-dark-theme"
+    ]
+  editor:
+    fontFamily: " 'Cascadia Code', Menlo, Consolas, DejaVu Sans Mono, monospace"
+    fontSize: 17
+    scrollPastEnd: true
+    showIndentGuide: true
+    softTabs: true
+    softWrap: true
+		tabType: "soft"
+  "markdown-preview":
+    useGitHubStyle: true
+  "tree-view":
+    hideVcsIgnoredFiles: true
+  welcome:
+    showOnStartup: false
+EOF
+  echo "Atom config.cson created."
+}
+
+atom_styles() {
+  [[ -d "$atom_cfg_dir" ]] || mkdir -p "$atom_cfg_dir"
+  cat << EOF > "$atom_cfg_dir/styles.less"
+  /*
+   * Your Stylesheet
+   *
+   * This stylesheet is loaded when Atom starts up and is reloaded automatically
+   * when it is changed and saved.
+   *
+   * Add your own CSS or Less to fully customize Atom.
+   * If you are unfamiliar with Less, you can read more about it here:
+   * http://lesscss.org
+   */
+
+
+  /*
+   * Examples
+   * (To see them, uncomment and save)
+   */
+
+  // style the background color of the tree view
+  .tree-view {
+    // background-color: whitesmoke;
+  }
+
+  // style the background and foreground colors on the atom-text-editor-element itself
+  atom-text-editor {
+    // color: white;
+    // background-color: hsl(180, 24%, 12%);
+
+    // Enable Cascadia Code ligatures
+    text-rendering: optimizeLegibility;
+
+    &.editor .syntax--string.syntax--quoted,
+    &.editor .syntax--string.syntax--regexp {
+      -webkit-font-feature-settings: "liga" on, "calt" on;
+    }
+    &.editor .syntax--comment {
+      font-style: italic;
+    }
+  }
+
+  // style UI elements inside atom-text-editor
+  atom-text-editor .cursor {
+    // border-color: red;
+  }
+EOF
+  printf "Atom styles.less created.\n"
+}
+
+check_dependencies() {
+  check_package git
+  check_package sshfs
+}
+
+help() {
+  local errcode="${1:-2}"
+  cat << EOT
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -c    Installs/updates the Atom configuration files.
+  -h    Displays help.
+  -i    Installs the Atom Editor.
+  -r    Removes the Atom Editor from the system.
+EOT
+  exit "$errcode"
+}
+
+## Execution ##
+
+check_dependencies
+
+clear
+echo "$_script v$_version ($_updated)"
+echo -e "${orange}Installs the Atom Editor.${normal}\n"
+
+ if [[ "$#" -eq 0 ]]; then
+  echo "${lightred}ERROR:${normal} No argument passed." >&2
+  help 2
+else
+  optstr=":chir"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      c )
+        if exists atom; then
+          atom_config
+          atom_styles
+          leave "Atom configuration and styles installed."
+        else
+          leave "Atom Editor is not installed."
+        fi ;;
+      h )
+        help 0 ;;
+      i )
+        user_in_sudo
+        install_atom ;;
+      r )
+        user_in_sudo
+        purge_atom ;;
+      ? )
+        echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+        help 2 ;;
+    esac
+  done
+fi

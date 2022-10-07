@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : battery-check
+# Description  : Display charge and health statics of a laptop battery
+# Dependencies : None
+# Arguments    : None
+# Author       : Richard B. Romig, 28 Jul 2020
+# Email        : rick.romig@gmail.com
+# Comments     : Uses data from /sys/class/power_supply/BAT*
+#              : Batttery health based on a script by Elias W (eliasw4u on Ezeetalk.com)
+#              : Battery charge based on a script by Luke Smith (https://lukesmith.xyz)
+#              : Supports multiple batteries if they are active.
+# 19 Sep 2021  : Added charge status of HID++ battery, if present.
+# 28 Dec 2021  : Moved AC power results to ac_power function.
+# 16 Aug 2022  : Set variable for warning/status emojis.
+# 17 Aug 2022  : Changed routine for HID++ battery.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2
+###############################################################################
+
+# Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.4.9"
+readonly _updated="17 Aug 2022"
+
+## Functions ##
+
+help() {
+  errcode="${1:-2}"
+  cat <<- EOF
+  ${green}Usage:${normal} $_script [option]
+  With no argument, displays battery health information.
+  ${orange}OPTIONS:${normal}
+  -h        # displays this help message.
+  --help    # displays this help message.
+  --version # displays the version and information about the script.
+  $_script $_version, Upated: $_updated
+EOF
+  exit "$errcode"
+}
+
+version() {
+  cat <<- EOF
+  $_script $_version, Upated: $_updated
+  Displays the charge state and health of a laptop battery using data obtained
+  from files in /sys/class/power_supply/BAT*. Capacity information may be shown
+  in either Ampere-hours (Ah) or Watt-hours (Wh), depending on your system.
+EOF
+}
+
+battery_status() {
+  echo -e "\n${orange}Battery charge:${normal}"
+  [[ -f "$battery_path/status" ]] || die "Problem with the battery! Replace it!"
+  bat_status=$(cat "$battery_path/status")
+  [[ -f "$battery_path/capacity" ]] || die "Problem with the battery! Replace it!"
+  bat_charge=$(cat "$battery_path/capacity")
+  [[ "$bat_status" = "Discharging" && "$bat_charge" -le 25 ]] && warn="\U26A0\UFE0F"
+  echo -e "\t${lightgreen}Status:${normal} $bat_status"
+  echo -e "\t${lightgreen}Charge:${normal} $bat_charge%  $warn"
+  # For use in a status bar such as polybar
+  # printf "\t%s%s%s\n" $(echo "$bat_status" | sed "s/,//;s/Discharging/🔋 /;s/Not charging/🛑️ /;s/Charging/ 🔌 /;s/Unknown/❓️ /;s/Full/⚡️ /;s/ 0*/ /g;s/ :/ /g") "$WARN" $(echo "$BAT_CHARGE" | sed -e 's/$/%/')
+}
+
+battery_capacity() {
+  if [[ -f "$battery_path/charge_full" ]]; then
+    actual_full="charge_full"
+    design_full="charge_full_design"
+    unit="Ah"
+  else
+    actual_full="energy_full"
+    design_full="energy_full_design"
+    unit="Wh"
+  fi
+
+  actual_max=$(awk 'NF{print $1/1000000}' OFMT="%2.2f" "$battery_path/$actual_full")
+  design_max=$(awk 'NF{print $1/1000000}' OFMT="%2.2f" "$battery_path/$design_full")
+  int_des="${design_max%%.*}"
+  int_act="${actual_max%%.*}"
+
+  if [[ "$int_des" -eq 0 || "$int_act" -eq 0 ]]; then
+    cap_percent="0"
+    bat_health="0"
+  else
+    cap_percent=$(echo "100/${design_max}*${actual_max}" | bc -l)
+    bat_health=$(echo "$cap_percent" | awk 'NF{print $1/1}' OFMT="%2.2f")
+  fi
+
+  echo -e "\n${orange}Battery health:${normal}"
+  echo -e "\t${lightgreen}Actual capacity:${normal} $actual_max $unit"
+  echo -e "\t${lightgreen}Design capacity:${normal} $design_max $unit"
+  echo -e "\t${lightgreen}Battery health:${normal} $bat_health%"
+  battery_condition "$cap_percent"
+}
+
+battery_condition() {
+  cap_pct="$1"
+  c_pct="${cap_pct%%.*}"
+  if [[ "$c_pct" -eq 0 ]]; then
+    warn_level=0
+  else
+    warn_level=$(echo "$cap_pct" | awk 'NF{print $1/1}' OFMT="%.0f")
+  fi
+
+  if [[ "$warn_level" -le "0" ]]; then
+    warn="\U1F4A9"
+    echo -e "\t$warn${red}  Replace the Battery!${normal} $warn"
+  elif [[ "$warn_level" -le "35" ]]; then
+    warn="\U1F622"
+    echo -e "\t$warn${red}  The battery should be replaced.${normal} $warn"
+  elif [[ "$warn_level" -le "65" ]]; then
+    warn="\U26A0\UFE0F"
+    echo -e "\t$warn${orange}  The battery is getting weak.${normal} $warn"
+  else
+    warn="\U1F642"
+    echo -e "\t$warn${green}  The battery is in good condition.${normal} $warn"
+  fi
+}
+
+ac_power() {
+  for ac_path in /sys/class/power_supply/AC*; do
+    ac_status="$(cat "$ac_path/online")"
+    echo -en "\tLaptop"
+    case "$ac_status" in
+      0 ) echo -e " is not plugged in to AC power. \U1F50B" ;;
+      1 ) echo -e " is plugged in to AC power. \U1F50C" ;;
+      * ) echo "'s AC power status cannot be determined." ;;
+    esac
+  done
+}
+
+hidpp_battery() {
+  echo $'\n'$"${orange}HID++ Battery:${normal}"
+  for hidpp_path in /sys/class/power_supply/hidpp_battery_?; do
+    if [[ "$hidpp_path" != "/sys/class/power_supply/hidpp_battery_?" ]]; then
+      echo -e "\t${lightgreen}Device:${normal} $(basename "$hidpp_path")"
+      echo -en "\t${lightgreen}$(cat "$hidpp_path/manufacturer") $(cat "$hidpp_path/model_name"):${normal} "
+      echo "$(cat "$hidpp_path/capacity")%"
+    else
+      echo -e "\tNo HID++ battery detected."
+    fi
+  done
+}
+
+## Execution ##
+
+clear
+if [[ $# -gt 0 ]]; then
+  case "$1" in
+    -h|--help ) help 0 ;;
+    --version ) version; exit ;;
+    * ) echo "${lightred}Invalid argument: $1${normal}" >&2; help 2 ;;
+  esac
+fi
+
+echo -e "${bold}${orange}Battery Status${normal}"
+if [[ -d /proc/acpi/button/lid/ ]]; then
+  for battery_path in /sys/class/power_supply/BAT?; do
+    if [[ "$battery_path" != "/sys/class/power_supply/BAT?" ]]; then
+      echo $'\n'$"${orange}Battery:${normal} $(basename "$battery_path")"
+      battery_status
+      battery_capacity
+    else
+      echo $'\n'$"${lightred}No battery detected.${normal}" >&2
+    fi
+  done
+  echo $'\n'$"${orange}AC Power:${normal}"
+  ac_power
+  hidpp_battery
+else
+  echo $'\n'$"This system is not a laptop." >&2
+fi
+
+echo $'\n'$"$_script v$_version ($_updated)"
+
+exit

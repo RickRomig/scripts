@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#####################################################################
+# Script Name  : mint-fortune
+# Description  : modified version of packaged mint-fortune
+# Dependencies : cowsay, fortune
+# Arguments    : none
+# Author       : Richard B. Romig, 04 May 2019
+# Email        : rick.romig@gmail.com
+# Comments     : does not check com.linuxmint.terminal show-fortunes
+#              : Updated 21 Jun 2021
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+#####################################################################
+
+show_fortune()
+{
+  range=4
+  number=$RANDOM
+  # let "number %= $range"
+  (( number %= range ))
+  case $number in
+    0 )  cow="default" ;;
+    1 )  cow="tux" ;;
+    2 )  cow="koala" ;;
+    3 )  cow="moose" ;;
+  esac
+
+  range=2
+  number=$RANDOM
+  # let "number %= $range"
+  (( number %= range ))
+  case $number in
+    0 )  command="/usr/games/cowsay" ;;
+    1 )  command="/usr/games/cowthink" ;;
+  esac
+  /usr/games/fortune | $command -f $cow
+}
+
+[[ -x "/usr/games/fortune" ]] && [[ -x "/usr/games/cowsay" ]] && show_fortune

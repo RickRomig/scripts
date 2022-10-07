@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : pingit
+# Description  : Checks if a host is on the local network
+# Dependencies : ping
+# Arguments    : Last octet of target computer's IP address
+# Author       : Richard Romig
+# Email        : rick.romig@gmail.com
+# Comments     : Assumes a /24 (Class C) network
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="2.4.2"
+readonly _updated="25 Sep 2022"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  cat << END_HELP
+${green}Usaage:${normal} $_script <last-octet>
+${orange}Example:${normal} $_script 42
+Argument must be an integer in the range of 1 to 254, representing the last
+octet of the target address. Assumes a Class C (/24) network.
+END_HELP
+  printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+validip() {
+  local octet="$1"
+  local status=0
+
+  if [[ -z "$octet" ]]; then
+    status=1  # No argument passed
+  elif [[ "$1" =~ ^[0-9]+$ ]] 2>/dev/null; then
+    # Argument is an integer value
+    if [[ "$octet" -gt 0 && "$octet" -lt 255 ]]; then
+      status=0  # Valid IP
+    else
+      status=2  # invalid address outside of range
+    fi
+  else
+    status=3  # Argument is a non-integer value
+  fi
+
+  display_status "$status"
+
+  return "$status"
+}
+
+display_status() {
+  local status="$1"
+
+  case $status in
+    1 )
+      printf "\e[91mERROR:\e[33m No argument passed. No host IP.\n" <&2 ;;
+    2 )
+      printf "\e[91mERROR:\e[33m %s.%s is not a valid IP address.\n" "$localnet" "$octet" <&2 ;;
+    3 )
+      printf "\e[91mERROR:\e[33m Invalid argument - %s.\n" "$octet" <&2 ;;
+    * )
+      printf "%s.%s is a valid IP address.\n" "$localnet" "$octet" ;;
+  esac
+}
+
+## Execution ##
+
+under_line "Pings an address on the local Class C (/24) network."
+
+# Check arguments
+if [[ $# -eq 0 ]]; then
+  printf "\e[91mError:\e[33m No argument passed.\e[0m\n" >&2
+  usage 2
+elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+  usage 0
+elif validip "$1"; then
+  hostip="$1"
+else
+  usage 2
+fi
+
+# Obtain local IP address
+localip="$(local_ip)"
+
+# Attempt to ping the target IP address
+if [[ "$localip" == "$hostip" ]]; then
+  printf "%s.%s is the computer you're pinging from.\n" "$localnet" "$hostip" <&2
+elif  ping -c 5 "$localnet.$hostip"; then
+  printf "\n%s.%s successfully pinged.\n" "$localnet" "$hostip"
+else
+  printf "\n%s.%s is unreachable. It might not be on the network.\n" "$localnet" "$hostip" <&2
+fi
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+exit

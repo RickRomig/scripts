@@ -1,0 +1,12 @@
+# Using sed to rename files containing spaces.
+
+ls | while read file; do mv "$file" "$(echo "$file" | sed 's/\ /_/g')"; done
+
+ls | while read file
+do
+	mv "$file" "$(echo "$file" | sed 's/\ /_/g')"
+done
+
+# Will generate errors if file cannot be renamed.
+
+find . -maxdepth 1 -type f | grep " " >/dev/null && rename -v 's/ /_/g' ./* || echo "No filenames containing spaces found."

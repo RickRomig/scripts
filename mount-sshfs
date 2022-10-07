@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : mount-sshfs
+# Description  : Mount or unmount an SSHFS share.
+# Dependencies : sshfs
+# Arguments    : None
+# Author       : Richard B. Romig, 18 May 2020
+# Email        : rick.romig@gmail.com
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.2.12"
+readonly _updated="15 Sep 2022"
+
+## Functions ##
+
+mount_share() {
+  local ip_addr="$1"
+  local share="$2"
+  ping -c3 "$localnet.$ip_addr" > /dev/null 2>&1 || die "$share at $localnet.$ip_addr is not online."
+  if [[ -d "/mnt/$share/" ]]; then
+    mounted=$(mount | grep "$share")
+    if [[ -z "$mounted" ]]; then
+      if [[ "$share" == "NASD97167" ]]; then
+        sshfs -o follow_symlinks rick@"$localnet.$ip_addr:" "/mnt/$share/"
+      else
+        sshfs -o follow_symlinks rick@"$localnet.$ip_addr:/home/rick" "/mnt/$share/"
+      fi
+      leave "$share at $localnet.$ip_addr has been mounted."
+    else
+      leave "$share at $localnet.$ip_addr is already mounted."
+    fi
+  else
+    # Share does not exist, create it.
+    sudo mkdir -p "/mnt/$share"
+    sudo chown rick:rick "/mnt/$share"
+    if [[ "$share" == "NASD97167" ]]; then
+      sshfs -o follow_symlinks rick@"$localnet.$ip_addr:" "/mnt/$share/"
+    else
+      sshfs -o follow_symlinks rick@"$localnet.$ip_addr:/home/rick" "/mnt/$share/"
+    fi
+    leave "$share at $localnet.$ip_addr has been created and mounted."
+  fi
+}
+
+unmount_share() {
+  local share="$1"
+  [[ -d "/mnt/$share/" ]] || die "No mountpoint created for $share."
+  mounted=$(mount | grep "$share")
+  if [[ -n "$mounted" ]]; then
+    cd "$HOME" || cd_fail
+    if fusermount -u "/mnt/$share/"; then
+      leave "$share has been unmounted."
+    else
+      echo "${lightred}ERROR:${normal} $share has not been unmounted." >&2
+      fail_msg
+    fi
+  else
+    leave "$share is not mounted."
+  fi
+}
+
+cd_fail() {
+  echo "${lightred}ERROR:${normal} The cd shell builtin failed." >&2
+  echo "The SSHFS share has not been unmounted." >&2
+  fail_msg
+}
+
+fail_msg() {
+  echo "Make sure you are not in the mountpoint and run the following command:" >&2
+  echo -e "\t${orange}fusermount -u /mnt/$share/${normal}" >&2
+  exit 1
+}
+
+## Execution ##
+
+check_package sshfs
+
+echo "$_script v$_version ($_updated)"
+echo -e "Mount or unmount an SSHFS share.\n"
+options=( "Mount Finance" "Unmount Finance" "Mount ProBook-6570b" \
+"Unmount ProBook-6570b" "Mount HP-6005" "Unmount HP-6005" "Mount NAS" \
+"Unmount NAS" "Quit" )
+COLUMNS=60
+PS3="Choose an action: "
+select opt in "${options[@]}"; do
+  case $REPLY in
+    1 ) mount_share 21 "HP-ProBook-6570p"; break ;;
+    2 ) unmount_share "HP-ProBook-6570p"; break ;;
+    3 ) mount_share 20 "ProBook-6570b"; break ;;
+    4 ) unmount_share "ProBook-6570b"; break ;;
+    5 ) mount_share 11 "HP-6005"; break ;;
+    6 ) unmount_share "HP-6005"; break ;;
+    7 ) mount_share 4 "NASD97167"; break ;;
+    8 ) unmount_share "NASD97167"; break ;;
+    9 ) leave "Exiting. No action taken." ;;
+    * ) echo "${lightred}Invalid option.${normal} Choose 1-9." >&2 ;;
+  esac
+done
+exit

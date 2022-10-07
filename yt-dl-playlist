@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : yt-dl-playlist
+# Description  : Download a playlist of YouTube audio files to current directory
+# Dependencies : youtube-dl
+# Arguments    : Video URL
+# Author       : Richard B. Romig, 28 May 2020
+# Email        : rick.romig@gmail.com
+# Comments     : Accepts only full URL
+#              : Downloads to current working directory
+# TODO (Rick)  : Hangs after first file in playlist is downloaded.
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.6"
+readonly _updated="04 May 2022"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  echo "Usage: $_script [video-url]"
+  echo "$_script https://www.youtube.com/watch?v=8hLlU0EML4U"
+  exit "$errcode"
+}
+
+check_dependencies() {
+  exists youtube-dl || die "youtube-dl must be installed. Run install-ytdl" 1
+}
+
+## Execution ##
+
+check_dependencies
+
+if [[ -z "$1" ]]; then
+  echo $'\n'$"${bold}${lightred}Error:${normal} No argument passed." >&2
+  usage 2
+elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
+  usage 0
+elif [[ "$1" =~ ^https?:\/\/.* ]]; then
+  # match by regex, starts with http:// or https://
+  # \/ in regex will be seen as / in this context
+  url=$*
+else
+  echo "${bold}${lightred}Error:${normal} Invalid argument. Must be full URL." >&2
+  usage 2
+fi
+
+## Execution ##
+
+clear
+print_line "=" 31
+echo "YouTube Audio Playlist Download"
+print_line "=" 31
+echo "$_script v$_version"
+echo "($_updated)"
+echo $'\n'$"${bold}${blue}Downloading mp3 audio for $URL${normal}"
+# if /usr/local/bin/youtube-dl --add-metadata -xic --embed-thumbnail \
+# --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" \
+# --yes-playlist "$url"; then
+if /usr/local/bin/youtube-dl --ignore-errors --format bestaudio --extract-audio \
+ --restrict-filename --audio-format mp3 --audio-quality 160K \
+ --output "%(title)s.%(ext)s" --yes-playlist "$url"; then
+  leave "Download successful."
+else
+  ec="$?"
+  die "Download failed." "$ec"
+fi
+# Video Playlist
+# youtube-dl -i -f mp4 --output "%(title)s.%(ext)s" --yes-playlist "$url"

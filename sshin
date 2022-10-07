@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : sshin
+# Description  : Connects to host computer via SSH
+# Dependencies : ssh
+# Arguments    : Last octet of target host's IP address
+# Author       : Richard Romig
+# Email        : rick.romig@gmail.com
+# Comments     : Based on a script by Joe Collins, EzeeLinux.com
+#              : die and localnet are declared in functionlib
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+# Variables
+
+readonly _script=$(basename "$0")
+readonly _version="2.1.1"
+readonly _updated="04 May 2022"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  echo "Usage: $_script <last octet> [X]"
+  echo "Example 1: $_script 11"
+  echo "Example 2: $_script 11 X"
+  echo "First argument is the last octet of the remote server's IP address."
+  echo "X enables X11 forwarding."
+  exit "$errcode"
+}
+
+# Execution
+
+echo "$_script v$_version ($_updated)"
+echo "Log in to a remote server using Secure Shell (SSH)."
+
+if [[ $# -eq 0 ]]; then
+  echo "Enter last octet of remote server's IP address" >&2
+  usage 2
+elif [[ $# -gt 1 ]]; then
+  valid_ip "$1" && hostip="$1"
+  x_opt="$2"
+  case "$x_opt" in
+    X|x )
+      /usr/bin/ssh -X "$localnet.$hostip" ;;
+    * )
+      echo "${lightred}ERROR:${normal} Invalid option" >&2
+      /usr/bin/ssh "$localnet.$hostip" ;;
+  esac
+else
+  valid_ip "$1" && hostip="$1"
+  /usr/bin/ssh "$localnet.$hostip"
+fi
+
+exit

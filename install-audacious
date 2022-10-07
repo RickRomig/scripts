@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+#############################################################################
+# Script Name  : install-audacious
+# Description  : Installs or removes Audacious audio player from PPA
+# Dependencies : none
+# Arguments    : none
+# Author       : Richard B. Romig, 23 Mar 2020
+# Email        : rick.romig@gmail.com
+# Comments     :
+# TODO (Rick)  : PPA uninstall
+# License      : GNU General Public License, version 2.0
+#############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.6"
+readonly _updated="03 Feb 2022"
+
+## Functions ##
+
+install_audacious() {
+  exists audacious && leave "Audacious audio player is installed."
+
+  if support_ppa; then
+    echo "Installing Audacious audio player."
+    sudo add-apt-repository ppa:ubuntuhandbook1/apps
+    sudo apt update -qq
+    sudo apt install audacious audacious-plugins -yy
+    leave "Audacious audio player installed from PPA."
+  elif in_repos audacious; then
+    sudo apt update -qq
+    sudo apt install audacious audacious-plugins -yy
+    leave "Audacious audio player installed from distro repository."
+  else
+    leave "PPA not supported or not in repository. Audacious audio player not installed."
+  fi
+}
+
+remove_audacious() {
+  local ppa_file=""
+  if exists audacious; then
+    echo "Removing Audacious audio player."
+    support_ppa && sudo add-apt-repository --remove ppa:ubuntuhandbook1/apps
+    sudo apt remove --autoremove audacious audacious-plugins
+    leave "Audacious audio player removed."
+  else
+    leave "Audacious audio player is not installed."
+  fi
+}
+
+## Execution ##
+
+clear
+echo "$_script v$_version ($_updated)"
+echo "Installs/removes the Audacious audio player."
+echo $'\n'$"Options:"
+PS3="Select an option: "
+options=( "Install Audacious" "Remove Audacious" "Quit")
+select opt in "${options[@]}"; do
+  case $REPLY in
+    1 ) user_in_sudo; install_audacious; break ;;
+    2 ) user_in_sudo; remove_audacious; break ;;
+    3 ) leave "No action taken. Exiting the script." ;;
+    * ) echo "${lightred}Invalid option.${normal} Please try again." >&2 ;;
+  esac
+done

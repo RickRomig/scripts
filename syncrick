@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : syncrick
+# Description  : A script to sync my data to a local machine via SSH
+# Dependencies : rsync,ip
+# Arguments    : Last octet of the local network address
+# Author       : Richard Romig, Joe Collins
+# Email        : rick.romig@gmail.com
+# Comments     : Based on script by Joe Collins at EzeeLinux.com
+#              : LOCALNET is declared in functionlib
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+# Variables
+
+readonly _script=$(basename "$0")
+readonly _version="2.6.2"
+readonly _updated="14 Feb 2022"
+readonly lhost=$HOSTNAME
+readonly mhost="hp-800g2-sff"
+readonly rhost="probook-6570b"
+
+# Functions
+
+transfer_status() {
+  # Exit script if transfer fails.
+  xfr_status="$1"
+  (( xfr_status != 0 )) && die "A transfer failed! Check network status." "$xfr_status"
+}
+
+sync_script() {
+  echo $'\n'$"${orange}Syncing aliases...${normal}"
+  rsync -avzh --delete /home/"$USER"/.bash_aliases "$localnet.$hostip":
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing homepage...${normal}"
+  rsync -avzh --delete /home/"$USER"/homepage/ "$localnet.$hostip":homepage/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Blogs...${normal}"
+  rsync -avzh --delete /home/"$USER"/Documents/Blogs/ "$localnet.$hostip":Documents/Blogs/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Dreams...${normal}"
+  rsync -avzh --delete /home/"$USER"/Documents/Dreams/ "$localnet.$hostip":Documents/Dreams/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Finance...${normal}"
+  rsync -avzh --delete /home/"$USER"/Documents/Finance/ "$localnet.$hostip":Documents/Finance/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing HomeBank...${normal}"
+  rsync -avzh --delete /home/"$USER"/Documents/HomeBank/ "$localnet.$hostip":Documents/HomeBank/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing HomeBank archives...${normal}"
+  rsync -avzh --delete /home/"$USER"/Downloads/archives/homebank/ "$localnet.$hostip":Downloads/archives/homebank/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Journals...${normal}"
+  rsync -avzh --delete /home/"$USER"/Documents/Journals/ "$localnet.$hostip":Documents/Journals/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing church stuff ...${normal}"
+  rsync -avzh --delete /home/"$USER"/Documents/Fil-Am/Fil-Am_Church/ "$localnet.$hostip":Documents/Fil-Am/Fil-Am_Church/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Pictures/wallpaper...${normal}"
+  rsync -avzh --delete /home/"$USER"/Pictures/wallpaper/ "$localnet.$hostip":Pictures/wallpaper/
+  exit_status="$?"
+  transfer_status "$exit_status"
+}
+
+## Execution ##
+
+echo "$_script v$_version, updated $_updated"
+
+# Ensure script is being run from the 800 G2 (10)
+[[ "$lhost" = "$mhost" ]] || die "$_script must be run from the $mhost."
+
+# Assign IP address to HOSTIP
+valid_ip "$1" && hostip="$1"
+hname=$(/usr/bin/avahi-resolve -a $localnet.$hostip 2>/dev/null | awk '{print $2}' | sed 's/\.local$//')
+[ "$rhost" != "$hname" ] && die "Can only sync to $rhost!"
+
+# Start timer
+SECONDS=0
+
+# Start syncing folders
+echo "Synchronizing directories to $localnet.$hostip"
+sync_script
+
+print_line "-" 27
+echo "- All directories synced! -"
+print_line "-" 27
+leave "Script completed in $(format_time $SECONDS)"

@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : odt-to-txt
+# Description  : Convert .odt files to .txt or .md files
+# Dependencies : odt2txt, select
+# Arguments    : None
+# Author       : Richard B. Romig, 10 May 2019
+# Email        : rick.romig@gmail.com
+# Comments     : Run from directory containing files to convert.
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="1.1.2"
+readonly _updated="14 Sep 2021"
+
+num_odt=$(find . -maxdepth 1 -type f -name \*.odt | wc -l)
+
+## Functions ##
+
+convert2txt() {
+  local odt_file=$1
+  local txt_file="${odt_file%%.*}.txt"
+  /usr/bin/odt2txt "$odt_file" > "$txt_file"
+  echo "$odt_file -> $txt_file"
+}
+
+convert2md() {
+  local odt_file=$1
+  local txt_file="${odt_file%%.*}.md"
+  /usr/bin/odt2txt "$odt_file" > "$txt_file"
+  echo "$odt_file -> $txt_file"
+}
+
+## Execution ##
+
+# Disable Crtl+C
+trap '' 2
+
+while true; do
+  clear
+  echo "$_script v$_version ($_updated)"
+  echo "Converts *.odt files to *.txt or *.md"
+  print_line "*" 37
+  ls ./*.odt
+  echo "Use with care. May overwrite existing .txt or .md files."
+  print_line "*" 37
+  COLUMNS=12
+  options=("Convert a single .odt file to .txt" \
+    "Convert a single .odt file to .md" \
+    "Convert all .odt files in the current directory to .txt" \
+    "Convert all .odt files in the current directory to .md" "Quit and exit")
+  PS3="Choose an option: "
+  select opt in "${options[@]}"; do
+    case $REPLY in
+      1 )
+        read -rp "File to convert: " ofile
+        if [[ -f "$ofile" ]]; then
+          echo "Converting *.odt to *.txt"; convert2txt "$ofile"
+        else
+          echo "${lightred}Error:${normal} $OFILE not found." >&2
+        fi
+        anykey; break ;;
+      2 )
+        read -rp "File to convert: " ofile
+        if [[ -f "$ofile" ]]; then
+          echo "Converting *.odt to *.md"; convert2md "$OFILE"
+        else
+          echo "${lightred}Error:${normal} $OFILE not found." >&2
+        fi
+        anykey; break ;;
+      3 )
+        if (( num_odt > 0 )); then
+          echo "Converting *.odt to *.txt"
+          for ofile in *.odt; do convert2txt "$ofile"; done
+        else
+          echo "${lightred}Error:${normal} No .odt files found." >&2
+        fi
+        anykey; break ;;
+      4 )
+        if (( num_odt > 0 )); then
+          echo "Converting *.odt to *.md"
+          for ofile in *.odt; do convert2md "$ofile"; done
+        else
+          echo "${lightred}Error:${normal} No .odt files found." >&2
+        fi
+        anykey; break ;;
+      5 ) trap 2; leave "All done! Exiting the script." ;;
+      * ) echo "${lightred}Invalid Option!${normal} Choose 1 - 5" >&2 ;;
+    esac
+  done
+done

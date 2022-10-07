@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : meditation-timer
+# Description  : Counts down remaining time of a meditation session.
+# Dependencies : aplay (ALSA)
+# Arguments    : Time in minutes to cound down from.
+# Author       : Copyright Richard B. Romig, 06 Jul 2021
+# Email        : rick.romig@gmail.com
+# Comments     : Original script found on Reddit r/dharmmawheel, posted by u/Jhanna4
+# 11 Jul 2021  : Plays sound as a backgroud process.
+# 26 Jul 2021  : Toggles screensaver & dpms, Added countdown before meditation.
+# 18 Nov 2021  : Hides/Restores cursor before/after in countdown & main_timer functions.
+#              : Placed main timer in a function.
+# 23 Nov 2021  : Added functions to set and restore playback volume. (disabled)
+# 13 Mar 2022  : Removed clear command in loops, added carriage return to time counts.
+# 04 May 2022  : Added exit code functionality to usage and input_value functions.
+# 06 Jul 2022  : Fixed arithmetic error in minutes assignment in main_timer function.
+# 17 Jul 2022  : Moved assignment of $1 to min to Check arguments section.
+# 02 Sep 2022  : Added Om emoji to title line.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.2.7"
+readonly _updated="02 Sep 2022"
+readonly colorerr="${lightred}ERROR!${normal}"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  printf "Usage:   %s [minutes]\n" "$_script"
+  printf "Example: %s 20\n" "$_script"
+  printf "Displays a countdown of minutes remaining and plays an audio file at the end.\n" >&2
+  exit "$errcode"
+}
+
+input_value() {
+  local errcode="${1:-2}"
+  printf "Please supply a value for minutes, only minutes, and only whole numbers.\n" >&2
+  exit "$errcode"
+}
+
+get_volume() {
+  mixer=$(amixer get Master | grep 'Mono:')
+  echo "$mixer" | awk '{print $3}'
+}
+
+set_volume() {
+  amixer cset iface=MIXER,name="Master Playback Volume" "$1" >/dev/null
+}
+
+play_sound() {
+  # Play gong sound as a background process.
+  local sound_dir=$HOME"/bin/files"
+  local sound_file="Tibetan_bowl.wav"
+  /usr/bin/aplay "$sound_dir/$sound_file" > /dev/null 2>&1 &
+}
+
+screensaver_off() {
+  # Turn off screensaver and hide cursor.
+  xset s off
+  xset s noblank
+  xset -dpms
+  tput civis
+}
+
+screensaver_on() {
+  # Turn screensaver back on and restore cursor.
+  xset s on
+  xset s blank
+  xset +dpms
+  tput cnorm
+}
+
+countdown() {
+  for i in {10..1}; do
+    printf "\t%02d\r" "$i"
+    sleep 1
+  done
+}
+
+main_timer() {
+  while [[ "$sec_rem" -gt 0 ]]; do
+    sec_rem=$(( sec_rem - 1 ))
+    interval="$sec_rem"
+    seconds=$(( interval % 60 ))
+    interval=$(( interval - seconds ))
+    minutes=$(( interval % 3600 / 60 ))
+    interval=$(( interval - minutes ))
+    hours=$(( interval % 86400 / 3600 ))
+    # interval=$(( interval - hours ))
+    # days=$(( interval % 604800 / 86400 ))
+    # interval=$(( interval - hours ))
+    # weeks=$(( interval / 604800 ))
+    printf "\t%02d:%02d:%02d\r" "$hours" "$minutes" "$seconds"
+    sleep 1
+  done
+}
+
+## Execution ##
+
+# Check arguments
+if [[ "$#" = 0 ]]; then
+  printf "%s No arument passed.\n" "$colorerr" >&2
+  usage 2
+elif [[ -n ${1//[0-9]/} ]]; then
+  # argument is not an integer
+  printf "%s Invalid argument\n" "$colorerr" >&2
+  input_value 2
+else
+	readonly min="$1"
+  # Convert input argument of minutes into seconds.
+  sec_rem=$(( 60 * min ))
+  # Capture original volume setting
+  # ovol=$(get_volume)
+  # Set playback volume
+  # vol=50; set_volume "$vol"
+fi
+
+clear
+printf "\n\t\U0950  Meditation Timer \U0950\n\n"
+screensaver_off
+countdown
+play_sound
+main_timer
+play_sound
+sleep 30
+screensaver_on
+# set_volume "$ovol"
+printf "\n\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "\UA9 2021-2022 Richard B. Romig\n"
+exit

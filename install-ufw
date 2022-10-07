@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-ufw
+# Description  : Installs and configures the UFW firewall.
+# Dependencies : None
+# Arguments    : None
+# Author       : Copyright Richard B. Romig, 05 Oct 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Install & remove for Deian-based systems only.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.0"
+readonly _updated="05 Oct 2022"
+readonly red_error="${lightred}ERROR:${normal}"
+
+## Functions ##
+
+help() {
+  errcode="${1:-2}"
+  cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS${normal}
+  -d  Disable UFW
+  -e  Enable UFW
+  -i  Install UFW on a Debian-based system
+  -r  Remove UFW on a Debian-based system
+  -s  UFW status
+END_HELP
+  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+install_ufw() {
+  printf "Installing UFW (Uncomplicated Firewall)...\n"
+  sudo apt-get install ufw -yy
+  printf "Enabling the UFW service...\n"
+  sudo systemctl enable ufw --now 
+  if grep -qw IPV6 /etc/default/ufw; then
+    printf "IPv6 enabled.\n"
+  else
+    printf "Enabling IPv6 support...\n"
+    sudo sed -i '/IPV6/s/no/yes/' /etc/default/ufw
+    sudo systemctl restart ufw
+    printf "IPv6 enabled.\n"
+  fi
+}
+
+remove_ufw() {
+  printf "Removing UFW (Uncomplicated Firewall) versin %s...\n" "$(ufw_version)"
+  sudo ufw disable
+  sudo  apt-get purge ufw
+}
+
+add_rules() {
+  printf "Enabling rules for CUPS and SSH...\n"
+  sudo ufw allow 631   # CUPS 631
+  sudo ufw allow SSH   # SSH 22/tcp
+}
+
+enable_ufw() {
+  printf "Enabling UFW %s...\n" "$(ufw_version)"
+  sudo ufw enable
+  sudo ufw status verbose
+}
+
+disable_ufw() {
+  printf "Disabling UFW %s...\n" "$(ufw_version)"
+  sudo ufw disable
+  sudo ufw status
+}
+
+ufw_status() {
+  sudo ufw status | grep -qw active && return "$TRUE" || return "$FALSE"
+}
+
+ufw_version() {
+  ufw version | awk '/ufw/ {print $NF}'
+}
+
+debian_system() {
+  codename=$(lsb_release --codename --short)
+  case "$codename" in
+    bullseye|buster ) return "$TRUE" ;;
+    * ) return "$FALSE" ;;
+  esac
+}
+
+## Execution ##
+
+# clear
+printf "For Debian, BunsenLabs, and MX Linux systems.\n"
+
+if [[ "$#" -eq 0 ]]; then
+  printf "%s No argument passed.\n" "$red_error" >&2
+  help 1
+else
+  optstr=":dehirs"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      d )
+        dpkg -l | grep -qw ufw || leave "UFW is not installed."
+        user_in_sudo
+        ufw_status || leave "UFW $(ufw_version) is already disabled."
+        disable_ufw
+        break ;;
+      e )
+        dpkg -l | grep -qw ufw || leave "UFW is not installed."
+        user_in_sudo
+        ufw_status && leave "UFW $(ufw_version) is already enabled."
+        enable_ufw
+        break ;;
+      h )
+        help 0 ;;
+      i )
+        debian_system || die "Not a Debian-based system."
+        dpkg -l | grep -qw ufw && leave "UFW $(ufw_version) is already installed."
+        user_in_sudo
+        install_ufw
+        add_rules
+        enable_ufw
+        printf "UFW %s installed and configured.\n" "$(ufw_version)"
+        break ;;
+      r )
+        debian_system || die "Not a Debian-based system."
+        dpkg -l | grep -qw ufw || leave "UFW is not installed."
+        user_in_sudo
+        remove_ufw
+        break ;;
+      s )
+        dpkg -l | grep -qw ufw || leave "UFW is not installed."
+        user_in_sudo
+        printf "UFW %s\n" "$(ufw_version)"
+        sudo ufw status verbose
+        break ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+    esac
+  done
+fi
+
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+exit

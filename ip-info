@@ -1,0 +1,234 @@
+#!/usr/bin/env bash
+#####################################################################
+# Script Name  : ip-info
+# Description  : Displays IP information
+# Dependencies : curl, iw
+# Arguments    : None
+# Author       : Richard Romig, 19 February 2019
+# Email        : rick.romig@gmail.com
+# Comments     : iw may not show SSID or signal level for some wireless devices.
+# 04 Jul 2021  : Public IP in IPv4 and IPv6 formats. (ISP dependent)
+# 12 Jul 2021  : Added MAC addresses, interface & MAC if not connected.
+# 21 Jan 2022  : Use iw to get SSID and signal (iwgetid is deprecated).
+# 11 Feb 2022  : Only displays unique addresses for DNS and default gateway.
+# 16 Feb 2022  : Added function to display network bridge if present.
+# 20 Feb 2022  : Modified output display.
+# 21 Feb 2022  : Replaced if-elif-else with case for Etehrnet & WiFi connections.
+# 06 Apr 2022  : Relaced nmcli statements with other methods (except DNS).
+# 08 Apr 2022  : Added method to retrieve DNS addresses set in /etc/network/interfaces
+# 18 Apr 2022  : nmcli if NetworkManager. hp-probook-6750b (#21) requires sudo for iw
+# 28 Jun 2022  : Added function to run sudo with iw on certain systems.
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+#####################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Functions ##
+
+req_sudo() {
+  lhost="$(uname -n)"
+  case "$lhost" in
+    hp-probook-6570|hp-2560p ) return "$TRUE" ;;
+    * ) return "$FALSE" ;;
+  esac
+}
+
+show_public() {
+  public_ipv4=$(/usr/bin/curl -s ifconfig.me)
+  # public_ipv6=$(/usr/bin/curl -s ifconfig.co)
+
+  [[ -n "$public_ipv4" ]] && echo -e "\t${darkgray}IPv4:${normal} $public_ipv4" || echo -e "\tNo public IPv4 address found."
+  # [[ -n "$public_ipv6" ]] && echo -e "\t${lightgreen}IPv6:${normal} $public_ipv6" || echo -e "\tNo public IPv6 address found."
+}
+
+show_wired() {
+  if [[ -x /usr/bin/nmcli ]]; then
+    eth_int=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
+    if [[ -n "$eth_int" ]]; then
+      eth_state=$(cat "/sys/class/net/$eth_int/operstate")
+      eth_ip=$(/usr/bin/nmcli dev show "$eth_int" | awk '/IP4.ADDRESS/ {print $NF}')
+      eth_mac=$(/usr/bin/nmcli dev show "$eth_int" | awk '/GENERAL.HWADDR/ {print $NF}')
+    fi
+  else
+    eth_int=$(ip addr show | awk '/: en/ || /: eth/ {print $2}' | sed 's/:$//')
+    if [[ -n "$eth_int" ]]; then
+      eth_state=$(cat "/sys/class/net/$eth_int/operstate")
+      eth_ip=$(ip addr show | awk '/en/ && /brd/ {print $2}')
+      eth_mac=$(cat "/sys/class/net/$eth_int/address")
+    fi
+  fi
+
+  echo -en "\t${darkgray}Ethernet:${normal} "
+  case "$eth_state" in
+    up )
+      echo "$eth_ip"
+      echo -e "\t  ${gray}Device:${normal} $eth_int"
+      echo -e "\t     ${gray}MAC:${normal} $eth_mac"
+      ;;
+    down )
+      echo "Not connected"
+      echo -e "\t  ${gray}Device:${normal} $eth_int"
+      echo -e "\t     ${gray}MAC:${normal} $eth_mac"
+      ;;
+    unknown )
+      echo "Unknown state"
+      echo -e "\t  ${gray}Device:${normal} $eth_int"
+      echo -e "\t     ${gray}MAC:${normal} $eth_mac"
+      ;;
+    * )
+      echo "No device found."
+      ;;
+  esac
+}
+
+show_wireless() {
+  if [[ -x /usr/bin/nmcli ]]; then
+    wifi_int=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1;exit}')
+    if [[ -n "$wifi_int" ]]; then
+      wifi_state=$(cat "/sys/class/net/$wifi_int/operstate")
+      wifi_ip=$(/usr/bin/nmcli dev show "$wifi_int" | awk '/IP4.ADDRESS/ {print $NF}')
+      wifi_mac=$(/usr/bin/nmcli dev show "$wifi_int" | awk '/GENERAL.HWADDR/ {print $NF}')
+      if req_sudo; then
+        ssid="$(sudo /sbin/iw dev "$wifi_int" link | awk '/SSID:/ {print $NF}')"
+        wifi_sig="$(sudo /sbin/iw dev "$wifi_int" link | awk '/signal:/ {print $(NF-1),$NF}')"
+      else
+        ssid="$(/sbin/iw dev "$wifi_int" link | awk '/SSID:/ {print $NF}')"
+        wifi_sig="$(/sbin/iw dev "$wifi_int" link | awk '/signal:/ {print $(NF-1),$NF}')"
+      fi
+      [[ -z "$ssid" ]] && ssid="Not available"
+      [[ -z "$wifi_sig" ]] && wifi_sig="Not available"
+    fi
+  else
+    wifi_int=$(ip addr show | awk '/: wl/ {print $2}' | sed 's/:$//')
+    if [[ -n "$wifi_int" ]]; then
+      wifi_state=$(cat "/sys/class/net/$wifi_int/operstate")
+      wifi_ip=$(ip addr show | awk '/wl/ && /brd/ {print $2}')
+      wifi_mac=$(cat "/sys/class/net/$wifi_int/address")
+      ssid="$(/sbin/iw dev "$wifi_int" link | awk '/SSID:/{print $NF}')"
+      [[ -z "$ssid" ]] && ssid="Not available"
+      wifi_sig="$(/sbin/iw dev "$wifi_int" link | awk '/signal:/ {print $(NF-1),$NF}')"
+      [[ -z "$wifi_sig" ]] && wifi_sig="Not available"
+    fi
+  fi
+
+  echo -en "\t${darkgray}Wireless:${normal} "
+  case "$wifi_state" in
+    up )
+      echo "$wifi_ip"
+      echo -e "\t  ${gray}Device:${normal} $wifi_int"
+      echo -e "\t     ${gray}MAC:${normal} $wifi_mac"
+      echo -e "\t    ${gray}SSID:${normal} $ssid"
+      echo -e "\t  ${gray}Signal:${normal} $wifi_sig"
+      ;;
+    down )
+      echo "Not connected"
+      echo -e "\t  ${gray}Device:${normal} $wifi_int"
+      echo -e "\t     ${gray}MAC:${normal} $wifi_mac"
+      ;;
+    unknown )
+      echo "Unknown state"
+      echo -e "\t  ${gray}Device:${normal} $wifi_int"
+      echo -e "\t     ${gray}MAC:${normal} $wifi_mac"
+      ;;
+    * )
+      echo "No device found."
+      ;;
+  esac
+}
+
+show_bridge() {
+	# br_int=$(/usr/bin/nmcli dev | awk '/bridge/ {print $1}')
+  br_int=$(ip ad show | awk '/: vir/ {print $2;exit}' | sed 's/:$//')
+
+	if [[ -n "$br_int" ]]; then
+    br_state=$(cat "/sys/class/net/$br_int/operstate")
+	  # br_ip=$(/usr/bin/nmcli dev show "$br_int" | awk '/IP4.ADDRESS/ {print $NF}')
+    br_ip=$(ip addr show | awk '/vir/ && /brd/ {print $2}')
+	  # br_mac=$(/usr/bin/nmcli dev show "$br_int" | awk '/GENERAL.HWADDR/ {print $NF}')
+    br_mac=$(cat "/sys/class/net/$br_int/address")
+	  # br_route=$(/usr/bin/nmcli dev show "$br_int" | awk '/IP4.ROUTE/ {print $4;exit}'| sed 's/,//')
+    br_route=$(ip route show | awk '/vir/ && /kernel/ {print $1}')
+    case "$br_state" in
+      up )
+        echo -e "\t${darkgray}Bridge:${normal}\t$br_ip"
+        echo -e "\t${gray}Device:${normal} $br_int"
+        echo -e "\t   ${gray}MAC:${normal} $br_mac"
+	      echo -e "\t${gray}Subnet:${normal} $br_route"
+        ;;
+      down )
+        echo "Not connected"
+        echo -e "\t${gray}Device:${normal} $br_int"
+        echo -e "\t   ${gray}MAC:${normal} $br_mac"
+        ;;
+      unknown )
+        echo "Unknown state"
+        echo -e "\t${gray}Device:${normal} $br_int"
+        echo -e "\t   ${gray}MAC:${normal} $br_mac"
+        ;;
+      * )
+        ;;
+    esac
+	fi
+}
+
+show_gateway() {
+  echo "${orange}Default Gateway:${normal}"
+  /sbin/ip route | awk '/default/ {print "\t"$3}' | sort -u
+}
+
+show_dns() {
+  echo "${orange}DNS Servers:${normal}"
+  if [[ -x /usr/bin/nmcli ]]; then
+    /usr/bin/nmcli dev show | awk '/IP4.DNS/ {print "\t"$2}' | sort -u
+  else
+    dns_svr=$(grep 'dns-nameservers' /etc/network/interfaces | cut -d' ' -f2-)
+    echo -e "\t$dns_svr" | sed 's| |\n\t|g'
+  fi
+}
+
+check_dependencies() {
+  check_package curl
+  check_package iw
+}
+
+main() {
+  _script=$(basename "$0")
+  local _version="2.5.2"
+  local _updated="05 Jul 2022"
+
+  req_sudo && user_in_sudo
+
+  check_dependencies
+
+  clear
+  echo "${lightyellow}"
+  under_line "IP Information" "="
+  echo "Host: $(uname -n)"
+  echo "${normal}"
+  echo "${orange}Public IP:${normal}"
+  show_public
+  echo "${orange}Local IP:${normal}"
+  show_wired
+  show_wireless
+  # show_bridge
+  show_gateway
+  show_dns
+  echo -e "\n\U1F427 $_script v$_version ($_updated)"
+  exit
+}
+
+## Execution ##
+
+main

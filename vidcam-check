@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : vidcam-check
+# Description  : Checks for Webcam
+# Dependencies : None
+# Arguments    : None
+# Author       : Richard Romig
+# Email        : rick.romig@gmail.com
+# Comment      :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.7"
+readonly _updated="05 May 2021"
+
+readonly video_dev=$(ls -1 /dev/video* 2>/dev/null)
+
+echo "$_script v$_version ($_updated)"
+echo "Checks to see if a web cam is available."
+if [[ -n "$video_dev" ]]; then
+  for camera in $video_dev; do
+    echo $'\n'$"A camera device is available on $camera"
+  done
+else
+  echo $'\n'$"There is no available camera device."
+fi
+
+exit

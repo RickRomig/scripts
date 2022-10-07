@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : bs-meter
+# Description  : Bullshit Meter
+# Dependencies : none
+# Arguments    : None
+# Author       : Richard B. Romig, 17 August 2019
+# Email        : rick.romig@gmail.com
+# Comments     :
+# 08 Sep 2021  : Replaced if-elif-else statements with case statement.
+# 30 Oct 2021  : Hide cursor while dots function is running.
+# 01 Nov 2021  : Modified print_results & print_header functions.
+# 16 Jun 2022  : Created separate functions to print scale.
+# License      : GNU General Public License, version 2
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.3.6"
+readonly _updated="29 Aug 2022"
+bs_level=$(shuf -i 0-100 -n 1)
+proc_time=$(shuf -i 1-20 -n 1)
+
+## Functions ##
+
+print_header() {
+  local spaces="                                            "
+  echo $'\n'$"${spaces}${bold}${green}Bullshit Meter${normal}"
+  scale_numbers
+  scale_marks
+}
+
+scale_numbers() {
+  local index=0
+  echo -n "$index"
+  for i in {1..10}; do
+    for j in {1..8}; do echo -n " "; done
+    index=$(( index + 10 ))
+    echo -n "$index"
+  done
+  echo ""
+}
+
+scale_marks() {
+  echo -n "|"
+  for i in {1..10}; do
+    for j in {1..9}; do echo -n "-"; done
+    echo -n "|"
+  done
+  echo ""
+}
+
+print_indicator() {
+  echo -n "${bold}${orange} "
+  for (( i=0; i <= "$bs_level"; i++ )); do echo -n "*"; done
+  echo -e "${normal}\n"
+}
+
+print_analysis() {
+  echo -n "Your statement has been analyzed and found to be "
+  case "$bs_level" in
+    0 ) echo "$bs_level% bullshit -- absolute truth" ;;
+    [1-9] ) echo "$bs_level% bullshit -- very likely true." ;;
+    1[0-9] ) echo "$bs_level% bullshit -- mostly true." ;;
+    [2-4]? ) echo "$bs_level% bullshit -- somewhat true." ;;
+    [5-6]? ) echo "$bs_level% bullshit -- might be false." ;;
+    [7-8]? ) echo "$bs_level% bullshit -- probably false." ;;
+    9[0-9] ) echo "$bs_level% bullshit -- mostly false." ;;
+    * ) echo "$bs_level% pure bullshit -- absolutely false!"
+  esac
+}
+
+## Execution ##
+
+clear
+# printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+read -rp "Statement to be analyzed: " statement
+printf "Analyzing your statement "
+tput civis
+dots
+sleep "$proc_time"
+kill "$!"
+printf "\n"
+tput cnorm
+print_header
+print_indicator
+print_analysis
+
+printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+
+exit
