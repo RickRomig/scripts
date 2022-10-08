@@ -23,7 +23,8 @@ dpkg -l | grep -qu upower || sudo apt install upower -yy
 
 readonly _script=$(basename "$0")
 readonly _version="0.5.3"
-readonly _updated="05 May 2022"
+readonly _updated="08 Oct 2022"
+readonly template_dir="$HOME/bin/Templates"
 
 readonly hname=$HOSTNAME
 readonly TRUE=0
@@ -96,7 +97,7 @@ cfg_desktop() {
     echo "conky.desktop aleady exits."
     [[ -f Conky.desktop ]] && mv Conky.desktop conky.desktop
   else
-    cp "$HOME/Templates/.desktop" .
+    cp "$template_dir/.desktop" .
     echo "conky.desktop configured."
   fi
 
@@ -158,7 +159,7 @@ echo -e "CPU cores/threads:\t$ncpu"
 sed -e '1d' \
     -e "s/<BAT>/$b_name/g" \
     -e "s/<EN>/$e_name/g" \
-    -e "s/<WL>/$e_name/g" "$HOME/Templates/conkyrc" > "$HOME/.conkyrc"
+    -e "s/<WL>/$e_name/g" "$template_dir/conkyrc" > "$HOME/.conkyrc"
 case "$ncpu" in
   1 ) sed -i '57,63d' "$HOME/.conkyrc" ;;
   2 ) sed -i '58,63d' "$HOME/.conkyrc" ;;

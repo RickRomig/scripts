@@ -30,8 +30,9 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="v2.0.10"
-readonly _updated="07 Oct 2022"
+readonly _version="v2.0.11"
+readonly _updated="08 Oct 2022"
+readonly template_dir="$HOME/bin/Templates"
 
 # Data to be inserted into header
 
@@ -59,9 +60,6 @@ cleanup() {
 
 ## Execution ##
 
-tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
-trap cleanup EXIT
-
 ## Check arguments
 if  [[ $# -eq 0 ]]; then
   echo "${lightred}Error:${normal} No argument passed." >&2
@@ -72,6 +70,8 @@ elif [[ ! -f "$1" ]]; then
   echo "${lightred}Error:${normal} $1 not found." >&2
   usage 2
 else
+  tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+  trap cleanup EXIT
   code_file="$1"
 fi
 
@@ -100,7 +100,7 @@ select opt in "${options[@]}"; do
           -e "s/<EMAIL1>/$email_addr1/" \
           -e "s/<TODAY>/$today/" \
           -e "s/<CODER>/$coder/" \
-          -e "s/<LICENSE>/$license/" "$HOME/Templates/bash-header" > "$tmp_file"
+          -e "s/<LICENSE>/$license/" "$template_dir/bash-header" > "$tmp_file"
       sed -i -e "1r ${tmp_file}" "$code_file"
       break ;;
     2 )
@@ -113,7 +113,7 @@ select opt in "${options[@]}"; do
           -e "s/<ADDR>/$email_addr/" \
           -e "s/<ADDR1>/$email_addr1/" \
           -e "s/<TODAY>/$today/" \
-          -e "s/<LICENSE>/$license/" "$HOME/Templates/c-header" > "$tmp_file"
+          -e "s/<LICENSE>/$license/" "$template_dir/c-header" > "$tmp_file"
       sed -i -e "1r ${tmp_file}" "$code_file"
       break ;;
     3 )
@@ -126,7 +126,7 @@ select opt in "${options[@]}"; do
           -e "s/<ADDR>/$email_addr/" \
           -e "s/<ADDR1>/$email_addr1/" \
           -e "s/<TODAY>/$today/" \
-          -e "s/<LICENSE>/$license/" "$HOME/Templates/cpp-header" > "$tmp_file"
+          -e "s/<LICENSE>/$license/" "$template_dir/cpp-header" > "$tmp_file"
       sed -i -e "1r ${tmp_file}" "$code_file"
       break ;;
     * ) echo "${lightred}mInvalid option. Try again.${normal}" >&2 ;;

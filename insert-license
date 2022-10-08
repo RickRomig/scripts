@@ -29,8 +29,9 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="2.0.10"
-readonly _updated="04 May 2022"
+readonly _version="2.0.11"
+readonly _updated="08 Oct 2022"
+readonly template_dir="$HOME/bin/Templates"
 
 # Data to be inserted into license
 
@@ -49,7 +50,7 @@ usage() {
 }
 
 cleanup() {
-  [[ -f "TempLicense" ]] && rm "TempLicense"
+  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
 }
 
 ## Execution ##
@@ -66,6 +67,8 @@ elif [[ ! -f "$1" ]]; then
   echo "${lightred}Error:${normal} $1 not found." >&2
   usage 2
 else
+  tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+  trap cleanup EXIT
   code_file="$1"
 fi
 
@@ -113,22 +116,22 @@ case $code_type in
         -e "s/<YEAR>/$cur_yr/" \
         -e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
         -e "s/<EMAIL>/$email_addr/" \
-        -e "s/^/# /" "$HOME/Templates/$lic_file" > TempLicense
-    sed -i -e "12r TempLicense" "$code_file" ;;
+        -e "s/^/# /" "$template_dir/$lic_file" > "$tmp_file"
+    sed -i -e "12r ${tmp_file}" "$code_file" ;;
   "C" )
     sed -e '1d' \
         -e "s/<YEAR>/$cur_yr/" \
         -e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
         -e "s/<EMAIL>/$email_addr/" \
-        -e "s/^/ * /" "$HOME/Templates/$lic_file" > TempLicense
-    sed -i -e "21r TempLicense" "$code_file" ;;
+        -e "s/^/ * /" "$template_dir/$lic_file" > "$tmp_file"
+    sed -i -e "21r ${tmp_file}" "$code_file" ;;
   "C++" )
     sed -e '1d' \
         -e "s/<YEAR>/$cur_yr/" \
         -e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
         -e "s/<EMAIL>/$email_addr/" \
-        -e "s/^/\/\/ /" "$HOME/Templates/$lic_file" > TempLicense
-    sed -i -e "20r TempLicense" "$code_file" ;;
+        -e "s/^/\/\/ /" "$template_dir/$lic_file" > "$tmp_file"
+    sed -i -e "20r ${tmp_file}" "$code_file" ;;
   * ) die "Invalid code type. Exiting the script." 1 ;;
 esac
 

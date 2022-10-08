@@ -8,4 +8,4 @@ The functions directory contains documentation for functions in the functionlib 
 
 The snippets directory contains snippets of code and code expamples.
 
-The Templates directory is a mirror of the \~/Templates directory. It contains templates for headers and scripts, and several open-source licenses.
+The Templates directory contains templates for headers and scripts, and several open-source licenses.
