@@ -4,11 +4,11 @@
 # Description  : Makes a dated archive of shell scripts in ~/bin
 # Dependencies : sed, zip
 # Arguments    : None
-# Author       : Richard B. Romig, 20 Jan 2020
+# Author       : Copyright (C) Richard B. Romig, 20 Jan 2020
 # Email        : rick.romig@gmail.com
 # Comments     : Includes functions subdirectory
 #              : Schedule with user's crontab from ~/bin, ~/.local/bin or ~/opt/bin
-# Last updated : version 0.2.11, 20 Jul 2022
+# Last updated : version 0.2.12, 08 Oct 2022
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -22,7 +22,7 @@ arc_dir=$HOME"/Downloads/archives/scripts"
 log_dir=$HOME"/.local/share/logs"
 log_file="script-archive.log"
 log_date=$(date '+%a|%F|%R')
-err_log="_error.log"
+err_log="error.log"
 
 ## Execution ##
 
