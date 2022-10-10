@@ -34,8 +34,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="1.4.1"
-readonly _updated="07 Oct 2022"
+readonly _version="1.4.2"
+readonly _updated="09 Oct 2022"
 
 ## Functions ##
 
@@ -97,7 +97,7 @@ sync_script() {
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing bin...${normal}"
-  rsync -avzh --delete /home/"$USER"/bin/ "$localnet.$hostip":bin/
+  rsync -avzh --delete --exclude '.git' /home/"$USER"/bin/ "$localnet.$hostip":bin/
   exit_status="$?"
   transfer_status "$exit_status"
 
