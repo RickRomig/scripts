@@ -4,7 +4,7 @@
 # Description  : Installs, updates, and removes the Glow markdown reader.
 # Dependencies : curl, gdebi, wget
 # Arguments    : [-h] [-i] [-r] (See help function)
-# Author       : Richard B. Romig, 10 Jan 2022
+# Author       : Copyright (C) Richard B. Romig, 10 Jan 2022
 # Email        : rick.romig@gmail.com
 # Comments     :
 # 30 Jan 2022  : Added confirmation for install/update.
@@ -40,8 +40,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.4.1"
-readonly _updated="06 Oct 2022"
+readonly _version="0.4.2"
+readonly _updated="11 Oct 2022"
 readonly src_list="/etc/apt/sources.list.d/charm.list"
 
 ## Functions ##
@@ -71,20 +71,20 @@ check_dependencies() {
 
 help() {
   local errcode="${1:-2}"
-  cat << EOF
+  cat << END_HELP
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
   -h    Displays help.
   -i    Installs the glow markdown reader.
   -r    Removes the glow markdown reader from the system.
-EOF
+END_HELP
+  printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
 ## Execution ##
 
 check_dependencies
-printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Installs or removes the Glow markdown reader.\n"
 
 if [[ "$#" -eq 0 ]]; then
@@ -115,3 +115,5 @@ else
     esac
   done
 fi
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+exit
