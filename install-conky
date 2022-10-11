@@ -12,80 +12,32 @@
 ###############################################################################
 
 # Shellcheck Directives ##
-# shellcheck disable=SC2034
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
 
-# Check Dependencies
+## Load function library ##
 
-dpkg -l | grep -qu upower || sudo apt install upower -yy
-# upower is used to extract battery information
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
 
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.5.3"
-readonly _updated="08 Oct 2022"
+readonly _version="0.5.4"
+readonly _updated="11 Oct 2022"
 readonly template_dir="$HOME/bin/Templates"
 
 readonly hname=$HOSTNAME
-readonly TRUE=0
-readonly FALSE=1
 
 ## Functions ##
 
-edit_view_quit() {
-  PS3="Choose an option: "
-  select opt in Edit View Quit
-  do
-    case $REPLY in
-      1 )
-        if exists micro; then
-          /usr/bin/micro "$HOME/.conkyrc"
-        else
-          /bin/nano "$HOME/.conkyrc"; remove_tilde
-        fi
-        break ;;
-      2 )
-        if exists bat; then
-          /usr/bin/bat "$HOME/.conkyrc"
-        else
-          /usr/bin/less "$HOME/.conkyrc"
-        fi
-        break ;;
-      3 )
-        echo $'\n'$"Exiting."; break ;;
-      * )
-        echo "Invalid option. Try again" >&2 ;;
-    esac
-  done
-}
-
-exists() {
-  command -v "$1" > /dev/null 2>&1 && return 0 || return 1
-}
-
-remove_tilde() {
-  nbu=$(find ./ -maxdepth 1 -type f -name \*~  | wc -l)
-  (( nbu > 0 )) && find . -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
-}
-
-die() {
-  local msg="$1"	    # message
-  local ec=${2-1}	    # default exit status 1
-  echo -e "\e[91m$msg\e[0m" >&2
-  exit "$ec"
-}
-
-antix_mx() {
-  dist_id=$(grep 'DISTRIB_ID' /etc/lsb-release 2> /dev/null | cut -d '=' -f2)
-  case $dist_id in
-    antiX|MX ) return "$TRUE" ;;
-    * ) return "$FALSE" ;;
-  esac
-}
-
-bunsenlabs() {
-  distro=$(lsb_release -d | awk '{print $2}')
-  [[ "$distro" = "BunsenLabs" ]] && return "$TRUE" || return "$FALSE"
+check_dependencies() {
+  check_package upower
+  check_package wget
 }
 
 cfg_desktop() {
@@ -97,13 +49,16 @@ cfg_desktop() {
     echo "conky.desktop aleady exits."
     [[ -f Conky.desktop ]] && mv Conky.desktop conky.desktop
   else
-    cp "$template_dir/.desktop" .
+    cp "$template_dir/conky.desktop" .
     echo "conky.desktop configured."
   fi
 
   popd > /dev/null 2>&1 || die "popd failed"
 }
+
 ## Execution ##
+
+check_dependencies
 
 clear
 echo "$_script v$_version ($_updated)"
@@ -168,11 +123,12 @@ case "$ncpu" in
   5 ) sed -i '61,63d' "$HOME/.conkyrc" ;;
   6 ) sed -i '62,63d' "$HOME/.conkyrc" ;;
   7 ) sed -i '63d' "$HOME/.conkyrc" ;;
+  * ) ;;
 esac
 
 echo $'\n'$".conkyrc created and configured."
 
-edit_view_quit
+edit_view_quit "$HOME/.conkyrc"
 
 echo "Please reboot or log out and log in again to complete the installation."
 
