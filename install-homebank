@@ -4,7 +4,7 @@
 # Description  : Installs Homebank from PPA or distribution reposistory
 # Dependencies : none
 # Arguments    : none
-# Author       : Richard Romig, 29 November 2018
+# Author       : Copyright (C) Richard Romig, 29 November 2018
 # Email        : rick.romig@gmail.com
 # Comments     : Available as a flatpak
 #              : https://flathub.org/apps/details/fr.free.Homebank
@@ -29,13 +29,13 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.3.2"
-readonly _updated="04 Mayr 2022"
+readonly _version="0.3.3"
+readonly _updated="11 Oct 2022"
 
 ## Functions ##
 
 homebank_ver() {
-  homebank --version
+  homebank --version | cut -d' ' -f2
 }
 
 add_ppa() {
@@ -50,40 +50,29 @@ remove_ppa() {
 install_homebank() {
   user_in_sudo
   support_ppa && add_ppa
-  if sudo apt-get install homebank -yyq; then
-    leave "$(homebank_ver) installed."
-  else
-    leave "HomeBank installation failed." >&2
-  fi
+  sudo apt-get install homebank -yyq
+  echo "HomeBank $(homebank_ver) installed."
 }
 
 remove_homebank() {
-  if exist homebank; then
-    echo "Removing $(homebank_ver)..."
-    user_in_sudo
-    support_ppa && remove_ppa
-    sudo apt-get remove homebank -yy > /dev/null 2>&1
-    leave "HomeBank has been removed."
-  else
-    leave "HomeBank is not installed."
-  fi
+  echo "Removing HomeBank $(homebank_ver)..."
+  user_in_sudo
+  support_ppa && remove_ppa
+  sudo apt-get remove homebank -yy > /dev/null 2>&1
+  echo "HomeBank has been removed."
 }
 
 purge_homebank() {
-  if exist homebank; then
-    echo "Removing $(homebank_ver) and purging configuration files."
-    user_in_sudo
-    support_ppa && remove_ppa
-    sudo apt-get purge homebank -yy > /dev/null 2>&1
-    leave "HomeBank and its configuration files have been removed."
-  else
-    leave "HomeBank is not installed."
-  fi
+  echo "Removing HomeBank $(homebank_ver) and purging configuration files."
+  user_in_sudo
+  support_ppa && remove_ppa
+  sudo apt-get purge homebank -yy > /dev/null 2>&1
+  echo "HomeBank and its configuration files have been removed."
 }
 
 help() {
   local errcode="${1:-2}"
-  cat << EOT
+  cat << END_HELP
 ${green}Usage:${normal} $_script [-h] [-i] [-r]
 ${orange}OPTIONS:${normal}
   -h  Display help
@@ -91,14 +80,14 @@ ${orange}OPTIONS:${normal}
   -p  Remove HomeBank and purge configuration files (PPA or repository)
   -r  Remove HomeBank (PPA or repository)
       HomeBank is also available as a Flatpak (Flathub or Mint Softwware Manager)
-EOT
+END_HELP
+  echo "$_script v$_version ($_updated)"
   exit "$errcode"
 }
 
 ## Execution ##
 
 clear
-echo "$_script v$_version ($_updated)"
 echo "Installs HomeBank Personal Finance Software."
 
 if [[ "$#" -eq 0 ]]; then
@@ -111,10 +100,13 @@ else
       h )
         help 0 ;;
       i )
+        exists homebank && leave "HomeBank $(homebank_ver) is already installed."
         install_homebank ;;
       p )
+        exists hombank || leave "HomeBank is not installed."
         purge_homebank ;;
       r )
+        exists hombank || leave "HomeBank is not installed."
         remove_homebank ;;
       ? )
         echo "${lightred}ERROR:${normal} Invalid option -$OPTARG" >&2
@@ -122,3 +114,5 @@ else
     esac
   done
 fi
+echo "$_script v$_version ($_updated)"
+exit
