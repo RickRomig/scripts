@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.1.2"
-readonly _updated="02 Aug 2022"
+readonly _version="0.1.3"
+readonly _updated="10 Oct 2022"
 readonly main_host="hp-800g2-sff"
 readonly fin_host="hp-probook-6570"
 readonly main_ip="10"
@@ -88,7 +88,7 @@ sync_main() {
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing bin directory...${normal}"
-  rsync -avzh --delete /home/"$USER"/bin/ "$localnet.$fin_ip":bin/
+  rsync -avzh --delete  --exclude '.git' /home/"$USER"/bin/ "$localnet.$fin_ip":bin/
   exit_status="$?"
   transfer_status "$exit_status"
 
