@@ -7,10 +7,7 @@
 # Author       : Richard B. Romig, 12 Dec 2019
 # Email        : rick.romig@gmail.com
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
-# Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
-# If you get gnutls_handshake() errors after adding the Brave repository on
-# Debian 9, you may need to uninstall old conflicting packages.
-# https://github.com/signalapp/Signal-Desktop/issues/2483#issuecomment-401047201
+#              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # 23 Feb 2022  : Added 'getopts' to handle command-line options.
 # 21 Mar 2022  : Changed usage function to Here-doc format.
 # 25 Mar 2022  : Changed OpenGPG repo signing key method (apt-key deprecated).
@@ -18,6 +15,7 @@
 # 29 Mar 2022  : Added $OPTARG to Invalid option message.
 # 04 May 2022  : Added error code upon exit via usage function.
 # 10 Jul 2022  : Added optstr and opt variables to getopts routine.
+# 11 Oct 2022  : Cleaned up the script.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -38,64 +36,51 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.13"
-readonly _updated="10 Jul 2022"
+readonly _version="0.3.0"
+readonly _updated="11 Oct 2022"
+readonly red_error="${lightred}ERROR:${normal}"
 readonly keyring_dir="/etc/apt/trusted.gpg.d"
 readonly trusted_key="brave-browser-release.gpg"
-readonly keyring_dir1="/usr/share/keyrings"
-readonly trusted_key1="brave-browser-archive-keyring.gpg"
 readonly sources_list="/etc/apt/sources.list.d/brave-browser-release.list"
 
 ## Functions ##
 
-remove_brave() {
-  if exists brave-browser; then
-    printf "Removing Brave Browser, configuration files, and cache.\n"
-    sudo apt-get purge brave-browser
-    [[ -f "$keyring_dir/$trusted_key" ]] && sudo rm "$keyring_dir/$trusted_key"
-    [[ -f "$keyring_dir1/$trusted_key1" ]] && sudo rm "$keyring_dir1/$trusted_key1"
-    sudo apt-key del C3D4E821 2>/dev/null #apt-key deprecated
-    [[ -f "$sources_list" ]] && sudo rm "$sources_list"
-    [[ -d "$HOME/.config/BraveSoftware" ]] && rm -rf "$HOME/.config/BraveSoftware"
-    [[ -d "$HOME/.cache/BraveSoftware" ]] && rm -rf "$HOME/.cache/BraveSoftware"
-    leave "Brave browser and configuration files have been removed."
-  else
-    leave "Brave browser is not installed."
-  fi
-}
-
 install_brave() {
   local trusted_key_url="https://brave-browser-apt-release.s3.brave.com/brave-core.asc"
   local sources_list_url="https://brave-browser-apt-release.s3.brave.com/ stable main"
-  exists brave-browser && leave "Brave browser is already installed."
-  printf "Installing the Brave Browser ...\n"
   # Install curl, apt-transport-https, libu2f-udev, if not installed
   check_dependencies
+  printf "Installing the Brave Browser ...\n"
   # Import the public key for verification of the APT repository
   curl -s "$trusted_key_url" | sudo apt-key --keyring "$keyring_dir/$trusted_key" add - 2>/dev/null #apt-key deprecated
-  # wget -q -O - "$trusted_key_url" | gpg --dearmor | sudo tee "$keyring_dir/$trusted_key" < /dev/null
   # Add the repository
-  # echo "deb [arch=amd64 signed-by=$keyring_dir/$trusted_key] $sources_list_url" | sudo tee "$sources_list" < /dev/null
   echo "deb [arch=amd64] $sources_list_url" | sudo tee "$sources_list" < /dev/null
   # Install Brave
   sudo apt update -qq
-  if sudo apt install brave-browser -yy
-  then
-    leave "Brave browser successfully installed."
-  else
-    die "Brave browser installation failed." 1
-  fi
+  sudo apt install brave-browser -yy
+  printf "Brave browser successfully installed.\n"
+}
+
+remove_brave() {
+  sudo apt-get purge brave-browser
+  [[ -f "$keyring_dir/$trusted_key" ]] && sudo rm "$keyring_dir/$trusted_key"
+  sudo apt-key del C3D4E821 2>/dev/null #apt-key deprecated
+  [[ -f "$sources_list" ]] && sudo rm "$sources_list"
+  [[ -d "$HOME/.config/BraveSoftware" ]] && rm -rf "$HOME/.config/BraveSoftware"
+  [[ -d "$HOME/.cache/BraveSoftware" ]] && rm -rf "$HOME/.cache/BraveSoftware"
+  printf "Brave browser and configuration files have been removed.\n"
 }
 
 usage() {
   local errcode="${1:-2}"
-  cat << EOT
+  cat << END_HELP
 ${orange}Usage:${normal} $_script [-h] [-i] [-r]
 Options:
   -h   help
   -i   Install the Brave Browser
   -r   Remove the Brave Browser
-EOT
+END_HELP
+  printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -107,12 +92,10 @@ check_dependencies() {
 
 ## Execution ##
 
-clear
-printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Installs/Removes the Brave browser.\n\n"
 
 if [[ $# -eq 0 ]]; then
-  echo "${lightred}ERROR:${normal} No argument passed." >&2
+  printf "%s No argument passed.\n" "$red_error" >&2
   usage 2
 else
   optstr=":hir"
@@ -121,14 +104,18 @@ else
       h )
         usage 0 ;;
       i )
+        exists brave-browser && leave "Brave browser is already installed."
         user_in_sudo
         install_brave ;;
       r )
+        exists brave-browser || leave "Brave browser is not installed."
         user_in_sudo
         remove_brave ;;
       ? )
-        echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+        printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
         usage 2 ;;
     esac
   done
 fi
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+exit
