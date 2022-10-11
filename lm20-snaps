@@ -3,8 +3,8 @@
 # Script Name  : lm20-snaps
 # Description  : Enables or disables Snaps on Linux Mint 20+
 # Dependencies : None
-# Arguments    : [-e] [-d] [-h] [-s] (See help function)
-# Author       : Richard B. Romig, 30 Jun 2020
+# Arguments    : [-d] [-e] [-h] [-s] (See help function)
+# Author       : Copyright (C) 2020, Richard B. Romig, 30 Jun 2020
 # Email        : rick.romig@gmail.com
 # Comments     : See EZNix snapkill script
 #              : /home/rick/Downloads/Utilities/snapkill.d/snapkill
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.0"
-readonly _updated="07 Jul 2022"
+readonly _version="0.2.1"
+readonly _updated="11 Oct 2022"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
 
 ## Functions ##
@@ -92,14 +92,14 @@ is_lm20() {
 
 help() {
   local errcode="${1:=2}"
-  cat << EOL
+  cat << END_HELP
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
   -e    Enable the installation of snapd and snap packages
   -d    Disable the installation of snapd and snap packages
   -h    Help
   -s    Status of snapd and snap package installation
-EOL
+END_HELP
   exit "$errcode"
 }
 
@@ -114,16 +114,16 @@ if is_lm20; then
     printf "\n\e[91mERROR:\e[0m No argument passed\n" >&2
     help 2
   else
-    optstr=":edhs"
+    optstr=":dehs"
     while getopts "$optstr" opt; do
       case "$opt" in
-        e )
-          user_in_sudo
-          enable_snaps
-          break ;;
         d )
           user_in_sudo
           disable_snaps
+          break ;;
+        e )
+          user_in_sudo
+          enable_snaps
           break ;;
         h )
           help 0
