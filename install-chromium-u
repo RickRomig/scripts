@@ -24,26 +24,20 @@ else
   exit 1
 fi
 
-## Variables ##
-
-readonly _script=$(basename "$0")
-readonly _version="0.3.0"
-readonly _updated="02 Sep 2022"
-readonly source_list="/etc/apt/sources.list.d/home:ungoogled_chromium.list"
-readonly trusted_gpg="/etc/apt/trusted.gpg.d/home_ungoogled_chromium.gpg"
-readonly repo_url="deb http://download.opensuse.org/repositories/home:/ungoogled_chromium"
-readonly key_url="https://download.opensuse.org/repositories/home:/ungoogled_chromium"
-
 ## Functions ##
 
 main() {
+  _script=$(basename "$0")
+  local _script
+  local _version="0.3.1"
+  local _updated="11 Oct 2022"
+
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Installs the ungoogled chromium browser on Debian and Ubuntu-based systems./n"
   ver_code=$(lsb_release --codename --short)
   case $ver_code in
     bullseye|elsie )
       user_in_sudo
-      # install_bullseye
       install_ungoogled_chrome "Debian_Bullseye"
       ;;
     focal|ulyana|ulyssa|uma|una )
@@ -58,6 +52,11 @@ main() {
 
 install_ungoogled_chrome() {
   local repo_id="$1"
+  local repo_url="deb http://download.opensuse.org/repositories/home:/ungoogled_chromium"
+  local source_list="/etc/apt/sources.list.d/home:ungoogled_chromium.list"
+  local key_url="https://download.opensuse.org/repositories/home:/ungoogled_chromium"
+  local trusted_gpg="/etc/apt/trusted.gpg.d/home_ungoogled_chromium.gpg"
+
   echo "$repo_url/$repo_id/ /" | sudo tee "$source_list" < /dev/null
   curl -fsSL "$key_url/$repo_id/Release.key" | gpg --dearmor | sudo tee "$trusted_gpg" > /dev/null
   sudo apt update
