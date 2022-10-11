@@ -4,7 +4,7 @@
 # Description  : Adds repository and installs handbrake
 # Dependencies : None
 # Arguments    : None
-# Author       : Richard B. Romig, 14 February 2019
+# Author       : Copyright (C) Richard B. Romig, 14 February 2019
 # Email        : rick.romig@gmail.com
 # Comment      : Handbrake rips DVD movies
 #              : Available as a flatpak via Flathub and Mint Software Manager
@@ -30,8 +30,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.3.3"
-readonly _updated="04 May 2022"
+readonly _version="0.3.4"
+readonly _updated="11 Oct 2022"
 readonly handbrake_ppa="ppa:stebbins/handbrake-releases"
 
 ## Functions ##
@@ -48,7 +48,6 @@ remove_ppa() {
 }
 
 install_handbrake() {
-  exists ghb && leave "Handbrake-GTK already installed."
   user_in_sudo
   support_ppa && add_ppa
   sudo apt install handbrake-gtk handbrake-cli -yy
@@ -56,7 +55,6 @@ install_handbrake() {
 }
 
 remove_handbrake() {
-  exists ghb || leave "Handbrake is not installed."
   user_in_sudo
   if [[ -x /usr/bin/ghb || -x /usr/bin/HandBrakeCLI ]]; then
     support_ppa && remove_ppa
@@ -69,13 +67,13 @@ remove_handbrake() {
 
 help() {
   local errcode="${1:-2}"
-  cat << EOT
+  cat << END_HELP
 ${green}Usage:${normal} $_script [-h] [-i] [-r]
 ${orange}OPTIONS${normal}
   -h  Display help
   -i  Install Handbrake
   -r  Remove Handbrake
-EOT
+END_HELP
   exit "$errcode"
 }
 
@@ -95,8 +93,10 @@ else
       h )
         help 0 ;;
       i )
+        exists ghb && leave "Handbrake-GTK already installed."
         install_handbrake ;;
       r )
+        exists ghb || leave "Handbrake is not installed."
         remove_handbrake ;;
       ? )
         echo "${lightred}ERROR:${normal} Invalid option -$OPTARG" >&2
