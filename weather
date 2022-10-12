@@ -17,6 +17,7 @@
 # 28 Apr 2022  : Help from the menu returns you to the menu.
 # 05 May 2022  : Checks to see if weather data available.
 # 07 May 2022  : Changed wget to curl to download weather data.
+# 12 Oct 2022  : Added sunrise and sunset times to current_wx function.
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -36,8 +37,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.3.6"
-readonly _updated="01 Jul 2022"
+readonly _version="0.4.0"
+readonly _updated="12 Oct 2022"
 
 ## Functions ##
 
@@ -47,15 +48,16 @@ check_dependencies() {
 }
 
 show_help() {
+  local usage="${orange}Usage:${normal}"
   clear
-  echo "$_script v$_version ($_updated)"
+  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   print_line "-" 28
-  echo "${orange}Usage:${normal} $_script [location]"
-  echo "Example 1: $_script Cincinnati"
-  echo "Example 2: $_script New+York"
-  echo "* Locations with spaces must have a '+' in place of the space."
-  echo "* If no location is passed, the default location will be used."
-  echo "* For help: $_script -h or $_script --help"
+  printf "%s %s [location]\n" "$usage" "$_script"
+  printf "Example 1: %s Cincinnati\n" "$_script"
+  printf "Example 2: %s New+York\n" "$_script"
+  printf "* Locations with spaces must have a '+' in place of the space.\n"
+  printf "* If no location is passed, the default location will be used.\n"
+  printf "* For help: %s -h or %s --help\n" "$_script" "$_script"
   anykey
 }
 
@@ -64,6 +66,7 @@ wx_forecast() {
   local wx_loc="${1:-Huber+Heights}"
   clear
   curl -s "$url/$wx_loc" | sed '1 s/:.*//'
+  box "$_script v$_version ($_updated)"
   anykey
 }
 
@@ -87,6 +90,8 @@ current_wx() {
   wind_spd=$(echo "$json"|jq -r ."current_condition[0]|.windspeedMiles")
   precip=$(echo "$json"|jq -r ."current_condition[0]|.precipInches")
   uv_index=$(echo "$json"|jq -r ."current_condition[0]|.uvIndex")
+  sunrise=$(echo "$json"|jq -r ."weather[0]|(.astronomy[0].sunrise)")
+  sunset=$(echo "$json"|jq -r ."weather[0]|(.astronomy[0].sunset)")
 
   # Set color for temperature
   if [[ "$temp_F" -ge 90 ]]; then
@@ -125,19 +130,22 @@ current_wx() {
 
 # Display current conditions
   clear
+  box "$_script v$_version ($_updated)"
   if [[ -n "$json" ]]; then
-    echo $'\n'$"Current contitions for $city, $state"
-    echo "$description"
-    echo -e "  Temperature: ${tcolor}$temp_F\U2109 ($temp_C\U2103 )${normal}"
-    echo -e "   Feels like: ${fcolor}$feels_F\U2109 ($feels_C\U2103 )${normal}"
-    echo "     UV index: ${ucolor}$uv_index - $uvwarn${normal}"
-    echo "     Humidity: $humidity%"
-    echo "    Barometer: $pressure inches"
-    echo "Precipitation: $precip inches"
-    echo "         Wind: $wind_dir at $wind_spd mph"
+    printf "\nCurrent conditions for %s, %s\n" "$city" "$state"
+    printf "%13s: %s\n" "Atomosphere" "$description"
+    printf "%13s: %s%s\U2109 (%s\U2103 )%s\n" "Temperature" "$tcolor" "$temp_F" "$temp_C" "$normal"
+    printf "%13s: %s%s\U2109 (%s\U2103 )%s\n" "Feels like" "$tcolor" "$temp_F" "$temp_C" "$normal"
+    printf "%13s: %s%s - %s%s\n" "UV index" "$ucolor" "$uv_index" "$uvwarn" "$normal"
+    printf "%13s: %s%%\n" "Humidity" "$humidity"
+    printf "%13s: %s inches\n" "Barometer" "$pressure"
+    printf "%13s: %s inches\n" "Precipitation" "$precip"
+    printf "%13s: %s at %s mph\n" "Wind" "$wind_dir" "$wind_spd"
+    printf "%13s: %s\n" "Sunrise" "$sunrise"
+    printf "%13s: %s\n" "Sunset" "$sunset"
   else
-    echo "Current weather data is not available."
-    echo "Try again later."
+    printf "Current weather data is not available.\n"
+    printf "Try again later.\n"
   fi
   anykey
 }
@@ -159,7 +167,7 @@ COLUMNS=40
 
 while true; do
   clear
-  echo "$_script v$_version ($_updated)"
+  printf "%s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
   under_line "Location: $(echo $location | sed 's/+/ /')"
   PS3="Choice: "
   select opt in "Current conditions" "3-day forecast" "Usage/Help" "Quit"; do
