@@ -124,11 +124,17 @@ Global variables are available to the script sourcing the function library.
 
 33. `in_repos` - Checks to see if the package name passed to it is in the distribution's repositories. Returns TRUE if the package is in the repositories, FALSE if it is not.
 
-34. **mount_server** - Mounts an SHSFS share for the HP 6005, IP 192.168.0.18, for the purpose of installing scripts, software pacakges, and configuration files.
+34. **mount_server** - Mounts an SSHFS share for the HP 6005, IP 192.168.0.18, for the purpose of installing scripts, software pacakges, and configuration files.
 
 35. **unmount_server** - Unmounts the HP 6005 SSHFS server. Also removes temporary directory (tmp_dir) and temporary file (tmp\_file).
 
-36. `dots` - Displays a series of dots to indicate the passage of time while a task is running. The function should be run as a background process and its process should be killed once the task is completed.
+36. **mount_nas** - Mounts an SSHFS share for the NAS (Network Area Storage) on the local network.
+
+37. **unmount_nas** - Unmounts the NAS and removes temporary directories and files assigned to it.
+
+38. **clone_repo** - Clones a repository from the local Gitea server to the \~/Downloads directory.
+
+39. `dots` - Displays a series of dots to indicate the passage of time while a task is running. The function should be run as a background process and its process should be killed once the task is completed.
     
     * Usage:
       
@@ -141,7 +147,7 @@ Global variables are available to the script sourcing the function library.
       echo ""
       ```
 
-37. `spin` - Displays a 'spinning' character to indicate the passage of time while a task is running. The function should be run as a background process and it's process should be killed once the task is completed.
+40. `spin` - Displays a 'spinning' character to indicate the passage of time while a task is running. The function should be run as a background process and it's process should be killed once the task is completed.
     
     * Usage:
       

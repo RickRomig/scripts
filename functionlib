@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 24 Sep 2022
+# Last updated : 11 Oct 2022
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -549,9 +549,8 @@ in_repos() {
 
 ###############################################################################
 # Purpose: Mount a sshfs server on the local network using sshfs.
-# Arguments:
-#   $1 -> last octec of the server IP address
-#   $2 -> hostname of the server
+# Arguments: none
+# $share, $tmp_dir, $tmp_file are global variables in the calling script.
 ###############################################################################
 mount_server() {
   local server_ip="11"
@@ -576,6 +575,7 @@ mount_server() {
 ###############################################################################
 # Purpose: Unmount a sshfs server on the local network and remove temp directory.
 # Arguments: none
+# remove temp directory and temp file.
 # $share, $tmp_dir, $tmp_file are global variables in the calling script.
 ###############################################################################
 unmount_server() {
@@ -587,10 +587,8 @@ unmount_server() {
 }
 
 ###############################################################################
-# Purpose: Mount a sshfs server on the local network using sshfs.
-# Arguments:
-#   $1 -> last octec of the server IP address
-#   $2 -> hostname of the server
+# Purpose: Mount the NAS on the local network using sshfs.
+# Arguments: none
 ###############################################################################
 mount_nas() {
   local server_ip="4"
@@ -624,6 +622,17 @@ unmount_nas() {
   [[ -n "$mounted" ]] && fusermount -u "/mnt/$share"
   [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
   [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+}
+
+###############################################################################
+# Purpose: Clone a git repository on the Gitea server to ~/Downloads
+# Arguments:
+#   $1 -> name of the repository to cloan
+###############################################################################
+clone_repo() {
+  local git_svr="http://192.168.0.16:3000/Nullifidian"
+  local git_repo="${1}.git"
+  git clone  "$git_svr/$git_repo" "$HOME/Downloads"
 }
 
 ###############################################################################
