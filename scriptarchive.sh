@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com
 # Comments     : Includes functions subdirectory
 #              : Schedule with user's crontab from ~/bin, ~/.local/bin or ~/opt/bin
-# Last updated : version 0.2.12, 08 Oct 2022
+# Last updated : version 0.2.13, 11 Oct 2022
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -34,7 +34,7 @@ err_log="error.log"
 rm -f "$arc_dir"/Script\ Archive* > /dev/null 2>&1
 {
   printf "%s|" "$log_date"
-  if /usr/bin/zip -rq "$arc_dir/$archive" "$src_dir" 2> "$arc_dir/$err_log"; then
+  if /usr/bin/zip -rq "$arc_dir/$archive" "$src_dir" -x "$src_dir/.git/*" 2> "$arc_dir/$err_log"; then
     printf "successful\\n"
     touch "$arc_dir/Script Archive successful - $(date +%F)"
   else
