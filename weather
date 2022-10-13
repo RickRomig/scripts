@@ -18,6 +18,8 @@
 # 05 May 2022  : Checks to see if weather data available.
 # 07 May 2022  : Changed wget to curl to download weather data.
 # 12 Oct 2022  : Added sunrise and sunset times to current_wx function.
+# 13 Oct 2022  : Correct feels like temperature display.
+#              : Added latitude and longitude for location.
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -37,8 +39,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.4.0"
-readonly _updated="12 Oct 2022"
+readonly _version="0.4.1"
+readonly _updated="13 Oct 2022"
 
 ## Functions ##
 
@@ -78,6 +80,9 @@ current_wx() {
   city=$(echo "$json"|jq -r ."nearest_area[0]|(.areaName[0].value)")
   state=$(echo "$json"|jq -r ."nearest_area[0]|(.region[0].value)")
   # country=$(echo "$json"|jq -r ."nearest_area[0]|(.country[0].value)")
+  latitude=$(echo "$json"|jq -r ."nearest_area[0]|(.latitude)")
+  longitude=$(echo "$json"|jq -r ."nearest_area[0]|(.longitude)")
+  # latlong=$(echo "$json"|jq -r ."request[0]|(.query)")
   # Weather conditions
   description=$(echo "$json"|jq -r ."current_condition[0]|(.weatherDesc[0].value)")
   temp_F=$(echo "$json"|jq -r ."current_condition[0]|(.temp_F)")
@@ -133,9 +138,10 @@ current_wx() {
   box "$_script v$_version ($_updated)"
   if [[ -n "$json" ]]; then
     printf "\nCurrent conditions for %s, %s\n" "$city" "$state"
+    printf "Coordinates: %s latitude %s longitude\n" "$latitude" "$longitude"
     printf "%13s: %s\n" "Atomosphere" "$description"
     printf "%13s: %s%s\U2109 (%s\U2103 )%s\n" "Temperature" "$tcolor" "$temp_F" "$temp_C" "$normal"
-    printf "%13s: %s%s\U2109 (%s\U2103 )%s\n" "Feels like" "$tcolor" "$temp_F" "$temp_C" "$normal"
+    printf "%13s: %s%s\U2109 (%s\U2103 )%s\n" "Feels like" "$fcolor" "$feels_F" "$feels_C" "$normal"
     printf "%13s: %s%s - %s%s\n" "UV index" "$ucolor" "$uv_index" "$uvwarn" "$normal"
     printf "%13s: %s%%\n" "Humidity" "$humidity"
     printf "%13s: %s inches\n" "Barometer" "$pressure"
@@ -169,6 +175,7 @@ while true; do
   clear
   printf "%s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
   under_line "Location: $(echo $location | sed 's/+/ /')"
+  COLUMNS="40"
   PS3="Choice: "
   select opt in "Current conditions" "3-day forecast" "Usage/Help" "Quit"; do
     case $REPLY in
