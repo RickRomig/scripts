@@ -20,7 +20,7 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
 
@@ -32,48 +32,43 @@ check_package upower
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="2.6.5"
-readonly _updated="08 Oct 2022"
+readonly _version="2.7.0"
+readonly _updated="11 Oct 2022"
 readonly template_dir="$HOME/bin/Templates"
 
 # number of CPU cores or threads
 ncpu=$(/usr/bin/nproc --all)
 
 # Find device names
-# e_name=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
-e_name=$(ip ad show | awk '/: en/ {print $2}' | sed 's/:$//')
-# w_name=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
-w_name=$(ip ad show | awk '/: wl/ {print $2}' | sed 's/:$//')
+if [[ -x /usr/bin/nmcli ]]; then
+  e_name=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
+  w_name=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
+else
+  e_name=$(ip ad show | awk '/: en/ {print $2}' | sed 's/:$//')
+  w_name=$(ip ad show | awk '/: wl/ {print $2}' | sed 's/:$//')
+fi
 b_name=$(/usr/bin/upower -e | awk -F_ '/BAT/ {print $NF}')
+
+# Set default names if not found
+[[ -z "$e_name" ]] && e_name="eth0"
+[[ -z "$w_name" ]] && w_name="wlan0"
+[[ -z "$b_name" ]] && b_name="BAT0"
 
 ## Execution ##
 
-echo "$_script" v"$_version ($_updated)"
-echo "Creates a .conkyrc script in your home directory from a template."
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Creates a .conkyrc script in your home directory from a template.\n"
 
 # Check if distribution is antiX or MX Linux
 if bunsenlabs || antix_mx; then
   leave "Conky is pre-installed. Use the Conky Manager to configure conky."
 fi
 
-# Display battery and network device names and number of CPU cores/threads,
-if [[ -z "$b_name" ]]; then
-  b_name="BAT0"
-else
-  echo -e "Battery device name:\t$b_name"
-fi
-
-if [[ -z "$e_name" ]]; then
-  e_name="eth0"
-else
-  echo -e "Ethernet device name:\t$e_name"
-fi
-
-if [[ -z "$w_name" ]]; then
-  w_name="wlan0"
-else
-  echo -e "Wireless device name:\t$w_name"
-fi
+# Display battery and network device names and number of CPU cores/threads
+printf "Battery device name:\t%s\n" "$b_name"
+printf "Ethernet device name:\t%s\n" "$e_name"
+printf "Wireless device name:\t%s\n" "$w_name"
+printf "CPU cores/threads:\t%s\n" "$ncpu"
 
 # Plug device names into the template and create the ~/.conkyrc script
 sed -e '1d' \
@@ -90,9 +85,10 @@ case "$ncpu" in
   5 ) sed -i '61,63d' "$HOME/.conkyrc" ;;
   6 ) sed -i '62,63d' "$HOME/.conkyrc" ;;
   7 ) sed -i '63d' "$HOME/.conkyrc" ;;
+  * ) ;;
 esac
 
-echo $'\n'$".conkyrc created and configured."
+printf "\n.conkyrc created and configured.\n"
 
 edit_view_quit "$HOME/.conkyrc"
 
