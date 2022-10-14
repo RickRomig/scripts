@@ -17,6 +17,7 @@
 # 06 Jul 2022  : Fixed arithmetic error in minutes assignment in main_timer function.
 # 17 Jul 2022  : Moved assignment of $1 to min to Check arguments section.
 # 02 Sep 2022  : Added Om emoji to title line.
+# 14 Oct 2022  : Defaults to 20 min. Checks for input value of 0.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -37,23 +38,16 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.7"
-readonly _updated="02 Sep 2022"
+readonly _version="0.3.0"
+readonly _updated="14 Oct 2022"
 readonly colorerr="${lightred}ERROR!${normal}"
 
 ## Functions ##
 
-usage() {
-  local errcode="${1:-2}"
-  printf "Usage:   %s [minutes]\n" "$_script"
-  printf "Example: %s 20\n" "$_script"
-  printf "Displays a countdown of minutes remaining and plays an audio file at the end.\n" >&2
-  exit "$errcode"
-}
-
 input_value() {
   local errcode="${1:-2}"
-  printf "Please supply a value for minutes, only minutes, and only whole numbers.\n" >&2
+  printf "%s Invalid argument\n" "$colorerr" >&2
+  printf "Please supply a value for minutes, only minutes, and only whole numbers greater than 0.\n" >&2
   exit "$errcode"
 }
 
@@ -68,7 +62,7 @@ set_volume() {
 
 play_sound() {
   # Play gong sound as a background process.
-  local sound_dir=$HOME"/bin/files"
+  local sound_dir="$HOME/bin/files"
   local sound_file="Tibetan_bowl.wav"
   /usr/bin/aplay "$sound_dir/$sound_file" > /dev/null 2>&1 &
 }
@@ -117,25 +111,24 @@ main_timer() {
 ## Execution ##
 
 # Check arguments
-if [[ "$#" = 0 ]]; then
-  printf "%s No arument passed.\n" "$colorerr" >&2
-  usage 2
-elif [[ -n ${1//[0-9]/} ]]; then
-  # argument is not an integer
-  printf "%s Invalid argument\n" "$colorerr" >&2
+
+if [[ "$#" -eq 0 ]]; then
+  min=20
+elif [[ "$#" -gt 0 && -n ${1//[0-9]/} ]]; then
+  input_value 2
+elif [[ "$1" -eq 0 ]]; then
   input_value 2
 else
-	readonly min="$1"
-  # Convert input argument of minutes into seconds.
-  sec_rem=$(( 60 * min ))
-  # Capture original volume setting
-  # ovol=$(get_volume)
-  # Set playback volume
-  # vol=50; set_volume "$vol"
+	min="${1:-20}"
 fi
 
 clear
+# Capture original volume setting
+# ovol=$(get_volume)
+# Set playback volume
+# vol=50; set_volume "$vol"
 printf "\n\t\U0950  Meditation Timer \U0950\n\n"
+sec_rem=$(( 60 * min ))
 screensaver_off
 countdown
 play_sound
