@@ -2,9 +2,9 @@
 ##########################################################################
 # Script Name  : weather
 # Description  : Displays local weather conditions in the terminal.
-# Dependencies : curl, jq (JSON processor), wget
-# Arguments    : None
-# Author       : Richard B. Romig, 14 Jul 2021
+# Dependencies : curl, jq (JSON processor)
+# Arguments    : location (optional)
+# Author       : Copyright (C) 2021 Richard B. Romig, 14 Jul 2021
 # Email        : rick.romig@gmail.com
 # Comments     : Based on script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
@@ -18,8 +18,9 @@
 # 05 May 2022  : Checks to see if weather data available.
 # 07 May 2022  : Changed wget to curl to download weather data.
 # 12 Oct 2022  : Added sunrise and sunset times to current_wx function.
-# 13 Oct 2022  : Correct feels like temperature display.
+# 13 Oct 2022  : Corrected feels-like temperature display.
 #              : Added latitude and longitude for location.
+# 14 Oct 2022  : Created functions to set colors and UV warning.
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -39,8 +40,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.4.1"
-readonly _updated="13 Oct 2022"
+readonly _version="0.5.0"
+readonly _updated="14 Oct 2022"
 
 ## Functions ##
 
@@ -63,6 +64,62 @@ show_help() {
   anykey
 }
 
+temp_color() {
+  # Set color for temperature
+  if [[ "$temp_F" -ge 90 ]]; then
+    tcolor=${red}
+  elif [[ "$temp_F" -ge 75 ]]; then
+    tcolor=${orange}
+  elif [[ "$temp_F" -lt 50 ]]; then
+    tcolor=${blue}
+  else
+    tcolor=${default} # Temperature is between 50 and 74 degrees Fahrenheit
+  fi
+}
+
+feels_color() {
+  # Set color for heat index temperature
+  if [[ "$feels_F" -ge 90 ]]; then
+    fcolor=${red}
+  elif [[ "$feels_F" -ge 75 ]]; then
+    fcolor=${orange}
+  elif [[ "$feels_F" -lt 50 ]]; then
+    fcolor=${blue}
+  else
+    fcolor=${default} # Temperature is between 50 and 74 degrees Fahrenheit
+  fi
+}
+
+uv_color() {
+    # Set color for UV index.
+  if [[ "$uv_index" -ge 11 ]]; then
+    ucolor=${red}
+  elif [[ "$uv_index" -ge 8 ]]; then
+    ucolor=${lightred}
+  elif [[ "$uv_index" -ge 6 ]]; then
+    ucolor=${orange}
+  elif [[ "$uv_index" -ge 3 ]]; then
+    ucolor=${lightyellow}
+  else
+    ucolor=${default}  # UV index is less than 3
+  fi
+}
+
+uv_warning() {
+  # Set color for UV index.
+  if [[ "$uv_index" -ge 11 ]]; then
+    uvwarn="Extreme Risk"
+  elif [[ "$uv_index" -ge 8 ]]; then
+    uvwarn="Very High Risk"
+  elif [[ "$uv_index" -ge 6 ]]; then
+    uvwarn="High Risk"
+  elif [[ "$uv_index" -ge 3 ]]; then
+     uvwarn="Moderate Risk"
+  else
+    uvwarn="Low Risk"  # UV index is less than 3
+  fi
+}
+
 wx_forecast() {
   local url="http://wttr.in"
   local wx_loc="${1:-Huber+Heights}"
@@ -76,6 +133,7 @@ current_wx() {
   local wx_loc="${1:-Huber+Heights}"
   local url="http://wttr.in/$wx_loc?format=j1"
   json=$(curl -s "$url")
+
   # Location data
   city=$(echo "$json"|jq -r ."nearest_area[0]|(.areaName[0].value)")
   state=$(echo "$json"|jq -r ."nearest_area[0]|(.region[0].value)")
@@ -83,6 +141,7 @@ current_wx() {
   latitude=$(echo "$json"|jq -r ."nearest_area[0]|(.latitude)")
   longitude=$(echo "$json"|jq -r ."nearest_area[0]|(.longitude)")
   # latlong=$(echo "$json"|jq -r ."request[0]|(.query)")
+
   # Weather conditions
   description=$(echo "$json"|jq -r ."current_condition[0]|(.weatherDesc[0].value)")
   temp_F=$(echo "$json"|jq -r ."current_condition[0]|(.temp_F)")
@@ -98,40 +157,15 @@ current_wx() {
   sunrise=$(echo "$json"|jq -r ."weather[0]|(.astronomy[0].sunrise)")
   sunset=$(echo "$json"|jq -r ."weather[0]|(.astronomy[0].sunset)")
 
-  # Set color for temperature
-  if [[ "$temp_F" -ge 90 ]]; then
-    tcolor=${red}
-  elif [[ "$temp_F" -ge 75 ]]; then
-    tcolor=${orange}
-  elif [[ "$temp_F" -lt 50 ]]; then
-    tcolor=${blue}
-  else
-    tcolor=${default} # Temperature is between 50 and 74 degrees Fahrenheit
-  fi
-
-  # Set color for heat index temperature
-  if [[ "$feels_F" -ge 90 ]]; then
-    fcolor=${red}
-  elif [[ "$feels_F" -ge 75 ]]; then
-    fcolor=${orange}
-  elif [[ "$feels_F" -lt 50 ]]; then
-    fcolor=${blue}
-  else
-    fcolor=${default} # Temperature is between 50 and 74 degrees Fahrenheit
-  fi
-
-  # Set color for UV index.
-  if [[ "$uv_index" -ge 11 ]]; then
-    ucolor=${red}; uvwarn="Extreme Risk"
-  elif [[ "$uv_index" -ge 8 ]]; then
-    ucolor=${lightred}; uvwarn="Very High Risk"
-  elif [[ "$uv_index" -ge 6 ]]; then
-    ucolor=${orange}; uvwarn="High Risk"
-  elif [[ "$uv_index" -ge 3 ]]; then
-    ucolor=${lightyellow}; uvwarn="Moderate Risk"
-  else
-    ucolor=${default}; uvwarn="Low Risk"  # UV index is less than 3
-  fi
+  # Set colors
+  tcolor="${default}"
+  temp_color
+  fcolor="${default}"
+  feels_color
+  ucolor="${default}"
+  uv_warning
+  uvwarn="Low Risk"
+  uv_warning
 
 # Display current conditions
   clear
@@ -173,7 +207,7 @@ COLUMNS=40
 
 while true; do
   clear
-  printf "%s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
+  box "$_script v$_version ($_updated)"
   under_line "Location: $(echo $location | sed 's/+/ /')"
   COLUMNS="40"
   PS3="Choice: "
