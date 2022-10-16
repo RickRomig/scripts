@@ -18,6 +18,7 @@
 # 17 Jul 2022  : Moved assignment of $1 to min to Check arguments section.
 # 02 Sep 2022  : Added Om emoji to title line.
 # 14 Oct 2022  : Defaults to 20 min. Checks for input value of 0.
+# 16 Oct 2022  : Assigns value to min variable, then checks if 0 or non-digit.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -38,8 +39,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.3.0"
-readonly _updated="14 Oct 2022"
+readonly _version="0.3.1"
+readonly _updated="16 Oct 2022"
 readonly colorerr="${lightred}ERROR!${normal}"
 
 ## Functions ##
@@ -112,15 +113,8 @@ main_timer() {
 
 # Check arguments
 
-if [[ "$#" -eq 0 ]]; then
-  min=20
-elif [[ "$#" -gt 0 && -n ${1//[0-9]/} ]]; then
-  input_value 2
-elif [[ "$1" -eq 0 ]]; then
-  input_value 2
-else
-	min="${1:-20}"
-fi
+min="${1:-20}"
+if [[ -n ${1//[0-9]/} ]] || [[ "$min" -eq 0 ]]; then input_value; fi
 
 clear
 # Capture original volume setting
