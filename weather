@@ -21,6 +21,7 @@
 # 13 Oct 2022  : Corrected feels-like temperature display.
 #              : Added latitude and longitude for location.
 # 14 Oct 2022  : Created functions to set colors and UV warning.
+# 17 Oct 2022  : Added color for tempetures below freezing.
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -40,8 +41,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.5.0"
-readonly _updated="14 Oct 2022"
+readonly _version="0.5.1"
+readonly _updated="17 Oct 2022"
 
 ## Functions ##
 
@@ -70,6 +71,8 @@ temp_color() {
     tcolor=${red}
   elif [[ "$temp_F" -ge 75 ]]; then
     tcolor=${orange}
+  elif [[ "$temp_F -le 32" -le 32 ]]; then
+    tcolor=${lightpurple}
   elif [[ "$temp_F" -lt 50 ]]; then
     tcolor=${blue}
   else
@@ -83,6 +86,8 @@ feels_color() {
     fcolor=${red}
   elif [[ "$feels_F" -ge 75 ]]; then
     fcolor=${orange}
+  elif [[ "$feell_F" -le 32 ]]; then
+    fcolor=${lightpurple}
   elif [[ "$feels_F" -lt 50 ]]; then
     fcolor=${blue}
   else
