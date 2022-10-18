@@ -22,6 +22,7 @@
 #              : Added latitude and longitude for location.
 # 14 Oct 2022  : Created functions to set colors and UV warning.
 # 17 Oct 2022  : Added color for tempetures below freezing.
+# 18 Oct 2022  : Set default location and check for help arguments.
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -41,8 +42,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.5.1"
-readonly _updated="17 Oct 2022"
+readonly _version="0.5.2"
+readonly _updated="18 Oct 2022"
 
 ## Functions ##
 
@@ -86,7 +87,7 @@ feels_color() {
     fcolor=${red}
   elif [[ "$feels_F" -ge 75 ]]; then
     fcolor=${orange}
-  elif [[ "$feell_F" -le 32 ]]; then
+  elif [[ "$feels_F" -le 32 ]]; then
     fcolor=${lightpurple}
   elif [[ "$feels_F" -le 50 ]]; then
     fcolor=${blue}
@@ -197,21 +198,15 @@ current_wx() {
 
 ## Execution ##
 
-if [[ $# -gt 0 ]]; then
-  case "$1" in
-    -h|--help ) show_help; exit ;;
-    * ) location="$1" ;;
-  esac
-else
-  location="Huber+Heights"
-fi
+location="${1:-Huber+Heights}"
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then show_help; exit; fi
 
 check_dependencies
 
 while true; do
   clear
   box "$_script v$_version ($_updated)"
-  under_line "Location: $(echo $location | sed 's/+/ /')"
+  under_line "Location: $(echo "$location" | sed 's/+/ /')"
   COLUMNS="40"
   PS3="Choice: "
   select opt in "Current conditions" "3-day forecast" "Usage/Help" "Quit"; do
