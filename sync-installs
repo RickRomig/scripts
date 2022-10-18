@@ -6,7 +6,7 @@
 # Arguments    : None
 # Author       : Richard B. Romig, 07 Jun 2020
 # Email        : rick.romig@gmail.com
-# Comments     :
+# Comments     : rsysnc excludes ~/bin/.git/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.13"
-readonly _updated="01 Oct 2022"
+readonly _version="0.2.14"
+readonly _updated="18 Oct 2022"
 
 # Hostnames
 readonly lhost=$HOSTNAME
@@ -79,7 +79,7 @@ cp -puv "$cfg_dir/git/config" "$cfg_dir/git/credentials" "$cfg_defaults/git/"
 # Sync scripts, configs, templates, & ISO files to /data/installations on remote server
 if ping -c 3 "$localnet.$svr_ip" > /dev/null 2>&1; then
   echo $'\n'$"${orange}Synchronizing scripts...${normal}"
-  rsync -avzh --delete "$HOME/bin/" "$localnet.$svr_ip:$remote_dest/bin/"
+  rsync -avzh --delete --exclude '.git' "$HOME/bin/" "$localnet.$svr_ip:$remote_dest/bin/"
   echo $'\n'$"${orange}Synchronizing template files...${normal}"
   rsync -avzh --delete "$HOME/Templates/" "$localnet.$svr_ip:$remote_dest/Templates/"
   echo $'\n'$"${orange}Synchronizing configuration files...${normal}"
