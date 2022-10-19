@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : clone-repo
+# Description  : Clone a git repository from local Gitea server
+# Dependencies : git
+# Arguments    : None
+# Author       : Copyright (C) 2022 Richard B. Romig, created: 19 Oct 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.0"
+readonly _updated="19 Oct 2022"
+readonly red_error="${lightred}ERROR:${normal}"
+readonly gitea_svr="http://192.168.0.16:3000/Nullifidian"
+readonly repos=( scripts configs i3debian openboxdebian fnloc fnloc-win )
+
+## Execution ##
+
+check_package git
+
+# clear
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Clone a repository from the local Gitea server.\n\n"
+printf "Available repositories:\n"
+COLUMNS=40
+options=( "Bash scripts" "Configuration files" "i3-gaps Debian " "Openbox Debinan" "FnLoC" "FnLoC-Win" "Exit" )
+PS3="Choose a repository to clone: "
+select opt in "${options[@]}"; do
+  case "$REPLY" in
+    1 )
+      git clone "$gitea_svr/${repos[0]}.git" "$HOME/Downloads/${repos[0]}"
+      break ;;
+    2 )
+      git clone "$gitea_svr/${repos[1]}.git" "$HOME/Downloads/${repos[1]}"
+      break ;;
+    3 )
+       git clone "$gitea_svr/${repos[2]}.git" "$HOME/Downloads/${repos[2]}"
+      break ;;
+   4 )
+      git clone "$gitea_svr/${repos[3]}.git" "$HOME/Downloads/${repos[3]}"
+      break ;;
+    5 )
+      git clone "$gitea_svr/${repos[4]}.git" "$HOME/Downloads/${repos[4]}"
+      break ;;
+    6 )
+      git clone "$gitea_svr/${repos[5]}.git" "$HOME/Downloads/${repos[5]}"
+      break ;;
+    7 )
+      leave "Exiting. No repositories cloned."
+      ;;
+    * )
+      printf "%s Invalid choice. Choose 1-7.\n" "$red_error" >&2
+      ;;
+  esac
+done
+exit
