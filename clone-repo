@@ -12,24 +12,13 @@
 ##########################################################################
 
 ## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
+# shellcheck disable=SC2034
 
 ## Global Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.0"
+readonly _version="0.2.1"
 readonly _updated="20 Oct 2022"
-readonly red_error="${lightred}ERROR:${normal}"
 readonly repos=( scripts configs i3debian openboxdebian fnloc fnloc-win )
 
 ## Functions ##
@@ -55,29 +44,21 @@ PS3="Choose a repository to clone: "
 select opt in "${options[@]}"; do
   case "$REPLY" in
     1 )
-      clone_repo "${repos[0]}"
-      break ;;
+      clone_repo "${repos[0]}"; break ;;
     2 )
-      clone_repo "${repos[1]}"
-      break ;;
+      clone_repo "${repos[1]}"; break ;;
     3 )
-      clone_repo "${repos[2]}"
-      break ;;
+      clone_repo "${repos[2]}"; break ;;
     4 )
-      clone_repo "${repos[3]}"
-      break ;;
+      clone_repo "${repos[3]}"; break ;;
     5 )
-      clone_repo "${repos[4]}"
-      break ;;
+      clone_repo "${repos[4]}"; break ;;
     6 )
-      clone_repo "${repos[5]}"
-      break ;;
+      clone_repo "${repos[5]}"; break ;;
     7 )
-      leave "Exiting. No repositories cloned."
-      ;;
+      printf "Exiting. No repositories cloned.\n"; break ;;
     * )
-      printf "%s Invalid choice. Choose 1-7.\n" "$red_error" >&2
-      ;;
+      printf "\e[91mERROR:\e[0m Invalid choice. Choose 1-7.\n" >&2 ;;
   esac
 done
 exit
