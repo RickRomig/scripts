@@ -17,11 +17,16 @@
 ## Global Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.1"
+readonly _version="0.2.2"
 readonly _updated="20 Oct 2022"
 readonly repos=( scripts configs i3debian openboxdebian fnloc fnloc-win )
 
 ## Functions ##
+
+check_package() {
+  local package="$1"
+  dpkg -l | grep -qw "$package" || sudo apt-get install "$package" -yyq
+}
 
 clone_repo() {
   local git_repo="$1"
