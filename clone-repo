@@ -27,11 +27,19 @@ fi
 ## Global Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.1.0"
-readonly _updated="19 Oct 2022"
+readonly _version="0.2.0"
+readonly _updated="20 Oct 2022"
 readonly red_error="${lightred}ERROR:${normal}"
-readonly gitea_svr="http://192.168.0.16:3000/Nullifidian"
 readonly repos=( scripts configs i3debian openboxdebian fnloc fnloc-win )
+
+## Functions ##
+
+clone_repo() {
+  local git_repo="$1"
+  local gitea_svr="http://192.168.0.16:3000/Nullifidian"
+  local dl_dir="$HOME/Downloads"
+  git clone "$gitea_svr/$git_repo.git" "$dl_dir/$git_repo"
+}
 
 ## Execution ##
 
@@ -47,22 +55,22 @@ PS3="Choose a repository to clone: "
 select opt in "${options[@]}"; do
   case "$REPLY" in
     1 )
-      git clone "$gitea_svr/${repos[0]}.git" "$HOME/Downloads/${repos[0]}"
+      clone_repo "${repos[0]}"
       break ;;
     2 )
-      git clone "$gitea_svr/${repos[1]}.git" "$HOME/Downloads/${repos[1]}"
+      clone_repo "${repos[1]}"
       break ;;
     3 )
-       git clone "$gitea_svr/${repos[2]}.git" "$HOME/Downloads/${repos[2]}"
+      clone_repo "${repos[2]}"
       break ;;
     4 )
-      git clone "$gitea_svr/${repos[3]}.git" "$HOME/Downloads/${repos[3]}"
+      clone_repo "${repos[3]}"
       break ;;
     5 )
-      git clone "$gitea_svr/${repos[4]}.git" "$HOME/Downloads/${repos[4]}"
+      clone_repo "${repos[4]}"
       break ;;
     6 )
-      git clone "$gitea_svr/${repos[5]}.git" "$HOME/Downloads/${repos[5]}"
+      clone_repo "${repos[5]}"
       break ;;
     7 )
       leave "Exiting. No repositories cloned."
