@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 11 Oct 2022
+# Last updated : 23 Oct 2022
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -124,7 +124,7 @@ root_user() {
 user_exists() {
   local U="$1"
   local passwd_file="/etc/passwd"
-  grep -q "^${U}" $passwd_file && return "$TRUE" || return "$FALSE"
+  grep -q "^${U}" "$passwd_file" && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -181,7 +181,7 @@ get_distribution() {
 ###############################################################################
 is_debian() {
   codename=$(lsb_release --codename --short)
-  case $codename in
+  case "$codename" in
     bullseye|buster|debbie|elsie ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
@@ -204,7 +204,7 @@ is_focal() {
 ###############################################################################
 support_ppa() {
   codename=$(lsb_release --codename --short)
-  case $codename in
+  case "$codename" in
     bionic|focal|tricia|uma|una|vanessa ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
@@ -218,7 +218,7 @@ support_ppa() {
 ###############################################################################
 antix_mx() {
   dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2> /dev/null)
-  case $dist_id in
+  case "$dist_id" in
     antiX|MX ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
@@ -386,7 +386,7 @@ edit_view_quit() {
   printf "\nYou may edit or view %s at this time.\n\n" "$filename"
   PS3="Choose an option: "
   select opt in Edit View Quit; do
-    case $REPLY in
+    case "$REPLY" in
       1 )
         if exists micro; then
           /usr/bin/micro "$filename"
