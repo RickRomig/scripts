@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.1.4"
-readonly _updated="08 Oct 2022"
+readonly _version="0.1.5"
+readonly _updated="26 Oct 2022"
 readonly host_ip="$localnet.1"
 
 ## Functions ##
@@ -46,7 +46,7 @@ sync_script() {
 	exit_status="$?"
 	transfer_status "$exit_status"
 	printf "\n%sSyncing bin directory ...%s\n" "$orange" "$normal"
-	rsync -avh --delete rick@"$host_ip":bin/ "$HOME/bin/"
+	rsync -avh --delete --exclude '.git' rick@"$host_ip":bin/ "$HOME/bin/"
 	exit_status="$?"
 	transfer_status "$exit_status"
 }
