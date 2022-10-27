@@ -20,6 +20,7 @@
 # 07 Sep 2022  : Moved existence checks out of functions to getopts.
 # 13 Sep 2022  : Changed install/remove methods due to changes by developer.
 # 06 Oct 2022  : Changed code for charm.list and trusted key per developer change.
+# 27 Oct 2022  : Changed test if glow is installed to a local function.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -40,8 +41,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.4.2"
-readonly _updated="11 Oct 2022"
+readonly _version="0.4.3"
+readonly _updated="27 Oct 2022"
 readonly src_list="/etc/apt/sources.list.d/charm.list"
 
 ## Functions ##
@@ -49,7 +50,7 @@ readonly src_list="/etc/apt/sources.list.d/charm.list"
 install_app() {
   echo "Installing the Glow markdown reader..."
   echo "deb https://repo.charm.sh/apt/ * *" | sudo tee "$src_list"
-  curl https://repo.charm.sh/apt/gpg.key | sudo apt-key add -
+  curl -s https://repo.charm.sh/apt/gpg.key | sudo apt-key add -
   sudo -s apt update && sudo apt install glow -yy
   echo "glow $(glow_ver) successfully installed."
 }
@@ -67,6 +68,10 @@ glow_ver() {
 
 check_dependencies() {
   check_package curl
+}
+
+exists_glow() {
+  dpkg -l | grep -qw glow && return "$TRUE" || return "$FALSE"
 }
 
 help() {
@@ -98,13 +103,13 @@ else
         help 0
         ;;
       i )
-        exists glow && leave "Glow $(glow_ver) is already installed."
+        exists_glow && leave "Glow $(glow_ver) is already installed."
         user_in_sudo
         echo "${lightyellow}Installing Glow markdown reader...${normal}"
         install_app
         ;;
       r )
-        exists glow || leave "Glow is not installed. Run '$_script -i' to install."
+        exists_glow || leave "Glow is not installed. Run '$_script -i' to install."
         user_in_sudo
         remove_app
         ;;
@@ -115,5 +120,5 @@ else
     esac
   done
 fi
-printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit
