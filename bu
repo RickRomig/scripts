@@ -96,8 +96,8 @@ backup() {
   # Run rsync command:
   # The '--exclude 'timeshift''  & 'if-then' added by R. Romig
   echo "Backing up /etc and /home to BU_Drive/BU_Backups/$host/..."
-  if sudo rsync -aH --delete --exclude 'timeshift' --info=progress2 /etc /home \
-  /media/"$user"/BU_Drive/BU_Backups/"$host"/; then
+  if sudo rsync -aH --delete --exclude 'timeshift' --exclude '.local/share/libvirt/images' \
+   --info=progress2 /etc /home /media/"$user"/BU_Drive/BU_Backups/"$host"/; then
     # Check for status of backup and exit:
     # [ "$?" == "0" ]; then
     # Clear any accidental input during backup:
