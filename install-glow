@@ -21,13 +21,14 @@
 # 13 Sep 2022  : Changed install/remove methods due to changes by developer.
 # 06 Oct 2022  : Changed code for charm.list and trusted key per developer change.
 # 27 Oct 2022  : Changed test if glow is installed to a local function.
+# 28 Oct 2022  : Added function to apply charm.list & gpg key.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -41,21 +42,25 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.4.3"
-readonly _updated="27 Oct 2022"
+readonly _version="0.4.4"
+readonly _updated="28 Oct 2022"
 readonly src_list="/etc/apt/sources.list.d/charm.list"
 
 ## Functions ##
 
-install_app() {
-  echo "Installing the Glow markdown reader..."
+src_gpg() {
   echo "deb https://repo.charm.sh/apt/ * *" | sudo tee "$src_list"
   curl -s https://repo.charm.sh/apt/gpg.key | sudo apt-key add -
-  sudo -s apt update && sudo apt install glow -yy
+}
+
+install_glow() {
+  echo "Installing the Glow markdown reader..."
+  src_gpg
+  sudo apt update && sudo apt install glow -yy
   echo "glow $(glow_ver) successfully installed."
 }
 
-remove_app() {
+remove_glow() {
   echo "Removing the Glow markdown reader..."
   sudo apt-get remove glow
   [[ -f "$src_list" ]] && rm -v "$src_list"
@@ -82,6 +87,7 @@ ${orange}OPTIONS:${normal}
   -h    Displays help.
   -i    Installs the glow markdown reader.
   -r    Removes the glow markdown reader from the system.
+  -s    Apply charm.list and gpg key
 END_HELP
   printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
@@ -96,8 +102,9 @@ if [[ "$#" -eq 0 ]]; then
   echo "${lightred}ERROR:${normal} No argument passed." >&2
   help 2
 else
-  optstr=":hir"
-  while getopts "$optstr" opt; do
+  optstr=":hirs"
+  while getopts "$optstr" opt
+  do
     case "$opt" in
       h )
         help 0
@@ -106,12 +113,18 @@ else
         exists_glow && leave "Glow $(glow_ver) is already installed."
         user_in_sudo
         echo "${lightyellow}Installing Glow markdown reader...${normal}"
-        install_app
+        install_glow
         ;;
       r )
-        exists_glow || leave "Glow is not installed. Run '$_script -i' to install."
+        exists_glow || leave "Glow is not installed."
         user_in_sudo
-        remove_app
+        remove_glow
+        ;;
+      s )
+        exists_glow || leave "Glow is not installed."
+        user_in_sudo
+        src_gpg
+        echo "charm.list created, gpg key applied."
         ;;
       ? )
         echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
