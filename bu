@@ -129,6 +129,8 @@ backup() {
     echo "There were errors! Try running the command again to correct them." >&2
     echo "- If errors persist then you may have corrupt files or failing hardware." >&2
     sudo umount /media/"$user"/BU_Drive && echo "BU_Drive unmounted."
+    echo "It's safe to remove the USB drive now."
+    echo "Backup completed in $(format_time $SECONDS)"
     exit 1
   fi
 }
@@ -185,11 +187,13 @@ restore() {
       echo $'\n'$"Wait a few seconds and try running 'bu --restore' again." >&2
       echo "You may need to manually restore your data if errors persist." >&2
       sudo umount /media/"$user"/BU_Drive && echo "BU_Drive unmounted."
+      echo "It's now safe to remove BU_Drive."
       exit 1
     fi
   else
     echo "Restoration canceled."
     sudo umount /media/"$user"/BU_Drive && echo "BU_Drive unmounted."
+    echo "It's now safe to remove BU_Drive."
     exit
   fi
 }
