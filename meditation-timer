@@ -21,6 +21,7 @@
 # 16 Oct 2022  : Assigns value to min variable, then checks if 0 or non-digit.
 # 06 Nov 2022  : Changed countdown function to a single line.
 # 07 Nov 2022  : Time is passed to main-timer function rather than global variable.
+#              : Static exit code of 2 in input_value function.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -41,17 +42,16 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.3.3"
+readonly _version="0.3.4"
 readonly _updated="07 Nov 2022"
 readonly colorerr="${lightred}ERROR!${normal}"
 
 ## Functions ##
 
 input_value() {
-  local errcode="${1:-2}"
   printf "%s Invalid argument\n" "$colorerr" >&2
   printf "Please supply a value for minutes, only minutes, and only whole numbers greater than 0.\n" >&2
-  exit "$errcode"
+  exit 2
 }
 
 get_volume() {
@@ -115,7 +115,7 @@ main_timer() {
 # Check arguments
 
 minutes="${1:-20}"
-if [[ -n ${minutes//[0-9]/} ]] || [[ "$minutes" -eq 0 ]]; then input_value 2; fi
+if [[ -n ${minutes//[0-9]/} ]] || [[ "$minutes" -eq 0 ]]; then input_value; fi
 
 clear
 # Capture original volume setting
