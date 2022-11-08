@@ -16,6 +16,7 @@
 # 04 May 2022  : Added error code upon exit via usage function.
 # 10 Jul 2022  : Added optstr and opt variables to getopts routine.
 # 11 Oct 2022  : Cleaned up the script.
+# 07 Nov 2022  : Added brave_ver function.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -36,14 +37,18 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.3.0"
-readonly _updated="11 Oct 2022"
+readonly _version="0.3.1"
+readonly _updated="07 Nov 2022"
 readonly red_error="${lightred}ERROR:${normal}"
 readonly keyring_dir="/etc/apt/trusted.gpg.d"
 readonly trusted_key="brave-browser-release.gpg"
 readonly sources_list="/etc/apt/sources.list.d/brave-browser-release.list"
 
 ## Functions ##
+
+brave_ver() {
+  dpkg -l | awk '$2 == "brave-browser" {print $3}'
+}
 
 install_brave() {
   local trusted_key_url="https://brave-browser-apt-release.s3.brave.com/brave-core.asc"
@@ -58,7 +63,7 @@ install_brave() {
   # Install Brave
   sudo apt update -qq
   sudo apt install brave-browser -yy
-  printf "Brave browser successfully installed.\n"
+  printf "Brave browser %s successfully installed.\n" "$(brave_ver)"
 }
 
 remove_brave() {
@@ -104,7 +109,7 @@ else
       h )
         usage 0 ;;
       i )
-        exists brave-browser && leave "Brave browser is already installed."
+        exists brave-browser && leave "Brave browser $(brave_ver) is already installed."
         user_in_sudo
         install_brave ;;
       r )
