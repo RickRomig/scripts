@@ -77,3 +77,15 @@ _remote_commands
 exit 0
 
 $ ./local3.sh
+# ------------------------------------
+
+# Brave/Chrome/Firefox versions
+brave-browser --version | awk '{print $NF}'
+brave-browser --version | cut -d' ' -f3
+dpkg -l | awk '$2 == "brave-browser" {print $3}'	# leaves off first xxx.
+google-chrome-stable --version | awk '{print $NF}'
+google-chrome-stable --version | cut -d' ' -f3'
+dpkg -l | awk '$2 == "google-chrome-stable" {print $3}' | sed 's/[+-].*//'
+firefox --version | awk '{print $NF}'
+firefox --version | cut -d' ' -f3
+dpkg -l | awk '$2 == "firefox" {print $3}' | sed 's/[+-].*//'
