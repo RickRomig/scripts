@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-zoom
+# Description  : Install/Remove Zoom 
+# Dependencies : none
+# Arguments    : See help function
+# Author       : Copyright Richard B. Romig, 10 Nov 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.0"
+readonly _updated="10 Nov 2022"
+readonly red_error="${lightred}ERROR:${normal}"
+
+## Functions ##
+
+check_dependencies() {
+  check_package wget
+}
+
+cleanup() {
+	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+}
+
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+	-h 	Display help
+	-i 	Install application
+	-r 	Remove application
+END_HELP
+	printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+zoom_version() {
+	dpkg -l | awk '$2 == "zoom" {print $3}'
+}
+
+install_zoom() {
+	local url="https://zoom.us/client/latest"
+	local pkg="zoom_amd64.deb"
+	printf "Dowloading Zoom ...\n"
+	wget -q -P "$tmp_dir" "$url/$pkg"
+	printf "Installing the latest version of Zoom...\n"
+	sudo gdebi -n "$tmp_dir/$pkg"
+	sudo apt-get install -f
+	printf "Zoom %s is installed.\n" "$(zoom_version)"
+}
+
+remove_zoom() {
+	printf "Removing Zoom ...\n"
+	sudo apt-get remove zoom -yy
+	printf "Zoom has been removed.\n"
+}
+
+## Execution ##
+
+# clear
+
+
+if [[ "$#" -eq 0 ]]; then
+	printf "%s No argument passed.\n" "$red_error"  >&2
+	help 1
+else
+	optstr=":hir"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			h )
+				help 0
+				;;
+			i )
+				exists zoom && printf "Zoom %s is installed.\n" "$(zoom_version)"
+				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+				trap cleanup EXIT
+				user_in_sudo
+				install_zoom
+				break	# Remove break if multiple options or if functions exit
+				;;
+			r )
+				exists zoom || leave "Zoom is not installed."
+				user_in_sudo
+				remove_zoom
+				break	# Remove break if multiple options or if functions exit
+				;;
+			? )
+				printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+				help 2
+				;;
+		esac
+	done
+fi
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+exit
