@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.1.8"
-readonly _updated="14 Sep 2022"
+readonly _version="0.1.9"
+readonly _updated="10 Nov 2022"
 readonly url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -60,7 +60,8 @@ compare_versions() {
 }
 
 install_app() {
-	new_pkg=$(sed 's/\// /g' "$tmp_file" | awk '/download/ && /amd64.deb/ {print $8;exit}' | sed 's/"$//')
+	# new_pkg=$(sed 's/\// /g' "$tmp_file" | awk '/download/ && /amd64.deb/ {print $8;exit}' | sed 's/"$//')
+  new_pkg="codium_${new_ver}_amd64.deb"
   user_in_sudo
   echo "Downloading VSCodium from the VSCodium GitHub repository..."
   wget -q -P "$tmp_dir/" "$url/download/$new_ver/$new_pkg"
