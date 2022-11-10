@@ -18,6 +18,7 @@
 # 11 Oct 2022  : Cleaned up the script.
 # 07 Nov 2022  : Added brave_ver function.
 # 08 Nov 2022  : Changed to OpenGPG repo signing key method per Brave's instructions.
+# 10 Nov 2022  : Changed brave_ver to display full product name and version number.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -38,8 +39,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.4.0"
-readonly _updated="08 Nov 2022"
+readonly _version="0.4.1"
+readonly _updated="10 Nov 2022"
 readonly red_error="${lightred}ERROR:${normal}"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
@@ -47,7 +48,7 @@ readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 ## Functions ##
 
 brave_ver() {
-  brave-browser --version | awk '{print $NF}'
+  brave-browser --version
 }
 
 install_brave() {
@@ -63,12 +64,12 @@ install_brave() {
   # Install Brave
   sudo apt update -qq
   sudo apt install brave-browser brave-keyring -yy
-  printf "Brave browser %s successfully installed.\n" "$(brave_ver)"
+  printf "%s successfully installed.\n" "$(brave_ver)"
 }
 
 remove_brave() {
 	local apt_key="/etc/apt/trusted.gpg.d/brave-browser-release.gpg"
-  printf "Uninstalling the Brave Browser...\n"
+  printf "Uninstalling %s...\n" "$(brave_ver)"
   sudo apt-get remove brave-browser brave-keyring -yy
   # Remove trusted keys
   if [[ -f "$apt_key" ]]; then
@@ -123,7 +124,7 @@ else
       h )
         usage 0 ;;
       i )
-        exists brave-browser && leave "Brave browser $(brave_ver) is already installed."
+        exists brave-browser && leave "$(brave_ver) is already installed."
         user_in_sudo
         install_brave ;;
       p )
