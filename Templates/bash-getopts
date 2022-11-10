@@ -5,7 +5,7 @@
 # Description  :
 # Dependencies :
 # Arguments    :
-# Author       : Copyright <AUTHOR>, <TODAY>
+# Author       : Copyright (C) <YEAR> <AUTHOR>, <TODAY>
 # Email        : <EMAIL> | <EMAIL1>
 # Comments     :
 # Last updated : <TODAY>
@@ -39,19 +39,28 @@ check_dependencies() {
   check_package wget
 }
 
+cleanup() {
+	[[ -f "$tmp_file" ]] && rm "$tmp_file"
+	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+}
+
 help() {
 	errcode="${1:-2}"
 	cat << END_HELP
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
-	-h 	Display help
-	-i 	Install application
-	-r 	Remove application
-	-s  Apply settings
-	-u 	Update application
+	-h	Display help
+	-i	Install application
+	-r	Remove application
+	-s	Apply settings
+	-u	Update application
 END_HELP
 	printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
+}
+
+app_version() {
+	application --version
 }
 
 ## Execution ##
@@ -73,12 +82,14 @@ else
 				;;
 			i )
 				# argI="$OPTARG"
+				exists application && leave "Application $(app_version) is already installed."
 				install_application
 				apply_settings	# optional custom configuration
 				break	# Remove break if multiple options or if functions exit
 				;;
 			r )
 				# argR="$OPTARG"
+				exists application || leave "Application is not installed."
 				remove_application
 				break	# Remove break if multiple options or if functions exit
 				;;
@@ -87,7 +98,7 @@ else
 				break	# Remove break if multiple options or if functions exit
 				;;
 			u )
-				exists application || leave "Application is not installed. run '$_script -i' to install."
+				exists application || leave "Application is not installed."
 				update_application
 				break	# Remove break if multiple options or if functions exit
 				;;
