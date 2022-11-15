@@ -27,14 +27,15 @@ fi
 ## Global Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.1.0"
-readonly _updated="10 Nov 2022"
+readonly _version="0.1.1"
+readonly _updated="15 Nov 2022"
 readonly red_error="${lightred}ERROR:${normal}"
 
 ## Functions ##
 
 check_dependencies() {
   check_package wget
+	check_package gdebi
 }
 
 cleanup() {
@@ -70,7 +71,7 @@ install_zoom() {
 }
 
 remove_zoom() {
-	printf "Removing Zoom ...\n"
+	printf "Removing Zoom %s ...\n" "$(zoom_version)"
 	sudo apt-get remove zoom -yy
 	printf "Zoom has been removed.\n"
 }
@@ -93,13 +94,13 @@ else
 				trap cleanup EXIT
 				user_in_sudo
 				install_zoom
-				break	# Remove break if multiple options or if functions exit
+				break
 				;;
 			r )
 				exists zoom || leave "Zoom is not installed."
 				user_in_sudo
 				remove_zoom
-				break	# Remove break if multiple options or if functions exit
+				break
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
