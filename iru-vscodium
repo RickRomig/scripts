@@ -4,7 +4,7 @@
 # Description  : Install, update, remove VSCodium editor.
 # Dependencies : gdebi, wget
 # Arguments    : [-h] [-i] [-r] [-s] [-u] (See help function)
-# Author       : Copyright Richard B. Romig, 16 Jul 2022
+# Author       : Copyright (C) 2022 Richard B. Romig, 16 Jul 2022
 # Email        : rick.romig@gmail.com
 # Comments     :
 # TODO (Rick)  :
@@ -28,7 +28,7 @@ fi
 
 readonly _script=$(basename "$0")
 readonly _version="0.1.9"
-readonly _updated="10 Nov 2022"
+readonly _updated="16 Nov 2022"
 readonly url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -60,7 +60,7 @@ compare_versions() {
 }
 
 install_app() {
-	# new_pkg=$(sed 's/\// /g' "$tmp_file" | awk '/download/ && /amd64.deb/ {print $8;exit}' | sed 's/"$//')
+	# new_pkg=$(sed 's/\// /g' "$tmp_file" | awk '/download/ && /amd64.deb/ {print $8;exit}')
   new_pkg="codium_${new_ver}_amd64.deb"
   user_in_sudo
   echo "Downloading VSCodium from the VSCodium GitHub repository..."
@@ -147,15 +147,15 @@ else
         apply_settings
         ;;
 			r )
-        exists codium || leave "VSCodium is not installed. Run '$_script -i' to install."
+        exists codium || leave "VSCodium is not installed."
         remove_app
         ;;
 			s )
-        exists codium || leave "VSCodium is not installed. Run '$_script -i' to install."
+        exists codium || leave "VSCodium is not installed."
         apply_settings
         ;;
 			u )
-        exists codium || leave "VSCodium is not installed. Run '$_script -i' to install."
+        exists codium || leave "VSCodium is not installed."
 				tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 				trap cleanup EXIT
