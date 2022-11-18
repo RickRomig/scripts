@@ -8,8 +8,9 @@
 # Email        : rick.romig@gmail.com
 # Comment      : Handbrake rips DVD movies
 #              : Available as a flatpak via Flathub and Mint Software Manager
-# https://dl.flathub.org/repo/appstream/fr.handbrake.ghb.flatpakref
-# flatpak install fr.handbrake.ghb
+#              : https://dl.flathub.org/repo/appstream/fr.handbrake.ghb.flatpakref
+#              : flatpak install fr.handbrake.ghb
+#              : flakpak may not be able to access certain codecs for DRM.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -30,8 +31,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.3.4"
-readonly _updated="11 Oct 2022"
+readonly _version="0.3.5"
+readonly _updated="18 Nov 2022"
 readonly handbrake_ppa="ppa:stebbins/handbrake-releases"
 
 ## Functions ##
@@ -51,18 +52,14 @@ install_handbrake() {
   user_in_sudo
   support_ppa && add_ppa
   sudo apt install handbrake-gtk handbrake-cli -yy
-  leave "Handbrake installed."
+  echo "Handbrake installed."
 }
 
 remove_handbrake() {
   user_in_sudo
-  if [[ -x /usr/bin/ghb || -x /usr/bin/HandBrakeCLI ]]; then
-    support_ppa && remove_ppa
-    sudo apt autoremove handbrake-gtk handbrake-cli -yy
-    leave "Handbrake removed from system."
-  else
-    leave "Handbrake was not installed."
-  fi
+  support_ppa && remove_ppa
+  sudo apt autoremove handbrake-gtk handbrake-cli -yy
+  echo "Handbrake removed from system."
 }
 
 help() {
@@ -74,13 +71,13 @@ ${orange}OPTIONS${normal}
   -i  Install Handbrake
   -r  Remove Handbrake
 END_HELP
+  echo "$_script v$_version ($_updated)"
   exit "$errcode"
 }
 
 ## Execution ##
 
 clear
-echo "$_script v$_version ($_updated)"
 echo -e "Installs Handbrake multithreaded video transcoder.\n"
 
 if [[ "$#" -eq 0 ]]; then
@@ -104,3 +101,5 @@ else
     esac
   done
 fi
+echo "$_script v$_version ($_updated)"
+exit
