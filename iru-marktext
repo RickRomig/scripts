@@ -21,6 +21,7 @@
 # 01 Sep 2022  : -u option updates installed version only. Does not do initial install.
 # 02 Sep 2022  : Removed confirm_install, unnecessary.
 # 07 Sep 2022  : Moved existence checks out of functions to getopts.
+# 18 Nov 2022  : Renamed install, remove, and version functions.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -41,8 +42,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.3.0"
-readonly _updated="07 Sep 2022"
+readonly _version="0.3.1"
+readonly _updated="18 Nov 2022"
 readonly url="https://github.com/marktext/marktext/releases"
 
 ## Functions ##
@@ -58,7 +59,7 @@ check_dependencies() {
   check_package gdebi
 }
 
-mt_ver() {
+marktext_version() {
   # dpkg -l | awk '$2 == "marktext" {print $3}' | sed 's/[+-].*//'
   marktext --version | awk '/MarkText/ {print $2}' | sed 's/^v//'
 }
@@ -71,24 +72,24 @@ newest_version() {
 }
 
 compare_versions() {
-  cur_ver=$(mt_ver)
+  cur_ver=$(marktext_version)
   if [[ "$cur_ver" == "$new_ver" ]]; then
     echo "${lightyellow}Marktext $cur_ver is the current version. No update required.${normal}"
   else
     echo "${lightyellow}Current version of MarkText is $cur_ver, updating to $new_ver...${normal}"
-    install_app
+    install_marktext
   fi
 }
 
-install_app() {
+install_marktext() {
   new_pkg="marktext-amd64.deb"
   echo "Downloading Mark Text markdown editor from the marktext GitHub repository..."
   wget -q -P "$tmp_dir/" "$url/download/v$new_ver/$new_pkg"
   sudo gdebi -n "$tmp_dir/$new_pkg"
-  echo "Mark Text $(mt_ver) installed."
+  echo "Mark Text $(marktext_version) installed."
 }
 
-remove_app() {
+remove_marktext() {
   local mt_cfg_dir="$HOME/config/marktext"
   local pref_json="preferences.json"
   echo "Removing the Mark Text markdown editor..."
@@ -126,17 +127,17 @@ else
       h )
         help 0 ;;
       i )
-        exists marktext && leave "Marktext $(mt_ver) is already installed."
+        exists marktext && leave "Marktext $(marktext_version) is already installed."
         tmp_file=$(mktemp) || die "Failed to create temporary file." 1
         tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
         trap cleanup EXIT
         new_ver="$(newest_version)"
         echo "${lightyellow}Installing MarkText version $new_ver...${normal}"  
-        install_app
+        install_marktext
         ;;
       r )
         exists marktext || leave "Marktext is not installed. Run '$_script -i' to install."
-        remove_app
+        remove_marktext
         ;;
       u )
         exists marktext || leave "Marktext is not installed. Run '$_script -i' to install."
