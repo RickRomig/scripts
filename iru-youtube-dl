@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.1.1"
-readonly _updated="03 Oct 2022"
+readonly _version="0.1.2"
+readonly _updated="18 Nov 2022"
 readonly red_error="${lightred}ERROR:${normal}"
 # Installation variables
 readonly ytdl_prg="youtube-dl"
@@ -80,7 +80,7 @@ remove_repo_ver() {
   printf "Repository version of %s removed from the system.\n" "$ytdl_prg"
 }
 
-remove_ytdl() {
+remove_youtubedl() {
   # Removes the yt-dl.org version
   printf "Removing %s v%s...\n" "$ytdl_prg" "$(ytdl_version)"
   sudo rm "$ytdl_location/$ytdl_prg"
@@ -190,7 +190,7 @@ else
 				dpkg -l | grep -qw youtube-dl && remove_repo_ver
 				[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
 				user_in_sudo
-				remove_ytdl
+				remove_youtubedl
 				break
 				;;
 			u )
@@ -203,7 +203,7 @@ else
 				dpkg -l | grep -qw youtube-dl || leave "The repo version of $ytdl_prg is not installed."
 				printf "Removing %s installed from the distribution repository.\n" "$ytdl_prg"
 				user_in_sudo
-				remove_ytdl
+				remove_repo_ver
 				break
 				;;
 			? )
