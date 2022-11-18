@@ -74,11 +74,11 @@ compare_versions() {
     echo "${lightyellow}Micro $cur_ver is the current version. No update required.${normal}"
   else
     echo "${lightyellow}Current version of Micro is $cur_ver, updating to $new_ver...${normal}"
-    install_app
+    install_micro
   fi
 }
 
-install_app() {
+install_micro() {
   new_pkg="micro-${new_ver}-amd64.deb"
   echo "Downloading Micro from the zyedidia GitHub repository..."
   wget -q -P "$tmp_dir/" "$url/download/v$new_ver/$new_pkg"
@@ -87,7 +87,7 @@ install_app() {
   echo "Micro $(micro_ver) installed."
 }
 
-remove_app() {
+remove_micro() {
   cur_ver=$(micro_ver)
   echo "Removing the Micro CLI text editor..."
   sudo dpkg --remove micro
@@ -174,13 +174,13 @@ else
         trap cleanup EXIT
         new_ver="$(newest_version)"
         echo "${lightyellow}Installing Micro version $new_ver...${normal}"
-        install_app
+        install_micro
         apply_settings
         apply_bindings
         ;;
       r )
         exists micro || leave "Micro is not installed. Run '$_script -i' to install."
-        remove_app
+        remove_micro
         ;;
       s )
         exists micro || leave "Micro is not installed. Run '$_script -i' to install."
