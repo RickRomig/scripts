@@ -24,6 +24,7 @@
 # 01 Sep 2022  : -u option updates installed version only. Does not do initial install.
 # 02 Sep 2022  : Removed confirm_install, unnecessary.
 # 07 Sep 2022  : Moved existence checks out of functions to getopts.
+# 18 Nov 2022  : Renamed install and remove functions.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -44,8 +45,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.4.1"
-readonly _updated="04 Oct 2022"
+readonly _version="0.4.2"
+readonly _updated="18 Nov 2022"
 readonly url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg=$HOME"/.config/bat"
 
@@ -88,11 +89,11 @@ compare_versions() {
   else
     echo "${lightyellow}Current version of Bat is $cur_ver, updating to $new_ver...${normal}"
     check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
-    install_app
+    install_bat
   fi
 }
 
-install_app() {
+install_bat() {
   local new_pkg="bat_${new_ver}_amd64.deb"
   echo "Downloading Bat from the sharkdp GitHub repository..."
   wget -q -P "$tmp_dir/" "$url/download/v$new_ver/$new_pkg"
@@ -100,7 +101,7 @@ install_app() {
   echo "Bat $(bat_ver) installed."
 }
 
-remove_app() {
+remove_bat() {
   echo "Removing the Bat utility..."
   sudo dpkg --remove bat
   [[ -d "$bat_cfg" ]] && rm -rf "$bat_cfg"
@@ -184,12 +185,12 @@ else
         new_ver="$(newest_version)"
         echo "${lightyellow}Installing Bat version $new_ver...${normal}"
         check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
-        install_app
+        install_bat
         apply_config
         ;;
       r )
         exists bat || leave "Bat is not installed. Run '$_script -i' to install."
-        remove_app
+        remove_bat
         ;;
       u )
         exists bat || leave "Bat is not installed. Run '$_script -i' to install."
