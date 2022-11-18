@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.1.9"
-readonly _updated="16 Nov 2022"
+readonly _version="0.1.10"
+readonly _updated="18 Nov 2022"
 readonly url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -55,11 +55,11 @@ compare_versions() {
     echo "${lightyellow}VSCodium $cur_ver is the current version. No update required.${normal}"
   else
     echo "${lightyellow}Current version of VSCodium is $cur_ver, updating to $new_ver...${normal}"
-    install_app
+    install_vscodium
   fi
 }
 
-install_app() {
+install_vscodium() {
 	# new_pkg=$(sed 's/\// /g' "$tmp_file" | awk '/download/ && /amd64.deb/ {print $8;exit}')
   new_pkg="codium_${new_ver}_amd64.deb"
   user_in_sudo
@@ -69,7 +69,7 @@ install_app() {
   echo "VSCodium $(codium_ver) successfully installed."
 }
 
-remove_app() {
+remove_vscodium() {
   local vsc_cfg="${HOME}/.config/VSCodium"
   user_in_sudo
   echo "Removing the VSCodium editor..."
@@ -143,12 +143,12 @@ else
 				trap cleanup EXIT
 				new_ver="$(newest_version)"
         echo "${lightyellow}Installing VSCodium $new_ver...${normal}"
-				install_app
+				install_vscodium
         apply_settings
         ;;
 			r )
         exists codium || leave "VSCodium is not installed."
-        remove_app
+        remove_vscodium
         ;;
 			s )
         exists codium || leave "VSCodium is not installed."
