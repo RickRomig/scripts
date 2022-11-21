@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Script Name  : install-atom-deb
-# Description  : Installs Atom Editor from deb package
+# Description  : Installs Atom Editor from deb package located on local server.
 # Dependencies : gdebi, git, wget, sshfs
-# Arguments    : none
-# Author       : Richard B. Romig, 14 July 2019
-# Email        : rick.romig@gmail.com
+# Arguments    : See help functions for options.
+# Author       : Copyright (C) 2019 Richard B. Romig, 14 July 2019
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : This method does not support automatic updates
 #              : Version 1.63.0 is the final version of Atom (Sundown 15 Dec 2022)
-# Ubuntu dependencies: git libasound2 libcurl4 libgbm1 libgcrypt20 libgtk-3-0
-# libnotify4 libnss3 libglib2.0-bin xdg-utils libx11-xcb1 libxcb-dri3-0 libxss1
-# libxtst6 libxkbfile1
-# TODO (rick)  : Prepare for GitHub sundown of Atom on 15 Dec 2022.
+# Ubuntu dependencies for atom: git libasound2 libcurl4 libgbm1 libgcrypt20
+# libgtk-3-0 libnotify4 libnss3 libglib2.0-bin xdg-utils libx11-xcb1 libxcb-dri3-0
+# libxss1 libxtst6 libxkbfile1
+# TODO (rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034,SC2088
+# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -31,8 +31,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="1.5.0"
-readonly _updated="18 Nov 2022"
+readonly _version="1.5.1"
+readonly _updated="20 Nov 2022"
 readonly atom_cfg_dir=$HOME"/.local/share/atom"
 readonly atom_dir=$HOME"/.atom/"
 readonly config_dir="$HOME/.config/Atom"
@@ -61,8 +61,8 @@ server_install() {
   server_mount
   cp "$pkg_dir/$package" "$tmp_dir/"
   sudo gdebi -n "$tmp_dir/$package"
-
 }
+
 install_atom() {
   ip_addr="$(local_ip)"
   echo "Installing Atom Editor..."
@@ -72,7 +72,7 @@ install_atom() {
     * )
       server_install ;;
   esac
-  # Install dependencies if they are missing
+  # Install any missing dependencies
   sudo apt upgrade -yyq
   sudo apt install libasound2 libcurl4 libgbm1 libgcrypt20 libgtk-3-0 libnotify4 libnss3 libglib2.0-bin xdg-utils libx11-xcb1 libxcb-dri3-0 libxss1 libxtst6 libxkbfile1
   sudo apt install -f
@@ -202,6 +202,21 @@ check_dependencies() {
   check_package wget
 }
 
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+	-h	Display help
+	-i	Install Atom Editor version 1.63.0
+	-r	Remove Atom Editor
+	-s	Install configuration and style settings
+	-u	Update Atom Editor to version 1.63.0
+END_HELP
+	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+	exit "$errcode"
+}
+
 ## Execution ##
 
 check_dependencies
@@ -214,10 +229,11 @@ if [[ "$#" -eq 0 ]]; then
   echo "${lightred}ERROR:${normal} No argument passed." >&2
   help 1
 else
-  optstr=":h:i:r:s:u"
+  optstr=":hirsu"
   while getopts "$optstr" opt; do
     case "$opt" in
       h )
+				echo "Help for $_script:"
         help 0
         ;;
       i )
