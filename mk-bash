@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 ###############################################################################
-# Script Name  : mkbash
+# Script Name  : mk-bash
 # Description  : Creates script file with header information
 # Dependencies : bat, chmod, sed, nano
 # Arguments    : Name of script to be created
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
-# Comment      : Creates the script in the current working directory.
+# Comments     : Creates the script in the current working directory.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -27,22 +27,37 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="2.5.4"
-readonly _updated="08 Oct 2022"
-readonly template_dir="$HOME/bin/Templates"
+readonly _version="3.0.0"
+readonly _updated="23 Nov 2022"
+readonly config_dir="$HOME/.config/scripts"
+readonly config_file="$_script.conf"
+readonly today=$(date +"%d %b %Y")
+readonly cur_yr=$(date +'%Y')
 
 # Data to insert into new bash script
-
-readonly today=$(date +"%d %b %Y")
-
-readonly copy_holder="Richard B. Romig"
-readonly cur_yr=$(date +'%Y')
-readonly email_addr="rick.romig@gmail.com"
-readonly email_addr1="rick.romig@mymetronet.net"
-readonly coder="Rick"
-readonly license="GNU General Public License, version 2.0"
+# template directory, copy_holder, email_addr, email_addr1, coder, license contained in script's .conf file.
 
 ## Functions ##
+
+create_config() {
+  [[ -d "$config_dir" ]] || mkdir -p "$config_dir"
+  echo "Complete all fields"
+  read -rp "Full name: " copy_holder
+  read -rp "Primary email: " email_addr
+  read -rp "Alternate email: " email_addr1
+  read -rp "Coder name: " coder
+  read -rp "License: " license
+  read -rp "Template diretory (full path): " template_dir
+
+  echo "
+  copy_holder='$copy_holder'
+  email_addr='$email_addr'
+  email_addr1='$email_addr1'
+  coder='$coder'
+  license='$license'
+  template_dir='$template_dir'
+  " > "$config_dir/$config_file"
+}
 
 usage() {
   local errcode="${1:-2}"
@@ -50,6 +65,11 @@ usage() {
   echo "${orange}Example:${normal} $SCRIPT my-script.sh"
   exit "$errcode"
 }
+
+## Source script configuration file ##
+
+[[ -f "$config_dir/$config_file" ]] || create_config
+source "$config_dir/$config_file"
 
 ## Check arguments ##
 
