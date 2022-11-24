@@ -27,22 +27,33 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="2.4.10"
-readonly _updated="08 Oct 2022"
-readonly template_dir="$HOME/bin/Templates"
-
-# Data to insert into new C source file
-
+readonly _version="3.0.0"
+readonly _updated="23 Nov 2022"
+readonly config_dir="$HOME/.config/scripts"
+readonly config_file="$_script.conf"
 readonly today=$(date +"%d %B %Y")
 readonly cur_yr=$(date +%Y)
-readonly copy_holder="Richard B. Romig"
-readonly email_addr="rick.romig@gmail.com"
-readonly email_addr1="rick.romig@mymetronet.net"
-readonly license="GNU General Public License, version 2.0"
 
-# readonly templates=$HOME"/Templates"
+# Data to insert into new bash script
+# template directory, copy_holder, email_addr, email_addr1, coder, license contained in script's .conf file.
 
 ## Functions ##
+
+create_config() {
+  [[ -d "$config_dir" ]] || mkdir -p "$config_dir"
+  echo "Complete all fields"
+  read -rp "Full name: " copy_holder
+  read -rp "Primary email: " email_addr
+  read -rp "Alternate email: " email_addr1
+  read -rp "Template diretory (full path): " template_dir
+
+  echo "
+  copy_holder='$copy_holder'
+  email_addr='$email_addr'
+  email_addr1='$email_addr1'
+  template_dir='$template_dir'
+  " > "$config_dir/$config_file"
+}
 
 usage() {
   local errcode="${1:-2}"
@@ -51,9 +62,14 @@ usage() {
   exit "$errcode"
 }
 
+## Source script configuration file ##
+
+[[ -f "$config_dir/$config_file" ]] || create_config
+source "$config_dir/$config_file"
+
 ## Check arguments ##
 
-if [[ -z "$1"  ]]; then
+if [[ $# -eq 0 ]]; then
   echo "${lightred}Error:${normal} No argment passed." >&2
   usage 2
 elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
@@ -69,10 +85,10 @@ fi
 ## Execution ##
 
 echo "$_script v$_version ($_updated)"
-echo "Creating $FILE C source code file."
+echo "Creating $FILE C/C++ source code file."
 
 COLUMNS=40
-echo "Which script template are you using?"
+echo "Which code template are you using?"
 PS3="Choice: "
 select opt in "C code" "C++ code"
 do
@@ -91,8 +107,7 @@ sed -e '1d' \
     -e "s/<AUTHOR>/$copy_holder/" \
     -e "s/<EMAIL>/$email_addr/" \
     -e "s/<EMAIL1>/$email_addr1/" \
-    -e "s/<TODAY>/$today/" \
-    -e "s/<LICENSE>/$license/" "$template_dir/$template_file" > "$filename"
+    -e "s/<TODAY>/$today/"  "$template_dir/$template_file" > "$filename"
 
 echo "$filename has been created."
 edit_view_quit "$filename"
