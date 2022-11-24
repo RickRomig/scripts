@@ -16,6 +16,7 @@
 # 29 Jan 2022  : Changed Finance directories sync to HP-6005 (11)
 # 17 Sep 2022  : Added Videos/Tech/ to synch to Probook 6570b (20)
 # 29 Sep 2022  : Replace if-elif with case in sync_script function.
+# 24 Nov 2022  : Added synchronization of ~/.config/scripts directory.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -36,8 +37,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="1.2.1"
-readonly _updated="10 Oct 2022"
+readonly _version="1.2.2"
+readonly _updated="24 Nov 2022"
 
 ## Functions ##
 
@@ -102,6 +103,11 @@ sync_script() {
 
   echo $'\n'$"${orange}Syncing bin...${normal}"
   rsync -avzh --delete --exclude '.git'  /home/"$USER"/bin/ "$localnet.$hostip":bin/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing script configuration files...${normal}"
+  rsync -avzh --delete /home/"$USER"/.config/scripts/ "$localnet.$hostip":.config/scripts/
   exit_status="$?"
   transfer_status "$exit_status"
 
