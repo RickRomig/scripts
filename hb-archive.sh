@@ -6,10 +6,10 @@
 # Arguments    : none
 # Author       : Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com
-# Version      : Version 1.2.12,
-# Last updated : 20 Jul 2022
+# Version      : Version 1.2.13
+# Last updated : 01 Dec 2022
 # Comments     : Run from user's crontab to run on the 1st of the month
-#              : to archive 2nd month previous. (1 May archives March)
+#              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -47,5 +47,6 @@ rm -f "$arc_dir"/HomeBank\ Archive* > /dev/null 2>&1
 # Trim top entry from the log file when the length exceeds 36 entries.
 log_len=$(wc -l "$log_dir/$log_file" | cut -d " " -f1)
 [ "$log_len" -gt 36 ] && sed -i '1d' "$log_dir/$log_file"
+[ -s "$arc_dir/$err_log" ] || rm -f "$arc_dir/$err_log"
 
 exit
