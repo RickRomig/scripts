@@ -47,6 +47,7 @@ rm -f "$arc_dir"/HomeBank\ Archive* > /dev/null 2>&1
 # Trim top entry from the log file when the length exceeds 36 entries.
 log_len=$(wc -l "$log_dir/$log_file" | cut -d " " -f1)
 [ "$log_len" -gt 36 ] && sed -i '1d' "$log_dir/$log_file"
+# Removes empty error log
 [ -s "$arc_dir/$err_log" ] || rm -f "$arc_dir/$err_log"
 
 exit
