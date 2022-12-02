@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com
 # Comments     : Includes functions subdirectory
 #              : Schedule with user's crontab from ~/bin, ~/.local/bin or ~/opt/bin
-# Last updated : version 0.2.13, 11 Oct 2022
+# Last updated : version 0.2.14, 01 Dec 2022
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -50,5 +50,6 @@ log_len=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
 [ "$log_len" -gt 30 ] && sed -i '1d' "$log_dir/$log_file"
 # Remove archives older than one and a half years.
 find "$arc_dir"/ -maxdepth 1 -type f -name "*.zip" -mtime +550 -exec rm {} +
-
+# Removes empty error log
+[ -s "$arc_dir/$err_log" ] || rm -f "$arc_dir/$err_log"
 exit
