@@ -22,6 +22,7 @@
 # 12 Sep 2022  : removed Cascadia-Code-Fonts and Stacer from applications to check.
 # 13 Sep 2022  : removed ddgr and glow from applications to check.
 # 30 Sep 2022  : moved script, version, update variables to main function.
+# 08 Dec 2022  : add Pulsar (Atem fork) to array and get_versions function.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -70,6 +71,9 @@ get_versions() {
 		"vSCodium" )
 			local release_path="VSCodium/vscodium/releases"
 			cur_ver=$(dpkg -l | awk '$2 == "codium" {print $3}' | sed 's/[+-].*//') ;;
+    "pulsar" )
+      local release_path="pulsar-edit/pulsar/releases"
+			cur_ver=$(dpkg -l | awk '$2 == "pulsar" {print $3}' | sed 's/[+-].*//') ;;
    * )
       die "Invalid package name - ${package,,}." 2 ;;
   esac
@@ -94,9 +98,9 @@ get_versions() {
 
 main() {
   local _script=$(basename "$0")
-  local _version="0.6.14"
-  local _updated="30 Sep 2022"
-  local packages=( atom bat marktext micro vSCodium )
+  local _version="0.6.15"
+  local _updated="08 Dec 2022"
+  local packages=( atom bat marktext micro pulsar vSCodium )
   clear
   printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Newest & installed versions of select programs.\n\n"
