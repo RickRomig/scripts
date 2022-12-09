@@ -7,22 +7,23 @@
 # Arguments    : none
 # Author       : Richard B. Romig, 24 Aug 2021
 # Email        : rick.romig@gmail.com
-# Comments     : Apps checked: atom, bat, ddgr, glow, marktext, micro, vscodium
+# Comments     : Apps checked: atom, bat, ddgr, glow, marktext, micro, pulsar, vscodium
 #              : Ignores Beta and Release Candidate versions in GitHub releases.
 # 24 Feb 2022  : Adjustment for package & new version >= 8 characters.
 # 01 Mar 2022  : Fixed new_ver function to get 7th field of download URL.
 # 10 Mar 2022  : Formatted output using printf width specifiers.
-# 12 May 2022  : added sed command to current version routine for micro.
-# 16 May 2022  : added sed command to current version routine for bat & glow.
-# 20 Jun 2022  : added Atom Editor to applications to check.
-# 16 Jul 2022  : added VSCodium Editor to applications to check.
-# 17 Aug 2022  : modified prntf width specifiers to allow longer version numbers.
-# 28 Aug 2022  : modified variables for GitHub releases URLs.
-# 11 Sep 2022  : added Cascadia-Code-fonts to applications to check.
-# 12 Sep 2022  : removed Cascadia-Code-Fonts and Stacer from applications to check.
-# 13 Sep 2022  : removed ddgr and glow from applications to check.
-# 30 Sep 2022  : moved script, version, update variables to main function.
-# 08 Dec 2022  : add Pulsar (Atem fork) to array and get_versions function.
+# 12 May 2022  : Added sed command to current version routine for micro.
+# 16 May 2022  : Added sed command to current version routine for bat & glow.
+# 20 Jun 2022  : Added Atom Editor to applications to check.
+# 16 Jul 2022  : Added VSCodium Editor to applications to check.
+# 17 Aug 2022  : Modified prntf width specifiers to allow longer version numbers.
+# 28 Aug 2022  : Modified variables for GitHub releases URLs.
+# 11 Sep 2022  : Added Cascadia-Code-fonts to applications to check.
+# 12 Sep 2022  : Removed Cascadia-Code-Fonts and Stacer from applications to check.
+# 13 Sep 2022  : Removed ddgr and glow from applications to check.
+# 30 Sep 2022  : Moved script, version, update variables to main function.
+# 08 Dec 2022  : Added Pulsar (Atem fork) to array and get_versions function.
+# 08 Dec 2022  : Cleaned up printf statements. Prints "No release" if none available.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -78,33 +79,37 @@ get_versions() {
       die "Invalid package name - ${package,,}." 2 ;;
   esac
 
-  # Extract newest version number from the package releases web page on GitHub.
-  # Ignore beta and release candidate releases.
+# Download package's GitHub release page to a temporary file.
   curl -s -o "$tmp_file" "$github_url/$release_path"
+  # Extract newest version number, ignoring beta and release candidate releases.
   new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
   # Print capitalized package name
-  printf "${darkgray}%-15s${normal}" "${package^}"
+  printf "%s%-15s" "${darkgray}" "${package^}"
   # Print newest version
-  printf "${gray}%-16s${normal}" "$new_ver"
-  # Print current (installed) version (orange text indicates update available)
-  if [[ -z "$cur_ver" ]]; then
-    printf "${red}not installed${normal}\n"
-  elif [[ "$new_ver" == "$cur_ver" ]]; then
-    printf "${gray}%s${normal}\n" "$cur_ver"
+  if [[ -z "$new_ver" ]]; then
+    printf "%s%-16s" "${red}" "No release"
   else
-    printf "${orange}%s${normal}\n" "$cur_ver"
+    printf "%s%-16s" "${gray}" "$new_ver"
+  fi
+  # Print current (installed) version.
+  if [[ -z "$cur_ver" ]]; then
+    printf "%s%s%s\n" "${red}" "not installed" "${normal}"
+  elif [[ "$new_ver" == "$cur_ver" ]]; then
+    printf "%s%s%s\n" "${gray}" "$cur_ver" "${normal}"
+  else
+    printf "%s%s%s\n" "${orange}" "$cur_ver" "${normal}"  # new version available
   fi
 }
 
 main() {
-  local _script=$(basename "$0")
-  local _version="0.6.15"
-  local _updated="08 Dec 2022"
+  _script=$(basename "$0")
+  local _version="0.7.0"
+  local _updated="09 Dec 2022"
   local packages=( atom bat marktext micro pulsar vSCodium )
   clear
   printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Newest & installed versions of select programs.\n\n"
-  printf "${underline}%-15s%-16s%s${normal}\n" "Program" "Latest version" "Installed version"
+  printf "%s%-15s%-16s%s%s\n"  "${underline}" "Program" "Latest version" "Installed version" "${normal}"
   for pkg in "${packages[@]}"; do get_versions "$pkg"; done
   printf "\n"
   leave ""
