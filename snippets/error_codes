@@ -31,7 +31,7 @@ cleanup() {
 }
 trap cleanup 0
 
-error() {
+error_line() {
   local parent_lineno="$1"
   local message="$2"
   local code="${3:-1}"
@@ -43,9 +43,9 @@ error() {
   exit "${code}"
 }
 
-trap 'error ${LINENO}' ERR
+trap 'error_line ${LINENO}' ERR
 
-error ${LINENO} "the foobar failed" 2
+error_line ${LINENO} "the foobar failed" 2
 
 error_handler() {
   echo "Error: ($1) occurred on line $2" >&2
@@ -53,3 +53,17 @@ error_handler() {
 }
 
 trap 'error_handler $? $LINENO' ERR
+
+######################
+trap "exit 1" 10
+PROC=$$
+
+error() {
+	echo -e "$@" >&2
+	# exit 1
+	kill -10 $PROC
+}
+
+[[ "$1" ]] || error "Error message\nFurther information"
+[[ -f "$1" ]] || error "$1 - file does not exist."
+[[ "$2" ]] || (echo "Message 1";error "$1 exists";echo "Exiting script.")
