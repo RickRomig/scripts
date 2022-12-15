@@ -6,7 +6,7 @@
 # Arguments    : None
 # Author       : Richard B. Romig, 18 May 2020
 # Email        : rick.romig@gmail.com
-# Comments     :
+# Comments     : Mount points at ~/mnt/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.3.0"
-readonly _updated="27 Oct 2022"
+readonly _version="0.3.1"
+readonly _updated="15 Dec 2022"
 
 ## Functions ##
 
@@ -36,26 +36,27 @@ mount_share() {
   local ip_addr="$1"
   local share="$2"
   ping -c3 "$localnet.$ip_addr" > /dev/null 2>&1 || die "$share at $localnet.$ip_addr is not online."
-  if [[ -d "/mnt/$share/" ]]; then
+  if [[ -d "$HOME/mnt/$share/" ]]; then
     mounted=$(mount | grep "$share")
     if [[ -z "$mounted" ]]; then
       if [[ "$share" == "NASD97167" ]]; then
-        sshfs -o follow_symlinks rick@"$localnet.$ip_addr:" "/mnt/$share/"
+        sshfs -o follow_symlinks rick@"$localnet.$ip_addr:" "$HOME/mnt/$share/"
       else
-        sshfs -o follow_symlinks rick@"$localnet.$ip_addr:/home/rick" "/mnt/$share/"
+        sshfs -o follow_symlinks rick@"$localnet.$ip_addr:/home/rick" "$HOME/mnt/$share/"
       fi
+      echo "$share home directory:"
+      ls "$HOME/mnt/$share/"
       leave "$share at $localnet.$ip_addr has been mounted."
     else
       leave "$share at $localnet.$ip_addr is already mounted."
     fi
   else
     # Share does not exist, create it.
-    sudo mkdir -p "/mnt/$share"
-    sudo chown rick:rick "/mnt/$share"
+    sudo mkdir -p "$HOME/mnt/$share"
     if [[ "$share" == "NASD97167" ]]; then
-      sshfs -o follow_symlinks rick@"$localnet.$ip_addr:" "/mnt/$share/"
+      sshfs -o follow_symlinks rick@"$localnet.$ip_addr:" "$HOME/mnt/$share/"
     else
-      sshfs -o follow_symlinks rick@"$localnet.$ip_addr:/home/rick" "/mnt/$share/"
+      sshfs -o follow_symlinks rick@"$localnet.$ip_addr:/home/rick" "$HOME/mnt/$share/"
     fi
     leave "$share at $localnet.$ip_addr has been created and mounted."
   fi
@@ -63,11 +64,11 @@ mount_share() {
 
 unmount_share() {
   local share="$1"
-  [[ -d "/mnt/$share/" ]] || die "No mountpoint created for $share."
+  [[ -d "$HOME/mnt/$share/" ]] || die "No mountpoint created for $share."
   mounted=$(mount | grep "$share")
   if [[ -n "$mounted" ]]; then
     cd "$HOME" || cd_fail
-    if fusermount -u "/mnt/$share/"; then
+    if fusermount -u "$HOME/mnt/$share/"; then
       leave "$share has been unmounted."
     else
       echo "${lightred}ERROR:${normal} $share has not been unmounted." >&2
@@ -86,7 +87,7 @@ cd_fail() {
 
 fail_msg() {
   echo "Make sure you are not in the mountpoint and run the following command:" >&2
-  echo -e "\t${orange}fusermount -u /mnt/$share/${normal}" >&2
+  echo -e "\t${orange}fusermount -u $HOME/mnt/$share/${normal}" >&2
   exit 1
 }
 
