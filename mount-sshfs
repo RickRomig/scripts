@@ -46,9 +46,9 @@ mount_share() {
       fi
       echo "$share home directory:"
       ls "$HOME/mnt/$share/"
-      leave "$share at $localnet.$ip_addr has been mounted."
+      echo "$share at $localnet.$ip_addr has been mounted."
     else
-      leave "$share at $localnet.$ip_addr is already mounted."
+      echo "$share at $localnet.$ip_addr is already mounted."
     fi
   else
     # Share does not exist, create it.
@@ -58,7 +58,9 @@ mount_share() {
     else
       sshfs -o follow_symlinks rick@"$localnet.$ip_addr:/home/rick" "$HOME/mnt/$share/"
     fi
-    leave "$share at $localnet.$ip_addr has been created and mounted."
+    echo "$share home directory:"
+    ls "$HOME/mnt/$share/"
+    echo "$share at $localnet.$ip_addr has been created and mounted."
   fi
 }
 
@@ -69,13 +71,13 @@ unmount_share() {
   if [[ -n "$mounted" ]]; then
     cd "$HOME" || cd_fail
     if fusermount -u "$HOME/mnt/$share/"; then
-      leave "$share has been unmounted."
+      echo "$share has been unmounted."
     else
       echo "${lightred}ERROR:${normal} $share has not been unmounted." >&2
       fail_msg
     fi
   else
-    leave "$share is not mounted."
+    echo "$share is not mounted."
   fi
 }
 
@@ -97,9 +99,7 @@ check_package sshfs
 
 echo "$_script v$_version ($_updated)"
 echo -e "Mount or unmount an SSHFS share.\n"
-options=( "Mount Finance" "Unmount Finance" "Mount ProBook-6570" \
-"Unmount ProBook-6570" "Mount HP-6005" "Unmount HP-6005" "Mount NAS" \
-"Unmount NAS" "Quit" )
+options=( "Mount Finance" "Unmount Finance" "Mount ProBook-6570" "Unmount ProBook-6570" "Mount HP-6005" "Unmount HP-6005" "Mount NAS" "Unmount NAS" "Quit" )
 COLUMNS=60
 PS3="Choose an action: "
 select opt in "${options[@]}"; do
@@ -112,7 +112,7 @@ select opt in "${options[@]}"; do
     6 ) unmount_share "HP-6005"; break ;;
     7 ) mount_share 4 "NASD97167"; break ;;
     8 ) unmount_share "NASD97167"; break ;;
-    9 ) leave "Exiting. No action taken." ;;
+    9 ) echo "Exiting. No action taken."; break ;;
     * ) echo "${lightred}Invalid option.${normal} Choose 1-9." >&2 ;;
   esac
 done
