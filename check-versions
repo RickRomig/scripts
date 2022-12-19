@@ -79,7 +79,7 @@ get_versions() {
       die "Invalid package name - ${package,,}." 2 ;;
   esac
 
-# Download package's GitHub release page to a temporary file.
+  # Download package's GitHub release page to a temporary file.
   curl -s -o "$tmp_file" "$github_url/$release_path"
   # Extract newest version number, ignoring beta and release candidate releases.
   new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
@@ -91,7 +91,7 @@ get_versions() {
   else
     printf "%s%-16s" "${gray}" "$new_ver"
   fi
-  # Print current (installed) version.
+  # Print current installed version.
   if [[ -z "$cur_ver" ]]; then
     printf "%s%s%s\n" "${red}" "not installed" "${normal}"
   elif [[ "$new_ver" == "$cur_ver" ]]; then
