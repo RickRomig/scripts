@@ -4,8 +4,8 @@
 # Description  : Verifies SHA256 and MD5 checksums of ISO files
 # Dependencies : None
 # Arguments    : ISO filename and checksum file
-# Author       : Copyright Richard B. Romig, 09 Apr 2022
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2022 Richard B. Romig, 09 Apr 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Checksum file must be one line only.
 #              : Each ISO file must have its own checksum file.
 # TODO (Rick)  :
@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.3.1"
-readonly _updated="30 Sep 2022"
+readonly _version="0.3.2"
+readonly _updated="21 Dec 2022"
 readonly red_error="${lightred}ERROR:${normal}"
 readonly checksums_match="${green}The checksums match.${normal}"
 readonly checksums_nomatch="${red}The checksums do not match.${normal}"
@@ -42,6 +42,7 @@ usage() {
   printf "Usage:\n"
   printf "%s <distro.iso> <checksum.txt>\n" "$_script "
   printf "Should be run from the directory where the ISO and checksum files are located.\n"
+  printf "The checksum text file should consist of one line containing the checksum for that ISO.\n"
   printf "\U1F427 %s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
@@ -53,7 +54,7 @@ check_sha256() {
 	src_sha=$(awk '{print $1}' "$sha_file")
   printf "\nISO: %s\n" "$iso_file"
 	printf "ISO checksum: %s\n" "$iso_sha"
-	printf "SHA checksum: %C\N" "$src_sha"
+	printf "SHA checksum: %s\n" "$src_sha"
 	[[ "$iso_sha" == "$src_sha" ]] && return "$TRUE" || return "$FALSE"
 }
 
