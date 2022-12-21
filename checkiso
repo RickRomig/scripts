@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.3.3"
+readonly _version="0.3.4"
 readonly _updated="21 Dec 2022"
 readonly isofile="$1"
 readonly checksum="$2"
@@ -72,20 +72,25 @@ check_md5() {
 
 ## Execution ##
 
-printf "Verifies SHA256/MD5 checksums of ISO files.\n\n"
+printf "Verifies SHA256/MD5 checksums of ISO files.\n"
 if [[ "$#" -lt 2 ]]; then
   printf "%s Missing one or more arguments.\n" "$red_error" <&2
 	usage 2
 elif [[ -f "$isofile" && -f "$checksum" ]]; then
   COLUMNS=40
+  printf "Checksum types:\n"
   PS3="Choice: "
   select opt in "SHA256" "MD5" "Exit"; do
     case "$REPLY" in
       1 )
+        echo "Comparing checksums. This may take a while."
+        dots
         if check_sha256 "$isofile" "$checksum"; then
+          kill "$!"
           printf "%s\n" "$checksums_match"
           error_code=0
         else
+          kill "$!"
           printf "%s\n" "$checksums_nomatch" >&2
           error_code=1
         fi
@@ -93,11 +98,15 @@ elif [[ -f "$isofile" && -f "$checksum" ]]; then
         exit "$error_code"
         ;;
       2 )
+        echo "Comparing checksums. This may take a while."
+        dots
         if check_md5 "$isofile" "$checksum"; then
+          kill "$!"
           printf "%s\n" "$checksums_match"
           error_code=0
         else
-           printf "%s\n" "$checksums_nomatch" >&2
+          kill "$!"
+          printf "%s\n" "$checksums_nomatch" >&2
           error_code=1
         fi
         printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
@@ -115,7 +124,7 @@ elif [[ -f "$isofile" && -f "$checksum" ]]; then
   done
 else
   printf "%s File(s) not found.\n" "$red_error" >&2
-  [[ -f "$1isofile" ]] || printf "%s not found.\n" "$1" >&2
-  [[ -f "$checksum" ]] || printf "%s not found.\n" "$2" >&2
+  [[ -f "$isofile" ]] || printf "%s not found.\n" "$isofile" >&2
+  [[ -f "$checksum" ]] || printf "%s not found.\n" "$checksum" >&2
 	usage 2
 fi
