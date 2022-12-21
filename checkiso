@@ -28,19 +28,20 @@ fi
 ## Global Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.3.2"
+readonly _version="0.3.3"
 readonly _updated="21 Dec 2022"
+readonly isofile="$1"
+readonly checksum="$2"
 readonly red_error="${lightred}ERROR:${normal}"
 readonly checksums_match="${green}The checksums match.${normal}"
 readonly checksums_nomatch="${red}The checksums do not match.${normal}"
-readonly invalid_choice="${lightred}Invalid choice.${normal}"
 
 ## Functions ##
 
 usage() {
   local errcode="${1:-2}"
   printf "Usage:\n"
-  printf "%s <distro.iso> <checksum.txt>\n" "$_script "
+  printf "%s <distro.iso> <checksum.txt>\n" "$_script"
   printf "Should be run from the directory where the ISO and checksum files are located.\n"
   printf "The checksum text file should consist of one line containing the checksum for that ISO.\n"
   printf "\U1F427 %s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
@@ -75,13 +76,13 @@ printf "Verifies SHA256/MD5 checksums of ISO files.\n\n"
 if [[ "$#" -lt 2 ]]; then
   printf "%s Missing one or more arguments.\n" "$red_error" <&2
 	usage 2
-elif [[ -f "$1" && -f "$2" ]]; then
+elif [[ -f "$isofile" && -f "$checksum" ]]; then
   COLUMNS=40
   PS3="Choice: "
   select opt in "SHA256" "MD5" "Exit"; do
     case "$REPLY" in
       1 )
-        if check_sha256 "$1" "$2"; then
+        if check_sha256 "$isofile" "$checksum"; then
           printf "%s\n" "$checksums_match"
           error_code=0
         else
@@ -92,7 +93,7 @@ elif [[ -f "$1" && -f "$2" ]]; then
         exit "$error_code"
         ;;
       2 )
-        if check_md5 "$1" "$2"; then
+        if check_md5 "$isofile" "$checksum"; then
           printf "%s\n" "$checksums_match"
           error_code=0
         else
@@ -108,7 +109,7 @@ elif [[ -f "$1" && -f "$2" ]]; then
         exit
         ;;
       * )
-        printf "%s 1 = SHA256 2 = MD5 3 = Exit\n" "$invalid_choice" >&2
+        printf "%s Invalid choice. 1 = SHA256 2 = MD5 3 = Exit\n" "$red_error" >&2
         ;;
     esac
   done
