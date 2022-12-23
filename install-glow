@@ -22,6 +22,7 @@
 # 06 Oct 2022  : Changed code for charm.list and trusted key per developer change.
 # 27 Oct 2022  : Changed test if glow is installed to a local function.
 # 28 Oct 2022  : Added function to apply charm.list & gpg key.
+# 23 Dec 2022  : Updated src_gpg function
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -42,15 +43,17 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.4.4"
-readonly _updated="28 Oct 2022"
+readonly _version="0.4.5"
+readonly _updated="23 Dec 2022"
 readonly src_list="/etc/apt/sources.list.d/charm.list"
+readonly keyring_dir="/etc/apt/keyrings"
 
 ## Functions ##
 
 src_gpg() {
-  echo "deb https://repo.charm.sh/apt/ * *" | sudo tee "$src_list"
-  curl -s https://repo.charm.sh/apt/gpg.key | sudo apt-key add -
+  [[ -d "$keyring_dir" ]] || sudo mkdir -p "$keyring_dir"
+  curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+  echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee "$src_list"
 }
 
 install_glow() {
@@ -64,11 +67,12 @@ remove_glow() {
   echo "Removing the Glow markdown reader..."
   sudo apt-get remove glow
   [[ -f "$src_list" ]] && rm -v "$src_list"
+  [[ -f "$keyring_dir/charm.gpg" ]] && rm -v "$keyring_dir/charm.gpg"
   echo "Glow markdown reader has been removed."
 }
 
 glow_ver() {
-  glow --version | awk '{print $3}'
+  glow --version | awk '{print $3}' | sed 's/v//'
 }
 
 check_dependencies() {
