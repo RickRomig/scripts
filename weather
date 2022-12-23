@@ -23,6 +23,7 @@
 # 14 Oct 2022  : Created functions to set colors and UV warning.
 # 17 Oct 2022  : Added color for tempetures below freezing.
 # 18 Oct 2022  : Set default location and check for help arguments.
+# 23 Dec 2022  : Changed default location to Dayton (Ohio).
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -42,8 +43,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.5.2"
-readonly _updated="18 Oct 2022"
+readonly _version="0.5.3"
+readonly _updated="23 Dec 2022"
 
 ## Functions ##
 
@@ -128,7 +129,7 @@ uv_warning() {
 
 wx_forecast() {
   local url="http://wttr.in"
-  local wx_loc="${1:-Huber+Heights}"
+  local wx_loc="$1"
   clear
   curl -s "$url/$wx_loc" | sed '1 s/:.*//;/Follow/d'
   box "$_script v$_version ($_updated)"
@@ -136,7 +137,7 @@ wx_forecast() {
 }
 
 current_wx() {
-  local wx_loc="${1:-Huber+Heights}"
+  local wx_loc="$1"
   local url="http://wttr.in/$wx_loc?format=j1"
   json=$(curl -s "$url")
 
@@ -198,7 +199,7 @@ current_wx() {
 
 ## Execution ##
 
-location="${1:-Huber+Heights}"
+location="${1:-Dayton}"
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then show_help; exit; fi
 
 check_dependencies
