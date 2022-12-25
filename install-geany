@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-geany
+# Description  : Installs and configures the Geany editor/IDE.
+# Dependencies : git
+# Arguments    : none
+# Author       : Copyright (C) 2022 Richard B. Romig, created: 25 Dec 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Geany does not install configuration files by default.
+# Last updated : 25 Dec 2022
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.0"
+readonly _updated="25 Dec 2022"
+# readonly red_error="${lightred}ERROR:${normal}"
+
+## Functions ##
+
+check_dependencies() {
+  check_package git
+}
+
+geany_version() {
+  geany --version | cut -d' ' -f2
+}
+
+clone_themes() {
+  local theme_url="https://github.com/geany/geany-themes.git"
+  local dl_dir="$HOME/Downloads/geany-themes"
+  if [[ -d "$dl_dir" ]]; then
+    printf "%s already exists.\n" "$dl_dir"
+    remove_dl_dir
+  fi
+  printf "Downloading Geany themes..."
+  git clone "$theme_url" "$dl_dir"
+  install_themes
+}
+
+install_themes() {
+  local cs_dir="$HOME/.config/geany/colorschemes"
+  local dl_dir="$HOME/Downloads/geany-themes/colorschemes"
+  [[ -d "$cs_dir" ]] || mkdir -p "$cs_dir"
+  printf "Copying Geany colorschemes into %s\n" "$cs_dir"
+  cp "$dl_dir"/*.conf "$cs_dir/"
+}
+
+remove_dl_dir() {
+  local dl_dir="$HOME/Downloads/geany-themes"
+  printf "Removing %s\n" "$dl_dir"
+  rm -rf "$dl_dir"
+}
+
+install_cc_fonts() {
+  if [[ -d /usr/share/fonts/truetype/cascadia-code ]]; then
+    printf "Cascadia Code fonts already installed.\n"
+  else
+    printf "Installing Cascadia Code fonts...\n"
+    sudo apt-get install fonts-cascadia-code -yy
+    printf "Cascadia Code fonts installed.\n"
+  fi
+}
+
+install_geany() {
+  exists geany && leave "Geany $(geany_version) is already installed."
+  sudo apt-get install geany libvte9 -yy
+  clone_themes
+  install_cc_fonts
+  remove_dl_dir
+}
+
+## Execution ##
+
+printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+user_in_sudo
+check_dependencies
+install_geany
+exit
