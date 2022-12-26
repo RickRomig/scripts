@@ -24,6 +24,7 @@
 # 30 Sep 2022  : Moved script, version, update variables to main function.
 # 08 Dec 2022  : Added Pulsar (Atem fork) to array and get_versions function.
 # 08 Dec 2022  : Cleaned up printf statements. Prints "No release" if none available.
+# 26 Dec 2022  : Initialized new_ver variable to "Not found" get_versions function.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -54,6 +55,7 @@ cleanup() {
 get_versions() {
   local package="$1"
   local github_url="https://github.com"
+  local new_ver="Not found"
 
   # Set URL of GitHub repoository and currently installed version of package.
   case "$package" in
@@ -103,8 +105,8 @@ get_versions() {
 
 main() {
   _script=$(basename "$0")
-  local _version="0.7.1"
-  local _updated="19 Dec 2022"
+  local _version="0.7.2"
+  local _updated="26 Dec 2022"
   local packages=( atom bat marktext micro pulsar vSCodium )
   clear
   printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
