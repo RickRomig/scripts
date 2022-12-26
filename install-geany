@@ -3,10 +3,10 @@
 # Script Name  : install-geany
 # Description  : Installs the Geany editor/IDE with themes.
 # Dependencies : git
-# Arguments    : none
+# Arguments    : -h -i -r -t (See help function)
 # Author       : Copyright (C) 2022 Richard B. Romig, created: 25 Dec 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : Geany does not install configuration files by default.
+# Comments     : Geany does not write configuration files by default.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.0"
-readonly _updated="25 Dec 2022"
+readonly _version="0.2.1"
+readonly _updated="26 Dec 2022"
 readonly red_error="${lightred}ERROR:${normal}"
 
 ## Functions ##
@@ -59,7 +59,6 @@ clone_themes() {
   local theme_url="https://github.com/geany/geany-themes.git"
   local dl_dir="$HOME/Downloads/geany-themes"
   [[ -d "$dl_dir" ]] && remove_dl_dir
-  printf "Downloading Geany themes..."
   git clone "$theme_url" "$dl_dir"
   install_themes
 }
@@ -69,8 +68,10 @@ install_themes() {
   local dl_dir="$HOME/Downloads/geany-themes/colorschemes"
   [[ -d "$cs_dir" ]] || mkdir -p "$cs_dir"
   printf "Copying Geany colorschemes into %s\n" "$cs_dir"
+  dots
   cp "$dl_dir"/*.conf "$cs_dir/"
-  printf "Geany themes installed."
+  kill "$!"
+  printf "\nGeany themes installed.\n"
 }
 
 remove_dl_dir() {
