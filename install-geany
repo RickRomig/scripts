@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.1"
-readonly _updated="26 Dec 2022"
+readonly _version="0.2."
+readonly _updated="27 Dec 2022"
 readonly red_error="${lightred}ERROR:${normal}"
 
 ## Functions ##
@@ -68,10 +68,8 @@ install_themes() {
   local dl_dir="$HOME/Downloads/geany-themes/colorschemes"
   [[ -d "$cs_dir" ]] || mkdir -p "$cs_dir"
   printf "Copying Geany colorschemes into %s\n" "$cs_dir"
-  dots
-  cp "$dl_dir"/*.conf "$cs_dir/"
-  kill "$!"
-  printf "\nGeany themes installed.\n"
+  cp "$dl_dir"/*.conf "$cs_dir/" | awk -F"/" '{print "=> " $NF}' | sed "s/'//"
+  printf "Geany themes installed.\n"
 }
 
 remove_dl_dir() {
