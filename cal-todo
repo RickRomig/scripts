@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : cal-todo
+# Description  : Example script to display command output side by side.
+# Dependencies : none
+# Arguments    : none
+# Author       : Copyright (C) 2022, Richard B. Romig, Created: 28 Dec 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
+# Comments     : base script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
+#              : Limit to-do list to 6 items to maintain formating.
+# TODO (Rick)  : 
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Variables ##
+
+readonly _script=$(basename "$0")
+readonly _version="0.1.1"
+readonly _updated="28 Dec 2022"
+calendar=$(mktemp -q) || die "Failed to create temporary file." 1
+todolist="$HOME/.local/share/doc/todo.lst"
+
+## Functions ##
+
+cleanup() {
+	[[ -f "$calendar" ]] && rm -f "$calendar"
+}
+
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+Usage: $_script [OPTION]
+OPTIONS:
+	-c  display current month calendar and to-do list.
+	-d  display 3 month calendar and to-do list.
+	-e  edit to-do list.
+	-h  display help
+	NOTE: To-do list should be limited to 6 short items.
+END_HELP
+	echo "$_script v$_version ($_updated)"
+	exit "$errcode"	
+}
+
+edit_todo() {
+	if exists micro; then
+		/usr/bin/micro "$todolist"
+	else
+		/usr/bin/nano "$todolist"
+	fi
+}
+
+## Execution ##
+
+trap cleanup EXIT
+
+if [[ "$#" -eq 0 ]]; then
+	echo "$lightred}ERROR:${normal} No argument passed." >&2
+	help 1
+else
+	optstr=":cdeh"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			c )
+				cal > "$calendar"
+				paste "$calendar" "$todolist"
+				break ;;
+			d )
+				cal -3 > "$calendar"
+				paste "$calendar" "$todolist"
+				break ;;
+			e )
+				edit_todo
+				break ;;
+			h )
+				help 0
+				;;
+			? )
+				echo "${lightred}ERROR${normal} Invalid option -${OPTARG}" >&2
+				help 2
+		esac
+	done
+fi
+leave "$_script v$_version ($_updated)"
