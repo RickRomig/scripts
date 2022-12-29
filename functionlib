@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 15 Dec 2022
+# Last updated : 29 Dec 2022
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -168,7 +168,7 @@ get_distribution() {
   if [[ -f /etc/lsb-release ]]; then
     distro=$(awk -F= '/DISTRIB_DESCRIPTION/ {print $NF}' /etc/lsb-release | sed 's/"//g')
   else
-    distro=$(lsb_release --description --short)
+    distro=$(/usr/bin/lsb_release --description --short)
   fi
   echo "$distro"
 }
@@ -180,7 +180,7 @@ get_distribution() {
 # Notes: Antix, BunsenLabs, and MX Linux show as a Debian codename.
 ###############################################################################
 is_debian() {
-  codename=$(lsb_release --codename --short)
+  codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
     bullseye|buster|debbie|elsie ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
@@ -203,9 +203,9 @@ is_focal() {
 # Return: True or False
 ###############################################################################
 support_ppa() {
-  codename=$(lsb_release --codename --short)
+  codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
-    bionic|focal|tricia|uma|una|vanessa ) return "$TRUE" ;;
+    bionic|focal|tricia|uma|una|vanessa|vera ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
 }
@@ -249,7 +249,7 @@ is_arch() {
 # Return: True or False
 ###############################################################################
 is_systemd() {
- init_sys=$(ps -p 1 | awk '/1 ?/ {print $NF}')
+ init_sys=$(/usr/bin/ps -p 1 | awk '/1 ?/ {print $NF}')
  [[ "$init_sys" = systemd ]] && return "$TRUE" || return "$FALSE"
 }
 
@@ -300,9 +300,9 @@ leapyear() {
 # Assumes a Class C /24 network, last octet of 1 - 254
 ###############################################################################
 local_ip() {
-  en_ip=$(ip route show | awk '/en/ && /src/ {print $9}')
-  wl_ip=$(ip route show | awk '/wl/ && /src/ {print $9}')
-  et_ip=$(ip route show | awk '/eth/ && /src/ {print $9}')
+  en_ip=$(/usr/bin/ip route show | awk '/en/ && /src/ {print $9}')
+  wl_ip=$(/usr/bin/ip route show | awk '/wl/ && /src/ {print $9}')
+  et_ip=$(/usr/bin/ip route show | awk '/eth/ && /src/ {print $9}')
 
   if [[ -n "$en_ip" ]]; then
     octet="${en_ip##*.}"
@@ -391,7 +391,7 @@ edit_view_quit() {
         if exists micro; then
           /usr/bin/micro "$filename"
         else
-          nano "$filename"
+          /usr/bin/nano "$filename"
           remove_tilde
         fi
         break ;;
@@ -418,7 +418,7 @@ edit_view_quit() {
 ###############################################################################
 viewtext() {
   local filename="$1"
-  trows=$(tput lines)     # Number of rows in the local terminal window
+  trows=$(/usr/bin/tput lines)     # Number of rows in the local terminal window
   line_count=$(( trows*90/100 ))  # 90% of rows in terminal
   num_lines=$(wc -l "$filename" | cut -d " " -f1)  # Number of lines in the file
   if (( num_lines > line_count )); then less "$filename"; else cat "$filename"; fi
@@ -566,7 +566,7 @@ mount_server() {
     fi
   else
     sudo mkdir -p "$HOME/mnt/$share/"    # Create the mount point.
-    sudo chown rick:rick "$HOME/mnt/$share/"
+    # sudo chown rick:rick "$HOME/mnt/$share/"
     sshfs -o follow_symlinks rick@"$localnet.$server_ip:/home/rick" "$HOME/mnt/$share/"
     echo "$share has been created and mounted."
   fi
@@ -603,7 +603,7 @@ mount_nas() {
       echo "$share is already mounted"
     fi
   else
-    sudo mkdir -p "/mnt/$share/"    # Create the mount point.
+    sudo mkdir -p "%HOME/mnt/$share/"    # Create the mount point.
     sshfs -o follow_symlinks rick@"$localnet.$server_ip:" "$HOME/mnt/$share/"
     echo "$share has been created and mounted."
   fi
