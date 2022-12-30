@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.1.11"
-readonly _updated="21 Dec 2022"
+readonly _version="0.1.12"
+readonly _updated="30 Dec 2022"
 readonly url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -41,6 +41,16 @@ cleanup() {
 check_dependencies() {
   check_package wget
 	check_package gdebi
+}
+
+install_cascadia_code() {
+  if [[ -d /usr/share/fonts/truetype/cascadia-code ]]; then
+    printf "Cascadia Code fonts already installed.\n"
+  else
+    printf "Installing Cascadia Code fonts...\n"
+    sudo apt-get install fonts-cascadia-code -yy
+    printf "Cascadia Code fonts installed.\n"
+  fi
 }
 
 newest_version() {
@@ -66,6 +76,7 @@ install_vscodium() {
   echo "Downloading VSCodium from the VSCodium GitHub repository..."
   wget -q -P "$tmp_dir/" "$url/download/$new_ver/$new_pkg"
   sudo gdebi -n "$tmp_dir/$new_pkg"
+  install_cascadia_code
   echo "VSCodium $(codium_ver) successfully installed."
 }
 
