@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.1.3"
-readonly _updated="07 Oct 2022"
+readonly _version="0.1.4"
+readonly _updated="30 Dec 2022"
 readonly kitty_cfg="$HOME/.config/kitty"
 readonly red_error="${lightred}ERROR:${normal}"
 
@@ -48,6 +48,17 @@ END_HELP
   exit "$errcode"
 }
 
+install_cascadia_code() {
+  if [[ -d "/usr/share/fonts/truetype/cascadia-code" ]]; then
+    printf "Casacadia Code fonts already installed.\n"
+  else
+    echo "Installing Cascadia-Code fonts."
+    sudo apt upgrade -yyq
+    sudo apt-get install fonts-cascadia-code -yyq
+    echo "Cascadia-Code fonts installed."
+  fi
+}
+
 kitty_version() {
   kitty --version | awk '{print $2}'
 }
@@ -55,6 +66,7 @@ kitty_version() {
 install_kitty() {
   printf "Installing the kitty terminal emulator.\n"
   sudo apt-get install kitty -yy
+  install_cascadia_code
   kitty_config
   printf "Kitty %s installed and configured.\n" "$(kitty_version)"
 }
