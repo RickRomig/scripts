@@ -28,10 +28,11 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.1.2"
-readonly _updated="29 Dec 2022"
+readonly _version="0.2.0"
+readonly _updated="01 Jan 2023"
 calendar=$(mktemp -q) || die "Failed to create temporary file." 1
-readonly todolist="$HOME/.local/share/doc/todo.lst"
+readonly localdoc="$HOME/.local/share/doc"
+readonly todolist="todo.lst"
 
 ## Functions ##
 
@@ -56,10 +57,28 @@ END_HELP
 
 edit_todo() {
 	if exists micro; then
-		/usr/bin/micro "$todolist"
+		/usr/bin/micro "$localdoc/$todolist"
 	else
-		/usr/bin/nano "$todolist"
+		/usr/bin/nano "$localdoc/$todolist"
 	fi
+}
+
+create_todo() {
+	[[ -d "$localdoc" ]] || mkdir -p "$localdoc"
+	cat << END_TODO > "$localdoc/$todolist"
+[ ] Item 1
+[ ] Item 2
+[ ] Item 3
+[ ] Item 4
+[ ] Item 5
+[ ] Item 6
+[ ] Item 7
+END_TODO
+}
+
+display_cal_todo() {
+	[[ -f "$localdoc/$todolist" ]] || create_todo
+	paste "$calendar" "$localdoc/$todolist"
 }
 
 ## Execution ##
@@ -75,11 +94,11 @@ else
 		case "$opt" in
 			c )
 				cal > "$calendar"
-				paste "$calendar" "$todolist"
+				display_cal_todo
 				break ;;
 			d )
 				cal -3 > "$calendar"
-				paste "$calendar" "$todolist"
+				display_cal_todo
 				break ;;
 			e )
 				edit_todo
