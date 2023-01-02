@@ -25,6 +25,8 @@
 # 08 Dec 2022  : Added Pulsar (Atem fork) to array and get_versions function.
 # 08 Dec 2022  : Cleaned up printf statements. Prints "No release" if none available.
 # 26 Dec 2022  : Initialized new_ver variable to "Not found" get_versions function.
+# 01 Jan 2023  : Added function for versions of distro installed packages.
+# 01 Jan 2023  : Move array and variables into get_versions function.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -53,67 +55,96 @@ cleanup() {
 }
 
 get_versions() {
-  local package="$1"
   local github_url="https://github.com"
   local new_ver="Not found"
+  local packages=( atom bat marktext micro pulsar vSCodium )
 
-  # Set URL of GitHub repoository and currently installed version of package.
-  case "$package" in
-    "bat" )
-      local release_path="sharkdp/bat/releases"
-      cur_ver=$(dpkg -l | awk '$2 == "bat" {print $3}' | sed 's/[+-].*//') ;;
-    "micro" )
-      local release_path="zyedidia/micro/releases"
-      cur_ver=$(dpkg -l | awk '$2 == "micro" {print $3}' | sed 's/[+-].*//') ;;
-    "marktext" )
-      local release_path="marktext/marktext/releases"
-      cur_ver=$(dpkg -l | awk '$2 == "marktext" {print $3}' | sed 's/[+-].*//') ;;
-    "atom" )
-      local release_path="atom/atom/releases"
-      cur_ver=$(dpkg -l | awk '$2 == "atom" {print $3}' | sed 's/[+-].*//') ;;
-		"vSCodium" )
-			local release_path="VSCodium/vscodium/releases"
-			cur_ver=$(dpkg -l | awk '$2 == "codium" {print $3}' | sed 's/[+-].*//') ;;
-    "pulsar" )
-      local release_path="pulsar-edit/pulsar/releases"
-			cur_ver=$(dpkg -l | awk '$2 == "pulsar" {print $3}' | sed 's/[+-].*//') ;;
-   * )
-      die "Invalid package name - ${package,,}." 2 ;;
-  esac
+  printf "%s%-15s%-16s%s%s\n"  "${underline}" "Program" "Latest version" "Installed version" "${normal}"
+  for package in "${packages[@]}"; do
+    # Set URL of GitHub repoository and currently installed version of package.
+    case "$package" in
+      "bat" )
+        local release_path="sharkdp/bat/releases"
+        cur_ver=$(dpkg -l | awk '$2 == "bat" {print $3}' | sed 's/[+-].*//') ;;
+      "micro" )
+        local release_path="zyedidia/micro/releases"
+        cur_ver=$(dpkg -l | awk '$2 == "micro" {print $3}' | sed 's/[+-].*//') ;;
+      "marktext" )
+        local release_path="marktext/marktext/releases"
+        cur_ver=$(dpkg -l | awk '$2 == "marktext" {print $3}' | sed 's/[+-].*//') ;;
+      "atom" )
+        local release_path="atom/atom/releases"
+        cur_ver=$(dpkg -l | awk '$2 == "atom" {print $3}' | sed 's/[+-].*//') ;;
+		  "vSCodium" )
+			  local release_path="VSCodium/vscodium/releases"
+			  cur_ver=$(dpkg -l | awk '$2 == "codium" {print $3}' | sed 's/[+-].*//') ;;
+      "pulsar" )
+        local release_path="pulsar-edit/pulsar/releases"
+			  cur_ver=$(dpkg -l | awk '$2 == "pulsar" {print $3}' | sed 's/[+-].*//') ;;
+      * )
+        die "Invalid package name - ${package,,}." 2
+    esac
 
-  # Download package's GitHub release page to a temporary file.
-  curl -s -o "$tmp_file" "$github_url/$release_path"
-  # Extract newest version number, ignoring beta and release candidate releases.
-  new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
-  # Print capitalized package name
-  printf "%s%-15s" "${darkgray}" "${package^}"
-  # Print newest version
-  if [[ -z "$new_ver" ]]; then
-    printf "%s%-16s" "${red}" "No release"
-  else
-    printf "%s%-16s" "${gray}" "$new_ver"
-  fi
-  # Print current installed version.
-  if [[ -z "$cur_ver" ]]; then
-    printf "%s%s%s\n" "${red}" "not installed" "${normal}"
-  elif [[ "$new_ver" == "$cur_ver" ]]; then
-    printf "%s%s%s\n" "${gray}" "$cur_ver" "${normal}"
-  else
-    printf "%s%s%s\n" "${orange}" "$cur_ver" "${normal}"  # new version available
-  fi
+    # Download package's GitHub release page to a temporary file.
+    curl -s -o "$tmp_file" "$github_url/$release_path"
+    # Extract newest version number, ignoring beta and release candidate releases.
+    new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
+    # Print capitalized package name
+    printf "%s%-15s" "${darkgray}" "${package^}"
+    # Print newest version
+    if [[ -z "$new_ver" ]]; then
+      printf "%s%-16s" "${red}" "No release"
+    else
+      printf "%s%-16s" "${gray}" "$new_ver"
+    fi
+    # Print current installed version.
+    if [[ -z "$cur_ver" ]]; then
+      printf "%s%s\n" "${red}" "not installed"
+    elif [[ "$new_ver" == "$cur_ver" ]]; then
+      printf "%s%s\n" "${gray}" "$cur_ver"
+    else
+      printf "%s%s\n" "${orange}" "$cur_ver"  # new version available
+    fi
+  done
+  printf "%s\n" "${normal}"
+}
+
+deb_versions() {
+	local debpkgs=( geany glow nano kitty terminator )
+	printf "%s%-15s%s\n" "${underline}" "Packages from distribution repositories" "${normal}"
+	for debpkg in "${debpkgs[@]}"; do
+		printf "%s%-15s" "${gray}" "${debpkg^}"
+		if exists "$debpkg"; then
+			case "$debpkg" in
+				geany )
+					printf "%s\n" "$(geany --version | cut -d' ' -f2)" ;;
+				glow )
+					printf "%s\n" "$(glow --version | cut -d' ' -f3 | sed 's/^v//')" ;;
+				nano )
+					printf "%s\n" "$(nano --version | awk '/version/ {print $NF}')" ;;
+        kitty )
+          printf "%s\n" "$(kitty --version | cut -d' ' -f2)" ;;
+        terminator )
+          printf "%s\n" "$(dpkg -l | awk '$2 == "terminator" {print $3}' | sed 's/[+-].*//')" ;;
+				* )
+					die "Invalid package name - ${debpkg^}." 2
+			esac
+		else
+			printf "not installed\n"
+		fi
+	done
+	printf "%s\n" "${normal}"
 }
 
 main() {
   _script=$(basename "$0")
-  local _version="0.7.2"
-  local _updated="26 Dec 2022"
-  local packages=( atom bat marktext micro pulsar vSCodium )
+  local _version="0.8.0"
+  local _updated="01 Jan 2023"
   clear
   printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Newest & installed versions of select programs.\n\n"
-  printf "%s%-15s%-16s%s%s\n"  "${underline}" "Program" "Latest version" "Installed version" "${normal}"
-  for pkg in "${packages[@]}"; do get_versions "$pkg"; done
-  printf "\n"
+  get_versions
+  deb_versions
   leave ""
 }
 
