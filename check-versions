@@ -26,7 +26,8 @@
 # 08 Dec 2022  : Cleaned up printf statements. Prints "No release" if none available.
 # 26 Dec 2022  : Initialized new_ver variable to "Not found" get_versions function.
 # 01 Jan 2023  : Added function for versions of distro installed packages.
-# 01 Jan 2023  : Move array and variables into get_versions function.
+# 01 Jan 2023  : Moved array and variables into get_versions function.
+# 02 Jan 2023  : Removed underline attributes.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -59,7 +60,7 @@ get_versions() {
   local new_ver="Not found"
   local packages=( atom bat marktext micro pulsar vSCodium )
 
-  printf "%s%-15s%-16s%s%s\n"  "${underline}" "Program" "Latest version" "Installed version" "${normal}"
+  printf "%-15s%-16s%s\n" "Package" "Latest version" "Installed version"
   for package in "${packages[@]}"; do
     # Set URL of GitHub repoository and currently installed version of package.
     case "$package" in
@@ -111,7 +112,7 @@ get_versions() {
 
 deb_versions() {
 	local debpkgs=( geany glow nano kitty terminator )
-	printf "%s%-15s%s\n" "${underline}" "Packages from distribution repositories" "${normal}"
+	printf "%-15s%s\n" "Package" "Version"
 	for debpkg in "${debpkgs[@]}"; do
 		printf "%s%-15s" "${gray}" "${debpkg^}"
 		if exists "$debpkg"; then
@@ -138,8 +139,8 @@ deb_versions() {
 
 main() {
   _script=$(basename "$0")
-  local _version="0.8.0"
-  local _updated="01 Jan 2023"
+  local _version="0.8.1"
+  local _updated="02 Jan 2023"
   clear
   printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Newest & installed versions of select programs.\n\n"
