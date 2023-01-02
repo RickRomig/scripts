@@ -14,6 +14,7 @@
 # 10 Jul 2022  : Added optstr and opt variables to getopts routine.
 # 10 Sep 2022  : Installs Cascadia-Code fonts if needed.
 # 30 Dec 2022  : Modified function to install cascadia code fonts.
+# 02 Jan 2023  : Added function to get version. Checks exists in getopts case.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -34,8 +35,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.5.9"
-readonly _updated="30 Dec 2022"
+readonly _version="0.6.0"
+readonly _updated="02 Jan 2023"
 readonly term_cfg=$HOME"/.config/terminator"
 readonly svr_ip="11"
 
@@ -61,27 +62,22 @@ EOF
 }
 
 remove_terminator() {
-  if exists terminator; then
-    sudo apt-get purge terminator
-    [[ -d "$HOME/.config/terminator" ]] && rm -rf "$HOME/.config/terminator"
-    leave "Terminator and its configuration files have been removed."
-  else
-    leave " Terminator is not installed."
-  fi
+  sudo apt-get purge terminator
+  [[ -d "$Hterm_cfg" ]] && rm -rf "$term_cfg"
+  leave "Terminator and its configuration files have been removed."
 }
 
 install_terminator() {
-  # sudo add-apt-repository ppa:gnome-terminator
-  sudo apt-get update
+  sudo apt-get update -yyq
   sudo apt-get install terminator -yy
   install_cascadia_code
   if bunsenlabs; then
-    echo "Terminator installed."
-    leave "Bunsen Labs uses its own profiles based on the version of the distribution."
+    echo "Terminator $(terminator_version) installed."
+    leave "BunsenLabs uses its own profiles based on the version of the distribution."
   else
     [[ -f "$term_cfg/config" ]] || teminator_config
     is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg/config"
-    leave "Terminator installed with configuration file and Cascadia Code font."
+    leave "terminator $(terminator_version) installed with configuration file and Cascadia Code font."
   fi
 }
 
@@ -136,6 +132,10 @@ check_dependencies() {
   check_package sshfs
 }
 
+terminator_version() {
+  dpkg -l | awk '$2 == "terminator" {print $3}' | sed 's/[+-].*//'
+}
+
 ## Execution ##
 
 check_dependencies
@@ -151,22 +151,23 @@ else
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
+        exists terminator || leave "Terminator is not installed."
         if bunsenlabs; then
           echo "Terminator configuration for BunsenLabs was not overwritten."
           leave "Configuration changes should be made through the Preferences menu."
-        elif exists terminator; then
+        else
           teminator_config
           is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg/config"
           leave "Terminator configuration file written."
-        else
-          leave "Terminator is not installed."
         fi ;;
       h )
         help 0 ;;
       i )
+        exists terminator && leave "Terminator $(terminator_version) is already installed."
         user_in_sudo
         install_terminator ;;
       r )
+        exists terminator || leave "Terminator is not installed."
         user_in_sudo
         remove_terminator ;;
       ? )
