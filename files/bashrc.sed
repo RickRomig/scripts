@@ -17,3 +17,4 @@ s/ls --color=auto/ls -F --color=auto --group-directories-first/
 /#alias egrep/s/#//
 /^#alias/s/#//
 s/ls -alF/ls -alhF --time-style=long-iso/
+s/ls -A/ls -AF/
