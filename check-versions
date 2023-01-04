@@ -27,8 +27,8 @@
 # 26 Dec 2022  : Initialized new_ver variable to "Not found" get_versions function.
 # 01 Jan 2023  : Added function for versions of distro installed packages.
 # 01 Jan 2023  : Moved array and variables into get_versions function.
-# 04 Jan 2023  : Added bluefish editor to deb_packages.
 # 02 Jan 2023  : Removed underline attributes.
+# 04 Jan 2023  : Added bluefish editor to deb_packages.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -61,6 +61,7 @@ get_versions() {
   local new_ver="Not found"
   local packages=( atom bat marktext micro pulsar vSCodium )
 
+  printf "GitHub Packages\n"
   printf "%-15s%-16s%s\n" "Package" "Latest version" "Installed version"
   for package in "${packages[@]}"; do
     # Set URL of GitHub repoository and currently installed version of package.
@@ -113,6 +114,7 @@ get_versions() {
 
 deb_versions() {
 	local debpkgs=( bluefish geany glow nano kitty terminator )
+  printf "Apt Pacakages\n"
 	printf "%-15s%s\n" "Package" "Version"
 	for debpkg in "${debpkgs[@]}"; do
 		printf "%s%-15s" "${gray}" "${debpkg^}"
@@ -142,14 +144,12 @@ deb_versions() {
 
 main() {
   _script=$(basename "$0")
-  local _version="0.8.2"
+  local _version="0.8.3"
   local _updated="04 Jan 2023"
   clear
   printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Newest & installed versions of select programs.\n\n"
-  printf "GitHub Packages\n"
   get_versions
-  printf "Apt Pacakages\n"
   deb_versions
   leave ""
 }
