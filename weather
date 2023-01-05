@@ -24,6 +24,7 @@
 # 17 Oct 2022  : Added color for temperatures below freezing.
 # 18 Oct 2022  : Set default location and check for help arguments.
 # 23 Dec 2022  : Changed default location to Dayton (Ohio).
+# 05 Jan 2023  : Moved script title to top in wx_forecast().
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -43,8 +44,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.5.3"
-readonly _updated="23 Dec 2022"
+readonly _version="0.5.4"
+readonly _updated="05 Jan 2023"
 
 ## Functions ##
 
@@ -131,8 +132,8 @@ wx_forecast() {
   local url="http://wttr.in"
   local wx_loc="$1"
   clear
-  curl -s "$url/$wx_loc" | sed '1 s/:.*//;/Follow/d'
   box "$_script v$_version ($_updated)"
+  curl -s "$url/$wx_loc" | sed '1 s/:.*//;/Follow/d'
   anykey
 }
 
@@ -215,8 +216,8 @@ while true; do
       1 ) current_wx "$location"; break ;;
       2 ) wx_forecast "$location"; break ;;
       3 ) show_help; break ;;
-      4 ) clear; box "$_script v$_version ($_updated)"; exit ;;
-      * ) echo "${lightred}Invalid choice.${normal} Choose 1, 2, 3, or 4" >&2 ;;
+      4 ) clear; exit ;;
+      * ) echo "${lightred}Invalid choice.${normal} Choose 1, 2, 3, or 4" >&2
     esac
   done
 done
