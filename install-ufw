@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.1.0"
-readonly _updated="05 Oct 2022"
+readonly _version="0.1.1"
+readonly _updated="07 Jan 2023"
 readonly red_error="${lightred}ERROR:${normal}"
 
 ## Functions ##
@@ -76,13 +76,13 @@ add_rules() {
 }
 
 enable_ufw() {
-  printf "Enabling UFW %s...\n" "$(ufw_version)"
+  printf "Enabling UFW...\n"
   sudo ufw enable
   sudo ufw status verbose
 }
 
 disable_ufw() {
-  printf "Disabling UFW %s...\n" "$(ufw_version)"
+  printf "Disabling UFW...\n"
   sudo ufw disable
   sudo ufw status
 }
@@ -92,7 +92,7 @@ ufw_status() {
 }
 
 ufw_version() {
-  ufw version | awk '/ufw/ {print $NF}'
+  /usr/sbin/ufw version | awk '/ufw/ {print $NF}'
 }
 
 debian_system() {
