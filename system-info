@@ -9,6 +9,7 @@
 # Comments     : Rewrite of version 2.5.0
 # 16 Jul 2022  : Added function to insert drive form factor if not in hdparm.
 # 01 Sep 2022  : Corrected calls to ff_fix and rename_mt_pt functions.
+# 07 Jan 2023  : Added nvme_info, modified ff_fix, os_info, check_dependencies functions.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -29,8 +30,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="3.0.3"
-readonly _updated="04 Oct 2022"
+readonly _version="3.1.0"
+readonly _updated="07 Jan 2023"
 lhost="$(uname -n)"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y')
@@ -38,7 +39,8 @@ today=$(date +'%d %B %Y')
 ## Functions ##
 
 check_dependencies() {
-  check_package hdparm	# hard-drive info
+  [[ -b /dev/sda ]] && check_package hdparm	# hard-drive info
+  [[ -b /dev/nvme0n1 ]] && check_package nvme-cli # nvme info
   check_package lshw	  # hardware info
   check-package upower	# battery info
 }
@@ -99,12 +101,13 @@ rename_mnt_pt() {
 ff_fix() {
   printf "Form factor not found.\n"
   PS3="Select form factor: "
-  options=( "2.5 inch" "3.5 inch" "less than 1.8 inch" )
+  options=( "2.5 inch" "3.5 inch" "less than 1.8 inch" "ignore")
   select opt in "${options[@]}"; do
     case "$REPLY" in
       1 ) sed -i 's/Factor:  /& 2.5 inch/;s/inch /inch/' "$tmp_file"; break ;;
       2 ) sed -i 's/Factor:  /& 3.5 inch/;s/inch /inch/' "$tmp_file"; break ;;
       3 ) sed -i 's/Factor:  /& less than 1.8 inch/;s/inch /inch/' "$tmp_file"; break ;;
+      4 ) break ;;
       * ) echo "${lightred}Invalid choice!${normal} Choose 1, 2, or 3" >&2 ;;
     esac
   done
@@ -123,8 +126,8 @@ mfg_info() {
 }
 
 os_info() {
-	r_p=$(df -P / | awk '/sd/ {print $1}')
-	created_date=$(sudo tune2fs -l "$r_p" | awk '/created:/ {print $(NF-2),$(NF-3),$NF}')
+	r_p=$(df -P / | awk '/dev/ {print $1}')
+	created_date=$(sudo /usr/sbin/tune2fs -l "$r_p" | awk '/created:/ {print $(NF-2),$(NF-3),$NF}')
 	printf "\n%-19s %s\n" "Operating System:" "$(uname -o)"
 	printf "%-19s %s\n" "Distribution:" "$(get_distribution)"
 	printf "%-19s %s\n" "Filesystem created:" "$created_date"
@@ -189,9 +192,21 @@ hd_info() {
 	done
 }
 
+nvme_info() {
+  printf "\nNVMe Information\n"
+  nvme_dev=$(sudo /usr/sbin/nvme list | awk '/dev/ {print $1}' | cut -d'/' -f3)
+  nvme_serial=$(sudo /usr/sbin/nvme list | awk '/dev/ {print $2}')
+  nvme_model=$(sudo /usr/sbin/nvme list | awk '/dev/ {print $3}')
+  nvme_size=$(sudo /usr/sbin/nvme list | awk '/dev/ {print $5.$6}')
+  printf "%s\n" "$nvme_dev"
+  printf "   %-15s%ss\n" "Model Number:" "$nvme_model"
+  printf "   %-15s%s\n" "Serial Number:" "$nvme_serial"
+  printf "   %-15s%s\n" "Capacity:" "$nvme_size"
+}
+
 part_info() {
 	printf "\nPartition Information:\n"
-	lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
+	lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,MODEL,SERIAL
 }
 
 bat_info() {
@@ -215,7 +230,8 @@ clear
 	graphics_info
 	wired_info
 	wireless_info
-	hd_info
+	[[ -b /dev/sda ]] && hd_info
+  [[ -b /dev/nvme0n1 ]] && nvme_info
 	part_info
 	bat_info
 	printf "\n\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
