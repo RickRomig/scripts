@@ -16,6 +16,7 @@
 # 29 Sep 2022  : Added synchronization of ~/homepage directory.
 # 24 Nov 2022  : Added synchronization of ~/.config/scripts directory.
 # 22 Dec 2022  : Added IP 227 (hp-mini-110) to sync_one and sync_all.
+# 07 Jan 2023  : Removed IP 22 (hp-850-g3) from syncing homepage.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -36,8 +37,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="1.4.5"
-readonly _updated="26 Dec 2022"
+readonly _version="1.4.6"
+readonly _updated="07 Jan 2023"
 
 ## Functions ##
 
@@ -114,7 +115,7 @@ sync_script() {
   transfer_status "$exit_status"
 
   case "$hostip" in
-    22|24|25|227 )
+    24|25|227 )
       echo $'\n'$"${orange}Syncing Homepage...${normal}"
       rsync -avzh --delete /home/"$USER"/homepage/ "$localnet.$hostip":homepage/
       exit_status="$?"
