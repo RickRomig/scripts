@@ -17,6 +17,7 @@
 # 17 Sep 2022  : Added Videos/Tech/ to synch to Probook 6570b (20)
 # 29 Sep 2022  : Replace if-elif with case in sync_script function.
 # 24 Nov 2022  : Added synchronization of ~/.config/scripts directory.
+# 07 Jan 2023  : Modified so EliteBook 850 (22) is synchronized.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -37,8 +38,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="1.2.2"
-readonly _updated="24 Nov 2022"
+readonly _version="1.2.3"
+readonly _updated="07 Jan 2023"
 
 ## Functions ##
 
@@ -111,11 +112,6 @@ sync_script() {
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing debpkgs...${normal}"
-  rsync -avzh --delete /home/"$USER"/debpkgs/ "$localnet.$hostip":debpkgs/
-  exit_status="$?"
-  transfer_status "$exit_status"
-
   echo $'\n'$"${orange}Syncing homepage...${normal}"
   rsync -avzh --delete /home/"$USER"/homepage/ "$localnet.$hostip":homepage/
   exit_status="$?"
@@ -128,11 +124,6 @@ sync_script() {
 
   echo $'\n'$"${orange}Syncing Work..${normal}"
   rsync -avzh --delete /home/"$USER"/Work/ "$localnet.$hostip":Work/
-  exit_status="$?"
-  transfer_status "$exit_status"
-
-  echo $'\n'$"${orange}Syncing Projects...${normal}"
-  rsync -avzh --delete /home/"$USER"/Projects/ "$localnet.$hostip":Projects/
   exit_status="$?"
   transfer_status "$exit_status"
 
@@ -171,7 +162,7 @@ sync_script() {
       exit_status="$?"
       transfer_status "$exit_status"
       ;;
-    20 )
+    20|22 )
       # Sync personal files.
       echo $'\n'$"${orange}Syncing Audio Books...${normal}"
       rsync -avzh --delete /home/"$USER"/Audiobooks/ "$localnet.$hostip":Audiobooks/
@@ -221,7 +212,7 @@ sync_one() {
   if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
     # Restricted IP addresses on local network
     case $hostip in
-      1|2|3|4|5|6|7|8|9|21|22|24|25 )
+      1|2|3|4|5|6|7|8|9|21|24|25 )
         echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted address."
         echo -e " Access denied.\n"; exit ;;
       * )
@@ -242,7 +233,7 @@ sync_some() {
     if [[ "$hostip" -eq "$hostip" ]] 2>/dev/null; then
       if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
         case "$hostip" in
-          1|2|3|4|5|6|7|8|9|21|22|24|25 )
+          1|2|3|4|5|6|7|8|9|21|24|25 )
             echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted"
             echo -e " address. Access denied.\n" ;;
           * )
@@ -265,7 +256,7 @@ sync_some() {
 sync_all() {
   echo -e "Synchronizing directories with systems on the local network.\n"
 
-  OCTETS=(10 11 12 13 14 15 16 17 18 19 20 23)
+  OCTETS=(10 11 12 13 14 15 16 17 18 19 20 22 23)
   for hostip in "${OCTETS[@]}"; do transfer; done
   all_done
 }
