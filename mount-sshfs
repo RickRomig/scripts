@@ -27,7 +27,7 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.3.2"
+readonly _version="0.3.3"
 readonly _updated="08 Jan 2023"
 
 ## Functions ##
@@ -52,7 +52,7 @@ mount_share() {
     fi
   else
     # Share does not exist, create it.
-    sudo mkdir -p "$HOME/mnt/$share"
+    mkdir -p "$HOME/mnt/$share"
     if [[ "$share" == "NASD97167" ]]; then
       sshfs -o follow_symlinks rick@"$localnet.$ip_addr:" "$HOME/mnt/$share/"
     else
@@ -99,8 +99,8 @@ check_package sshfs
 
 echo "$_script v$_version ($_updated)"
 echo -e "Mount or unmount an SSHFS share.\n"
-options=( "Mount Finance" "Unmount Finance" "Mount ProBook-6570" "Unmount ProBook-6570" "Mount 850-G3" "Unmount 850-G3" \
-"Mount HP-6005" "Unmount HP-6005" "Mount NAS" "Unmount NAS" "Quit" )
+options=( "Mount Finance" "Unmount Finance" "Mount ProBook-6570" "Unmount ProBook-6570" \
+"Mount EliteBook 850-G3" "Unmount EliteBook 850-G3" "Mount HP-6005" "Unmount HP-6005" "Mount NAS" "Unmount NAS" "Quit" )
 COLUMNS=60
 PS3="Choose an action: "
 select opt in "${options[@]}"; do
