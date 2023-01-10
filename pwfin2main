@@ -4,7 +4,7 @@
 # Description  : Synchronizes password database files with main PC
 # Dependencies : rsync
 # Arguments    : none
-# Author       : Richard B. Romig, 04 Mar 2022
+# Author       : Copyright (C) 2022 Richard B. Romig, 04 Mar 2022
 # Email        : rick.romig@gmail.com
 # Comments     : Only run from the Finance laptop (21) to the 800-G3 (10)
 # TODO (Rick)  :
@@ -27,12 +27,17 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.1.1"
-readonly _updated="22 Aug 2022"
+readonly _version="0.2.0"
+readonly _updated="10 Jan 2023"
 readonly fhost="hp-probook-6570"
 readonly lhost=$(uname -n)
 readonly mhost="hp-800g2-sff"
 readonly mhostip=10
+
+sync_vault() {
+  local vault_dir="$HOME/.local/share/doc"
+  rsync -avzh --delete "$vault_dir"/Rick_pwds* "$vault_dir"/Passwords* "$localnet.$mhostip":"$vault_dir"/
+}
 
 ## Execution ##
 
@@ -42,7 +47,5 @@ printf "Syncrhonizing password databases to %s\n" "$mhost"
 
 # Ensure script is being run from HP-ProBook-6570 (21)
 [[ "$lhost" != "$fhost" ]] && die "$_script must be run from $fhost."
-
-rsync -avzh --delete /home/"$USER"/Documents/Rick_pwds* /home/"$USER"/Documents/Passwords* "$localnet.$mhostip":Documents/mosfanet/
-
+sync_vault
 exit
