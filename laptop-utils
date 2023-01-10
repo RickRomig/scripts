@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="v1.3.2"
-readonly _updated="18 Aug 2022"
+readonly _version="v1.3.3"
+readonly _updated="10 Jan 2023"
 
 ## Funtions ##
 
@@ -64,12 +64,6 @@ install_acpi() {
 install_tlp() {
   if is_installed tlp; then
     echo "TLP is already installed."
-  elif support_ppa; then
-    user_in_sudo
-    sudo add-apt-repository ppa:linrunner/tlp
-    sudo apt-get install tlp tlp-rdw -yy
-    tlp_service
-    printf "TLP installed.\n"
   elif in_repos tlp; then
     user_in_sudo
     sudo apt-get install tlp tlp-rdw -yy
@@ -83,11 +77,6 @@ install_tlp() {
 install_touchpad_indicator() {
   if is_installed touchpad-indicator; then
     printf "Touchpad Indicator is already installed.\n"
-  elif support_ppa; then
-    user_in_sudo
-    sudo add-apt-repository ppa:atareao/atareao
-    sudo apt install touchpad-indicator -yy
-    printf "Touchpad Indicator installed.\n"
   elif in_repos touchpad-indicator; then
     user_in_sudo
     sudo apt-get install touchpad-indicator -yy
