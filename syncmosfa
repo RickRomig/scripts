@@ -4,7 +4,7 @@
 # Description  : Syncs directories with machines on the network via SSH
 # Dependencies : rsync
 # Arguments    : Last octet of target IP address, see usage()
-# Author       : Richard Romig, 29 Sep 2020
+# Author       : Copyright (C) 2020 Richard Romig, 29 Sep 2020
 # Email        : rick.romig@gmail.com
 # Comments     : Can sync to one or all machines on the network.
 #              : LOCALNET is declared in functionlib
@@ -18,6 +18,7 @@
 # 29 Sep 2022  : Replace if-elif with case in sync_script function.
 # 24 Nov 2022  : Added synchronization of ~/.config/scripts directory.
 # 07 Jan 2023  : Modified so EliteBook 850 (22) is synchronized.
+# 10 Jan 2023  : Added sync of password vaults to new location.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -38,8 +39,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="1.2.3"
-readonly _updated="07 Jan 2023"
+readonly _version="1.2.4"
+readonly _updated="10 Jan 2023"
 
 ## Functions ##
 
@@ -112,7 +113,12 @@ sync_script() {
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing homepage...${normal}"
+  echo $'\n'$"${orange}Syncing Password Databases...${normal}"
+  rsync -avzh --delete "$vault_dir/"Rick_pwds* "$vault_dir/"Passwords* "$localnet.$hostip":"$vault_dir/"
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+   echo $'\n'$"${orange}Syncing homepage...${normal}"
   rsync -avzh --delete /home/"$USER"/homepage/ "$localnet.$hostip":homepage/
   exit_status="$?"
   transfer_status "$exit_status"
