@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.5.5"
-readonly _updated="31 Jul 2022"
+readonly _version="0.5.6"
+readonly _updated="10 Jan 2023"
 readonly lhost=$HOSTNAME
 readonly local_logs="$HOME/.local/share/logs"
 
@@ -75,11 +75,13 @@ while true; do
         anykey; break ;;
       3 )
         clear
-        echo -e "${lightgreen}$lhost - Timeshift Snapshots${normal}\n"
         if exists timeshift; then
           if pgrep timeshift > /dev/null 2>&1; then
             echo -e "${orange}Timeshift is currently running.${normal} Try again later.\n"
           else
+            user_in_sudo
+            clear
+            echo -e "${lightgreen}$lhost - Timeshift Snapshots${normal}\n"
             sudo timeshift --list | awk 'NR!=1 && NR!=3' 2>/dev/null
           fi
         else
