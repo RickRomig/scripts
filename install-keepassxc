@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : install-keepassxc
-# Description  : Installs KeePassXC from PPA or repo for Debian, LMDE
+# Description  : Installs KeePassXC from Flathub or distro repos
 # Dependencies : none
 # Arguments    : none
-# Author       : Richard B. Romig, 26 Jan 2021
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2021 Richard B. Romig, 26 Jan 2021
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,9 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.1.6"
-readonly _updated="09 Dec 2021"
+readonly _version="0.2.0"
+readonly _updated="10 Jan 2023"
+readonly rederror="${lightred}ERROR:${nomral} "
 
 ## Functions ##
 
@@ -36,31 +37,69 @@ kpxc_ver() {
   dpkg -l | awk '$2 == "keepassxc" {print $3}' | sed 's/[+-].*//'
 }
 
-install_ppa() {
-  sudo add-apt-repository ppa:phoerious/keepassxc -y
-  sudo apt-get update -qq
-  sudo apt-get install keepassxc libquazip-doc -yy
-  leave "KeePassXC $(kpxc_ver) installed from the PPA."
+keepass_ver() {
+  flatpack list | awk '/KeePassXC/ {print $3}'
 }
 
-install_debian() {
-  sudo apt-get update -qq
-  sudo apt-get install keepassxc libquazip-doc -yy
-  leave "KeePassXC $(kpxc_ver) installed from the distro repository."
+flathub_keepassxc() {
+  exists flatpak || sudo apt install flatpak -yy
+  sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  flatpak install --user flathub org.keepassxc.KeePassXC
+  printf "KeePassXC $(keepass_ver) installed from flathub.\n"
+}
+
+distro_keepassxc() {
+  # Installs from distribution repo
+  user_in_sudo
+  install_debian
+  printf "Keepassxc $(kpxc_ver) installed from distro repositories.\n"
+}
+
+move_vault() {
+  local vault_dir="$HOME/.local/share/doc"
+  [[ -d "$vault_dir" ]] || mkdir -p "$vault_dir"
+  find "$HOME/Documents/" -maxdepth 2 -type f -iname "*.kdbx" -print -exec mv {} "$vault_dir/" \;
+}
+
+help() {
+  errcode="${1:-2}"
+  cat << END_HELP
+Usage: $_script [OPTION]
+OPTIONS:
+  -d  Install KeePassXC from distribution repositories.
+  -f  Install KeePassXC from flathub repositories.
+  -h  Display help.
+END_HELP
+  exit "$errcode"
 }
 
 ## Execution ##
 
-clear
 echo "$_script v$_version ($_updated)"
 echo "Installs KeePassXC password manager"
-
-if support_ppa; then
-  user_in_sudo
-  install_ppa
-elif is_debian; then
-  user_in_sudo
-  install_debian
+if [[ "$#" -eq 0 ]]; then
+  printf "%sNo argument passed." "$rederror" >&2
+  help 1
 else
-  die "KeepassXC was not installed."
+  optstr=":dfh"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      d )
+        exists keepassxc && leave "KeePassXC $(kpxc_ver) already installed."
+        distro_keepassxc
+        move_vault
+        ;;
+      f )
+        flatpak list | grep -qw KeePassXC && leave "KeePassXC $(keepass_ver) flatpak installed."
+        flathub_keepassxc
+        move_vault
+        ;;
+      h )
+        help 0
+        ;;
+      ? )
+        printf "%sInvalid option -%s\n" "$rederror" "$OPTARG" >&2
+        help 2
+    esac
+  done
 fi
