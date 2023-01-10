@@ -4,12 +4,12 @@
 # Description  : personal function library used in Bash scripts
 # Dependencies : none
 # Arguments    : none except those passed to individual functions
-# Author       : Richard B. Romig, 21 Sep 2019
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) Richard B. Romig, 21 Sep 2019
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 29 Dec 2022
+# Last updated : 10 Jan 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -198,6 +198,16 @@ is_focal() {
 }
 
 ###############################################################################
+# Purpose: Return true if distribution is based on Ubuntu 22.04 (Mint 21.x)
+# Arguments: none
+# Return: True or False
+###############################################################################
+is_jammy() {
+  ubuntu_code=$(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release)
+  [ "$ubuntu_code" == "jammy" ] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
 # Purpose: Return true if the distribution supports Ubuntu PPA.
 # Arguments: none
 # Return: True or False
@@ -205,7 +215,7 @@ is_focal() {
 support_ppa() {
   codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
-    bionic|focal|tricia|uma|una|vanessa|vera ) return "$TRUE" ;;
+    bionic|focal|jammy|tricia|uma|una|vanessa|vera ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
 }
@@ -418,7 +428,7 @@ edit_view_quit() {
 ###############################################################################
 viewtext() {
   local filename="$1"
-  trows=$(/usr/bin/tput lines)     # Number of rows in the local terminal window
+  trows=$(/usr/bin/tput lines)    # Number of rows in the local terminal window
   line_count=$(( trows*90/100 ))  # 90% of rows in terminal
   num_lines=$(wc -l "$filename" | cut -d " " -f1)  # Number of lines in the file
   if (( num_lines > line_count )); then less "$filename"; else cat "$filename"; fi
