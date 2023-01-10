@@ -7,13 +7,13 @@
 # Author       : Richard B. Romig, 19 August 2020
 # Email        : rick.romig@gmail.com
 # Comments     : run as a local daily cron job
-# Version      : 0.4.4, updated 31 Jul 2022
+# Version      : 0.4.5, updated 10 Jan 2023
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
 set -e
 
-mstr_dir=$HOME"/Documents/mosfanet"
+mstr_dir=$HOME"/.local/share/doc"
 dbox_dir=$HOME"/Dropbox"
 log_dir=$HOME"/.local/share/logs"
 log_file="password-db.log"
