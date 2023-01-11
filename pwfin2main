@@ -27,12 +27,30 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.0"
-readonly _updated="10 Jan 2023"
-readonly fhost="hp-probook-6570"
-readonly lhost=$(uname -n)
-readonly mhost="hp-800g2-sff"
-readonly mhostip=10
+readonly _version="0.2.1"
+readonly _updated="11 Jan 2023"
+readonly config_dir="$HOME/.config/scripts"
+readonly config_file="$_script.conf"
+# readonly fhost="hp-probook-6570"
+# readonly lhost=$(uname -n)
+# readonly mhost="hp-800g2-sff"
+# readonly mhostip=10
+
+## Functions ##
+
+create_config() {
+  [[ -d "$config_dir" ]] || mkdir -p "$config_dir"
+  printf "Complete all fields\n"
+  read -rp "Main hostname: " mhost
+  read -rp "Main IP (last octect): " main_ip
+  read -rp "Finance hostname: " fhost
+
+  echo "
+  main_host='$mhost'
+  main_ip='$mhostip'
+  fin_host='$fhost'
+  " > "$config_dir/$config_file"
+}
 
 sync_vault() {
   rsync -avzh --delete "$HOME"/Documents/Rick_pwds* "$HOME"/Documents/Passwords* "$localnet.$mhostip":Documents/
@@ -43,6 +61,9 @@ sync_vault() {
 # clear
 printf "\U1F427 %s %s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Syncrhonizing password databases to %s\n" "$mhost"
+
+[[ -f "$config_dir/$config_file" ]] || create_config
+source "$config_dir/$config_file"
 
 # Ensure script is being run from HP-ProBook-6570 (21)
 [[ "$lhost" != "$fhost" ]] && die "$_script must be run from $fhost."
