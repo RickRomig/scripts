@@ -21,6 +21,7 @@
 # 06 Sep 2022  : compare_versions used only for update option.
 # 07 Sep 2022  : Moved existence checks out of functions to getopts.
 # 18 Nov 2022  : Renamed install and remove functions.
+# 11 Jan 2023  : Changed "Current version" to "Installed version" in compare_versions.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -41,8 +42,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.4.2"
-readonly _updated="18 Nov 2022"
+readonly _version="0.4.3"
+readonly _updated="11 Jan 2023"
 readonly url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg=$HOME"/.config/micro"
 
@@ -74,7 +75,7 @@ compare_versions() {
   if [[ "$cur_ver" == "$new_ver" ]]; then
     echo "${lightyellow}Micro $cur_ver is the current version. No update required.${normal}"
   else
-    echo "${lightyellow}Current version of Micro is $cur_ver, updating to $new_ver...${normal}"
+    echo "${lightyellow}Installed version of Micro is $cur_ver, updating to $new_ver...${normal}"
     install_micro
   fi
 }
