@@ -27,7 +27,7 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.1"
+readonly _version="0.2.2"
 readonly _updated="10 Jan 2023"
 readonly config_dir="$HOME/.config/scripts"
 readonly config_file="$_script.conf"
@@ -96,7 +96,6 @@ sync_fin() {
 }
 
 sync_main() {
-  local vault_dir="$HOME/.local/share/doc"
   echo $'\n'$"${orange}Syncing bash aliases...${normal}"
   rsync -avzh --delete /home/"$USER"/.bash_aliases "$localnet.$fin_ip":
   exit_status="$?"
@@ -118,7 +117,7 @@ sync_main() {
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Password Databases...${normal}"
-  rsync -avzh --delete "$vault_dir/"Rick_pwds* "$vault_dir/"Passwords* "$localnet.$fin_ip":"$vault_dir/"
+  rsync -avzh --delete /home/"$USER"/.local/share/doc/Rick_pwds* /home/"$USER"/.local/share/doc/Passwords* "$localnet.$fin_ip":.local/share/doc/
   exit_status="$?"
   transfer_status "$exit_status"
 
