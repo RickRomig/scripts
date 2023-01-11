@@ -56,10 +56,10 @@ distro_keepassxc() {
 }
 
 move_vault() {
-  local vault_dir="$HOME/.local/share/doc"
-  [[ -d "$vault_dir" ]] || mkdir -p "$vault_dir"
+  local vault_dir="$HOME/Documents"
+  printf "Moving password databases to ~/Documents...\n"
   find "$HOME/Documents/mosfanet/" -maxdepth 1 -type f -iname "*.kdbx" -print -exec mv {} "$vault_dir/" \;
-  find "$HOME/Documents/osfanet/" -maxdepth 1 -type f -iname "Rick_pwds*" -print -exec mv {} "$vault_dir/" \;
+  find "$HOME/Documents/mosfanet/" -maxdepth 1 -type f -iname "Rick_pwds*" -print -exec mv {} "$vault_dir/" \;
 }
 
 help() {
@@ -83,7 +83,7 @@ if [[ "$#" -eq 0 ]]; then
   printf "%sNo argument passed." "$rederror" >&2
   help 1
 else
-  optstr=":dfh"
+  optstr=":dfhm"
   while getopts "$optstr" opt; do
     case "$opt" in
       d )
