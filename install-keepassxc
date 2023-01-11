@@ -27,9 +27,9 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.0"
+readonly _version="0.2.1"
 readonly _updated="10 Jan 2023"
-readonly rederror="${lightred}ERROR:${nomral} "
+readonly rederror="${lightred}ERROR:${normal} "
 
 ## Functions ##
 
@@ -45,20 +45,21 @@ flathub_keepassxc() {
   exists flatpak || sudo apt install flatpak -yy
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   flatpak install --user flathub org.keepassxc.KeePassXC
-  printf "KeePassXC $(keepass_ver) installed from flathub.\n"
+  printf "KeePassXC %s installed from flathub.\n" "$(keepass_ver)"
 }
 
 distro_keepassxc() {
   # Installs from distribution repo
   user_in_sudo
   install_debian
-  printf "Keepassxc $(kpxc_ver) installed from distro repositories.\n"
+  printf "Keepassxc %s installed from distro repositories.\n" "$(kpxc_ver)"
 }
 
 move_vault() {
   local vault_dir="$HOME/.local/share/doc"
   [[ -d "$vault_dir" ]] || mkdir -p "$vault_dir"
   find "$HOME/Documents/" -maxdepth 2 -type f -iname "*.kdbx" -print -exec mv {} "$vault_dir/" \;
+  find "$HOME/Documents/" -maxdepth 2 -type f -iname "Rick_pwds*" -print -exec mv {} "$vault_dir/" \;
 }
 
 help() {
@@ -69,6 +70,7 @@ OPTIONS:
   -d  Install KeePassXC from distribution repositories.
   -f  Install KeePassXC from flathub repositories.
   -h  Display help.
+  -m  Move password vaults from ~/Documents to .local/share/doc.
 END_HELP
   exit "$errcode"
 }
@@ -96,6 +98,9 @@ else
         ;;
       h )
         help 0
+        ;;
+      m )
+        move_vault
         ;;
       ? )
         printf "%sInvalid option -%s\n" "$rederror" "$OPTARG" >&2
