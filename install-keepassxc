@@ -3,7 +3,7 @@
 # Script Name  : install-keepassxc
 # Description  : Installs KeePassXC from Flathub or distro repos
 # Dependencies : none
-# Arguments    : none
+# Arguments    : -d -f -h -m (see help function)
 # Author       : Copyright (C) 2021 Richard B. Romig, 26 Jan 2021
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     :
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.1"
-readonly _updated="10 Jan 2023"
+readonly _version="0.2.2"
+readonly _updated="12 Jan 2023"
 readonly rederror="${lightred}ERROR:${normal} "
 
 ## Functions ##
@@ -65,12 +65,12 @@ move_vault() {
 help() {
   errcode="${1:-2}"
   cat << END_HELP
-Usage: $_script [OPTION]
+Usage: $_script [OPTIONS]
 OPTIONS:
   -d  Install KeePassXC from distribution repositories.
   -f  Install KeePassXC from flathub repositories.
   -h  Display help.
-  -m  Move password vaults from ~/Documents to .local/share/doc.
+  -m  Move password vaults from ~/Documents/mosfanet to ~/Documents.
 END_HELP
   exit "$errcode"
 }
@@ -89,12 +89,10 @@ else
       d )
         exists keepassxc && leave "KeePassXC $(kpxc_ver) already installed."
         distro_keepassxc
-        move_vault
         ;;
       f )
         flatpak list | grep -qw KeePassXC && leave "KeePassXC $(keepass_ver) flatpak installed."
         flathub_keepassxc
-        move_vault
         ;;
       h )
         help 0
