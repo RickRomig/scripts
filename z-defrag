@@ -6,7 +6,7 @@ set -e
 # Do not run on an SSD.
 # Place in /etc/cron.monthly/ for anacron.
 # Place in /usr/local/bin/ or /opt/bin/ for cron.
-# Last updated: 07 Jan 2023
+# Last updated: 11 Jan 2023
 # License : GNU General Public License, version 2.0
 
 log_dir="/var/log"
@@ -26,13 +26,14 @@ host_name=$(/usr/bin/uname -n)
 		  /usr/sbin/e4defrag -c / /home /data
 		  ;;
 	  hp-800g2-sff )
-		  printf "sda is an SSD, defrag not run.\n"
+		  printf "sda is an SSD, defrag not run.\n\n"
 		  /usr/sbin/e4defrag -c /home
 		  ;;
 	  * )
 	    /usr/sbin/e4defrag -c / /home
 		  ;;
   esac
+	printf "\n"
 } > "$log_dir/$log_file" 2>&1
-
+sed -i '/^ Done/d' "$log_dir/$log_file"
 exit
