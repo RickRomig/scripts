@@ -30,8 +30,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="3.1.0"
-readonly _updated="07 Jan 2023"
+readonly _version="3.1.1"
+readonly _updated="12 Jan 2023"
 lhost="$(uname -n)"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y')
@@ -238,10 +238,10 @@ clear
 } | tee "$tmp_file"
 
 # Add form factor if not found by hdparm
-grep -qw ' inch' "$tmp_file" || ff_fix
+grep -q ' inch' "$tmp_file" || ff_fix
 
 # Change lsblk timeshift mountpoint to normal partition name.
-grep -qw '/run/timeshift/backup' "$tmp_file" && rename_mnt_pt
+grep -q '/run/timeshift/backup' "$tmp_file" && rename_mnt_pt
 
 # Save system info to file in the home directory?
 save_info
