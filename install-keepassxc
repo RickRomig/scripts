@@ -38,13 +38,13 @@ kpxc_ver() {
 }
 
 keepass_ver() {
-  flatpack list | awk '/KeePassXC/ {print $3}'
+  flatpak list | awk '/KeePassXC/ {print $3}'
 }
 
 flathub_keepassxc() {
   exists flatpak || sudo apt install flatpak -yy
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-  flatpak install --user flathub org.keepassxc.KeePassXC
+  sudo flatpak install flathub org.keepassxc.KeePassXC
   printf "KeePassXC %s installed from flathub.\n" "$(keepass_ver)"
 }
 
