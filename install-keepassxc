@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.2"
-readonly _updated="12 Jan 2023"
+readonly _version="0.2.3"
+readonly _updated="13 Jan 2023"
 readonly rederror="${lightred}ERROR:${normal} "
 
 ## Functions ##
@@ -42,16 +42,15 @@ keepass_ver() {
 }
 
 flathub_keepassxc() {
-  exists flatpak || sudo apt install flatpak -yy
+  user_in_sudo
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   sudo flatpak install flathub org.keepassxc.KeePassXC
   printf "KeePassXC %s installed from flathub.\n" "$(keepass_ver)"
 }
 
 distro_keepassxc() {
-  # Installs from distribution repo
   user_in_sudo
-  install_debian
+  sudo apt-get install keepassxc -yy
   printf "Keepassxc %s installed from distro repositories.\n" "$(kpxc_ver)"
 }
 
@@ -91,6 +90,7 @@ else
         distro_keepassxc
         ;;
       f )
+        exist flatpak || leave "Flatpak is not installed."
         flatpak list | grep -qw KeePassXC && leave "KeePassXC $(keepass_ver) flatpak installed."
         flathub_keepassxc
         ;;
