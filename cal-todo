@@ -28,11 +28,11 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.0"
-readonly _updated="01 Jan 2023"
-calendar=$(mktemp -q) || die "Failed to create temporary file." 1
+readonly _version="0.2.1"
+readonly _updated="13 Jan 2023"
 readonly localdoc="$HOME/.local/share/doc"
 readonly todolist="todo.lst"
+calendar=$(mktemp -q) || die "Failed to create temporary file." 1
 
 ## Functions ##
 
@@ -41,7 +41,7 @@ cleanup() {
 }
 
 help() {
-	errcode="${1:-2}"
+	local errcode="${1:-2}"
 	cat << END_HELP
 Usage: $_script [OPTION]
 OPTIONS:
@@ -64,16 +64,10 @@ edit_todo() {
 }
 
 create_todo() {
+	local todo_list="$HOME/bin/Templates/todo.lst"
 	[[ -d "$localdoc" ]] || mkdir -p "$localdoc"
-	cat << END_TODO > "$localdoc/$todolist"
-[ ] Item 1
-[ ] Item 2
-[ ] Item 3
-[ ] Item 4
-[ ] Item 5
-[ ] Item 6
-[ ] Item 7
-END_TODO
+	cp "$todo_list" "$localdoc"/
+	edit_todo
 }
 
 display_cal_todo() {
@@ -101,7 +95,11 @@ else
 				display_cal_todo
 				break ;;
 			e )
-				edit_todo
+				if [[ -f "$localdoc/$todolist" ]];
+					edit_todo
+				else
+					create_todo
+				fi
 				break ;;
 			h )
 				help 0
