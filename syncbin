@@ -17,6 +17,7 @@
 # 24 Nov 2022  : Added synchronization of ~/.config/scripts directory.
 # 22 Dec 2022  : Added IP 227 (hp-mini-110) to sync_one and sync_all.
 # 07 Jan 2023  : Removed IP 22 (hp-850-g3) from syncing homepage.
+# 14 Jan 2023  : Added todo.list to sync_script for 24, 25, 227
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -37,8 +38,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="1.4.6"
-readonly _updated="07 Jan 2023"
+readonly _version="1.4.7"
+readonly _updated="14 Jan 2023"
 
 ## Functions ##
 
@@ -118,6 +119,11 @@ sync_script() {
     24|25|227 )
       echo $'\n'$"${orange}Syncing Homepage...${normal}"
       rsync -avzh --delete /home/"$USER"/homepage/ "$localnet.$hostip":homepage/
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      echo $'\n'$"${orange}Syncing Homepage...${normal}"
+      rsync -avzh --delete /home/"$USER"/.local/share/doc/todo.lst "$localnet.$hostip":.local/share/doc/
       exit_status="$?"
       transfer_status "$exit_status"
       ;;

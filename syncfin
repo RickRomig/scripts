@@ -6,7 +6,7 @@
 # Arguments    : none
 # Author       : Copyright (C) 2022 Richard B. Romig, 11 Mar 2022
 # Email        : rick.romig@gmail.com
-# Comments     : Uses a configuration to store hostnames and IP addresses.
+# Comments     : Uses a configuration file to store hostnames & IP addresses.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.3"
-readonly _updated="10 Jan 2023"
+readonly _version="0.2.4"
+readonly _updated="14 Jan 2023"
 readonly config_dir="$HOME/.config/scripts"
 readonly config_file="$_script.conf"
 readonly local_host="$(uname -n)"
@@ -128,6 +128,11 @@ sync_main() {
 
   echo $'\n'$"${orange}Syncing wallpaper directory...${normal}"
   rsync -avzh --delete /home/"$USER"/Pictures/wallpaper/ "$localnet.$fin_ip":Pictures/wallpaper/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Homepage...${normal}"
+  rsync -avzh --delete /home/"$USER"/.local/share/doc/todo.lst "$localnet.$hostip":.local/share/doc/
   exit_status="$?"
   transfer_status "$exit_status"
 }
