@@ -4,8 +4,8 @@
 # Description  : backup selected configuration files to ~/.config/backup
 # Dependencies : none
 # Arguments    : none
-# Author       : Richard B. Romig, 16 July 2019
-# Email        : rick.romig@gmail.com
+# Author       : Cepyright (C) 2019, Richard B. Romig, 16 July 2019
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.4.8"
-readonly _updated="26 Sep 2022"
+readonly _version="0.4.9"
+readonly _updated="15 Jan 2023"
 readonly lhost=$HOSTNAME
 # Configuration directories
 readonly atom_dir=$HOME"/.local/share/atom"
@@ -356,6 +356,16 @@ if [[ -f "$i3_dir/config" && -f "$bu_dir/i3/config" ]]; then
 elif [[ -f "$i3_dir/config" ]]; then
   [[ -d "$bu_dir/i3" ]] || mkdir -p "$bu_dir/i3"
   cp -pv "$i3_dir/config" "$bu_dir/i3/" && (( count++ ))
+fi
+
+# Backup i3 sxhkdrc
+f [[ -f "$i3_dir/sxhkd/sxhkdrc" && -f "$bu_dir/i3/sxhkd/sxhkdrc" ]]; then
+  if [[ "$bu_dir/i3/sxhkd/sxhkdrc" -ot "$i3_dir/sxhkd/sxhkdrc" ]]; then
+    cp -puv "$i3_dir/sxhkd/sxhkdrc" "$bu_dir/i3/sxhkd/sxhkdrc" && (( count++ ))
+  fi
+elif [[ -f "$i3_dir/sxhkd/sxhkdrc" ]]; then
+  [[ -d "$bu_dir/i3sxhkd/sxhkdrc" ]] || mkdir -p "$bu_dir/i3/sxhkd"
+  cp -pv "$i3_dir/sxhkd/sxhkdrc" "$bu_dir/i3/sxhkd/" && (( count++ ))
 fi
 
 # Backup i3status.conf (i3wm)
