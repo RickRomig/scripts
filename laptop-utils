@@ -24,21 +24,36 @@ else
   exit 1
 fi
 
-## Variables ##
-
-readonly _script=$(basename "$0")
-readonly _version="v1.3.3"
-readonly _updated="10 Jan 2023"
-
 ## Funtions ##
 
-is_installed() {
+main() {
+  _script=$(basename "$0")
+  local _version="v1.4.0"
+  local _updated="16 Jan 2023"
+
+  printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  printf "\U1F4BB Installs laptop specific utilities:\n"
+  printf " * Thermald - monitors and controls temperature.\n"
+  printf " * ACPI - utility to check the state of ACPI devices.\n"
+  printf " * TLP - advanced power management to maximize battery life.\n"
+  printf " * Touchpad Indicator - utility to enable/disable the touchpad.\n\n"
+
+  is_laptop || leave "System is not a laptop. The utilities were not installed."
+
+  install_thermald
+  install_acpi
+  install_tlp
+  install_touchpad_indicator
+  util_status
+}
+
+installed() {
   local package="$1"
   dpkg -l | grep -qw "$package" && return "$TRUE" || return "$FALSE"
 }
 
 install_thermald() {
-  if is_installed thermald; then
+  if installed thermald; then
     printf "Thermald is already installed.\n"
   elif in_repos thermald; then
     user_in_sudo
@@ -50,7 +65,7 @@ install_thermald() {
 }
 
 install_acpi() {
-  if is_installed acpi; then
+  if installed acpi; then
     printf "ACPI is already installed.\n"
   elif in_repos acpi; then
     user_in_sudo
@@ -62,7 +77,7 @@ install_acpi() {
 }
 
 install_tlp() {
-  if is_installed tlp; then
+  if installed tlp; then
     echo "TLP is already installed."
   elif in_repos tlp; then
     user_in_sudo
@@ -75,7 +90,7 @@ install_tlp() {
 }
 
 install_touchpad_indicator() {
-  if is_installed touchpad-indicator; then
+  if installed touchpad-indicator; then
     printf "Touchpad Indicator is already installed.\n"
    elif in_repos touchpad-indicator; then
     user_in_sudo
@@ -112,18 +127,5 @@ util_status() {
 
 ## Execution ##
 
-printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
-printf "\U1F4BB Installs laptop specific utilities:\n"
-printf " * Thermald - monitors and controls temperature.\n"
-printf " * ACPI - utility to check the state of ACPI devices.\n"
-printf " * TLP - advanced power management to maximize battery life.\n"
-printf " * Touchpad Indicator - utility to enable/disable the touchpad.\n\n"
-
-is_laptop || leave "System is not a laptop. The utilities were not installed."
-
-install_thermald
-install_acpi
-install_tlp
-install_touchpad_indicator
-util_status
+main
 exit
