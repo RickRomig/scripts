@@ -28,7 +28,7 @@ fi
 
 main() {
   _script=$(basename "$0")
-  local _version="v1.4.0"
+  local _version="v1.4.1"
   local _updated="16 Jan 2023"
 
   printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
@@ -97,7 +97,7 @@ install_touchpad_indicator() {
     sudo apt-get install touchpad-indicator -yy
     printf "Touchpad Indicator installed.\n"
   else
-    printf "Touchpad Indicator is not installed.\n"
+    printf "Touchpad Indicator is not available.\n"
   fi
 }
 
@@ -108,9 +108,11 @@ tlp_service() {
     sudo systemctl start tlp.service
     sudo systemctl mask systemd-rfkill.service
     sudo systemctl mask systemd-rfkill.socket
+    printf "TLP service enabled and started.\n"
   elif is_sysv; then
     user_in_sudo
     start tlp start
+    printf "TLP service started.\n"
   else
     printf "Init system is not systemd or SysV.\n"
     printf "Manually start the TLP service.\n"
@@ -119,10 +121,10 @@ tlp_service() {
 
 util_status() {
   printf "\nInstalled utilities:\n"
-  is_installed thermald && printf "\tThermald\n"
-  is_installed acpi && printf "\tACPI\n"
-  is_installed tlp && printf "\tTLP\n"
-  is_installed touchpad-indicator && printf "\tTouchpad Indicator\n"
+  installed thermald && printf "\tThermald\n"
+  installed acpi && printf "\tACPI\n"
+  installed tlp && printf "\tTLP\n"
+  installed touchpad-indicator && printf "\tTouchpad Indicator\n"
 }
 
 ## Execution ##
