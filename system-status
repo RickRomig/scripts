@@ -30,20 +30,14 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.4.0"
+readonly _version="0.4.1"
 readonly _updated="16 Jan 2023"
 
 ## Functions ##
 
 check_dependencies() {
   echo "Checking dependencies..."
-  exists sensors || sudo apt-get lm-sensors -yy
-  existd hddtemp || sudo apt-get hddtemp -yy
-}
-
-hdd_temperature() {
-  echo "${orange}Hard drive temperature:${normal}"
-  for disk in /dev/sd[a-z]; do echo "$disk: $(sudo /usr/sbin/hddtemp "$disk" | awk '{print $NF}')"; done
+  [[ -x /usr/bin/sensors ]] || sudo apt-get install lm-sensors -yy
 }
 
 nvme_temperature() {
@@ -65,7 +59,6 @@ cpu_temperature(){
 
 memory_usage() {
   echo "${orange}Memory usage:${normal} $(/usr/bin/free -h | awk '/^Mem:/ {print $3 "/" $2}')"
-  # echo "Memory used: $(/usr/bin/free -h | awk '/^Mem:/ {print $3 "/" $2}')"
   echo -e "Process\t\tPercentage"
   ps axch -o cmd:15,%mem --sort=-%mem | head -n 10
 }
@@ -84,7 +77,6 @@ disk_usage() {
 
 main() {
   check_dependencies
-  [[ -b /dev/sda ]] && user_in_sudo
   clear
   echo "${lightyellow}System Status${normal}"
   echo -e "${orange}Computer name:\t$(uname -n)"
@@ -94,7 +86,6 @@ main() {
   cpu_usage
   cpu_temperature
   [[ -b /dev/nvme0n1 ]] && nvme_temperature
-  [[ -b /dev/sda ]] && hdd_temperature
   disk_usage
   echo $'\n'$"The system has been $(uptime -p)"
   echo $'\n'$"$_script $_version ($_updated)"
