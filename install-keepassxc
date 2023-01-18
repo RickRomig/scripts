@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : install-keepassxc
-# Description  : Installs KeePassXC from Flathub or distro repos
+# Description  : Installs/removes KeePassXC from Flathub or distro repos
 # Dependencies : none
-# Arguments    : -d -f -h -m (see help function)
-# Author       : Copyright (C) 2021 Richard B. Romig, 26 Jan 2021
+# Arguments    : -d -f -h -m -r (see help function)
+# Author       : Copyright (C) 2021, Richard B. Romig, 26 Jan 2021
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     :
 # TODO (Rick)  :
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.3"
-readonly _updated="13 Jan 2023"
+readonly _version="0.3.0"
+readonly _updated="18 Jan 2023"
 readonly rederror="${lightred}ERROR:${normal} "
 
 ## Functions ##
@@ -54,6 +54,23 @@ distro_keepassxc() {
   printf "Keepassxc %s installed from distro repositories.\n" "$(kpxc_ver)"
 }
 
+remove_keepassxc() {
+  user_in_sudo
+  printf "Removing KeePassXC ...\n"
+  if [[ -d "HOME/.var/app/org.keepassxc.KeePassXC" ]]; then
+    sudo flatpak uninstall --noninteractive --assumeyes org.keepassxc.KeePassXC
+  else
+    if support_ppa; then
+      sudo apt-add-repository --remove ppa:phoerious/keepassxc
+      sudo rm /etc/apt/sources.list.d/phoerious-keepassxc-focal.list
+      sudo apt-key del "D89C 66D0 E31F EA28 74EB  D205 6192 2AB6 0068 FCD6"
+    fi
+    sudo apt-get remove --purge keepassxc -yy
+    [[ -d "$HOME/.config/keepassxc" ]] && rm -rf "$HOME/.config/keepassxc"
+  fi
+  printf "KeePassXC removed.\n"
+}
+
 move_vault() {
   local vault_dir="$HOME/Documents"
   printf "Moving password databases to ~/Documents...\n"
@@ -70,6 +87,7 @@ OPTIONS:
   -f  Install KeePassXC from flathub repositories.
   -h  Display help.
   -m  Move password vaults from ~/Documents/mosfanet to ~/Documents.
+  -r  Remove KeePassXC from the system.
 END_HELP
   exit "$errcode"
 }
@@ -82,16 +100,18 @@ if [[ "$#" -eq 0 ]]; then
   printf "%sNo argument passed." "$rederror" >&2
   help 1
 else
-  optstr=":dfhm"
+  optstr=":dfhmr"
   while getopts "$optstr" opt; do
     case "$opt" in
       d )
         exists keepassxc && leave "KeePassXC $(kpxc_ver) already installed."
+        flatpak list | grep -qw KeePassXC && leave "KeePassXC $(keepass_ver) flatpak installed."
         distro_keepassxc
         ;;
       f )
-        exist flatpak || leave "Flatpak is not installed."
+        exists flatpak || leave "Flatpak is not installed."
         flatpak list | grep -qw KeePassXC && leave "KeePassXC $(keepass_ver) flatpak installed."
+        exists keepassxc && remove_keepassxc
         flathub_keepassxc
         ;;
       h )
@@ -100,9 +120,17 @@ else
       m )
         move_vault
         ;;
+      r )
+        if exists keepassxc || flatpak list | grep -qw KeePassXC; then
+          remove_keepassxc
+        else
+          leave "KeePassXC is not installed."
+        fi
+        ;;
       ? )
         printf "%sInvalid option -%s\n" "$rederror" "$OPTARG" >&2
         help 2
     esac
   done
 fi
+exit
