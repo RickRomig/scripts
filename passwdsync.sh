@@ -4,10 +4,10 @@
 # Description  : syncs password databases with Dropbox folder
 # Dependencies : none
 # Arguments    : none
-# Author       : Richard B. Romig, 19 August 2020
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2020, Richard B. Romig, 19 August 2020
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : run as a local daily cron job
-# Version      : 0.4.6, updated 10 Jan 2023
+# Version      : 0.4.7, updated 19 Jan 2023
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -29,12 +29,11 @@ log_file="password-db.log"
   else
     printf "%s" "unchanged"
   fi
-  printf "|"
   if [ "$dbox_dir/Passwords.kdbx" -ot "$mstr_dir/Passwords.kdbx" ]; then
     cp -p "$mstr_dir/Passwords.kdbx" "$mstr_dir/Passwords.old.kdbx" "$dbox_dir/"
-    printf "updated\n"
+    printf "|updated\n"
   else
-    printf "unchanged\n"
+    printf "|unchanged\n"
   fi
 } >> "$log_dir/$log_file"
 
