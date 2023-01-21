@@ -7,7 +7,7 @@
 # Author       : Cepyright (C) 2019, Richard B. Romig, 16 July 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     :
-# TODO (rick)  :
+# TODO (rick)  : create functions
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.4.9"
-readonly _updated="15 Jan 2023"
+readonly _version="0.4.10"
+readonly _updated="21 Jan 2023"
 readonly lhost=$HOSTNAME
 # Configuration directories
 readonly atom_dir=$HOME"/.local/share/atom"
@@ -358,14 +358,24 @@ elif [[ -f "$i3_dir/config" ]]; then
   cp -pv "$i3_dir/config" "$bu_dir/i3/" && (( count++ ))
 fi
 
-# Backup i3 sxhkdrc
-f [[ -f "$i3_dir/sxhkd/sxhkdrc" && -f "$bu_dir/i3/sxhkd/sxhkdrc" ]]; then
+# Backup sxhkdrc (i3wm)
+if [[ -f "$i3_dir/sxhkd/sxhkdrc" && -f "$bu_dir/i3/sxhkd/sxhkdrc" ]]; then
   if [[ "$bu_dir/i3/sxhkd/sxhkdrc" -ot "$i3_dir/sxhkd/sxhkdrc" ]]; then
     cp -puv "$i3_dir/sxhkd/sxhkdrc" "$bu_dir/i3/sxhkd/sxhkdrc" && (( count++ ))
   fi
 elif [[ -f "$i3_dir/sxhkd/sxhkdrc" ]]; then
   [[ -d "$bu_dir/i3sxhkd/sxhkdrc" ]] || mkdir -p "$bu_dir/i3/sxhkd"
   cp -pv "$i3_dir/sxhkd/sxhkdrc" "$bu_dir/i3/sxhkd/" && (( count++ ))
+fi
+
+# Backup bar.conf (i3-gaps)
+if [[ -f "$i3_dir/bar.conf" && -f "$bu_dir/i3/bar.conf" ]]; then
+  if [[ "$bu_dir/i3/bar.conf" -ot "$i3_dir/bar.conf" ]]; then
+    cp -pv "$i3_dir/bar.conf" "$bu_dir/i3/" && (( count++ ))
+  fi 
+elif [[ -f "$i3_dir/bar.conf" ]]; then
+  [[ -d "$bu_dir/i3" ]] || mkdir -p "$bu_dir/i3"
+  cp -pv "$i3_dir/bar.conf" "$bu_dir/i3/" && (( count++ ))
 fi
 
 # Backup i3status.conf (i3wm)
@@ -388,14 +398,24 @@ elif [[ -f "$rofi_dir/config.rasi" ]]; then
   cp -pv "$rofi_dir/config.rasi" "$bu_dir/rofi/" && (( count++ ))
 fi
 
-# Backup Arc-Dark.rasi (i3wm)
-if [[ -f "$rofi_dir/Arc-Dark.rasi" && -f "$bu_dir/rofi/Arc-Dark.rasi" ]]; then
-  if [[ "$bu_dir/rofi/Arc-Dark.rasi" -ot "$rofi_dir/Arc-Dark.rasi" ]]; then
-    cp -puv "$rofi_dir/Arc-Dark.rasi" "$bu_dir/rofi/" && (( count++ ))
+# Backup arc_dark_colors.rasi (i3wm)
+if [[ -f "$rofi_dir/arc_dark_colors.rasi" && -f "$bu_dir/rofi/arc_dark_colors.rasi" ]]; then
+  if [[ "$bu_dir/rofi/arc_dark_colors.rasi" -ot "$rofi_dir/arc_dark_colors.rasi" ]]; then
+    cp -puv "$rofi_dir/arc_dark_colors.rasi" "$bu_dir/rofi/" && (( count++ ))
   fi
-elif [[ -f "$rofi_dir/Arc-Dark.rasi" ]]; then
+elif [[ -f "$rofi_dir/arc_dark_colors.rasi" ]]; then
   [[ -d "$bu_dir/rofi" ]] || mkdir -p "$bu_dir/rofi"
-  cp -pv "$rofi_dir/Arc-Dark.rasi" "$bu_dir/rofi/" && (( count++ ))
+  cp -pv "$rofi_dir/arc_dark_colors.rasi" "$bu_dir/rofi/" && (( count++ ))
+fi
+
+# Backup arc_dark_transparent_colors.rasi (i3wm)
+if [[ -f "$rofi_dir/arc_dark_transparent_colors.rasi" && -f "$bu_dir/rofi/arc_dark_transparent_colors.rasi" ]]; then
+  if [[ "$bu_dir/rofi/arc_dark_transparent_colors.rasi" -ot "$rofi_dir/arc_dark_transparent_colors.rasi" ]]; then
+    cp -puv "$rofi_dir/arc_dark_transparent_colors.rasi" "$bu_dir/rofi/" && (( count++ ))
+  fi
+elif [[ -f "$rofi_dir/arc_dark_transparent_colors.rasi" ]]; then
+  [[ -d "$bu_dir/rofi" ]] || mkdir -p "$bu_dir/rofi"
+  cp -pv "$rofi_dir/arc_dark_transparent_colors.rasi" "$bu_dir/rofi/" && (( count++ ))
 fi
 
 # Backup VSCodium settings
