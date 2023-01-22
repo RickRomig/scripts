@@ -4,9 +4,9 @@
 # Description  : mounts/unmounts USB backup drive if not auto-detected.
 # Dependencies : none
 # Arguments    : [-h] [-m] [-s] [-u] (See help function)
-# Author       : Copyright Richard B. Romig, 04 Jul 2022
-# Email        : rick.romig@gmail.com
-# Comments     : For use with Joe Collions BU backup script.
+# Author       : Copyright (C) 2022, Richard B. Romig, 04 Jul 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : For use with Joe Collins' BU backup script.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.1"
-readonly _updated="10 Oct 2022"
+readonly _version="0.2.2"
+readonly _updated="22 Jan 2023"
 readonly mount_location="/media/rick/BU_Drive"
 
 ## Functions ##
@@ -40,7 +40,7 @@ mount_bu() {
   [[ -z "$usbdrv" ]] && leave "Operation canceled."
   user_in_sudo
   printf "Mounting %s to %s ...\n" "$usbdrv" "$mount_location"
-  [[ -d "$mount_location" ]] || mkdir -p "$mount_location"
+  [[ -d "$mount_location" ]] || sudo mkdir -p "$mount_location"
   sudo mount /dev/"$usbdrv" "$mount_location"
   printf "%s is mounted at %s\n" "$usbdrv" "$(lsblk | awk '/BU_Drive/ {print $NF}')"
 }
