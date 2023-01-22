@@ -38,8 +38,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="1.4.8"
-readonly _updated="16 Jan 2023"
+readonly _version="1.4.9"
+readonly _updated="21 Jan 2023"
 
 ## Functions ##
 
@@ -137,7 +137,7 @@ sync_one() {
 
   if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
     case $hostip in
-      1|2|3|4|5|6|7|8|9 )
+      1|2|4|5|6|7|8|9 )
         echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted address."
         echo -e " Access denied.\n"; exit ;;
       * )
@@ -162,7 +162,7 @@ sync_some() {
     if [[ "$hostip" -eq "$hostip" ]] 2>/dev/null; then
       if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
         case "$hostip" in
-          1|2|3|4|5|6|7|8|9 )
+          1|2|4|5|6|7|8|9 )
             echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted"
             echo -e " address. Access denied.\n" ;;
           * )
@@ -189,7 +189,7 @@ sync_some() {
 sync_all() {
   echo -e "Synchronizing bin and template directories with all systems on the local network.\n"
 
-  octets=(10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 227)
+  octets=(3 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 227)
   for hostip in "${octets[@]}"; do transfer; done
   all_done
 }
