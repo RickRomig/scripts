@@ -5,31 +5,10 @@
 #              : displays latest versions with currently installed versions.
 # Dependencies : curl
 # Arguments    : none
-# Author       : Richard B. Romig, 24 Aug 2021
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2021, Richard B. Romig, 24 Aug 2021
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Apps checked: atom, bat, ddgr, glow, marktext, micro, pulsar, vscodium
 #              : Ignores Beta and Release Candidate versions in GitHub releases.
-# 24 Feb 2022  : Adjustment for package & new version >= 8 characters.
-# 01 Mar 2022  : Fixed new_ver function to get 7th field of download URL.
-# 10 Mar 2022  : Formatted output using printf width specifiers.
-# 12 May 2022  : Added sed command to current version routine for micro.
-# 16 May 2022  : Added sed command to current version routine for bat & glow.
-# 20 Jun 2022  : Added Atom Editor to applications to check.
-# 16 Jul 2022  : Added VSCodium Editor to applications to check.
-# 17 Aug 2022  : Modified prntf width specifiers to allow longer version numbers.
-# 28 Aug 2022  : Modified variables for GitHub releases URLs.
-# 11 Sep 2022  : Added Cascadia-Code-fonts to applications to check.
-# 12 Sep 2022  : Removed Cascadia-Code-Fonts and Stacer from applications to check.
-# 13 Sep 2022  : Removed ddgr and glow from applications to check.
-# 30 Sep 2022  : Moved script, version, update variables to main function.
-# 08 Dec 2022  : Added Pulsar (Atem fork) to array and get_versions function.
-# 08 Dec 2022  : Cleaned up printf statements. Prints "No release" if none available.
-# 26 Dec 2022  : Initialized new_ver variable to "Not found" get_versions function.
-# 01 Jan 2023  : Added function for versions of distro installed packages.
-# 01 Jan 2023  : Moved array and variables into get_versions function.
-# 02 Jan 2023  : Removed underline attributes.
-# 04 Jan 2023  : Added bluefish editor to deb_packages.
-# 20 Jan 2023  : Removed Atom and Pulsar from array in get_versions function.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -103,7 +82,7 @@ get_versions() {
     fi
     # Print current installed version.
     if [[ -z "$cur_ver" ]]; then
-      printf "%s%s\n" "${red}" "not installed"
+      printf "%s%s\n" "${gray}" "not installed"
     elif [[ "$new_ver" == "$cur_ver" ]]; then
       printf "%s%s\n" "${gray}" "$cur_ver"
     else
@@ -118,7 +97,7 @@ deb_versions() {
   printf "Apt Pacakages\n"
 	printf "%-15s%s\n" "Package" "Version"
 	for debpkg in "${debpkgs[@]}"; do
-		printf "%s%-15s" "${gray}" "${debpkg^}"
+		printf "%s%-15s%s" "${darkgray}" "${debpkg^}" "${gray}"
 		if exists "$debpkg"; then
 			case "$debpkg" in
         bluefish )
@@ -145,8 +124,8 @@ deb_versions() {
 
 main() {
   _script=$(basename "$0")
-  local _version="0.8.4"
-  local _updated="20 Jan 2023"
+  local _version="0.8.5"
+  local _updated="23 Jan 2023"
   clear
   printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Newest & installed versions of select programs.\n\n"
