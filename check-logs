@@ -27,29 +27,29 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.6.1"
-readonly _updated="12 Jan 2023"
+readonly _version="0.6.2"
+readonly _updated="24 Jan 2023"
 readonly lhost=$HOSTNAME
 
 ## Functions ##
 
 sysinfo() {
-  clear
   if [[ -f "$HOME/$lhost.info" ]]; then
+    clear
     viewtext "$HOME/$lhost.info"
   else
-    echo -e "${orange}$HOME/$lhost.info not found on this system.${normal}\n"
+    echo -e "\n${orange}$HOME/$lhost.info not found on this system.${normal}\n"
   fi
 }
 
 updates() {
   local update_log="/var/log/update.log"
-  clear
   if [[ -f "$update_log" ]]; then
+    clear
     echo -e "${lightgreen}$lhost - Most recent unattended system update:${normal}\n"
     viewtext "$update_log"
   else
-    echo "${orange}The system update log does not exist on $lhost.${normal}"
+    echo $'\n'$"${orange}The system update log does not exist on $lhost.${normal}"
     echo -n "The job is"
     if [[ -x "/etc/cron.weekly/z-update" || -x "/opt/bin/z-update" ]]; then
       echo -e " scheduled but has not run.\n"
@@ -60,7 +60,6 @@ updates() {
 }
 
 timeshift_snapshots() {
-  clear
   if exists timeshift; then
     if pgrep timeshift > /dev/null 2>&1; then
       echo -e "${orange}Timeshift is currently running.${normal} Try again later.\n"
@@ -71,18 +70,18 @@ timeshift_snapshots() {
       sudo timeshift --list | awk 'NR!=1 && NR!=3' 2>/dev/null
     fi
   else
-    echo -e "${orange}Timeshift is not installed on $lhost.${normal}\n"
+    echo -e "\n${orange}Timeshift is not installed on $lhost.${normal}\n"
   fi
 }
 
 defrag_log() {
   local defrag_log="/var/log/defrag.log"
-  clear
   if [[ -f "$defrag_log" ]]; then
+    clear
     echo -e "${lightgreen}$lhost - Defragmentation report:${normal}\n"
     viewtext "$defrag_log"
   else
-    echo "${orange}The defragmentation report does not exist on $lhost.${normal}"
+    echo $'\n'$"${orange}The defragmentation report does not exist on $lhost.${normal}"
     echo -n "The job is"
     if [[ -x "/etc/cron.monthly/z-defrag" || -x "/opt/bin/z-defrag" ]]; then
       echo -e " scheduled but has not run.\n"
@@ -94,15 +93,15 @@ defrag_log() {
 
 ytdlupdate_log() {
   local ytdlupdate_log="/var/log/ytdlup.log"
-  clear
   if [[ -f "$ytdlupdate_log" ]]; then
+    clear
     echo -e "${lightgreen}$lhost - Youtube-dl Update Log:${normal}\n"
 		(printf "DATE|TIME|STATUS|VERSION\n"; cat "$ytdlupdate_log") | column -ts "|"
     print_line "-" "41"
     entries=$(wc -l "$ytdlupdate_log" | cut -d' ' -f1)
     (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
   else
-    echo "${orange}The youtube-dl update log does not exist on $lhost.${normal}"
+    echo $'\n'$"${orange}The youtube-dl update log does not exist on $lhost.${normal}"
     echo -n "The job is"
     if [[ -x "/etc/cron.daily/z-ytdlupdate" || -x "/opt/bin/z-ytdlupdate" ]]; then
       echo -e " scheduled but has not run.\n"
@@ -115,15 +114,15 @@ ytdlupdate_log() {
 script_archive_log() {
   local log_dir="$HOME/.local/share/logs"
 	local script_log="script-archive.log"
-  clear
   if [[ -f "$log_dir/$script_log" ]]; then
+    clear
     echo -e "${lightgreen}$lhost - Bash Script Archive Log:${normal}\n"
 		(printf "DAY|DATE|TIME|RESULT\n"; cat "$log_dir/$script_log") | column -ts "|"
     print_line "-" "34"
     entries=$(wc -l "$log_dir/$script_log" | cut -d' ' -f1)
     (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
   else
-    echo "${orange}The bash script archive log does not exist on $lhost.${normal}"
+    echo $'\n'$"${orange}The bash script archive log does not exist on $lhost.${normal}"
     echo -n "The job is"
     if [[ -x "$HOME/.local/bin/scriptarchive.sh" ]]; then
       echo -e " scheduled but has not run.\n"
@@ -136,15 +135,15 @@ script_archive_log() {
 password_log() {
   local log_dir="$HOME/.local/share/logs"
   local pw_log="password-db.log"
-  clear
   if [[ -f "$log_dir/$pw_log" ]]; then
+    clear
     echo -e "${lightgreen}$lhost - Password Database Change Log:${normal}\n"
     (printf "DATE|TIME|P.GORILLA|KEEPASSXC\n"; cat "$log_dir/$pw_log") | column -ts "|"
     print_line "-" "39"
     entries=$(wc -l "$log_dir/$pw_log" | cut -d' ' -f1)
     (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
   else
-    echo "${orange}The Password Database Change Log does not exist on $lhost.${normal}"
+    echo $'\n'$"${orange}The Password Database Change Log does not exist on $lhost.${normal}"
     echo -n "The job is"
     if [[ -x "$HOME/.local/bin/passwdsync.sh" ]]; then
       echo -e " scheduled but has not run.\n"
@@ -157,15 +156,15 @@ password_log() {
 homebank_log() {
   local log_dir="$HOME/.local/share/logs"
 	local bank_log="HomeBank-archive.log"
-  clear
   if [[ -f "$log_dir/$bank_log" ]]; then
+    clear
     echo -e "${lightgreen}$lhost - HomeBank Archive Log:${normal}\n"
     (printf "DAY|DATE|TIME|ARCHIVE|RESULT\n"; cat "$log_dir/$bank_log") | column -ts "|"
     print_line "-" "43"
     entries=$(wc -l "$log_dir/$bank_log" | cut -d' ' -f1)
     (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
   else
-    echo "${orange}The HomeBank archive log does not exist on $lhost.${normal}"
+    echo $'\n'$"${orange}The HomeBank archive log does not exist on $lhost.${normal}"
     echo -n "The job is"
     if [[ -x "$HOME/.local/bin/hb-archive.sh" ]]; then
       echo -e " scheduled but has not run.\n"
@@ -177,15 +176,15 @@ homebank_log() {
 
 local_backup_log() {
   local backup_log="/var/log/backup.log"
-  clear
   if [[ -f "$backup_log" ]]; then
+    clear
     echo -e "${lightgreen}$lhost - Local Backup Log:${normal}\n"
 		(printf "DAY|DATE|TIME|RESULT\n"; cat "$backup_log") | column -ts "|"
     print_line "-" "34"
     entries=$(wc -l "$backup_log" | cut -d' ' -f1)
     (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
   else
-    echo "${orange}The local backup log does not exist on $lhost.${normal}"
+    echo $'\n'$"${orange}The local backup log does not exist on $lhost.${normal}"
     echo -n "The job is"
     if [[ -x "/etc/cron.daily/z-backup" || -x "/opt/bin/z-backup" ]]; then
       echo -e " scheduled but has not run.\n"
