@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.5"
-readonly _updated="16 Jan 2023"
+readonly _version="0.2.6"
+readonly _updated="27 Jan 2023"
 readonly config_dir="$HOME/.config/scripts"
 readonly config_file="$_script.conf"
 readonly local_host="$(uname -n)"
@@ -91,6 +91,11 @@ sync_fin() {
 
   echo  $'\n'$"${orange}Syncing HomeBank Archives..${normal}"
   rsync -avzh --delete /home/"$USER"/Downloads/archives/homebank/ "$localnet.$main_ip":Downloads/archives/homebank/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Todo List...${normal}"
+  rsync -avzh --delete /home/"$USER"/.local/share/doc/todo.lst "$localnet.$main_ip":.local/share/doc/
   exit_status="$?"
   transfer_status "$exit_status"
 }
