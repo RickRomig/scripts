@@ -6,7 +6,7 @@ set -e
 # Do not run on an SSD.
 # Place in /etc/cron.monthly/ for anacron.
 # Place in /usr/local/bin/ or /opt/bin/ for cron.
-# Last updated: 16 Jan 2023
+# Last updated: 27 Jan 2023
 # License : GNU General Public License, version 2.0
 
 log_dir="/var/log"
@@ -35,5 +35,6 @@ host_name=$(/usr/bin/uname -n)
   esac
 	printf "\n"
 } > "$log_dir/$log_file" 2>&1
-sed -i '/^e4defrag/d;/^ Done/d' "$log_dir/$log_file"
+# Cleanup log file.
+sed -i '/^e4defrag/d;/0-30/d;/^ Done/d' "$log_dir/$log_file"
 exit
