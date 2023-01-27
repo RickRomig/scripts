@@ -4,21 +4,12 @@
 # Description  : check for updates and install if necessary.
 # Dependencies : none
 # Arguments    : none
-# Author       : Copyright (C) 2018 Richard Romig, 08 December 2018
+# Author       : Copyright (C) 2018, Richard Romig, 08 December 2018
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
-# 15 Dec 2020  : added Flatpak updates.
-# 10 Jul 2021  : added purge of old kernel config files
-# 14 Jul 2021  : fixed purge routine with a for-loop
-# 17 Jul 2021  : changed the order of cleanup operations
-# 21 Jul 2021  : added conditional if no '^rc' packages found.
-# 21 Jul 2021  : placed purge routine in a separate function.
-# 01 Sep 2021  : commented out line to check for flatpak updates.
-# 09 Nov 2021  : reverted from single line purge routine to a for loop.
-# 12 Jan 2023  : reenabled & removed extra new-line from update_flatpak function.
-# TODO (rick)  :
+## TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -40,8 +31,8 @@ set -euo pipefail
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="1.5.11"
-readonly _updated="12 Jan 2023"
+readonly _version="1.5.12"
+readonly _updated="26 Jan 2023"
 
 ## Functions ##
 
@@ -88,7 +79,7 @@ defer_updates() {
 
 update_flatpak() {
   echo "${orange}Flatpak:${normal} "
-  sudo flatpak update --noninteractive --force-remove --assumeyes
+  flatpak update --noninteractive --force-remove --assumeyes
   printf "\n"
 }
 
