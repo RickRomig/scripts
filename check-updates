@@ -31,7 +31,7 @@ set -euo pipefail
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="1.6.0"
+readonly _version="1.6.1"
 readonly _updated="28 Jan 2023"
 
 ## Functions ##
@@ -78,8 +78,10 @@ defer_updates() {
 }
 
 update_flatpak() {
-  echo "${orange}Flatpak:${normal} "
+  echo "${orange}Flatpak:${normal}"
+  echo "User installations..."
   flatpak update --user --noninteractive --force-remove --assumeyes
+  echo "System-mide installations..."
   sudo flatpak update --system --noninteractive --force-remove --assumeyes
   printf "\n"
 }
