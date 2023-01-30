@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.4.10"
-readonly _updated="21 Jan 2023"
+readonly _version="0.4.11"
+readonly _updated="30 Jan 2023"
 readonly lhost=$HOSTNAME
 # Configuration directories
 readonly atom_dir=$HOME"/.local/share/atom"
@@ -376,6 +376,16 @@ if [[ -f "$i3_dir/bar.conf" && -f "$bu_dir/i3/bar.conf" ]]; then
 elif [[ -f "$i3_dir/bar.conf" ]]; then
   [[ -d "$bu_dir/i3" ]] || mkdir -p "$bu_dir/i3"
   cp -pv "$i3_dir/bar.conf" "$bu_dir/i3/" && (( count++ ))
+fi
+
+# Backup workspaces.conf (i3wm)
+if [[ -f "$i3_dir/workspaces.conf" && -f "$bu_dir/i3/workspaces.conf" ]]; then
+  if [[ "$bu_dir/i3/workspaces.conf" -ot "$i3_dir/workspaces.conf" ]]; then
+    cp -pv "$i3_dir/workspaces.conf" "$bu_dir/i3/" && (( count++ ))
+  fi
+elif [[ -f "$i3_dir/workspaces.conf" ]]; then
+  [[ -d "$bu_dir/i3" ]] || mkdir -p "$bu_dir/i3"
+  cp -pv cp -pv "$i3_dir/workspaces.conf" "$bu_dir/i3/" && (( count++ ))
 fi
 
 # Backup i3status.conf (i3wm)
