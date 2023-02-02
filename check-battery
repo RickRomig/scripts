@@ -31,8 +31,8 @@ fi
 ## Variables ##
 
 readonly _script=$(basename "$0")
-readonly _version="0.2.13"
-readonly _updated="17 Aug 2022"
+readonly _version="0.2.14"
+readonly _updated="02 Feb 2023"
 
 ## Functions ##
 
@@ -119,7 +119,7 @@ ac_status() {
 
 hidpp_battery() {
   echo $'\n'$"${orange}HID++ Battery:${normal}"
-  if /usr/bin/upower -e | grep mouse_hidpp_battery; then
+  if /usr/bin/upower -e | grep -q mouse_hidpp_battery; then
     hidpp_data=$(mktemp) || die "Failed to create temporary file." 1
     /usr/bin/upower -i "$(/usr/bin/upower -e | grep hidpp)" > "$hidpp_data"
     echo "    Device: $(awk '/native-path/ {print $NF}' "$hidpp_data")"
