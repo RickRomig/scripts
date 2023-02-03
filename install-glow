@@ -2,27 +2,11 @@
 ##########################################################################
 # Script Name  : install-glow
 # Description  : Installs, updates, and removes the Glow markdown reader.
-# Dependencies : curl, gdebi, wget
+# Dependencies : curl, gdebi
 # Arguments    : [-h] [-i] [-r] (See help function)
-# Author       : Copyright (C) Richard B. Romig, 10 Jan 2022
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2022, Richard B. Romig, 10 Jan 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     :
-# 30 Jan 2022  : Added confirmation for install/update.
-# 15 Feb 2022  : Changed method for `new_ver` variable assignment.
-# 22 Feb 2022  : Incorporated `getopts` to process options.
-# 01 Mar 2022  : Fixed new_ver function to get 7th field of download URL.
-# 11 Mar 2022  : Added function to extract installed version of glow.
-# 29 Mar 2022  : Added $OPTARG to Invalid option message.
-# 05 May 2022  : Replaced curl with wget for consistency.
-# 12 May 2022  : Added optstr and opt variables to getopts routine.
-# 01 Sep 2022  : -u option updates installed version only. Does not do initial install.
-# 02 Sep 2022  : Removed confirm_install, unnecessary.
-# 07 Sep 2022  : Moved existence checks out of functions to getopts.
-# 13 Sep 2022  : Changed install/remove methods due to changes by developer.
-# 06 Oct 2022  : Changed code for charm.list and trusted key per developer change.
-# 27 Oct 2022  : Changed test if glow is installed to a local function.
-# 28 Oct 2022  : Added function to apply charm.list & gpg key.
-# 23 Dec 2022  : Updated src_gpg function
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -42,9 +26,9 @@ fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="0.4.6"
-readonly _updated="23 Dec 2022"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.4.7"
+readonly _updated="03 Feb 2023"
 readonly src_list="/etc/apt/sources.list.d/charm.list"
 readonly keyring_dir="/etc/apt/keyrings"
 
@@ -78,7 +62,8 @@ glow_ver() {
 }
 
 check_dependencies() {
-  check_package curl
+  local packages=( curl gdebi )
+  check_packages "${packages[@]}"
 }
 
 exists_glow() {
