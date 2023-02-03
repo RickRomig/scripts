@@ -2,26 +2,11 @@
 ##########################################################################
 # Script Name  : iru-marktext
 # Description  : Installs, updates, and removes the Mark Text markdown editor.
-# Dependencies : curl, gdebi, wget
+# Dependencies : gdebi, wget
 # Arguments    : [-h] [-i] [-r] [-u] (See help function)
-# Author       : Richard B. Romig, 10 Jan 2022
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2022, Richard B. Romig, 10 Jan 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     :
-# 30 Jan 2022  : Added confirmation for install/update.
-# 15 Feb 2022  : Changed method for `new_ver` variable assignment.
-# 22 Feb 2022  : Incorporated `getopts` to process options.
-# 01 Mar 2022  : Fixed new_ver function to get 7th field of download URL.
-# 07 Mar 2022  : Added line to purge config files after removing marktext.
-# 08 Mar 2022  : Filters out release candidates from new versions.
-# 10 Mar 2022  : Remove ~/.config/marktext/ after removing application.
-# 11 Mar 2022  : Added function to extract installed marktext version.
-# 29 Mar 2022  : Added $OPTARG to Invalid option message.
-# 05 May 2022  : Replaced curl with wget for consistency.
-# 12 May 2022  : Added optstr and opt variables to getopts routine.
-# 01 Sep 2022  : -u option updates installed version only. Does not do initial install.
-# 02 Sep 2022  : Removed confirm_install, unnecessary.
-# 07 Sep 2022  : Moved existence checks out of functions to getopts.
-# 18 Nov 2022  : Renamed install, remove, and version functions.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -41,9 +26,9 @@ fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="0.3.2"
-readonly _updated="11 Jan 2023"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.3.3"
+readonly _updated="03 Feb 2023"
 readonly url="https://github.com/marktext/marktext/releases"
 
 ## Functions ##
@@ -54,9 +39,8 @@ cleanup() {
 }
 
 check_dependencies() {
-  # check_package curl
-  check_package wget
-  check_package gdebi
+  local packages=( gdebi wget )
+  check_packages "${packages[@]}"
 }
 
 marktext_version() {
