@@ -2,12 +2,12 @@
 ################################################################################
 # Script Name  : install-conky
 # Description  : Install and configure Conky
-# Dependencies : upower, wget
+# Dependencies : network-manager, upower, wget
 # Arguments    : None
-# Author       : Richard Romig, 26 December 2018
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2018, Richard Romig, 26 December 2018
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comment      : copies .conkyrc to conkyrc-hostname for archiving purposes.
-# TODO (rick)  : Look at if statements in functions.
+# TODO (rick)  : 
 # License      : GNU General Public License, version 2
 ###############################################################################
 
@@ -26,9 +26,9 @@ fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="0.5.4"
-readonly _updated="11 Oct 2022"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.5.5"
+readonly _updated="03 Feb 2023"
 readonly template_dir="$HOME/bin/Templates"
 
 readonly hname=$HOSTNAME
@@ -36,8 +36,8 @@ readonly hname=$HOSTNAME
 ## Functions ##
 
 check_dependencies() {
-  check_package upower
-  check_package wget
+  local packages=( network-manager upower wget )
+  check_packages "${packages[@]}"
 }
 
 cfg_desktop() {
