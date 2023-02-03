@@ -4,7 +4,7 @@
 # Description  : Installs, updates, removes youtube-dl from yt-dl.org
 # Dependencies : curl, ffmpeg, atomicparsley, ytdluplog.sed, z-ytupdate
 # Arguments    : -h -i -r -u (see help function for more information)
-# Author       : Copyright Richard B. Romig, 02 Oct 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, 02 Oct 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Consolidation of install-ytdl and remove-yt-dl scripts.
 #              : Removes distro repo version if installed.
@@ -27,38 +27,54 @@ fi
 
 ## Global Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="0.1.2"
-readonly _updated="18 Nov 2022"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.1.3"
+readonly _updated="03 Feb 2023"
 readonly red_error="${lightred}ERROR:${normal}"
-# Installation variables
-readonly ytdl_prg="youtube-dl"
-readonly update_script="z-ytdlupdate"
-readonly sed_file="ytdluplog.sed"
-readonly script_dir="$HOME/bin"
-readonly sed_dir="/$HOME/bin/files/"
-readonly ytdl_location="/usr/local/bin/"
-readonly sed_location="/usr/share/misc"
-readonly cron_location="/etc/cron.daily"
+readonly config_dir="$HOME/.config/scripts"
+readonly config_file="$_script.conf"
 
 ## Functions ##
 
+create_config() {
+	[[ -d "$config_dir" ]] || mkdir -p "$config_dir"
+	printf "Complete all fields\n"
+	read -rp "Program name: " ytdl_prg
+	read -rp "Update script: " update_script
+	read -rp "Update sed file: " sed_file
+	read -rp "Update source directory: " script_dir
+	read -rp "sed source directory: " sed_dir
+	read -rp "Program location: " ytdl_location
+	read -rp "sed file location: " sed_location
+	read -rp "cron job location: " cron_location
+	echo "
+	ytdl_prg='$ytdl_prg'
+	update_script='$update_script'
+	sed_file='$sed_file'
+	script_dir='$script_dir'
+	sed_dir='$sed_dir'
+	ytdl_location='$ytdl_location'
+	sed_location='$sed_location'
+	cron_location='$cron_location'
+	" > "$config_dir/$config_file"
+}
+
 check_dependencies() {
-  check_package curl
-	check_package ffmpeg
-  check_package ffmpeg-doc
-	check_package atomicparsley
+  local packages=( atomicparsley curl ffmpeg ffmpeg-doc )
+  check_packages "${packages[@]}"
 	[[ -x "$script_dir/$update_script" ]] || die "$update_script not found." 1
 	[[ -f "$sed_dir/$sed_file" ]] || die "$sed_file not found." 1
 }
 
 ytdl_version() {
-  /usr/local/bin/youtube-dl --version
+  # /usr/local/bin/youtube-dl --version
+	"$ytdl_location/$ytdl_prg" --version
 }
 
 update_youtubedl() {
-	printf "Updating youtube-dl %s\n" "$(ytdl_ver)"
-  sudo /usr/local/bin/youtube-dl --update
+	printf "Updating youtube-dl ...\n"
+  # sudo /usr/local/bin/youtube-dl --update
+	"$ytdl_location/$ytdl_prg" --update
 }
 
 install_youtubedl() {
@@ -166,6 +182,10 @@ EOF
 ## Execution ##
 
 # clear
+# Create/source installation script config file.
+[[ -f "$config_dir/$config_file" ]] || create_config
+source "$config_dir/$config_file"
+
 if [[ "$#" -eq 0 ]]; then
 	printf "%s No argument passed.\n" "$red_error"  >&2
 	help 1
