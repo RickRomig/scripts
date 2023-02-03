@@ -58,7 +58,7 @@ while true; do
 
   # Selected image folder
   sel_dir=$(basename "$pic_dir")
-  [[ "$sel_dir" == "unsorted" ]] && continue
+  [[ "$sel_dir" == "unsorted" || "$sel_dir" == "wallpaper"  ]] && continue
 
   # Choose a random image file from the selected folder
   random_file=$(shuf -en1 "$pic_dir"*)
@@ -80,7 +80,7 @@ while true; do
   echo -e "Selects a random image from ~/Pictures\n"
   echo "${blue}Selected image: ${orange}$sel_dir/$pic_file${normal}"
   cp -p "$pic_dir$pic_file" "$tmp_dir"
-  /usr/bin/display "$tmp_dir/$pic_file" &
+  /usr/bin/display -geometry +600+20 "$tmp_dir/$pic_file" &
   pic_pid="$!"
   echo $'\n'$"${blue}Image file options:${normal}"
   COLUMNS=12
