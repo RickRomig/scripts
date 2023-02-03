@@ -29,17 +29,15 @@ fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="0.4.2"
-readonly _updated="11 Oct 2022"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.4.3"
+readonly _updated="03 Feb 2023"
 
 ## Functions ##
 
 check_dependencies() {
-  check_package avahi-daemon
-  check_package avahi-utils
-  check_package libnss-mdns
-  check_package iputils-arping
+  local packages=( avahi-daemon avahi-utils libnss-mdns iputils-arping )
+  check_packages "${packages[@]}"
 }
 
 arping_check() {
@@ -58,7 +56,7 @@ scan_static_addresses() {
         case $ip_addr in
           "192.168.0.1" ) printf "\tGateway (TP Link AC1750)\n" ;;
           "192.168.0.2" ) printf "\tD-Link AP\n" ;;
-          "192.168.0.3" ) printf "\tBelkin N600\n" ;;
+          "192.168.0.3" ) printf "\hp-8300 (Network test)\n" ;;
           "192.168.0.4" ) printf "\tNASD97167 (QNAP NAS)\n" ;;
           "192.168.0.5" ) printf "\tunassigned ip\n" ;;
           "192.168.0.6" ) printf "\tRaspberry Pi 4\n" ;;
