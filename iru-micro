@@ -4,24 +4,9 @@
 # Description  : Installs, updates, and removes the Micro CLI text editor.
 # Dependencies : gdebi, wget
 # Arguments    : [-b] [-h] [-i] [-r] [-s] [-u] (See help function)
-# Author       : Richard B. Romig, 10 Jan 2022
-# Email        : rick.romig@gmail.com
-# Comments     :
-# 30 Jan 2022  : Added confirmation for install/update.
-# 31 Jan 2022  : Added softwrap, wordwrap options to settings.json
-#              : Added options to write settings & key binding configurations.
-# 15 Feb 2022  : Changed method for `new_ver` variable assignment.
-# 01 Mar 2022  : Fixed new_ver function to get 7th field of download URL.
-# 11 Mar 2022  : Added function to extract installed version of micro.
-# 29 Mar 2022  : Added $OPTARG to Invalid option message.
-# 05 May 2022  : Replaced curl with wget for consistency.
-# 12 May 2022  : Added optstr and opt variables to getopts routine.
-# 01 Sep 2022  : -u option updates installed version only. Does not do initial install.
-# 02 Sep 2022  : Removed confirm_install, unnecessary.
-# 06 Sep 2022  : compare_versions used only for update option.
-# 07 Sep 2022  : Moved existence checks out of functions to getopts.
-# 18 Nov 2022  : Renamed install and remove functions.
-# 11 Jan 2023  : Changed "Current version" to "Installed version" in compare_versions.
+# Author       : Copyright (C) 2022, Richard B. Romig, 10 Jan 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : -u option updates installed version only. Does not do initial install.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -41,9 +26,9 @@ fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="0.4.3"
-readonly _updated="11 Jan 2023"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.4.4"
+readonly _updated="03 Feb 2023"
 readonly url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg=$HOME"/.config/micro"
 
@@ -55,8 +40,8 @@ cleanup() {
 }
 
 check_dependencies() {
-  check_package wget
-  check_package gdebi
+  local packages=( gdebi wget )
+  check_packages "${packages[@]}"
 }
 
 micro_ver() {
@@ -151,9 +136,9 @@ EOF
 
 ## Execution ##
 
-check_dependencies
 printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Installs, updates, or removes the Micro CLI text editor.\n"
+check_dependencies
 
 if [[ $# -eq 0 ]]; then
   echo "${lightred}ERROR:${normal} No argument passed." >&2
