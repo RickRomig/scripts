@@ -4,12 +4,9 @@
 # Description  : Gathers system information and writes to a file in home directory
 # Dependencies : dmidecode, hdpram, lshw, tune2fs, upower, nvme-cli
 # Arguments    : none
-# Author       : Copyright Richard B. Romig, 15 Jul 2022
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2022, Richard B. Romig, 15 Jul 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Rewrite of version 2.5.0
-# 16 Jul 2022  : Added function to insert drive form factor if not in hdparm.
-# 01 Sep 2022  : Corrected calls to ff_fix and rename_mt_pt functions.
-# 07 Jan 2023  : Added nvme_info, modified ff_fix, os_info, check_dependencies functions.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -29,9 +26,9 @@ fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="3.1.1"
-readonly _updated="12 Jan 2023"
+_script=$(basename "$0"); readonly _script
+readonly _version="3.1.2"
+readonly _updated="03 Feb 2023"
 lhost="$(uname -n)"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y')
@@ -39,10 +36,24 @@ today=$(date +'%d %B %Y')
 ## Functions ##
 
 check_dependencies() {
-  [[ -b /dev/sda ]] && check_package hdparm	# hard-drive info
-  [[ -b /dev/nvme0n1 ]] && check_package nvme-cli # nvme info
-  check_package lshw	  # hardware info
-  check-package upower	# battery info
+  local packages=( lshw lshw )
+  check_packages "${packages[@]}"
+  if [[ -b /dev/sda ]]; then
+    # system has a hard drive or SATA SSD
+    if dpkg -l | grep -qw hdparm; then
+      printf "hdparm - OK\n"
+    else
+      sudo apt-get install hdparm -yyq
+    fi
+  fi
+  if [[ -b /dev/nvme0n1 ]]; then
+    # System has an NVMe drive
+    if dpkg -l | grep -qw nvme-cli; then
+      printf "nvme-cli - OK\n"
+    else
+      sudo apt-get install nvme-cli -yyq
+    fi
+  fi
 }
 
 cleanup() {
