@@ -27,9 +27,9 @@ fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="0.1.7"
-readonly _updated="15 Dec 2022"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.1.8"
+readonly _updated="03 Feb 2023"
 readonly package="fnloc_2.3.1_amd64.deb"
 readonly pkg_name="FnLoC"
 tmp_dir=$(mktemp -d) || die "Failed to create temporary directory."
@@ -48,7 +48,7 @@ EOF
 }
 
 install_fnloc() {
-  cp -pv "$pkg_dir/$package" "$TMP_DIR"
+  cp -pv "$pkg_dir/$package" "$tmp_dir"
   sudo gdebi -n "$tmp_dir/$package"
   leave "$pkg_name installed."
 }
@@ -63,9 +63,8 @@ remove_fnloc() {
 }
 
 check_dependencies() {
-  echo "Checking dependencies..."
-  check_package sshfs
-  check_package gdebi
+  local packages=( gdebi sshfs )
+  check_packages "${packages[@]}"
 }
 
 ## Execution ##
