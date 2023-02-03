@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 10 Jan 2023
+# Last updated : 03 Feb 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -535,13 +535,31 @@ format_time() {
 }
 
 ###############################################################################
-# Purpose: Check if a packaged is installed, install if not.
+# Purpose: Check if a package is installed, and install if not.
 # Argurments
 #   $1 -> name of package to check and install
 ###############################################################################
 check_package() {
   local package="$1"
   dpkg -l | grep -qw "$package" || sudo apt-get install "$package" -yyq
+}
+
+###############################################################################
+# Purpose: Check if a group of packages are installed, and install if not.
+# Argurments
+#   $1 -> array of packages to check and install
+###############################################################################
+check_packages() {
+	local pkgs=("$@")
+  printf "Checking dependencies...\n"
+	for pkg in "${pkgs[@]}"; do
+		if dpkg -l | grep -qw "$pkg"; then
+			printf "%s - OK\n" "$pkg"
+		else
+			printf "%s - installing...\n" "$pkg"
+			sudo apt-get install "$pkg" -yyq
+		fi
+	done
 }
 
 ###############################################################################
