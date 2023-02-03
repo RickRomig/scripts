@@ -2,23 +2,12 @@
 #####################################################################
 # Script Name  : ip-info
 # Description  : Displays IP information
-# Dependencies : curl, iw
+# Dependencies : curl, iw, nmcli (network-manager)
 # Arguments    : None
 # Author       : Copyright (C) 2019, Richard Romig, 19 February 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : iw may not show SSID or signal level for some wireless devices.
-# 04 Jul 2021  : Public IP in IPv4 and IPv6 formats. (ISP dependent)
-# 12 Jul 2021  : Added MAC addresses, interface & MAC if not connected.
-# 21 Jan 2022  : Use iw to get SSID and signal (iwgetid is deprecated).
-# 11 Feb 2022  : Only displays unique addresses for DNS and default gateway.
-# 16 Feb 2022  : Added function to display network bridge if present.
-# 20 Feb 2022  : Modified output display.
-# 21 Feb 2022  : Replaced if-elif-else with case for Etehrnet & WiFi connections.
-# 06 Apr 2022  : Relaced nmcli statements with other methods (except DNS).
-# 08 Apr 2022  : Added method to retrieve DNS addresses set in /etc/network/interfaces
-# 18 Apr 2022  : nmcli if NetworkManager. hp-probook-6750b (#21) requires sudo for iw
-# 28 Jun 2022  : Added function to run sudo with iw on certain systems.
-# 21 Jan 2023  : Modified show_dns for cases when nmcli does not return DNS.
+#              : hp-probook-6750b (#21) & hp-2560p (#23) require sudo for iw
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 #####################################################################
@@ -32,7 +21,7 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
 
@@ -200,14 +189,14 @@ show_dns() {
 }
 
 check_dependencies() {
-  check_package curl
-  check_package iw
+  local packages=( curl iw )
+  check_packages "${packages[@]}"
 }
 
 main() {
-  _script=$(basename "$0")
-  local _version="2.5.3"
-  local _updated="21 Jan 2023"
+  _script=$(basename "$0"); local _script
+  local _version="2.5.4"
+  local _updated="03 Feb 2023"
 
   req_sudo && user_in_sudo
 
