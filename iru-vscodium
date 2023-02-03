@@ -4,8 +4,8 @@
 # Description  : Install, update, remove VSCodium editor.
 # Dependencies : gdebi, wget
 # Arguments    : [-h] [-i] [-r] [-s] [-u] (See help function)
-# Author       : Copyright (C) 2022 Richard B. Romig, 16 Jul 2022
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2022, Richard B. Romig, 16 Jul 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,9 +26,9 @@ fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="0.1.13"
-readonly _updated="11 Jan 2023"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.2.0"
+readonly _updated="03 Feb 2023"
 readonly url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -39,8 +39,8 @@ cleanup() {
 }
 
 check_dependencies() {
-  check_package wget
-	check_package gdebi
+  local packages=( gdebi wget )
+  check_packages "${packages[@]}"
 }
 
 install_cascadia_code() {
@@ -134,9 +134,9 @@ EOF
 
 ## Execution ##
 
-check_dependencies
 printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Installs, updates, or removes the VSCodium editor.\n"
+check_dependencies
 
 if [[ "$#" -eq 0 ]]; then
 	echo "${lightred}ERROR:${normal} No argument passed." >&2
