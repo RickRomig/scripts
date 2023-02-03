@@ -4,27 +4,10 @@
 # Description  : Displays local weather conditions in the terminal.
 # Dependencies : curl, jq (JSON processor)
 # Arguments    : location (optional)
-# Author       : Copyright (C) 2021 Richard B. Romig, 14 Jul 2021
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2021, Richard B. Romig, 14 Jul 2021
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Based on script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
-# 19 Jul 2021  : added 3-day forecast & moved operations into functions.
-# 22 Jul 2021  : added city and state to current_wx.
-# 07 Aug 2021  : added while loop and quit option.
-# 13 Aug 2021  : added separate colors for heat index temperature
-# 24 Nov 2021  : added default location, ability to pass a location, help
-# 25 Feb 2022  : Added location to menu.
-# 28 Apr 2022  : Help from the menu returns you to the menu.
-# 05 May 2022  : Checks to see if weather data available.
-# 07 May 2022  : Changed wget to curl to download weather data.
-# 12 Oct 2022  : Added sunrise and sunset times to current_wx function.
-# 13 Oct 2022  : Corrected feels-like temperature display.
-#              : Added latitude and longitude for location.
-# 14 Oct 2022  : Created functions to set colors and UV warning.
-# 17 Oct 2022  : Added color for temperatures below freezing.
-# 18 Oct 2022  : Set default location and check for help arguments.
-# 23 Dec 2022  : Changed default location to Dayton (Ohio).
-# 05 Jan 2023  : Moved script title to top in wx_forecast().
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -43,15 +26,15 @@ fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="0.5.4"
-readonly _updated="05 Jan 2023"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.5.5"
+readonly _updated="03 Feb 2023"
 
 ## Functions ##
 
 check_dependencies() {
-  check_package curl
-  check_package jq
+  local packages=( curl jq )
+  check_packages "${packages[@]}"
 }
 
 show_help() {
@@ -204,7 +187,7 @@ location="${1:-Dayton}"
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then show_help; exit; fi
 
 check_dependencies
-
+slee 3
 while true; do
   clear
   box "$_script v$_version ($_updated)"
