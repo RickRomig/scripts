@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : system-info
 # Description  : Gathers system information and writes to a file in home directory
-# Dependencies : dmidecode, hdpram, lshw, tune2fs, upower, nvme-cli
+# Dependencies : dmidecode, hdparm, lshw, tune2fs, upower, nvme-cli
 # Arguments    : none
 # Author       : Copyright (C) 2022, Richard B. Romig, 15 Jul 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -36,7 +36,7 @@ today=$(date +'%d %B %Y')
 ## Functions ##
 
 check_dependencies() {
-  local packages=( lshw lshw )
+  local packages=( lshw upower )
   check_packages "${packages[@]}"
   if [[ -b /dev/sda ]]; then
     # system has a hard drive or SATA SSD
@@ -230,8 +230,8 @@ bat_info() {
 tmp_file=$(mktemp) || die "Failed to create temporary file." 1
 trap cleanup EXIT
 user_in_sudo
-check_dependencies
 clear
+check_dependencies
 {
 	printf "System information for %s, as of %s\n\n" "$lhost" "$today"
 	mfg_info
