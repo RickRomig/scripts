@@ -541,7 +541,8 @@ format_time() {
 ###############################################################################
 check_package() {
   local package="$1"
-  dpkg -l | grep -qw "$package" || sudo apt-get install "$package" -yyq
+  # dpkg -l | grep -qw "$package" || sudo apt-get install "$package" -yyq
+  if dpkg -l | grep -qw "$package"; then printf "%s - OK\n" "$package"; else sudo apt-get install "$package" -yyq; fi
 }
 
 ###############################################################################
