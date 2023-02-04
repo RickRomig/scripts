@@ -3,17 +3,13 @@
 # Script Name  : battery-check
 # Description  : Display charge and health statics of a laptop battery
 # Dependencies : None
-# Arguments    : None
-# Author       : Richard B. Romig, 28 Jul 2020
-# Email        : rick.romig@gmail.com
+# Arguments    : -h, --help, -v --version
+# Author       : Copyright (C) 2020, Richard B. Romig, 28 Jul 2020
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Uses data from /sys/class/power_supply/BAT*
 #              : Batttery health based on a script by Elias W (eliasw4u on Ezeetalk.com)
 #              : Battery charge based on a script by Luke Smith (https://lukesmith.xyz)
 #              : Supports multiple batteries if they are active.
-# 19 Sep 2021  : Added charge status of HID++ battery, if present.
-# 28 Dec 2021  : Moved AC power results to ac_power function.
-# 16 Aug 2022  : Set variable for warning/status emojis.
-# 17 Aug 2022  : Changed routine for HID++ battery.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
 ###############################################################################
@@ -27,15 +23,15 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="0.4.9"
-readonly _updated="17 Aug 2022"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.4.10"
+readonly _updated="04 Feb 2023"
 
 ## Functions ##
 
@@ -161,7 +157,7 @@ clear
 if [[ $# -gt 0 ]]; then
   case "$1" in
     -h|--help ) help 0 ;;
-    --version ) version; exit ;;
+    -v|--version ) version; exit ;;
     * ) echo "${lightred}Invalid argument: $1${normal}" >&2; help 2 ;;
   esac
 fi
