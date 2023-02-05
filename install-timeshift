@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #############################################################################
 # Script Name  : install-timeshift
-# Description  : Installs Timeshift on Ubuntu
+# Description  : Installs Timeshift
 # Dependencies : None
 # Arguments    : None
-# Author       : Richard B. Romig, 27 Jan 2020
-# Email        : rick.romig@gmail.com
-# Comments     :
+# Author       : Copyright (C) 2020, Richard B. Romig, 27 Jan 2020
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Timeshift is preinstalled on Linux Mint & LMDE.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -20,33 +20,33 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
 
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.4"
-readonly _updated="05 May 2021"
+readonly _version="0.1.5"
+readonly _updated="05 Feb 2023"
 
 ## Execution ##
 
-echo "$_script v$_version ($_updated)"
-echo "Installs Timeshift on Debian/Ubuntu-based systems."
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Installs Timeshift on Debian/Ubuntu-based systems.\n"
 
 if exists timeshift; then
   leave "Timeshift is installed."
 elif support_ppa; then
-  echo $'\n'$"Installing Timeshift."
+  printf "\nInstalling Timeshift.\n"
   sudo apt-add-repository ppa:teejee2008/ppa -y
   sudo apt install timeshift -yy
   leave "Timeshift installed."
 elif in_repos timeshift; then
-  echo $'\n'$"Installing Timeshift."
+  printf "\nInstalling Timeshift.\n"
   sudo apt install timeshift -yy
   leave "Timeshift installed."
 else
-  echo $'\n'$"Timeshift was not installed."
+  printf "\nTimeshift was not installed.\n"
   leave "Not found in repositories or PPA is not supported."
 fi
