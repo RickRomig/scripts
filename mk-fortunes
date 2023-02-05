@@ -2,10 +2,10 @@
 ###############################################################################
 # Script Name  : mk-fortunes
 # Description  : Create fortune files for the fortune program
-# Dependencies : strfile
+# Dependencies : strfile (fortune-mod)
 # Arguments    : fortune-cookie file (text)
-# Author       : Richard B. Romig, 04 May 2019
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2019, Richard B. Romig, 04 May 2019
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -19,20 +19,27 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+ printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
-# Variables
+
+## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.2.9"
-readonly _updated="04 May 2022"
+readonly _version="1.2.10"
+readonly _updated="05 Feb 2023"
+
+## Functions ##
 
 usage() {
   local errcode="${1:-2}"
   echo "${orange}Usage:${normal} $_script <cookie-file>"
   exit "$errcode"
 }
+
+## Execution ##
+
+check_package forturn-mode
 
 echo "$_script v$_version ($_updated)"
 echo "Creates fortune cookie files for the fortune program"
