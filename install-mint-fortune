@@ -2,11 +2,11 @@
 #####################################################################
 # Script Name  : install-mint-fortune
 # Description  : Installs mint-fortune, cowsay, fortune-mod
-# Dependencies : cowsay, fortune-mod
+# Dependencies : cowsay, fortune-mod, fortunes-min
 # Arguments    : none
 # Author       : Copyright (C) 2019, Richard B. Romig, 03 May 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : Recommended for Linux Mint Cinnamon or MATE
+# Comments     : Recommended for Linux Mint Cinnamon or MATE only.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.9"
-readonly _updated="04 Feb 2023"
+readonly _version="0.2.10"
+readonly _updated="05 Feb 2023"
 readonly homedir=$HOME
 
 ## Functions ##
@@ -36,26 +36,25 @@ readonly homedir=$HOME
 check_dependencies() {
   local packages=( cowsay fortune-mod )
   check_packages "${packages[@]}"
+  [[ -d /usr/share/games/fortunes ]] || sudo mkdir -p /usr/share/games/fortunes
+  check_package fortunes-min
+}
+
+is_mint() {
+  codename=$(/usr/bin/lsb_release --codename --short)
+  case "$codename" in
+    elsie|ulyanna|ulyssa|uma|uni\vanessa|vera ) return "$TRUE" ;;
+    * ) return "$FALSE"
+  esac
 }
 
 ## Execution ##
 
 echo "$_script v$_version ($_updated)"
 echo "Install fortune and mint-fortune script."
+is_mint || die "Not Linux Mint. Distro is not supported."
 user_in_sudo
 check_dependencies
-
-# Install fortune-mod package and fortunes-min if not already installed
-
-echo "Installing fortune..."
-check_package fortune-mod
-[[ -d /usr/share/games/fortunes ]] || sudo mkdir -p /usr/share/games/fortunes
-check_package fortunes-min
-
-# Install cowsay if not already installed
-
-echo "Installing cowsay ..."
-check_package cowsay
 
 # Install mint-fortune if not installed. Checks for pre-installed mint-fortune
 
