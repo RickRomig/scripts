@@ -27,8 +27,8 @@ fi
 # Variables
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.0"
-readonly _updated="04 Feb 2023"
+readonly _version="0.2.1"
+readonly _updated="05 Feb 2023"
 readonly rederror="${lightred}Error:${normal}"
 
 ## Functions ##
@@ -36,6 +36,8 @@ readonly rederror="${lightred}Error:${normal}"
 check_dependencies() {
 	local packages=( binutils gcc )
 	check_packages "${packages[@]}"
+	if locate glibc > /dev/null 2>&1; then printf "glibc - OK\n"; else sudo apt-get install glibc-source -yy2; fi
+	if [[ -d "/usr/include" ]]; then printf "build-essential - OK\n"; else sudo apt-get install build-essential -yyq; fi
 	if exists fnloc; then printf "fnloc - OK\n"; else printf "Install fnloc from repository.\n"; fi
 }
 
