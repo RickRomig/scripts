@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.5"
-readonly _updated="03 Feb 2023"
+readonly _version="0.5.6"
+readonly _updated="05 Feb 2023"
 
 ## Functions ##
 
@@ -38,16 +38,14 @@ check_dependencies() {
 }
 
 show_help() {
-  local usage="${orange}Usage:${normal}"
-  clear
-  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-  print_line "-" 28
-  printf "%s %s [location]\n" "$usage" "$_script"
-  printf "Example 1: %s Cincinnati\n" "$_script"
-  printf "Example 2: %s New+York\n" "$_script"
-  printf "* Locations with spaces must have a '+' in place of the space.\n"
-  printf "* If no location is passed, the default location will be used.\n"
-  printf "* For help: %s -h or %s --help\n" "$_script" "$_script"
+  cat << END_HELP
+${orange}Usage:${normal} $_script [location]
+Example 1: $_script Cincinnati
+Example 2: $_script New+York
+* Locations with spaces must have a '+' in place of the space.
+* If no location is passed, the default location will be used.
+For help: $_script -h or $_script --help, or Choice 3 in the menu.
+END_HELP
   anykey
 }
 
@@ -158,7 +156,7 @@ current_wx() {
   uvwarn="Low Risk"
   uv_warning
 
-# Display current conditions
+  # Display current conditions
   clear
   box "$_script v$_version ($_updated)"
   if [[ -n "$json" ]]; then
