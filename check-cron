@@ -5,13 +5,10 @@
 #              : crontabs for all normal and root users.
 # Dependencies : none
 # Arguments    : None
-# Author       : Richard Romig, 6 March 2018
+# Author       : Copyright (C) 2018, Richard Romig, 6 March 2018
 # Email        : rick.romig@gmail.com
 # Comments     : Requires sudo privileges
-# 16 Jul 2021  : displays cron jobs for all normal users.
-# 09 Feb 2022  : placed tasks in modular functions.
-# 04 Oct 2022  : allowed for case where anacron job has not run yet.
-#              : allowed for case where no jobs in /etc/cron.* .
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #####################################################################
 
@@ -24,7 +21,7 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  pirntf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
 
@@ -38,17 +35,17 @@ show_anacron() {
   echo $'\n'$"${orange}Anacron Daily: ${normal}Last run on $(sudo cat "$daily" 2>/dev/null)"
   echo -n "${orange}Jobs: ${normal}"
   ls /etc/cron.daily
-  [[ "$(ls -1 /etc/cron.daily | wc -l | cut -d' ' -f1)" == 0 ]] && echo "No jobs scheduled."
+  [[ "$(find /etc/cron.daily -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]] && echo "No jobs scheduled."
 
   echo $'\n'$"${orange}Anacron Weekly: ${normal}Last run on $(sudo cat "$weekly" 2>/dev/null)"
   echo -n "${orange}Jobs: ${normal}"
   ls /etc/cron.weekly
-  [[ "$(ls -1 /etc/cron.weekly | wc -l | cut -d' ' -f1)" == 0 ]] &&echo "No jobs scheduled."
+  [[ "$(find /etc/cron.weekly -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]] && echo "No jobs scheduled."
 
   echo $'\n'$"${orange}Anacron Monthly: ${normal}Last run on $(sudo cat "$monthly" 2>/dev/null)"
   echo -n "${orange}Jobs: ${normal}"
   ls /etc/cron.monthly
-  [[ "$(ls -1 /etc/cron.monthly | wc -l | cut -d' ' -f1)" == 0 ]] && echo "No jobs scheduled."
+  [[ "$(find /etc/cron.monthly -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]] && echo "No jobs scheduled."
 }
 
 show_user_cron() {
@@ -73,9 +70,9 @@ show_root_cron() {
 }
 
 main() {
-  readonly _script=$(basename "$0")
-  readonly _version="0.4.0"
-  readonly _updated="04 Oct 2022"
+  _script=$(basename "$0"); local _script
+  local _version="0.4.1"
+  local _updated="04 Feb 2023"
 
   clear
   echo $'\n'$"${bold}${green}Jobs for $(uname -n)"

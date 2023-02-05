@@ -21,17 +21,18 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="0.2.1"
-readonly _updated="14 Jan 2023"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.2.2"
+readonly _updated="04 Feb 2023"
 readonly localdoc="$HOME/.local/share/doc"
 readonly todolist="todo.lst"
+readonly red_error="${lightred}ERROR:${normal}"
 calendar=$(mktemp -q) || die "Failed to create temporary file." 1
 
 ## Functions ##
@@ -80,7 +81,7 @@ display_cal_todo() {
 trap cleanup EXIT
 
 if [[ "$#" -eq 0 ]]; then
-	echo "${lightred}ERROR:${normal} No argument passed." >&2
+	printf "%s No argument passed.\n" >&2 "$red_error"
 	help 1
 else
 	optstr=":cdeh"
@@ -105,7 +106,7 @@ else
 				help 0
 				;;
 			? )
-				echo "${lightred}ERROR${normal} Invalid option -${OPTARG}" >&2
+				printf "%s Invalid option -%s\n" >&2 "$OPTARG" "$red_error"
 				help 2
 		esac
 	done

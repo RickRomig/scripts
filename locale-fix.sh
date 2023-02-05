@@ -12,7 +12,7 @@
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
+_script=$(basename "$0"); readonly _script
 readonly _version="0.2.2"
 readonly _updated="23 Sep 2022"
 

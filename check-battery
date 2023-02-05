@@ -4,13 +4,10 @@
 # Description  : Determine the health of a laptop battery
 # Dependencies : upower
 # Arguments    : None
-# Author       : Richard B. Romig, 30 Jul 2020
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2020, Richard B. Romig, 30 Jul 2020
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Comments     : Obtains battery data from upower utility.
 #              : Inspired by a script by Elias W (eliasw4u on Ezeetalk.com)
-# 19 Sep 2021  : Added charge status of HID++ battery, if present.
-# 16 Aug 2022  : Set variable for warning/status emojis.
-# 17 Aug 2022  : Battery name obtained from battery_data file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -24,15 +21,15 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="0.2.14"
-readonly _updated="02 Feb 2023"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.2.15"
+readonly _updated="04 Feb 2023"
 
 ## Functions ##
 
@@ -136,8 +133,8 @@ clear
 if [[ $# -gt 0 ]]; then
   case "$1" in
     -h|--help ) help 0 ;;
-    --version ) version; exit ;;
-    * ) echo "${lightred}Invalid argument: $1${normal}" >&2; help 2 ;;
+    -v|--version ) version; exit ;;
+    * ) echo "${lightred}Invalid argument:${normal} $1" >&2; help 2 ;;
   esac
 fi
 

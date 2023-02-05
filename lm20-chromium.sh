@@ -111,9 +111,9 @@ is_lm20() {
 }
 
 main() {
-  readonly _script=$(basename "$0")
-  readonly _version="0.2.9"
-  readonly _updated="07 Jul 2022"
+  _script=$(basename "$0"); local _script
+  local _version="0.2.9"
+  local _updated="07 Jul 2022"
 
   user_in_sudo
 

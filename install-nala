@@ -4,21 +4,13 @@
 # Description  : Installs Nala, a front-end for libapt-pkg
 # Dependencies : See Comments
 # Arguments    : [-h] [-i] [-r] (See the help function.)
-# Author       : Copyright Richard B. Romig, 22 Mar 2022
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2022, Richard B. Romig, 22 Mar 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Nala dependencies:
 # libc6 (>= 2.29), libpython3.9 (>= 3.9.1), apt, python3-apt, python3-pexpect,
 # python3-typing-extensions, python3-rfc3986, python3-sniffio, python3-certifi,
 # python3-idna, python3-jsbeautifier
 # Compatible with Debian 11+, LMDE 5+, Mint 20+, Ubuntu 20.04+, MX-21
-# 05 Apr 2022  : Added function to fetch mirrors after installation.
-# 23 Apr 2022  : Added line to remove nala-sources.list
-# 24 Apr 2022  : Added code to purge 'rc' nala package.
-# 25 Apr 2022  : Changed variable names for sources.list
-# 12 May 2022  : Added optstr and opt variables to getopts routine.
-# 17 May 2022  : Deletes nala log files when nala is removed.
-# 10 Sep 2022  : check_distro returns TRUE for distos compatible with current versions of nala.
-#              : Expanded nala fetch to include LMDE 4, all Linux Mint 20 and 21.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -38,9 +30,9 @@ fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
+_script=$(basename "$0"); readonly _script
 readonly _version="0.3.0"
-readonly _updated="10 Sep 2022"
+readonly _updated="04 Feb 2023"
 readonly keyring_dir="/etc/apt/trusted.gpg.d"
 readonly trusted_key="volian-archive-scar-unstable.gpg"
 readonly srcs_list_dir="/etc/apt/sources.list.d"
@@ -104,7 +96,7 @@ remove_nala() {
 check_distro() {
   codename=$(lsb_release --codename --short)
   case "$codename" in
-    bookworm|jammy|kinetic|sid|vanessa ) return "$TRUE" ;;
+    bookworm|jammy|kinetic|sid|vanessa|vera ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
 }
@@ -115,7 +107,7 @@ fetch_mirrors() {
     debbie ) sudo nala fetch --debian buster ;;
     elsie ) sudo nala fetch --debian bullseye ;;
     ulyana|ulyssa|uma|una ) sudo nala fetch --ubuntu focal ;;
-    vanessa ) sudo nala fetch --ubuntu jammy ;;
+    vanessa|vera ) sudo nala fetch --ubuntu jammy ;;
     * ) sudo nala fetch ;;
   esac
 }

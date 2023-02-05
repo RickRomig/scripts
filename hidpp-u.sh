@@ -4,8 +4,8 @@
 # Description  : Displays wireless mouse model name and battery charge.
 # Dependencies : upower
 # Arguments    : none
-# Author       : Richard B. Romig, 21 Mar 2021
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2021, Richard B. Romig, 21 Mar 2021
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,9 +26,9 @@ fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="0.1.7"
-readonly _updated="23 Sep 2022"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.1.8"
+readonly _updated="04 Feb 2023"
 
 ## Functions ##
 

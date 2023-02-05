@@ -2,10 +2,10 @@
 #####################################################################
 # Script Name  : install-mint-fortune
 # Description  : Installs mint-fortune, cowsay, fortune-mod
-# Dependencies : cowsay, fortune-mod, dpkg, apt
+# Dependencies : cowsay, fortune-mod
 # Arguments    : none
-# Author       : Richard B. Romig, 03 May 2019
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2019, Richard B. Romig, 03 May 2019
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Recommended for Linux Mint Cinnamon or MATE
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,18 +26,24 @@ fi
 
 ## Variables ##
 
-readonly _script=$(basename "$0")
-readonly _version="0.2.8"
-readonly _updated="18 Jul 2021"
-
+_script=$(basename "$0"); readonly _script
+readonly _version="0.2.9"
+readonly _updated="04 Feb 2023"
 readonly homedir=$HOME
+
+## Functions ##
+
+check_dependencies() {
+  local packages=( cowsay fortune-mod )
+  check_packages "${packages[@]}"
+}
 
 ## Execution ##
 
 echo "$_script v$_version ($_updated)"
 echo "Install fortune and mint-fortune script."
-
 user_in_sudo
+check_dependencies
 
 # Install fortune-mod package and fortunes-min if not already installed
 

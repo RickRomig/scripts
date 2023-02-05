@@ -2,7 +2,7 @@
 #####################################################################
 # Script Name  : c-menu.sh
 # Description  : menu for C programming
-# Dependencies : none
+# Dependencies : binutils, gcc
 # Arguments    : none
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
@@ -20,24 +20,34 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
 
 # Variables
 
-readonly _script=$(basename "$0")
-readonly _version="0.1.8"
-readonly _updated="12 Jul 2021"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.2.0"
+readonly _updated="04 Feb 2023"
+readonly rederror="${lightred}Error:${normal}"
+
+## Functions ##
+
+check_dependencies() {
+	local packages=( binutils gcc )
+	check_packages "${packages[@]}"
+	if exists fnloc; then printf "fnloc - OK\n"; else printf "Install fnloc from repository.\n"; fi
+}
 
 ## Execution ##
 
+check_dependencies
+sleep 3
 while true; do
   clear
-  echo $'\n'$"$_script v$_version ($_updated)"
-  echo -e "Menu for working with C source code.\n"
-  options=("Open a file with nano" "Compile code to a.out" \
-    "Compile code with -o option" "Display Lines of Code" \
+	printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  printf "Menu for working with C source code.\n\n"
+  options=("Open a file with nano" "Compile code to a.out" "Compile code with -o option" "Display Lines of Code" \
     "Print LOC to a file" "View code" "Clean up extraneous files" "Quit")
   PS3="Choose an option: "
   select opt in "${options[@]}"; do
@@ -46,23 +56,22 @@ while true; do
 	      read -rp "Enter filename to edit: " fname
         if [[ -f "$fname" ]]; then
           if exists micro; then
-            echo "Opening $fname with micro..."
+            printf "Opening %s with micro...\n" "$fname"
             /usr/bin/micro "$fname"
           else
-	          echo "Opening $fname with nano..."
+	          printf "Opening %s with nano...\n" "$fname"
 	          /usr/bin/nano "$fname"
           fi
         else
-          echo "${lightred}Error: $fname not found.${normal}" >&2
+          printf "%s %s not found.\n" "$rederror" "$fname" >&2
         fi
 	      break ;;
 	    2 )
 	      read -rp "Enter file to be compiled to a.out (with the .c extension): " fname
 	      if [[ -f "$fname" ]]; then
-          echo "Compiling $fname to a.out"
-	        /usr/bin/gcc "$fname"
+          printf "Compiling %s to a.out\n" "$fname"
 	      else
-          echo "${lightred}Error: $fname not found.${normal}" >&2
+          printf "%s %s not found.\n" "$rederror" "$fname" >&2
 	      fi
 	      break ;;
 	    3 )
@@ -70,10 +79,10 @@ while true; do
 	      ext="${fname##*.}"
 	      [ -n "$ext" ] && fname="${fname%.*}"
 	      if [[ -f "$fname.c" ]]; then
-          echo "Compiling $fname.c to $fname"
+          printf "Compiling %s.c to %s\n" "$fname" "$fname"
 	        /usr/bin/gcc -o "$fname"
 	      else
-          echo "${lightred}Error: $fname.c not found${normal}" >&2
+          printf "%s %s not found.\n" "$rederror" "$fname" >&2
 	      fi
 	      break ;;
 	    4 )
@@ -82,7 +91,7 @@ while true; do
           /usr/local/bin/fnloc "$fname"
 	        anykey
 	      else
-          echo "${lightred}Error: $fname not found.${normal}" >&2
+          printf "%s %s not found.\n" "$rederror" "$fname" >&2
 	      fi
 	      break ;;
 	    5 )
@@ -92,7 +101,7 @@ while true; do
 	        locfile+=".loc"
 	        /usr/local/bin/fnloc $"$fname" > "$locfile"
 	      else
-          echo "${lightred}Error: $fname not found.${normal}" >&2
+          printf "%s %s not found.\n" "$rederror" "$fname" >&2
 	      fi
 	      break ;;
       6 )
@@ -104,17 +113,17 @@ while true; do
             viewtext "$fname"
           fi
         else
-          echo "${lightred}Error: $fname not found.${normal}" >&2
+          printf "%s %s not found.\n" "$rederror" "$fname" >&2
         fi
         break ;;
       7 )
-	      echo "Cleaning up ..."
+	      printf "Cleaning up ...\n"
 	      /usr/bin/find . -maxdepth 1 -type f \( -name "a.out" -o -iname "*.o" -o -iname "*~" \) -print -exec rm {} \;
 	      break ;;
-	    $8 )
+	    8 )
 	      leave "" ;;
 	    *)
-	      echo -e "${lightred}Not a valid option. Please try again.${normal}" >&2 ;;
+	      echo -e "%s Not a valid option. Please try again.\n" "$rederror" >&2 ;;
   	esac
   done
 done

@@ -4,10 +4,10 @@
 # Description  : Create HomeBank archive as a cron job.
 # Dependencies : zip
 # Arguments    : none
-# Author       : Richard B. Romig, 21 January 2020
-# Email        : rick.romig@gmail.com
-# Version      : Version 1.2.13
-# Last updated : 01 Dec 2022
+# Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Version      : Version 1.2.14
+# Last updated : 04 Feb 2023
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
