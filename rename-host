@@ -2,13 +2,13 @@
 #############################################################################
 # Script Name  : rename-host
 # Description  : Changes the system hostname
-# Dependencies : awk, sed
+# Dependencies : None
 # Arguments    : None
-# Author       : Richard B. Romig, 06 Nov 2019
-# Email        : rick.romig@gmail.com
-# Comments     : Hostname is changed in both /etc/hostname and /etc/hosts.
-#              : antiX/MX Linux - /etc/hosts - 127.0.0.1      hostname
-# Hostname length limited to 15 characters for NETBIOS compatibility.
+# Author       : Copyright (C) 2019, Richard B. Romig, 06 Nov 2019
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Changes the hostname in both /etc/hostname and /etc/hosts.
+#              : antiX/MX Linux: /etc/hosts - 127.0.0.1      hostname
+#              : Hostname length limited to 15 characters for NETBIOS compatibility.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.2"
-readonly _updated="06 Jul 2022"
+readonly _version="0.4.0"
+readonly _updated="07 Feb 2023"
 readonly old_host=$HOSTNAME
 
 ## Functions ##
@@ -106,7 +106,11 @@ sudo sed -i.old "s/$old_host/$new_host/" /etc/hosts
 
 host1=$(cat /etc/hostname)
 host2=$(awk '/127.0.1.1/ {print $2}' /etc/hosts)
-[[ -z "$host2" ]] && host2=$(awk '/127.0.0.1/ {print $2}' /etc/hosts | tail -n1)
+# [[ -z "$host2" ]] && host2=$(awk '/127.0.0.1/ {print $2}' /etc/hosts | tail -n1)
+if [[ -z "$host2" ]]; then
+  host2=$(awk '/127.0.0.1/ {print $2}' /etc/hosts | tail -n1)
+  sudo sed -i '0,/127.0.0.1/! {0,/127.0.0.1/ s/127.0.0.1/127.0.1.1/}' /etc/hosts
+fi
 echo -e "/etc/hostname = $host1\t/etc/hosts = $host2"
 if [[ "$host1" == "$new_host" && "$host2" == "$new_host" ]]; then
   sudo rm /etc/hostname.old
