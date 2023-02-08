@@ -27,14 +27,24 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.2"
+readonly _version="0.2.3"
 readonly _updated="08 Feb 2023"
 
 ## Functions ##
 
-usage() {
+help() {
   local errcode="${1:-2}"
-  echo "${orange}Usage:${normal} $_script <filename>" >&2
+  cat << END_HELP
+  Usage: $_script [filename]
+         $_script [OPTION]
+  OPTION: -h  --help  Displays help.
+  $_script displays a text file using either cat or less depending the number of
+  lines in the file and the number of rows in the current terminal window. Less 
+  is used when the number of lines is greater than the 90% of the rows, otherwise
+  cat is used.
+  Version: $_version
+  Updated: $_updated
+END_HELP
   exit "$errcode"
 }
 
@@ -49,12 +59,12 @@ cat_used() {
 
 if [[ $# -eq 0 ]]; then
   echo "${lightred}ERROR:${normal} No argument passed." >&2
-  usage 2
+  help 2
 elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-  usage 0
+  help 0
 elif [[ ! -f "$1" ]]; then
   echo "${lightred}ERROR:${normal} $1 not found." >&2
-  usage 2
+  help 2
 else
   filename="$1"
 fi
