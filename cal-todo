@@ -8,6 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Comments     : base script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
 #              : Limit to-do list to 7 items to maintain proper formating.
+#              : If no argument is passed, defaults to current month and todo list.
 # TODO (Rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -28,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.2"
-readonly _updated="04 Feb 2023"
+readonly _version="0.2.3"
+readonly _updated="09 Feb 2023"
 readonly localdoc="$HOME/.local/share/doc"
 readonly todolist="todo.lst"
 readonly red_error="${lightred}ERROR:${normal}"
@@ -46,11 +47,13 @@ help() {
 	cat << END_HELP
 Usage: $_script [OPTION]
 OPTIONS:
-	-c  display current month calendar and to-do list.
+	-c  display current month calendar and to-do list. (default)
 	-d  display 3 month calendar and to-do list.
 	-e  edit to-do list.
 	-h  display help
 	NOTE: To-do list should be limited to 7 short items.
+	$_script displays either the current month or 3 month (previous, current, next)
+	calendar with an adjacent todo list.
 END_HELP
 	echo "$_script v$_version ($_updated)"
 	exit "$errcode"	
@@ -81,8 +84,8 @@ display_cal_todo() {
 trap cleanup EXIT
 
 if [[ "$#" -eq 0 ]]; then
-	printf "%s No argument passed.\n" >&2 "$red_error"
-	help 1
+	cal > "$calendar"
+	display_cal_todo
 else
 	optstr=":cdeh"
 	while getopts "$optstr" opt; do
@@ -92,7 +95,7 @@ else
 				display_cal_todo
 				break ;;
 			d )
-				cal -3 > "$calendar"
+				cal -3 | sed '1d' > "$calendar"
 				display_cal_todo
 				break ;;
 			e )
