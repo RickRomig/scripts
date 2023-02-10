@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 06 Feb 2023
+# Last updated : 10 Feb 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -224,7 +224,6 @@ support_ppa() {
 # Purpose: Return true if distribution is antiX or MX Linux
 # Arguments: none
 # Return: True or False
-# test dist_id using awk
 ###############################################################################
 antix_mx() {
   dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2> /dev/null)
@@ -298,7 +297,7 @@ is_laptop() {
 # Return: True or False (0 or 1)
 ###############################################################################
 leapyear() {
-  year="$1"
+  local year="$1"
   [[ $(( year % 4 )) -ne 0 ]] && return "$FALSE"
   [[ $(( year % 400 )) -eq 0 ]] && return "$TRUE"
   [[ $(( year % 100 )) -eq 0 ]] && return "$FALSE" || return "$TRUE"
@@ -428,10 +427,10 @@ edit_view_quit() {
 ###############################################################################
 viewtext() {
   local filename="$1"
-  trows=$(/usr/bin/tput lines)    # Number of rows in the local terminal window
-  line_count=$(( trows*90/100 ))  # 90% of rows in terminal
-  num_lines=$(wc -l "$filename" | cut -d " " -f1)  # Number of lines in the file
-  if (( num_lines > line_count )); then less "$filename"; else cat "$filename"; fi
+  trows=$(/usr/bin/tput lines); local trows
+  local cat_limit=$(( trows*90/100 ))
+  num_lines=$(wc -l "$filename" | cut -d " " -f1); local num_lines
+  if (( num_lines > cat_limit )); then less "$filename"; else cat "$filename"; fi
 }
 
 ###############################################################################
@@ -460,10 +459,10 @@ anykey() {
 # Length argument, if present, must follow a character argument.
 ###############################################################################
 print_line() {
-  char="${1:-=}"      # Character to be printed (= is the default).
-  width=$(tput cols)  # Default line length = width of local terminal.
+  local char="${1:-=}"      # Character to be printed (= is the default).
+  width=$(tput cols); local width  # Default line length = width of local terminal.
   if [[ "$#" -gt 1 ]]; then char="$1"; width="$2"; fi
-  len=${#char}
+  local len=${#char}
   (( len > 1 )) && char=${char::1}  # Allow only the first character entered.
   printf "%${width}s\n" | sed "s/ /$char/g"
 }
@@ -478,7 +477,7 @@ print_line() {
 ###############################################################################
 box() {
   local char="${2:-*}"
-  len=${#char}
+  local len=${#char}
   (( len > 1 )) && char=${char::1}
   local title="$char $1 $char"
   edge=$(echo "$title" | sed "s/./$char/g")
@@ -498,9 +497,9 @@ box() {
 under_line() {
   local title="$1"
   local char="${2:--}"
-  len=${#char}
+  local len=${#char}
   (( len > 1 )) && char=${char::1}
-  line=$(echo "$title" | sed "s/./$char/g")
+  line=$(echo "$title" | sed "s/./$char/g"); local line
   echo "$title"
   echo "$line"
 }
@@ -609,7 +608,7 @@ mount_server() {
 ###############################################################################
 unmount_server() {
   local share="HP-6005"
-  mounted=$(mount | grep "$share")
+  mounted=$(mount | grep "$share"); local mounted
   [[ -n "$mounted" ]] && fusermount -u "$HOME/mnt/$share"
   [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
   [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
@@ -646,7 +645,7 @@ mount_nas() {
 ###############################################################################
 unmount_nas() {
   local share="NASD97167"
-  mounted=$(mount | grep "$share")
+  mounted=$(mount | grep "$share"); local mounted
   [[ -n "$mounted" ]] && fusermount -u "$HOME/mnt/$share"
   [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
   [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
