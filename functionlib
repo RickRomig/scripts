@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 10 Feb 2023
+# Last updated : 11 Feb 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -426,11 +426,11 @@ edit_view_quit() {
 #   $1 -> file to be viewed
 ###############################################################################
 viewtext() {
-  local filename="$1"
-  trows=$(/usr/bin/tput lines); local trows
-  local cat_limit=$(( trows*90/100 ))
-  num_lines=$(wc -l "$filename" | cut -d " " -f1); local num_lines
-  if (( num_lines > cat_limit )); then less "$filename"; else cat "$filename"; fi
+  local file="$1"
+  trows=$(/usr/bin/tput lines)
+  cat_limit=$(( trows*85/100 ))
+  num_lines=$(wc -l "$file" | cut -d " " -f1)
+  if [[ "$num_lines" -ge "$cat_limit" ]]; then less "$file"; else cat "$file"; fi
 }
 
 ###############################################################################
