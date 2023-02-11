@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.3"
-readonly _updated="08 Feb 2023"
+readonly _version="0.2.4"
+readonly _updated="11 Feb 2023"
 
 ## Functions ##
 
@@ -50,9 +50,9 @@ END_HELP
 
 cat_used() {
   trows=$(tput lines)
-  line_count=$(( trows*90/100 ))
+  cat_limit=$(( trows*85/100 ))
   num_lines=$(wc -l "$filename" | cut -d " " -f1)
-  (( num_lines <= line_count )) && return "$TRUE" || return "$FALSE"
+  [[ "$num_lines" -le "$cat_limit" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ## Check arguments ##
@@ -80,5 +80,4 @@ if cat_used; then
 else
   box "File: $filename"
 fi
-
 leave "$_script v$_version ($_updated)"
