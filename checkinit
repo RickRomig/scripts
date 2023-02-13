@@ -6,7 +6,7 @@
 # Arguments    : None
 # Author       : Copyright (C) 2022, Richard B. Romig, 07 Sep 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : based on code by Jake@Linux <https://gitlab.com/jped>
+# Comments     : partially based on code by Jake@Linux <https://gitlab.com/jped>
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -27,15 +27,15 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.1"
-readonly _updated="04 feb 2023"
+readonly _version="0.1.2"
+readonly _updated="13 feb 2023"
 
 ## Functions ##
 
 find_init() {
-	if pidof systemd &> /dev/null; then
+	if is_systemd; then
 		printf "SystemD"
-	elif pidof sysv &> /dev/null; then
+	elif is_sysv; then
 		printf "SysV"
 	elif [[ -f /sbin/openrc ]]; then
 		printf "OpenRC"
