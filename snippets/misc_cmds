@@ -27,6 +27,10 @@ check_init() {
    esac
 }
 
+# check for systemd, sysvinit or upstart
+cat /sbin/init | awk 'match($0, /(upstart|systemd|sysvinit)/) { print toupper(substr($0, RSTART, RLENGTH));exit; }' 2> /dev/null
+if [[ -r /proc/1/comm ]]; then read -r data < '/proc/1/comm';printf "%s\n" "${data%% *}";else printf '?\n';fi
+
 # Fix missing panel in Cinnamon
 dconf reset -f /    # forces reset of all settings to defaults
 # /usr/share/cinnamon/cinnamon-settings/cinnamon-settngs.py panel
