@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 11 Feb 2023
+# Last updated : 17 Feb 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -664,11 +664,13 @@ clone_repo() {
 
 ###############################################################################
 # Purpose: Display a series of dots to indicate a running process.
-# Arguments: none
+# Arguments: no
+#   $1 -> optional character to be repeated. Default is '.' (period)
 # Refer to ~/bin/functionlib.md for usage instructions.
 ###############################################################################
 dots() {
-  while true; do echo -n "."; sleep 0.2; done &
+  local char="${1:-.}"
+  while true; do echo -n "$char"; sleep 0.2; done &
   trap 'kill $!' SIGTERM
 }
 
@@ -678,7 +680,7 @@ dots() {
 # Refer to ~/bin/functionlib.md for ussage instructions.
 ###############################################################################
 spin() {
-  spinner=( '|' '/' '-' '\' )
+  local spinner=( '|' '/' '-' '\' )
   while true; do for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.2; done; done &
   trap 'kill $!' SIGTERM
 }
