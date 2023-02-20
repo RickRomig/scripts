@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : lm20-snaps
-# Description  : Enables or disables Snaps on Linux Mint 20+
+# Description  : Enables or disables Snaps on Linux Mint 20 and later.
 # Dependencies : None
 # Arguments    : [-d] [-e] [-h] [-s] (See help function)
 # Author       : Copyright (C) 2020, Richard B. Romig, 30 Jun 2020
@@ -28,9 +28,10 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.1"
-readonly _updated="11 Oct 2022"
+readonly _version="0.2.2"
+readonly _updated="20 Feb 2023"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
+readonly rederror="${lightred}ERROR:${normal}"
 
 ## Functions ##
 
@@ -82,10 +83,10 @@ Pin-Priority: -10
 EOT
 }
 
-is_lm20() {
+lm20_plus() {
   ver_code=$(awk -F= '/VERSION_CODENAME/ {print $2}' /etc/os-release)
   case "$ver_code" in
-    ulyana|ulyssa|uma|una ) return "$TRUE" ;;
+    ulyana|ulyssa|uma|una|vanessa|vera ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
 }
@@ -107,11 +108,11 @@ END_HELP
 
 clear
 box "$_script v$_version ($_updated)"
-printf "Enables or disables the installation of snapd and Snap packages in Linux Mint 20+.\n"
+printf "Enables or disables the installation of snapd and Snap packages in Linux Mint 20 and later.\n"
 
-if is_lm20; then
+if lm20_plus; then
   if [[ $# -eq 0 ]]; then
-    printf "\n\e[91mERROR:\e[0m No argument passed\n" >&2
+    printf "\n%s No argument passed\n" "$rederror" >&2
     help 2
   else
     optstr=":dehs"
@@ -133,12 +134,12 @@ if is_lm20; then
           snap_status && printf "Snaps are enabled.\n" || printf "Snaps are disabled.\n"
           break ;;
         ? )
-          printf "\n\e[91mERROR:\e[0m Invalid option -%s\n" "$OPTARG" >&2
+          printf "\n%s Invalid option -%s\n" "$rederror" "$OPTARG" >&2
           help 2 ;;
       esac
     done
   fi
   exit
 else
-  die "This script is only for use with Linux Mint 20+." 1
+  die "This script is only for use with Linux Mint 20 or later." 1
 fi
