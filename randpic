@@ -88,7 +88,7 @@ while true; do
   options=("Accept the selected image and select another image." \
     "Accept the selected image and exit." \
     "Reject the selected image and select another image." \
-    "Reject the selected image and exit.")
+    "Reject the selected image and exit." "Delete the selected image and select another image." )
   PS3="Chose an option: "
   select opt in "${options[@]}"; do
     case $REPLY in
@@ -114,6 +114,14 @@ while true; do
         kill $pic_pid
         rm "$tmp_dir/$pic_file"
         leave ;;
+      5 )
+        echo -e $'\n'$"${blue}Image deleted:${normal} $sel_dir/$pic_file"
+        kill $pic_pid
+        echo $'\n'$"Selecting another random image..."
+        rm "$tmp_dir/$pic_file"
+        rm "$sel_dir/$pic_file"
+        sleep 2
+        break ;;
       * )
         echo $'\n'$"${lightred}Invalid option. Try again.${normal}" ;;
     esac
