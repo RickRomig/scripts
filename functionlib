@@ -670,6 +670,8 @@ clone_repo() {
 ###############################################################################
 dots() {
   local char="${1:-.}"
+  local len=${#char}
+  (( len > 1 )) && char=${char::1}
   while true; do echo -n "$char"; sleep 0.2; done &
   trap 'kill $!' SIGTERM
 }
