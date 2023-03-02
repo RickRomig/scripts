@@ -26,6 +26,10 @@ else
   exit 1
 fi
 
+## Global variables ##
+
+readonly red_error="${lightred}ERROR:${normal}"
+
 ## Functions ##
 
 check_dependencies() {
@@ -65,7 +69,7 @@ get_versions() {
         local release_path="pulsar-edit/pulsar/releases"
 			  cur_ver=$(dpkg -l | awk '$2 == "pulsar" {print $3}' | sed 's/[+-].*//') ;;
       * )
-        die "Invalid package name - ${package,,}." 2
+        printf "%s Invalid package name - %s\n" "$red_error" "${package,,}" >&2
     esac
 
     # Download package's GitHub release page to a temporary file.
@@ -93,17 +97,19 @@ get_versions() {
 }
 
 deb_versions() {
-	local debpkgs=( bluefish geany glow nano kitty terminator )
+	local debpkgs=( bluefish geany git glow nano kitty terminator )
   printf "Apt Pacakages\n"
 	printf "%-15s%s\n" "Package" "Version"
 	for debpkg in "${debpkgs[@]}"; do
-		printf "%s%-15s%s" "${darkgray}" "${debpkg^}" "${gray}"
 		if exists "$debpkg"; then
+		  printf "%s%-15s%s" "${darkgray}" "${debpkg^}" "${gray}"
 			case "$debpkg" in
         bluefish )
           printf "%s\n" "$(bluefish --version | awk '/^Bluefish/ {print $NF}')" ;;
 				geany )
 					printf "%s\n" "$(geany --version | cut -d' ' -f2)" ;;
+        git )
+          printf "%s\n" "$(git --version | cut -d' ' -f3)" ;;
 				glow )
 					printf "%s\n" "$(glow --version | cut -d' ' -f3 | sed 's/^v//')" ;;
 				nano )
@@ -113,10 +119,8 @@ deb_versions() {
         terminator )
           printf "%s\n" "$(dpkg -l | awk '$2 == "terminator" {print $3}' | sed 's/[+-].*//')" ;;
 				* )
-					die "Invalid package name - ${debpkg^}." 2
+          printf "%s Invalid package name - %s\n" "$red_error" "${debpkg^}" >&2
 			esac
-		else
-			printf "not installed\n"
 		fi
 	done
 	printf "%s\n" "${normal}"
@@ -124,10 +128,10 @@ deb_versions() {
 
 main() {
   _script=$(basename "$0"); local _script
-  local _version="0.8.6"
-  local _updated="04 feb 2023"
+  local _version="0.9.1"
+  local _updated="0128 Mar 2023"
   clear
-  printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  printf "\U24B6%s v%s (%s)\n" "$_script" "$_version" "$_updated" # \U1F427 
   printf "Newest & installed versions of select programs.\n\n"
   get_versions
   deb_versions
