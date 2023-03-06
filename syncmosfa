@@ -8,19 +8,6 @@
 # Email        : rick.romig@gmail.com
 # Comments     : Can sync to one or all machines on the network.
 #              : LOCALNET is declared in functionlib
-# 11 Jul 21    : Added check_host function.
-# 28 Jul 21    : Added Finance directories to sync to Probook 6570b (13)
-# 29 Jul 21    : Moved personal directories to sync to Probook 6570b (20)
-# 05 Aug 21    : Added ISO directories to lenovo m91p (15)
-# 12 Nov 21    : Added IPs 21, 22, 24, 25 to restricted addesses.
-# 29 Jan 2022  : Changed Finance directories sync to HP-6005 (11)
-# 17 Sep 2022  : Added Videos/Tech/ to synch to Probook 6570b (20)
-# 29 Sep 2022  : Replace if-elif with case in sync_script function.
-# 24 Nov 2022  : Added synchronization of ~/.config/scripts directory.
-# 07 Jan 2023  : Modified so EliteBook 850 (22) is synchronized.
-# 10 Jan 2023  : Added sync of password vaults to new location.
-# 14 Jan 2023  : Added sync of todo.lst
-# 21 Jan 2023  : Added HP-8500 (#3) to be synchronized.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -41,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.2.8"
-readonly _updated="21 Jan 2023"
+readonly _version="1.2.9"
+readonly _updated="05 Mar 2023"
 
 ## Functions ##
 
@@ -175,7 +162,13 @@ sync_script() {
       exit_status="$?"
       transfer_status "$exit_status"
       ;;
-    20|22 )
+    22 )
+      # Sync repositories
+      echo $'\n'$"${orange}Syncing Gitea repositoies...${normal}"
+      rsync -avzh --delete /home/"$USER"/gitea/ "$localnet.$hostip":gitea/
+      exit_status="$?"
+      transfer_status "$exit_status"
+
       # Sync personal files.
       echo $'\n'$"${orange}Syncing Audio Books...${normal}"
       rsync -avzh --delete /home/"$USER"/Audiobooks/ "$localnet.$hostip":Audiobooks/
