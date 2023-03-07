@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.0"
-readonly _updated="07 Feb 2023"
+readonly _version="0.4.1"
+readonly _updated="06 Mar 2023"
 readonly old_host=$HOSTNAME
 
 ## Functions ##
@@ -98,7 +98,7 @@ done
 user_in_sudo
 
 echo $'\n'$"Changing the hostname from $old_host to $new_host ..."
-# Make backups of original files and replace old hostname with new hostname
+# Make backup copies of the original files and replace old hostname with new hostname
 sudo sed -i.old "s/$old_host/$new_host/" /etc/hostname
 sudo sed -i.old "s/$old_host/$new_host/" /etc/hosts
 
@@ -108,15 +108,17 @@ host1=$(cat /etc/hostname)
 host2=$(awk '/127.0.1.1/ {print $2}' /etc/hosts)
 # [[ -z "$host2" ]] && host2=$(awk '/127.0.0.1/ {print $2}' /etc/hosts | tail -n1)
 if [[ -z "$host2" ]]; then
+# Change address for hostname from 127.0.0.1 to 127.0.1.1
   host2=$(awk '/127.0.0.1/ {print $2}' /etc/hosts | tail -n1)
   sudo sed -i '0,/127.0.0.1/! {0,/127.0.0.1/ s/127.0.0.1/127.0.1.1/}' /etc/hosts
 fi
 echo -e "/etc/hostname = $host1\t/etc/hosts = $host2"
 if [[ "$host1" == "$new_host" && "$host2" == "$new_host" ]]; then
-  sudo rm /etc/hostname.old
-  sudo rm /etc/hosts.old
-  leave "Hostname successfully changed. Reboot for the change to take effect."
+  # Remove the original hostname and hosts files
+  sudo rm /etc/hostname.old /etc/hosts.old
+  leave "Hostname successfully changed. Reboot to ensure the change takes effect."
 else
+  # Revert to the hold hostname
   sudo mv /etc/hostname.old /etc/hostname > /dev/null 2>&1
   sudo mv /etc/hosts.old /etc/hosts > /dev/null 2>&1
   leave "Hostname change was unsuccessful. Reverted to the original hostname."
