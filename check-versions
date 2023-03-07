@@ -97,7 +97,7 @@ get_versions() {
 }
 
 deb_versions() {
-	local debpkgs=( bluefish geany git glow nano kitty terminator )
+	local debpkgs=( bluefish geany git glow gnome-terminal lxterminal nano kitty terminator xfce4-terminal xterm )
   printf "Apt Pacakages\n"
 	printf "%-15s%s\n" "Package" "Version"
 	for debpkg in "${debpkgs[@]}"; do
@@ -118,6 +118,14 @@ deb_versions() {
           printf "%s\n" "$(kitty --version | cut -d' ' -f2)" ;;
         terminator )
           printf "%s\n" "$(dpkg -l | awk '$2 == "terminator" {print $3}' | sed 's/[+-].*//')" ;;
+        gnome-terminal )
+          printf "%s\n" "$(dpkg -l | awk '$2 == "gnome-terminal" {print $3}' | sed 's/[+-].*//')" ;;
+        lxterminal )
+          printf "%s\n" "$(dpkg -l | awk '$2 == "lxterminal" {print $3}' | sed 's/[+-].*//')" ;;
+        xfce4-terminal )
+          printf "%s\n" "$(dpkg -l | awk '$2 == "xfce4-terminal" {print $3}' | sed 's/[+-].*//')" ;;
+        xterm )
+          printf "%s\n" "$(dpkg -l | awk '$2 == "xterm" {print $3}' | sed 's/[+-].*//')" ;;
 				* )
           printf "%s Invalid package name - %s\n" "$red_error" "${debpkg^}" >&2
 			esac
@@ -128,8 +136,8 @@ deb_versions() {
 
 main() {
   _script=$(basename "$0"); local _script
-  local _version="0.9.1"
-  local _updated="01 Mar 2023"
+  local _version="0.10.0"
+  local _updated="07 Mar 2023"
   clear
   printf "\U24B6%s v%s (%s)\n" "$_script" "$_version" "$_updated" # \U1F427 
   printf "Newest & installed versions of select programs.\n\n"
