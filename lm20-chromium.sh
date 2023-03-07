@@ -112,9 +112,9 @@ valid_version() {
 }
 
 main() {
-  _script=$(basename "$0"); local _script
-  local _version="0.3.0"
-  local _updated="20 Feb 2023"
+  local _script; _script=$(basename "$0")
+  local _version="0.3.1"
+  local _updated="07 Mar 2023"
 
   user_in_sudo
 
