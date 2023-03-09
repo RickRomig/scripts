@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 ##########################################################################
 # Script Name  : checkiso
 # Description  : Verifies SHA256 and MD5 checksums of ISO files
@@ -28,13 +28,14 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.5"
-readonly _updated="26 Dec 2022"
+readonly _version="0.3.6"
+readonly _updated="09 Mar 2023"
 readonly isofile="$1"
 readonly checksum="$2"
 readonly red_error="${lightred}ERROR:${normal}"
 readonly checksums_match="${green}The checksums match.${normal}"
 readonly checksums_nomatch="${red}The checksums do not match.${normal}"
+error_code=0
 
 ## Functions ##
 
@@ -45,6 +46,12 @@ usage() {
   printf "Should be run from the directory where the ISO and checksum files are located.\n"
   printf "The checksum text file should consist of one line containing the checksum for that ISO.\n"
   printf "\U1F427 %s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+exit_msg() {
+  local errcode="${1:-0}"
+  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -94,8 +101,7 @@ elif [[ -f "$isofile" && -f "$checksum" ]]; then
           printf "%s\n" "$checksums_nomatch" >&2
           error_code=1
         fi
-        printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
-        exit "$error_code"
+        exit_msg "$error_code"
         ;;
       2 )
         printf "Comparing checksums. This may take a while.\n"
@@ -109,17 +115,14 @@ elif [[ -f "$isofile" && -f "$checksum" ]]; then
           printf "%s\n" "$checksums_nomatch" >&2
           error_code=1
         fi
-        printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
-        exit "$error_code"
+        exit_msg "$error_code"
         ;;
       3 )
         printf "Exiting - No action taken\n"
-        printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
-        exit
+        exit_msg "0"
         ;;
       * )
-        printf "%s Invalid choice. 1 = SHA256 2 = MD5 3 = Exit\n" "$red_error" >&2
-        ;;
+        printf "%s Invalid choice:\n1) = SHA256\n2) = MD5\n3) = Exit\n" "$red_error" >&2
     esac
   done
 else
