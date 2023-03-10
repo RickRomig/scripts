@@ -92,7 +92,7 @@ github_versions() {
 
 apt_tools() {
 	local packages=( bluefish geany git glow nano shellcheck )
-  printf "Apt Packages\n"
+  printf "Editors and Tools\n"
 	printf "%-15s%s\n" "Package" "Version"
 	for pkg in "${packages[@]}"; do
 		if exists "$pkg"; then
@@ -157,9 +157,9 @@ browsers() {
 				brave-browser )
 					printf "%s\n" "$(brave-browser --version | cut -d' ' -f3)" ;;
 				chromium )
-					printf "%s\n" "$(chromium --version | cut -d' ' -f2)" ;;
+					printf "%s\n" "$(dpkg -l | awk '$2 == "chromium" {print $3}' | sed 's/[+-].*//')" ;;
 				firefox )
-					printf "%s\n" "$(firefox --version | cut -d' ' -f3 | sed 's/esr/ esr/')" ;;
+					printf "%s\n" "$(firefox --version | cut -d' ' -f3 | sed 's/esr/ ESR/')" ;;
 				google-chrome )
 					printf "%s\n" "$(google-chrome --version | cut -d' ' -f3)" ;;
 				* )
@@ -172,7 +172,7 @@ browsers() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.11.2"
+  local _version="0.11.3"
   local _updated="10 Mar 2023"
   clear
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
