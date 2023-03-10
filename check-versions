@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 ##########################################################################
 # Script Name  : check-versions
 # Description  : Checks GitHub for latest versions of select programs and
@@ -40,7 +40,7 @@ cleanup() {
 	[[ -f "$tmp_file" ]] && rm -f "$tmp_file"
 }
 
-get_versions() {
+github_versions() {
   local github_url="https://github.com"
   local new_ver="Not found"
   local packages=( bat marktext micro vSCodium )
@@ -59,15 +59,9 @@ get_versions() {
       "marktext" )
         local release_path="marktext/marktext/releases"
         cur_ver=$(dpkg -l | awk '$2 == "marktext" {print $3}' | sed 's/[+-].*//') ;;
-      "atom" )
-        local release_path="atom/atom/releases"
-        cur_ver=$(dpkg -l | awk '$2 == "atom" {print $3}' | sed 's/[+-].*//') ;;
 		  "vSCodium" )
 			  local release_path="VSCodium/vscodium/releases"
 			  cur_ver=$(dpkg -l | awk '$2 == "codium" {print $3}' | sed 's/[+-].*//') ;;
-      "pulsar" )
-        local release_path="pulsar-edit/pulsar/releases"
-			  cur_ver=$(dpkg -l | awk '$2 == "pulsar" {print $3}' | sed 's/[+-].*//') ;;
       * )
         printf "%s Invalid package name - %s\n" "$red_error" "${package,,}" >&2
     esac
@@ -96,14 +90,14 @@ get_versions() {
   printf "%s\n" "${normal}"
 }
 
-deb_versions() {
-	local debpkgs=( bluefish geany git glow gnome-terminal lxterminal nano kitty terminator xfce4-terminal xterm )
-  printf "Apt Pacakages\n"
+apt_tools() {
+	local packages=( bluefish geany git glow nano )
+  printf "Apt Packages\n"
 	printf "%-15s%s\n" "Package" "Version"
-	for debpkg in "${debpkgs[@]}"; do
-		if exists "$debpkg"; then
-		  printf "%s%-15s%s" "${darkgray}" "${debpkg^}" "${gray}"
-			case "$debpkg" in
+	for pkg in "${packages[@]}"; do
+		if exists "$pkg"; then
+		  printf "%s%-15s%s" "${darkgray}" "${pkg^}" "${gray}"
+			case "$pkg" in
         bluefish )
           printf "%s\n" "$(bluefish --version | awk '/^Bluefish/ {print $NF}')" ;;
 				geany )
@@ -114,6 +108,22 @@ deb_versions() {
 					printf "%s\n" "$(glow --version | cut -d' ' -f3 | sed 's/^v//')" ;;
 				nano )
 					printf "%s\n" "$(nano --version | awk '/version/ {print $NF}')" ;;
+				* )
+          printf "%s Invalid package name - %s\n" "$red_error" "${debpkg^}" >&2
+			esac
+		fi
+	done
+	printf "%s\n" "${normal}"
+}
+
+terminals() {
+	local packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
+	printf "Terminals\n"
+	printf "%-15s%s\n" "Terminal" "Version"
+	for pkg in "${packages[@]}"; do
+		if exists "$pkg"; then
+			printf "%s%-15s%s" "${darkgray}" "${pkg^}" "${gray}"
+			case "$pkg" in
         kitty )
           printf "%s\n" "$(kitty --version | cut -d' ' -f2)" ;;
         terminator )
@@ -127,7 +137,31 @@ deb_versions() {
         xterm )
           printf "%s\n" "$(dpkg -l | awk '$2 == "xterm" {print $3}' | sed 's/[+-].*//')" ;;
 				* )
-          printf "%s Invalid package name - %s\n" "$red_error" "${debpkg^}" >&2
+					printf "%s Invalid package name - %s\n" "$red_error" "${debpkg^}" >&2
+			esac
+		fi
+	done
+	printf "%s\n" "${normal}"
+}
+
+browsers() {
+	local packages=( brave-browser chromium firefox google-chrome )
+	printf "Browsers\n"
+	printf "%-15s%s\n" "Browser" "Version"
+	for pkg in "${packages[@]}"; do
+		if exists "$pkg"; then
+			printf "%s%-15s%s" "${darkgray}" "${pkg^}" "${gray}"
+			case "$pkg" in
+				brave-browser )
+					printf "%s\n" "$(brave-browser --version | cut -d' ' -f3)" ;;
+				chromium )
+					printf "%s\n" "$(chromium --version | cut -d' ' -f2)" ;;
+				firefox )
+					printf "%s\n" "$(firefox --version | cut -d' ' -f3)" ;;
+				google-chrome )
+					printf "%s\n" "$(google-chrome --version | cut -d' ' -f3)" ;;
+				* )
+					printf "%s Invalid package name - %s\n" "$red_error" "${debpkg^}" >&2
 			esac
 		fi
 	done
@@ -136,13 +170,15 @@ deb_versions() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.10.1"
-  local _updated="07 Mar 2023"
+  local _version="0.11.0"
+  local _updated="10 Mar 2023"
   clear
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Newest & installed versions of select programs.\n\n"
-  get_versions
-  deb_versions
+  github_versions
+  apt_tools
+  browsers
+  terminals
   leave ""
 }
 
