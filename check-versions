@@ -91,7 +91,7 @@ github_versions() {
 }
 
 apt_tools() {
-	local packages=( bluefish geany git glow nano )
+	local packages=( bluefish geany git glow nano shellcheck )
   printf "Apt Packages\n"
 	printf "%-15s%s\n" "Package" "Version"
 	for pkg in "${packages[@]}"; do
@@ -108,8 +108,10 @@ apt_tools() {
 					printf "%s\n" "$(glow --version | cut -d' ' -f3 | sed 's/^v//')" ;;
 				nano )
 					printf "%s\n" "$(nano --version | awk '/version/ {print $NF}')" ;;
+        shellcheck )
+          printf "%s\n" "$(shellcheck --version | awk '/version:/ {print $NF}')" ;;
 				* )
-          printf "%s Invalid package name - %s\n" "$red_error" "${debpkg^}" >&2
+          printf "%s Invalid package name - %s\n" "$red_error" "${pkg^}" >&2
 			esac
 		fi
 	done
@@ -137,7 +139,7 @@ terminals() {
         xterm )
           printf "%s\n" "$(dpkg -l | awk '$2 == "xterm" {print $3}' | sed 's/[+-].*//')" ;;
 				* )
-					printf "%s Invalid package name - %s\n" "$red_error" "${debpkg^}" >&2
+					printf "%s Invalid package name - %s\n" "$red_error" "${pkg^}" >&2
 			esac
 		fi
 	done
@@ -157,11 +159,11 @@ browsers() {
 				chromium )
 					printf "%s\n" "$(chromium --version | cut -d' ' -f2)" ;;
 				firefox )
-					printf "%s\n" "$(firefox --version | cut -d' ' -f3)" ;;
+					printf "%s\n" "$(firefox --version | cut -d' ' -f3 | sed 's/esr/ esr/')" ;;
 				google-chrome )
 					printf "%s\n" "$(google-chrome --version | cut -d' ' -f3)" ;;
 				* )
-					printf "%s Invalid package name - %s\n" "$red_error" "${debpkg^}" >&2
+					printf "%s Invalid package name - %s\n" "$red_error" "${pkg^}" >&2
 			esac
 		fi
 	done
@@ -170,7 +172,7 @@ browsers() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.11.1"
+  local _version="0.11.2"
   local _updated="10 Mar 2023"
   clear
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
