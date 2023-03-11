@@ -34,6 +34,7 @@ readonly red_error="${lightred}ERROR:${normal}"
 
 check_dependencies() {
 	check_package curl
+  sleep 2
 }
 
 cleanup() {
@@ -127,7 +128,7 @@ terminals() {
 			printf "%s%-15s%s" "${darkgray}" "${pkg^}" "${gray}"
 			case "$pkg" in
         kitty )
-          printf "%s\n" "$(kitty --version | cut -d' ' -f2)" ;;
+          printf "%s\n" "$(dpkg -l | awk '$2 == "kitty" {print $3}' | sed 's/[+-].*//')" ;;
         terminator )
           printf "%s\n" "$(dpkg -l | awk '$2 == "terminator" {print $3}' | sed 's/[+-].*//')" ;;
         gnome-terminal )
@@ -172,7 +173,7 @@ browsers() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.11.3"
+  local _version="0.11.4"
   local _updated="10 Mar 2023"
   clear
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
