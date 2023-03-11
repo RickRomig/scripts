@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 ###############################################################################
 # Script Name  : functionlib
 # Description  : personal function library used in Bash scripts
@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 17 Feb 2023
+# Last updated : 11 Mar 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -72,6 +72,7 @@ DEFAULT=$(echo -en "\e[49m")
 ## Functions ##
 
 ###############################################################################
+# die
 # Purpose: Display an error message and die (exit with an error code)
 # Arguments:
 #   $1 -> Error message
@@ -85,9 +86,10 @@ die() {
 }
 
 ###############################################################################
+# diehard
 # Purpose: Display an error message of 1 or more lines and exit 
 # Arguments: Any text immediately following the function call.
-# diehard "File not found." "Check directory."
+# Example: diehard "File not found." "Check directory."
 ###############################################################################
 diehard() {
 	printf "\e[91mERROR:\e[0m "
@@ -95,6 +97,7 @@ diehard() {
 }
 
 ###############################################################################
+# error_handler
 # Purpose: Display message for trapped errors.
 # Arguments:
 #   $1 -> Error code passed by trap builtin
@@ -108,19 +111,21 @@ error_handler() {
 }
 
 ###############################################################################
-# Purpose: Return true if script is executed by the root user
+# root_user
+# Purpose: Return true if script is being executed by the root user
 # Arguments: none
-# Return: True or False
+# Returns: True or False
 ###############################################################################
 root_user() {
   [[ "$(id -u)" -eq "0" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
+# user_exists
 # Purpose: Return true if user exists in /etc/passwd
 # Arguments:
 #   $1 (username) -> Username to check in /etc/passwd
-# Return: True or False
+# Returns: True or False
 ###############################################################################
 user_exists() {
   local U="$1"
@@ -128,9 +133,9 @@ user_exists() {
 }
 
 ###############################################################################
+# user_in_sudo
 # Purpose: Prompts for user password if user is in the sudo group.
 # If user is not in the sudo group, displays error message and exits.
-# Arguments: none
 ###############################################################################
 user_in_sudo() {
   if id -nG "$USER" | grep -qw sudo; then
@@ -141,28 +146,28 @@ user_in_sudo() {
 }
 
 ###############################################################################
+# bin_in_path
 # Purpose: Return true if $HOME/bin is in the PATH
-# Arguments: none
-# Return: True or False
+# Returns: True or False
 ###############################################################################
 bin_in_path() {
   echo "$PATH" | grep -q "$HOME/bin" && return $TRUE || return $FALSE
 }
 
 ###############################################################################
-# Purpose: Return true if command/program is installed.
+# exists
+# Purpose: Returns true if command/program is installed.
 # Arguments:
 #   $1 -> command/program to be checked.
-# Return: True or False
+# Returns: True or False
 ###############################################################################
 exists() {
   command -v "$1" > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
+# get_distribution
 # Purpose: Sets global variable 'distro' to the full name of the current distribution.
-# Arguments: none
-# Return: none
 ###############################################################################
 get_distribution() {
   if [[ -f /etc/lsb-release ]]; then
@@ -174,9 +179,9 @@ get_distribution() {
 }
 
 ###############################################################################
-# Purpose: Return true if the distribution is based on Debian.
-# Arguments: none
-# Return: True or False
+# is_debian
+# Purpose: Returns true if the distribution is based on Debian.
+# Returns: True or False
 # Notes: Antix, BunsenLabs, and MX Linux show as a Debian codename.
 ###############################################################################
 is_debian() {
@@ -188,9 +193,9 @@ is_debian() {
 }
 
 ###############################################################################
-# Purpose: Return true if distribution is based on Ubuntu 20.04 (Mint 20.x)
-# Arguments: none
-# Return: True or False
+# is_focal
+# Purpose: Returns true if distribution is based on Ubuntu 20.04 (i.e., Mint 20.x)
+# Returns: True or False
 ###############################################################################
 is_focal() {
   ubuntu_code=$(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release)
@@ -198,9 +203,9 @@ is_focal() {
 }
 
 ###############################################################################
-# Purpose: Return true if distribution is based on Ubuntu 22.04 (Mint 21.x)
-# Arguments: none
-# Return: True or False
+# is_jammy
+# Purpose: Returns true if distribution is based on Ubuntu 22.04 (i.e., Mint 21.x)
+# Returns: True or False
 ###############################################################################
 is_jammy() {
   ubuntu_code=$(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release)
@@ -208,9 +213,9 @@ is_jammy() {
 }
 
 ###############################################################################
-# Purpose: Return true if the distribution supports Ubuntu PPA.
-# Arguments: none
-# Return: True or False
+# support_ppa
+# Purpose: Returns true if the distribution supports Ubuntu PPA.
+# Returns: True or False
 ###############################################################################
 support_ppa() {
   codename=$(/usr/bin/lsb_release --codename --short)
@@ -221,9 +226,9 @@ support_ppa() {
 }
 
 ###############################################################################
-# Purpose: Return true if distribution is antiX or MX Linux
-# Arguments: none
-# Return: True or False
+# antix_mx
+# Purpose: Returns true if distribution is antiX or MX Linux
+# Returns: True or False
 ###############################################################################
 antix_mx() {
   dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2> /dev/null)
@@ -234,9 +239,9 @@ antix_mx() {
 }
 
 ###############################################################################
-# Purpose: Return true if distribution is BunsenLabs
-# Arguments: none
-# Return: True or False
+# bunsenlabs
+# Purpose: Returns true if distribution is BunsenLabs
+# Returns: True or False
 ###############################################################################
 bunsenlabs() {
   distro=$(/usr/bin/lsb_release --id --short)
@@ -244,18 +249,18 @@ bunsenlabs() {
 }
 
 ###############################################################################
+# is_arch
 # Purpose: Return true if distribution is based on Arch Linux
-# Arguments: none
-# Return: True or False
+# Returns: True or False
 ###############################################################################
 is_arch() {
   [[ -d /etc/pacman.d ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
-# Purpose: Return true is the init system is systemd
-# Arguments: none
-# Return: True or False
+# is_systemd
+# Purpose: Returns true is the init system is systemd
+# Returns: True or False
 ###############################################################################
 is_systemd() {
  init_sys=$(/usr/bin/ps -p 1 | awk '/1 ?/ {print $NF}')
@@ -263,9 +268,9 @@ is_systemd() {
 }
 
 ###############################################################################
-# Purpose: Return true is the init system is SysV
-# Arguments: none
-# Return: True or False
+# is_sysv
+# Purpose: Returns true is the init system is SysV
+# Returns: True or False
 ###############################################################################
 is_sysv() {
  init_sys=$(/sbin/init --version 2>/dev/null | awk '{print $1}')
@@ -273,28 +278,29 @@ is_sysv() {
 }
 
 ###############################################################################
-# Purpose: Return true is the desktop environment is Cinnamon
-# Arguments: none
-# Return: True or False
+# is_cinnamon
+# Purpose: Returns true is the desktop environment is Cinnamon
+# Returns: True or False
 ###############################################################################
 is_cinnamon() {
   [[ -f /usr/bin/cinnamon-session ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
-# Purpose: Return true is the system is a laptop
-# Arguments: none
-# Return: True or False
+# is_laptop
+# Purpose: Returns true is the system is a laptop
+# Returns: True or False
 ###############################################################################
 is_laptop() {
   [[ -d /proc/acpi/button/lid/ ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
-# Purpose: Return true if the current year is a leap year.
+# leapyear
+# Purpose: Returns true if the current year is a leap year.
 # Arguments:
 #   $1 -> 4-digit year to be checked
-# Return: True or False (0 or 1)
+# Returns: True or False (0 or 1)
 ###############################################################################
 leapyear() {
   local year="$1"
@@ -304,9 +310,10 @@ leapyear() {
 }
 
 ###############################################################################
+# local_ip
 # Purpose: Extract the last octet of the local IP address
-# Arguments: none
 # Assumes a Class C /24 network, last octet of 1 - 254
+# Priority is wired connection, then wireless.
 ###############################################################################
 local_ip() {
   en_ip=$(/usr/bin/ip route show | awk '/en/ && /src/ {print $9}')
@@ -326,17 +333,18 @@ local_ip() {
 }
 
 ###############################################################################
+# valid_ip
 # Purpose: Return a valid and reachable IP address
 # Assumes a Class C /24 network, last octet of 1 - 254
 # Network identifier and broadcast addresses are excluded
 # Arguments:
 #   $1 -> last octet of the IP address to be validated.
 # Returns 0 if the argument is a valid and reachable IP address.
-# Exit with exit code of 1 if the argument is an empty string.
-# Exit with exit code of 2 if the argument is the IP address of local client.
-# Exit with exit code of 3 if the argument is a valid address but unreachable.
-# Exit with exit code of 4 if the argument is outside the range of valid addresses.
-# Exit with exit code of 5 if the argument is not an integer value.
+# Exits with exit code of 1 if the argument is an empty string.
+# Exits with exit code of 2 if the argument is the IP address of local client.
+# Exits with exit code of 3 if the argument is a valid address but unreachable.
+# Exits with exit code of 4 if the argument is outside the range of valid addresses.
+# Exits with exit code of 5 if the argument is not an integer value.
 ###############################################################################
 valid_ip() {
   local octet="$1"
@@ -386,6 +394,7 @@ valid_ip() {
 }
 
 ###############################################################################
+# edit_view_quit
 # Purpose: Edit or view a file after it's been created by a script.
 # Arguments:
 #   $1 -> file to be edited or reviewed.
@@ -421,6 +430,7 @@ edit_view_quit() {
 }
 
 ###############################################################################
+# viewtext
 # Purpose: View a text file with less or cat
 # Arguments:
 #   $1 -> file to be viewed
@@ -434,8 +444,8 @@ viewtext() {
 }
 
 ###############################################################################
-# Purpose: Remove backup files ending with a tilde '~' in current directory
-# Arguments: none
+# remove_tilde
+# Purpose: Removes backup files ending with a tilde '~' in the current directory
 ###############################################################################
 remove_tilde() {
   nbu=$(find ./ -maxdepth 1 -type f -regex '\./.*~$' | wc -l)
@@ -443,37 +453,41 @@ remove_tilde() {
 }
 
 ###############################################################################
+# anykey
 # Purpose: Press any key to continue
-# Arguments: none
 ###############################################################################
 anykey() {
   read -rsn1 -p "Press any key to continue"; echo
 }
 
 ###############################################################################
+# print_line
 # Purpose: Print a line of characters across the screen
 # Arguments:
-#  $1 -> character to be printed (optional)
-#  #2 -> integer length of the line (optional)
+#  $1 -> character to be printed (optional, = is the default)
+#  #2 -> integer length of the line (optional, width or termina is the default)
 # Character argument, if present, needs to be in double quotes, i.e., "-".
+# Character argument, if present, is limited to the first character entered.
 # Length argument, if present, must follow a character argument.
 ###############################################################################
 print_line() {
-  local char="${1:-=}"      # Character to be printed (= is the default).
-  width=$(tput cols); local width  # Default line length = width of local terminal.
+  local char="${1:-=}"
+  width=$(tput cols); local width
   if [[ "$#" -gt 1 ]]; then char="$1"; width="$2"; fi
   local len=${#char}
-  (( len > 1 )) && char=${char::1}  # Allow only the first character entered.
+  (( len > 1 )) && char=${char::1}
   printf "%${width}s\n" | sed "s/ /$char/g"
 }
 
 ###############################################################################
+# box
 # Purpose: Displays a box of asterisks around a line of text.
-# Argument:
+# Arguments:
 #   $1 -> A single line of text to be displayed.
-#   $2 -> Optional character to form the box.
-# Character argument needs to be in double quotes, i.e., "-".
-# Does not work with echo with any options (-e, -n, etc.)
+#   $2 -> Optional character to form the box. Default is `*`
+# The line of text cannot contain any special characters.
+# Character argument, if present, needs to be in double quotes, i.e., "-".
+# Character argument, if present, is limited to the first character entered.
 ###############################################################################
 box() {
   local char="${2:-*}"
@@ -487,12 +501,14 @@ box() {
 }
 
 ###############################################################################
+# under_line
 # Purpose: Displays a line of hyphen/dashes under a line of text.
 # Argument:
 #   $1 -> A single line of text to be displayed.
-#   $2 -> Optional character to form the line.
-# Character argument needs to be in double quotes, i.e., "-".
-# Does not work with echo with any options (-e, -n, etc.)
+#   $2 -> Optional character to form the line. Default is `-`
+# The line of text cannot contain any special characters.
+# Character argument, if present, needs to be in double quotes, i.e., "-".
+# Character argument, if present, is limited to the first character entered.
 ###############################################################################
 under_line() {
   local title="$1"
@@ -505,7 +521,8 @@ under_line() {
 }
 
 ###############################################################################
-# Purpose: Display either a random message or a message string passed
+# leave
+# Purpose: Display either a random message from a file or a message string passed
 # as an argument before exiting the script.
 # Arguments:
 #   $1 -> Exit message (Optional)
@@ -519,7 +536,8 @@ leave() {
 }
 
 ###############################################################################
-# Purpose: Display the elasped time for a script to run
+format_time
+# Purpose: Displays the elasped time for a script to run
 # Arguments:
 #   $1 -> $SECONDS
 # Place SECONDS=0 ahead of task to be timed.
@@ -534,20 +552,28 @@ format_time() {
 }
 
 ###############################################################################
+# check_package
 # Purpose: Check if a package is installed, and install if not.
-# Argurments
+# Argurments:
 #   $1 -> name of package to check and install
+# Example: check_package "$package"
 ###############################################################################
 check_package() {
   local package="$1"
-  # dpkg -l | grep -qw "$package" || sudo apt-get install "$package" -yyq
-  if dpkg -l | grep -qw "$package"; then printf "%s - OK\n" "$package"; else sudo apt-get install "$package" -yyq; fi
+  if dpkg -l | grep -qw "$package"; then
+    printf "%s - OK\n" "$package"
+  else
+    printf "%s - installing...\n" "$package"
+    sudo apt-get install "$package" -yyq
+  fi
 }
 
 ###############################################################################
+# check_packages
 # Purpose: Check if a group of packages are installed, and install if not.
-# Argurments
+# Argurments:
 #   $1 -> array of packages to check and install
+# Example: check_packages "${packages[@]}"
 ###############################################################################
 check_packages() {
 	local pkgs=("$@")
@@ -563,11 +589,12 @@ check_packages() {
 }
 
 ###############################################################################
-# Purpose: Return true if a package is in the repositories,
-# including PPAs and other added software sources.
+# in_repos
+# Purpose: Returns true if a package is in the repositories, including PPAs and
+# other added software sources in /etc/apt/sources.list.d.
 # Arguments:
 #   $1 -> package to be checked
-# Return: True or False
+# Returns: True or False
 ###############################################################################
 in_repos() {
   local package="$1"
@@ -576,9 +603,9 @@ in_repos() {
 }
 
 ###############################################################################
-# Purpose: Mount a sshfs server on the local network using sshfs.
-# Arguments: none
-# $share, $tmp_dir, $tmp_file are global variables in the calling script.
+# mount_server
+# Purpose: Mounts a sshfs server on the local network using sshfs in user's home directory.
+# $tmp_dir, $tmp_file must be global variables in the calling script.
 ###############################################################################
 mount_server() {
   local server_ip="11"
@@ -593,30 +620,36 @@ mount_server() {
       echo "$share is already mounted"
     fi
   else
-    sudo mkdir -p "$HOME/mnt/$share/"    # Create the mount point.
-    # sudo chown rick:rick "$HOME/mnt/$share/"
+    # Create the mount point.
+    mkdir -p "$HOME/mnt/$share/"
     sshfs -o follow_symlinks rick@"$localnet.$server_ip:/home/rick" "$HOME/mnt/$share/"
     echo "$share has been created and mounted."
   fi
 }
 
 ###############################################################################
-# Purpose: Unmount a sshfs server on the local network and remove temp directory.
-# Arguments: none
-# remove temp directory and temp file.
-# $share, $tmp_dir, $tmp_file are global variables in the calling script.
+# unmount_server() {
+# Purpose: Unmounts a sshfs server on the local network.
+# Removes temp directory and temp file, if present.
+# $tmp_dir, $tmp_file must be global variables in the calling script.
 ###############################################################################
 unmount_server() {
   local share="HP-6005"
-  mounted=$(mount | grep "$share"); local mounted
-  [[ -n "$mounted" ]] && fusermount -u "$HOME/mnt/$share"
-  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
-  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+  mounted=$(mount | grep "$share")
+  if [[ -n "$mounted" ]]; then
+    fusermount -u "$HOME/mnt/$share"
+    [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+    [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+    printf "%s has been unmunted.\n" "$share"
+  else
+    printf "%s is not mounted.\n" "$share" >&2
+  fi
 }
 
 ###############################################################################
+# mount_nas
 # Purpose: Mount the NAS on the local network using sshfs.
-# Arguments: none
+# $tmp_dir, $tmp_file must be global variables in the calling script.
 ###############################################################################
 mount_nas() {
   local server_ip="4"
@@ -631,27 +664,33 @@ mount_nas() {
       echo "$share is already mounted"
     fi
   else
-    sudo mkdir -p "%HOME/mnt/$share/"    # Create the mount point.
+    mkdir -p "%HOME/mnt/$share/"    # Create the mount point.
     sshfs -o follow_symlinks rick@"$localnet.$server_ip:" "$HOME/mnt/$share/"
     echo "$share has been created and mounted."
   fi
 } 
 
 ###############################################################################
-# Purpose: Unmount the NAS (sshfs server) on local network
-# remove temp directory and temp file.
-# Arguments: none
-# $share, $tmp_dir, $tmp_file are global variables in the calling script.
+# unmount_nas
+# Purpose: Unmounts the NAS (sshfs server) on local network
+# Removes temp directory and temp file, if present.
+# $tmp_dir, $tmp_file must be global variables in the calling script.
 ###############################################################################
 unmount_nas() {
   local share="NASD97167"
   mounted=$(mount | grep "$share"); local mounted
-  [[ -n "$mounted" ]] && fusermount -u "$HOME/mnt/$share"
-  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
-  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+  if [[ -n "$mounted" ]]; then
+    fusermount -u "$HOME/mnt/$share"
+    [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+    [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+    printf "%s has been unmunted.\n" "$share"
+  else
+    printf "%s is not mounted.\n" "$share" >&2
+  fi
 }
 
 ###############################################################################
+# clone_repo
 # Purpose: Clone a git repository on the Gitea server to ~/Downloads
 # Arguments:
 #   $1 -> name of the repository to clone
@@ -659,13 +698,16 @@ unmount_nas() {
 clone_repo() {
   local git_svr="http://192.168.0.16:3000/Nullifidian"
   local git_repo="${1}.git"
-  git clone  "$git_svr/$git_repo" "$HOME/Downloads"
+  git clone "$git_svr/$git_repo" "$HOME/Downloads"
 }
 
 ###############################################################################
+# dots
 # Purpose: Display a series of dots to indicate a running process.
-# Arguments: no
+# Arguments:
 #   $1 -> optional character to be repeated. Default is '.' (period)
+# Character argument, if present, needs to be in double quotes, i.e., "-".
+# Character argument, if present, is limited to the first character entered.
 # Refer to ~/bin/functionlib.md for usage instructions.
 ###############################################################################
 dots() {
@@ -677,8 +719,8 @@ dots() {
 }
 
 ###############################################################################
+# spin
 # Purpose: Display a spinning character to indicate a running process.
-# Arguments: none
 # Refer to ~/bin/functionlib.md for ussage instructions.
 ###############################################################################
 spin() {
