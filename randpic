@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+#!/bin/bash
 ###############################################################################
 # Script Name  : randpic
 # Description  : Copies random image file from ~/Pictures to ~/tmp/pics
-# Dependencies : cp, select
+# Dependencies : imagemagick
 # Arguments    : None
 # Author       : Copyright (C) 2019, Richard Romig, 2 June 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -27,8 +27,8 @@ fi
 ##  Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.3.3"
-readonly _updated="23 Feb 2023"
+readonly _version="3.3.4"
+readonly _updated="10 Mar 2023"
 readonly tmp_dir=$HOME"/tmp/journal"
 
 ## Functions ##
@@ -50,7 +50,7 @@ valid_image() {
 # Create temporary picture directory if it doesn't already exist
 [[ -d "$tmp_dir" ]] || mkdir -p "$tmp_dir"
 
-check_package imagemagick
+check_package imagemagick; sleep 1; clear
 while true; do
   # Randomly select an image folder from ~/Pictures/
   pic_dir="$(shuf -en1 "$HOME/Pictures"/*)/"
