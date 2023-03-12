@@ -27,9 +27,8 @@ fi
 # Variables
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.1"
-readonly _updated="05 Feb 2023"
-readonly rederror="${lightred}Error:${normal}"
+readonly _version="0.2.2"
+readonly _updated="12 Mar 2023"
 
 ## Functions ##
 
@@ -44,7 +43,6 @@ check_dependencies() {
 ## Execution ##
 
 check_dependencies
-sleep 3
 while true; do
   clear
 	printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
@@ -65,7 +63,7 @@ while true; do
 	          /usr/bin/nano "$fname"
           fi
         else
-          printf "%s %s not found.\n" "$rederror" "$fname" >&2
+          printf "%s %s not found.\n" "$red_error" "$fname" >&2
         fi
 	      break ;;
 	    2 )
@@ -73,7 +71,7 @@ while true; do
 	      if [[ -f "$fname" ]]; then
           printf "Compiling %s to a.out\n" "$fname"
 	      else
-          printf "%s %s not found.\n" "$rederror" "$fname" >&2
+          printf "%s %s not found.\n" "$red_error" "$fname" >&2
 	      fi
 	      break ;;
 	    3 )
@@ -84,7 +82,7 @@ while true; do
           printf "Compiling %s.c to %s\n" "$fname" "$fname"
 	        /usr/bin/gcc -o "$fname"
 	      else
-          printf "%s %s not found.\n" "$rederror" "$fname" >&2
+          printf "%s %s not found.\n" "$red_error" "$fname" >&2
 	      fi
 	      break ;;
 	    4 )
@@ -93,7 +91,7 @@ while true; do
           /usr/local/bin/fnloc "$fname"
 	        anykey
 	      else
-          printf "%s %s not found.\n" "$rederror" "$fname" >&2
+          printf "%s %s not found.\n" "$red_error" "$fname" >&2
 	      fi
 	      break ;;
 	    5 )
@@ -103,7 +101,7 @@ while true; do
 	        locfile+=".loc"
 	        /usr/local/bin/fnloc $"$fname" > "$locfile"
 	      else
-          printf "%s %s not found.\n" "$rederror" "$fname" >&2
+          printf "%s %s not found.\n" "$red_error" "$fname" >&2
 	      fi
 	      break ;;
       6 )
@@ -115,7 +113,7 @@ while true; do
             viewtext "$fname"
           fi
         else
-          printf "%s %s not found.\n" "$rederror" "$fname" >&2
+          printf "%s %s not found.\n" "$red_error" "$fname" >&2
         fi
         break ;;
       7 )
@@ -125,7 +123,7 @@ while true; do
 	    8 )
 	      leave "" ;;
 	    *)
-	      echo -e "%s Not a valid option. Please try again.\n" "$rederror" >&2 ;;
+	      printf "%s Not a valid option. Please try again.\n" "$red_error" >&2 ;;
   	esac
   done
 done
