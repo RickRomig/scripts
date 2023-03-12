@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 ##########################################################################
 # Script Name  : lm20-snaps
 # Description  : Enables or disables Snaps on Linux Mint 20 and later.
@@ -28,10 +28,9 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.2"
-readonly _updated="20 Feb 2023"
+readonly _version="0.2.3"
+readonly _updated="12 Mar 2023"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
-readonly rederror="${lightred}ERROR:${normal}"
 
 ## Functions ##
 
@@ -112,7 +111,7 @@ printf "Enables or disables the installation of snapd and Snap packages in Linux
 
 if lm20_plus; then
   if [[ $# -eq 0 ]]; then
-    printf "\n%s No argument passed\n" "$rederror" >&2
+    printf "\n%s No argument passed\n" "$red_error" >&2
     help 2
   else
     optstr=":dehs"
@@ -134,7 +133,7 @@ if lm20_plus; then
           snap_status && printf "Snaps are enabled.\n" || printf "Snaps are disabled.\n"
           break ;;
         ? )
-          printf "\n%s Invalid option -%s\n" "$rederror" "$OPTARG" >&2
+          printf "\n%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
           help 2 ;;
       esac
     done
