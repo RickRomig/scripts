@@ -1,13 +1,12 @@
-#!/usr/bin/env bash
+#!/bin/bash
 ###############################################################################
 # Script Name  : syncrick
-# Description  : A script to sync my data to a local machine via SSH
-# Dependencies : rsync,ip
+# Description  : A script to sync data main PC and main laptop.
+# Dependencies : rsync
 # Arguments    : Last octet of the local network address
-# Author       : Richard Romig, Joe Collins
-# Email        : rick.romig@gmail.com
-# Comments     : Based on script by Joe Collins at EzeeLinux.com
-#              : LOCALNET is declared in functionlib
+# Author       : Copyright (C) 2023, Richard Romig 12 Mar 2023
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Uses a configuration file to store hostnames & IP addresses.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -21,20 +20,39 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
 
-# Variables
+## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.6.2"
-readonly _updated="14 Feb 2022"
-readonly lhost=$HOSTNAME
-readonly mhost="hp-800g2-sff"
-readonly rhost="probook-6570b"
+readonly _version="3.0.0"
+readonly _updated="12 Mar 2023"
+readonly config_dir="$HOME/.config/scripts"
+readonly config_file="$_script.conf"
+local_host="$(uname -n)"; readonly local_host
+localip=$(local_ip); readonly localip
 
-# Functions
+## Functions ##
+
+create_config() {
+  [[ -d "$config_dir" ]] || mkdir -p "$config_dir"
+  echo "Complete all fields"
+  read -rp "Main hostname: " main_host
+  read -rp "IP address (last octect): " main_ip
+  read -rp "Laptop hostname: " lap_host
+  read -rp "IP adddress (last octet): " lap_ip
+  read -rp "Wireless IP (last octet): " wifi_ip
+
+  echo "
+  main_host='$main_host'
+  main_ip='$main_ip'
+  lap_host='$lap_host'
+  lap_ip='$lap_ip'
+  wifi_ip='$wifi_ip'
+  " > "$config_dir/$config_file"
+}
 
 transfer_status() {
   # Exit script if transfer fails.
@@ -43,13 +61,62 @@ transfer_status() {
 }
 
 sync_script() {
+  local hostip="$1"
+  # Synch to all.
   echo $'\n'$"${orange}Syncing aliases...${normal}"
   rsync -avzh --delete /home/"$USER"/.bash_aliases "$localnet.$hostip":
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing homepage...${normal}"
+  echo $'\n'$"${orange}Syncing script configuration files...${normal}"
+  rsync -avzh --delete /home/"$USER"/.config/scripts/ "$localnet.$hostip":.config/scripts/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Password Databases...${normal}"
+  rsync -avzh --delete /home/"$USER"/Documents/Rick_pwds* /home/"$USER"/Documents/Passwords* "$localnet.$hostip":Documents/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+   echo $'\n'$"${orange}Syncing homepage...${normal}"
   rsync -avzh --delete /home/"$USER"/homepage/ "$localnet.$hostip":homepage/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Homepage...${normal}"
+  rsync -avzh --delete /home/"$USER"/.local/share/doc/todo.lst "$localnet.$hostip":.local/share/doc/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing MOSFANET...${normal}"
+  rsync -avzh --delete /home/"$USER"/Documents/mosfanet/ "$localnet.$hostip":Documents/mosfanet/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Work..${normal}"
+  rsync -avzh --delete /home/"$USER"/Work/ "$localnet.$hostip":Work/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Templates...${normal}"
+  rsync -avzh --delete /home/"$USER"/Templates/ "$localnet.$hostip":Templates/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Pictures/wallpaper...${normal}"
+  rsync -avzh --delete /home/"$USER"/Pictures/wallpaper/ "$localnet.$hostip":Pictures/wallpaper/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  # Sync repositories
+  echo $'\n'$"${orange}Syncing Gitea repositoies...${normal}"
+  rsync -avzh --delete /home/"$USER"/gitea/ "$localnet.$hostip":gitea/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  # Sync personal files.
+  echo $'\n'$"${orange}Syncing Audio Books...${normal}"
+  rsync -avzh --delete /home/"$USER"/Audiobooks/ "$localnet.$hostip":Audiobooks/
   exit_status="$?"
   transfer_status "$exit_status"
 
@@ -63,57 +130,56 @@ sync_script() {
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing Finance...${normal}"
-  rsync -avzh --delete /home/"$USER"/Documents/Finance/ "$localnet.$hostip":Documents/Finance/
-  exit_status="$?"
-  transfer_status "$exit_status"
-
-  echo $'\n'$"${orange}Syncing HomeBank...${normal}"
-  rsync -avzh --delete /home/"$USER"/Documents/HomeBank/ "$localnet.$hostip":Documents/HomeBank/
-  exit_status="$?"
-  transfer_status "$exit_status"
-
-  echo $'\n'$"${orange}Syncing HomeBank archives...${normal}"
-  rsync -avzh --delete /home/"$USER"/Downloads/archives/homebank/ "$localnet.$hostip":Downloads/archives/homebank/
-  exit_status="$?"
-  transfer_status "$exit_status"
-
   echo $'\n'$"${orange}Syncing Journals...${normal}"
   rsync -avzh --delete /home/"$USER"/Documents/Journals/ "$localnet.$hostip":Documents/Journals/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing church stuff ...${normal}"
-  rsync -avzh --delete /home/"$USER"/Documents/Fil-Am/Fil-Am_Church/ "$localnet.$hostip":Documents/Fil-Am/Fil-Am_Church/
+  echo $'\n'$"${orange}Syncing Quotes...${normal}"
+  rsync -avzh --delete /home/"$USER"/Documents/Quotes/ "$localnet.$hostip":Documents/Quotes/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing Pictures/wallpaper...${normal}"
-  rsync -avzh --delete /home/"$USER"/Pictures/wallpaper/ "$localnet.$hostip":Pictures/wallpaper/
+  echo $'\n'$"${orange}Syncing Tech Videos...${normal}"
+  rsync -avzh --delete /home/"$USER/Videos/Tech/" "$localnet.$hostip":Videos/Tech/
   exit_status="$?"
   transfer_status "$exit_status"
 }
 
 ## Execution ##
 
-echo "$_script v$_version, updated $_updated"
-
-# Ensure script is being run from the 800 G2 (10)
-[[ "$lhost" = "$mhost" ]] || die "$_script must be run from the $mhost."
-
-# Assign IP address to HOSTIP
-valid_ip "$1" && hostip="$1"
-hname=$(/usr/bin/avahi-resolve -a $localnet.$hostip 2>/dev/null | awk '{print $2}' | sed 's/\.local$//')
-[ "$rhost" != "$hname" ] && die "Can only sync to $rhost!"
-
 # Start timer
 SECONDS=0
 
-# Start syncing folders
-echo "Synchronizing directories to $localnet.$hostip"
-sync_script
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 
-print_line "-" 27
-echo "- All directories synced! -"
-print_line "-" 27
-leave "Script completed in $(format_time $SECONDS)"
+[[ -f "$config_dir/$config_file" ]] || create_config
+source "$config_dir/$config_file"
+
+if [[ "$local_host" == "$main_host" ]]; then
+  if ping -c 3 "$localnet.$lap_ip" >/dev/null 2>&1; then
+    printf "Syncing %s to %s ...\n" "$main_host" "$lap_host"
+    # hostip="$lap_ip"
+    sync_script "$lap_ip"
+    printf "\n%s synced with %s.\n" "$lap_host" "$main_host"
+  elif ping -c 3 "$localnet.$wifi_ip" >/dev/null 2>&1; then
+    printf "Syncing %s to %s ...\n" "$main_ip" "$lap_host"
+    # hostip="$wifi_ip"
+    sync_script "$wifi_ip"
+   printf "\n%s synced with %s.\n" "$lap_host" "$main_host"
+  else
+    printf "\n%s is not on the netwwork.\n" "$lap_host"
+  fi
+else
+  # local host is laptop
+  if ping -c 3 "$localnet.$main_ip" >/dev/null 2>&1; then
+    printf "Syncing %s to %s ...\n" "$lap_host" "$main_host"
+    # hostip="$main_ip"
+    sync_script "$main_ip"
+    printf "\n%s synced with %s.\n" "$main_host" "$lap_host"
+  else
+    printf "\n%s is not on the netwwork.\n" "$main_host"
+  fi
+fi
+
+box "$_script completed in $(format_time $SECONDS)"
