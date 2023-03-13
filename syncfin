@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 ##########################################################################
 # Script Name  : syncfin
 # Description  : Synchronize files between main PC and finance laptop.
@@ -26,12 +26,12 @@ fi
 
 ## Variables ##
 
+local_host="$(uname -n)"; readonly local_host
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.6"
-readonly _updated="27 Jan 2023"
+readonly _version="0.2.7"
+readonly _updated="13 Mar 2023"
 readonly config_dir="$HOME/.config/scripts"
 readonly config_file="$_script.conf"
-readonly local_host="$(uname -n)"
 
 ## Functions ##
 
@@ -151,7 +151,7 @@ printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 [[ -f "$config_dir/$config_file" ]] || create_config
 source "$config_dir/$config_file"
 
-# Check arguments
+# Check host
 if [[ "$local_host" == "$main_host" || "$local_host" == "$fin_host" ]]; then
 	transfer
 else
