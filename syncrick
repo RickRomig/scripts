@@ -3,7 +3,7 @@
 # Script Name  : syncrick
 # Description  : A script to sync data main PC and main laptop.
 # Dependencies : rsync
-# Arguments    : Last octet of the local network address
+# Arguments    : none, addresses hard coded.
 # Author       : Copyright (C) 2023, Richard Romig 12 Mar 2023
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Uses a configuration file to store hostnames & IP addresses.
@@ -26,13 +26,12 @@ fi
 
 ## Variables ##
 
+local_host="$(uname -n)"; readonly local_host
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.0"
+readonly _version="3.0.1"
 readonly _updated="12 Mar 2023"
 readonly config_dir="$HOME/.config/scripts"
 readonly config_file="$_script.conf"
-local_host="$(uname -n)"; readonly local_host
-localip=$(local_ip); readonly localip
 
 ## Functions ##
 
@@ -159,14 +158,12 @@ source "$config_dir/$config_file"
 if [[ "$local_host" == "$main_host" ]]; then
   if ping -c 3 "$localnet.$lap_ip" >/dev/null 2>&1; then
     printf "Syncing %s to %s ...\n" "$main_host" "$lap_host"
-    # hostip="$lap_ip"
     sync_script "$lap_ip"
     printf "\n%s synced with %s.\n" "$lap_host" "$main_host"
   elif ping -c 3 "$localnet.$wifi_ip" >/dev/null 2>&1; then
     printf "Syncing %s to %s ...\n" "$main_ip" "$lap_host"
-    # hostip="$wifi_ip"
     sync_script "$wifi_ip"
-   printf "\n%s synced with %s.\n" "$lap_host" "$main_host"
+    printf "\n%s synced with %s.\n" "$lap_host" "$main_host"
   else
     printf "\n%s is not on the netwwork.\n" "$lap_host"
   fi
@@ -174,7 +171,6 @@ else
   # local host is laptop
   if ping -c 3 "$localnet.$main_ip" >/dev/null 2>&1; then
     printf "Syncing %s to %s ...\n" "$lap_host" "$main_host"
-    # hostip="$main_ip"
     sync_script "$main_ip"
     printf "\n%s synced with %s.\n" "$main_host" "$lap_host"
   else
