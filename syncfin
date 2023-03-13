@@ -54,7 +54,7 @@ create_config() {
 transfer_status() {
   # Exit script if transfer fails.
   xfr_status="$1"
-  (( xfr_status != 0 )) && die "A transfer failed! Check network status."
+  (( xfr_status != 0 )) && die "A transfer failed! Check network status." "$xfr_status"
 }
 
 transfer() {
@@ -146,7 +146,7 @@ sync_main() {
 
 SECONDS=0
 
-printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "\%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 
 [[ -f "$config_dir/$config_file" ]] || create_config
 source "$config_dir/$config_file"
