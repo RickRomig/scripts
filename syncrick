@@ -28,8 +28,8 @@ fi
 
 local_host="$(uname -n)"; readonly local_host
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.1"
-readonly _updated="12 Mar 2023"
+readonly _version="3.0.2"
+readonly _updated="13 Mar 2023"
 readonly config_dir="$HOME/.config/scripts"
 readonly config_file="$_script.conf"
 
@@ -61,7 +61,7 @@ transfer_status() {
 
 sync_script() {
   local hostip="$1"
-  
+
   echo $'\n'$"${orange}Syncing aliases...${normal}"
   rsync -avzh --delete /home/"$USER"/.bash_aliases "$localnet.$hostip":
   exit_status="$?"
@@ -147,7 +147,6 @@ sync_script() {
 
 ## Execution ##
 
-# Start timer
 SECONDS=0
 
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
@@ -155,6 +154,7 @@ printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 [[ -f "$config_dir/$config_file" ]] || create_config
 source "$config_dir/$config_file"
 
+# Check host
 if [[ "$local_host" == "$main_host" ]]; then
   if ping -c 3 "$localnet.$lap_ip" >/dev/null 2>&1; then
     printf "Syncing %s to %s ...\n" "$main_host" "$lap_host"
@@ -167,8 +167,7 @@ if [[ "$local_host" == "$main_host" ]]; then
   else
     printf "\n%s is not on the netwwork.\n" "$lap_host"
   fi
-else
-  # local host is laptop
+elif [[ "$local_host" == "$lap_host" ]]; then
   if ping -c 3 "$localnet.$main_ip" >/dev/null 2>&1; then
     printf "Syncing %s to %s ...\n" "$lap_host" "$main_host"
     sync_script "$main_ip"
@@ -176,6 +175,9 @@ else
   else
     printf "\n%s is not on the netwwork.\n" "$main_host"
   fi
+else
+  die "Invalid client. $_script must be run from $main_host or $lap_host."
 fi
 
 box "$_script completed in $(format_time $SECONDS)"
+exit
