@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 ###############################################################################
 # Script Name  : syncmosfa
 # Description  : Syncs directories with machines on the network via SSH
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.2.9"
-readonly _updated="05 Mar 2023"
+readonly _version="1.3.0"
+readonly _updated="12 Mar 2023"
 
 ## Functions ##
 
@@ -62,7 +62,7 @@ EOF
 transfer_status() {
   # Exit script if transfer fails.
   xfr_status="$1"
-  (( xfr_status != 0 )) && die "A transfer failed! Check network status."
+  (( xfr_status != 0 )) && die "A transfer failed! Check network status." "$xfr_status"
 }
 
 transfer() {
@@ -162,51 +162,8 @@ sync_script() {
       exit_status="$?"
       transfer_status "$exit_status"
       ;;
-    22 )
-      # Sync repositories
-      echo $'\n'$"${orange}Syncing Gitea repositoies...${normal}"
-      rsync -avzh --delete /home/"$USER"/gitea/ "$localnet.$hostip":gitea/
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      # Sync personal files.
-      echo $'\n'$"${orange}Syncing Audio Books...${normal}"
-      rsync -avzh --delete /home/"$USER"/Audiobooks/ "$localnet.$hostip":Audiobooks/
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      echo $'\n'$"${orange}Syncing BP Readings...${normal}"
-      rsync -avzh --delete /home/"$USER"/BP-Daily.txt "$localnet.$hostip":BP-Daily.txt
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      echo $'\n'$"${orange}Syncing Blogs...${normal}"
-      rsync -avzh --delete /home/"$USER"/Documents/Blogs/ "$localnet.$hostip":Documents/Blogs/
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      echo $'\n'$"${orange}Syncing Dreams...${normal}"
-      rsync -avzh --delete /home/"$USER"/Documents/Dreams/ "$localnet.$hostip":Documents/Dreams/
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      echo $'\n'$"${orange}Syncing Journals...${normal}"
-      rsync -avzh --delete /home/"$USER"/Documents/Journals/ "$localnet.$hostip":Documents/Journals/
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      echo $'\n'$"${orange}Syncing Quotes...${normal}"
-      rsync -avzh --delete /home/"$USER"/Documents/Quotes/ "$localnet.$hostip":Documents/Quotes/
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      echo $'\n'$"${orange}Syncing Tech Videos...${normal}"
-      rsync -avzh --delete /home/"$USER/Videos/Tech/" "$localnet.$hostip":Videos/Tech/
-      exit_status="$?"
-      transfer_status "$exit_status"
-      ;;
     * )
-      ;;
+      printf "Nothing to sync!\n"
   esac
 }
 
@@ -218,7 +175,7 @@ sync_one() {
   if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
     # Restricted IP addresses on local network
     case $hostip in
-      1|2|4|5|6|7|8|9|21|24|25|227 )
+      1|2|4|5|6|7|8|9|21|22|24|25|227 )
         echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted address."
         echo -e " Access denied.\n"; exit ;;
       * )
@@ -239,7 +196,7 @@ sync_some() {
     if [[ "$hostip" -eq "$hostip" ]] 2>/dev/null; then
       if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
         case "$hostip" in
-          1|2|4|5|6|7|8|9|21|24|25|227 )
+          1|2|4|5|6|7|8|9|21|22|24|25|227 )
             echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted"
             echo -e " address. Access denied.\n" ;;
           * )
@@ -262,7 +219,7 @@ sync_some() {
 sync_all() {
   echo -e "Synchronizing directories with systems on the local network.\n"
 
-  OCTETS=(3 10 11 12 13 14 15 16 17 18 19 20 22 23)
+  OCTETS=(3 10 11 12 13 14 15 16 17 18 19 20 23)
   for hostip in "${OCTETS[@]}"; do transfer; done
   all_done
 }
@@ -298,8 +255,14 @@ check_host() {
   fi
 }
 
+check_dependencies() {
+  check_package rsync
+}
+
 ## Execution ##
 
+check_dependencies
+clear
 box "$_script v$_version, ($_updated)"
 check_host
 
