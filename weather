@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.6"
-readonly _updated="05 Feb 2023"
+readonly _version="0.5.7"
+readonly _updated="13 Mar 2023"
 
 ## Functions ##
 
@@ -109,15 +109,6 @@ uv_warning() {
   fi
 }
 
-wx_forecast() {
-  local url="http://wttr.in"
-  local wx_loc="$1"
-  clear
-  box "$_script v$_version ($_updated)"
-  curl -s "$url/$wx_loc" | sed '1 s/:.*//;/Follow/d'
-  anykey
-}
-
 current_wx() {
   local wx_loc="$1"
   local url="http://wttr.in/$wx_loc?format=j1"
@@ -160,26 +151,52 @@ current_wx() {
   clear
   box "$_script v$_version ($_updated)"
   if [[ -n "$json" ]]; then
-    printf "\nCurrent conditions for %s, %s\n" "$city" "$state"
-    printf "Coordinates: %s latitude %s longitude\n" "$latitude" "$longitude"
-    printf "%13s: %s\n" "Atomosphere" "$description"
-    printf "%13s: %s%s\U2109 (%s\U2103 )%s\n" "Temperature" "$tcolor" "$temp_F" "$temp_C" "$normal"
-    printf "%13s: %s%s\U2109 (%s\U2103 )%s\n" "Feels like" "$fcolor" "$feels_F" "$feels_C" "$normal"
-    printf "%13s: %s%s - %s%s\n" "UV index" "$ucolor" "$uv_index" "$uvwarn" "$normal"
-    printf "%13s: %s%%\n" "Humidity" "$humidity"
-    printf "%13s: %s inches\n" "Barometer" "$pressure"
-    printf "%13s: %s inches\n" "Precipitation" "$precip"
-    printf "%13s: %s at %s mph\n" "Wind" "$wind_dir" "$wind_spd"
-    printf "%13s: %s\n" "Sunrise" "$sunrise"
-    printf "%13s: %s\n" "Sunset" "$sunset"
+    printf "\nLocation: %s, %s\n" "$city" "$state"
+    printf "Coordinates: %s latitude %s longitude\n\n" "$latitude" "$longitude"
+    printf "Current conditions:\n"
+    printf "%15s: %s\n" "Atomosphere" "$description"
+    printf "%15s: %s%s\U2109 (%s\U2103 )%s\n" "Temperature" "$tcolor" "$temp_F" "$temp_C" "$normal"
+    printf "%15s: %s%s\U2109 (%s\U2103 )%s\n" "Feels like" "$fcolor" "$feels_F" "$feels_C" "$normal"
+    printf "%15s: %s%s - %s%s\n" "UV index" "$ucolor" "$uv_index" "$uvwarn" "$normal"
+    printf "%15s: %s%%\n" "Humidity" "$humidity"
+    printf "%15s: %s inches\n" "Barometer" "$pressure"
+    printf "%15s: %s inches\n" "Precipitation" "$precip"
+    printf "%15s: %s at %s mph\n" "Wind" "$wind_dir" "$wind_spd"
+    printf "%15s: %s\n" "Sunrise" "$sunrise"
+    printf "%15s: %s\n\n" "Sunset" "$sunset"
   else
-    printf "Current weather data is not available.\n"
-    printf "Try again later.\n"
+    printf "Current weather data for %s is not available.\n" "$wx_loc" | sed 's/+/ /g'
+    printf "Try again later.\n\n"
+    exit 1
   fi
   anykey
 }
 
+wx_forecast() {
+  local url="http://wttr.in"
+  local wx_loc="$1"
+  clear
+  box "$_script v$_version ($_updated)"
+  printf "\n"
+  # curl -s "$url/$wx_loc" | sed '1 s/:.*//;/Follow/d'
+  if ! curl -s "$url/$wx_loc" > "$tmp_file"; then
+    printf "Weather forecast for %s is not available.\n\n" "$wx_loc" | sed 's/+/ /g'
+    exit 1
+  else 
+    sed '1 s/:.*//;/Follow/d' < "$tmp_file"
+  fi
+  
+  anykey
+}
+
+clean-up() {
+  [[ -f "$tmp_file" ]] && rm "$tmp_file"
+}
+
 ## Execution ##
+
+tmp_file=$(mktemp -q) || dies "Failed to create temporary file." 1
+trap cleanup EXIT
 
 location="${1:-Dayton}"
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then show_help; exit; fi
@@ -197,7 +214,7 @@ while true; do
       2 ) wx_forecast "$location"; break ;;
       3 ) show_help; break ;;
       4 ) clear; exit ;;
-      * ) echo "${lightred}Invalid choice.${normal} Choose 1, 2, 3, or 4" >&2
+      * ) printf "%s Invalid choice. Choose 1, 2, 3, or 4\n" "$red_error" >&2
     esac
   done
 done
