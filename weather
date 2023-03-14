@@ -179,7 +179,7 @@ wx_forecast() {
   box "$_script v$_version ($_updated)"
   printf "\n"
   # curl -s "$url/$wx_loc" | sed '1 s/:.*//;/Follow/d'
-  if ! curl -s "$url/$wx_loc" > "$tmp_file"; then
+  if ! curl -so "$tmp_file" "$url/$wx_loc"; then
     printf "Weather forecast for %s is not available.\n\n" "$wx_loc" | sed 's/+/ /g'
     exit 1
   else 
@@ -189,7 +189,7 @@ wx_forecast() {
   anykey
 }
 
-clean-up() {
+cleanup() {
   [[ -f "$tmp_file" ]] && rm "$tmp_file"
 }
 
