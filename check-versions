@@ -90,7 +90,7 @@ github_versions() {
 }
 
 apt_tools() {
-	local packages=( bluefish geany git glow nano shellcheck )
+	local packages=( bluefish geany git glow nano shellcheck xed )
   printf "Editors and Tools\n"
 	printf "%-15s%s\n" "Package" "Version"
 	for pkg in "${packages[@]}"; do
@@ -107,6 +107,8 @@ apt_tools() {
 					printf "%s\n" "$(glow --version | cut -d' ' -f3 | sed 's/^v//')" ;;
 				nano )
 					printf "%s\n" "$(nano --version | awk '/version/ {print $NF}')" ;;
+        xed )
+          printf "%s\n" "$(xed --version | cut -d' ' -f4)" ;;
         shellcheck )
           printf "%s\n" "$(shellcheck --version | awk '/version:/ {print $NF}')" ;;
 				* )
@@ -171,8 +173,9 @@ browsers() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.11.5"
-  local _updated="12 Mar 2023"
+  local _version="0.11.6"
+  local _updated="15 Mar 2023"
+  check_package curl
   clear
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Newest & installed versions of select programs.\n\n"
