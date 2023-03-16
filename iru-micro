@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.4"
-readonly _updated="03 Feb 2023"
+readonly _version="0.4.54"
+readonly _updated="16 Mar 2023"
 readonly url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg=$HOME"/.config/micro"
 
@@ -68,7 +68,9 @@ compare_versions() {
 install_micro() {
   new_pkg="micro-${new_ver}-amd64.deb"
   echo "Downloading Micro from the zyedidia GitHub repository..."
+  dots "."
   wget -q -P "$tmp_dir/" "$url/download/v$new_ver/$new_pkg"
+  kill "$!";printf "\n"
   sudo gdebi -n "$tmp_dir/$new_pkg"
   check_package xclip
   echo "Micro $(micro_ver) installed."
