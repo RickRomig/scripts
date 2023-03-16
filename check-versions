@@ -31,10 +31,6 @@ fi
 
 ## Functions ##
 
-check_dependencies() {
-	check_package curl
-}
-
 cleanup() {
 	[[ -f "$tmp_file" ]] && rm -f "$tmp_file"
 }
@@ -173,9 +169,8 @@ browsers() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.11.6"
-  local _updated="15 Mar 2023"
-  check_package curl
+  local _version="0.11.1"
+  local _updated="16 Mar 2023"
   clear
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Newest & installed versions of select programs.\n\n"
@@ -188,7 +183,7 @@ main() {
 
 ## Execution ##
 
-check_dependencies
+check_package curl
 tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 trap cleanup EXIT
 main
