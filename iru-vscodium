@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.0"
-readonly _updated="03 Feb 2023"
+readonly _version="0.2.1"
+readonly _updated="16 Mar 2023"
 readonly url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -70,31 +70,30 @@ compare_versions() {
 }
 
 install_vscodium() {
-	# new_pkg=$(sed 's/\// /g' "$tmp_file" | awk '/download/ && /amd64.deb/ {print $8;exit}')
   new_pkg="codium_${new_ver}_amd64.deb"
-  user_in_sudo
-  echo "Downloading VSCodium from the VSCodium GitHub repository..."
+  printf "Downloading VSCodium from the VSCodium GitHub repository...\n"
   wget -q -P "$tmp_dir/" "$url/download/$new_ver/$new_pkg"
+  user_in_sudo
   sudo gdebi -n "$tmp_dir/$new_pkg"
   install_cascadia_code
-  echo "VSCodium $(codium_ver) successfully installed."
+  printf "VSCodium %s successfully installed.\n" "$(codium_ver)"
 }
 
 remove_vscodium() {
   local vsc_cfg="${HOME}/.config/VSCodium"
+  printf "Removing the VSCodium editor...\n"
   user_in_sudo
-  echo "Removing the VSCodium editor..."
   sudo dpkg --remove codium
   [[ -d "$vsc_cfg" ]] && rm -rf "$vsc_cfg"
-  echo "VSCodium editor has been removed."
+  printf "VSCodium editor has been removed.\n"
 }
 
 apply_settings() {
   local vsc_cfg="${HOME}/.config/VSCodium/User"
   [[ -d "$vsc_cfg" ]] || mkdir -p "$vsc_cfg"
-  echo "Applying VSCodium settings..."
+  printf "Applying VSCodium settings...\n"
   settings
-  echo "VSCodium settings applied."
+  printf "VSCodium settings applied.\n"
 }
 
 settings() {
@@ -139,7 +138,7 @@ printf "Installs, updates, or removes the VSCodium editor.\n"
 check_dependencies
 
 if [[ "$#" -eq 0 ]]; then
-	echo "${lightred}ERROR:${normal} No argument passed." >&2
+  printf "%s No argument passed.\n" "$red_error" >&2
 	help 2
 else
 	optstr=":hirsu"
@@ -174,7 +173,7 @@ else
 				compare_versions
         ;;
 			? )
-				echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+        printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
 				help 2
         ;;
 		esac
