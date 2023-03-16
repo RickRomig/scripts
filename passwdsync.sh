@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 #############################################################################
 # Script Name  : passwdsync.sh
 # Description  : syncs password databases with Dropbox folder
@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, 19 August 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : run as a local daily cron job
-# Version      : 0.4.7, updated 19 Jan 2023
+# Version      : 0.4.8, updated 16 Mar 2023
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
