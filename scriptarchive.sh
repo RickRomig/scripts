@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 #############################################################################
 # Script Name  : scriptarchive.sh
 # Description  : Makes a dated archive of shell scripts in ~/bin
@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com
 # Comments     : Includes functions subdirectory
 #              : Schedule with user's crontab from ~/bin, ~/.local/bin or ~/opt/bin
-# Last updated : version 0.2.14, 01 Dec 2022
+# Last updated : version 0.2.15, 16 Mar 2023
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
