@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 12 Mar 2023
+# Last updated : 17 Mar 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -715,6 +715,9 @@ clone_repo() {
 # Refer to ~/bin/functionlib.md for usage instructions.
 ###############################################################################
 dots() {
+  local char="${1:-.}"
+  local len="${#char}"
+  (( len > 1 )) && char=${char::1}
   while true; do tput civis;echo -n "."; sleep 0.2; done &
   trap 'kill $!' SIGTERM
   tput cnorm
