@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.6"
-readonly _updated="09 Mar 2023"
+readonly _version="0.3.7"
+readonly _updated="17 Mar 2023"
 readonly isofile="$1"
 readonly checksum="$2"
 readonly checksums_match="${green}The checksums match.${normal}"
@@ -57,8 +57,10 @@ exit_msg() {
 check_sha256() {
 	local iso_file="$1"
 	local sha_file="$2"
+  dots
 	iso_sha=$(/usr/bin/sha256sum "$iso_file" | awk '{print $1}')
 	src_sha=$(awk '{print $1}' "$sha_file")
+  kill "$!";tput cnorm
   printf "\nISO: %s\n" "$iso_file"
 	printf "ISO checksum: %s\n" "$iso_sha"
 	printf "SHA checksum: %s\n" "$src_sha"
@@ -68,8 +70,10 @@ check_sha256() {
 check_md5() {
   local iso_file="$1"
   local md5_file="$2"
+  dots
   iso_md5=$(/usr/bin/md5sum "$iso_file" | awk '{print $1}') 
   src_md5=$(awk '{print $1}' "$md5_file")
+  kill "$!";tput cnorm
   printf "\nISO: %s\n" "$iso_file"
   printf "ISO checksum: %s\n" "$iso_md5"
   printf "MD5 checksum: %s\n" "$src_md5"
@@ -90,13 +94,10 @@ elif [[ -f "$isofile" && -f "$checksum" ]]; then
     case "$REPLY" in
       1 )
         echo "Comparing checksums. This may take a while."
-        dots
         if check_sha256 "$isofile" "$checksum"; then
-          kill "$!"
           printf "%s\n" "$checksums_match"
           error_code=0
         else
-          kill "$!"
           printf "%s\n" "$checksums_nomatch" >&2
           error_code=1
         fi
@@ -104,13 +105,10 @@ elif [[ -f "$isofile" && -f "$checksum" ]]; then
         ;;
       2 )
         printf "Comparing checksums. This may take a while.\n"
-        dots
         if check_md5 "$isofile" "$checksum"; then
-          kill "$!"
           printf "\n%s\n" "$checksums_match"
           error_code=0
         else
-          kill "$!"
           printf "%s\n" "$checksums_nomatch" >&2
           error_code=1
         fi
