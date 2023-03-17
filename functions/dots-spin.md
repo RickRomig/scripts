@@ -8,8 +8,11 @@
 
    ```bash
    dots() {
-     while true; do echo -n "."; sleep 0.2; done &
-     trap 'kill $!' SIGTERM SIGKILL
+      local char="${1:-.}"
+      local len="${#char}"
+      (( len > 1 )) && char=${char::1}
+      while true; do tput civis;echo -n "."; sleep 0.2; done &
+      trap 'kill $!' SIGTERM SIGKILL
    }
    ```
 
@@ -18,18 +21,11 @@
    ```bash
    echo -n "Copying files"
    dots
-   # dots &
-   # pid=$!
-   tput civis
-   for i in `seq 1 10`; do sleep 1; done
-   # for i in $(seq 1 10)
-   # kill $pid
-   kill $!
+   for i in {1..10}; do sleep 1; done
+   kill "$!"
    echo ""
    tput cnorm
    ```
-
-
 
 ### spin
 
@@ -38,8 +34,7 @@
 2. **Function**
 
    ```bash
-   spin()
-   {
+   spin() {
      spinner=( '|' '/' '-' '\' )
      while true; do
        for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.2; done &
@@ -53,13 +48,8 @@
    ```bash
    echo "Copying files"
    spin
-   # spin &
-   # pid=$!
-   tput civis
-   for i in `seq 1 10`; do sleep 1; done
-   # for i in $(seq 1 10)
-   # kill $pid
-   kill $!
+   for i in {1..10}; do sleep 1; done
+   kill "$!"
    echo ""
    tput cnorm
   ```
