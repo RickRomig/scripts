@@ -154,7 +154,8 @@ browsers() {
 				brave-browser )
 					printf "%s\n" "$(brave-browser --version | cut -d' ' -f3)" ;;
 				chromium )
-					printf "%s\n" "$(dpkg -l | awk '$2 == "chromium" {print $3}' | sed 's/[+-].*//')" ;;
+					# printf "%s\n" "$(dpkg -l | awk '$2 == "chromium" {print $3}' | sed 's/[-~].*//')" ;;
+          printf "%s\n" $(chromium --version | awk '/Chromium/ {print $2}') ;;
 				firefox )
 					printf "%s\n" "$(firefox --version | cut -d' ' -f3 | sed 's/esr/ ESR/')" ;;
 				google-chrome )
@@ -169,8 +170,8 @@ browsers() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.11.1"
-  local _updated="16 Mar 2023"
+  local _version="0.11.2"
+  local _updated="18 Mar 2023"
   clear
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Newest & installed versions of select programs.\n\n"
