@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.9"
-readonly _updated="17 Mar 2023"
+readonly _version="0.5.0"
+readonly _updated="19 Mar 2023"
 bs_level=$(shuf -i 0-100 -n 1)
 proc_time=$(shuf -i 1-20 -n 1)
 
@@ -43,58 +43,83 @@ print_header() {
 
 scale_numbers() {
   local index=0
-  echo -n "$index"
-  for i in {1..10}; do
-    for j in {1..8}; do echo -n " "; done
+  printf "%s" "$index"
+  for i in {1..10}
+  do
+    for j in {1..8}
+    do
+      printf " "
+    done
     index=$(( index + 10 ))
-    echo -n "$index"
+    printf "%s" "$index"
   done
-  echo ""
+  printf "\n"
 }
 
 scale_marks() {
-  echo -n "|"
-  for i in {1..10}; do
-    for j in {1..9}; do echo -n "-"; done
-    echo -n "|"
+  printf "|"
+  for i in {1..10}
+  do
+    for j in {1..9}
+    do
+      printf "-"
+    done
+    printf "|"
   done
-  echo ""
+  printf "\n"
 }
 
 print_indicator() {
+  local level="$1"
   echo -n "${bold}${orange} "
-  for (( i=0; i <= "$bs_level"; i++ )); do echo -n "*"; done
+  for (( i=0; i <= "$level"; i++ ))
+  do
+    echo -n "*"
+  done
   echo -e "${normal}\n"
 }
 
 print_analysis() {
-  echo -n "Your statement has been analyzed and found to be "
-  case "$bs_level" in
-    0 ) echo "$bs_level% bullshit -- absolute truth" ;;
-    [1-9] ) echo "$bs_level% bullshit -- very likely true." ;;
-    1[0-9] ) echo "$bs_level% bullshit -- mostly true." ;;
-    [2-4]? ) echo "$bs_level% bullshit -- somewhat true." ;;
-    [5-6]? ) echo "$bs_level% bullshit -- might be false." ;;
-    [7-8]? ) echo "$bs_level% bullshit -- probably false." ;;
-    9[0-9] ) echo "$bs_level% bullshit -- mostly false." ;;
-    * ) echo "$bs_level% pure bullshit -- absolutely false!"
+  local level="$1"
+  printf "Your statement has been analyzed and found to be %s%% bullshit -- " "$level"
+  case "$level" in
+    0 ) printf "absolute truth\n" ;;
+    [1-9] ) printf "very likely true.\n" ;;
+    1[0-9] ) printf "mostly true.\n" ;;
+    [2-4]? ) printf "somewhat true.\n" ;;
+    [5-6]? ) printf "might be false.\n" ;;
+    [7-8]? ) printf "probably false.\n" ;;
+    9[0-9] ) printf "mostly false.\n" ;;
+    * ) printf "absolutely false!\n"
   esac
+}
+
+print_disclaimer() {
+  cat << _EOF_
+${green}Welcome to the Luddite Geek Universal Bullshit Detector.${normal}
+Enter a statement to be verified and wait for it to be analyzed.
+Once its bullshit content has been determined, the results will be displayed.
+
+${orange}Disclaimer:${normal}
+This program is for entertainment purposes only and its accuracy cannot be guaranteed.
+
+_EOF_
 }
 
 ## Execution ##
 
 clear
-# printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+print_disclaimer
 read -rp "Statement to be analyzed: " statement
-printf "Analyzing your statement "
+printf "\nAnalyzing your statement "
 dots "."
 sleep "$proc_time"
 kill "$!"
 printf "\n"
 tput cnorm
 print_header
-print_indicator
-print_analysis
+print_indicator "$bs_level"
+print_analysis "$bs_level"
 
 printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 
