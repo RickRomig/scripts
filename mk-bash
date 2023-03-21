@@ -27,10 +27,10 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.0"
-readonly _updated="23 Nov 2022"
-readonly config_dir="$HOME/.config/scripts"
-readonly config_file="$_script.conf"
+readonly _version="3.0.1"
+readonly _updated="21 Mar 2023"
+readonly conf_dir="$HOME/.config/scripts"
+readonly conf_file="$_script.conf"
 readonly today=$(date +"%d %b %Y")
 readonly cur_yr=$(date +'%Y')
 
@@ -39,8 +39,8 @@ readonly cur_yr=$(date +'%Y')
 
 ## Functions ##
 
-create_config() {
-  [[ -d "$config_dir" ]] || mkdir -p "$config_dir"
+create_conf() {
+  [[ -d "$conf_dir" ]] || mkdir -p "$conf_dir"
   echo "Complete all fields"
   read -rp "Full name: " copy_holder
   read -rp "Primary email: " email_addr
@@ -56,7 +56,7 @@ create_config() {
   coder='$coder'
   license='$license'
   template_dir='$template_dir'
-  " > "$config_dir/$config_file"
+  " > "$conf_dir/$conf_file"
 }
 
 usage() {
@@ -68,8 +68,8 @@ usage() {
 
 ## Source script configuration file ##
 
-[[ -f "$config_dir/$config_file" ]] || create_config
-source "$config_dir/$config_file"
+[[ -f "$conf_dir/$conf_file" ]] || create_conf
+source "$conf_dir/$conf_file"
 
 ## Check arguments ##
 

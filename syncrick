@@ -28,15 +28,15 @@ fi
 
 local_host="$(uname -n)"; readonly local_host
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.2"
-readonly _updated="13 Mar 2023"
-readonly config_dir="$HOME/.config/scripts"
-readonly config_file="$_script.conf"
+readonly _version="3.0.3"
+readonly _updated="21 Mar 2023"
+readonly conf_dir="$HOME/.config/scripts"
+readonly conf_file="$_script.conf"
 
 ## Functions ##
 
-create_config() {
-  [[ -d "$config_dir" ]] || mkdir -p "$config_dir"
+create_conf() {
+  [[ -d "$conf_dir" ]] || mkdir -p "$conf_dir"
   echo "Complete all fields"
   read -rp "Main hostname: " main_host
   read -rp "IP address (last octect): " main_ip
@@ -50,7 +50,7 @@ create_config() {
   lap_host='$lap_host'
   lap_ip='$lap_ip'
   wifi_ip='$wifi_ip'
-  " > "$config_dir/$config_file"
+  " > "$conf_dir/$conf_file"
 }
 
 transfer_status() {
@@ -151,8 +151,8 @@ SECONDS=0
 
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 
-[[ -f "$config_dir/$config_file" ]] || create_config
-source "$config_dir/$config_file"
+[[ -f "$conf_dir/$conf_file" ]] || create_conf
+source "$conf_dir/$conf_file"
 
 # Check host
 if [[ "$local_host" == "$main_host" ]]; then

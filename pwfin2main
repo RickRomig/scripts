@@ -27,16 +27,16 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.1"
-readonly _updated="11 Jan 2023"
-readonly config_dir="$HOME/.config/scripts"
-readonly config_file="$_script.conf"
+readonly _version="0.2.2"
+readonly _updated="21 Mar 2023"
+readonly conf_dir="$HOME/.config/scripts"
+readonly conf_file="$_script.conf"
 readonly lhost=$(uname -n)
 
 ## Functions ##
 
-create_config() {
-  [[ -d "$config_dir" ]] || mkdir -p "$config_dir"
+create_conf() {
+  [[ -d "$conf_dir" ]] || mkdir -p "$conf_dir"
   printf "Complete all fields\n"
   read -rp "Main hostname: " mhost
   read -rp "Main IP (last octect): " mhostip
@@ -46,7 +46,7 @@ create_config() {
   mhost='$mhost'
   mhostip='$mhostip'
   fhost='$fhost'
-  " > "$config_dir/$config_file"
+  " > "$conf_dir/$conf_file"
 }
 
 sync_vault() {
@@ -59,8 +59,8 @@ sync_vault() {
 printf "\U1F427 %s %s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Syncrhonizing password databases to %s\n" "$mhost"
 
-[[ -f "$config_dir/$config_file" ]] || create_config
-source "$config_dir/$config_file"
+[[ -f "$conf_dir/$conf_file" ]] || create_conf
+source "$conf_dir/$conf_file"
 
 # Ensure script is being run from HP-ProBook-6570 (21)
 [[ "$lhost" != "$fhost" ]] && die "$_script must be run from $fhost."
