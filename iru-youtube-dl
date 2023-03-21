@@ -28,15 +28,15 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.3"
-readonly _updated="03 Feb 2023"
-readonly config_dir="$HOME/.config/scripts"
-readonly config_file="$_script.conf"
+readonly _version="0.1.4"
+readonly _updated="21 Mar 2023"
+readonly conf_dir="$HOME/.config/scripts"
+readonly conf_file="$_script.conf"
 
 ## Functions ##
 
 create_config() {
-	[[ -d "$config_dir" ]] || mkdir -p "$config_dir"
+	[[ -d "$conf_dir" ]] || mkdir -p "$conf_dir"
 	printf "Complete all fields\n"
 	read -rp "Program name: " ytdl_prg
 	read -rp "Update script: " update_script
@@ -55,7 +55,7 @@ create_config() {
 	ytdl_location='$ytdl_location'
 	sed_location='$sed_location'
 	cron_location='$cron_location'
-	" > "$config_dir/$config_file"
+	" > "$conf_dir/$conf_file"
 }
 
 check_dependencies() {
@@ -66,18 +66,17 @@ check_dependencies() {
 }
 
 ytdl_version() {
-  # /usr/local/bin/youtube-dl --version
 	"$ytdl_location/$ytdl_prg" --version
 }
 
 update_youtubedl() {
 	printf "Updating youtube-dl ...\n"
-  # sudo /usr/local/bin/youtube-dl --update
 	"$ytdl_location/$ytdl_prg" --update
 }
 
 install_youtubedl() {
   local url="https://yt-dl.org/downloads/latest/youtube-dl"
+	printf "Instaling %s, and update scripts...\n" "$ytdl_prg"
   sudo curl -# -L "$url" -o "$ytdl_location/$ytdl_prg"
   [[ -x /usr/bin/python3 ]] && sudo ln -s /usr/bin/python3 /usr/bin/python
   sudo chmod 755 "$ytdl_location/$ytdl_prg"
@@ -182,8 +181,8 @@ EOF
 
 # clear
 # Create/source installation script config file.
-[[ -f "$config_dir/$config_file" ]] || create_config
-source "$config_dir/$config_file"
+[[ -f "$conf_dir/$conf_file" ]] || create_config
+source "$conf_dir/$conf_file"
 
 if [[ "$#" -eq 0 ]]; then
 	printf "%s No argument passed.\n" "$red_error"  >&2

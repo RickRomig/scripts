@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.6"
-readonly _updated="17 Mar 2023"
+readonly _version="0.4.7"
+readonly _updated="21 Mar 2023"
 readonly url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg=$HOME"/.config/bat"
 
@@ -77,10 +77,11 @@ compare_versions() {
 
 install_bat() {
   local new_pkg="bat_${new_ver}_amd64.deb"
-  echo "Downloading Bat from the sharkdp GitHub repository..."
+  echo "Downloading Bat %s from the sharkdp GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$url/download/v$new_ver/$new_pkg"
   kill "$!";printf "\n";tput cnorm
+  printf "Installing Bat %s...\n" "$new_ver"
   user_in_sudo
   sudo gdebi -n "$tmp_dir/$new_pkg"
   echo "Bat $(bat_ver) installed."
