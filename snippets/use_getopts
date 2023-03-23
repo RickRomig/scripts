@@ -16,6 +16,7 @@ END_HELP
 
 if [[ "$#" -eq 0 ]]; then
 	# printf "\e[91mERROR:\e[0m No argument passed.\n" >&2
+	# printf "%s No argument passed.\n" >&2 "$red_error"
 	echo "${lightred}ERROR:${normal} No argument passed." >&2
 	help 1
 else
@@ -48,14 +49,15 @@ else
 				;;
 			: )
 				# printf "\e[91mERROR:\e[0m Must supply an argument to -%s.\n" "$OPTARG" >&2
+				# printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
 			    echo "${lightred}ERROR:${normal} Must supply an argument to -${OPTARG}." >&2
 			    help 2
 			    ;;
 			? )
 				# printf "\e[91mERROR:\e[0m Invalid option -%s\n" $OPTARG >&2
+				# printf %s Invalid option -%s\n" "$red_error" $OPTARG >&2
 				echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
 				help 2
-				;;
 		esac
 	done
 fi
