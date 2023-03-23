@@ -1,0 +1,56 @@
+#!/bin/bash
+##########################################################################
+# Script Name  : cleanup-i3deb
+# Description  : Clean up cloned directories after a Debian i3 install.
+# Dependencies : none
+# Arguments    : none
+# Author       : Copyright (C) 2023 Richard B. Romig, created: 22 Mar 2023
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.1.0"
+readonly _updated="22 Mar 2023"
+
+
+## Execution ##
+
+# clear
+printf "Cleaning up after installing i3-gaps on minimal Debian.\n\n"
+if [[ -d "$HOME"/i3debian/ ]]; then
+	printf "Removing ~/i3debian\n"
+	rm -rf "$HOME"/i3debian/
+fi
+if [[ -d "$HOME"/Downloads/i3-gaps/ ]]; then
+	printf "Removing ~/Downloads/i3-gaps\n"
+	rm -rf "$HOME"/Downloads/i3-gaps/
+fi
+if [[ -d "$HOME"/Downloads/scripts/ ]]; then
+	printf "Removing ~/Downloads/scripts\n"
+	rm -rf "$HOME"/Downloads/scripts/
+fi
+if [[ -d "$HOME"/Downloads/geany-themes/ ]]; then
+	printf "Removing ~/Downloads/geany-themes\n"
+	rm -rf "$HOME"/Downloads/geany-themes/
+fi
+printf "\nCloned installation directories removed.\n"
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+exit
