@@ -1,11 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #####################################################################
 # Script Name  : laptop-utils
-# Description  : Installs laptop utilities
+# Description  : Installs laptop-specific utilities
 # Dependencies : None
 # Args         : None
-# Author       : Richard Romig
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2023, Richard Romig, 23 Mar 2023
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Based on a script by Joe Collins at EzeeLinux.com
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -20,26 +20,44 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2;exit 1
 fi
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="v1.5.0"
+readonly _updated="23 Mar 2023"
+
 
 ## Funtions ##
 
+intro() {
+  cat << END_INTRO
+Installs laptop-specific utilities:
+ * Thermald - monitors and controls temperature.
+ * ACPI - checks the state of ACPI devices.
+ * TLP - advanced power management to maximize battery life.
+ * Touchpad Indicator - utility to enable/disable the touchpad.
+
+END_INTRO
+}
+
+help() {
+  errcode="${1:-2}"
+  intro
+  cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -h  Display help.
+  -i  Install laptop utilities.
+  -s  Display installed utilities.
+END_HELP
+  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
 main() {
-  local _script; _script=$(basename "$0")
-  local _version="v1.4.2"
-  local _updated="07 Mar 2023"
-
-  printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
-  printf "\U1F4BB Installs laptop specific utilities:\n"
-  printf " * Thermald - monitors and controls temperature.\n"
-  printf " * ACPI - utility to check the state of ACPI devices.\n"
-  printf " * TLP - advanced power management to maximize battery life.\n"
-  printf " * Touchpad Indicator - utility to enable/disable the touchpad.\n\n"
-
-  is_laptop || leave "System is not a laptop. The utilities were not installed."
-
   install_thermald
   install_acpi
   install_tlp
@@ -58,9 +76,9 @@ install_thermald() {
   elif in_repos thermald; then
     user_in_sudo
     sudo apt-get install thermald -yy
-    exists thermald && printf "Thermald installed.\n"
+    printf "Thermald installed.\n"
   else
-    printf "Thermald is not installed.\n"
+    printf "Thermald was not installed.\n"
   fi
 }
 
@@ -70,9 +88,9 @@ install_acpi() {
   elif in_repos acpi; then
     user_in_sudo
     sudo apt-get install acpi -yy
-    exists acpi && printf "ACPI installed.\n"
+    printf "ACPI installed.\n"
   else
-    printf "ACPI is not installed.\n"
+    printf "ACPI was not installed.\n"
   fi
 }
 
@@ -85,7 +103,7 @@ install_tlp() {
     tlp_service
     printf "TLP installed.\n"
   else
-    printf "TLP is not installed.\n"
+    printf "TLP was not installed.\n"
   fi
 }
 
@@ -97,7 +115,7 @@ install_touchpad_indicator() {
     sudo apt-get install touchpad-indicator -yy
     printf "Touchpad Indicator installed.\n"
   else
-    printf "Touchpad Indicator is not available.\n"
+    printf "Touchpad Indicator was not available.\n"
   fi
 }
 
@@ -120,14 +138,36 @@ tlp_service() {
 }
 
 util_status() {
-  printf "\nInstalled utilities:\n"
-  installed thermald && printf "\tThermald\n"
-  installed acpi && printf "\tACPI\n"
-  installed tlp && printf "\tTLP\n"
-  installed touchpad-indicator && printf "\tTouchpad Indicator\n"
+  printf "Installed utilities:\n"
+  installed thermald && printf "    Thermald\n"
+  installed acpi && printf "    ACPI\n"
+  installed tlp && printf "    TLP\n"
+  installed touchpad-indicator && printf "    Touchpad Indicator\n"
 }
 
 ## Execution ##
 
-main
+is_laptop || die "System is not a laptop." 1
+if [[ "$#" -eq 0 ]]; then
+  printf "%s No argument passed.\n" "$red_error" >&2
+  help 1
+else
+  optstr=":his"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      h )
+        help 0 ;;
+      i )
+        intro
+        main ;;
+      s )
+        intro
+        util_status ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+        help 2
+    esac
+  done
+fi
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit
