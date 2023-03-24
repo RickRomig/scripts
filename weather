@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.8"
-readonly _updated="17 Mar 2023"
+readonly _version="0.5.9"
+readonly _updated="24 Mar 2023"
 
 ## Functions ##
 
@@ -37,76 +37,22 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
+cleanup() {
+  [[ -f "$tmp_file" ]] && rm "$tmp_file"
+}
+
 show_help() {
   cat << END_HELP
 ${orange}Usage:${normal} $_script [location]
 Example 1: $_script Cincinnati
 Example 2: $_script New+York
-* Locations with spaces must have a '+' in place of the space.
+Example 3: $_script "Los Angeles"
+* Locations with spaces must have a '+' in place of the space
+  or be enclosed in double quotes.
 * If no location is passed, the default location will be used.
 For help: $_script -h or $_script --help, or Choice 3 in the menu.
 END_HELP
   anykey
-}
-
-temp_color() {
-  # Set color for temperature
-  if [[ "$temp_F" -ge 90 ]]; then
-    tcolor=${red}
-  elif [[ "$temp_F" -ge 75 ]]; then
-    tcolor=${orange}
-  elif [[ "$temp_F" -le 32 ]]; then
-    tcolor=${lightpurple}
-  elif [[ "$temp_F" -le 50 ]]; then
-    tcolor=${blue}
-  else
-    tcolor=${default} # Temperature is between 50 and 75 degrees Fahrenheit
-  fi
-}
-
-feels_color() {
-  # Set color for heat index temperature
-  if [[ "$feels_F" -ge 90 ]]; then
-    fcolor=${red}
-  elif [[ "$feels_F" -ge 75 ]]; then
-    fcolor=${orange}
-  elif [[ "$feels_F" -le 32 ]]; then
-    fcolor=${lightpurple}
-  elif [[ "$feels_F" -le 50 ]]; then
-    fcolor=${blue}
-  else
-    fcolor=${default} # Temperature is between 50 and 75 degrees Fahrenheit
-  fi
-}
-
-uv_color() {
-  # Set color for UV index.
-  if [[ "$uv_index" -ge 11 ]]; then
-    ucolor=${red}
-  elif [[ "$uv_index" -ge 8 ]]; then
-    ucolor=${lightred}
-  elif [[ "$uv_index" -ge 6 ]]; then
-    ucolor=${orange}
-  elif [[ "$uv_index" -ge 3 ]]; then
-    ucolor=${lightyellow}
-  else
-    ucolor=${default}  # UV index is less than 3
-  fi
-}
-
-uv_warning() {
-  # Set color for UV index.
-  if [[ "$uv_index" -ge 11 ]]; then
-    uvwarn="Extreme Risk"
-  elif [[ "$uv_index" -ge 8 ]]; then
-    uvwarn="Very High Risk"
-  elif [[ "$uv_index" -ge 6 ]]; then
-    uvwarn="High Risk"
-  elif [[ "$uv_index" -ge 3 ]]; then
-     uvwarn="Moderate Risk"
-  else
-    uvwarn="Low Risk"  # UV index is less than 3
-  fi
 }
 
 current_wx() {
@@ -189,8 +135,64 @@ wx_forecast() {
   anykey
 }
 
-cleanup() {
-  [[ -f "$tmp_file" ]] && rm "$tmp_file"
+temp_color() {
+  # Set color for temperature
+  if [[ "$temp_F" -ge 90 ]]; then
+    tcolor=${red}
+  elif [[ "$temp_F" -ge 75 ]]; then
+    tcolor=${orange}
+  elif [[ "$temp_F" -le 32 ]]; then
+    tcolor=${lightpurple}
+  elif [[ "$temp_F" -le 50 ]]; then
+    tcolor=${blue}
+  else
+    tcolor=${default} # Temperature is between 50 and 75 degrees Fahrenheit
+  fi
+}
+
+feels_color() {
+  # Set color for heat index temperature
+  if [[ "$feels_F" -ge 90 ]]; then
+    fcolor=${red}
+  elif [[ "$feels_F" -ge 75 ]]; then
+    fcolor=${orange}
+  elif [[ "$feels_F" -le 32 ]]; then
+    fcolor=${lightpurple}
+  elif [[ "$feels_F" -le 50 ]]; then
+    fcolor=${blue}
+  else
+    fcolor=${default} # Temperature is between 50 and 75 degrees Fahrenheit
+  fi
+}
+
+uv_color() {
+  # Set color for UV index.
+  if [[ "$uv_index" -ge 11 ]]; then
+    ucolor=${red}
+  elif [[ "$uv_index" -ge 8 ]]; then
+    ucolor=${lightred}
+  elif [[ "$uv_index" -ge 6 ]]; then
+    ucolor=${orange}
+  elif [[ "$uv_index" -ge 3 ]]; then
+    ucolor=${lightyellow}
+  else
+    ucolor=${default}  # UV index is less than 3
+  fi
+}
+
+uv_warning() {
+  # Set color for UV index.
+  if [[ "$uv_index" -ge 11 ]]; then
+    uvwarn="Extreme Risk"
+  elif [[ "$uv_index" -ge 8 ]]; then
+    uvwarn="Very High Risk"
+  elif [[ "$uv_index" -ge 6 ]]; then
+    uvwarn="High Risk"
+  elif [[ "$uv_index" -ge 3 ]]; then
+     uvwarn="Moderate Risk"
+  else
+    uvwarn="Low Risk"  # UV index is less than 3
+  fi
 }
 
 ## Execution ##
@@ -205,13 +207,13 @@ check_dependencies
 while true; do
   clear
   box "$_script v$_version ($_updated)"
-  under_line "Location: $(echo "$location" | sed 's/+/ /')"
+  under_line "Location: $(echo "$location" | sed 's/+/ /g')"
   COLUMNS="40"
   PS3="Choice: "
   select opt in "Current conditions" "3-day forecast" "Usage/Help" "Quit"; do
     case $REPLY in
-      1 ) current_wx "$location"; break ;;
-      2 ) wx_forecast "$location"; break ;;
+      1 ) current_wx "$(echo $location | sed 's/ /+/g')"; break ;;
+      2 ) wx_forecast "$(echo $location | sed 's/ /+/g')"; break ;;
       3 ) show_help; break ;;
       4 ) clear; exit ;;
       * ) printf "%s Invalid choice. Choose 1, 2, 3, or 4\n" "$red_error" >&2
