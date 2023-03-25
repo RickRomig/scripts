@@ -5,7 +5,7 @@ set -e
 # Update Script
 # anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 # cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
-# Last updated 16 Mar 2023
+# Last updated 25 Mar 2023
 # License : GNU General Public License, version 2.0
 
 check_flatpak() {
@@ -58,8 +58,4 @@ sed_file="/usr/share/misc/updatelog.sed"
 } > "$log_dir/$log_file" 2>&1
 
 # Clean up log file.
-if exists flatpak; then
-  sed -i -f "$sed_file" "$log_dir/$log_file"
-else
-  sed -i '/Reading database/d' "$log_dir/$log_file"
-fi
+sed -i -f "$sed_file" "$log_dir/$log_file"
