@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.7"
-readonly _updated="21 Mar 2023"
+readonly _version="0.4.8"
+readonly _updated="29 Mar 2023"
 readonly url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg=$HOME"/.config/micro"
 
@@ -139,58 +139,55 @@ EOF
 
 ## Execution ##
 
-printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "\%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Installs, updates, or removes the Micro CLI text editor.\n"
-check_dependencies
 
-if [[ $# -eq 0 ]]; then
-  echo "${lightred}ERROR:${normal} No argument passed." >&2
-  help 2
-else
-  optstr=":bhirsu"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      b )
-        exists micro || leave "Micro is not installed. Run '$_script -i' to install."
-        apply_bindings
-        ;;
-      h )
-        help 0
-        ;;
-      i )
-        exists micro && leave "Micro $(micro_ver) is already installed."
-        tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-        tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-        trap cleanup EXIT
-        new_ver="$(newest_version)"
-        echo "${lightyellow}Installing Micro version $new_ver...${normal}"
-        install_micro
-        apply_settings
-        apply_bindings
-        ;;
-      r )
-        exists micro || leave "Micro is not installed. Run '$_script -i' to install."
-        remove_micro
-        ;;
-      s )
-        exists micro || leave "Micro is not installed. Run '$_script -i' to install."
-        apply_settings
-        ;;
-      u )
-        exists micro || leave "Micro is not installed. Run '$_script -i' to install."
-        tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-        tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-        trap cleanup EXIT
-        new_ver="$(newest_version)"
-        compare_versions
-        ;;
-      ? )
-        echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
-        echo "${lightred}Invalid option.${normal}" >&2
-        help 2
-        ;;
-    esac
-  done
-fi
-
+noOpt=1
+optstr=":bhirsu"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    b )
+      exists micro || leave "Micro is not installed. Run '$_script -i' to install."
+      apply_bindings
+      ;;
+    h )
+      help 0
+      ;;
+    i )
+      exists micro && leave "Micro $(micro_ver) is already installed."
+      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+      trap cleanup EXIT
+      check_dependencies
+      new_ver="$(newest_version)"
+      echo "${lightyellow}Installing Micro version $new_ver...${normal}"
+      install_micro
+      apply_settings
+      apply_bindings
+      ;;
+    r )
+      exists micro || leave "Micro is not installed. Run '$_script -i' to install."
+      remove_micro
+      ;;
+    s )
+      exists micro || leave "Micro is not installed. Run '$_script -i' to install."
+      apply_settings
+      ;;
+    u )
+      exists micro || leave "Micro is not installed. Run '$_script -i' to install."
+      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+      trap cleanup EXIT
+      check_dependencies
+      new_ver="$(newest_version)"
+      compare_versions
+      ;;
+    ? )
+      echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+      help 2
+      ;;
+  esac
+  noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
 exit

@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.4"
-readonly _updated="21 Mar 2023"
+readonly _version="0.1.5"
+readonly _updated="29 Mar 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 
@@ -155,7 +155,7 @@ ${orange}OPTIONS:${normal}
 	-u 	Update youtube-dl
 	-x	Remove youtube-dl (repo version)
 END_HELP
-	printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -184,52 +184,50 @@ EOF
 [[ -f "$conf_dir/$conf_file" ]] || create_conf
 source "$conf_dir/$conf_file"
 
-if [[ "$#" -eq 0 ]]; then
-	printf "%s No argument passed.\n" "$red_error"  >&2
-	help 1
-else
-	optstr=":hirux"
-	while getopts "$optstr" opt; do
-		case "$opt" in
-			h )
-				help 0
-				;;
-			i )
-				[[ -f "$ytdl_location/$ytdl_prg" ]] && leave "$ytdl_prg $(ytdl_version) already installed."
-				user_in_sudo
-				check_dependencies
-				install_intro
-				dpkg -l | grep -qw youtube-dl && remove_repo_ver
-				install_youtubedl
-				break
-				;;
-			r )
-				remove_intro
-				dpkg -l | grep -qw youtube-dl && remove_repo_ver
-				[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
-				user_in_sudo
-				remove_youtubedl
-				break
-				;;
-			u )
-				[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
-				user_in_sudo
-				update_youtubedl
-				break
-				;;
-			x )
-				dpkg -l | grep -qw youtube-dl || leave "The repo version of $ytdl_prg is not installed."
-				printf "Removing %s installed from the distribution repository.\n" "$ytdl_prg"
-				user_in_sudo
-				remove_repo_ver
-				break
-				;;
-			? )
-				printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-				help 2
-				;;
-		esac
-	done
-fi
-printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+noOpt=1
+optstr=":hirux"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		h )
+			help 0
+			;;
+		i )
+			[[ -f "$ytdl_location/$ytdl_prg" ]] && leave "$ytdl_prg $(ytdl_version) already installed."
+			user_in_sudo
+			check_dependencies
+			install_intro
+			dpkg -l | grep -qw youtube-dl && remove_repo_ver
+			install_youtubedl
+			break
+			;;
+		r )
+			remove_intro
+			dpkg -l | grep -qw youtube-dl && remove_repo_ver
+			[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
+			user_in_sudo
+			remove_youtubedl
+			break
+			;;
+		u )
+			[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
+			user_in_sudo
+			update_youtubedl
+			break
+			;;
+		x )
+			dpkg -l | grep -qw youtube-dl || leave "The repo version of $ytdl_prg is not installed."
+			printf "Removing %s installed from the distribution repository.\n" "$ytdl_prg"
+			user_in_sudo
+			remove_repo_ver
+			break
+			;;
+		? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			help 2
+			;;
+	esac
+	noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit

@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.7"
-readonly _updated="21 Mar 2023"
+readonly _version="0.4.8"
+readonly _updated="29 Mar 2023"
 readonly url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg=$HOME"/.config/bat"
 
@@ -148,49 +148,49 @@ EOF
 
 printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Installs, updates, or removes the Bat utililty.\n"
-check_dependencies
 
-if [[ $# -eq 0 ]]; then
-  echo "${lightred}ERROR:${normal} No argument passed." >&2
-  help 2
-else
-  optstr=":chiru"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      c )
-        exists bat || leave "Bat is not installed. Run '$_script -i' to install."
-        apply_config
-        ;;
-      h )
-        help 0
-        ;;
-      i )
-        exists bat && leave "Bat $(bat_ver) is already installed."
-        tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-        tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-        trap cleanup EXIT
-        new_ver="$(newest_version)"
-        echo "${lightyellow}Installing Bat version $new_ver...${normal}"
-        check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
-        install_bat
-        apply_config
-        ;;
-      r )
-        exists bat || leave "Bat is not installed. Run '$_script -i' to install."
-        remove_bat
-        ;;
-      u )
-        exists bat || leave "Bat is not installed. Run '$_script -i' to install."
-        tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-        tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-        trap cleanup EXIT
-        new_ver="$(newest_version)"
-        compare_versions
-        ;;
-      ? )
-        echo "${lightred}ERROR:${normal}Invalid option -${OPTARG}" >&2
-        help 2
-        ;;
-    esac
-  done
-fi
+noOpt=1
+optstr=":chiru"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    c )
+      exists bat || leave "Bat is not installed. Run '$_script -i' to install."
+      apply_config
+      ;;
+    h )
+      help 0
+      ;;
+    i )
+      exists bat && leave "Bat $(bat_ver) is already installed."
+      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+      trap cleanup EXIT
+      check_dependencies
+      new_ver="$(newest_version)"
+      echo "${lightyellow}Installing Bat version $new_ver...${normal}"
+      check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
+      install_bat
+      apply_config
+      ;;
+    r )
+      exists bat || leave "Bat is not installed. Run '$_script -i' to install."
+      remove_bat
+      ;;
+    u )
+      exists bat || leave "Bat is not installed. Run '$_script -i' to install."
+      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+      trap cleanup EXIT
+      check_dependencies
+      new_ver="$(newest_version)"
+      compare_versions
+      ;;
+    ? )
+      echo "${lightred}ERROR:${normal}Invalid option -${OPTARG}" >&2
+      help 2
+      ;;
+  esac
+	noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+

@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.4"
-readonly _updated="21 Mar 2023"
+readonly _version="0.2.5"
+readonly _updated="29 Mar 2023"
 readonly url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -136,51 +136,49 @@ EOF
 
 ## Execution ##
 
-printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Installs, updates, or removes the VSCodium editor.\n"
-check_dependencies
 
-if [[ "$#" -eq 0 ]]; then
-  printf "%s No argument passed.\n" "$red_error" >&2
-	help 2
-else
-	optstr=":hirsu"
-	while getopts "$optstr" opt; do
-		case "$opt" in
-			h )
-				help 0 ;;
-			i )
-				exists codium && leave "VSCodium $(codium_ver) is already installed."
-        tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-				trap cleanup EXIT
-				new_ver="$(newest_version)"
-        echo "${lightyellow}Installing VSCodium $new_ver...${normal}"
-				install_vscodium
-        apply_settings
-        ;;
-			r )
-        exists codium || leave "VSCodium is not installed."
-        remove_vscodium
-        ;;
-			s )
-        exists codium || leave "VSCodium is not installed."
-        apply_settings
-        ;;
-			u )
-        exists codium || leave "VSCodium is not installed."
-				tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
-				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-				trap cleanup EXIT
-				new_ver="$(newest_version)"
-				compare_versions
-        ;;
-			? )
-        printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-				help 2
-        ;;
-		esac
-	done
-fi
-
+noOpt=1
+optstr=":hirsu"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		h )
+			help 0 ;;
+		i )
+			exists codium && leave "VSCodium $(codium_ver) is already installed."
+      check_dependencies
+      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+			tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+			trap cleanup EXIT
+			new_ver="$(newest_version)"
+      echo "${lightyellow}Installing VSCodium $new_ver...${normal}"
+			install_vscodium
+      apply_settings
+      ;;
+		r )
+      exists codium || leave "VSCodium is not installed."
+      remove_vscodium
+      ;;
+		s )
+      exists codium || leave "VSCodium is not installed."
+      apply_settings
+      ;;
+		u )
+      exists codium || leave "VSCodium is not installed."
+      check_dependencies
+			tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+			tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+			trap cleanup EXIT
+			new_ver="$(newest_version)"
+			compare_versions
+      ;;
+		? )
+      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			help 2
+      ;;
+	esac
+	noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
 exit

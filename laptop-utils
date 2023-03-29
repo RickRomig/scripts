@@ -26,8 +26,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.5.0"
-readonly _updated="23 Mar 2023"
+readonly _version="1.5.2"
+readonly _updated="29 Mar 2023"
 
 
 ## Funtions ##
@@ -148,26 +148,24 @@ util_status() {
 ## Execution ##
 
 is_laptop || die "System is not a laptop." 1
-if [[ "$#" -eq 0 ]]; then
-  printf "%s No argument passed.\n" "$red_error" >&2
-  help 1
-else
-  optstr=":his"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      h )
-        help 0 ;;
-      i )
-        intro
-        main ;;
-      s )
-        intro
-        util_status ;;
-      ? )
-        printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-        help 2
-    esac
-  done
-fi
+noOpt=1
+optstr=":his"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    h )
+      help 0 ;;
+    i )
+      intro
+      main ;;
+    s )
+      intro
+      util_status ;;
+    ? )
+      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+      help 2
+  esac
+	noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit
