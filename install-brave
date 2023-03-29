@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.3"
-readonly _updated="16 Mar 2023"
+readonly _version="0.4.4"
+readonly _updated="29 Mar 2023"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 
@@ -78,17 +78,17 @@ remove_configs() {
   printf "Brave local configuration and cache files have been removed.\n"
 }
 
-usage() {
+help() {
   local errcode="${1:-2}"
   cat << END_HELP
-${orange}Usage:${normal} $_script [-h] [-i] [-r]
+${orange}Usage:${normal} $_script [-h] [-i] [-p] [-r]
 Options:
   -h   help
   -i   Install the Brave Browser.
   -p   Purge the Brave Browser & configuration files.
   -r   Remove the Brave Browser & leave configuration files.
 END_HELP
-  printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -101,33 +101,31 @@ check_dependencies() {
 
 printf "Installs/Removes the Brave browser.\n\n"
 
-if [[ $# -eq 0 ]]; then
-  printf "%s No argument passed.\n" "$red_error" >&2
-  usage 2
-else
-  optstr=":hipr"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      h )
-        usage 0 ;;
-      i )
-        exists brave-browser && leave "$(brave_ver) is already installed."
-        user_in_sudo
-        install_brave ;;
-      p )
-        exists brave-browser || leave "Brave browser is not installed."
-        user_in_sudo
-        remove_brave
-        remove_configs ;;
-      r )
-        exists brave-browser || leave "Brave browser is not installed."
-        user_in_sudo
-        remove_brave ;;
-      ? )
-        printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-        usage 2 ;;
-    esac
-  done
-fi
-printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+noOpt=1
+optstr=":hipr"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    h )
+      help 0 ;;
+    i )
+      exists brave-browser && leave "$(brave_ver) is already installed."
+      user_in_sudo
+      install_brave ;;
+    p )
+      exists brave-browser || leave "Brave browser is not installed."
+      user_in_sudo
+      remove_brave
+      remove_configs ;;
+    r )
+      exists brave-browser || leave "Brave browser is not installed."
+      user_in_sudo
+      remove_brave ;;
+    ? )
+      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+      help 2 ;;
+  esac
+  noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 2;fi
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit
