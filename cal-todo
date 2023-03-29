@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.4"
-readonly _updated="12 Mar 2023"
+readonly _version="0.2.5"
+readonly _updated="29 Mar 2023"
 readonly localdoc="$HOME/.local/share/doc"
 readonly todolist="todo.lst"
 calendar=$(mktemp -q) || die "Failed to create temporary file." 1
@@ -82,35 +82,33 @@ display_cal_todo() {
 
 trap cleanup EXIT
 
-if [[ "$#" -eq 0 ]]; then
-	cal > "$calendar"
-	display_cal_todo
-else
-	optstr=":cdeh"
-	while getopts "$optstr" opt; do
-		case "$opt" in
-			c )
-				cal > "$calendar"
-				display_cal_todo
-				break ;;
-			d )
-				cal -3 | sed '1d' > "$calendar"
-				display_cal_todo
-				break ;;
-			e )
-				if [[ -f "$localdoc/$todolist" ]]; then
-					edit_todo
-				else
-					create_todo
-				fi
-				break ;;
-			h )
-				help 0
-				;;
-			? )
-				printf "%s Invalid option -%s\n" >&2 "$OPTARG" "$red_error"
-				help 2
-		esac
-	done
-fi
+noOpt=1
+optstr=":cdeh"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		c )
+			cal > "$calendar"
+			display_cal_todo
+			;;
+		d )
+			cal -3 | sed '1d' > "$calendar"
+			display_cal_todo
+			;;
+		e )
+			if [[ -f "$localdoc/$todolist" ]]; then
+				edit_todo
+			else
+				create_todo
+			fi
+			;;
+		h )
+			help 0
+			;;
+		? )
+			printf "%s Invalid option -%s\n" >&2 "$OPTARG" "$red_error"
+			help 2
+	esac
+	noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
 leave "$_script v$_version ($_updated)"
