@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.1"
-readonly _updated="25 Mar 2023"
+readonly _version="0.3.2"
+readonly _updated="29 Mar 2023"
 readonly user_cron_path="$HOME/.local/bin/"
 readonly opt_cron_path="/opt/bin/"
 readonly clean_sed_path="/usr/share/misc/"
@@ -168,7 +168,7 @@ ${orange}OPTIONS:${normal}
   -z    Copy ytdluplog.sed file.
   NOTE: Multiple arguments may be passed to the script.
 END_HELP
-  printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -176,60 +176,58 @@ END_HELP
 
 printf "Copies updated cron scripts to the appropriate directories.\n"
 
-if [[ "$#" -eq 0 ]]; then
-  printf "%s No arguments passed.\n" "$red_error" >&2
-  help 2
-else
-  localip="$(local_ip)"
-  optstr=":abdfhlpsuyz"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      a )
-        cp_hbarchive
-        cp_passwdsync
-        cp_scriptarchive
-        cp_zdefrag
-        cp_zupdate
-				cp_updatelogsed
-        cp_zytdlupdate
-				cp_ytdluplogsed
-        ;;
-      b )
-        cp_hbarchive
-        ;;
-      d )
-        cp_zdefrag
-        ;;
-      f )
-        cp_updatelogsed
-        ;;
-      h )
-        help 0
-        ;;
-			l )
-				cp_zbackup
-				;;
-      p )
-        cp_passwdsync
-        ;;
-      s )
-        cp_scriptarchive
-        ;;
-      u )
-        cp_zupdate
-        ;;
-      y )
-        cp_zytdlupdate
-        ;;
-			z )
-				cp_ytdluplogsed
-				;;
-      ? )
-        printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-        help 2
-        ;;
-    esac
-  done
-fi
-printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+noOpt=1
+localip="$(local_ip)"
+optstr=":abdfhlpsuyz"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    a )
+      cp_hbarchive
+      cp_passwdsync
+      cp_scriptarchive
+      cp_zdefrag
+      cp_zupdate
+			cp_updatelogsed
+      cp_zytdlupdate
+			cp_ytdluplogsed
+      ;;
+    b )
+      cp_hbarchive
+      ;;
+    d )
+      cp_zdefrag
+      ;;
+    f )
+      cp_updatelogsed
+      ;;
+    h )
+      help 0
+      ;;
+		l )
+			cp_zbackup
+			;;
+    p )
+      cp_passwdsync
+      ;;
+    s )
+      cp_scriptarchive
+      ;;
+    u )
+      cp_zupdate
+      ;;
+    y )
+      cp_zytdlupdate
+      ;;
+		z )
+			cp_ytdluplogsed
+			;;
+    ? )
+      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+      help 2
+      ;;
+  esac
+	noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit
