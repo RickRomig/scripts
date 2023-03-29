@@ -27,14 +27,10 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.4"
-readonly _updated="04 Feb 2023"
+readonly _version="0.2.5"
+readonly _updated="29 Mar 2023"
 
 ## Functions ##
-
-check_dependencies() {
-  check_package git
-}
 
 help() {
   errcode="${1:-2}"
@@ -46,7 +42,7 @@ OPTIONS:
   -r  Remove Geany
   -t  Install themes
 END_HELP
-  printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -104,37 +100,34 @@ remove_geany() {
 
 ## Execution ##
 
-check_dependencies
-if [[ "$#" -eq 0 ]]; then
-  printf "%s No argument passed.\n" "$red_error" >&2
-  help 1
-else
-  optstr=":hirt"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      h )
-        printf "%s help:\n" "$_script"
-        help 0 ;;
-      i )
-        exists geany && leave "Geany $(geany_version) is already installed."
-        user_in_sudo
-        install_geany
-        break ;;
-      r )
-        exists geany || leave "Geany is not installed."
-        user_in_sudo
-        remove_geany
-        break ;;
-      t )
-        exists geany || leave "Geany is not installed."
-        clone_themes
-        remove_dl_dir
-        break ;;
-      ? )
-        printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-        help 2 ;;
-    esac
-  done
-fi
-printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+check_package git
+optstr=":hirt"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    h )
+      printf "%s help:\n" "$_script"
+      help 0 ;;
+    i )
+      exists geany && leave "Geany $(geany_version) is already installed."
+      user_in_sudo
+      install_geany
+      break ;;
+    r )
+      exists geany || leave "Geany is not installed."
+      user_in_sudo
+      remove_geany
+      break ;;
+    t )
+      exists geany || leave "Geany is not installed."
+      clone_themes
+      remove_dl_dir
+      break ;;
+    ? )
+      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+      help 2 ;;
+  esac
+  noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit
