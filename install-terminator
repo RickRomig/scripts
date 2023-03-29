@@ -2,19 +2,11 @@
 ##########################################################################
 # Script Name  : install-terminator
 # Description  : Installs the Terminator terminal emulator from repos.
-# Dependencies : sshfs
+# Dependencies : None
 # Arguments    : -c -h -i -r (See help function)
 # Author       : Richard B. Romig, 14 Dec 2020
 # Email        : rick.romig@gmail.com
 # Comments     : Installs config file & Cascadia Code font from HP-6005
-# 31 Jan 2022  : Added option to write config file. Updated help.
-# 23 Feb 2022  : Incorporated `getopts` to process options.
-# 25 Feb 2022  : Modified code to check if Debian-based distro.
-# 29 Mar 2022  : Added $OPTARG to Invalid option message.
-# 10 Jul 2022  : Added optstr and opt variables to getopts routine.
-# 10 Sep 2022  : Installs Cascadia-Code fonts if needed.
-# 30 Dec 2022  : Modified function to install cascadia code fonts.
-# 02 Jan 2023  : Added function to get version. Checks exists in getopts case.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -35,10 +27,9 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.0"
-readonly _updated="02 Jan 2023"
+readonly _version="0.6.1"
+readonly _updated="29 Mar 2023"
 readonly term_cfg=$HOME"/.config/terminator"
-readonly svr_ip="11"
 
 ## Functions ##
 
@@ -56,14 +47,14 @@ ${bold}NOTES:${normal}
      Configuration changes should be made through the Preferences menu.
   2. For Debian and Debian-based distributions (Antix, MX Linux, LMDE),
      Terminator will be configured in the config file as a login shell.
-  3. Cascadia Code 14 font is installed by default (from local server).
+  3. Cascadia Code 14 font is installed by default.
 EOF
   exit "$errcode"
 }
 
 remove_terminator() {
   sudo apt-get purge terminator
-  [[ -d "$Hterm_cfg" ]] && rm -rf "$term_cfg"
+  [[ -d "$term_cfg" ]] && rm -rf "$term_cfg"
   leave "Terminator and its configuration files have been removed."
 }
 
@@ -128,10 +119,6 @@ install_cascadia_code() {
   fi
 }
 
-check_dependencies() {
-  check_package sshfs
-}
-
 terminator_version() {
   dpkg -l | awk '$2 == "terminator" {print $3}' | sed 's/[+-].*//'
 }
@@ -141,38 +128,36 @@ terminator_version() {
 check_dependencies
 
 echo "$_script v$_version ($_updated)"
-echo -e "Installs or removes Terminator with config and Cascadia Code font."
+echo -e  "Installs or removes Terminator with config and Cascadia Code font.\n"
 
-if [[ "$#" -eq 0 ]]; then
-  echo $'\n'$"${lightred}ERROR:${normal} No argument passed." >&2
-  help 2
-else
-  optstr=":chir"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      c )
-        exists terminator || leave "Terminator is not installed."
-        if bunsenlabs; then
-          echo "Terminator configuration for BunsenLabs was not overwritten."
-          leave "Configuration changes should be made through the Preferences menu."
-        else
-          teminator_config
-          is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg/config"
-          leave "Terminator configuration file written."
-        fi ;;
-      h )
-        help 0 ;;
-      i )
-        exists terminator && leave "Terminator $(terminator_version) is already installed."
-        user_in_sudo
-        install_terminator ;;
-      r )
-        exists terminator || leave "Terminator is not installed."
-        user_in_sudo
-        remove_terminator ;;
-      ? )
-        echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
-        help 2 ;;
+noOpt=1
+optstr=":chir"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    c )
+      exists terminator || leave "Terminator is not installed."
+      if bunsenlabs; then
+        echo "Terminator configuration for BunsenLabs was not overwritten."
+        leave "Configuration changes should be made through the Preferences menu."
+      else
+        teminator_config
+        is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg/config"
+        leave "Terminator configuration file written."
+      fi ;;
+    h )
+      help 0 ;;
+    i )
+      exists terminator && leave "Terminator $(terminator_version) is already installed."
+      user_in_sudo
+      install_terminator ;;
+    r )
+      exists terminator || leave "Terminator is not installed."
+      user_in_sudo
+      remove_terminator ;;
+    ? )
+      echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+      help 2 ;;
     esac
-  done
-fi
+  	noOpt=0
+done
+if [ $noOpt = 1 ];then echo "${lightred}ERROR:${normal} No argument passed." >&2;help 1;fi

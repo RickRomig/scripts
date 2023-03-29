@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.1"
-readonly _updated="04 Feb 2023"
+readonly _version="0.1.2"
+readonly _updated="29 Mar 2023"
 readonly cfg_dir="${HOME}/.config/neofetch"
 readonly thumbnail_dir="${HOME}/.cache/thumbnails/neofetch"
 
@@ -44,6 +44,7 @@ ${orange}OPTIONS:${normal}
 	-i	Install and configure Neofetch
 	-r	Remove Neofetch and configuration
 EOL
+	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -86,36 +87,32 @@ remove_neofetch() {
 
 ## Execution ##
 
-clear
-printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Install/Remove Neofetch or apply configuration\n\n"
 
-if [[ "$#" -eq 0 ]]; then
-	echo "${lightred}ERROR:${normal} No argument passed." >&2
-	help 1
-else
-	optstr=":chir"
-	while getopts "$optstr" opt; do
-		case "$opt" in
-			c )
-				apply_config
-				exit 0
-				;;
-			h )
-				help 0
-				;;
-			i )
-				install_neofetch
-				;;
-			r )
-				remove_neofetch
-				;;
-			? )
-				echo "${lightred}ERROR:${normal}Invalid option -${OPTARG}" >&2
-				help 2
-				;;
-		esac
-	done
-fi
-
+noOpt=1
+optstr=":chir"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		c )
+			apply_config
+			exit 0
+			;;
+		h )
+			help 0
+			;;
+		i )
+			install_neofetch
+			;;
+		r )
+			remove_neofetch
+			;;
+		? )
+			echo "${lightred}ERROR:${normal}Invalid option -${OPTARG}" >&2
+			help 2
+			;;
+	esac
+	noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit

@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.4"
-readonly _updated="17 Mar 2023"
+readonly _version="0.1.5"
+readonly _updated="29 Mar 2023"
 
 ## Functions ##
 
@@ -51,7 +51,7 @@ ${orange}OPTIONS:${normal}
 	-i 	Install Zoom
 	-r 	Remove Zoom
 END_HELP
-	printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -80,36 +80,34 @@ remove_zoom() {
 
 ## Execution ##
 
-if [[ "$#" -eq 0 ]]; then
-	printf "%s No argument passed.\n" "$red_error"  >&2
-	help 1
-else
-	optstr=":hir"
-	while getopts "$optstr" opt; do
-		case "$opt" in
-			h )
-				help 0
-				;;
-			i )
-				exists zoom && printf "Zoom %s is installed.\n" "$(zoom_version)"
-				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-				trap cleanup EXIT
-				user_in_sudo
-				install_zoom
-				break
-				;;
-			r )
-				exists zoom || leave "Zoom is not installed."
-				user_in_sudo
-				remove_zoom
-				break
-				;;
-			? )
-				printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-				help 2
-				;;
-		esac
-	done
-fi
+noOpt=1
+optstr=":hir"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		h )
+			help 0
+			;;
+		i )
+			exists zoom && printf "Zoom %s is installed.\n" "$(zoom_version)"
+			tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+			trap cleanup EXIT
+			user_in_sudo
+			install_zoom
+			break
+			;;
+		r )
+			exists zoom || leave "Zoom is not installed."
+			user_in_sudo
+			remove_zoom
+			break
+			;;
+		? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			help 2
+			;;
+	esac
+	noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
 printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit

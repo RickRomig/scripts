@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.2"
-readonly _updated="23 Jan 2023"
+readonly _version="0.1.3"
+readonly _updated="29 Mar 2023"
 
 ## Functions ##
 
@@ -104,55 +104,50 @@ debian_system() {
 
 ## Execution ##
 
-# clear
 printf "For Debian, BunsenLabs, and MX Linux systems.\n"
 printf "UFW/GUFW is installed by default on Mint & Ubuntu.\n"
-if [[ "$#" -eq 0 ]]; then
-  printf "%s No argument passed.\n" "$red_error" >&2
-  help 1
-else
-  optstr=":dehirs"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      d )
-        dpkg -l | grep -qw ufw || leave "UFW is not installed."
-        user_in_sudo
-        ufw_status || leave "UFW $(ufw_version) is already disabled."
-        disable_ufw
-        break ;;
-      e )
-        dpkg -l | grep -qw ufw || leave "UFW is not installed."
-        user_in_sudo
-        ufw_status && leave "UFW $(ufw_version) is already enabled."
-        enable_ufw
-        break ;;
-      h )
-        help 0 ;;
-      i )
-        debian_system || die "Not a Debian-based system."
-        dpkg -l | grep -qw ufw && leave "UFW $(ufw_version) is already installed."
-        user_in_sudo
-        install_ufw
-        add_rules
-        enable_ufw
-        printf "UFW %s installed and configured.\n" "$(ufw_version)"
-        break ;;
-      r )
-        debian_system || die "Not a Debian-based system."
-        dpkg -l | grep -qw ufw || leave "UFW is not installed."
-        user_in_sudo
-        remove_ufw
-        break ;;
-      s )
-        dpkg -l | grep -qw ufw || leave "UFW is not installed."
-        user_in_sudo
-        printf "UFW %s\n" "$(ufw_version)"
-        sudo ufw status numbered
-        break ;;
-      ? )
-        printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-    esac
-  done
-fi
+noOpt=1
+optstr=":dehirs"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    d )
+      dpkg -l | grep -qw ufw || leave "UFW is not installed."
+      user_in_sudo
+      ufw_status || leave "UFW $(ufw_version) is already disabled."
+      disable_ufw
+      break ;;
+    e )
+      dpkg -l | grep -qw ufw || leave "UFW is not installed."
+      user_in_sudo
+      ufw_status && leave "UFW $(ufw_version) is already enabled."
+      enable_ufw
+      break ;;
+    h )
+      help 0 ;;
+    i )
+      debian_system || die "Not a Debian-based system."
+      dpkg -l | grep -qw ufw && leave "UFW $(ufw_version) is already installed."
+      user_in_sudo
+      install_ufw
+      add_rules
+      enable_ufw
+      printf "UFW %s installed and configured.\n" "$(ufw_version)"
+      break ;;
+    r )
+      debian_system || die "Not a Debian-based system."
+      dpkg -l | grep -qw ufw || leave "UFW is not installed."
+      user_in_sudo
+      remove_ufw
+      break ;;
+    s )
+      dpkg -l | grep -qw ufw || leave "UFW is not installed."
+      user_in_sudo
+      printf "UFW %s\n" "$(ufw_version)"
+      sudo ufw status numbered
+      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+  esac
+	noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit

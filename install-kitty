@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 ##########################################################################
 # Script Name  : install-kitty
 # Description  : Installs kitty terminal emulator with basic configuration.
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.5"
-readonly _updated="04 Feb 2023"
+readonly _version="0.1.6"
+readonly _updated="29 Mar 2023"
 readonly kitty_cfg="$HOME/.config/kitty"
 
 ## Functions ##
@@ -90,39 +90,36 @@ kitty_config() {
 
 ## Execution ##
 
-# clear
-if [[ "$#" -eq 0 ]]; then
-  printf "%s No argument passed.\n" "$red_error" >&2
-  help 1
-else
-  optstr=":chir"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      c )
-        exists kitty || leave "Kitty is not installed."
-        printf "Configuring Kitty %s...\n" "$(kitty_version)"
-        kitty_config
-        break ;;
-      h )
-        help 0
-        ;;
-      i )
-        exists kitty && leave "Kitty terminal emulator $(kitty_version) already installed.\n"
-        user_in_sudo
-        install_kitty
-        break ;;
-      r )
-        exists kitty || leave "Kitty is not installed."
-        user_in_sudo
-        remove_kitty
-        break ;;
-      ? )
-        printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-        help 2
-        ;;
-    esac
-  done
-fi
-printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+noOpt=1
+optstr=":chir"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    c )
+      exists kitty || leave "Kitty is not installed."
+      printf "Configuring Kitty %s...\n" "$(kitty_version)"
+      kitty_config
+      break ;;
+    h )
+      help 0
+      ;;
+    i )
+      exists kitty && leave "Kitty terminal emulator $(kitty_version) already installed."
+    user_in_sudo
+      install_kitty
+      break ;;
+    r )
+      exists kitty || leave "Kitty is not installed."
+      user_in_sudo
+      remove_kitty
+      break ;;
+    ? )
+      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+      help 2
+      ;;
+  esac
+	noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 
 exit
