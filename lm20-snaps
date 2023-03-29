@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.3"
-readonly _updated="12 Mar 2023"
+readonly _version="0.2.4"
+readonly _updated="29 Mar 2023"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
 
 ## Functions ##
@@ -105,39 +105,36 @@ END_HELP
 
 ## Execution ##
 
-clear
 box "$_script v$_version ($_updated)"
 printf "Enables or disables the installation of snapd and Snap packages in Linux Mint 20 and later.\n"
 
 if lm20_plus; then
-  if [[ $# -eq 0 ]]; then
-    printf "\n%s No argument passed\n" "$red_error" >&2
-    help 2
-  else
-    optstr=":dehs"
-    while getopts "$optstr" opt; do
-      case "$opt" in
-        d )
-          user_in_sudo
-          disable_snaps
-          break ;;
-        e )
-          user_in_sudo
-          enable_snaps
-          break ;;
-        h )
-          help 0
-          break ;;
-        s )
-          printf "\nStatus of snapd and snap packages: "
-          snap_status && printf "Snaps are enabled.\n" || printf "Snaps are disabled.\n"
-          break ;;
-        ? )
-          printf "\n%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-          help 2 ;;
-      esac
-    done
-  fi
+  noOpt=1
+  optstr=":dehs"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      d )
+        user_in_sudo
+        disable_snaps
+        break ;;
+      e )
+        user_in_sudo
+        enable_snaps
+        break ;;
+      h )
+        help 0
+        break ;;
+      s )
+        printf "\nStatus of snapd and snap packages: "
+        snap_status && printf "Snaps are enabled.\n" || printf "Snaps are disabled.\n"
+        break ;;
+      ? )
+        printf "\n%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+        help 2 ;;
+    esac
+	  noOpt=0
+  done
+  if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
   exit
 else
   die "This script is only for use with Linux Mint 20 or later." 1

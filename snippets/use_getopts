@@ -29,21 +29,17 @@ while getopts "$optstr" opt; do
 			# argI="$OPTARG"
 			install_application
 			apply_settings	# optional custom configuration
-			break	# Remove break if multiple options or functions exit
 			;;
 		r )
 			# argR="$OPTARG"
 			remove_application
-			break	# Remove break if multiple options or functions exit
 			;;
 		s )
 			apply_settings
-			break	# Remove break if multiple options or functions exit
 			;;
 		u )
 			exists application || leave "Application is not installed. run '$_script -i' to install."
 			update_application
-			break	# Remove break if multiple options or functions exit
 			;;
 		: )
 			# printf "\e[91mERROR:\e[0m Must supply an argument to -%s.\n" "$OPTARG" >&2
@@ -52,8 +48,8 @@ while getopts "$optstr" opt; do
 		    help 2
 		    ;;
 		? )
-			# printf "\e[91mERROR:\e[0m Invalid option -%s\n" $OPTARG >&2
-			# printf %s Invalid option -%s\n" "$red_error" $OPTARG >&2
+			# printf "\e[91mERROR:\e[0m Invalid option -%s\n" "$OPTARG" >&2
+			# printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
 			echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
 			help 2
 	esac

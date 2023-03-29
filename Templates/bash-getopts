@@ -1,14 +1,15 @@
 ## Shell Template ##
-#!/bin/bash
+#!/usr/bin/env bash
 ##########################################################################
 # Script Name  : <FILE>
 # Description  :
 # Dependencies :
 # Arguments    :
-# Author       : Copyright (C) <YEAR> <AUTHOR>, <TODAY>
+# Author       : Copyright (C) <YEAR> <AUTHOR>, <ORG>
 # Email        : <EMAIL> | <EMAIL1>
-# Comments     :
+# Created      : <TODAY>
 # Last updated : <TODAY>
+# Comments     :
 # TODO (<CODER>)  :
 # License      : <LICENSE>
 ##########################################################################
@@ -68,53 +69,47 @@ app_version() {
 # clear
 
 
-if [[ "$#" -eq 0 ]]; then
-	# printf "%s No argument passed.\n" "$red_error"  >&2
-	echo "${lightred}ERROR:${normal} No argument passed." >&2
-	help 1
-else
-	optstr=":hirsu"
-	# optstr=":h:i:r:s:u"
-	while getopts "$optstr" opt; do
-		case "$opt" in
-			h )
-				help 0
-				;;
-			i )
-				# argI="$OPTARG"
-				exists application && leave "Application $(app_version) is already installed."
-				install_application
-				apply_settings	# optional custom configuration
-				break	# Remove break if multiple options or if functions exit
-				;;
-			r )
-				# argR="$OPTARG"
-				exists application || leave "Application is not installed."
-				remove_application
-				break	# Remove break if multiple options or if functions exit
-				;;
-			s )
-				apply_settings
-				break	# Remove break if multiple options or if functions exit
-				;;
-			u )
-				exists application || leave "Application is not installed."
-				update_application
-				break	# Remove break if multiple options or if functions exit
-				;;
-			: )
-				# printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
-			    echo "${lightred}ERROR:${normal} Must supply an argument to -${OPTARG}." >&2
-			    help 2
-			    ;;
-			? )
-				# printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-				echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
-				help 2
-				;;
-		esac
-	done
-fi
+noOpt=1
+optstr=":hirsu"
+# optstr=":h:i:r:s:u"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		h )
+			help 0
+			;;
+		i )
+			# argI="$OPTARG"
+			exists application && leave "Application $(app_version) is already installed."
+			install_application
+			apply_settings	# optional custom configuration
+			;;
+		r )
+			# argR="$OPTARG"
+			exists application || leave "Application is not installed."
+			remove_application
+			;;
+		s )
+			apply_settings
+			;;
+		u )
+			exists application || leave "Application is not installed."
+			update_application
+			;;
+		: )
+			# printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
+			  echo "${lightred}ERROR:${normal} Must supply an argument to -${OPTARG}." >&2
+			  help 2
+			  ;;
+		? )
+			# printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+			help 2
+			;;
+	esac
+	noOpt=0
+done
+# if [ $noOpt = 1 ];then echo "${lightred}ERROR:${normal} No argument passed." >&2;help 1;fi
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
 # echo -e "$_script v$_version ($_updated)"
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit

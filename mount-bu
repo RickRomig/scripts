@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.2"
-readonly _updated="22 Jan 2023"
+readonly _version="0.2.3"
+readonly _updated="29 Mar 2023"
 readonly mount_location="/media/rick/BU_Drive"
 
 ## Functions ##
@@ -36,7 +36,7 @@ readonly mount_location="/media/rick/BU_Drive"
 mount_bu() {
   lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
   printf "\n"
-  read -rp "Select the drive to mount (Enter to cancel): " usbdrv
+  read -rp "Enter the device name to mount (Enter to cancel): " usbdrv
   [[ -z "$usbdrv" ]] && leave "Operation canceled."
   user_in_sudo
   printf "Mounting %s to %s ...\n" "$usbdrv" "$mount_location"
@@ -80,40 +80,38 @@ EOL
 
 ## Execution ##
 
-printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Mount/Unmount USB Backup drive.\n"
 
-if [[ $# -eq 0 ]]; then
-  printf "\n\e[91mERROR:\e[0m No argument passed\n" >&2
-  help 2
-else
-  optstr=":hmsu"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      h )
-        help 0
-        break ;;
-      m )
-        if bu_status; then
-          printf "No further action necessary.\n"
-        else
-          mount_bu
-        fi
-        break ;;
-      s )
-        bu_status
-        break ;;
-      u )
-        if bu_status; then
-          umount_bu
-        else
-          printf "No further action necessary.\n"
-        fi
-        break ;;
-      ? )
-        printf "\e[91mERROR:\e[0m Invalid option -%s\n" "$OPTARG" >&2
-        help 2 ;;
-    esac
-  done
-fi
+noOpt=1
+optstr=":hmsu"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    h )
+      help 0
+      ;;
+    m )
+      if bu_status; then
+        printf "No further action necessary.\n"
+      else
+        mount_bu
+      fi
+      ;;
+    s )
+      bu_status
+      ;;
+    u )
+      if bu_status; then
+        umount_bu
+      else
+        printf "No further action necessary.\n"
+      fi
+      ;;
+    ? )
+      printf "\e[91mERROR:\e[0m Invalid option -%s\n" "$OPTARG" >&2
+      help 2 ;;
+  esac
+	noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
 exit

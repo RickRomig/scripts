@@ -30,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.3"
-readonly _updated="03 Feb 2023"
+readonly _version="0.4.4"
+readonly _updated="29 Mar 2023"
 
 ## Functions ##
 
@@ -118,50 +118,49 @@ EOT
 
 ## Execution ##
 
-check_dependencies
-
 SECONDS=0
 count=0
 
-if [[ $# -eq 0 ]]; then
-  echo "${lightred}ERROR:${normal} No argument passed." >&2
-  help 2
-else
-  optstr=":adhs"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      a )
-        tput civis
-        echo $'\n'$"Scanning  the network ..."
-        echo -e "${underline}${green}IP Address\tHostname${normal}"
-        scan_static_addresses
-        scan_dhcp_addresses
-        tput cnorm
-        ;;
-      d )
-        tput civis
-        echo $'\n'$"Scanning DHCP addresses on the network ..."
-        echo -e "${underline}${green}IP Address\tHostname${normal}"
-        scan_dhcp_addresses
-        tput cnorm
-        ;;
-      h )
-        help 0
-        ;;
-      s )
-        tput civis
-        echo $'\n'$"Scanning static IP addresses on the network ..."
-        echo -e "${underline}${green}IP Address\tHostname${normal}"
-        scan_static_addresses
-        tput cnorm
-        ;;
-      ? )
-        echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
-        help 2
-        ;;
-    esac
-  done
-fi
+noOpt=1
+optstr=":adhs"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    a )
+      check_dependencies
+      tput civis
+      echo $'\n'$"Scanning  the network ..."
+      echo -e "${underline}${green}IP Address\tHostname${normal}"
+      scan_static_addresses
+      scan_dhcp_addresses
+      tput cnorm
+      ;;
+    d )
+      check_dependencies
+      tput civis
+      echo $'\n'$"Scanning DHCP addresses on the network ..."
+      echo -e "${underline}${green}IP Address\tHostname${normal}"
+      scan_dhcp_addresses
+      tput cnorm
+      ;;
+    h )
+      help 0
+      ;;
+    s )
+      check_dependencies
+      tput civis
+      echo $'\n'$"Scanning static IP addresses on the network ..."
+      echo -e "${underline}${green}IP Address\tHostname${normal}"
+      scan_static_addresses
+      tput cnorm
+      ;;
+    ? )
+      echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+      help 2
+      ;;
+  esac
+	noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
 
 printf "\n%s active addresses discovered in %s.\n\n" "$count" "$(format_time SECONDS)"
 leave "$_script v$_version ($_updated)"
