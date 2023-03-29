@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
+###############################################################################
+# Script Name  : up
+# Description  : Debian/Ubuntu Update Tool (Version 1.3)
+# Dependencies : none
+# Arguments    : -c -f -h -r -u (See up_help for more info)
+# Author       : Copyright (C) 2023, Richard B. Romig, MosfaNet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
+# Created      : 29 Mar 2023
+# Last updated : 29 Mar 2023
+# Comments     : Original scrlipt by Joe Collins www.ezeelinux.com
+#              : Heavily modified by Rick Romig
+# TODO (Rick)  : 
+# License      : GNU General Public License, version 2.0
+###############################################################################
 
-# Up -- Debian/Ubuntu Update Tool (Version 1.3)
-# Advanced command to fully update system: "up" Adding the option "--clean" will
-# remove orphaned packages and auto-clean the apt cache. (January, 2018)
-# Adding the option "--remove" will just reomve orphaned packages.
-# By Joe Collins www.ezeelinux.com (GNU/General Public License version 2.0)
-# Modified to use functionlib functions by R. Romig
-# 07-10-21 - Added command to purge leftover files after old kernel removal.
-# 02-23-22 - Replaced if-elif... with while getopts and case statements.
-# ...And way we go!
-
-##### Added by R. Romig #####
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
 # shellcheck disable=SC1091
@@ -24,72 +27,65 @@ else
   exit 1
 fi
 
-# Check for less utility and install if needed:
-
-check_package less  # Added by R. Romig
-###################
-
-# Set BASH to quit script and exit on errors:
-
 set -e
 
 ## Functions ##
 
 upgrade() {
-  echo "${greeen}Starting full system update...${normal}"
-  sudo apt update
-  sudo apt full-upgrade -yy
+  printf "%sStarting full system update...%s\n" "${green}" "${normal}"
+  if exists nala; then
+    run_nala
+  else
+    sudo apt update
+    sudo apt full-upgrade -yy
+  fi
 }
 
 clean() {
-  echo "${greeen}Removing apt cache packages that can no longer be downloaded...${normal}"
+  printf "%sRemoving apt cache packages that can no longer be downloaded...%s\n" "${green}" "${normal}"
   sudo apt autoclean
 }
 
 remove() {
-  echo "${greeen}Removing orpahned packages...${normal}"
+  printf "%sRemoving orpahned packages...%s\n" "${green}" "${normal}"
   sudo apt autoremove -yy
-  echo "${greeen}Purging obsolete linux kernel configuration files...${normal}"
-  # Purge obsolete linux kernel configuration files
-  # sudo apt remove --purge "$(dpkg -l | grep -E '^rc' | awk '{print $2}')" -yy
-  for i in $(dpkg -l | grep "^rc" | awk '{print $2}'); do sudo apt remove --purge "$i" -yy; done
+  rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}' | wc -l)
+  if [[ "$rcpkgs" -gt 0 ]]; then
+    printf "%sPurging obsolete linux kernel configuration files...%s\n" "${green}" "${normal}"
+    for i in $(dpkg -l | grep "^rc" | awk '{print $2}'); do sudo apt remove --purge "$i" -yy; done
+  fi
+}
+
+run_nala() {
+  printf "Running nala...\n"
+  sudo nala upgrade
+  printf "\n"
 }
 
 leave_up() {
-  print_line "-" 20 # Added by R. Romig
-  echo "- Update Complete! -"
-  print_line "-" 20 # Added by R. Romig
-  echo "Script completed in $(format_time $SECONDS)"  # Added by R. Romig
+  box "Update Complete!" "*"  # Added by R. Romig
+  printf "Script completed in %s\n" "$(format_time $SECONDS)"
   exit
 }
 
 up_help() {
   less << EOF
 
- Up -- Debian/Ubuntu Update Tool (Version 1.3)  -help
+ Up -- Debian/Ubuntu Update Tool (Version 2.0)
 
- Up is a tool that automates the update procedure for Debian and Ubuntu based
- Linux systems.
+ Up is a tool that automates the update procedure for Debian and Ubuntu based  Linux systems.
 
  Press "q" to exit this Help page.
 
  Commands:
-    up -r = full system update. Will update the apt cache and then perform a
-    full distribution update.
-
-    up -r = full system update with orphaned packages removed.
-    up -c = full system update with full cleanup.
-
-    Adding the "-c" option will invoke the apt commands to search for and
-    remove locally cached packages that are no longer in the repositories and
-    remove orphaned packages that are no longer needed by programs.
-
-    The "-r" option only removes orphaned packages, leaving the apt cache alone.
-
+    up -u = full system update. Update the apt cache & perform a full distribution update.
+    up -f = full system update with full cleanup.
+    up -c = full system update with cleanup of the apt cache.
+    up -r = full system update with only orphaned packages removed.
     up -h = shows this help page.
 
- By Joe Collins www.ezeelinux.com (GNU/General Public License version 2.0)
- Additional modifications by Rick Romig
+ Original scrlipt by Joe Collins, www.ezeelinux.com (GNU/General Public License version 2.0)
+ Additional modifications by Rick Romig, MosfaNet
 
  Disclaimer:
 
@@ -109,44 +105,41 @@ EOF
 
 ## Execution ##
 
+readonly _version="2.0"
 SECONDS=0 # Added by R. Romig
 
-# Tell 'em who we are...
+printf "Up -- Debian/Ubuntu Update Tool (Version %s)\n" "$_version"
+printf "(Joe Collins and Rick Romig\n)"
 
-echo "Up -- Debian/Ubuntu Update Tool (Version 1.3++)"
-
-# Replaced Joe's nested if-elif-else construct with getopts - R. Romig
-
-if [[ $# -eq 0 ]]; then
-  echo "${lightred}ERROR:${normal} No argument passed." >&2
-  up_help
-  exit 1
-else
-  optstr=":chru"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      c )
-        upgrade
-        remove
-        clean
-        leave_up ;;
-      h )
-        up_help
-        exit ;;
-      r )
-        upgrade
-        remove
-        leave_up ;;
-      u )
-        upgrade
-        leave_up ;;
-      ? )
-        echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
-        up_help
-        exit 2 ;;
-    esac
-  done
-fi
+noOpt=1
+optstr=":cfhru"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    c )
+      upgrade
+      clean
+      leave_up ;;
+    f )
+      upgrade
+      remove
+      clean
+      leave_up ;;
+    h )
+      up_help
+      exit ;;
+    r )
+      upgrade
+      remove
+      leave_up ;;
+    u )
+      upgrade
+      leave_up ;;
+    ? )
+      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+      up_help
+      exit 2 ;;
+  esac
+  noOpt=0
+done
 # Default action if no options given
-# upgrade
-# leave_up # Added by R. Romig
+if [ $noOpt = 1 ];then upgrade;leave_up;fi
