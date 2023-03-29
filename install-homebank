@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #####################################################################
 # Script Name  : install-homebank
 # Description  : Installs Homebank from PPA or distribution reposistory
@@ -22,15 +22,15 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
 
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.4"
-readonly _updated="04 Feb 2023"
+readonly _version="0.3.5"
+readonly _updated="29 Mar 2023"
 
 ## Functions ##
 
@@ -90,29 +90,27 @@ END_HELP
 clear
 echo "Installs HomeBank Personal Finance Software."
 
-if [[ "$#" -eq 0 ]]; then
-  echo "${lightred}ERROR:${normal} No argument passed." >&2
-  help 2
-else
-  optstr=":hipr"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      h )
-        help 0 ;;
-      i )
-        exists homebank && leave "HomeBank $(homebank_ver) is already installed."
-        install_homebank ;;
-      p )
-        exists hombank || leave "HomeBank is not installed."
-        purge_homebank ;;
-      r )
-        exists hombank || leave "HomeBank is not installed."
-        remove_homebank ;;
-      ? )
-        echo "${lightred}ERROR:${normal} Invalid option -$OPTARG" >&2
-        help 2 ;;
-    esac
-  done
-fi
+noOpt=1
+optstr=":hipr"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    h )
+      help 0 ;;
+    i )
+      exists homebank && leave "HomeBank $(homebank_ver) is already installed."
+      install_homebank ;;
+    p )
+      exists hombank || leave "HomeBank is not installed."
+      purge_homebank ;;
+    r )
+      exists hombank || leave "HomeBank is not installed."
+      remove_homebank ;;
+    ? )
+      echo "${lightred}ERROR:${normal} Invalid option -$OPTARG" >&2
+      help 2 ;;
+  esac
+	noOpt=0
+done
+if [ $noOpt = 1 ];then echo "${lightred}ERROR:${normal} No argument passed." >&2;help 1;fi
 echo "$_script v$_version ($_updated)"
 exit
