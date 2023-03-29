@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #####################################################################
 # Script Name  : install-handbrake
 # Description  : Adds repository and installs handbrake
@@ -31,8 +31,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.5"
-readonly _updated="04 Feb 2023"
+readonly _version="0.3.6"
+readonly _updated="29 Mar 2023"
 readonly handbrake_ppa="ppa:stebbins/handbrake-releases"
 
 ## Functions ##
@@ -80,26 +80,24 @@ END_HELP
 clear
 echo -e "Installs Handbrake multithreaded video transcoder.\n"
 
-if [[ "$#" -eq 0 ]]; then
-  echo "${lightred}ERROR:${normal} No argument passed." >&2
-  help 2
-else
-  optstr=":hir"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      h )
-        help 0 ;;
-      i )
-        exists ghb && leave "Handbrake-GTK already installed."
-        install_handbrake ;;
-      r )
-        exists ghb || leave "Handbrake is not installed."
-        remove_handbrake ;;
-      ? )
-        echo "${lightred}ERROR:${normal} Invalid option -$OPTARG" >&2
-        help 2 ;;
-    esac
-  done
-fi
+noOpt=1
+optstr=":hir"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    h )
+      help 0 ;;
+    i )
+      exists ghb && leave "Handbrake-GTK already installed."
+      install_handbrake ;;
+    r )
+      exists ghb || leave "Handbrake is not installed."
+      remove_handbrake ;;
+    ? )
+      echo "${lightred}ERROR:${normal} Invalid option -$OPTARG" >&2
+      help 2 ;;
+  esac
+	noOpt=0
+done
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
 echo "$_script v$_version ($_updated)"
 exit
