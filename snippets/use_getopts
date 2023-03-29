@@ -1,4 +1,5 @@
 # Basic usage for getopts in installation scripts
+# red_error variable declared in functionlib
 
 help() {
 	errcode="${1:-2}"
@@ -14,52 +15,50 @@ END_HELP
 	exit "$errcode"
 }
 
-if [[ "$#" -eq 0 ]]; then
-	# printf "\e[91mERROR:\e[0m No argument passed.\n" >&2
-	# printf "%s No argument passed.\n" >&2 "$red_error"
-	echo "${lightred}ERROR:${normal} No argument passed." >&2
-	help 1
-else
-	optstr=":hirsu"
-	# optstr=":h:i:r:s:u"
-	while getopts "$optstr" opt; do
-		case "$opt" in
-			h )
-				help 0
-				;;
-			i )
-				# argI="$OPTARG"
-				install_application
-				apply_settings	# optional custom configuration
-				break	# Remove break if multiple options or functions exit
-				;;
-			r )
-				# argR="$OPTARG"
-				remove_application
-				break	# Remove break if multiple options or functions exit
-				;;
-			s )
-				apply_settings
-				break	# Remove break if multiple options or functions exit
-				;;
-			u )
-				exists application || leave "Application is not installed. run '$_script -i' to install."
-				update_application
-				break	# Remove break if multiple options or functions exit
-				;;
-			: )
-				# printf "\e[91mERROR:\e[0m Must supply an argument to -%s.\n" "$OPTARG" >&2
-				# printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
-			    echo "${lightred}ERROR:${normal} Must supply an argument to -${OPTARG}." >&2
-			    help 2
-			    ;;
-			? )
-				# printf "\e[91mERROR:\e[0m Invalid option -%s\n" $OPTARG >&2
-				# printf %s Invalid option -%s\n" "$red_error" $OPTARG >&2
-				echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
-				help 2
-		esac
-	done
-fi
+## Execution ##
+
+noOpt=1
+optstr=":hirsu"
+# optstr=":h:i:r:s:u"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		h )
+			help 0
+			;;
+		i )
+			# argI="$OPTARG"
+			install_application
+			apply_settings	# optional custom configuration
+			break	# Remove break if multiple options or functions exit
+			;;
+		r )
+			# argR="$OPTARG"
+			remove_application
+			break	# Remove break if multiple options or functions exit
+			;;
+		s )
+			apply_settings
+			break	# Remove break if multiple options or functions exit
+			;;
+		u )
+			exists application || leave "Application is not installed. run '$_script -i' to install."
+			update_application
+			break	# Remove break if multiple options or functions exit
+			;;
+		: )
+			# printf "\e[91mERROR:\e[0m Must supply an argument to -%s.\n" "$OPTARG" >&2
+			# printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
+		    echo "${lightred}ERROR:${normal} Must supply an argument to -${OPTARG}." >&2
+		    help 2
+		    ;;
+		? )
+			# printf "\e[91mERROR:\e[0m Invalid option -%s\n" $OPTARG >&2
+			# printf %s Invalid option -%s\n" "$red_error" $OPTARG >&2
+			echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+			help 2
+	esac
+done
+# if [ $noOpt = 1 ];then echo "${lightred}ERROR:${normal} No argument passed." >&2;help 1;fi
+if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
 
 exit
