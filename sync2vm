@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.5"
-readonly _updated="26 Oct 2022"
+readonly _version="0.1.6"
+readonly _updated="31 Mar 2023"
 readonly host_ip="$localnet.1"
 
 ## Functions ##
@@ -49,6 +49,10 @@ sync_script() {
 	rsync -avh --delete --exclude '.git' rick@"$host_ip":bin/ "$HOME/bin/"
 	exit_status="$?"
 	transfer_status "$exit_status"
+  echo $'\n'$"${orange}Syncing .local/share/doc...${normal}"
+  rsync -avzh --delete rick@"$host_ip":.local/share/doc/ "$HOME"/.local/share/doc/
+  exit_status="$?"
+  transfer_status "$exit_status"
 }
 
 all_done() {
