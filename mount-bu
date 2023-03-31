@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.3"
-readonly _updated="29 Mar 2023"
+readonly _version="0.2.4"
+readonly _updated="31 Mar 2023"
 readonly mount_location="/media/rick/BU_Drive"
 
 ## Functions ##
@@ -82,7 +82,7 @@ EOL
 
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Mount/Unmount USB Backup drive.\n"
-
+[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || die "BU_Drive not attached."
 noOpt=1
 optstr=":hmsu"
 while getopts "$optstr" opt; do
