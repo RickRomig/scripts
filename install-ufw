@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.3"
-readonly _updated="29 Mar 2023"
+readonly _version="0.1.4"
+readonly _updated="01 Apr 2023"
 
 ## Functions ##
 
@@ -115,13 +115,13 @@ while getopts "$optstr" opt; do
       user_in_sudo
       ufw_status || leave "UFW $(ufw_version) is already disabled."
       disable_ufw
-      break ;;
+      ;;
     e )
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
       user_in_sudo
       ufw_status && leave "UFW $(ufw_version) is already enabled."
       enable_ufw
-      break ;;
+      ;;
     h )
       help 0 ;;
     i )
@@ -132,13 +132,13 @@ while getopts "$optstr" opt; do
       add_rules
       enable_ufw
       printf "UFW %s installed and configured.\n" "$(ufw_version)"
-      break ;;
+      ;;
     r )
       debian_system || die "Not a Debian-based system."
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
       user_in_sudo
       remove_ufw
-      break ;;
+      ;;
     s )
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
       user_in_sudo
@@ -146,7 +146,7 @@ while getopts "$optstr" opt; do
       sudo ufw status numbered
       printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
   esac
-	noOpt=0
+  noOpt=0
 done
 if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
