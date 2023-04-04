@@ -29,38 +29,32 @@ fi
 main() {
   _script=$(basename "$0"); local _script
   local _script
-  local _version="0.3.2"
-  local _updated="04 Feb 2023"
+  local _version="0.3.3"
+  local _updated="04 Apr 2023"
 
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Installs the ungoogled chromium browser on Debian and Ubuntu-based systems./n"
   ver_code=$(lsb_release --codename --short)
   case $ver_code in
-    bullseye|elsie )
+    bullseye )
       user_in_sudo
-      install_ungoogled_chrome "Debian_Bullseye"
-      ;;
-    focal|ulyana|ulyssa|uma|una )
-      user_in_sudo
-      install_ungoogled_chrome "Ubuntu_Focal"
+      install_ungoogled_chrome
       ;;
     * )
       leave "$ver_code: Distribution is not supported."
-      ;;
   esac
 }
 
 install_ungoogled_chrome() {
-  local repo_id="$1"
-  local repo_url="deb http://download.opensuse.org/repositories/home:/ungoogled_chromium"
-  local source_list="/etc/apt/sources.list.d/home:ungoogled_chromium.list"
-  local key_url="https://download.opensuse.org/repositories/home:/ungoogled_chromium"
+  local repo_url="deb http://download.opensuse.org/repositories/home:/ungoogled_chromium/Debian_Bullseye/ /"
+  local source_list="/etc/apt/sources.list.d/home-ungoogled_chromium.list"
+  local key_url="https://download.opensuse.org/repositories/home:/ungoogled_chromium/Debian_Bullseye/Release.key"
   local trusted_gpg="/etc/apt/trusted.gpg.d/home_ungoogled_chromium.gpg"
 
-  echo "$repo_url/$repo_id/ /" | sudo tee "$source_list" < /dev/null
-  curl -fsSL "$key_url/$repo_id/Release.key" | gpg --dearmor | sudo tee "$trusted_gpg" > /dev/null
-  sudo apt update
-  sudo apt install ungoogled-chromium
+  echo "$repo_url" | sudo tee "$source_list"
+  curl -fsSL "$key_url" | gpg --dearmor | sudo tee "$trusted_gpg"
+  sudo apt-get update
+  sudo apt-get install ungoogled-chromium
   leave "ungoogled-chromium installed."
 }
 
