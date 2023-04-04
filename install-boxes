@@ -24,16 +24,11 @@ else
   exit 1
 fi
 
-enable_libvirtd() {
-  sudo systemctl start libvirt
-  sudo systemctl restart libvirtd
-}
-
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.7"
-readonly _updated="04 Feb 2023"
+readonly _version="0.1.8"
+readonly _updated="04 Apr 2023"
 
 ## Functions ##
 
@@ -48,6 +43,11 @@ check_cpu() {
     printf "Enable virtualization before installing Gnome Boxes.\n"
     exit
   fi
+}
+
+enable_libvirtd() {
+  sudo systemctl start libvirt
+  sudo systemctl restart libvirtd
 }
 
 ## Execution ##
