@@ -28,13 +28,13 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.16"
-readonly _updated="12 Mar 2023"
+readonly _version="0.3.0"
+readonly _updated="04 Apr 2023"
 
 ## Functions ##
 
 help() {
-  errcode="${1:-2}"
+  local errcode="${1:-2}"
   cat <<- EOF
   ${green}Usage:${normal} $_script [option]
   With no argument, displays battery health information.
@@ -86,17 +86,13 @@ battery_condition() {
   warning_level
   warn_level="$?"
   if [[ "$warn_level" -le "0" ]]; then
-    warn="\U1F4A9"
-    echo -e "    $warn  ${red}Replace the battery!${normal} $warn "
+    echo -e "    ${red}Replace the battery!${normal}"
   elif [[ "$warn_level" -le "35" ]]; then
-    warn="\U1F622"
-    echo -e "    $warn  ${red}The battery should be replaced.${normal} $warn "
+    echo -e "    ${red}The battery should be replaced.${normal}"
   elif [[ "$warn_level" -le "65" ]]; then
-    warn="\U26A0\UFE0F"
-    echo -e "    $warn  ${orange}The battery is getting weak.${normal} $warn "
+    echo -e "    ${orange}The battery is getting weak.${normal}"
   else
-    warn="\U1F642"
-    echo -e "    $warn  ${green}The battery is in good condition.${normal} $warn"
+    echo -e "    ${green}The battery is in good condition.${normal}"
   fi
 }
 
@@ -104,13 +100,8 @@ ac_status() {
   status=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'AC')" | awk '/online:/ {print $NF}')
   echo $'\n'"${orange}AC Power:${normal}"
   echo -n "    Laptop is "
-  if [[ "$status" = "no" ]]; then
-    echo -n "not "
-    symbol="\U1F50B"
-  else
-    symbol="\U1F50C"
-  fi
-  echo -e "plugged in to AC power. ${symbol}"
+  [[ "$status" = "no" ]] && echo -n "not "
+  echo "plugged in to AC power."
 }
 
 hidpp_battery() {
@@ -140,7 +131,6 @@ fi
 echo -e "${bold}${orange}Battery Status${normal}"
 if [[ -d /proc/acpi/button/lid/ ]]; then
   check_package upower
-  hidpp=$(/usr/bin/upower -e | grep mouse_hidpp_battery)
   if /usr/bin/upower -e | grep -q 'BAT'; then
     battery_data=$(mktemp) || die "Failed to create temporary file." 1
     trap cleanup EXIT
