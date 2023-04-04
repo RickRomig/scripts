@@ -30,13 +30,13 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.10"
-readonly _updated="04 Feb 2023"
+readonly _version="0.5.0"
+readonly _updated="04 Apr 2023"
 
 ## Functions ##
 
 help() {
-  errcode="${1:-2}"
+  local errcode="${1:-2}"
   cat <<- EOF
   ${green}Usage:${normal} $_script [option]
   With no argument, displays battery health information.
@@ -64,11 +64,9 @@ battery_status() {
   bat_status=$(cat "$battery_path/status")
   [[ -f "$battery_path/capacity" ]] || die "Problem with the battery! Replace it!"
   bat_charge=$(cat "$battery_path/capacity")
-  [[ "$bat_status" = "Discharging" && "$bat_charge" -le 25 ]] && warn="\U26A0\UFE0F"
+  [[ "$bat_status" = "Discharging" && "$bat_charge" -le 25 ]] && warn="${lightred}WARNING!${normal}"
   echo -e "\t${lightgreen}Status:${normal} $bat_status"
   echo -e "\t${lightgreen}Charge:${normal} $bat_charge%  $warn"
-  # For use in a status bar such as polybar
-  # printf "\t%s%s%s\n" $(echo "$bat_status" | sed "s/,//;s/Discharging/🔋 /;s/Not charging/🛑️ /;s/Charging/ 🔌 /;s/Unknown/❓️ /;s/Full/⚡️ /;s/ 0*/ /g;s/ :/ /g") "$WARN" $(echo "$BAT_CHARGE" | sed -e 's/$/%/')
 }
 
 battery_capacity() {
@@ -103,8 +101,8 @@ battery_capacity() {
 }
 
 battery_condition() {
-  cap_pct="$1"
-  c_pct="${cap_pct%%.*}"
+  local cap_pct="$1"
+  local c_pct="${cap_pct%%.*}"
   if [[ "$c_pct" -eq 0 ]]; then
     warn_level=0
   else
@@ -112,17 +110,13 @@ battery_condition() {
   fi
 
   if [[ "$warn_level" -le "0" ]]; then
-    warn="\U1F4A9"
-    echo -e "\t$warn${red}  Replace the Battery!${normal} $warn"
+    echo -e "\t${red}  Replace the Battery!${normal}"
   elif [[ "$warn_level" -le "35" ]]; then
-    warn="\U1F622"
-    echo -e "\t$warn${red}  The battery should be replaced.${normal} $warn"
+    echo -e "\t${red}  The battery should be replaced.${normal}"
   elif [[ "$warn_level" -le "65" ]]; then
-    warn="\U26A0\UFE0F"
-    echo -e "\t$warn${orange}  The battery is getting weak.${normal} $warn"
+    echo -e "\t${orange}  The battery is getting weak.${normal}"
   else
-    warn="\U1F642"
-    echo -e "\t$warn${green}  The battery is in good condition.${normal} $warn"
+    echo -e "\t${green}  The battery is in good condition.${normal}"
   fi
 }
 
@@ -131,8 +125,8 @@ ac_power() {
     ac_status="$(cat "$ac_path/online")"
     echo -en "\tLaptop"
     case "$ac_status" in
-      0 ) echo -e " is not plugged in to AC power. \U1F50B" ;;
-      1 ) echo -e " is plugged in to AC power. \U1F50C" ;;
+      0 ) echo " is not plugged in to AC power." ;;
+      1 ) echo " is plugged in to AC power." ;;
       * ) echo "'s AC power status cannot be determined." ;;
     esac
   done
