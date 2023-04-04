@@ -28,18 +28,18 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.7"
-readonly _updated="17 Mar 2023"
+readonly _version="0.3.8"
+readonly _updated="04 Apr 2023"
 readonly isofile="$1"
 readonly checksum="$2"
 readonly checksums_match="${green}The checksums match.${normal}"
 readonly checksums_nomatch="${red}The checksums do not match.${normal}"
-error_code=0
+check_code=0
 
 ## Functions ##
 
 usage() {
-  local errcode="${1:-2}"
+  local errcode="$1"
   printf "Usage:\n"
   printf "%s <distro.iso> <checksum.txt>\n" "$_script"
   printf "Should be run from the directory where the ISO and checksum files are located.\n"
@@ -96,23 +96,23 @@ elif [[ -f "$isofile" && -f "$checksum" ]]; then
         echo "Comparing checksums. This may take a while."
         if check_sha256 "$isofile" "$checksum"; then
           printf "%s\n" "$checksums_match"
-          error_code=0
+          check_code=0
         else
           printf "%s\n" "$checksums_nomatch" >&2
-          error_code=1
+          check_code=1
         fi
-        exit_msg "$error_code"
+        exit_msg "$check_code"
         ;;
       2 )
         printf "Comparing checksums. This may take a while.\n"
         if check_md5 "$isofile" "$checksum"; then
           printf "\n%s\n" "$checksums_match"
-          error_code=0
+          check_code=0
         else
           printf "%s\n" "$checksums_nomatch" >&2
-          error_code=1
+          check_code=1
         fi
-        exit_msg "$error_code"
+        exit_msg "$check_code"
         ;;
       3 )
         printf "Exiting - No action taken\n"
