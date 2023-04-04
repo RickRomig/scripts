@@ -31,8 +31,8 @@ set -euo pipefail
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.7.1"
-readonly _updated="27 Mar 2023"
+readonly _version="1.8.0"
+readonly _updated="04 Apr 2023"
 
 ## Functions ##
 
@@ -66,13 +66,15 @@ purge_configs() {
 }
 
 update_complete() {
-  echo -n $'\n'$"${orange}Update complete. $nupd "
+  local num_updates="$1"
+  echo -n $'\n'$"${orange}Update complete. $num_updates "
   (( nupd > 1 )) && echo -n "updates were" || echo -n "update was"
   echo -e " installed.${normal}\n"
 }
 
 defer_updates() {
-  echo -n $'\n'$"${orange}No updates installed. $nupd "
+  local num_updates="$1"
+  echo -n $'\n'$"${orange}No updates installed. $num_updates "
   (( nupd > 1 )) && echo -n "updates were" || echo -n "update was"
   echo -e " deferred.${normal}\n"
 }
@@ -86,13 +88,10 @@ update_flatpak() {
   printf "\n"
 }
 
-run_nala() {
-  printf "Running nala instead of apt...\n"
+nala_update() {
   sudo nala upgrade
-  nala_purge_configs
+  # nala_purge_configs
   printf "\n"
-  exists flatpak && update_flatpak
-  leave "Script completed in $(format_time $SECONDS)"
 }
 
 nala_purge_configs() {
@@ -102,6 +101,61 @@ nala_purge_configs() {
     for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
       sudo nala purge "$rcpkg" --assume-yes
     done
+  fi
+}
+
+apt_update() {
+  sudo apt-get update
+  # Get number of packages that can be upgraded
+  nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
+  # If there are packages to be upgraded
+  if (( nupd > 0 )); then
+    echo -n "${orange}$nupd "
+    (( nupd > 1 )) && echo -n "packages" || echo -n "package"
+    echo " can be upgraded.${normal}"
+    # List upgradeable packages
+    apt list --upgradeable
+    # Options menu
+    COLUMNS=40
+    echo $'\n'$"${underline}${green}Update options:${normal}"
+    PS3="Choose an option: "
+    options=("Install updates." "Install updates & clean cache" \
+    "Install updates & remove orphaned packages." \
+    "Install updates, clean cache, & remove orphaned packages." \
+    "Defer updates until later.")
+    select opt in "${options[@]}"; do
+      case $REPLY in
+        1 )
+          install_updates
+          update_complete "$nupd"
+          break ;;
+        2 )
+          install_updates
+          clean_cache
+          update_complete "$nupd"
+          break ;;
+        3 )
+          install_updates
+          remove_orphans
+          purge_configs
+          update_complete "$nupd"
+          break ;;
+        4 )
+          install_updates
+          clean_cache
+          remove_orphans
+          purge_configs
+          update_complete "$nupd"
+          break ;;
+        5 )
+          defer_updates "$nupd"
+          break ;;
+        * )
+          echo "${lightred}Invalid option!${normal} Select 1..5" >&2 ;;
+      esac
+    done
+  else
+    echo -e "\n${orange}All packages are up to date.${normal}\n"
   fi
 }
 
@@ -119,60 +173,10 @@ echo -e "Kernel: $(uname -sr)\n"
 echo -e "Checking for updates...${normal}\n"
 
 # Update apt cache
-exists nala && run_nala
-sudo apt-get update
-
-# Get number of packages that can be upgraded
-nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
-
-# If there are packages to be upgraded
-if (( nupd > 0 )); then
-  echo -n "${orange}$nupd "
-  (( nupd > 1 )) && echo -n "packages" || echo -n "package"
-  echo " can be upgraded.${normal}"
-  # List upgradeable packages
-  apt list --upgradeable
-  # Options menu
-  COLUMNS=40
-  echo $'\n'$"${underline}${green}Update options:${normal}"
-  PS3="Choose an option: "
-  options=("Install updates." "Install updates & clean cache" \
-  "Install updates & remove orphaned packages." \
-  "Install updates, clean cache, & remove orphaned packages." \
-  "Defer updates until later.")
-  select opt in "${options[@]}"; do
-    case $REPLY in
-      1 )
-        install_updates
-        update_complete
-        break ;;
-      2 )
-        install_updates
-        clean_cache
-        update_complete
-        break ;;
-      3 )
-        install_updates
-        remove_orphans
-        purge_configs
-        update_complete
-        break ;;
-      4 )
-        install_updates
-        clean_cache
-        remove_orphans
-        purge_configs
-        update_complete
-        break ;;
-      5 )
-        defer_updates
-        break ;;
-      * )
-        echo "${lightred}Invalid option!${normal} Select 1..5" >&2 ;;
-    esac
-  done
+if exists nala; then
+  nala_update
 else
-  echo -e "\n${orange}All packages are up to date.${normal}\n"
+  apt_update
 fi
 
 # Update flatpak if installed
