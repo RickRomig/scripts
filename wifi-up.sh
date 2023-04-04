@@ -28,10 +28,10 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.1"
-readonly _updated="06 Apr 2022"
+readonly _version="0.1.2"
+readonly _updated="04 Apr 2023"
 
-echo -e "\U1F427 $_script v$_version ($_updated)"
+echo "$_script v$_version ($_updated)"
 
 # check_package iwgetid
 # iw ?
