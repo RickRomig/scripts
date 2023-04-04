@@ -2,7 +2,7 @@
 ###############################################################################
 # Script Name  : install-fonts
 # Description  : Installs various Microsoft fonts
-# Dependencies : apt, cabextract, curl, wget
+# Dependencies : cabextract, curl, wget
 # Arguments    : None
 # Author       : Richard B. Romig, 13 August 2019
 # Email        : rick.romig@gmail.com
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.2"
-readonly _updated="04 Feb 2023"
+readonly _version="0.3.3"
+readonly _updated="04 Apr 2023"
 
 font_flag=0  # 0 = no fonts installed. 1 = at least one font installed.
 
@@ -39,6 +39,7 @@ cascadia_code() {
   local release_path="microsoft/cascadia-code/releases"
   local ccf_dir="/usr/share/fonts/truetype/cascadia-code" 
   local user_ccf="$HOME/.local/share/fonts"
+  check_package wget
   # Remove older versions of Caascadia Code fonts.
   if dpkg -l | grep -qw fonts-cascadia-code; then
     sudo apt-get remove fonts-cascadia-code -yy   # if installed from distro repo
@@ -106,6 +107,7 @@ vista_fonts() {
   if [[ -d /usr/share/fonts/truetype/vista ]]; then
     echo "Vista fonts are already installed."
   else
+    check_package curl
     # Create font directory if required
     [[ -d "$fonts_dir" ]] || sudo mkdir -p "$fonts_dir"
 
@@ -151,14 +153,9 @@ cleanup() {
 
 ## Execution ##
 
-# Check to see if curl is installed
-check_package curl
-check_package wget
-
 trap cleanup EXIT INT QUIT TERM
 
 while true; do
-  # clear
   echo "$_script v$_version ($_updated)"
   echo "Install extra fonts"
   COLUMNS=40
@@ -174,24 +171,24 @@ while true; do
         tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
         cascadia_code
         font_flag=1
-        break ;;
+        ;;
       2 )
         user_in_sudo
         ms_core_fonts
         font_flag=1
-        break ;;
+        ;;
       3 )
         user_in_sudo
         carlito_caladea
         font_flag=1
-        break ;;
+        ;;
       4 )
         user_in_sudo
         temp_dir=$(mktemp -d) || die "Failed to create temporary diectory!"
         font_dl_dir=$(mktemp -d) || die "Failed to create temporary diectory!"
         vista_fonts
         font_flag=1
-        break ;;
+        ;;
       5 )
         (( font_flag != 0 )) && sudo /usr/bin/fc-cache -f > /dev/null 2>&1
         leave "" ;;
