@@ -67,6 +67,7 @@ show_user_cron() {
 show_root_cron() {
   echo $'\n'$"${orange}Cron jobs for root:${normal}"
   sudo crontab -l | grep -v '#'
+  printf "\n"
 }
 
 main() {
@@ -79,12 +80,11 @@ main() {
   show_anacron
   show_user_cron
   show_root_cron
-  printf "\n\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
-  print_line "-" 34
+  under_line "$_script v$_version ($_updated)" "-"
+  exit
 }
 
 ## Execution ##
 
 user_in_sudo
 main
-leave ""
