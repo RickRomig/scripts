@@ -2,7 +2,7 @@
 ###############################################################################
 # Script Name  : battery-check
 # Description  : Display charge and health statics of a laptop battery
-# Dependencies : None
+# Dependencies : bc (not installed by default on BunsenLabs Beryllium)
 # Arguments    : -h, --help, -v --version
 # Author       : Copyright (C) 2020, Richard B. Romig, 28 Jul 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -30,7 +30,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.1"
+readonly _version="0.5.2"
 readonly _updated="05 Apr 2023"
 
 ## Functions ##
@@ -161,6 +161,7 @@ fi
 
 echo -e "${bold}${orange}Battery Status${normal}"
 if [[ -d /proc/acpi/button/lid/ ]]; then
+  check_package bc
   for battery_path in /sys/class/power_supply/BAT?; do
     if [[ "$battery_path" != "/sys/class/power_supply/BAT?" ]]; then
       echo $'\n'$"${orange}Battery:${normal} $(basename "$battery_path")"
