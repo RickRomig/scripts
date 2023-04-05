@@ -28,41 +28,22 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.5"
-readonly _updated="29 Mar 2023"
-readonly conf_dir="$HOME/.config/scripts"
-readonly conf_file="$_script.conf"
+readonly _version="0.2.0"
+readonly _updated="04 Apr 2023"
+readonly ytdl_prg="youtube-dl"
+readonly update_script="z-ytdlupdate"
+readonly sed_file="ytdluplog.sed"
+readonly script_dir="$HOME/bin"
+readonly sed_dir="$HOME/bin/files"
+readonly ytdl_location="/usr/local/bin"
+readonly sed_location="/usr/share/misc"
+readonly cron_location="/etc/cron.daily"
 
 ## Functions ##
-
-create_conf() {
-	[[ -d "$conf_dir" ]] || mkdir -p "$conf_dir"
-	printf "Complete all fields\n"
-	read -rp "Program name: " ytdl_prg
-	read -rp "Update script: " update_script
-	read -rp "Update sed file: " sed_file
-	read -rp "Update source directory: " script_dir
-	read -rp "sed source directory: " sed_dir
-	read -rp "Program location: " ytdl_location
-	read -rp "sed file location: " sed_location
-	read -rp "cron job location: " cron_location
-	echo "
-	ytdl_prg='$ytdl_prg'
-	update_script='$update_script'
-	sed_file='$sed_file'
-	script_dir='$script_dir'
-	sed_dir='$sed_dir'
-	ytdl_location='$ytdl_location'
-	sed_location='$sed_location'
-	cron_location='$cron_location'
-	" > "$conf_dir/$conf_file"
-}
 
 check_dependencies() {
   local packages=( atomicparsley curl ffmpeg ffmpeg-doc )
   check_packages "${packages[@]}"
-	[[ -x "$script_dir/$update_script" ]] || die "$update_script not found." 1
-	[[ -f "$sed_dir/$sed_file" ]] || die "$sed_file not found." 1
 }
 
 ytdl_version() {
@@ -76,7 +57,7 @@ update_youtubedl() {
 
 install_youtubedl() {
   local url="https://yt-dl.org/downloads/latest/youtube-dl"
-	printf "Instaling %s, and update scripts...\n" "$ytdl_prg"
+	printf "Installing %s, and update scripts...\n" "$ytdl_prg"
   sudo curl -# -L "$url" -o "$ytdl_location/$ytdl_prg"
   [[ -x /usr/bin/python3 ]] && sudo ln -s /usr/bin/python3 /usr/bin/python
   sudo chmod 755 "$ytdl_location/$ytdl_prg"
@@ -179,11 +160,6 @@ EOF
 
 ## Execution ##
 
-# clear
-# Create/source installation script config file.
-[[ -f "$conf_dir/$conf_file" ]] || create_conf
-source "$conf_dir/$conf_file"
-
 noOpt=1
 optstr=":hirux"
 while getopts "$optstr" opt; do
@@ -198,7 +174,6 @@ while getopts "$optstr" opt; do
 			install_intro
 			dpkg -l | grep -qw youtube-dl && remove_repo_ver
 			install_youtubedl
-			break
 			;;
 		r )
 			remove_intro
@@ -206,20 +181,17 @@ while getopts "$optstr" opt; do
 			[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
 			user_in_sudo
 			remove_youtubedl
-			break
 			;;
 		u )
 			[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
 			user_in_sudo
 			update_youtubedl
-			break
 			;;
 		x )
 			dpkg -l | grep -qw youtube-dl || leave "The repo version of $ytdl_prg is not installed."
 			printf "Removing %s installed from the distribution repository.\n" "$ytdl_prg"
 			user_in_sudo
 			remove_repo_ver
-			break
 			;;
 		? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
