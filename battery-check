@@ -30,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.0"
-readonly _updated="04 Apr 2023"
+readonly _version="0.5.1"
+readonly _updated="05 Apr 2023"
 
 ## Functions ##
 
@@ -64,7 +64,7 @@ battery_status() {
   bat_status=$(cat "$battery_path/status")
   [[ -f "$battery_path/capacity" ]] || die "Problem with the battery! Replace it!"
   bat_charge=$(cat "$battery_path/capacity")
-  [[ "$bat_status" = "Discharging" && "$bat_charge" -le 25 ]] && warn="${lightred}WARNING!${normal}"
+  [[ "$bat_status" = "Discharging" && "$bat_charge" -le 25 ]] && warn="\U26A0\UFE0F"
   echo -e "\t${lightgreen}Status:${normal} $bat_status"
   echo -e "\t${lightgreen}Charge:${normal} $bat_charge%  $warn"
 }
@@ -110,11 +110,14 @@ battery_condition() {
   fi
 
   if [[ "$warn_level" -le "0" ]]; then
-    echo -e "\t${red}  Replace the Battery!${normal}"
+    warn="\U1F4A9"
+    echo -e "\t${red}  Replace the Battery!${normal}  $warn"
   elif [[ "$warn_level" -le "35" ]]; then
-    echo -e "\t${red}  The battery should be replaced.${normal}"
+    warn="\U1F622"
+    echo -e "\t${red}  The battery should be replaced.${normal}  $warn"
   elif [[ "$warn_level" -le "65" ]]; then
-    echo -e "\t${orange}  The battery is getting weak.${normal}"
+    warn="\U26A0\UFE0F"
+    echo -e "\t${orange}  The battery is getting weak.${normal}  $warn"
   else
     echo -e "\t${green}  The battery is in good condition.${normal}"
   fi
