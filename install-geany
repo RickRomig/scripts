@@ -101,6 +101,7 @@ remove_geany() {
 ## Execution ##
 
 check_package git
+noOpt=1
 optstr=":hirt"
 while getopts "$optstr" opt; do
   case "$opt" in
@@ -111,17 +112,17 @@ while getopts "$optstr" opt; do
       exists geany && leave "Geany $(geany_version) is already installed."
       user_in_sudo
       install_geany
-      break ;;
+      ;;
     r )
       exists geany || leave "Geany is not installed."
       user_in_sudo
       remove_geany
-      break ;;
+      ;;
     t )
       exists geany || leave "Geany is not installed."
       clone_themes
       remove_dl_dir
-      break ;;
+      ;;
     ? )
       printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
       help 2 ;;
