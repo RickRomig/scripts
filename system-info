@@ -27,7 +27,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.2.0"
+readonly _version="3.2.1"
 readonly _updated="08 Apr 2023"
 lhost="$(uname -n)"
 readonly info_file="$HOME/$lhost.info"
@@ -38,7 +38,7 @@ today=$(date +'%d %B %Y')
 check_dependencies() {
   check_package lshw
   [[ -b /dev/sda ]] && check_package hdparm
-  [[ -b /dev/nvme0 ]] && check_package nvme-cli
+  [[ -c /dev/nvme0 ]] && check_package nvme-cli
 }
 
 cleanup() {
@@ -95,7 +95,7 @@ rename_mnt_pt() {
 }
 
 ff_fix() {
-  printf "Form factor not found.\n"
+  printf "Form factor not displayed in Hard Disk Information.\n"
   PS3="Select form factor: "
   options=( "2.5 inch" "3.5 inch" "less than 1.8 inch" "ignore")
   select opt in "${options[@]}"; do
@@ -208,7 +208,7 @@ part_info() {
 bat_info() {
   for battery_path in /sys/class/power_supply/BAT?; do
     battery=$(basename "$battery_path")
-    [[ "$battery" != "BAT?" ]] && printf "\n Battery:%s\n" "$battery"
+    [[ "$battery" != "BAT?" ]] && printf "\n Battery: %s\n" "$battery"
   done
 
 }
@@ -230,7 +230,7 @@ check_dependencies
 	wired_info
 	wireless_info
 	[[ -b /dev/sda ]] && hd_info
-  [[ -b /dev/nvme0 ]] && nvme_info
+  [[ -c /dev/nvme0 ]] && nvme_info
 	part_info
 	bat_info
 	printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
