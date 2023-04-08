@@ -8,7 +8,7 @@ set -e
 # Place in /etc/cron.monthly/ for anacron jobs.
 # Place in /usr/local/bin/ or /opt/bin/ for cron jobs.
 # Last updated: 08 Apri 2023
-# Version 1.0.1
+# Version 1.0.2
 # Copyright (C) 2021-2023, Richard B. Romig
 # License : GNU General Public License, version 2.0
 
@@ -22,8 +22,7 @@ log_file="defrag.log"
     	d=$(basename "$i")
     	if [ "$(cat /sys/block/"${d}"/queue/rotational)" = 0 ]; then
     		d=$(echo "$d" | tr '[:lower:]' '[:upper:]')
-    		printf "%s:\n\tSSD device - defrag not run\n" "$d"
-    	# elif [ "$(cat /sys/block/"${d}"/queue/rotational)" = 1 ]; then
+    		printf "%s:\n\tSolid State Drive - defrag not run\n" "$d"
 			else
     		d=$(echo "$d" | tr '[:lower:]' '[:upper:]')
     		printf "%s:\n" "$d"
@@ -40,6 +39,7 @@ log_file="defrag.log"
 	  done
 	else
   	printf "No SATA devices exist on this system.\n";
+		printf "No degragmentation operations run.\n"
   fi
 	printf "\n"
 } > "$log_dir/$log_file" 2>&1
