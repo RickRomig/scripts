@@ -2,28 +2,29 @@
 
 set -e
 
-# Script to defrag / and /home partitions.
-# Do not run on an SSD.
-# Place in /etc/cron.monthly/ for anacron.
-# Place in /usr/local/bin/ or /opt/bin/ for cron.
-# Last updated: 05 May 2021
-# Version 0.9.9
+# Script to check defrag condition on / /home /data partitions.
+# Will not run on an SSD or NVME drives.
+# Run as root user.
+# Place in /etc/cron.monthly/ for anacron jobs.
+# Place in /usr/local/bin/ or /opt/bin/ for cron jobs.
+# Last updated: 08 Apri 2023
+# Version 1.0.0
+# Copyright (C) 2021, Richard B. Romig
 # License : GNU General Public License, version 2.0
 
 log_dir="/var/log"
 log_file="defrag.log"
 
 {
-  printf "Defrag log: %s\n" "$(date '+%a %F %R')"
-  printf "%s\n\n" "$(/usr/bin/uname -n)"
+  printf "Defrag Report: %s\n\n" "$(date '+%a %F %R')"
   if [ ! -b /dev/sda ]; then
-  	echo "No SATA devices exist on this system.";
+  	printf "No SATA devices exist on this system.\n";
   else
     for i in /dev/sd[a-z]; do
     	d=$(basename "$i")
     	if [ "$(cat /sys/block/"${d}"/queue/rotational)" = 0 ]; then
     		d=$(echo "$d" | tr [a-z] [A-Z])
-    		printf "%s:\n\tSSD - defrag not run\n" "$d"
+    		printf "%s:\n\tSSD device - defrag not run\n" "$d"
     	elif [ "$(cat /sys/block/"${d}"/queue/rotational)" = 1 ]; then
     		d=$(echo "$d" | tr [a-z] [A-Z])
     		printf "%s:\n" "$d"
@@ -41,6 +42,6 @@ log_file="defrag.log"
 	fi	  
 	printf "\n"
 } > "$log_dir/$log_file" 2>&1
-# Cleanup log file.
+# Cleanup log file by deleting superfluous lines.
 sed -i '/^e4defrag/d;/0-30/d;/^ Done/d' "$log_dir/$log_file"
 exit
