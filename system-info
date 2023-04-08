@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.1.4"
-readonly _updated="04 Apr 2023"
+readonly _version="3.2.0"
+readonly _updated="08 Apr 2023"
 lhost="$(uname -n)"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y')
@@ -36,10 +36,9 @@ today=$(date +'%d %B %Y')
 ## Functions ##
 
 check_dependencies() {
-  local packages=( lshw upower )
-  check_packages "${packages[@]}"
+  check_package lshw
   [[ -b /dev/sda ]] && check_package hdparm
-  [[ -b /dev/nvme0n1 ]] && check_package nvme-cli
+  [[ -b /dev/nvme0 ]] && check_package nvme-cli
 }
 
 cleanup() {
@@ -194,9 +193,9 @@ nvme_info() {
   nvme_dev=$(sudo /usr/sbin/nvme list | awk '/dev/ {print $1}' | cut -d'/' -f3)
   nvme_serial=$(sudo /usr/sbin/nvme list | awk '/dev/ {print $2}')
   nvme_model=$(sudo /usr/sbin/nvme list | awk '/dev/ {print $3}')
-  nvme_size=$(sudo /usr/sbin/nvme list | awk '/dev/ {print $5.$6}')
+  nvme_size=$(sudo /usr/sbin/nvme list | awk '/dev/ {print $5 $6}')
   printf "%s\n" "$nvme_dev"
-  printf "   %-15s%ss\n" "Model Number:" "$nvme_model"
+  printf "   %-15s%s\n" "Model Number:" "$nvme_model"
   printf "   %-15s%s\n" "Serial Number:" "$nvme_serial"
   printf "   %-15s%s\n" "Capacity:" "$nvme_size"
 }
@@ -207,8 +206,11 @@ part_info() {
 }
 
 bat_info() {
-	battery=$(/usr/bin/upower -e | awk -F_ '/BAT/ {print $NF}')
-	[[ -n "$battery" ]] && printf "\nBattery: %s\n" "$battery"
+  for battery_path in /sys/class/power_supply/BAT?; do
+    battery=$(basename "$battery_path")
+    [[ "$battery" != "BAT?" ]] && printf "\n Battery:%s\n" "$battery"
+  done
+
 }
 
 ## Execution ##
@@ -228,7 +230,7 @@ check_dependencies
 	wired_info
 	wireless_info
 	[[ -b /dev/sda ]] && hd_info
-  [[ -b /dev/nvme0n1 ]] && nvme_info
+  [[ -b /dev/nvme0 ]] && nvme_info
 	part_info
 	bat_info
 	printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
