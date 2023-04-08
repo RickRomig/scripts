@@ -95,14 +95,14 @@ rename_mnt_pt() {
 }
 
 ff_fix() {
-  printf "Form factor not displayed in Hard Disk Information.\n"
-  PS3="Select form factor: "
+  printf "Form factor not displayed in Hard Disk Information.\n" >&2
+  PS3="Select form factor: " >&2
   options=( "2.5 inch" "3.5 inch" "less than 1.8 inch" "ignore")
   select opt in "${options[@]}"; do
     case "$REPLY" in
-      1 ) sed -i 's/Factor:  /& 2.5 inch/;s/inch /inch/' "$tmp_file"; break ;;
-      2 ) sed -i 's/Factor:  /& 3.5 inch/;s/inch /inch/' "$tmp_file"; break ;;
-      3 ) sed -i 's/Factor:  /& less than 1.8 inch/;s/inch /inch/' "$tmp_file"; break ;;
+      1 ) hd_ff="2.5 inch"; break ;;
+      2 ) hd_ff="3.5 inch"; break ;;
+      3 ) hd_ff="less than 1.8 inch"; break ;;
       4 ) break ;;
       * ) echo "${lightred}Invalid choice!${normal} Choose 1, 2, or 3" >&2 ;;
     esac
@@ -175,6 +175,7 @@ hd_info() {
    	hd_serial=$(sudo hdparm -I "${disk}" | awk -F: '/Serial N/ {print $NF}' | sed 's/^ *//g')
     hd_size=$(sudo hdparm -I "${disk}" | awk '/GB/ {print $(NF-1),$NF}' | sed 's/[)(]//g')
     hd_ff=$(sudo hdparm -I "${disk}" | awk -F: '/Form Factor/ {print $NF}' | sed 's/^ //')
+    [[ -z "$hd_ff" ]] && ff_fix
     hd_rpm=$(sudo hdparm -I "${disk}" | awk -F: '/Rotation/ {print $NF}' | sed 's/^ //')
     printf "%s\n" "$hd_dev"
     printf "   %-15s%s\n" "Model Number:" "$hd_model"
@@ -237,7 +238,7 @@ check_dependencies
 } | tee "$tmp_file"
 
 # Add form factor if not found by hdparm
-grep -q ' inch' "$tmp_file" || ff_fix
+# grep -q ' inch' "$tmp_file" || ff_fix
 
 # Change lsblk timeshift mountpoint to normal partition name.
 grep -q '/run/timeshift/backup' "$tmp_file" && rename_mnt_pt
