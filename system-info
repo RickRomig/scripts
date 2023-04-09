@@ -27,11 +27,11 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.2.1"
-readonly _updated="08 Apr 2023"
-lhost="$(uname -n)"
+readonly _version="3.2.2"
+readonly _updated="09 Apr 2023"
+lhost="$(uname -n)"; readonly lhost
 readonly info_file="$HOME/$lhost.info"
-today=$(date +'%d %B %Y')
+today=$(date +'%d %B %Y'); readonly today
 
 ## Functions ##
 
@@ -104,7 +104,7 @@ ff_fix() {
       2 ) hd_ff="3.5 inch"; break ;;
       3 ) hd_ff="less than 1.8 inch"; break ;;
       4 ) break ;;
-      * ) echo "${lightred}Invalid choice!${normal} Choose 1, 2, or 3" >&2 ;;
+      * ) echo "${lightred}Invalid choice!${normal} Choose 1, 2, 3, or 4" >&2 ;;
     esac
   done
 }
@@ -216,11 +216,11 @@ bat_info() {
 
 ## Execution ##
 
-tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 trap cleanup EXIT
 user_in_sudo
-clear
 check_dependencies
+clear
 {
 	printf "System information for %s, as of %s\n\n" "$lhost" "$today"
 	mfg_info
@@ -236,9 +236,6 @@ check_dependencies
 	bat_info
 	printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 } | tee "$tmp_file"
-
-# Add form factor if not found by hdparm
-# grep -q ' inch' "$tmp_file" || ff_fix
 
 # Change lsblk timeshift mountpoint to normal partition name.
 grep -q '/run/timeshift/backup' "$tmp_file" && rename_mnt_pt
