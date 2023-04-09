@@ -27,7 +27,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.2.2"
+readonly _version="3.2.3"
 readonly _updated="09 Apr 2023"
 lhost="$(uname -n)"; readonly lhost
 readonly info_file="$HOME/$lhost.info"
@@ -191,14 +191,17 @@ hd_info() {
 
 nvme_info() {
   printf "\nNVMe Information\n"
-  nvme_dev=$(sudo /usr/sbin/nvme list | awk '/dev/ {print $1}' | cut -d'/' -f3)
-  nvme_serial=$(sudo /usr/sbin/nvme list | awk '/dev/ {print $2}')
-  nvme_model=$(sudo /usr/sbin/nvme list | awk '/dev/ {print $3}')
-  nvme_size=$(sudo /usr/sbin/nvme list | awk '/dev/ {print $5 $6}')
-  printf "%s\n" "$nvme_dev"
-  printf "   %-15s%s\n" "Model Number:" "$nvme_model"
-  printf "   %-15s%s\n" "Serial Number:" "$nvme_serial"
-  printf "   %-15s%s\n" "Capacity:" "$nvme_size"
+  nvme_data=$(sudo /usr/sbin/nvme list | tail -n+3)
+  for devline in "${nvme_data[@]}"; do
+    nvme_device=$(echo "$devline" | awk '/dev/ {print $1}' | cut -d'/' -f3)
+    nvme_serial=$(echo "$devline" | awk '/dev/ {print $2}')
+    nvme_model=$(echo "$devline" | awk '/dev/ {print $3}')
+    nvme_size=$(echo "$devline" | awk '/dev/ {print $5,$6}')
+    printf "%s\n" "$nvme_device"
+    printf "   %-15s%s\n" "Model Number:" "$nvme_model"
+    printf "   %-15s%s\n" "Serial Number:" "$nvme_serial"
+    printf "   %-15s%s\n" "Capacity:" "$nvme_size"
+  done
 }
 
 part_info() {
