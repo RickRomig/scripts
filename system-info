@@ -27,7 +27,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.2.3"
+readonly _version="3.2.4"
 readonly _updated="09 Apr 2023"
 lhost="$(uname -n)"; readonly lhost
 readonly info_file="$HOME/$lhost.info"
@@ -163,7 +163,7 @@ wireless_info() {
 		wireless_dev=$(/usr/bin/lspci | awk -F: '/Network controller/ {print $NF}' | sed 's/^ //')
 		w_mac=$(cat /sys/class/net/"${wifi_int}"/address)
 		printf "\nWireless: %s\n" "$wireless_dev"
-	    printf "%15s %s\n" "Device name:" "$wifi_int" "MAC address:" "$w_mac"
+	  printf "%15s %s\n" "Device name:" "$wifi_int" "MAC address:" "$w_mac"
 	fi
 }
 
@@ -210,9 +210,24 @@ part_info() {
 }
 
 bat_info() {
+  printf "\nBattery Information:\n"
   for battery_path in /sys/class/power_supply/BAT?; do
     battery=$(basename "$battery_path")
-    [[ "$battery" != "BAT?" ]] && printf "\nBattery: %s\n" "$battery"
+    if [[ "$battery" != "BAT?" ]]; then
+      bat_data=$(cat /sys/class/power_supply/"${battery}"/uevent)
+      bat_mfgr=$(echo "$bat_data" | awk -F= '/MANUFACTURER/ {print $NF}')
+      bat_model=$(echo "$bat_data" | awk -F= '/MODEL/ {print $NF}')
+      bat_serial=$(echo "$bat_data" | awk -F= '/SERIAL/ {print $NF}')
+      bat_tech=$(echo "$bat_data" | awk -F= '/TECHNOLOGY/ {print $NF}')
+      [[ -z "${bat_serial// }" ]] && bat_serial="Not specified"
+      printf "%s\n" "$battery"
+      printf "   %-15s%s\n" "Manufactuer:" "$bat_mfgr"
+      printf "   %-15s%s\n" "Model name:" "$bat_model"
+      printf "   %-15s%s\n" "Serial number:" "$bat_serial"
+      printf "   %-15s%s\n" "Technology:" "$bat_tech"
+    else
+      printf "No battery detected\n"
+    fi
   done
 
 }
@@ -236,7 +251,7 @@ clear
 	[[ -b /dev/sda ]] && hd_info
   [[ -c /dev/nvme0 ]] && nvme_info
 	part_info
-	bat_info
+	is_laptop && bat_info
 	printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 } | tee "$tmp_file"
 
