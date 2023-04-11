@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.4"
-readonly _updated="29 Mar 2023"
+readonly _version="0.4.5"
+readonly _updated="11 Apr 2023"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 
@@ -48,7 +48,7 @@ install_brave() {
   # Import the public key for verification of the APT repository
   sudo curl -fsSLo "$brave_key" "$key_url"
   # Add the repository
-  echo "deb [signed-by=$brave_key arch=amd64] $list_url" | sudo tee "$brave_list"
+  echo "deb [signed-by=$brave_key arch=amd64] $list_url" | sudo tee "$brave_list" > /dev/null
   # Install Brave
   sudo apt-get update -qq
   sudo apt-get install brave-browser brave-keyring -yy
