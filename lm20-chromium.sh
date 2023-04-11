@@ -32,7 +32,7 @@ fi
 # Add Debian repositories for Chromium
 deb_sources() {
   printf "Creating debian-chromium.list ...\n\n"
-  cat << EOT sudo tee /etc/apt/sources.list.d/debian-chromium.list
+  cat << EOT sudo tee /etc/apt/sources.list.d/debian-chromium.list > /dev/null
 deb https://deb.debian.org/debian buster main
 deb https://deb.debian.org/debian buster-updates main
 deb http://security.debian.org/ buster/updates main
@@ -43,7 +43,7 @@ EOT
 # Set preferences so that only Chromium is installed and updated from the Debian repositories.
 deb_preferences() {
   printf "Creating debian-chromium.pref ...\n\n"
-  cat << EOT sudo tee /etc/apt/preferences.d/debian-chromium.pref
+  cat << EOT sudo tee /etc/apt/preferences.d/debian-chromium.pref > /dev/null
 # Don't install anything other than chromium from the Debian repos
 Package: *
 Pin: origin "deb.debian.org"
@@ -113,8 +113,8 @@ valid_version() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.3.1"
-  local _updated="07 Mar 2023"
+  local _version="0.3.2"
+  local _updated="11 Apr 2023"
 
   user_in_sudo
 
