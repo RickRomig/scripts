@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.2.5"
-readonly _updated="10 Apr 2023"
+readonly _version="3.2.6"
+readonly _updated="11 Apr 2023"
 lhost="$(uname -n)"; readonly lhost
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -42,7 +42,8 @@ check_dependencies() {
 }
 
 cleanup() {
-  [ -f "$tmp_file" ] && rm -f "$tmp_file"
+  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+  [[ -f "$hd_data" ]] && rm -f "$hd_data"
 }
 
 save_info() {
@@ -169,14 +170,16 @@ wireless_info() {
 
 hd_info() {
 	printf "\nHard Disk Information:\n"
+	hd_data=$(mktemp -q) || die "Failed to create temporary file." 1
 	for disk in /dev/sd[a-z]; do
-		hd_dev=$(sudo hdparm -I "${disk}" 2>/dev/null | grep -e '/dev/')
-		hd_model=$(sudo hdparm -I "${disk}" | awk -F: '/Model/ {print $NF}' | sed 's/^ *//g')
-   	hd_serial=$(sudo hdparm -I "${disk}" | awk -F: '/Serial N/ {print $NF}' | sed 's/^ *//g')
-    hd_size=$(sudo hdparm -I "${disk}" | awk '/GB/ {print $(NF-1),$NF}' | sed 's/[)(]//g')
-    hd_ff=$(sudo hdparm -I "${disk}" | awk -F: '/Form Factor/ {print $NF}' | sed 's/^ //')
+		sudo hdparm -I "${disk}" 2>/dev/null | tee "$hd_data" > /dev/null
+		hd_dev=$(grep -w dev "$hd_data")
+		hd_model=$(awk -F: '/Model/ {print $NF}' "$hd_data" | sed 's/^ *//g')
+   	hd_serial=$(awk -F: '/Serial N/ {print $NF}' "$hd_data" | sed 's/^ *//g')
+    hd_size=$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | sed 's/[)(]//g')
+    hd_ff=$(awk -F: '/Form Factor/ {print $NF}' "$hd_data" | sed 's/^ //')
     [[ -z "$hd_ff" ]] && ff_fix
-    hd_rpm=$(sudo hdparm -I "${disk}" | awk -F: '/Rotation/ {print $NF}' | sed 's/^ //')
+    hd_rpm=$(awk -F: '/Rotation/ {print $NF}' "$hd_data" | sed 's/^ //')
     printf "%s\n" "$hd_dev"
     printf "   %-15s%s\n" "Model Number:" "$hd_model"
     printf "   %-15s%s\n" "Serial Number:" "$hd_serial"
