@@ -29,8 +29,8 @@ fi
 main() {
   _script=$(basename "$0"); local _script
   local _script
-  local _version="0.3.3"
-  local _updated="04 Apr 2023"
+  local _version="0.3.4"
+  local _updated="11 Apr 2023"
 
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Installs the ungoogled chromium browser on Debian and Ubuntu-based systems./n"
@@ -51,8 +51,8 @@ install_ungoogled_chrome() {
   local key_url="https://download.opensuse.org/repositories/home:/ungoogled_chromium/Debian_Bullseye/Release.key"
   local trusted_gpg="/etc/apt/trusted.gpg.d/home_ungoogled_chromium.gpg"
 
-  echo "$repo_url" | sudo tee "$source_list"
-  curl -fsSL "$key_url" | gpg --dearmor | sudo tee "$trusted_gpg"
+  echo "$repo_url" | sudo tee "$source_list" > /dev/null
+  curl -fsSL "$key_url" | gpg --dearmor | sudo tee "$trusted_gpg" > /dev/null
   sudo apt-get update
   sudo apt-get install ungoogled-chromium
   leave "ungoogled-chromium installed."
