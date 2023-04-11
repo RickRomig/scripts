@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.8"
-readonly _updated="29 Mar 2023"
+readonly _version="0.4.9"
+readonly _updated="11 Apr 2023"
 readonly src_list="/etc/apt/sources.list.d/charm.list"
 readonly keyring_dir="/etc/apt/keyrings"
 
@@ -39,7 +39,7 @@ src_gpg() {
   [[ -d "$keyring_dir" ]] || sudo mkdir -p "$keyring_dir"
   curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
   echo "Creating the the Charm apt source list..."
-  echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee "$src_list"
+  echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee "$src_list" > /dev/null
 }
 
 install_glow() {
