@@ -17,15 +17,18 @@
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.5"
-readonly _updated="12 Mar 2023"
+readonly _version="0.2.6"
+readonly _updated="12 Apr 2023"
 readonly repos=( scripts configs i3debian openboxdebian fnloc fnloc-win )
 
 ## Functions ##
 
-check_package() {
-  local package="$1"
-  dpkg -l | grep -qw "$package" || sudo apt-get install "$package" -yyq
+exist_git() {
+  if command -v git > /dev/null 2>&1; then
+    printf "git - [OK]\n"
+  else
+    sudo apt-get install git -yyq
+  fi
 }
 
 clone_repo() {
@@ -37,9 +40,8 @@ clone_repo() {
 
 ## Execution ##
 
-check_package git
+exist_git
 
-# clear
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Clone a repository from the local Gitea server.\n\n"
 printf "Available repositories:\n"
