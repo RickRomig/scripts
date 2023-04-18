@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : i3configs
+# Description  : Copy default versions of i3 configuration files
+# Dependencies : curl
+# Arguments    : See help function
+# Author       : Copyright © 2023 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 18 Apr 2023
+# Last updated : 18 Apr 2023
+# Comments     : Assumes i3wm has been installed from the local i3debian repository
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.1.0"
+readonly _updated="18 Apr 2023"
+
+## Functions ##
+
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+$_script copies default i3 configuration files from the local Gitea server.
+The files may need to be modified to fit a particular system configuration.
+Assumes i3wm has been installed from the i3debian repository on the local Gitea server.
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+	-a	Copy autostart.sh (Launches programs necessary for i3 to run.)
+	-b	Copy bar.conf (Status bar configuration)
+	-c	Copy config (i3wm configuration)
+	-h	Display help
+	-k	Copy bindings.list (List of default keybindings, read by ~/bin/i3kb.sh)
+	-l	Copy logout (Rofi menu of logout actions)
+	-s	Copy sxhkdrc (i3 keybindings)
+	-w	Copy workspaces.conf (Workspace configurations)
+END_HELP
+	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+copy_config_file() {
+	local i3_file="$1"
+	local i3_dir=$HOME"/.config/i3"
+	local gitea_url="http://192.168.0.16:3000/Nullifidian/i3debian/raw/branch/main/.config/i3"
+	[[ -d "$i3_dir" ]] || mkdir -p "$i3_dir"
+	[[ "$i3_file" == "sxhkd/sxhkdrc" ]] && check_sxhkd
+	[[ -f "$i3_dir/$i3_file" ]] && cp -pv "$i3_dir/$i3_file" "$i3_dir/$i3_file".bak
+	curl -so "$i3_dir/$i3_file" "$gitea_url/$i3_file"
+	printf "%s copied from the Gitea Server.\n" "$i3_dir/$i3_file"
+}
+
+check_sxhkd() {
+	[[ -d "$HOME/.config/i3/sxhkd" ]] || mkdir -p "$HOME/.config/i3/sxhkd"
+}
+
+## Execution ##
+
+if exists i3; then
+	printf "i3wm is installed.\n"
+	check_package curl
+else
+	printf "i3wm is not installed.\n"
+	help 0
+fi
+noOpt=1
+optstr=":abchklsw"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		a )
+			copy_config_file "autostart.sh"
+			;;
+		b )
+			copy_config_file "bar.conf"
+			;;
+		c )
+			copy_config_file "config"
+			;;
+		h )
+			help 0
+			;;
+		k )
+			copy_config_file "bindings.list"
+			;;
+		l )
+			copy_config_file "logout"
+			;;
+		s )
+			copy_config_file "sxhkd/sxhkdrc"
+			;;
+		w )
+			copy_config_file "workspaces.conf"
+			;;
+		? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			help 2
+	esac
+	noOpt=0
+done
+if [[ $noOpt == 1 ]]; then printf "%s No argument passed.\n" "$red_error" >&2; help 1; fi
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+exit
