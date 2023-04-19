@@ -27,11 +27,10 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.13"
-readonly _updated="12 Mar 2023"
+readonly _version="0.4.14"
+readonly _updated="19 Apr 2023"
 readonly lhost=$HOSTNAME
 # Configuration directories
-readonly atom_dir=$HOME"/.local/share/atom"
 readonly bu_dir=$HOME"/.config/backup"
 readonly git_dir=$HOME"/.config/git"
 readonly micro_dir="$HOME/.config/micro"
@@ -56,416 +55,380 @@ count=0
 # Backup sysinfo file
 if [[ -f "$HOME/$lhost.info" && -f "$bu_dir/$lhost.info" ]]; then
   if [[ "$bu_dir/$lhost.info" -ot "$HOME/$lhost.info" ]]; then
-    cp -puv "$HOME/$lhost.info" "$bu_dir/" && (( count++ ))
+    cp -puv "$HOME/$lhost.info" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/$lhost.info" ]]; then
-  cp -pv "$HOME/$lhost.info" "$bu_dir/" && (( count++ ))
+  cp -pv "$HOME/$lhost.info" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .profile
 if [[ -f "$HOME/.profile" && -f "$bu_dir/.profile" ]]; then
   if [[ "$bu_dir/.profile" -ot "$HOME/.profile" ]]; then
-    cp -puv "$HOME/.profile" "$bu_dir/" && (( count++ ))
+    cp -puv "$HOME/.profile" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.profile" ]]; then
-  cp -pv "$HOME/.profile" "$bu_dir/" && (( count++ ))
+  cp -pv "$HOME/.profile" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .bashrc
 if [[ -f "$HOME/.bashrc" && -f "$bu_dir/.bashrc" ]]; then
   if [[ "$bu_dir/.bashrc" -ot "$HOME/.bashrc" ]]; then
-    cp -puv "$HOME/.bashrc" "$bu_dir/" && (( count++ ))
+    cp -puv "$HOME/.bashrc" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.bashrc" ]]; then
-  cp -pv "$HOME/.bashrc" "$bu_dir/" && (( count++ ))
+  cp -pv "$HOME/.bashrc" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .bash_aliases
 if [[ -f "$HOME/.bash_aliases" && -f "$bu_dir/.bash_aliases" ]]; then
   if [[ "$bu_dir/.bash_aliases" -ot "$HOME/.bash_aliases" ]]; then
-    cp -puv "$HOME/.bash_aliases" "$bu_dir/" && (( count++ ))
+    cp -puv "$HOME/.bash_aliases" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.bash_aliases" ]]; then
-   cp -pv "$HOME/.bash_aliases" "$bu_dir/" && (( count++ ))
+   cp -pv "$HOME/.bash_aliases" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .bash_profile
 if [[ -f "$HOME/.bash_profile" && -f "$bu_dir/.bash_profile" ]]; then
   if [[ "$bu_dir/.bash_profile" -ot "$HOME/.bash_profile" ]]; then
-    cp -puv "$HOME/.bash_profile" "$bu_dir/" && (( count++ ))
+    cp -puv "$HOME/.bash_profile" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.bash_profile" ]]; then
-  cp -puv "$HOME/.bash_profile" "$bu_dir/" && (( count++ ))
+  cp -puv "$HOME/.bash_profile" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .conkyrc
 if [[ -f "$HOME/.conkyrc" && -f "$bu_dir/.conkyrc" ]]; then
   if [[ "$bu_dir/.conkyrc" -ot "$HOME/.conkyrc" ]]; then
-    cp -puv "$HOME/.conkyrc" "$bu_dir/" && (( count++ ))
+    cp -puv "$HOME/.conkyrc" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.conkyrc" ]]; then
-  cp -pv "$HOME/.conkyrc" "$bu_dir/" && (( count++ ))
+  cp -pv "$HOME/.conkyrc" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .config/conky/conky.conf (BunsenLabs)
 if [[ -f "$HOME/.config/conky/conky.conf" && -f "$bu_dir/conky/conky.conf" ]]; then
   if [[ "$bu_dir/conky/conky.conf" -ot "$HOME/.config/conky/conky.conf" ]]; then
-    cp -puv "$HOME/.config/conky/conky.conf" "$bu_dir/conky/" && (( count++ ))
+    cp -puv "$HOME/.config/conky/conky.conf" "$bu_dir/conky/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$bu_dir/.config/conky/conky.conf" ]]; then
   [[ -f "$bu_dir/conky" ]] || mkdir -p "$bu_dir/conky"
-  cp -pv "$HOME/.config/conky/conky.conf" "$bu_dir/conky/" && (( count++ ))
+  cp -pv "$HOME/.config/conky/conky.conf" "$bu_dir/conky/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .nanorc / nanorc
 if [[ -f "$HOME/.nanorc" && -f "$bu_dir/.nanorc" ]]; then
   if [[ "$bu_dir/.nanorc" -ot "$HOME/.nanorc" ]]; then
-    cp -puv "$HOME/.nanorc" "$bu_dir/" && (( count++ ))
+    cp -puv "$HOME/.nanorc" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.nanorc" ]]; then
   cp -pv "$HOME/.nanorc" "$bu_dir/" && (( count++ ))
 elif [[ -f "$HOME/.config/nano/nanorc" && -f "$bu_dir/nano/nanorc" ]]; then
   if [[ "$bu_dir/nano/nanorc" -ot "$HOME/.config/nano/nanorc" ]]; then
-    cp -puv "$HOME/.config/nano/nanorc" "$bu_dir/nano/" && (( count++ ))
+    cp -puv "$HOME/.config/nano/nanorc" "$bu_dir/nano/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.config/nano/nanorc" ]]; then
   [[ -d "$bu_dir/nano" ]] || mkdir -p "$bu_dir/nano"
-  cp -pv "$HOME/.config/nano/nanorc" "$bu_dir/nano/" && (( count++ ))
+  cp -pv "$HOME/.config/nano/nanorc" "$bu_dir/nano/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   [[ -f "$bu_dir/.nanorc" ]] && rm "$bu_dir/.nanorc"
 fi
 
 # Backup .gitconfig
 if [[ -f "$HOME/.gitconfig" && -f "$bu_dir/.gitconfig" ]]; then
   if [[ "$bu_dir/.gitconfig" -ot "$HOME/.gitconfig" ]]; then
-    cp -puv "$HOME/.gitconfig" "$bu_dir/" && (( count++ ))
+    cp -puv "$HOME/.gitconfig" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.gitconfig" ]]; then
-  cp -pv "$HOME/.gitconfig" "$bu_dir/" && (( count++ ))
+  cp -pv "$HOME/.gitconfig" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 elif [[ -f "$git_dir/config" && -f "$bu_dir/git/config" ]]; then
   if [[ "$bu_dir/.config/git/config" -ot "$git_dir/config" ]]; then
-    cp -puv "$git_dir/config" "$bu_dir/git/" && (( count++ ))
+    cp -puv "$git_dir/config" "$bu_dir/git/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$git_dir/config" ]]; then
   [[ -d "$bu_dir/git/" ]] || mkdir -p "$bu_dir/git/"
-  cp -pv "$git_dir/config" "$bu_dir/git/" && (( count++ ))
+  cp -pv "$git_dir/config" "$bu_dir/git/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   [[ -f "$bu_dir/.gitconfig" ]] && rm "$bu_dir/.gitconfig"
 fi
 
 # Backup .git-credentials
 if [[ -f "$HOME/.git-credentials" && -f "$bu_dir/.git-credentials" ]]; then
   if [[ "$bu_dir/.git-credentials" -ot "$HOME/.git-credentials" ]]; then
-    cp -puv "$HOME/.git-credentials" "$bu_dir/" && (( count++ ))
+    cp -puv "$HOME/.git-credentials" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.git-credentials" ]]; then
-  cp -puv "$HOME/.git-credentials" "$bu_dir/" && (( count++ ))
+  cp -puv "$HOME/.git-credentials" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 elif [[ -f "$git_dir/credentials" && -f "$bu_dir/git/credentials" ]]; then
   if [[ "$bu_dir/git/credentials" -ot "$git_dir/credentials" ]]; then
-    cp -puv "$git_dir/credentials" "$bu_dir/git/" && (( count++ ))
+    cp -puv "$git_dir/credentials" "$bu_dir/git/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$git_dir/credentials" ]]; then
   [[ -d "$bu_dir/git/" ]] || mkdir -p "$bu_dir/git/"
-  cp -pv "$git_dir/credentials" "$bu_dir/git/" && (( count++ ))
+  cp -pv "$git_dir/credentials" "$bu_dir/git/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   [[ -f "$bu_dir/.git-credentials" ]] && rm "$bu_dir/.git-credentials"
 fi
 
 # Backup .gorillarc
 if [[ -f "$HOME/.gorillarc" && -f "$bu_dir/.gorillarc" ]]; then
   if [[ "$bu_dir/.gorillarc" -ot "$HOME/.gorillarc" ]]; then
-    cp -puv "$HOME/.gorillarc" "$bu_dir/" && (( count++ ))
+    cp -puv "$HOME/.gorillarc" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.gorillarc" ]]; then
-  cp -pv "$HOME/.gorillarc" "$bu_dir/" && (( count++ ))
-fi
-
-# Backup .atom/config.cson
-if [[ -f "$HOME/.atom/config.cson" && -f "$bu_dir/.atom/config.cson" ]]; then
-  if [[ "$bu_dir/.atom/config.cson" -ot "$HOME/.atom/config.cson" ]]; then
-    cp -puv "$HOME/.atom/config.cson" "$bu_dir/.atom/" && (( count++ ))
-  fi
-elif [[ -f "$HOME/.atom/config.cson" ]]; then
-  [[ -d "$bu_dir/.atom" ]] || mkdir -p "$bu_dir/.atom"
-  cp -pv "$HOME/.atom/config.cson" "$bu_dir/.atom/" && (( count++ ))
-elif [[ -f "$atom_dir/config.cson" && -f "$bu_dir/atom/config.cson" ]]; then
-  if [[ "$bu_dir/.atom/config.cson" -ot "$atom_dir/config.cson" ]]; then
-    cp -puv "$atom_dir/config.cson" "$bu_dir/atom/" && (( count++ ))
-  fi
-elif [[ -f "$atom_dir/config.cson" ]]; then
-  [[ -d "$bu_dir/atom" ]] || mkdir -p "$bu_dir/atom"
-  cp -pv "$atom_dir/config.cson" "$bu_dir/atom/" && (( count++ ))
-  [[ -d "$bu_dir/.atom/" ]] && rm -rf "$bu_dir/.atom/"
-fi
-
-# Backup .atom/styles.less
-if [[ -f "$HOME/.atom/styles.less" && -f "$bu_dir/.atom/styles.less" ]]; then
-  if [[ "$bu_dir/.atom/styles.less" -ot "$HOME/.atom/styles.less" ]]; then
-    cp -puv "$HOME/.atom/styles.less" "$bu_dir/.atom/" && (( count++ ))
-  fi
-elif [[ -f "$HOME/.atom/styles.less" ]]; then
-  [[ -d "$bu_dir/.atom" ]] || mkdir -p "$bu_dir/.atom"
-  cp -pv "$HOME/.atom/styles.less" "$bu_dir/.atom/" && (( count++ ))
-elif [[ -f "$atom_dir/styles.less" && -f "$bu_dir/atom/styles.less" ]]; then
-  if [[ "$bu_dir/atom/styles.less" -ot "$atom_dir/styles.less" ]]; then
-    cp -puv "$atom_dir/styles.less" "$bu_dir/atom/" && (( count++ ))
-  fi
-elif [[ -f "$atom_dir/styles.less" ]]; then
-  [[ -d "$bu_dir/atom" ]] || mkdir -p "$bu_dir/atom"
-  cp -pv "$atom_dir/styles.less" "$bu_dir/atom/" && (( count++ ))
-  [[ -d "$bu_dir/.atom/" ]] && rm -rf "$bu_dir/.atom/"
+  cp -pv "$HOME/.gorillarc" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .config/bat/config
 if [[ -f "$HOME/.config/bat/config" && -f "$bu_dir/bat/config" ]]; then
   if [[ "$bu_dir/bat/config" -ot "$HOME/.config/bat/config" ]]; then
-    cp -puv "$HOME/.config/bat/config" "$bu_dir/bat/" && (( count++ ))
+    cp -puv "$HOME/.config/bat/config" "$bu_dir/bat/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.config/bat/config" ]]; then
   [[ -d "$bu_dir/bat" ]] || mkdir -p "$bu_dir/bat"
-  cp -pv "$HOME/.config/bat/config" "$bu_dir/bat/" && (( count++ ))
+  cp -pv "$HOME/.config/bat/config" "$bu_dir/bat/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .bluefish/rcfile-2.0
 if [[ -f "$HOME/.bluefish/rcfile-2.0" && -f "$bu_dir/.bluefish/rcfile-2.0" ]]; then
   if [[ "$bu_dir/.bluefish/rcfile-2.0" -ot "$HOME/.bluefish/rcfile-2.0" ]]; then
-    cp -puv "$HOME/.bluefish/rcfile-2.0" "$bu_dir/.bluefish/" && (( count++ ))
+    cp -puv "$HOME/.bluefish/rcfile-2.0" "$bu_dir/.bluefish/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.bluefish/rcfile-2.0" ]]; then
   [[ -d "$bu_dir/.bluefish" ]] || mkdir -p "$bu_dir/.bluefish"
-  cp -pv "$HOME/.bluefish/rcfile-2.0" "$bu_dir/.bluefish/" && (( count++ ))
+  cp -pv "$HOME/.bluefish/rcfile-2.0" "$bu_dir/.bluefish/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .sshpwd_file
 if [[ -f "$HOME/.local/share/sshpwd_file" && -f "$bu_dir/sshpwd_file" ]]; then
   if [[ "$bu_dir/sshpwd_file" -ot "$HOME/.local/share/sshpwd_file" ]]; then
-    cp -puv "$HOME/.local/share/sshpwd_file" "$bu_dir/" && (( count++ ))
+    cp -puv "$HOME/.local/share/sshpwd_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.local/share/sshpwd_file" ]]; then
-  cp -pv "$HOME/.local/share/sshpwd_file" "$bu_dir/" && (( count++ ))
+  cp -pv "$HOME/.local/share/sshpwd_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .face
 if [[ -f "$HOME/.face" && -f "$bu_dir/.face" ]]; then
   if [[ "$bu_dir/.face" -ot "$HOME/.face" ]]; then
-    cp -puv "$HOME/.face" "$bu_dir/" && (( count++ ))
+    cp -puv "$HOME/.face" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.face" ]]; then
-  cp -pv "$HOME/.face" "$bu_dir/" && (( count++ ))
+  cp -pv "$HOME/.face" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .config/micro/settings.json
 if [[ -f "$micro_dir/settings.json" && -f "$bu_dir/micro/settings.json" ]]; then
   if [[ "$bu_dir/micro/settings.json" -ot "$micro_dir/settings.json" ]]; then
-    cp -puv "$micro_dir/settings.json" "$bu_dir/micro/" && (( count++ ))
+    cp -puv "$micro_dir/settings.json" "$bu_dir/micro/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$micro_dir/settings.json" ]]; then
   [[ -d "$bu_dir/micro" ]] || mkdir -p "$bu_dir/micro/"
-  cp -pv "$micro_dir/settings.json" "$bu_dir/micro/" && (( count++ ))
+  cp -pv "$micro_dir/settings.json" "$bu_dir/micro/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .config/micro/bindings.json
 if [[ -f "$micro_dir/bindings.json" && -f "$bu_dir/micro/bindings.json" ]]; then
   if [[ "$bu_dir/micro/bindings.json" -ot "$micro_dir/bindings.json" ]]; then
-    cp -puv "$micro_dir/bindings.json" "$bu_dir/micro/" && (( count++ ))
+    cp -puv "$micro_dir/bindings.json" "$bu_dir/micro/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$micro_dir/bindings.json" ]]; then
   [[ -d "$bu_dir/micro" ]] || mkdir -p "$bu_dir/micro"
-  cp -pv "$micro_dir/bindings.json" "$bu_dir/micro" && (( count++ ))
+  cp -pv "$micro_dir/bindings.json" "$bu_dir/micro" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .config/clipit/clipitrc (BunsenLabs)
 if [[ -f "$HOME/.config/clipit/clipitrc" && -f "$bu_dir/clipit/clipitrc" ]]; then
   if [[ "$bu_dir/clipit/clipitrc" -ot "$HOME/.config/clipit/clipitrc" ]]; then
-    cp -puv "$HOME/.config/clipit/clipitrc" "$bu_dir/clipit/" && (( count++ ))
+    cp -puv "$HOME/.config/clipit/clipitrc" "$bu_dir/clipit/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.config/clipit/clipitrc" ]]; then
   [[ -d "$bu_dir/clipit" ]] || mkdir -p "$bu_dir/clipit"
-  cp -pv "$HOME/.config/clipit/clipitrc" "$bu_dir/clipit/" && (( count++ ))
+  cp -pv "$HOME/.config/clipit/clipitrc" "$bu_dir/clipit/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .config/terminator/config
 if [[ -f "$HOME/.config/terminator/config" && -f "$bu_dir/terminator/config" ]]; then
   if [[ "$bu_dir/terminator/config" -ot "$HOME/.config/terminator/config" ]]; then
-    cp -puv "$HOME/.config/terminator/config" "$bu_dir/terminator/" && (( count++ ))
+    cp -puv "$HOME/.config/terminator/config" "$bu_dir/terminator/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.config/terminator/config" ]]; then
   [[ -d "$bu_dir/terminator" ]] || mkdir -p "$bu_dir/terminator/"
-  cp -pv "$HOME/.config/terminator/config" "$bu_dir/terminator/" && (( count++ ))
+  cp -pv "$HOME/.config/terminator/config" "$bu_dir/terminator/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup ~/.xbindkey.src (BunsenLabs)
 if [[ -f "$HOME/.xbindkeysrc" && -f "$bu_dir/.xbindkeysrc" ]]; then
   if [[ "$bu_dir/.xbindkeysrc" -ot "$HOME/.xbindkeysrc" ]]; then
-    cp -puv "$HOME/.xbindkeysrc" "$bu_dir/" && (( count++ ))
+    cp -puv "$HOME/.xbindkeysrc" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.xbindkeysrc" ]]; then
-  cp -pv "$HOME/.xbindkeysrc" "$bu_dir/" && (( count++ ))
+  cp -pv "$HOME/.xbindkeysrc" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup ~/.config/marktext
 if [[ -f "$marktext_dir/preferences.json" && -f "$bu_dir/marktext/preferences.json" ]]; then
   if [[ "$bu_dir/marktext/preferences.json" -ot "$marktext_dir/preferences.json" ]]; then
-    cp -puv "$marktext_dir/preferences.json" "$bu_dir/marktext/" && (( count++ ))
+    cp -puv "$marktext_dir/preferences.json" "$bu_dir/marktext/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$marktext_dir/preferences.json" ]]; then
   [[ -d "$bu_dir/marktext" ]] || mkdir -p "$bu_dir/marktext/"
-  cp -pv "$marktext_dir/preferences.json" "$bu_dir/marktext/" && (( count++ ))
+  cp -pv "$marktext_dir/preferences.json" "$bu_dir/marktext/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .config/keepassxc/keepassxc.ini
 if [[ -f "$keepass_dir/keepassxc.ini" && -f "$bu_dir/keepassxc/keepassxc.ini" ]]; then
   if [[ "$bu_dir/keepassxc/keepassxc.ini" -ot "$keepass_dir/keepassxc.ini" ]]; then
-    cp -puv "$keepass_dir/keepassxc.ini" "$bu_dir/keepassxc/" && (( count++ ))
+    cp -puv "$keepass_dir/keepassxc.ini" "$bu_dir/keepassxc/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$keepass_dir/keepassxc.ini" ]]; then
   [[ -d "$bu_dir/keepassxc" ]] || mkdir -p "$bu_dir/keepassxc/"
-  cp -pv "$keepass_dir/keepassxc.ini" "$bu_dir/keepassxc/" && (( count++ ))
+  cp -pv "$keepass_dir/keepassxc.ini" "$bu_dir/keepassxc/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup .config/neofetch/config.conf
 if [[ -f "$neofetch_dir/config.conf" && -f "$bu_dir/neofetch/config.conf" ]]; then
   if [[ "$bu_dir/neofetch/config.conf" -ot "$neofetch_dir/config.conf" ]]; then
-    cp -puv "$neofetch_dir/config.conf" "$bu_dir/neofetch/" && (( count++ ))
+    cp -puv "$neofetch_dir/config.conf" "$bu_dir/neofetch/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$neofetch_dir/config" && -f "$bu_dir/neofetch/config" ]]; then
   if [[ "$bu_dir/neofetch/config" -ot "$neofetch_dir/config" ]]; then
-    cp -puv "$neofetch_dir/config." "$bu_dir/neofetch/" && (( count++ ))
+    cp -puv "$neofetch_dir/config." "$bu_dir/neofetch/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$neofetch_dir/config.conf" || -f "$neofetch_dir/config" ]]; then
   [[ -d "$bu_dir/neofetch" ]] || mkdir -p "$bu_dir/neofetch"
-  [[ -f "$neofetch_dir/config.conf" ]] && cp -pv "$neofetch_dir/config.conf" "$bu_dir/neofetch/"
-  [[ -f "$neofetch_dir/config" ]] && cp -pv "$neofetch_dir/config" "$bu_dir/neofetch/"
+  [[ -f "$neofetch_dir/config.conf" ]] && cp -pv "$neofetch_dir/config.conf" "$bu_dir/neofetch/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
+  [[ -f "$neofetch_dir/config" ]] && cp -pv "$neofetch_dir/config" "$bu_dir/neofetch/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
   (( count++ ))
 fi
 
 # Backup Cinnamon Keyboard Shortcuts
 if [[ -f "$HOME/.config/$kb_bu_file" && -f "$bu_dir/$kb_bu_file" ]]; then
   if [[ "$bu_dir/$kb_bu_file" -ot "$HOME/.config/$kb_bu_file" ]]; then
-    cp -puv "$HOME/.config/$kb_bu_file" "$bu_dir/" && (( count++ ))
+    cp -puv "$HOME/.config/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$HOME/.config/$kb_bu_file" ]]; then
-  cp -pv "$HOME/.config/$kb_bu_file" "$bu_dir/" && (( count++ ))
+  cp -pv "$HOME/.config/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 elif is_cinnamon; then
     dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$kb_bu_file"
-    cp -pv "$HOME/.config/$kb_bu_file" "$bu_dir/" && (( count++ ))
+    cp -pv "$HOME/.config/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup i3 configuration file (i3wm)
 if [[ -f "$i3_dir/config" && -f "$bu_dir/i3/config" ]]; then
   if [[ "$bu_dir/i3/config" -ot "$i3_dir/config" ]]; then
-    cp -puv "$i3_dir/config" "$bu_dir/i3/config" && (( count++ ))
+    cp -puv "$i3_dir/config" "$bu_dir/i3/config" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$i3_dir/config" ]]; then
   [[ -d "$bu_dir/i3" ]] || mkdir -p "$bu_dir/i3"
-  cp -pv "$i3_dir/config" "$bu_dir/i3/" && (( count++ ))
+  cp -pv "$i3_dir/config" "$bu_dir/i3/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup sxhkdrc (i3wm)
 if [[ -f "$i3_dir/sxhkd/sxhkdrc" && -f "$bu_dir/i3/sxhkd/sxhkdrc" ]]; then
   if [[ "$bu_dir/i3/sxhkd/sxhkdrc" -ot "$i3_dir/sxhkd/sxhkdrc" ]]; then
-    cp -puv "$i3_dir/sxhkd/sxhkdrc" "$bu_dir/i3/sxhkd/sxhkdrc" && (( count++ ))
+    cp -puv "$i3_dir/sxhkd/sxhkdrc" "$bu_dir/i3/sxhkd/sxhkdrc" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$i3_dir/sxhkd/sxhkdrc" ]]; then
   [[ -d "$bu_dir/i3sxhkd/sxhkdrc" ]] || mkdir -p "$bu_dir/i3/sxhkd"
-  cp -pv "$i3_dir/sxhkd/sxhkdrc" "$bu_dir/i3/sxhkd/" && (( count++ ))
+  cp -pv "$i3_dir/sxhkd/sxhkdrc" "$bu_dir/i3/sxhkd/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup bar.conf (i3-gaps)
 if [[ -f "$i3_dir/bar.conf" && -f "$bu_dir/i3/bar.conf" ]]; then
   if [[ "$bu_dir/i3/bar.conf" -ot "$i3_dir/bar.conf" ]]; then
-    cp -pv "$i3_dir/bar.conf" "$bu_dir/i3/" && (( count++ ))
+    cp -pv "$i3_dir/bar.conf" "$bu_dir/i3/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi 
 elif [[ -f "$i3_dir/bar.conf" ]]; then
   [[ -d "$bu_dir/i3" ]] || mkdir -p "$bu_dir/i3"
-  cp -pv "$i3_dir/bar.conf" "$bu_dir/i3/" && (( count++ ))
+  cp -pv "$i3_dir/bar.conf" "$bu_dir/i3/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup workspaces.conf (i3wm)
 if [[ -f "$i3_dir/workspaces.conf" && -f "$bu_dir/i3/workspaces.conf" ]]; then
   if [[ "$bu_dir/i3/workspaces.conf" -ot "$i3_dir/workspaces.conf" ]]; then
-    cp -pv "$i3_dir/workspaces.conf" "$bu_dir/i3/" && (( count++ ))
+    cp -pv "$i3_dir/workspaces.conf" "$bu_dir/i3/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$i3_dir/workspaces.conf" ]]; then
   [[ -d "$bu_dir/i3" ]] || mkdir -p "$bu_dir/i3"
-  cp -pv "$i3_dir/workspaces.conf" "$bu_dir/i3/" && (( count++ ))
+  cp -pv "$i3_dir/workspaces.conf" "$bu_dir/i3/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup i3status.conf (i3wm)
 if [[ -f "$i3_dir/i3status.conf" && -f "$bu_dir/i3/i3status.conf" ]]; then
   if [[ "$bu_dir/i3/i3status.conf" -ot "$i3_dir/i3status.conf" ]]; then
-    cp -puv "$i3_dir/i3status.conf" "$bu_dir/i3/" && (( count++ ))
+    cp -puv "$i3_dir/i3status.conf" "$bu_dir/i3/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$i3_dir/i3status.conf" ]]; then
   [[ -d "$bu_dir/i3" ]] || mkdir -p "$bu_dir/i3"
-  cp -pv "$i3_dir/i3status.conf" "$bu_dir/i3/" && (( count++ ))
+  cp -pv "$i3_dir/i3status.conf" "$bu_dir/i3/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup config.rasi (i3wm)
 if [[ -f "$rofi_dir/config.rasi" && -f "$bu_dir/rofi/config.rasi" ]]; then
   if [[ "$bu_dir/rofi/config.rasi" -ot "$rofi_dir/config.rasi" ]]; then
-    cp -puv "$rofi_dir/config.rasi" "$bu_dir/rofi/" && (( count++ ))
+    cp -puv "$rofi_dir/config.rasi" "$bu_dir/rofi/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$rofi_dir/config.rasi" ]]; then
   [[ -d "$bu_dir/rofi" ]] || mkdir -p "$bu_dir/rofi"
-  cp -pv "$rofi_dir/config.rasi" "$bu_dir/rofi/" && (( count++ ))
+  cp -pv "$rofi_dir/config.rasi" "$bu_dir/rofi/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup arc_dark_colors.rasi (i3wm)
 if [[ -f "$rofi_dir/arc_dark_colors.rasi" && -f "$bu_dir/rofi/arc_dark_colors.rasi" ]]; then
   if [[ "$bu_dir/rofi/arc_dark_colors.rasi" -ot "$rofi_dir/arc_dark_colors.rasi" ]]; then
-    cp -puv "$rofi_dir/arc_dark_colors.rasi" "$bu_dir/rofi/" && (( count++ ))
+    cp -puv "$rofi_dir/arc_dark_colors.rasi" "$bu_dir/rofi/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$rofi_dir/arc_dark_colors.rasi" ]]; then
   [[ -d "$bu_dir/rofi" ]] || mkdir -p "$bu_dir/rofi"
-  cp -pv "$rofi_dir/arc_dark_colors.rasi" "$bu_dir/rofi/" && (( count++ ))
+  cp -pv "$rofi_dir/arc_dark_colors.rasi" "$bu_dir/rofi/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup arc_dark_transparent_colors.rasi (i3wm)
 if [[ -f "$rofi_dir/arc_dark_transparent_colors.rasi" && -f "$bu_dir/rofi/arc_dark_transparent_colors.rasi" ]]; then
   if [[ "$bu_dir/rofi/arc_dark_transparent_colors.rasi" -ot "$rofi_dir/arc_dark_transparent_colors.rasi" ]]; then
-    cp -puv "$rofi_dir/arc_dark_transparent_colors.rasi" "$bu_dir/rofi/" && (( count++ ))
+    cp -puv "$rofi_dir/arc_dark_transparent_colors.rasi" "$bu_dir/rofi/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$rofi_dir/arc_dark_transparent_colors.rasi" ]]; then
   [[ -d "$bu_dir/rofi" ]] || mkdir -p "$bu_dir/rofi"
-  cp -pv "$rofi_dir/arc_dark_transparent_colors.rasi" "$bu_dir/rofi/" && (( count++ ))
+  cp -pv "$rofi_dir/arc_dark_transparent_colors.rasi" "$bu_dir/rofi/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup VSCodium settings
 if [[ -f "$vscodium_dir/settings.json" && -f "$bu_dir/VSCodium/settings.json" ]]; then
   if [[ "$bu_dir/VSCodium/settings.json" -ot "$vscodium_dir/settings.json" ]]; then
-    cp -puv "$vscodium_dir/settings.json" "$bu_dir/VSCodium/" && (( count++ ))
+    cp -puv "$vscodium_dir/settings.json" "$bu_dir/VSCodium/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$vscodium_dir/settings.json" ]]; then
   [[ -d "$bu_dir/VSCodium" ]] || mkdir -p "$bu_dir/VSCodium"
-  cp -pv "$vscodium_dir/settings.json" "$bu_dir/VSCodium/" && (( count++ ))
+  cp -pv "$vscodium_dir/settings.json" "$bu_dir/VSCodium/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup Geany configuration
 if [[ -f "$geany_dir/geany.conf" && -f "$bu_dir/geany/geany.conf" ]]; then
 	if [[ "$bu_dir/geany/geany.conf" -ot "$geany_dir/geany.conf" ]]; then
-    cp -puv "$geany_dir/geany.conf" "$bu_dir/geany" && (( count++ ))
+    cp -puv "$geany_dir/geany.conf" "$bu_dir/geany" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$geany_dir/geany.conf" ]]; then
   [[ -d "$bu_dir/geany" ]] || mkdir -p "$bu_dir/geany"
-  cp -pv "$geany_dir/geany.conf" "$bu_dir/geany" && (( count++ ))
+  cp -pv "$geany_dir/geany.conf" "$bu_dir/geany" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup Geany keybindings
 if [[ -f "$geany_dir/keybindings.conf" && -f "$bu_dir/geany/keybindings.conf" ]]; then
 	if [[ "$bu_dir/geany/keybindings.conf" -ot "$geany_dir/keybindings.conf" ]]; then
-    cp -puv "$geany_dir/keybindings.conf" "$bu_dir/geany" && (( count++ ))
+    cp -puv "$geany_dir/keybindings.conf" "$bu_dir/geany" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$geany_dir/keybindings.conf" ]]; then
   [[ -d "$bu_dir/geany" ]] || mkdir -p "$bu_dir/geany"
-  cp -pv "$geany_dir/keybindings.conf" "$bu_dir/geany" && (( count++ ))
+  cp -pv "$geany_dir/keybindings.conf" "$bu_dir/geany" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Backup Kitty configuration
 if [[ -f "$kitty_dir/kitty.conf" && -f "$bu_dir/kitty/kitty.conf" ]]; then
   if [[ "$bu_dir/kitty/kitty.conf" -ot "$kitty_dir/kitty.conf" ]]; then
-    cp -puv "$kitty_dir/kitty.conf" "$bu_dir/kitty/" && (( count++ ))
+    cp -puv "$kitty_dir/kitty.conf" "$bu_dir/kitty/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
   fi
 elif [[ -f "$kitty_dir/kitty.conf" ]]; then
   [[ -d "$bu_dir/kitty" ]] || mkdir -p "$bu_dir/kitty"
-  cp -pv "$kitty_dir/kitty.conf" "$bu_dir/kitty/" && (( count++ ))
+  cp -pv "$kitty_dir/kitty.conf" "$bu_dir/kitty/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//" && (( count++ ))
 fi
 
 # Completion status
