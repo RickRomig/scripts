@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.5"
-readonly _updated="29 Mar 2023"
+readonly _version="0.2.6"
+readonly _updated="20 Apr 2023"
 readonly localdoc="$HOME/.local/share/doc"
 readonly todolist="todo.lst"
 calendar=$(mktemp -q) || die "Failed to create temporary file." 1
@@ -46,13 +46,11 @@ help() {
 	cat << END_HELP
 Usage: $_script [OPTION]
 OPTIONS:
-	-c  display current month calendar and to-do list. (default)
+	-c  display current month calendar and to-do list.
 	-d  display 3 month calendar and to-do list.
 	-e  edit to-do list.
 	-h  display help
 	NOTE: To-do list should be limited to 7 short items.
-	$_script displays either the current month or 3 month (previous, current, next)
-	calendar with an adjacent todo list.
 END_HELP
 	echo "$_script v$_version ($_updated)"
 	exit "$errcode"	
@@ -105,7 +103,7 @@ while getopts "$optstr" opt; do
 			help 0
 			;;
 		? )
-			printf "%s Invalid option -%s\n" >&2 "$OPTARG" "$red_error"
+			printf "%s Invalid option: -%s\n" >&2 "$red_error" "$OPTARG"
 			help 2
 	esac
 	noOpt=0
