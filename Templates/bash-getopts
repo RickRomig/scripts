@@ -105,8 +105,8 @@ while getopts "$optstr" opt; do
 	esac
 	noOpt=0
 done
-# if [ $noOpt = 1 ];then echo "${lightred}ERROR:${normal} No argument passed." >&2;help 1;fi
-if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+# [[ "$noOpt" = 1 ]] && { echo "${lightred}ERROR:${normal} No argument passed." >&2; help 1; }
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 # echo -e "$_script v$_version ($_updated)"
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit
