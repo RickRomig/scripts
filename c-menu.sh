@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #####################################################################
 # Script Name  : c-menu.sh
 # Description  : menu for C programming
