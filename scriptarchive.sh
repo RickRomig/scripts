@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 #############################################################################
 # Script Name  : scriptarchive.sh
 # Description  : Makes a dated archive of shell scripts in ~/bin

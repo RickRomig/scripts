@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 #############################################################################
 # Script Name  : passwdsync.sh
 # Description  : syncs password databases with Dropbox folder
