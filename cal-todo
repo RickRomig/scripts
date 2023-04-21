@@ -30,7 +30,7 @@ fi
 
 _script=$(basename "$0"); readonly _script
 readonly _version="0.2.6"
-readonly _updated="20 Apr 2023"
+readonly _updated="21 Apr 2023"
 readonly localdoc="$HOME/.local/share/doc"
 readonly todolist="todo.lst"
 calendar=$(mktemp -q) || die "Failed to create temporary file." 1
@@ -87,21 +87,21 @@ while getopts "$optstr" opt; do
 		c )
 			cal > "$calendar"
 			display_cal_todo
-			;;
+		;;
 		d )
 			cal -3 | sed '1d' > "$calendar"
 			display_cal_todo
-			;;
+		;;
 		e )
 			if [[ -f "$localdoc/$todolist" ]]; then
 				edit_todo
 			else
 				create_todo
 			fi
-			;;
+		;;
 		h )
 			help 0
-			;;
+		;;
 		? )
 			printf "%s Invalid option: -%s\n" >&2 "$red_error" "$OPTARG"
 			help 2
