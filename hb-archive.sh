@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 ###############################################################################
 # Script Name  : hb-archive.sh
 # Description  : Create HomeBank archive as a cron job.
