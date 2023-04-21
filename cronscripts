@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.3"
-readonly _updated="06 Apr 2023"
+readonly _version="0.3.4"
+readonly _updated="21 Apr 2023"
 readonly user_cron_path="$HOME/.local/bin/"
 readonly opt_cron_path="/opt/bin/"
 readonly clean_sed_path="/usr/share/misc/"
@@ -190,44 +190,43 @@ while getopts "$optstr" opt; do
 			cp_updatelogsed
       cp_zytdlupdate
 			cp_ytdluplogsed
-      ;;
+    ;;
     b )
       cp_hbarchive
-      ;;
+    ;;
     d )
       cp_zdefrag
-      ;;
+    ;;
     f )
       cp_updatelogsed
-      ;;
+    ;;
     h )
       help 0
-      ;;
+    ;;
 		l )
 			cp_zbackup
-			;;
+		;;
     p )
       cp_passwdsync
-      ;;
+    ;;
     s )
       cp_scriptarchive
-      ;;
+    ;;
     u )
       cp_zupdate
-      ;;
+    ;;
     y )
       cp_zytdlupdate
-      ;;
+    ;;
 		z )
 			cp_ytdluplogsed
-			;;
+		;;
     ? )
       printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
       help 2
-      ;;
   esac
 	noOpt=0
 done
-if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit

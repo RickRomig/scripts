@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.3"
-readonly _updated="29 Mar 2023"
+readonly _version="0.3.4"
+readonly _updated="21 Apr 2023"
 
 ## Functions ##
 
@@ -103,31 +103,31 @@ while getopts "$optstr" opt; do
       exists keepassxc && leave "KeePassXC $(kpxc_ver) already installed."
       flatpak list | grep -qw KeePassXC && leave "KeePassXC $(keepass_ver) flatpak installed."
       distro_keepassxc
-      ;;
+    ;;
     f )
       exists flatpak || leave "Flatpak is not installed."
       flatpak list | grep -qw KeePassXC && leave "KeePassXC $(keepass_ver) flatpak installed."
       exists keepassxc && remove_keepassxc
       flathub_keepassxc
-      ;;
+    ;;
     h )
       help 0
-      ;;
+    ;;
     m )
       move_vault
-      ;;
+    ;;
     r )
       if exists keepassxc || flatpak list | grep -qw KeePassXC; then
         remove_keepassxc
       else
         leave "KeePassXC is not installed."
       fi
-      ;;
+    ;;
     ? )
       printf "%sInvalid option -%s\n" "$red_error" "$OPTARG" >&2
       help 2
   esac
 	noOpt=0
 done
-if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 exit

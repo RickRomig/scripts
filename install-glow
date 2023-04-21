@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.9"
-readonly _updated="11 Apr 2023"
+readonly _version="0.4.10"
+readonly _updated="21 Apr 2023"
 readonly src_list="/etc/apt/sources.list.d/charm.list"
 readonly keyring_dir="/etc/apt/keyrings"
 
@@ -96,31 +96,30 @@ do
   case "$opt" in
     h )
       help 0
-      ;;
+    ;;
     i )
       exists_glow && leave "Glow $(glow_ver) is already installed."
       user_in_sudo
       echo "${lightyellow}Installing Glow markdown reader...${normal}"
       install_glow
-      ;;
+    ;;
     r )
       exists_glow || leave "Glow is not installed."
       user_in_sudo
       remove_glow
-      ;;
+    ;;
     s )
       exists_glow || leave "Glow is not installed."
       user_in_sudo
       src_gpg
       echo "charm.list created, gpg key applied."
-      ;;
+    ;;
     ? )
       echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
       help 2
-      ;;
   esac
 	noOpt=0
 done
-if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit

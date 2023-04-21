@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.5"
-readonly _updated="29 Mar 2023"
+readonly _version="0.1.6"
+readonly _updated="21 Apr 2023"
 
 ## Functions ##
 
@@ -86,26 +86,25 @@ while getopts "$optstr" opt; do
 	case "$opt" in
 		h )
 			help 0
-			;;
+		;;
 		i )
 			exists zoom && printf "Zoom %s is installed.\n" "$(zoom_version)"
 			tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 			trap cleanup EXIT
 			user_in_sudo
 			install_zoom
-			;;
+		;;
 		r )
 			exists zoom || leave "Zoom is not installed."
 			user_in_sudo
 			remove_zoom
-			;;
+		;;
 		? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
 			help 2
-			;;
 	esac
 	noOpt=0
 done
-if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit

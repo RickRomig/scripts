@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.7"
-readonly _updated="29 Mar 2023"
+readonly _version="0.3.8"
+readonly _updated="21 Apr 2023"
 readonly url="https://github.com/marktext/marktext/releases"
 
 ## Functions ##
@@ -108,7 +108,8 @@ optstr=":hiru"
 while getopts "$optstr" opt; do
   case "$opt" in
     h )
-      help 0 ;;
+      help 0
+    ;;
     i )
       exists marktext && leave "Marktext $(marktext_version) is already installed."
       tmp_file=$(mktemp) || die "Failed to create temporary file." 1
@@ -118,11 +119,11 @@ while getopts "$optstr" opt; do
       new_ver="$(newest_version)"
       echo "${lightyellow}Installing MarkText version $new_ver...${normal}"  
       install_marktext
-      ;;
+    ;;
     r )
       exists marktext || leave "Marktext is not installed. Run '$_script -i' to install."
       remove_marktext
-      ;;
+    ;;
     u )
       exists marktext || leave "Marktext is not installed. Run '$_script -i' to install."
       tmp_file=$(mktemp) || die "Failed to create temporary file." 1
@@ -131,13 +132,12 @@ while getopts "$optstr" opt; do
       check_dependencies
       new_ver="$(newest_version)"
       compare_versions
-      ;;
+    ;;
     ? )
       echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
       help 2
-      ;;
   esac
 	noOpt=0
 done
-if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 exit

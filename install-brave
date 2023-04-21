@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.5"
-readonly _updated="11 Apr 2023"
+readonly _version="0.4.6"
+readonly _updated="21 Apr 2023"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 
@@ -106,26 +106,30 @@ optstr=":hipr"
 while getopts "$optstr" opt; do
   case "$opt" in
     h )
-      help 0 ;;
+      help 0
+    ;;
     i )
       exists brave-browser && leave "$(brave_ver) is already installed."
       user_in_sudo
-      install_brave ;;
+      install_brave
+    ;;
     p )
       exists brave-browser || leave "Brave browser is not installed."
       user_in_sudo
       remove_brave
-      remove_configs ;;
+      remove_configs
+    ;;
     r )
       exists brave-browser || leave "Brave browser is not installed."
       user_in_sudo
-      remove_brave ;;
+      remove_brave
+    ;;
     ? )
       printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-      help 2 ;;
+      help 2
   esac
   noOpt=0
 done
-if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 2;fi
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit

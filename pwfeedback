@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.1"
-readonly _updated="29 Mar 2023"
+readonly _version="0.4.2"
+readonly _updated="21 Apr 2023"
 readonly pwfb_dir="/etc/sudoers.d"
 readonly pwfb_file="0pwfeedback"
 
@@ -99,24 +99,24 @@ while getopts "$optstr" opt; do
     e )
       user_in_sudo
       enable_pwfeedback
-      ;;
+    ;;
     d )
       user_in_sudo
       disable_pwfeedback
-      ;;
+    ;;
     h )
       help 0
-      ;;
+    ;;
     s )
       user_in_sudo
       pwfeedback_status
-      ;;
+    ;;
     ? )
       printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
       help 2
   esac
 	noOpt=0
 done
-if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit

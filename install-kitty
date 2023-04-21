@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.7"
-readonly _updated="06 Apr 2023"
+readonly _version="0.1.8"
+readonly _updated="21 Apr 2023"
 readonly kitty_cfg="$HOME/.config/kitty"
 
 ## Functions ##
@@ -98,28 +98,27 @@ while getopts "$optstr" opt; do
       exists kitty || leave "Kitty is not installed."
       printf "Configuring Kitty %s...\n" "$(kitty_version)"
       kitty_config
-      ;;
+    ;;
     h )
       help 0
-      ;;
+    ;;
     i )
       exists kitty && leave "Kitty terminal emulator $(kitty_version) already installed."
       user_in_sudo
       install_kitty
-      ;;
+    ;;
     r )
       exists kitty || leave "Kitty is not installed."
       user_in_sudo
       remove_kitty
-      ;;
+    ;;
     ? )
       printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
       help 2
-      ;;
   esac
 	noOpt=0
 done
-if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 
 exit

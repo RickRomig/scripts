@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.6"
-readonly _updated="16 Apr 2023"
+readonly _version="0.2.7"
+readonly _updated="21 Apr 2023"
 readonly url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -145,7 +145,8 @@ optstr=":hirsu"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		h )
-			help 0 ;;
+			help 0
+    ;;
 		i )
 			exists codium && leave "VSCodium $(codium_ver) is already installed."
       check_dependencies
@@ -156,15 +157,15 @@ while getopts "$optstr" opt; do
       echo "${lightyellow}Installing VSCodium $new_ver...${normal}"
 			install_vscodium
       apply_settings
-      ;;
+    ;;
 		r )
       exists codium || leave "VSCodium is not installed."
       remove_vscodium
-      ;;
+    ;;
 		s )
       exists codium || leave "VSCodium is not installed."
       apply_settings
-      ;;
+    ;;
 		u )
       exists codium || leave "VSCodium is not installed."
       check_dependencies
@@ -173,13 +174,12 @@ while getopts "$optstr" opt; do
 			trap cleanup EXIT
 			new_ver="$(newest_version)"
 			compare_versions
-      ;;
+    ;;
 		? )
       printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
 			help 2
-      ;;
 	esac
 	noOpt=0
 done
-if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 exit

@@ -30,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.4"
-readonly _updated="29 Mar 2023"
+readonly _version="0.4..5"
+readonly _updated="21 Apr 2023"
 
 ## Functions ##
 
@@ -133,7 +133,7 @@ while getopts "$optstr" opt; do
       scan_static_addresses
       scan_dhcp_addresses
       tput cnorm
-      ;;
+      ;
     d )
       check_dependencies
       tput civis
@@ -141,10 +141,10 @@ while getopts "$optstr" opt; do
       echo -e "${underline}${green}IP Address\tHostname${normal}"
       scan_dhcp_addresses
       tput cnorm
-      ;;
+    ;;
     h )
       help 0
-      ;;
+    ;;
     s )
       check_dependencies
       tput civis
@@ -152,15 +152,13 @@ while getopts "$optstr" opt; do
       echo -e "${underline}${green}IP Address\tHostname${normal}"
       scan_static_addresses
       tput cnorm
-      ;;
+    ;;
     ? )
       echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
       help 2
-      ;;
   esac
 	noOpt=0
 done
-if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
-
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 printf "\n%s active addresses discovered in %s.\n\n" "$count" "$(format_time SECONDS)"
 leave "$_script v$_version ($_updated)"

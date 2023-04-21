@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.0"
-readonly _updated="04 Apr 2023"
+readonly _version="0.2.1"
+readonly _updated="21 Apr 2023"
 readonly ytdl_prg="youtube-dl"
 readonly update_script="z-ytdlupdate"
 readonly sed_file="ytdluplog.sed"
@@ -166,7 +166,7 @@ while getopts "$optstr" opt; do
 	case "$opt" in
 		h )
 			help 0
-			;;
+		;;
 		i )
 			[[ -f "$ytdl_location/$ytdl_prg" ]] && leave "$ytdl_prg $(ytdl_version) already installed."
 			user_in_sudo
@@ -174,32 +174,31 @@ while getopts "$optstr" opt; do
 			install_intro
 			dpkg -l | grep -qw youtube-dl && remove_repo_ver
 			install_youtubedl
-			;;
+		;;
 		r )
 			remove_intro
 			dpkg -l | grep -qw youtube-dl && remove_repo_ver
 			[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
 			user_in_sudo
 			remove_youtubedl
-			;;
+		;;
 		u )
 			[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
 			user_in_sudo
 			update_youtubedl
-			;;
+		;;
 		x )
 			dpkg -l | grep -qw youtube-dl || leave "The repo version of $ytdl_prg is not installed."
 			printf "Removing %s installed from the distribution repository.\n" "$ytdl_prg"
 			user_in_sudo
 			remove_repo_ver
-			;;
+		;;
 		? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
 			help 2
-			;;
 	esac
 	noOpt=0
 done
-if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit

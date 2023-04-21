@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.5"
-readonly _updated="29 Mar 2023"
+readonly _version="0.2.6"
+readonly _updated="21 Apr 2023"
 
 ## Functions ##
 
@@ -107,28 +107,29 @@ while getopts "$optstr" opt; do
   case "$opt" in
     h )
       printf "%s help:\n" "$_script"
-      help 0 ;;
+      help 0
+    ;;
     i )
       exists geany && leave "Geany $(geany_version) is already installed."
       user_in_sudo
       install_geany
-      ;;
+    ;;
     r )
       exists geany || leave "Geany is not installed."
       user_in_sudo
       remove_geany
-      ;;
+    ;;
     t )
       exists geany || leave "Geany is not installed."
       clone_themes
       remove_dl_dir
-      ;;
+    ;;
     ? )
       printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-      help 2 ;;
+      help 2
   esac
   noOpt=0
 done
-if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit

@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.5"
-readonly _updated="29 Mar 2023"
+readonly _version="0.3.6"
+readonly _updated="21 Apr 2023"
 
 ## Functions ##
 
@@ -95,22 +95,26 @@ optstr=":hipr"
 while getopts "$optstr" opt; do
   case "$opt" in
     h )
-      help 0 ;;
+      help 0
+    ;;
     i )
       exists homebank && leave "HomeBank $(homebank_ver) is already installed."
-      install_homebank ;;
+      install_homebank
+    ;;
     p )
       exists hombank || leave "HomeBank is not installed."
-      purge_homebank ;;
+      purge_homebank
+    ;;
     r )
       exists hombank || leave "HomeBank is not installed."
-      remove_homebank ;;
+      remove_homebank
+    ;;
     ? )
       echo "${lightred}ERROR:${normal} Invalid option -$OPTARG" >&2
-      help 2 ;;
+      help 2
   esac
 	noOpt=0
 done
-if [ $noOpt = 1 ];then echo "${lightred}ERROR:${normal} No argument passed." >&2;help 1;fi
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 echo "$_script v$_version ($_updated)"
 exit

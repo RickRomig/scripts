@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.4"
-readonly _updated="31 Mar 2023"
+readonly _version="0.2.5"
+readonly _updated="21 Apr 2023"
 readonly mount_location="/media/rick/BU_Drive"
 
 ## Functions ##
@@ -89,29 +89,29 @@ while getopts "$optstr" opt; do
   case "$opt" in
     h )
       help 0
-      ;;
+    ;;
     m )
       if bu_status; then
         printf "No further action necessary.\n"
       else
         mount_bu
       fi
-      ;;
+    ;;
     s )
       bu_status
-      ;;
+    ;;
     u )
       if bu_status; then
         umount_bu
       else
         printf "No further action necessary.\n"
       fi
-      ;;
+    ;;
     ? )
       printf "\e[91mERROR:\e[0m Invalid option -%s\n" "$OPTARG" >&2
-      help 2 ;;
+      help 2
   esac
 	noOpt=0
 done
-if [ $noOpt = 1 ];then printf "%s No argument passed.\n" "$red_error" >&2;help 1;fi
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 exit

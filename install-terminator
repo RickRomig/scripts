@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.2"
-readonly _updated="03 Apr 2023"
+readonly _version="0.6.3"
+readonly _updated="21 Apr 2023"
 readonly term_cfg=$HOME"/.config/terminator"
 
 ## Functions ##
@@ -141,21 +141,25 @@ while getopts "$optstr" opt; do
         teminator_config
         is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg/config"
         leave "Terminator configuration file written."
-      fi ;;
+      fi
+    ;;
     h )
-      help 0 ;;
+      help 0
+    ;;
     i )
       exists terminator && leave "Terminator $(terminator_version) is already installed."
       user_in_sudo
-      install_terminator ;;
+      install_terminator
+    ;;
     r )
       exists terminator || leave "Terminator is not installed."
       user_in_sudo
-      remove_terminator ;;
+      remove_terminator
+    ;;
     ? )
       echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
-      help 2 ;;
+      help 2
     esac
   	noOpt=0
 done
-if [ $noOpt = 1 ];then echo "${lightred}ERROR:${normal} No argument passed." >&2;help 1;fi
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
