@@ -26,10 +26,10 @@ fi
 
 ## Variables ##
 
-local_host="$(uname -n)"; readonly local_host
+readonly local_host="${HOSTNAME:-$(hostname)}"
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.10"
-readonly _updated="31 Mar 2023"
+readonly _version="0.2.11"
+readonly _updated="21 Apr 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 
@@ -62,7 +62,7 @@ transfer() {
   if [[ "$local_host" == "$main_host" ]]; then
     if ping -c 3 "$localnet.$fin_ip" >/dev/null 2>&1; then
       echo "Syncing $main_host to $fin_host ..."
-      sync_main
+      sync_to_fin
       echo $'\n'$"$fin_host synced with $main_host."
     else
       echo $'\n'$"... $fin_host is not on the network."
@@ -70,7 +70,7 @@ transfer() {
   else
     if ping -c 3 "$localnet.$main_ip" >/dev/null 2>&1; then
       echo "Syncing $fin_host to $main_host ..."
-      sync_fin
+      sync_to_main
       echo $'\n'$"$main_host synced with $fin_host."
     else
       echo $'\n'$"... $main_host is not on the network."
@@ -78,7 +78,7 @@ transfer() {
   fi
 }
 
-sync_fin() {
+sync_to_main() {
   echo  $'\n'$"${orange}Syncing Finance directory...${normal}"
   rsync -avzh --delete /home/"$USER"/Documents/Finance/ "$localnet.$main_ip":Documents/Finance/
   exit_status="$?"
@@ -100,7 +100,7 @@ sync_fin() {
   transfer_status "$exit_status"
 }
 
-sync_main() {
+sync_to_fin() {
   echo $'\n'$"${orange}Syncing bash aliases...${normal}"
   rsync -avzh --delete /home/"$USER"/.bash_aliases "$localnet.$fin_ip":
   exit_status="$?"
