@@ -34,6 +34,7 @@ else
 fi
 
 # Declare static variables:
+
 readonly _version="2.3"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
@@ -75,12 +76,9 @@ backup() {
   echo "Checking for sudo privileges..."
   user_in_sudo     # functionlib
 
-  # Making sure user has ownership of the BU_Drive:
-
   printf "Changing ownership of BU_Drive to %s...\n" "$user"
   sudo chown "$user" /media/"${user}"/BU_Drive/
 
-  # Creating machine specific directories:
   printf "Checking for/creating machine specific directories...\n"
   if mkdir -p /media/"$user"/BU_Drive/BU_Backups/"$host"; then
     printf "...Done. BU_Drive is ready.\n"
@@ -124,9 +122,9 @@ backup() {
     touch "/media/$user/BU_Drive/BU_Backups/$host/BU Backup had some errors: $(date)"
 
     printf "There were errors! Try running the command again to correct them.\n" >&2
-    printf "- If errors persist then you may have corrupt files or failing hardware.\n" >&2
+    printf "If errors persist then you may have corrupt files or failing hardware.\n" >&2
     sudo umount /media/"$user"/BU_Drive && printf "BU_Drive unmounted.\n"
-    printf "It's safe to remove the USB drive now.\n"
+    printf "It's now safe to remove the USB drive.\n"
     printf "Backup completed in %s\n" "$(format_time $SECONDS)"
     exit 1
   fi
@@ -146,7 +144,7 @@ restore() {
     exit 1
   fi
 
-  printf $'\n'$"\nBU Restore Function (Version 1.1)\n"
+  printf $'\n'$"\nBU Restore Function (Version %s)\n" "$_version"
   printf $'\n'$"\nWARNING!\n"
   printf "Any new files created in /home since last backup WILL BE DELETED!\n"
   printf "Are you sure you want to restore now? [y/N]\n"
@@ -279,6 +277,7 @@ elif  [[ -n "$1" ]]; then
   exit 1
 fi
 
+check_dependencies
 box "BU -- USB Backup Tool (Version $_version)"
 drive_test
 backup
