@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, Created: 04 Feb 2023
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Comments     : Based on USB Backup Tool (Version 1.1) by Joe Collins. (www.ezeelinux.com)
-# Last updated : 31 Mar 2023
+# Last updated : 22 Apr 2023
 # TODO (Rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -34,34 +34,29 @@ else
 fi
 
 # Declare static variables:
-readonly _version="2.2"
+readonly _version="2.3"
 readonly user=$USER
-readonly host=$HOSTNAME
-
-# Check for less and rsync, install if needed:
-
-echo "Checking for dependencies..."
-check_package rsync   # functionlib
-check_package less    # functionlib
+readonly host="${HOSTNAME:-$(hostname)}"
 
 # Set functions:
 
+check_dependencies() {
+  local packages=( rsync less )
+  check_packages "${packages[@]}"
+}
+
 drive_test() {
-  # This function checks for a usable USB drive.
-
   # Checking for any USB drive:
-
   if [[ ! $(lsblk -S -o  TRAN | grep 'usb') = *usb* ]]; then
-    printf "\nBU Error: No USB drive connected!\n" >&2
+    printf "\n%s No USB drive connected!\n" >&2 "$red_error"
     printf " Check to see that BU_Drive is plugged in.\n" >&2
     printf " Please run 'bu --help' to learn about drive setup.\n" >&2
     exit 1
   fi
 
   # Checking for a USB drive that is setup for BU:
-
   if [[ ! -d /media/"$user"/BU_Drive ]]; then
-    printf "\nBU Error: No USB drive with a partition labeled "BU_Drive!"\n" >&2
+    printf "\n%s No USB drive with a partition labeled "BU_Drive!"\n" >&2 "$red_error"
     printf " The drive(s) you have plugged in are not ready for use with BU.\n" >&2
     printf " Don't launch BU as root or with 'sudo bu.'\n" >&2
     printf " Please run 'bu --help' to learn about drive setup.\n" >&2
@@ -70,7 +65,6 @@ drive_test() {
 
   # Check if the backup drive is mounted. (Romig)
   mounted=$(mount | grep 'BU_Drive')
-  # if [ -z "$mounted" ]; then echo "BU_Drive is not mounted."; exit 1; fi
   [ -z "$mounted" ] && die "BU_Drive is not mounted." 1
 }
 
@@ -91,8 +85,8 @@ backup() {
   if mkdir -p /media/"$user"/BU_Drive/BU_Backups/"$host"; then
     printf "...Done. BU_Drive is ready.\n"
   else
-    printf "\nBU Error: Could not create directory for %s!\n" >&2 "$host"
-    printf "- Backup aborted. Check the status of the BU_Drive.\n" >&2
+    printf "\n%s Could not create directory for %s!\n" >&2 "$red_error" "$host"
+    printf "Backup aborted. Check the status of the BU_Drive.\n" >&2
     exit 1
   fi
 
@@ -110,13 +104,15 @@ backup() {
 
     # Remove old and create new timestamp file:
     rm -f /media/"$user"/BU_Drive/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
-    touch "/media/$user/BU_Drive/BU_Backups/$host/BU Backup was successful: $(date)"
+    touch "/media/$user/BU_Drive/BU_Backups/$host/BU Backup was successful: $(date '+%F')"
 
     printf "Wait! Syncing Drives...\n"
+    dots "."
     sync
+    kill "$!"
     printf "...done\n"
     sudo umount /media/"$user"/BU_Drive && printf "BU_Drive unmounted.\n"
-    printf "It's safe to remove the USB drive now.\n"
+    printf "It's now safe to remove the USB drive.\n"
     printf "Backup completed in %s\n" "$(format_time $SECONDS)"
     exit
   else
@@ -168,7 +164,9 @@ restore() {
       read -rt 1 -n 10000 discard
       box " Restoration Complete!" "-"
       printf "Wait! Syncing drives...\n"
+      dots "."
       sync
+      kill "$!"
       printf "...Done."
       sudo umount /media/"$user"/BU_Drive && printf "BU_Drive unmounted.\n"
       printf "It's now safe to remove BU_Drive.\n"
@@ -276,7 +274,7 @@ elif [[ "$1" == "--restore" ]]; then
 	drive_test
 	restore
 elif  [[ -n "$1" ]]; then
-  printf "BU Error: Invalid argument.\n" >&2
+  printf "%s Invalid argument.\n" >&2 "$red_error"
   printf "- Try 'bu --help' to see the available commands.\n" >&2
   exit 1
 fi
