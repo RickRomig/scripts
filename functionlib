@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 31 Mar 2023
+# Last updated : 21 Apr 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -18,9 +18,9 @@
 ## Global variables ##
 declare -r TRUE=0
 declare -r FALSE=1
-
-# First three octets of the local network. Assumes a /24 private network.
+red_error=$(printf "\e[91mERROR:\e[0m")
 localnet=$(ip route | awk '/default via/ {print $3}' | sort -u | cut -d'.' -f1,2,3)
+# First three octets of the local network. Assumes a /24 private network.
 
 ## Colors ##
 # Text attributes
@@ -68,8 +68,6 @@ LIGHTPURPLE=$(echo -en "\e[105m")
 LIGHTAQUA=$(echo -en "\e[106m")
 WHITE=$(echo -en "\e[107m")
 DEFAULT=$(echo -en "\e[49m")
-
-declare -r red_error="${lightred}ERROR:${normal}"
 
 ## Functions ##
 
@@ -719,7 +717,6 @@ dots() {
   local len="${#char}"
   (( len > 1 )) && char=${char::1}
   while true; do tput civis;echo -n "."; sleep 0.2; done &
-  trap 'kill $!' SIGTERM SIGKILL
 }
 
 ###############################################################################
@@ -730,5 +727,4 @@ dots() {
 spin() {
   local spinner=( '|' '/' '-' '\' )
   while true; do for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.2; done; done &
-  trap 'kill $!' SIGTERM SIGKILL
 }

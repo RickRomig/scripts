@@ -12,7 +12,6 @@
       local len="${#char}"
       (( len > 1 )) && char=${char::1}
       while true; do tput civis;echo -n "."; sleep 0.2; done &
-      trap 'kill $!' SIGTERM SIGKILL
    }
    ```
 
@@ -37,7 +36,6 @@
    spin() {
       spinner=( '|' '/' '-' '\' )
       while true; do for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.2; done; done &
-      trap 'kill $!' SIGTERM SIGKILL
    }
    ```
 
