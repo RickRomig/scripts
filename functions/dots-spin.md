@@ -19,9 +19,9 @@
 3. **Usage**
 
    ```bash
-   echo -n "Copying files"
+   echo -n "Downloading update..."
    dots
-   for i in {1..10}; do sleep 1; done
+   wget -q -P "$tmp_dir" "$url/$package"
    kill "$!"
    echo ""
    tput cnorm
@@ -35,20 +35,18 @@
 
    ```bash
    spin() {
-     spinner=( '|' '/' '-' '\' )
-     while true; do
-       for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.2; done &
-       trap 'kill $!' SIGTERM SIGKILL
-     done
+      spinner=( '|' '/' '-' '\' )
+      while true; do for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.2; done; done &
+      trap 'kill $!' SIGTERM SIGKILL
    }
    ```
 
 3. **Usage**
 
    ```bash
-   echo "Copying files"
+   echo "Downloading update."
    spin
-   for i in {1..10}; do sleep 1; done
+   wget -q -P "$tmp_dir" "$url/$package"
    kill "$!"
    echo ""
    tput cnorm

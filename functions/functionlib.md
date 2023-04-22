@@ -134,35 +134,14 @@ Global variables are available to the script sourcing the function library.
 
 38. **clone_repo** - Clones a repository from the local Gitea server to the \~/Downloads directory.
 
-39. `dots` - Displays a series of dots to indicate the passage of time while a task is running. The function should be run as a background process and its process should be killed once the task is completed.
-    
-    * Usage:
-      
-      ```
-      echo -n "Copying files"
-      dots &
-      pid=$!
-      Commands...
-      kill $pid
-      echo ""
-      ```
+39. `dots` - Displays a series of dots to indicate the passage of time while a task is running. The function should be run as a background process and its process should be killed once the task is completed. See dots-spin.md for usage example.
 
-40. `spin` - Displays a 'spinning' character to indicate the passage of time while a task is running. The function should be run as a background process and it's process should be killed once the task is completed.
-    
-    * Usage:
-      
-      ```
-      cho -n "Copying files"
-      spin &
-      pid=$!
-      Commands...
-      kill $pid
-      echo ""
-      ```
+40. `spin` - Displays a 'spinning' character to indicate the passage of time while a task is running. The function should be run as a background process and it's process should be killed once the task is completed. See dots-spin.md for usage example.
 
 Richard B. Romig
-20 September 2022
+21 April 2023
 
+* [Gitea](http://192.168.0.16:3000/)
 * [GitHub](https://github.com/RickRomig/)
 * [Rick's Tech Stuff](https://ricktech.wordpress.com)
 * [Twitter (@ludditegeek)](https://twitter.com/ludditegeek)
