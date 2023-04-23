@@ -27,29 +27,28 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.5"
-readonly _updated="21 Apr 2023"
-readonly mount_location="/media/rick/BU_Drive"
+readonly _version="0.2.6"
+readonly _updated="23 Apr 2023"
+readonly mount_point="/media/rick/BU_Drive"
 
 ## Functions ##
 
 mount_bu() {
-  lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
-  printf "\n"
+  printf "The BU_Drive device name is: $(lsblk -fp | awk '/BU_Drive/ {print $1}' | awk -F"/" '{print $NF}')\n"
   read -rp "Enter the device name to mount (Enter to cancel): " usbdrv
   [[ -z "$usbdrv" ]] && leave "Operation canceled."
   user_in_sudo
-  printf "Mounting %s to %s ...\n" "$usbdrv" "$mount_location"
-  [[ -d "$mount_location" ]] || sudo mkdir -p "$mount_location"
-  sudo mount /dev/"$usbdrv" "$mount_location"
-  printf "%s is mounted at %s\n" "$usbdrv" "$(lsblk | awk '/BU_Drive/ {print $NF}')"
+  printf "Mounting %s to %s ...\n" "$usbdrv" "$mount_point"
+  [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
+  sudo mount /dev/"$usbdrv" "$mount_point"
+  printf "Backup drive (/dev/%s) is mounted at %s\n" "$usbdrv" "$(mount | awk '/BU_Drive/ {print $3}')"
 }
 
 umount_bu() {
   usbdrv=$(mount | awk '/BU_Drive/ {print $1}')
   user_in_sudo
-  printf "Unmounting USB Backup drive at %s ...\n" "$mount_location"
-  sudo umount "$mount_location"
+  printf "Unmounting USB Backup drive at %s ...\n" "$mount_point"
+  sudo umount "$mount_point"
   printf "BU_Drive (%s) is unmounted.\n" "$usbdrv"
 }
 
@@ -113,5 +112,5 @@ while getopts "$optstr" opt; do
   esac
 	noOpt=0
 done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; bu_status; help 1; }
 exit
