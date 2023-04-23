@@ -27,18 +27,17 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.6"
+readonly _version="0.2.7"
 readonly _updated="23 Apr 2023"
 readonly mount_point="/media/rick/BU_Drive"
 
 ## Functions ##
 
 mount_bu() {
-  printf "The BU_Drive device name is: $(lsblk -fp | awk '/BU_Drive/ {print $1}' | awk -F"/" '{print $NF}')\n"
-  read -rp "Enter the device name to mount (Enter to cancel): " usbdrv
-  [[ -z "$usbdrv" ]] && leave "Operation canceled."
+  lsblk -fp | awk '/BU_Drive/ {print $1}' | awk -F"/" '{print $NF}' > "$tmp_file"
+  usbdrv=$(cat $tmp_file)
   user_in_sudo
-  printf "Mounting %s to %s ...\n" "$usbdrv" "$mount_point"
+  printf "Mounting backup drive: /dev/%s to %s ...\n" "$usbdrv" "$mount_point"
   [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
   sudo mount /dev/"$usbdrv" "$mount_point"
   printf "Backup drive (/dev/%s) is mounted at %s\n" "$usbdrv" "$(mount | awk '/BU_Drive/ {print $3}')"
@@ -77,11 +76,17 @@ EOL
   exit "$errcode"
 }
 
+cleanup() {
+  [[ -d "$tmp_file" ]] && rm -f "$tmp_file"
+}
+
 ## Execution ##
 
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Mount/Unmount USB Backup drive.\n"
 [[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || die "BU_Drive not attached."
+tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+trap cleanup EXIT
 noOpt=1
 optstr=":hmsu"
 while getopts "$optstr" opt; do
