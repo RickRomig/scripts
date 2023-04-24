@@ -27,15 +27,15 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.8"
-readonly _updated="23 Apr 2023"
+readonly _version="0.2.9"
+readonly _updated="24 Apr 2023"
 readonly mount_point="/media/"$USER"/BU_Drive"
 
 ## Functions ##
 
 mount_bu() {
   lsblk -fs | awk '/BU_Drive/ {print $1}' > "$tmp_file"
-  usbdrv=$(cat $tmp_file)
+  usbdrv=$(cat "$tmp_file")
   user_in_sudo
   printf "Mounting backup drive: /dev/%s to %s ...\n" "$usbdrv" "$mount_point"
   [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
