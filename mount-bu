@@ -27,15 +27,14 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.9"
+readonly _version="0.2.10"
 readonly _updated="24 Apr 2023"
 readonly mount_point="/media/"$USER"/BU_Drive"
 
 ## Functions ##
 
 mount_bu() {
-  lsblk -fs | awk '/BU_Drive/ {print $1}' > "$tmp_file"
-  usbdrv=$(cat "$tmp_file")
+  usbdrv="$(lsblk -fs | awk '/BU_Drive/ {print $1}')"
   user_in_sudo
   printf "Mounting backup drive: /dev/%s to %s ...\n" "$usbdrv" "$mount_point"
   [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
@@ -76,17 +75,11 @@ EOL
   exit "$errcode"
 }
 
-cleanup() {
-  [[ -d "$tmp_file" ]] && rm -f "$tmp_file"
-}
-
 ## Execution ##
 
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Mount/Unmount USB Backup drive.\n"
 [[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || die "BU_Drive not attached."
-tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
-trap cleanup EXIT
 noOpt=1
 optstr=":hmsu"
 while getopts "$optstr" opt; do

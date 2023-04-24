@@ -44,7 +44,6 @@ drive_test() {
 	printf "Checking Backup USB Drive...\n"
 	check_usb || { printf "%s No USB drive connected!\n" >&2 "$red_error"; exit 1;  }
 	bu_drive_label || { printf "%s Invalid partition label. Run 'bu --help' for drive setup information." >&2 "$red_error"; exit 1; }
-	[[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
 	mount_bu
 	bu_drive_fs || { printf "%s Drive must be formatted with EXT4 or XFS." >&2 "$red_error"; exit 1; }
 	printf "Space available on BU_Drive: %s\n" "$(df -h "$mount_point" | tail -n1 | awk '{print $4}')"
@@ -67,9 +66,8 @@ bu_drive_label() {
 
 mount_bu() {
   if ! mount | grep -w BU_Drive; then
-    tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
-    lsblk -fs | awk '/BU_Drive/ {print $1}' > "$tmp_file"
-    usbdrv=$(cat "$tmp_file")
+    usbdrv="$(lsblk -fs | awk '/BU_Drive/ {print $1}')"
+  	[[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
     sudo mount /dev/"$usbdrv" "$mount_point"
   fi
 }
@@ -246,8 +244,6 @@ EOF
 
 # Start timer (Added by R. Romig)
 SECONDS=0
-
-trap cleanup EXIT
 
 # Checking for command line arguments:
 if [[ "$1" == "--help" ]]; then
