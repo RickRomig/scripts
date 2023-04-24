@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, Created: 04 Feb 2023
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Comments     : Based on USB Backup Tool (Version 1.1) by Joe Collins. (www.ezeelinux.com)
-# Last updated : 22 Apr 2023
+# Last updated : 24 Apr 2023
 # TODO (Rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -33,7 +33,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="3.0"
+readonly _version="3.1"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -43,9 +43,9 @@ readonly mount_point="/media/$user/BU_Drive"
 drive_test() {
 	printf "Checking Backup USB Drive...\n"
 	check_usb || { printf "%s No USB drive connected!\n" >&2 "$red_error"; exit 1;  }
-	[[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
-	check_mount || { printf "%s BU_Drive is not mounted. Run 'mount-bu' to mount the drive.\n" >&2 "$red_error"; exit 1; }
 	bu_drive_label || { printf "%s Invalid partition label. Run 'bu --help' for drive setup information." >&2 "$red_error"; exit 1; }
+	[[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
+	mount_bu
 	bu_drive_fs || { printf "%s Drive must be formatted with EXT4 or XFS." >&2 "$red_error"; exit 1; }
 	printf "Space available on BU_Drive: %s\n" "$(df -h "$mount_point" | tail -n1 | awk '{print $4}')"
 	printf "USB Backup Drive is mounted and meets all criteria.\n"
@@ -53,11 +53,6 @@ drive_test() {
 
 check_usb() {
 	[[ $(lsblk -S -o  TRAN | grep 'usb') = *usb* ]] && return "$TRUE" || return "$FALSE"
-}
-
-check_mount() {
-	mounted=$(mount | grep 'BU_Drive')
-	[[ -n "$mounted" ]] && return "$TRUE" || return "$FALSE"
 }
 
 bu_drive_fs() {
@@ -70,6 +65,15 @@ bu_drive_label() {
 	[[ -n "$bu_label" ]] && return "$TRUE" || return "$FALSE"
 }
 
+mount_bu() {
+  if ! mount | grep -w BU_Drive; then
+    tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+    lsblk -fs | awk '/BU_Drive/ {print $1}' > "$tmp_file"
+    usbdrv=$(cat "$tmp_file")
+    sudo mount /dev/"$usbdrv" "$mount_point"
+  fi
+}
+
 sync_drives() {
 	printf "Wait! Syncing Drives...\n"
 	dots "."
@@ -79,9 +83,6 @@ sync_drives() {
 }
 
 backup() {
-  echo "Checking for sudo privileges..."
-  user_in_sudo
-  
   printf "Changing ownership of BU_Drive to %s...\n" "$user"
   sudo chown "$user" "$mount_point"
 
@@ -246,11 +247,14 @@ EOF
 # Start timer (Added by R. Romig)
 SECONDS=0
 
+trap cleanup EXIT
+
 # Checking for command line arguments:
 if [[ "$1" == "--help" ]]; then
 	help
 	exit
 elif [[ "$1" == "--restore" ]]; then
+  user_in_sudo
 	drive_test
 	check_package rsync
 	restore
@@ -260,6 +264,7 @@ elif [[ -n "$1" ]]; then
   exit 1
 else
 	box "BU -- USB Backup Tool (Version $_version)"
+  user_in_sudo
 	drive_test
 	check_package rsync
 	backup
