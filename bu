@@ -65,7 +65,7 @@ bu_drive_label() {
 }
 
 mount_bu() {
-  if ! mount | grep -qw BU_Drive; then
+  if ! mount | grep -qw BU_Drive > /dev/null 2>&1; then
     usbdrv="$(lsblk -fs | awk '/BU_Drive/ {print $1}')"
   	[[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
     sudo mount /dev/"$usbdrv" "$mount_point"
@@ -77,6 +77,7 @@ sync_drives() {
 	dots "."
 	sync
 	kill "$!"
+  tput cnorm
 	printf "...done\n"
 }
 
