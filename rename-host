@@ -8,6 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Changes the hostname in both /etc/hostname and /etc/hosts.
 #              : antiX/MX Linux: /etc/hosts - 127.0.0.1      hostname
+#              : Rules based on hostname(7) man page
 #              : Hostname length limited to 15 characters for NETBIOS compatibility.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,9 +30,9 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.1"
-readonly _updated="06 Mar 2023"
-readonly old_host=$HOSTNAME
+readonly _version="0.4.2"
+readonly _updated="25 Apr 2023"
+readonly old_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
 
@@ -65,26 +66,33 @@ while true; do
     name_rules
     continue
   fi
+  # Check new hostname against the rules
   case $new_host in
     -* )
       echo $'\n'$"${lightred}Cannot start with a hypen${normal}" >&2
       name_rules
-      continue ;;
+      continue
+    ;;
     *- )
       echo $'\n'$"${lightred}Cannot end with a hyphen${normal}" >&2
       name_rules
-      continue ;;
+      continue
+    ;;
     [0-9]* )
       echo $'\n'$"${lightred}Cannot start with a digit${normal}" >&2
       name_rules
-      continue ;;
+      continue
+    ;;
     *[^a-zA-Z0-9-]* )
       echo $'\n'$"${lightred}Cannot contain special characters${normal}" >&2
       name_rules
-      continue ;;
-    * ) ;;
+      continue
+    ;;
+    * )
+  ;;
   esac
-  new_host=$(echo "$new_host" | awk '{print tolower($0)}')
+  # Compare new hostname with the old hostname
+  new_host=$(echo "${new_host,,}")
   if [[ "$new_host" == "$old_host" ]]; then
     echo "${lightred}Hostnames are the same.${normal}" >&2
     name_rules
