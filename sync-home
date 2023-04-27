@@ -2,9 +2,9 @@
 #############################################################################
 # Script Name  : sync-home
 # Description  : Synchronize ~/homepage with ~/Dropbox/homepage
-# Dependencies : none
+# Dependencies : rsync zip
 # Arguments    : none
-# Author       : Richard B. Romig, 24 Sep 2019
+# Author       : Copyright © 2023 Richard B. Romig, 24 Sep 2019
 # Email        : rick.romig@gmail.com
 # Comments     :
 # TODO (Rick)  :
@@ -20,53 +20,46 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
 
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.1"
-readonly _updated="11 Aug 2022"
-
-readonly start_dir=$PWD
-readonly homepage_dir=$HOME"/homepage"
+readonly _version="0.5.0"
+readonly _updated="27 Apr 2023"
+readonly homepage_dir=$HOME"/Documents/homepage"
 readonly dropbox_dir=$HOME"/Dropbox/homepage/"
 
 ## Functions ##
 
+check_dependencies() {
+  local packages=( rsync zip )
+  check_packages "${packages[@]}"
+}
+
+rm_bu_files() {
+  printf "\nRemoving backup files (if any)...\n"
+  find "$homepage_dir"/ -name "*~" -delete
+  find "$homepage_dir"/ -maxdepth 1 -type f -name "*.bak" -exec rm{} \;
+}
+
+update_zip_file() {
+  printf "Updating homepage archive...\n"
+  rm "$homepage_dir"/homepage.zip
+  zip -q "$homepage_dir"/homepage.zip "$homepage_dir"/*
+}
+
 ## Execution ##
 
+check_dependencies
 # Start timer
 SECONDS=0
-
-# check_package sshpass
-
-echo "${green}$_script v$_version $_updated)${normal}"
-echo "Synchronizes ~/homepage directory with Dropbox."
-
-# Move to homepage directory
-if [[ "$start_dir" != "$homepage_dir" ]]; then
-  pushd "$homepage_dir" > /dev/null 2>&1 || die "pushd failed"
-fi
-
-# Remove ~ backup files
-remove_tilde
-
-# Update homepage archive
-echo $'\n'$"${orange}Updating homepage archive...${normal}"
-zip -u homepage.zip ./*
-
-# Sync with Dropbox directory
-echo $'\n'$"${orange}Synchronizing ~/homepage with ~/Dropbox/homepage.${normal}"
-rsync -av --delete . "$dropbox_dir"
-
-# Move back to starting directory
-if [[ "$start_dir" != "$homepage_dir" ]]; then
-  popd > /dev/null 2>&1 || die "popd failed"
-fi
-
-echo $'\n'$"Script completed in $(format_time $SECONDS)"
-
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+rm_bu_files
+update_zip_file
+printf "Synchronizing ~/Documents/homepage with ~/Dropbox/homepage...\n"
+rsync -av --delete "$homepage_dir"/ "$dropbox_dir"/
+printf "\nScript completed in %s\n" "$(format_time $SECONDS)"
 exit
