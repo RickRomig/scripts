@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #############################################################################
 # Script Name  : sync-home
-# Description  : Synchronize ~/homepage with ~/Dropbox/homepage
+# Description  : Synchronize ~/Documents/homepage with ~/Dropbox/homepage
 # Dependencies : rsync zip
 # Arguments    : none
 # Author       : Copyright © 2023 Richard B. Romig, 24 Sep 2019
-# Email        : rick.romig@gmail.com
-# Comments     :
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Creates a zipped archive of the folder's contents.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.0"
-readonly _updated="27 Apr 2023"
+readonly _version="0.5.1"
+readonly _updated="28 Apr 2023"
 readonly homepage_dir=$HOME"/Documents/homepage"
 readonly dropbox_dir=$HOME"/Dropbox/homepage/"
 
@@ -39,8 +39,8 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
-rm_bu_files() {
-  printf "\nRemoving backup files (if any)...\n"
+remove_bu_files() {
+  printf "Removing backup files (if any)...\n"
   find "$homepage_dir"/ -name "*~" -delete
   find "$homepage_dir"/ -maxdepth 1 -type f -name "*.bak" -exec rm{} \;
 }
@@ -54,10 +54,9 @@ update_zip_file() {
 ## Execution ##
 
 check_dependencies
-# Start timer
 SECONDS=0
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-rm_bu_files
+printf "%s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
+remove_bu_files
 update_zip_file
 printf "Synchronizing ~/Documents/homepage with ~/Dropbox/homepage...\n"
 rsync -av --delete "$homepage_dir"/ "$dropbox_dir"/
