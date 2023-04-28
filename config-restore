@@ -5,7 +5,7 @@
 # Dependencies : none
 # Arguments    : none
 # Author       : Copyright (C) 2019,Richard B. Romig, 14 April 2019
-# Email        : rick.romig@gmail.com
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.3"
-readonly _updated="04 Apr 2023"
+readonly _version="0.4.4"
+readonly _updated="28 Apr 2023"
 readonly bu_dir=$HOME"/.config/backup"
 PS3="Select option: "
 
@@ -36,28 +36,10 @@ count=0
 
 ## Functions ##
 
-res_atom() {
-  printf "\nAtom config.cson"
-  if [[ -f "$bu_dir/.atom/config.cson" ]]; then
-    cp -p "$bu_dir/.atom/config.cson" "$HOME/.atom/" && (( count++ ))
-    printf " restored from the backup directory.\n"
-  else
-    printf " not found in the backup directory.\n"
-  fi
-  printf "Atom styles.less"
-  if [[ -f "$bu_dir/.atom/styles.less" ]]; then
-    cp -p "$bu_dir/.atom/styles.less" "$HOME/.atom/" && (( count++ ))
-    printf " restored from the backup directory.\n"
-  else
-    printf " not found in the backup directory.\n"
-  fi
-  anykey
-}
-
 res_aliases() {
   printf "\n.bash_aliases"
   if [[ -f "$bu_dir/.bash_aliases" ]]; then
-    cp -p "$bu_dir/.bash_aliases" "$HOME/" && (( count++ ))
+    cp -p "$bu_dir/.bash_aliases" "$HOME/" && count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -68,7 +50,18 @@ res_aliases() {
 res_bashrc() {
   printf "\n.bashrc"
   if [[ -f "$bu_dir/.bashrc" ]]; then
-    cp -p "$bu_dir/backup_dir/.bashrc" "$HOME/" && (( count++ ))
+    cp -p "$bu_dir/backup_dir/.bashrc" "$HOME/" && count=1
+    printf " restored from the backup directory.\n"
+  else
+    printf " not found in the backup directory.\n"
+  fi
+  anykey
+}
+
+res_bash_logout() {
+  printf "\n.bash_logout"
+  if [[ -f "$bu_dir/.bash_logut" ]]; then
+    cp -p "$bu_dir/.bash_logut" "$HOME/" && count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -79,7 +72,7 @@ res_bashrc() {
 res_bash_profile() {
   printf "\n.bash_profile"
   if [[ -f "$bu_dir/.bash_profile" ]]; then
-    cp -p "$bu_dir/.bash_profile" "$HOME/" && (( count++ ))
+    cp -p "$bu_dir/.bash_profile" "$HOME/" && count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -90,7 +83,8 @@ res_bash_profile() {
 res_bat_config() {
   printf "\nBat config"
   if [[ -f "$bu_dir/bat/config" ]]; then
-    cp -pv "$bu_dir/bat/config" "/$HOME/.config/bat/" && (( count++ ))
+    cp -pv "$bu_dir/bat/config" "/$HOME/.config/bat/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -101,7 +95,8 @@ res_bat_config() {
 res_bluefish() {
   printf "\nBluefish rcfile"
   if [[ -f "$bu_dir/.bluefish/rcfile-2.0" ]]; then
-   cp -p "$bu_dir/.bluefish/rcfile-2.0" "$HOME/.bluefish/" && (( count++ ))
+   cp -p "$bu_dir/.bluefish/rcfile-2.0" "$HOME/.bluefish/"
+   count=1
    printf " restored from the backup directory.\n"
  else
    printf " not found in the backup directory.\n"
@@ -115,7 +110,7 @@ res_cinnamon_keybindings() {
     if [[ -f "$bu_dir/$cinn_kb" ]]; then
       dconf load /org/cinnamon/desktop/keybindings/ < "$bu_dir/$cinn_kb"
       dconf dump /org/cinnamon/desktop/keybindings/ > "/$HOME/.config/$cinn_kb"
-      (( count++ ))
+      count=1
     else
       printf "\nCinnamon Keybindings not found in the backup directdory."
     fi
@@ -130,7 +125,8 @@ res_clipit() {
   if bunsenlabs; then
     printf "\nclipitrc"
     if [[ -f "$bu_dir/clipit/clipitrc" ]]; then
-      cp -p "bu_dir/clipit/clipitrc" "$HOME/.config/clipit/" && (( count++ ))
+      cp -p "bu_dir/clipit/clipitrc" "$HOME/.config/clipit/"
+      count=1
       printf " restored from the backup directory.\n"
     else
       printf " not found in the backup directory.\n"
@@ -145,7 +141,8 @@ res_conky() {
   # BunsenLabs
   printf "\nconky.conf"
   if [[ -f "$bu_dir/conky/conky.conf" ]]; then
-    cp -p "$bu_dir/conky/conky.conf" "$HOME/" && (( count++ ))
+    cp -p "$bu_dir/conky/conky.conf" "$HOME/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -156,7 +153,8 @@ res_conky() {
 res_conkyrc() {
   printf "\n.conkyrc"
   if [[ -f "$bu_dir/.conkyrc" ]]; then
-    cp -p "$bu_dir/.conkyrc" "$HOME/" && (( count++ ))
+    cp -p "$bu_dir/.conkyrc" "$HOME/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -167,7 +165,8 @@ res_conkyrc() {
 res_face() {
   printf "\n.face"
   if [[ -f "$bu_dir/.face" ]]; then
-    cp -p "$bu_dir/.face" "$HOME/" && (( count++ ))
+    cp -p "$bu_dir/.face" "$HOME/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -178,7 +177,8 @@ res_face() {
 res_gitconfig() {
   printf "\n.gitconfig"
   if [[ -f "$bu_dir/.gitconfig" ]]; then
-    cp -p "$bu_dir/.gitconfig" "$HOME/" && (( count++ ))
+    cp -p "$bu_dir/.gitconfig" "$HOME/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -189,7 +189,8 @@ res_gitconfig() {
 res_gitcredentials() {
   printf "\n.git-credentials"
   if [[ -f "$bu_dir/.git-credentials" ]]; then
-    cp -p "$bu_dir/.git-credentials" "$HOME/" && (( count++ ))
+    cp -p "$bu_dir/.git-credentials" "$HOME/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -200,7 +201,8 @@ res_gitcredentials() {
 res_gorilla() {
   printf "\n.gorillarc"
   if [[ -f "$bu_dir/.gorillarc" ]]; then
-    cp -p "$bu_dir/.gorillarc" "$HOME/" && (( count++ ))
+    cp -p "$bu_dir/.gorillarc" "$HOME/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -212,7 +214,8 @@ res_keepassxc() {
   local kpxc_ini="keepassxc.ini"
   printf "\n%s" "$kpxc_ini"
   if [[ -f "$bu_dir/keepassxc/$kpxc_ini" ]]; then
-    cp -p "$bu_dir/keepassxc/$kpxc_ini" "$HOME/.config/keepassxc/" && (( count++ ))
+    cp -p "$bu_dir/keepassxc/$kpxc_ini" "$HOME/.config/keepassxc/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -224,7 +227,8 @@ res_marktext() {
   local pref_file="preferences.json"
   printf "\nMark-Text %s" "$pref_file"
   if [[ -f "$bu_dir/marktext/$pref_file" ]]; then
-    cp -p "$bu_dir/marktext/$pref_file" "$HOME/.config/marktext/" && (( count++ ))
+    cp -p "$bu_dir/marktext/$pref_file" "$HOME/.config/marktext/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -235,14 +239,16 @@ res_marktext() {
 res_micro() {
   printf "\n Micro settings.json"
   if [[ -f "$bu_dir/micro/settings.json" ]]; then
-    cp -p "$bu_dir/micro/settings.json" "$HOME/micro" && (( count++ ))
+    cp -p "$bu_dir/micro/settings.json" "$HOME/micro"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
   fi
   printf "Micro bindings.json"
   if [[ -f "$bu_dir/micro/bindings.json" ]]; then
-    cp -p "$bu_dir/micro/bindings.json" "$HOME/micro" && (( count++ ))
+    cp -p "$bu_dir/micro/bindings.json" "$HOME/micro"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -254,10 +260,12 @@ res_nanorc() {
   local nano_rc="nanorc"
   if [[ -f "$bu_dir/.nanorc" ]]; then
     nano_rc=".nanorc"
-    cp -p "$bu_dir/.nanorc" "$HOME/" && (( count++ ))
+    cp -p "$bu_dir/.nanorc" "$HOME/"
+    count=1
     printf "%s restored from the backup directory.\n" "$nano_rc"
   elif [[ -f "$bu_dir/nano/nanorc" ]]; then
-    cp -p "$bu_dir/nano/nanorc" "$HOME/.config/nano" && (( count++ ))
+    cp -p "$bu_dir/nano/nanorc" "$HOME/.config/nano"
+    count=1
     printf "%s restored from the backup directory.\n" "$nano_rc"
   else
     printf "%s not found in the backup directory.\n" "$nano_rc"
@@ -269,7 +277,8 @@ res_neofetch() {
   local neofetch_dir="$HOME/.config/neofetch"
   if [[ -f "$bu_dir/neofetch/config.conf" || -f "$bu_dir/neofetch/config" ]]; then
     [[  -f "$bu_dir/neofetch/config" ]] && neo_cfg="config" || neo_cfg="config.conf"
-    cp -p "$bu_dir/neofetch/$neo_cfg" "$neofetch_dir/" && (( count++ ))
+    cp -p "$bu_dir/neofetch/$neo_cfg" "$neofetch_dir/"
+    count=1
     printf "Neofetch %s restored from the backup directory.\n" "$neo_cfg"
   else
     printf "Neofetch config not found in the backup directory.\n"
@@ -280,7 +289,8 @@ res_neofetch() {
 res_profile() {
   printf "\n.profile"
   if [[ -f "$bu_dir/.profile" ]]; then
-    cp -p "$bu_dir/.profile" "$HOME/" && (( count++ ))
+    cp -p "$bu_dir/.profile" "$HOME/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -292,7 +302,8 @@ res_sysinfo() {
   local lhost=$HOSTNAME
   printf "\n%s.info" "$lhost"
   if [[ -f "$bu_dir/$lhost.info" ]]; then
-    cp -p "$bu_dir/$lhost.info" "$HOME/" && (( count++ ))
+    cp -p "$bu_dir/$lhost.info" "$HOME/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -303,7 +314,8 @@ res_sysinfo() {
 res_terminator() {
   printf "\nTerminator config"
   if [[ -f "$bu_dir/terminator/config" ]]; then
-    cp -p "$bu_dir/terminator/config" "$HOME/.config/terminator/" && (( count++ ))
+    cp -p "$bu_dir/terminator/config" "$HOME/.config/terminator/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -315,7 +327,8 @@ res_xbindkeysrc() {
   if bunsenlabs; then
     printf "\n.xbindkeysrc"
     if [[ -f "$bu_dir/.xbindkeysrc" ]]; then
-      cp -p "$bu_dir/.xbindkeysrc" "$HOME/" && (( count++ ))
+      cp -p "$bu_dir/.xbindkeysrc" "$HOME/"
+      count=1
       printf " restored from the backup directory.\n"
     else
       printf " not found in the backup directory.\n"
@@ -329,7 +342,8 @@ res_xbindkeysrc() {
 res_i3config() {
   printf "\ni3 config"
   if [[ -f "$bu_dir/i3/config" ]]; then
-    cp -p "$bu_dir/i3/config" "$HOME/.config/i3/" && (( count++ ))
+    cp -p "$bu_dir/i3/config" "$HOME/.config/i3/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -340,7 +354,8 @@ res_i3config() {
 res_i3status() {
   printf "\ni3status.con"
   if [[ -f "$bu_dir/i3/i3status.conf" ]]; then
-    cp -p "$bu_dir/i3/i3status.conf" "$HOME/.config/i3/" && (( count++ ))
+    cp -p "$bu_dir/i3/i3status.conf" "$HOME/.config/i3/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -351,7 +366,8 @@ res_i3status() {
 res_rofi_config() {
   printf "\nRofi config.rasi"
   if [[ -f "$bu_dir/rofi/config.rasi" ]]; then
-    cp -p "$bu_dir/rofi/config.rasi" "$HOME/.config/rofi/" && (( count++ ))
+    cp -p "$bu_dir/rofi/config.rasi" "$HOME/.config/rofi/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -362,7 +378,8 @@ res_rofi_config() {
 res_rofi_theme() {
   printf "\nRofi Arc-Dark.rasi"
   if [[ -f "$bu_dir/rofi/Arc-Dark.rasi" ]]; then
-    cp -p "$bu_dir/rofi/Arc-Dark.rasi" "$HOME/.config/rofi/" && (( count++ ))
+    cp -p "$bu_dir/rofi/Arc-Dark.rasi" "$HOME/.config/rofi/"
+    count=1
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
@@ -374,14 +391,16 @@ res_geany() {
   local geany_dir="$HOME/.config/geany"
   printf "\ngeany.conf"
   if [[ -f "$bu_dir/geany/geany.conf" ]]; then
-    cp -p "$bu_dir/geany/geany.conf" "$geany_dir/" && (( count++ ))
+    cp -p "$bu_dir/geany/geany.conf" "$geany_dir/"
+    count=1
     printf " restored from the backup directory./n"
   else
     printf " not found in the backup directory./n"
   fi
   printf "Geany keybindings.conf"
   if [[ -f "$bu_dir/geany/keybindings.conf" ]]; then
-    cp -p "$bu_dir/geany/keybindings.conf" "$geany_dir/" && (( count++ ))
+    cp -p "$bu_dir/geany/keybindings.conf" "$geany_dir/"
+    count=1
     printf " restored from the backup directory./n"
   else
     printf " not found in the backup directory./n"
@@ -393,7 +412,8 @@ res_vscodium() {
   local vscodium_dir="$HOME/.config/VSCodium/User"
   printf "\nVSCodium settings.json"
   if [[ -f "$bu_dir/VSCodium/settings.json" ]]; then
-    cp -p "$bu_dir/VSCodium/settings.json" "$vscodium_dir/" && (( count++ ))
+    cp -p "$bu_dir/VSCodium/settings.json" "$vscodium_dir/"
+    count=1
     printf " restored from the backup directory./n"
   else
     printf " not found in the backup directory./n"
@@ -405,7 +425,8 @@ res_kitty() {
   local kitty_dir="$HOME/.config/kitty"
   printf "\nkitty.conf"
   if [[ -f "$bu_dir/kitty/kitty.conf" ]]; then
-    cp -p "$bu_dir/kitty/kitty.conf" "$kitty_dir/" && (( count++ ))
+    cp -p "$bu_dir/kitty/kitty.conf" "$kitty_dir/"
+    count=1
     printf " restored from the backup directory./n"
   else
     printf " not found in the backup directory./n"
@@ -444,8 +465,8 @@ main_menu() {
 # System configuration files
 sys_cfgs() {
 	while true; do
-		local options=(".bashrc" ".bash_aliases" ".bash_profile" ".profile" ".face" \
-		"neofetch" "Cinnamon keybindings" ".conkyrc" "System Info" "Main Menu")
+		local options=(".bashrc" ".bash_aliases" ".bash_logout" ".bash_profile" ".profile" \
+		".face" "neofetch" "Cinnamon keybindings" ".conkyrc" "System Info" "Main Menu")
 		clear
 		COLUMNS=60
     printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
@@ -454,14 +475,15 @@ sys_cfgs() {
 			case "$REPLY" in
 				1 ) res_bashrc; break ;;
 				2 ) res_aliases; break ;;
-				3 ) res_bash_profile; break ;;
-				4 ) res_profile;  break ;;
-				5 ) res_face; break ;;
-				6 ) res_neofetch; break ;;
-				7 ) res_cinnamon_keybindings; break ;;
-				8 ) res_conkyrc; break ;;
-				9 ) res_sysinfo; break ;;
-				10 ) main_menu; break ;;
+        3 ) res_bash_logout; break ;;
+				4 ) res_bash_profile; break ;;
+				5 ) res_profile;  break ;;
+				6 ) res_face; break ;;
+				7 ) res_neofetch; break ;;
+				8 ) res_cinnamon_keybindings; break ;;
+				9 ) res_conkyrc; break ;;
+				10 ) res_sysinfo; break ;;
+				11 ) main_menu; break ;;
 				* ) echo "${lightred}Invalid choice${normal}" >&2
 			esac
 		done
@@ -471,21 +493,20 @@ sys_cfgs() {
 # Editor configuration files
 ed_cfgs() {
 	while true; do
-		local options=("Atom" "Bluefish" "Geany" "Mark Text" "Micro" "Nano" "VSCodium" "Main Menu")
+		local options=("Bluefish" "Geany" "Mark Text" "Micro" "Nano" "VSCodium" "Main Menu")
 		clear
 		COLUMNS=60
     printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
 		printf "\nEditor Configurations\n"
 		select opt in "${options[@]}"; do
 			case "$REPLY" in
-				1 ) res_atom; break ;;
-				2 ) res_bluefish; break ;;
-        3 ) res_geany; break ;;
-				4 ) res_marktext; break ;;
-				5 ) res_micro; break ;;
-				6 ) res_nanorc; break ;;
-        7 ) res_vscodium; break ;;
-				8 ) main_menu; break ;;
+				1 ) res_bluefish; break ;;
+				2 ) res_geany; break ;;
+        3 ) res_marktext; break ;;
+				4 ) res_micro; break ;;
+				5 ) res_nanorc; break ;;
+				6 ) res_vscodium; break ;;
+        7 ) main_menu; break ;;
 				* ) echo "${lightred}Invalid choice${normal}" >&2
 			esac
 		done
