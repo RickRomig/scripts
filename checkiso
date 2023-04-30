@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.8"
-readonly _updated="04 Apr 2023"
+readonly _version="0.3.9"
+readonly _updated="29 Apr 2023"
 readonly isofile="$1"
 readonly checksum="$2"
 readonly checksums_match="${green}The checksums match.${normal}"
@@ -44,7 +44,7 @@ usage() {
   printf "%s <distro.iso> <checksum.txt>\n" "$_script"
   printf "Should be run from the directory where the ISO and checksum files are located.\n"
   printf "The checksum text file should consist of one line containing the checksum for that ISO.\n"
-  printf "\U1F427 %s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
+  printf "%s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -102,7 +102,7 @@ elif [[ -f "$isofile" && -f "$checksum" ]]; then
           check_code=1
         fi
         exit_msg "$check_code"
-        ;;
+      ;;
       2 )
         printf "Comparing checksums. This may take a while.\n"
         if check_md5 "$isofile" "$checksum"; then
@@ -113,11 +113,11 @@ elif [[ -f "$isofile" && -f "$checksum" ]]; then
           check_code=1
         fi
         exit_msg "$check_code"
-        ;;
+      ;;
       3 )
         printf "Exiting - No action taken\n"
         exit_msg "0"
-        ;;
+      ;;
       * )
         printf "%s Invalid choice:\n1) = SHA256\n2) = MD5\n3) = Exit\n" "$red_error" >&2
     esac
