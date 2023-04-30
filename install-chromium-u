@@ -3,7 +3,7 @@
 # Script Name  : install-chromium-u
 # Description  : Installs the ungoogled-chromium browser
 # Dependencies : None
-# Arguments    : None
+# Arguments    : See help function
 # Author       : Copyright (C) 2020, Richard B. Romig, 05 Jul 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Debian bullseye, Ubuntu focal & derivatives.
@@ -24,40 +24,90 @@ else
   exit 1
 fi
 
+## Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _script
+readonly _version="0.4.0 - beta"
+readonly _updated="29 Apr 2023"
+readonly source_list="/etc/apt/sources.list.d/home-ungoogled_chromium.list"
+readonly trusted_gpg="/etc/apt/trusted.gpg.d/home_ungoogled_chromium.gpg"
+
 ## Functions ##
 
-main() {
-  _script=$(basename "$0"); local _script
-  local _script
-  local _version="0.3.4"
-  local _updated="11 Apr 2023"
-
-  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-  printf "Installs the ungoogled chromium browser on Debian and Ubuntu-based systems./n"
-  ver_code=$(lsb_release --codename --short)
-  case $ver_code in
-    bullseye )
-      user_in_sudo
-      install_ungoogled_chrome
-      ;;
-    * )
-      leave "$ver_code: Distribution is not supported."
-  esac
+uc_version() {
+  ungoogled_chromium -- version # need to get proper command
 }
 
 install_ungoogled_chrome() {
   local repo_url="deb http://download.opensuse.org/repositories/home:/ungoogled_chromium/Debian_Bullseye/ /"
-  local source_list="/etc/apt/sources.list.d/home-ungoogled_chromium.list"
   local key_url="https://download.opensuse.org/repositories/home:/ungoogled_chromium/Debian_Bullseye/Release.key"
-  local trusted_gpg="/etc/apt/trusted.gpg.d/home_ungoogled_chromium.gpg"
-
+  
+  user_in_sudo
   echo "$repo_url" | sudo tee "$source_list" > /dev/null
   curl -fsSL "$key_url" | gpg --dearmor | sudo tee "$trusted_gpg" > /dev/null
   sudo apt-get update
   sudo apt-get install ungoogled-chromium
-  leave "ungoogled-chromium installed."
+  leave "ungoogled-chromium $(uc_version) installed."
+}
+
+remove_ungoogle_chrome() {
+  sudo apt-get purge ungoogled-chrome
+  [[ -f "$source_list" ]] && sudo rm "$source_list"
+  [[ -f "$trusted_gpg" ]] && sudo rm "$trusted_gpg"
+  printf "ungoogled-chrome removed.\n"
+}
+
+distro_check() {
+  ver_code=$(lsb_release --codename --short)
+  case $ver_code in
+    bullseye )
+      return "$TRUE"
+    ;; 
+    * )
+      return "$FALSE"
+  esac
+}
+
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+	-h	Display help
+	-i	Install application
+	-r	Remove application
+END_HELP
+	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
 }
 
 ## Execution ##
 
-main
+  printf "Installs the ungoogled chromium browser on Debian and Ubuntu-based systems./n"
+
+noOpt=1
+optstr=":hir"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		h )
+			help 0
+		;;
+		i )
+			exists ungoogled-chrome && leave "ungoogled-chrome $(uc_version) is already installed."
+      if distro_check; then install_ungoogled_chrome; else leave "$ver_code: Distribution is not supported."; fi
+			install_ungoogled_chrome
+		;;
+		r )
+			exists ungoogled-chrome || leave "ungoogled-chrome is not installed."
+			remove_ungoogled_chrome
+		;;
+		? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			help 2
+	esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+exit
