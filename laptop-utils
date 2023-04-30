@@ -20,14 +20,14 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2;exit 1
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2; exit 1
 fi
 
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.5.3"
-readonly _updated="21 Apr 2023"
+readonly _version="1.5.4"
+readonly _updated="29 Apr 2023"
 
 ## Funtions ##
 
@@ -50,7 +50,8 @@ ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
   -h  Display help.
   -i  Install laptop utilities.
-  -s  Display installed utilities.
+  -l  Display installed utilities.
+  -s  Start TLP service
 END_HELP
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
@@ -125,11 +126,11 @@ tlp_service() {
     sudo systemctl start tlp.service
     sudo systemctl mask systemd-rfkill.service
     sudo systemctl mask systemd-rfkill.socket
-    printf "TLP service enabled and started.\n"
+    printf "The tlp service is enabled and started.\n"
   elif is_sysv; then
     user_in_sudo
     start tlp start
-    printf "TLP service started.\n"
+    printf "The tlp service is started.\n"
   else
     printf "Init system is not systemd or SysV.\n"
     printf "Manually start the TLP service.\n"
@@ -144,11 +145,25 @@ util_status() {
   installed touchpad-indicator && printf "    Touchpad Indicator\n"
 }
 
+start_tlp() {
+  if is_systemd; then
+    if systemctl status tlp | grep -qw active; then
+      printt "The tlp service is active.\n"
+    fi
+  elif is_sysv; then
+    if is_service tlp status | grep -qw runnning; then
+      print "The tlp service is running.\n"
+    fi
+  else
+    tlp_service
+  fi
+}
+
 ## Execution ##
 
 is_laptop || die "System is not a laptop." 1
 noOpt=1
-optstr=":his"
+optstr=":hils"
 while getopts "$optstr" opt; do
   case "$opt" in
     h )
@@ -158,9 +173,12 @@ while getopts "$optstr" opt; do
       intro
       main
     ;;
-    s )
+    l )
       intro
       util_status
+    ;;
+    s )
+      start_tlp
     ;;
     ? )
       printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
