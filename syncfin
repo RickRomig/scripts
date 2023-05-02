@@ -28,8 +28,8 @@ fi
 
 readonly local_host="${HOSTNAME:-$(hostname)}"
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.12"
-readonly _updated="26 Apr 2023"
+readonly _version="0.2.13"
+readonly _updated="01 May 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 
@@ -91,11 +91,6 @@ sync_to_main() {
 
   echo  $'\n'$"${orange}Syncing HomeBank Archives..${normal}"
   rsync -avzh --delete /home/"$USER"/Downloads/archives/homebank/ "$localnet.$main_ip":Downloads/archives/homebank/
-  exit_status="$?"
-  transfer_status "$exit_status"
-
-  echo $'\n'$"${orange}Syncing .local/share/doc...${normal}"
-  rsync -avzh --delete /home/"$USER"/.local/share/doc/ "$localnet.$main_ip":.local/share/doc/
   exit_status="$?"
   transfer_status "$exit_status"
 }
