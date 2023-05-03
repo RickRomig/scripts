@@ -30,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.1"
-readonly _updated="16 Jan 2023"
+readonly _version="0.4.2"
+readonly _updated="03 May 2023"
 
 ## Functions ##
 
@@ -42,7 +42,13 @@ check_dependencies() {
 
 nvme_temperature() {
   nvme_temp=$(/usr/bin/sensors | awk '/Composite/ {print $2}' | sed 's/^+//')
-  echo "${orange}NVME temperature:${normal} $nvme_temp"
+  echo -e "${orange}NVME${normal}\n$nvme_temp"
+}
+
+hdd_temperature() {
+  sensors | grep -w drivetemp >/dev/null 2>&1 || sudo modprobe drivetemp
+  echo "${orange}SATA SSD/HDD${normal}"
+  sensors | awk '/\(low / {print $2}' | sed 's/^+//'
 }
 
 cpu_temperature(){
@@ -51,7 +57,7 @@ cpu_temperature(){
     [[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^CPU/ {print $2}')
     [[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^Core 0:/ {print $3}')
     [[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^temp1:/ {print $2}')
-    echo $'\n'$"${orange}CPU temperature:${normal} $(echo "$cpu_temp" | sed 's/^+//')"
+    echo -e "${orange}CPU${normal}\n$(echo "$cpu_temp" | sed 's/^+//')"
   else
     echo $'\n'$"SCPU temperature is not avaliable." >&2
   fi
@@ -84,8 +90,10 @@ main() {
   echo -e "Kernel Version:\t$(uname -sr)${normal}\n"
   memory_usage
   cpu_usage
+  echo $'\n'$"${orange}Temperatures:${normal}"
   cpu_temperature
   [[ -b /dev/nvme0n1 ]] && nvme_temperature
+  [[ -b /dev/sda ]] && hdd_temperature
   disk_usage
   echo $'\n'$"The system has been $(uptime -p)"
   echo $'\n'$"$_script $_version ($_updated)"
