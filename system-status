@@ -58,7 +58,7 @@ cpu_temperature(){
 	cpu_temp=$(/usr/bin/sensors | awk '/^Package/ {print $4}')
 	[[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^CPU/ {print $2}')
 	[[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^Core 0:/ {print $3}')
-	[[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^temp1:/ {print $2}')
+	[[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^temp1:/ && /\(high/ {print $2}')
 	printf "\n%s%-21s%s%s\n" "$orange" "CPU temperature:" "$normal" "$(echo "$cpu_temp" | sed 's/^+//')"
 }
 
