@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 #####################################################################
 # Script Name  : check-status
-# Description  : Provides a snapshot of system resources
+# Description  : Displays a snapshot of system resources
 # Dependencies : lm-sensors, sensors
 # Arguments    : none
 # Author       : Copyright (C) 2018,Richard Romig, 17 November 2018
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comment      : Inspired by Joe Collins <https://www.ezeeLinux.com>
+# Comments     : Inspired by Joe Collins <https://www.ezeeLinux.com>
 #              : and Luke Smith <https://lukesmith.xyz>
 # 13 Feb 2022  : Added `-x fuse.portal` to df command to eliminate this error:
 #              : df: /run/user/1000/doc: Operation not permitted
-# 16 Jan 2023  : added NVMe & HDD temperatures & moved routines into functions.
 # License      : GNU General Public License, version 2.0
 #####################################################################
 
@@ -30,75 +29,74 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.2"
-readonly _updated="03 May 2023"
+readonly _version="0.5.0"
+readonly _updated="04 May 2023"
 
 ## Functions ##
 
 check_dependencies() {
-  echo "Checking dependencies..."
-  [[ -x /usr/bin/sensors ]] || sudo apt-get install lm-sensors -yy
+  if [[ -x /usr/bin/sensors ]]; then
+  	printf "lm-sensors - OK\n"
+  elif sudo apt-get install lm-sensors -yy; then
+  	printf "lm-sensors - OK\n"
+  else
+  	die "lm-sensors cannot be installed." 1
+	fi
+	sleep 2
 }
 
 nvme_temperature() {
-  nvme_temp=$(/usr/bin/sensors | awk '/Composite/ {print $2}' | sed 's/^+//')
-  echo -e "${orange}NVME${normal}\n$nvme_temp"
+  printf "%s%-21s%s%s\n" "$orange" "NVME temperature:" "$normal" "$(/usr/bin/sensors | awk '/Composite/ {printf $2 " "}' | sed 's/+//g')"
 }
 
 hdd_temperature() {
   sensors | grep -w drivetemp >/dev/null 2>&1 || sudo modprobe drivetemp
-  echo "${orange}SATA SSD/HDD${normal}"
-  sensors | awk '/\(low / {print $2}' | sed 's/^+//'
+  printf "%s%-21s%s%s\n" "$orange" "SSD/HDD temperature:" "$normal" "$(/usr/bin/sensors | awk '/\(low / {printf $2 " "}' | sed 's/+//g')"
 }
 
 cpu_temperature(){
-  if [[ -x /usr/bin/sensors ]]; then 
-    cpu_temp=$(/usr/bin/sensors | awk '/^Package/ {print $4}')
-    [[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^CPU/ {print $2}')
-    [[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^Core 0:/ {print $3}')
-    [[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^temp1:/ {print $2}')
-    echo -e "${orange}CPU${normal}\n$(echo "$cpu_temp" | sed 's/^+//')"
-  else
-    echo $'\n'$"SCPU temperature is not avaliable." >&2
-  fi
+	cpu_temp=$(/usr/bin/sensors | awk '/^Package/ {print $4}')
+	[[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^CPU/ {print $2}')
+	[[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^Core 0:/ {print $3}')
+	[[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^temp1:/ {print $2}')
+	printf "\n%s%-21s%s%s\n" "$orange" "CPU temperature:" "$normal" "$(echo "$cpu_temp" | sed 's/^+//')"
 }
 
 memory_usage() {
-  echo "${orange}Memory usage:${normal} $(/usr/bin/free -h | awk '/^Mem:/ {print $3 "/" $2}')"
-  echo -e "Process\t\tPercentage"
+	printf "\n%sMemory usage:%s %s\n" "$orange" "$normal" "$(/usr/bin/free -h | awk '/^Mem:/ {print $3 "/" $2}')"
+  printf "Process\t\tPercentage\n"
   ps axch -o cmd:15,%mem --sort=-%mem | head -n 10
 }
 
 cpu_usage() {
-  echo $'\n'$"${orange}CPU usage:${normal}"
-  echo -e "Process\t\tPercentage"
+	printf "\n%sCPU usage:%s\n" "$orange" "$normal"
+  printf "Process\t\tPercentage\n"
   ps axch -o cmd:15,%cpu --sort=-%cpu | head -n 10
 }
 
 disk_usage() {
-  echo $'\n'$"${orange}Disk usage:${normal}"
-  # prints 1st line of df outuput and lines beginning with `/`
+	printf "\n%sDisk usage:%s\n" "$orange" "$normal"
   df -hT -x fuse.portal | sed -n '1p;/^\//p'
 }
 
 main() {
-  check_dependencies
-  clear
-  echo "${lightyellow}System Status${normal}"
-  echo -e "${orange}Computer name:\t$(uname -n)"
-  echo -e "Distribution:\t$(get_distribution)"
-  echo -e "Kernel Version:\t$(uname -sr)${normal}\n"
+  printf "%sSystem Status%s\n" "$lightyellow" "$normal"
+  printf "%sComputer name:\t%s\n" "$orange" "$(uname -n)"
+  printf "Distribution:\t%s\n" "$(get_distribution)"
+  printf "Kernel Version:\t%s%s\n" "$(uname -sr)" "$normal"
   memory_usage
   cpu_usage
-  echo $'\n'$"${orange}Temperatures:${normal}"
   cpu_temperature
-  [[ -b /dev/nvme0n1 ]] && nvme_temperature
+  [[ -c /dev/nvme0 ]] && nvme_temperature
   [[ -b /dev/sda ]] && hdd_temperature
   disk_usage
-  echo $'\n'$"The system has been $(uptime -p)"
-  echo $'\n'$"$_script $_version ($_updated)"
+  printf "\nThe system has been %s\n" "$(/usr/bin/uptime -p)"
+  printf "\n%s %s (%s)\n" "$_script" "$_version" "$_updated"
   exit
 }
 
 ## Execution ##
+
+check_dependencies
+clear
 main
