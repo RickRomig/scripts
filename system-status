@@ -2,7 +2,7 @@
 #####################################################################
 # Script Name  : check-status
 # Description  : Displays a snapshot of system resources
-# Dependencies : lm-sensors, sensors
+# Dependencies : jq, lm-sensors, sensors
 # Arguments    : none
 # Author       : Copyright (C) 2018,Richard Romig, 17 November 2018
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.2"
-readonly _updated="04 May 2023"
+readonly _version="0.5.3"
+readonly _updated="05 May 2023"
 
 ## Functions ##
 
@@ -42,7 +42,7 @@ check_dependencies() {
   else
   	die "lm-sensors cannot be installed." 1
 	fi
-	sleep 2
+  check_package jq
 }
 
 nvme_temperature() {
@@ -55,11 +55,17 @@ hdd_temperature() {
 }
 
 cpu_temperature(){
-	cpu_temp=$(/usr/bin/sensors | awk '/^Package/ {print $4}')
-	[[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^CPU/ {print $2}')
-	[[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^Core 0:/ {print $3}')
-	[[ -z "$cpu_temp" ]] && cpu_temp=$(/usr/bin/sensors | awk '/^temp1:/ && /\(high/ {print $2}')
-	printf "\n%s%-21s%s%s\n" "$orange" "CPU temperature:" "$normal" "$(echo "$cpu_temp" | sed 's/^+//')"
+	json="$(sensors -j)"
+	if sensors | grep -q 'k10temp-pci-00c3'; then
+		cpu_temp=$(echo "$json" | jq -r '."k10temp-pci-00c3"."temp1"."temp1_input"')
+	elif sensors | grep -q 'dell_smm-virtual-0'; then
+		cpu_temp=$(echo "$json" | jq -r '."dell_smm-virtual-0"."CPU"."temp1_input"')
+	elif sensors | grep -q 'Package id 0'; then
+		cpu_temp=$(echo "$json" | jq -r '."coretemp-isa-0000"."Package id 0"."temp1_input"')
+	else
+		cpu_temp=$(echo "$json" | jq -r '."coretemp-isa-0000"."Core 0"."temp2_input"')
+	fi
+	printf "\n%s%-21s%s%2.1f\U2103\n" "$orange" "CPU temperature:" "$normal" "$cpu_temp"
 }
 
 memory_usage() {
