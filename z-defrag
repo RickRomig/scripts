@@ -7,38 +7,37 @@ set -e
 # Run as root user.
 # Place in /etc/cron.monthly/ for anacron jobs.
 # Place in /usr/local/bin/ or /opt/bin/ for cron jobs.
-# Last updated: 17 Apri 2023
-# Version 1.2.1
+# Last updated: 06 May 2023
+# Version 1.2.2
 # Copyright (C) 2021-2023, Richard B. Romig
 # License : GNU General Public License, version 2.0
 
 log_dir="/var/log"
 log_file="defrag.log"
-log_date=$(date '+%a %F %R')
+host_name=$(/usr/bin/uname -n)
 
-if [ -b /dev/sda ]; then
-	{
-    for i in /dev/sd[a-z]; do
-    	d=$(basename "$i")
-    	if [ "$(cat /sys/block/"${d}"/queue/rotational)" != 0 ]; then
-    		d=$(echo "$d" | tr '[:lower:]' '[:upper:]')
-    		printf "%s - Defrag Report for %s:\n\n" "$log_date" "$d" 
-    		if [ -d '/' ] && [ -d /home ]; then
-        	/usr/sbin/e4defrag -c / /home
-      	elif [ -d /home ]; then
-       		/usr/sbin/e4defrag -c /home
-      	elif  [ -d /data ]; then
-        	/usr/sbin/e4defrag -c /data
-      	else
-       		/usr/sbin/e4defrag -c /
-      	fi
-			fi
-	  done
-		printf "\n"
-	} > "$log_dir/$log_file" 2>&1
-	if [ -f "$log_dir/$log_file" ]; then
-		sed -i '/^e4defrag/d;/0-30/d;/^ Done/d' "$log_dir/$log_file"
-	fi
+{
+	printf "Defrag Report: %s\n\n" "$(date '+%a %F %R')"
+	case "$host_name" in
+		e-475m|hp-mini-110 )
+			printf "SSD - e4defrag not run.\n"
+		;;
+		hp-860-g3 )
+			printf "NVMe - e4defrag not run,\n"
+		;;
+		hp-6005 )
+			/usr/sbin/e4defrag -c / /home /data
+		;;
+		hp-800g2-sff )
+			# e4defrag not run on /dev/sda (SSD)
+			/usr/sbin/e4defrag -c /home
+		;;
+		* )
+			/usr/sbin/e4defrag -c / /home
+	esac
+	printf "\n"
+} > "$log_dir/$log_file" 2>&1
+if [ -f "$log_dir/$log_file" ]; then
+	sed -i '/^e4defrag/d;/0-30/d;/^ Done/d' "$log_dir/$log_file"
 fi
-
 exit
