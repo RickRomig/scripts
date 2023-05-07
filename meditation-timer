@@ -24,15 +24,15 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.1"
-readonly _updated="04 Apr 2023"
+readonly _version="0.4.2"
+readonly _updated="07 May 2023"
 readonly med_time="${1:-20}"
 readonly sound_dir="$HOME/bin/files"
 readonly sound_one="Tibetan_bowl.wav"
-readonly sound_two="Low-Wood-Block.wav"
+# readonly sound_two="Low-Wood-Block.wav"
 
 ## Functions ## 
 
@@ -93,7 +93,7 @@ main_timer() {
     # interval=$(( interval - hours ))
     # weeks=$(( interval / 604800 ))
     printf "\t%02d:%02d:%02d\r" "$hours" "$minutes" "$seconds"
-    [[ $(( sec_rem % 300 )) -eq 0 && "$sec_rem" -gt 0 ]] && play_sound "$sound_dir/$sound_two"
+    # [[ $(( sec_rem % 300 )) -eq 0 && "$sec_rem" -gt 0 ]] && play_sound "$sound_dir/$sound_two"
     sleep 1
   done
 }
@@ -107,7 +107,7 @@ clear
 # ovol=$(get_volume)
 # Set playback volume
 # vol=50; set_volume "$vol"
-printf "\n\t\U2638  Meditation Timer \U2638\n\n"
+printf "\n\t\U2638 Meditation Timer \U2638 \n\n"
 screensaver_off
 countdown
 play_sound "$sound_dir/$sound_one"
