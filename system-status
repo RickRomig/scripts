@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.3"
-readonly _updated="05 May 2023"
+readonly _version="0.5.4"
+readonly _updated="07 May 2023"
 
 ## Functions ##
 
@@ -42,20 +42,23 @@ check_dependencies() {
   else
   	die "lm-sensors cannot be installed." 1
 	fi
+  if [[ -b /dev/sda ]]; then
+    sensors | grep -qw drivetemp || sudo modprobe drivetemp
+  fi
   check_package jq
 }
 
 nvme_temperature() {
-  printf "%s%-21s%s%s\n" "$orange" "NVME temperature:" "$normal" "$(/usr/bin/sensors | awk '/Composite/ {printf $2 " "}' | sed 's/+//g')"
+  sensors | grep -q 'nvme-pci-0300' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "NVME temperature:" "$normal" "$(echo "$json" | jq -r '."nvme-pci-0300"."Composite"."temp1_input"')"
 }
 
 hdd_temperature() {
-  sensors | grep -w drivetemp >/dev/null 2>&1 || sudo modprobe drivetemp
-  printf "%s%-21s%s%s\n" "$orange" "SSD/HDD temperature:" "$normal" "$(/usr/bin/sensors | awk '/\(low / {printf $2 " "}' | sed 's/+//g')"
+	sensors | grep -q 'drivetemp-scsi-0-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-0-0"."temp1"."temp1_input"')"
+	sensors | grep -q 'drivetemp-scsi-1-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-1-0"."temp1"."temp1_input"')"
+	sensors | grep -q 'drivetemp-scsi-2-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-2-0"."temp1"."temp1_input"')"
 }
 
 cpu_temperature(){
-	json="$(sensors -j)"
 	if sensors | grep -q 'k10temp-pci-00c3'; then
 		cpu_temp=$(echo "$json" | jq -r '."k10temp-pci-00c3"."temp1"."temp1_input"')
 	elif sensors | grep -q 'dell_smm-virtual-0'; then
@@ -65,7 +68,7 @@ cpu_temperature(){
 	else
 		cpu_temp=$(echo "$json" | jq -r '."coretemp-isa-0000"."Core 0"."temp2_input"')
 	fi
-	printf "\n%s%-21s%s%2.1f\U2103\n" "$orange" "CPU temperature:" "$normal" "$cpu_temp"
+	printf "\n%s%-21s%s%2.1f\U2103 \n" "$orange" "CPU temperature:" "$normal" "$cpu_temp"
 }
 
 memory_usage() {
@@ -104,5 +107,6 @@ main() {
 ## Execution ##
 
 check_dependencies
+json="$(sensors -j)"
 clear
 main
