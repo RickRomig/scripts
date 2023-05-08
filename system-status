@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.4"
-readonly _updated="07 May 2023"
+readonly _version="0.5.5"
+readonly _updated="08 May 2023"
 
 ## Functions ##
 
@@ -50,21 +50,21 @@ check_dependencies() {
 }
 
 nvme_temperature() {
-  sensors | grep -q 'nvme-pci-0300' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "NVME temperature:" "$normal" "$(echo "$json" | jq -r '."nvme-pci-0300"."Composite"."temp1_input"')"
+  echo "$json" | grep -q 'nvme-pci-0300' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "NVME temperature:" "$normal" "$(echo "$json" | jq -r '."nvme-pci-0300"."Composite"."temp1_input"')"
 }
 
 hdd_temperature() {
-	sensors | grep -q 'drivetemp-scsi-0-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-0-0"."temp1"."temp1_input"')"
-	sensors | grep -q 'drivetemp-scsi-1-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-1-0"."temp1"."temp1_input"')"
-	sensors | grep -q 'drivetemp-scsi-2-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-2-0"."temp1"."temp1_input"')"
+	echo "$json" | grep -q 'drivetemp-scsi-0-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-0-0"."temp1"."temp1_input"')"
+	echo "$json" | grep -q 'drivetemp-scsi-1-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-1-0"."temp1"."temp1_input"')"
+	echo "$json" | grep -q 'drivetemp-scsi-2-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-2-0"."temp1"."temp1_input"')"
 }
 
 cpu_temperature(){
-	if sensors | grep -q 'k10temp-pci-00c3'; then
+	if echo "$json" | grep -q 'k10temp-pci-00c3'; then
 		cpu_temp=$(echo "$json" | jq -r '."k10temp-pci-00c3"."temp1"."temp1_input"')
-	elif sensors | grep -q 'dell_smm-virtual-0'; then
+	elif echo "$json" | grep -q 'dell_smm-virtual-0'; then
 		cpu_temp=$(echo "$json" | jq -r '."dell_smm-virtual-0"."CPU"."temp1_input"')
-	elif sensors | grep -q 'Package id 0'; then
+	elif echo "$json" | grep -q 'Package id 0'; then
 		cpu_temp=$(echo "$json" | jq -r '."coretemp-isa-0000"."Package id 0"."temp1_input"')
 	else
 		cpu_temp=$(echo "$json" | jq -r '."coretemp-isa-0000"."Core 0"."temp2_input"')
