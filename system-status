@@ -44,6 +44,7 @@ check_dependencies() {
 	fi
   if [[ -b /dev/sda ]]; then
     sensors | grep -qw drivetemp || sudo modprobe drivetemp
+    grep -qw drivetemp /etc/modules || echo drivetemp | sudo tee -a /etc/modules
   fi
   check_package jq
 }
