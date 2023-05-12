@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.6"
-readonly _updated="21 Apr 2023"
+readonly _version="0.1.7"
+readonly _updated="12 May 2023"
 
 ## Functions ##
 
@@ -62,11 +62,11 @@ zoom_version() {
 install_zoom() {
 	local url="https://zoom.us/client/latest"
 	local pkg="zoom_amd64.deb"
-	printf "Dowloading Zoom ...\n"
+	printf "Dowloading Zoom ..."
   dots "."
 	wget -q -P "$tmp_dir" "$url/$pkg"
   kill "$!"
-	printf "\nInstalling the latest version of Zoom...\n";tput cnorm
+	printf "done\nInstalling the latest version of Zoom...\n";tput cnorm
 	sudo gdebi -n "$tmp_dir/$pkg"
 	sudo apt-get install -f
 	printf "Zoom %s is installed.\n" "$(zoom_version)"
