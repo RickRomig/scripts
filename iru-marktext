@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.8"
-readonly _updated="21 Apr 2023"
+readonly _version="0.3.9"
+readonly _updated="12 May 2023"
 readonly url="https://github.com/marktext/marktext/releases"
 
 ## Functions ##
@@ -67,13 +67,13 @@ compare_versions() {
 
 install_marktext() {
   new_pkg="marktext-amd64.deb"
-  echo "Downloading Mark Text markdown editor from the marktext GitHub repository..."
+  printf "Downloading Mark Text markdown editor (v %s) from the marktext GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$url/download/v$new_ver/$new_pkg"
-  kill "$!";printf "\n";tput cnorm
-  echo "Installing Mark Text $new_ver..."
+  kill "$!";printf "done\n";tput cnorm
+  printf "Installing Mark Text 5s...\n" "$new_ver"
   sudo gdebi -n "$tmp_dir/$new_pkg"
-  echo "Mark Text $(marktext_version) installed."
+  printf "Mark Text %s installed.\n" "$(marktext_version)"
 }
 
 remove_marktext() {

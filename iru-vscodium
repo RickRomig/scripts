@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.7"
-readonly _updated="21 Apr 2023"
+readonly _version="0.2.8"
+readonly _updated="12 May 2023"
 readonly url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -71,10 +71,10 @@ compare_versions() {
 
 install_vscodium() {
   new_pkg="codium_${new_ver}_amd64.deb"
-  printf "Downloading VSCodium %s from the VSCodium GitHub repository...\n" "$new_ver"
+  printf "Downloading VSCodium %s from the VSCodium GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$url/download/$new_ver/$new_pkg"
-  kill "$!";printf "\n";tput cnorm
+  kill "$!";printf "done\n";tput cnorm
   printf "Installing VSCodium %s...\n" "$new_ver"
   user_in_sudo
   sudo gdebi -n "$tmp_dir/$new_pkg"
