@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : system-info
 # Description  : Gathers system information and writes to a file in home directory
-# Dependencies : dmidecode, hdparm, lshw, tune2fs, upower, nvme-cli
+# Dependencies : dmidecode, hdparm, lshw, tune2fs, nvme-cli
 # Arguments    : none
 # Author       : Copyright (C) 2022, Richard B. Romig, 15 Jul 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.2.7"
-readonly _updated="02 May 2023"
+readonly _version="3.2.8"
+readonly _updated="13 May 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -47,20 +47,22 @@ cleanup() {
 }
 
 save_info() {
-  echo $'\n'$"Save system information to ~/$(basename "$info_file")?"
+  printf "\nSave system information to ~/%s?\n" "$(basename "$info_file")"
   PS3="Choice: "
   select opt in "Yes" "No"; do
     case $REPLY in
       1 )
-        echo "Writing system information to ~/$(basename "$info_file")"
+        printf "Writing system information to ~/%s\n" "$(basename "$info_file")"
         cp -v "$tmp_file" "$info_file"
         chmod 664 "$info_file"
-        break ;;
+        break
+      ;;
       2 )
-        echo "System information was not written to ~/$(basename "$info_file")."
-        break ;;
+        printf "System information was not written to ~/%s\n" "$(basename "$info_file")"
+        break
+      ;;
       * )
-        echo "${lightred}Invalid choice!${normal} 1 = Yes | 2 = No" >&2
+        printf "%s Invalid choice! Select 1 for Yes, 2 for No\n" >&2 "$red_error"
     esac
   done
 }
@@ -68,27 +70,31 @@ save_info() {
 rename_mnt_pt() {
   local ts_path="/run/timeshift/backup"
   ts_drv=$(mount | awk '/timeshift/ {print $3}' | cut -d' ' -f1)
-  echo $'\n'$"Rename the mountpoint for $ts_drv to:"
+  printf "\nRename the mountpoint for %s to:\n" "$ts_drv"
   PS3="Select the appropriate mountpoint: "
   select opt in "/home" "/data" "/ (root)" "/run/timeshift/backup"; do
     case $REPLY in
       1 )
         sed -i '/timeshift/s/run\/timeshift\/backup/home/' "$tmp_file"
-        echo "$ts_drv mountpoint changed to /home"
-        break ;;
+        printf "%s mountpoint changed to /home\n" "$ts_drv"
+        break
+      ;;
       2 )
         sed -i '/timeshift/s/run\/timeshift\/backup/data/' "$tmp_file"
-        echo "$ts_drv mountpoint changed to /data"
-        break ;;
+        printf "%s mountpoint changed to /data\n" "$ts_drv"
+        break
+      ;;
       3 )
         sed -i '/timeshift/s/run\/timeshift\/backup//' "$tmp_file"
-        echo "$ts_drv mountpoint changed to /"
-        break ;;
+        printf "%s mountpoint changed to /]n" "$ts_drv"
+        break
+      ;;
       4 )
-        echo "$ts_drv mountpoint left as $ts_path."
-        break ;;
+        printf "%s mountpoint left as is." "$ts_drv"
+        break
+      ;;
       * )
-        echo "${lightred}Invalid choice!${normal} Choose 1, 2, 3, or 4" >&2
+        printf "%s Invalid choice! Select 1, 2, 3, or 4\n" >&2 "$red_error"
     esac
   done
 }
@@ -99,11 +105,23 @@ ff_fix() {
   options=( "2.5 inch" "3.5 inch" "less than 1.8 inch" "ignore")
   select opt in "${options[@]}"; do
     case "$REPLY" in
-      1 ) hd_ff="2.5 inch"; break ;;
-      2 ) hd_ff="3.5 inch"; break ;;
-      3 ) hd_ff="less than 1.8 inch"; break ;;
-      4 ) break ;;
-      * ) echo "${lightred}Invalid choice!${normal} Choose 1, 2, 3, or 4" >&2
+      1 )
+        hd_ff="2.5 inch"
+        break
+      ;;
+      2 )
+        hd_ff="3.5 inch"
+        break
+      ;;
+      3 )
+        hd_ff="less than 1.8 inch"
+        break
+      ;;
+      4 )
+        break
+      ;;
+      * )
+        printf "%s Invalid choice!$ Choose 1, 2, 3, or 4\n1" >&2 "$red_error"
     esac
   done
 }
@@ -142,8 +160,7 @@ mem_info() {
 }
 
 graphics_info() {
-	video=$(/usr/bin/lspci | awk -F: '/VGA/ {print $NF}' | sed 's/^ //')
-	printf "%-9s %s\n" "Graphics:" "$video"
+	printf "%-9s %s\n" "Graphics:" "$(/usr/bin/lspci | awk -F: '/VGA/ {print $NF}' | sed 's/^ //')"
 }
 
 wired_info() {
@@ -171,18 +188,14 @@ hd_info() {
 	hd_data=$(mktemp -q) || die "Failed to create temporary file." 1
 	for disk in /dev/sd[a-z]; do
 		sudo hdparm -I "${disk}" 2>/dev/null | tee "$hd_data" > /dev/null
-		hd_dev=$(grep -w dev "$hd_data")
-		hd_model=$(awk -F: '/Model/ {print $NF}' "$hd_data" | sed 's/^ *//g')
-   	hd_serial=$(awk -F: '/Serial N/ {print $NF}' "$hd_data" | sed 's/^ *//g')
-    hd_size=$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | sed 's/[)(]//g')
+    printf "%s\n" "$(grep -w dev "$hd_data")"
+    printf "   %-15s%s\n" "Model Number:" "$(awk -F: '/Model/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
+    printf "   %-15s%s\n" "Serial Number:" "$(awk -F: '/Serial N/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
+    printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | sed 's/[)(]//g')"
     hd_ff=$(awk -F: '/Form Factor/ {print $NF}' "$hd_data" | sed 's/^ //')
     [[ -z "$hd_ff" ]] && ff_fix
-    hd_rpm=$(awk -F: '/Rotation/ {print $NF}' "$hd_data" | sed 's/^ //')
-    printf "%s\n" "$hd_dev"
-    printf "   %-15s%s\n" "Model Number:" "$hd_model"
-    printf "   %-15s%s\n" "Serial Number:" "$hd_serial"
-    printf "   %-15s%s\n" "Capacity:" "$hd_size"
     printf "   %-15s%s" "Form Factor:" "$hd_ff"
+    hd_rpm=$(awk -F: '/Rotation/ {print $NF}' "$hd_data" | sed 's/^ //')
     case "$hd_rpm" in
     	[0-9]* ) printf " %s-rpm Hard Disk Drive\n" "$hd_rpm" ;;
     	* ) printf " %s\n" "$hd_rpm" ;;
@@ -194,14 +207,10 @@ nvme_info() {
   printf "\nNVMe Information\n"
   nvme_data=$(sudo /usr/sbin/nvme list | tail -n+3)
   for devline in "${nvme_data[@]}"; do
-    nvme_device=$(echo "$devline" | awk '/dev/ {print $1}' | cut -d'/' -f3)
-    nvme_serial=$(echo "$devline" | awk '/dev/ {print $2}')
-    nvme_model=$(echo "$devline" | awk '/dev/ {print $3,$4}' | sed '/ [0-9].$//')
-    nvme_size=$(echo "$devline" | awk '/dev/ {print $(NF-7),$(NF-6)}')
-    printf "%s\n" "$nvme_device"
-    printf "   %-15s%s\n" "Model Number:" "$nvme_model"
-    printf "   %-15s%s\n" "Serial Number:" "$nvme_serial"
-    printf "   %-15s%s\n" "Capacity:" "$nvme_size"
+    printf "%s\n" "$(echo "$devline" | awk '/dev/ {print $1}' | cut -d'/' -f3)"
+    printf "   %-15s%s\n" "Model Number:" "$(echo "$devline" | awk '/dev/ {print $3,$4}' | sed 's/ [0-9].*$//')"
+    printf "   %-15s%s\n" "Serial Number:" "$(echo "$devline" | awk '/dev/ {print $2}')"
+    printf "   %-15s%s\n" "Capacity:" "$(echo "$devline" | awk '/dev/ {print $(NF-7),$(NF-6)}')"
   done
 }
 
@@ -216,15 +225,12 @@ bat_info() {
     battery=$(basename "$battery_path")
     if [[ "$battery" != "BAT?" ]]; then
       bat_data=$(cat /sys/class/power_supply/"${battery}"/uevent)
-      bat_mfgr=$(echo "$bat_data" | awk -F= '/MANUFACTURER/ {print $NF}')
-      bat_model=$(echo "$bat_data" | awk -F= '/MODEL/ {print $NF}')
-      bat_serial=$(echo "$bat_data" | awk -F= '/SERIAL/ {print $NF}')
       bat_tech=$(echo "$bat_data" | awk -F= '/TECHNOLOGY/ {print $NF}')
       [[ -z "${bat_serial// }" ]] && bat_serial="Not specified"
       printf "%s\n" "$battery"
-      printf "   %-15s%s\n" "Manufactuer:" "$bat_mfgr"
-      printf "   %-15s%s\n" "Model name:" "$bat_model"
-      printf "   %-15s%s\n" "Serial number:" "$bat_serial"
+      printf "   %-15s%s\n" "Manufactuer:" "$(echo "$bat_data" | awk -F= '/MANUFACTURER/ {print $NF}')"
+      printf "   %-15s%s\n" "Model name:" "$(echo "$bat_data" | awk -F= '/MODEL/ {print $NF}')"
+      printf "   %-15s%s\n" "Serial number:" "$(echo "$bat_data" | awk -F= '/SERIAL/ {print $NF}')"
       printf "   %-15s%s\n" "Technology:" "$bat_tech"
     else
       printf "No battery detected\n"
