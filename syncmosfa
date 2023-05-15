@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.3.5"
+readonly _version="1.3.6"
 readonly _updated="04 May 2023"
 
 ## Functions ##
@@ -175,13 +175,13 @@ sync_one() {
   if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
     # Restricted IP addresses on local network
     case $hostip in
-      1|2|3|4|5|6|7|8|9|21|22|24|25|227 )
+      1|2|3|4|5|6|7|8|9|21|22|24|25|153|227 )
         echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted address."
         echo -e " Access denied.\n"; exit ;;
       * )
         echo "Synchronizing directories with $localnet.$hostip:"
         sync_script
-        all_done ;;
+        all_done
     esac
   else
     echo -n "${orange}Warning!${normal} $localnet.$hostip is outside the range"
@@ -196,12 +196,13 @@ sync_some() {
     if [[ "$hostip" -eq "$hostip" ]] 2>/dev/null; then
       if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
         case "$hostip" in
-          1|2|3|4|5|6|7|8|9|21|22|24|25|227 )
+          1|2|3|4|5|6|7|8|9|21|22|24|25|153|227 )
             echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted"
-            echo -e " address. Access denied.\n" ;;
+            echo -e " address. Access denied.\n"
+          ;;
           * )
             transfer
-            (( xfr_flag++ )) ;;
+            (( xfr_flag++ ))
         esac
       elif [[ "$hostip" -gt 25 && "$hostip" -lt 255 ]]; then
         echo -n "${orange}Warning!${normal} $localnet.$hostip is outside the range"
@@ -243,25 +244,23 @@ check_host() {
         "yes" )
           echo $'\n'$"Continuing with the script..."
           shopt -u nocasematch
-          break ;;
+          break
+        ;;
         "no" )
           echo $'\n'$"Synchronization canceled."
           shopt -u nocasematch
-          leave "Exiting the script..." ;;
+          leave "Exiting the script..."
+        ;;
         * )
-          echo "${lightred}Invalid choice.${normal} Enter Yes or No" ;;
+          echo "${lightred}Invalid choice.${normal} Enter Yes or No"
       esac
     done
   fi
 }
 
-check_dependencies() {
-  check_package rsync
-}
-
 ## Execution ##
 
-check_dependencies
+check_package rsync
 clear
 box "$_script v$_version, ($_updated)"
 check_host
