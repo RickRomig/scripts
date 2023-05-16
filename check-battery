@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.1"
-readonly _updated="05 Apr 2023"
+readonly _version="0.3.2"
+readonly _updated="15 May 2023"
 
 ## Functions ##
 
@@ -39,9 +39,8 @@ help() {
   ${green}Usage:${normal} $_script [option]
   With no argument, displays battery health information.
   ${orange}OPTIONS:${normal}
-  -h        # displays this help message.
-  --help    # displays this help message.
-  --version # displays the version and information about the script.
+  -h  --help    # displays this help message.
+  -v  --version # displays the version and information about the script.
   $_script $_version, Updated: $_updated
 EOF
   exit "$errcode"
@@ -110,11 +109,10 @@ ac_status() {
 hidpp_battery() {
   echo $'\n'$"${orange}HID++ Battery:${normal}"
   if /usr/bin/upower -e | grep -q mouse_hidpp_battery; then
-    hidpp_data=$(mktemp) || die "Failed to create temporary file." 1
-    /usr/bin/upower -i "$(/usr/bin/upower -e | grep hidpp)" > "$hidpp_data"
-    echo "    Device: $(awk '/native-path/ {print $NF}' "$hidpp_data")"
-    echo -n "    $(awk '/model/ {print $NF}' "$hidpp_data"):   "
-    awk '/percentage/ {print $NF}' "$hidpp_data"
+    hidpp_data=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep hidpp)")
+    echo "    Device: $(echo "$hidpp_data" | awk '/native-path/ {print $NF}')"
+    echo -n "    $(echo "$hidpp_data" | awk '/model/ {print $NF}'):   "
+    echo "$hidpp_data" | awk '/percentage/ {print $NF}'
   else
     echo "    No HID++ battery detected."
   fi
@@ -125,9 +123,16 @@ hidpp_battery() {
 clear
 if [[ $# -gt 0 ]]; then
   case "$1" in
-    -h|--help ) help 0 ;;
-    -v|--version ) version; exit ;;
-    * ) echo "${lightred}Invalid argument:${normal} $1" >&2; help 2 ;;
+    -h|--help )
+      help 0
+    ;;
+    -v|--version )
+      version
+      exit
+    ;;
+    * )
+    echo "${lightred}Invalid argument:${normal} $1" >&2
+    help 2
   esac
 fi
 
