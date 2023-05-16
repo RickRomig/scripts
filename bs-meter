@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.0"
-readonly _updated="19 Mar 2023"
+readonly _version="0.5.1"
+readonly _updated="15 May 2023"
 bs_level=$(shuf -i 0-100 -n 1)
 proc_time=$(shuf -i 1-20 -n 1)
 
@@ -44,10 +44,8 @@ print_header() {
 scale_numbers() {
   local index=0
   printf "%s" "$index"
-  for i in {1..10}
-  do
-    for j in {1..8}
-    do
+  for i in {1..10}; do
+    for j in {1..8}; do
       printf " "
     done
     index=$(( index + 10 ))
@@ -58,10 +56,8 @@ scale_numbers() {
 
 scale_marks() {
   printf "|"
-  for i in {1..10}
-  do
-    for j in {1..9}
-    do
+  for i in {1..10}; do
+    for j in {1..9}; do
       printf "-"
     done
     printf "|"
@@ -72,8 +68,7 @@ scale_marks() {
 print_indicator() {
   local level="$1"
   echo -n "${bold}${orange} "
-  for (( i=0; i <= "$level"; i++ ))
-  do
+  for (( i=0; i <= "$level"; i++ )); do
     echo -n "*"
   done
   echo -e "${normal}\n"
@@ -83,14 +78,29 @@ print_analysis() {
   local level="$1"
   printf "Your statement has been analyzed and found to be %s%% bullshit -- " "$level"
   case "$level" in
-    0 ) printf "absolute truth\n" ;;
-    [1-9] ) printf "very likely true.\n" ;;
-    1[0-9] ) printf "mostly true.\n" ;;
-    [2-4]? ) printf "somewhat true.\n" ;;
-    [5-6]? ) printf "might be false.\n" ;;
-    [7-8]? ) printf "probably false.\n" ;;
-    9[0-9] ) printf "mostly false.\n" ;;
-    * ) printf "absolutely false!\n"
+    0 )
+      printf "absolutely true\n"
+    ;;
+    [1-9] )
+      printf "very likely true.\n"
+    ;;
+    1[0-9] )
+      printf "mostly true.\n"
+    ;;
+    [2-4]? )
+      printf "somewhat true.\n"
+    ;;
+    [5-6]? )
+      printf "might be false.\n"
+    ;;
+    [7-8]? )
+      printf "probably false.\n"
+    ;;
+    9[0-9] )
+      printf "mostly false.\n"
+    ;;
+    * )
+      printf "absolutely false!\n"
   esac
 }
 
@@ -120,7 +130,5 @@ tput cnorm
 print_header
 print_indicator "$bs_level"
 print_analysis "$bs_level"
-
 printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-
 exit
