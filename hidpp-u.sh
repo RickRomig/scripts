@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.8"
-readonly _updated="04 Feb 2023"
+readonly _version="0.2.0"
+readonly _updated="15 May 2023"
 
 ## Functions ##
 
@@ -46,14 +46,12 @@ cleanup() {
 check_package upower
 
 if is_hidpp; then
-  hidpp_data=$(mktemp) || die "Failed to create temporary file." 1
-  trap cleanup EXIT
-  /usr/bin/upower -i "$(/usr/bin/upower -e | grep hidpp)" > "$hidpp_data"
+  hidpp_data=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep hidpp)")
   printf "%-17s%-7s%-8s%s\n" "Device" "Model" "Charge" "Serial number"
-  printf "%-17s%-7s%-8s%s\n" "$(awk '/native-path/ {print $NF}' "$hidpp_data")" \
-  "$(awk '/model/ {print $NF}' "$hidpp_data")" \
-  "$(awk '/percentage/ {print $NF}' "$hidpp_data")" \
-  "$(awk '/serial/ {print $NF}' "$hidpp_data")"
+  printf "%-17s%-7s%-8s%s\n" "$(echo "$hidpp_data"| awk '/native-path/ {print $NF}')" \
+  "$(echo "$hidpp_data"| awk '/model/ {print $NF}')" \
+  "$(echo "$hidpp_data"| awk '/percentage/ {print $NF}')" \
+  "$(echo "$hidpp_data"| awk '/serial/ {print $NF}')"
 else
   printf "No hidpp battery found.\n"
 fi
