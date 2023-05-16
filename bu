@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, Created: 04 Feb 2023
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Comments     : Based on USB Backup Tool (Version 1.1) by Joe Collins. (www.ezeelinux.com)
-# Last updated : 30 Apr 2023
+# Last updated : 15 May 2023
 # TODO (Rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -33,7 +33,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="3.2"
+readonly _version="3.3"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -87,22 +87,18 @@ backup() {
 
   printf "Checking for/creating machine specific directories...\n"
   [[ -d "$mount_point"/BU_Backups/"$host" ]] || mkdir -p "$mount_point"/BU_Backups/"$host"
-	printf "...Done. BU_Drive is ready.\n"
+	printf "BU_Drive is ready.\n"
 
   printf "Backing up /etc and /home to BU_Drive/BU_Backups/%s/...\n" "$host"
-  if sudo rsync -aH --delete --exclude 'timeshift' --exclude '.local/share/libvirt/images' \
-   --info=progress2 /etc /home "$mount_point"/BU_Backups/"$host"/; then
+  if sudo rsync -aH --delete --exclude 'timeshift' --exclude '.local/share/libvirt/images' --info=progress2 /etc /home "$mount_point"/BU_Backups/"$host"/
+  then
     # Clear any accidental input during backup:
     read -rt 1 -n 10000 discard
-
     box "All backed up!" "-"
-
     # Remove old and create new timestamp file:
     rm -f /"$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
     touch "$mount_point/BU_Backups/$host/BU Backup was successful: $(date '+%F')"
-
 		sync_drives
-		
     sudo umount "$mount_point" && printf "BU_Drive unmounted.\n"
     printf "It's now safe to remove the USB drive.\n"
     printf "Backup completed in %s\n" "$(format_time $SECONDS)"
@@ -110,11 +106,9 @@ backup() {
   else
     # Clear any accidental input during backup:
     read -rt 1 -n 10000 discard
-
     # Remove old and create new timestamp file:
     rm -f "$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
     touch "$mount_point/BU_Backups/$host/BU Backup had some errors: $(date '+%F')"
-
     printf "There were errors! Try running the command again to correct them.\n" >&2
     printf "If errors persist then you may have corrupt files or failing hardware.\n" >&2
     sudo umount "$mount_point" && printf "BU_Drive unmounted.\n"
@@ -145,8 +139,7 @@ restore() {
     printf "Close any running applications and press any key to continue.\n"
     read -rn 1 -s
     printf $"\nRestoring /home... Please DO NOT open any applications.\n"
-    if sudo rsync -aH --delete --exclude 'timeshift' --info=progress2 \
-      "$mount_point"/BU_Backups/"$host"/home/ /home/; then
+    if sudo rsync -aH --delete --exclude 'timeshift' --info=progress2 "$mount_point"/BU_Backups/"$host"/home/ /home/; then
       # Prompt user to restart machine and exit:
       # Clear any accidental input during restore:
       read -rt 1 -n 10000 discard
