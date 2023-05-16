@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.5"
-readonly _updated="12 Mar 2023"
+readonly _version="0.2.6"
+readonly _updated="15 May 2023"
 
 ## Functions ##
 
@@ -58,12 +58,14 @@ cat_used() {
 ## Check arguments ##
 
 if [[ $# -eq 0 ]]; then
-  echo "${lightred}ERROR:${normal} No argument passed." >&2
+  # echo "${lightred}ERROR:${normal} No argument passed." >&2
+  printf "%s No argument passed.\n" "$red_error" >&2
   help 2
 elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
   help 0
 elif [[ ! -f "$1" ]]; then
-  echo "${lightred}ERROR:${normal} $1 not found." >&2
+  # echo "${lightred}ERROR:${normal} $1 not found." >&2
+  printf "%s %s not found.\n" "$red_error" "$1" >&2
   help 2
 else
   filename="$1"
