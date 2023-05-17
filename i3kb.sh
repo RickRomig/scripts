@@ -38,7 +38,7 @@ show_bindings() {
 	local binding_path=$HOME"/.config/i3"
 	local binding_list="bindings.list"
 	(printf "Binding|Action|Binding|Action\n"; less "$binding_path/$binding_list") | column -ts "|"
-	}
+}
 
 ## Execution ##
 
