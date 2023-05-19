@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : kitty-kb.sh
 # Description  : Displays kitty keybindings
-# Dependencies : None
+# Dependencies : curl
 # Arguments    : None
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Apr 2023
-# Last updated : 25 Apr 2023
+# Last updated : 18 May 2023
 # Comments     : Install with kitty-bindings.list in ~/.config/kitty/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,19 +29,27 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.0"
-readonly _updated="25 Apr 2023"
+readonly _version="0.1.1"
+readonly _updated="18 May 2023"
+readonly kitty_dir=$HOME/".config/kitty"
 
 ## Functions ##
 
+copy_bindings() {
+	local list="$1"
+	local gitea_url="http://192.168.0.16:3000/Nullifidian/i3debian/raw/branch/main/.config/kitty"
+	curl -so "$kitty_dir/$list" "$gitea_url/$list"
+}
+
 show_bindings() {
-	local binding_path=$HOME"/.config/kitty"
-	local binding_list="kitty-bindings.list"
-	(printf "Binding|Action\n"; less "$binding_path/$binding_list") | column -ts "|"
-	}
+	local bindings="kitty-bindings.list"
+	[[ -f "$kitty_dir/$bindings" ]] || copy_bindings "$bindings"
+	(printf "Binding|Action\n"; less "$kitty_dir/$bindings") | column -ts "|"
+}
 
 ## Execution ##
 
+check_package curl
 clear
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 show_bindings
