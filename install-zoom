@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.7"
-readonly _updated="12 May 2023"
+readonly _version="0.1.8"
+readonly _updated="19 May 2023"
 
 ## Functions ##
 
@@ -78,6 +78,17 @@ remove_zoom() {
 	printf "Zoom has been removed.\n"
 }
 
+webcam_info() {
+	if /usr/bin/lsusb | grep -qw Webcam; then
+		printf "Attached webcam(s):\n"
+		/usr/bin/lsusb | grep -w Webcam | cut -d' ' -f7-
+	else
+		printf "No webcam attached.\n"
+		printf "Attach a Webcam and try again.\n"
+		exit 1
+	fi
+}
+
 ## Execution ##
 
 noOpt=1
@@ -89,6 +100,7 @@ while getopts "$optstr" opt; do
 		;;
 		i )
 			exists zoom && printf "Zoom %s is installed.\n" "$(zoom_version)"
+			webcam_info
 			tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 			trap cleanup EXIT
 			user_in_sudo
