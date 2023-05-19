@@ -4,27 +4,46 @@
 # Description  : Checks for Webcam
 # Dependencies : None
 # Arguments    : None
-# Author       : Richard Romig
-# Email        : rick.romig@gmail.com
+# Author       : Copyright © 2021 Richard Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comment      :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
-_script=$(basename "$0"); readonly _script
-readonly _version="0.1.7"
-readonly _updated="05 May 2021"
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
 
-readonly video_dev=$(ls -1 /dev/video* 2>/dev/null)
+## Source function library ##
 
-echo "$_script v$_version ($_updated)"
-echo "Checks to see if a web cam is available."
-if [[ -n "$video_dev" ]]; then
-  for camera in $video_dev; do
-    echo $'\n'$"A camera device is available on $camera"
-  done
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
 else
-  echo $'\n'$"There is no available camera device."
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
 fi
 
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.2.0"
+readonly _updated="19 May 2023"
+
+## Functions ##
+
+vid_cam() {
+  /usr/bin/lsusb | grep -qs Webcam && return "$TRUE" || return "$FALSE"
+}
+
+## Execution ##
+
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Checks to see if a web cam is available.\n"
+if vid_cam; then
+  printf "Available Webcams:\n"
+  /usr/bin/lsusb | grep -w Webcam | cut -d' ' -f7-
+else
+  printf "No attached webcam found.\n"
+fi
 exit
