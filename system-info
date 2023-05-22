@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.2.8"
-readonly _updated="13 May 2023"
+readonly _version="3.3.0"
+readonly _updated="22 May 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -36,7 +36,8 @@ today=$(date +'%d %B %Y'); readonly today
 ## Functions ##
 
 check_dependencies() {
-  check_package lshw
+  local packages=( jq lshw )
+  check_packages "${packages[@]}"
   [[ -b /dev/sda ]] && check_package hdparm
   [[ -c /dev/nvme0 ]] && check_package nvme-cli
 }
@@ -147,13 +148,15 @@ os_info() {
 }
 
 cpu_info() {
-	cpu_info=$(lscpu | awk -F: '/Model name:/ {print $NF}' | awk '{$1=$1}1' | sed 's/([^)]*)//g')
-	arch=$(lscpu | awk '/Architecture:/ {print $NF}')
-	printf "\n%-9s %s, %s, %s threads \n" "CPU:" "$cpu_info" "$arch" "$(nproc --all)"
+  cpu_json=$(lscpu --json)
+  model=$(echo "$cpu_json" | jq -r ."lscpu[7].data" | sed 's/([^)]*)//g')
+  arch=$(echo "$cpu_json" | jq -r ."lscpu[0].data")
+  threads=$(echo "$cpu_json" | jq -r ."lscpu[4].data")
+	printf "\n%-9s %s, %s, %s threads \n" "CPU:" "$model" "$arch" "$threads"
 }
 
 mem_info() {
-	phys_mem=$(sudo lshw -C memory -short -quiet | awk '/System/ {print $(NF-2)}' | sed 's/GiB/ GB/')
+	phys_mem=$(sudo lshw -class memory -short -quiet | awk '/System/ {print $(NF-2)}' | sed 's/GiB/ GB/')
 	mem_type=$(sudo dmidecode --type 17 | awk '/Type:/ {print $NF; exit}')
 	mem_max=$(sudo dmidecode -t 16 | awk -F: '/Capacity/ {print $NF; exit}' | sed 's/^ //')
 	printf "%-9s %s %s (%s maximum)\n" "Memory:" "$phys_mem" "$mem_type" "$mem_max"
@@ -164,7 +167,7 @@ graphics_info() {
 }
 
 wired_info() {
-	eth_int=$(sudo /usr/bin/lshw -class network | awk '/name: e/ {print $NF}')
+	eth_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: e/ {print $NF}')
 	if [[ -n "$eth_int" ]]; then
 		ethernet_dev=$(/usr/bin/lspci | awk -F: '/Ethernet controller/ {print $NF}' | sed 's/^ //')
 		e_mac=$(cat /sys/class/net/"${eth_int}"/address)
@@ -174,7 +177,7 @@ wired_info() {
 }
 
 wireless_info() {
-	wifi_int=$(sudo /usr/bin/lshw -class network | awk '/name: w/ {print $NF}')
+	wifi_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: w/ {print $NF}')
 	if [[ -n "$wifi_int" ]]; then
 		wireless_dev=$(/usr/bin/lspci | awk -F: '/Network controller/ {print $NF}' | sed 's/^ //')
 		w_mac=$(cat /sys/class/net/"${wifi_int}"/address)
@@ -225,13 +228,13 @@ bat_info() {
     battery=$(basename "$battery_path")
     if [[ "$battery" != "BAT?" ]]; then
       bat_data=$(cat /sys/class/power_supply/"${battery}"/uevent)
-      bat_tech=$(echo "$bat_data" | awk -F= '/TECHNOLOGY/ {print $NF}')
+      bat_serial=$(echo "$bat_data" | awk -F= '/SERIAL/ {print $NF}')
       [[ -z "${bat_serial// }" ]] && bat_serial="Not specified"
       printf "%s\n" "$battery"
-      printf "   %-15s%s\n" "Manufactuer:" "$(echo "$bat_data" | awk -F= '/MANUFACTURER/ {print $NF}')"
+      printf "   %-15s%s\n" "Manufactuer:" "$(echo "$bat_data" | awk -F= '/MANUFACTURER/ {print $NF}' | sed 's/^ //')"
       printf "   %-15s%s\n" "Model name:" "$(echo "$bat_data" | awk -F= '/MODEL/ {print $NF}')"
-      printf "   %-15s%s\n" "Serial number:" "$(echo "$bat_data" | awk -F= '/SERIAL/ {print $NF}')"
-      printf "   %-15s%s\n" "Technology:" "$bat_tech"
+      printf "   %-15s%s\n" "Serial number:" "$bat_serial"
+      printf "   %-15s%s\n" "Technology:" "$(echo "$bat_data" | awk -F= '/TECHNOLOGY/ {print $NF}')"
     else
       printf "No battery detected\n"
     fi
