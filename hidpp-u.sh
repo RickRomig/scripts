@@ -27,25 +27,14 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.0"
-readonly _updated="15 May 2023"
-
-## Functions ##
-
-is_hidpp() {
-  hidpp=$(/usr/bin/upower -e | grep mouse_hidpp_battery)
-  [[ -n "$hidpp" ]] && return "$TRUE" || return "$FALSE"
-}
-
-cleanup() {
-  [[ -f "$hidpp_data" ]] && rm "$hidpp_data"
-}
+readonly _version="0.2.1"
+readonly _updated="22 May 2023"
 
 ## Execution ##
 
 check_package upower
 
-if is_hidpp; then
+if /usr/bin/upower -e | grep -q mouse_hidpp_battery; then
   hidpp_data=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep hidpp)")
   printf "%-17s%-7s%-8s%s\n" "Device" "Model" "Charge" "Serial number"
   printf "%-17s%-7s%-8s%s\n" "$(echo "$hidpp_data"| awk '/native-path/ {print $NF}')" \
