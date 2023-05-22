@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, Created: 04 Feb 2023
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Comments     : Based on USB Backup Tool (Version 1.1) by Joe Collins. (www.ezeelinux.com)
-# Last updated : 15 May 2023
+# Last updated : 22 May 2023
 # TODO (Rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -33,7 +33,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="3.3"
+readonly _version="3.4"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -81,6 +81,11 @@ sync_drives() {
   tput cnorm
 }
 
+unmount_usb_drive() {
+  sudo umount "$mount_point" && printf "BU_Drive unmounted.\n"
+  printf "It's now safe to remove the USB drive.\n"
+}
+
 backup() {
   printf "Changing ownership of BU_Drive to %s...\n" "$user"
   sudo chown "$user" "$mount_point"
@@ -99,8 +104,7 @@ backup() {
     rm -f /"$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
     touch "$mount_point/BU_Backups/$host/BU Backup was successful: $(date '+%F')"
 		sync_drives
-    sudo umount "$mount_point" && printf "BU_Drive unmounted.\n"
-    printf "It's now safe to remove the USB drive.\n"
+    unmount_usb_drive
     printf "Backup completed in %s\n" "$(format_time $SECONDS)"
     exit
   else
@@ -111,8 +115,7 @@ backup() {
     touch "$mount_point/BU_Backups/$host/BU Backup had some errors: $(date '+%F')"
     printf "There were errors! Try running the command again to correct them.\n" >&2
     printf "If errors persist then you may have corrupt files or failing hardware.\n" >&2
-    sudo umount "$mount_point" && printf "BU_Drive unmounted.\n"
-    printf "It's now safe to remove the USB drive.\n"
+    unmount_usb_drive
     printf "Backup completed in %s\n" "$(format_time $SECONDS)"
     exit 1
   fi
@@ -129,8 +132,8 @@ restore() {
     exit 1
   fi
 
-  printf $'\n'$"\nBU Restore Function (Version %s)\n" "$_version"
-  printf $'\n'$"\n\e[91mWARNING!\e[0m\n"
+  printf "\nBU Restore Function\n" "$_version"
+  printf "\n%sWARNING!%s\n" "$lightred" "$normal"
   printf "Any new files created in /home since last backup WILL BE DELETED!\n"
   printf "Are you sure you want to restore now? [y/N]\n"
   read -rn 1 -s choice
@@ -145,8 +148,7 @@ restore() {
       read -rt 1 -n 10000 discard
       box " Restoration Complete!" "-"
 			sync_drives
-      sudo umount "$mount_point" && printf "BU_Drive unmounted.\n"
-      printf "It's now safe to remove BU_Drive.\n"
+      unmount_usb_drive
       printf "Restart machine for all changes to take effect.\n"
       printf "Restore completed in %s\n" "$(format_time $SECONDS)"
       exit
@@ -160,14 +162,12 @@ restore() {
       printf "    Remount BU_Drive USB by unplugging it and plugging it back in.\n" >&2
       printf $'\n'$"Wait a few seconds and try running 'bu --restore' again.\n" >&2
       printf "You may need to manually restore your data if errors persist.\n" >&2
-      sudo umount "$mount_point" && printf "BU_Drive unmounted.\n"
-      printf "It's now safe to remove BU_Drive.\n"
+      unmount_usb_drive
       exit 1
     fi
   else
     printf "Restoration canceled.\n"
-    sudo umount "$mount_point" && printf "BU_Drive unmounted.\n"
-    printf "It's now safe to remove BU_Drive.\n"
+    unmount_usb_drive
     exit
   fi
 }
@@ -182,6 +182,7 @@ less << EOF
  Commands:
 
  bu = Fully backs up host's /etc and /home directories to BU_Drive.
+ bu --backup = Fully backs up host's /etc and /home directories.
  bu --help = Prints this help information.
  bu --restore = Accesses BU Restore function.
 
@@ -238,24 +239,35 @@ EOF
 
 # Start timer (Added by R. Romig)
 SECONDS=0
-
-# Checking for command line arguments:
-if [[ "$1" == "--help" ]]; then
-	help
-	exit
-elif [[ "$1" == "--restore" ]]; then
-  user_in_sudo
-	drive_test
-	check_package rsync
-	restore
-elif [[ -n "$1" ]]; then
-  printf "%s Invalid argument.\n" >&2 "$red_error"
-  printf "- Try 'bu --help' to see the available commands.\n" >&2
-  exit 1
-else
-	box "BU -- USB Backup Tool (Version $_version)"
+box "BU -- USB Backup Tool (Version $_version)"
+# Checking command line arguments:
+if [[ "$#" -eq 0 ]]; then
   user_in_sudo
 	drive_test
 	check_package rsync
 	backup
+else
+  case "$1" in
+    "--backup" )
+      user_in_sudo
+	    drive_test
+	    check_package rsync
+	    backup
+    ;;
+    "--help" )
+      help
+      exit
+    ;;
+    "--restore" )
+      user_in_sudo
+	    drive_test
+	    check_package rsync
+	    restore
+    ;;
+    * )
+      printf "%s %s is not a valid option.\n" "$red_error" "$1" >&2
+      printf "Valid options:\n" >&2
+      printf "\tbu --%s\n" "backup" "help" "restore" >&2
+      printf "\tbu without an argument performs a backup of /etc/ and /home.\n" >&2
+  esac
 fi
