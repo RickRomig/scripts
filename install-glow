@@ -27,33 +27,34 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.10"
-readonly _updated="21 Apr 2023"
-readonly src_list="/etc/apt/sources.list.d/charm.list"
+readonly _version="0.4.11"
+readonly _updated="22 May 2023"
+readonly src_list="/etc/apt/sources.list.d"
 readonly keyring_dir="/etc/apt/keyrings"
 
 ## Functions ##
 
-src_gpg() {
+add_src_gpg() {
+  local charm_url="https://repo.charm.sh/apt"
   echo "Adding the Charm GPG key..."
   [[ -d "$keyring_dir" ]] || sudo mkdir -p "$keyring_dir"
-  curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+  curl -fsSL "$charm_url/gpg.key" | sudo gpg --dearmor -o "$keyring_dir/charm.gpg"
   echo "Creating the the Charm apt source list..."
-  echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee "$src_list" > /dev/null
+  echo "deb [signed-by=$keyring_dir/charm.gpg] $charm_url/ * *" | sudo tee "$src_list/charm.list" > /dev/null
 }
 
 install_glow() {
   echo "Installing the Glow markdown reader..."
-  src_gpg
+  add_src_gpg
   sudo apt update && sudo apt install glow -yy
   echo "glow $(glow_ver) successfully installed."
 }
 
 remove_glow() {
   echo "Removing the Glow markdown reader..."
-  sudo apt-get remove glow
-  [[ -f "$src_list" ]] && rm -v "$src_list"
-  [[ -f "$keyring_dir/charm.gpg" ]] && rm -v "$keyring_dir/charm.gpg"
+  sudo apt-get remove glow -y
+  [[ -f "$src_list/charm.list" ]] && sudo rm -v "$src_list/charm.list"
+  [[ -f "$keyring_dir/charm.gpg" ]] && sudo rm -v "$keyring_dir/charm.gpg"
   echo "Glow markdown reader has been removed."
 }
 
@@ -67,6 +68,7 @@ check_dependencies() {
 }
 
 exists_glow() {
+
   dpkg -l | grep -qw glow && return "$TRUE" || return "$FALSE"
 }
 
