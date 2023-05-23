@@ -29,8 +29,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.1"
-readonly _updated="18 May 2023"
+readonly _version="0.1.2"
+readonly _updated="23 May 2023"
 readonly kitty_dir=$HOME/".config/kitty"
 
 ## Functions ##
@@ -44,7 +44,7 @@ copy_bindings() {
 show_bindings() {
 	local bindings="kitty-bindings.list"
 	[[ -f "$kitty_dir/$bindings" ]] || copy_bindings "$bindings"
-	(printf "Binding|Action\n"; less "$kitty_dir/$bindings") | column -ts "|"
+	(printf "Binding|Action|Binding|Action\n"; less "$kitty_dir/$bindings") | column -ts "|"
 }
 
 ## Execution ##
