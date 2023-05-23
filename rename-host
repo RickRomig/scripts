@@ -30,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.2"
-readonly _updated="25 Apr 2023"
+readonly _version="0.4.3"
+readonly _updated="23 May 2023"
 readonly old_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -67,7 +67,7 @@ while true; do
     continue
   fi
   # Check new hostname against the rules
-  case $new_host in
+  case "$new_host" in
     -* )
       echo $'\n'$"${lightred}Cannot start with a hypen${normal}" >&2
       name_rules
@@ -89,10 +89,10 @@ while true; do
       continue
     ;;
     * )
-  ;;
+      echo $'\n'$"${green}New hostname is valid.$(normal)"
   esac
   # Compare new hostname with the old hostname
-  new_host=$(echo "${new_host,,}")
+  new_host="${new_host,,}"
   if [[ "$new_host" == "$old_host" ]]; then
     echo "${lightred}Hostnames are the same.${normal}" >&2
     name_rules
@@ -114,7 +114,6 @@ sudo sed -i.old "s/$old_host/$new_host/" /etc/hosts
 
 host1=$(cat /etc/hostname)
 host2=$(awk '/127.0.1.1/ {print $2}' /etc/hosts)
-# [[ -z "$host2" ]] && host2=$(awk '/127.0.0.1/ {print $2}' /etc/hosts | tail -n1)
 if [[ -z "$host2" ]]; then
 # Change address for hostname from 127.0.0.1 to 127.0.1.1
   host2=$(awk '/127.0.0.1/ {print $2}' /etc/hosts | tail -n1)
