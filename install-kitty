@@ -27,7 +27,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.9"
+readonly _version="0.1.10"
 readonly _updated="24 May 2023"
 readonly kitty_cfg="$HOME/.config/kitty"
 
@@ -38,6 +38,7 @@ help() {
   cat << END_HELP
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}Options:${normal}
+  -b  Copy Kitty keybindings list
   -c  Install Kitty configuration
   -h  Display help
   -i  Install Kitty from repositories
@@ -67,6 +68,7 @@ install_kitty() {
   sudo apt-get install kitty -yy
   install_cascadia_code
   kitty_config
+  kitty_bindings
   printf "Kitty %s installed and configured.\n" "$(kitty_version)"
 }
 
@@ -80,24 +82,33 @@ remove_kitty() {
 kitty_config() {
   local files_dir="$HOME/bin/files"
   local doc_kitty="/usr/share/doc/kitty/examples"
-  local bindings="kitty-bindings.list"
-  local gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/kitty"
   printf "Setting up kitty.conf ...\n"
   [[ -d "$kitty_cfg" ]] || mkdir -p "$kitty_cfg"
   cp "$doc_kitty/kitty.conf" "$kitty_cfg/"
   sed -i -f "$files_dir/kitty.sed" "$kitty_cfg/kitty.conf"
   is_debian && sed -i 's/^shell \./#: shell ./ ; /#: shell \./a shell \/bin\/bash --login' "$kitty_cfg/kitty.conf"
   printf "kitty.conf created and configured.\n"
+}
+
+kitty_bindings() {
+  local bindings="kitty-bindings.list"
+  local gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/kitty"
   curl -so "$kitty_cfg/$bindings" "$gitea_url/$bindings"
-  printf "Kitty keybindings list copyed to ~/.config/kitty\n"
+  printf "Kitty keybindings list copied to ~/.config/kitty\n"
+  printf "Run the kkb script to display keybindings.\n"
 }
 
 ## Execution ##
 
 noOpt=1
-optstr=":chir"
+optstr=":bchir"
 while getopts "$optstr" opt; do
   case "$opt" in
+    b )
+      exists kitty || leave "Kitty is not installed."
+      printf "Copying Kitty keybindings...\n"
+      kitty_bindings
+    ;;
     c )
       exists kitty || leave "Kitty is not installed."
       printf "Configuring Kitty %s...\n" "$(kitty_version)"
