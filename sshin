@@ -56,14 +56,14 @@ elif [[ $# -gt 1 ]]; then
   x_opt="$2"
   case "$x_opt" in
     X|x )
-      /usr/bin/ssh -X "$localnet.$hostip" ;;
+      ssh -X "$localnet.$hostip" ;;
     * )
       echo "${lightred}ERROR:${normal} Invalid option" >&2
-      /usr/bin/ssh "$localnet.$hostip" ;;
+      ssh "$localnet.$hostip" ;;
   esac
 else
   valid_ip "$1" && hostip="$1"
-  /usr/bin/ssh "$localnet.$hostip"
+  ssh "$localnet.$hostip"
 fi
 
 exit
