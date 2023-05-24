@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.14"
-readonly _updated="18 Oct 2022"
+readonly _version="0.2.15"
+readonly _updated="24 May 2023"
 
 # Hostnames
 readonly lhost=$HOSTNAME
@@ -40,8 +40,6 @@ readonly svr_ip="11"
 readonly cfg_dir=$HOME"/.config"
 readonly cfg_defaults=$HOME"/Documents/mosfanet/configs/defaults"
 readonly cinnamon_keys=$HOME"/.config/keybindings-backup.dconf"
-readonly atom_cfg="$HOME/.atom"
-readonly atom_xdg="$HOME/.local/share/atom"
 readonly iso_src=$HOME"/Downloads/ISO"
 readonly remote_dest="/data/installation"
 
@@ -59,16 +57,13 @@ echo "Synchronizes installation scripts, configuration files and packages with $
 
 # Copy bat & micro config files to default configs folder
 echo $'\n'$"${orange}Updating bat, micro, terminator config files ...${normal}"
-if [[ -d "$atom_xdg" ]]; then
-	cp -puv "$atom_xdg/config.cson" "$atom_xdg/styles.less" "$cfg_defaults/atom"
-else
-	cp -puv "$atom_cfg/config.cson" "$atom_cfg/styles.less" "$cfg_defaults/atom"
-fi
 cp -puv "$cfg_dir/bat/config" "$cfg_defaults/bat/"
 cp -puv "$cfg_dir/micro/bindings.json" "$cfg_defaults/micro/"
 cp -puv "$cfg_dir/micro/settings.json" "$cfg_defaults/micro/"
 cp -puv "$cfg_dir/VSCodium/User/settings.json" "$cfg_defaults/VSCodium/User/"
 cp -puv "$cfg_dir/terminator/config" "$cfg_defaults/terminator/"
+cp -puv "$cfg_dir/kitty/kitty.conf" "$cfg_defaults/kitty/"
+cp -puv "$cfg_dir/kitty/kitty-bindings.list" "$cfg_defaults/kitty/"
 cp -puv "$HOME/.bluefish/rcfile-2.0" "$cfg_defaults/bluefish/"
 cp -puv "$HOME/.bash_aliases" "$cfg_defaults/"
 cp -puv "$HOME/.bashrc" "$cfg_defaults/" 
