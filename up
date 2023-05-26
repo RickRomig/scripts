@@ -32,7 +32,7 @@ set -e
 ## Functions ##
 
 upgrade() {
-  printf "%sStarting full system update...%s\n" "${green}" "${normal}"
+  printf "%sStarting full system update...%s\n" "$green" "$normal"
   if exists nala; then
     run_nala
   else
@@ -42,16 +42,16 @@ upgrade() {
 }
 
 clean() {
-  printf "%sRemoving apt cache packages that can no longer be downloaded...%s\n" "${green}" "${normal}"
+  printf "%sRemoving apt cache packages that can no longer be downloaded...%s\n" "$green" "$normal"
   sudo apt autoclean
 }
 
 remove() {
-  printf "%sRemoving orpahned packages...%s\n" "${green}" "${normal}"
+  printf "%sRemoving orphaned packages...%s\n" "$green" "$normal"
   sudo apt autoremove -yy
   rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}' | wc -l)
   if [[ "$rcpkgs" -gt 0 ]]; then
-    printf "%sPurging obsolete linux kernel configuration files...%s\n" "${green}" "${normal}"
+    printf "%sPurging obsolete linux kernel configuration files...%s\n" "$green" "$normal"
     for i in $(dpkg -l | grep "^rc" | awk '{print $2}'); do sudo apt remove --purge "$i" -yy; done
   fi
 }
@@ -73,7 +73,7 @@ up_help() {
 
  Up -- Debian/Ubuntu Update Tool (Version 2.0)
 
- Up is a tool that automates the update procedure for Debian and Ubuntu based  Linux systems.
+ Up is a tool that automates the update procedure for Debian and Ubuntu based Linux systems.
 
  Press "q" to exit this Help page.
 
@@ -83,6 +83,7 @@ up_help() {
     up -c = full system update with cleanup of the apt cache.
     up -r = full system update with only orphaned packages removed.
     up -h = shows this help page.
+    up with no arguments performs a full system upgrade.
 
  Original scrlipt by Joe Collins, www.ezeelinux.com (GNU/General Public License version 2.0)
  Additional modifications by Rick Romig, MosfaNet
@@ -105,7 +106,7 @@ EOF
 
 ## Execution ##
 
-readonly _version="2.1"
+readonly _version="2.1.1"
 SECONDS=0 # Added by R. Romig
 
 printf "Up -- Debian/Ubuntu Update Tool (Version %s)\n" "$_version"
