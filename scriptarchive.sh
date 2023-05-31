@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, 20 Jan 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Includes all subdirectories
-#              : Schedule with user's crontab from ~/bin, ~/.local/bin or ~/opt/bin
-# Last updated : version 0.2.17, 30 May 2023
+#              : Schedule with user's crontab from ~/.local/bin
+# Last updated : version 0.2.17, 31 May 2023
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
