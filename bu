@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, Created: 04 Feb 2023
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Comments     : Based on USB Backup Tool (Version 1.1) by Joe Collins. (www.ezeelinux.com)
-# Last updated : 04 Jun 2023
+# Last updated : 05 Jun 2023
 # TODO (Rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -33,7 +33,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="3.5"
+readonly _version="3.6"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -81,7 +81,7 @@ sync_drives() {
 
 unmount_usb_drive() {
   sudo umount "$mount_point" && printf "BU_Drive unmounted.\n"
-  [[ -d "$mount_point" ]] || sudo rmdir "$mount_point"
+  [[ -d "$mount_point" ]] && sudo rmdir "$mount_point"
   printf "It's now safe to remove the USB drive.\n"
 }
 
