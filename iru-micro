@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.10"
-readonly _updated="12 May 2023"
+readonly _version="0.4.11"
+readonly _updated="09 Jun 2023"
 readonly url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg=$HOME"/.config/micro"
 
@@ -81,7 +81,8 @@ remove_micro() {
   cur_ver=$(micro_ver)
   echo "Removing the Micro CLI text editor..."
   sudo dpkg --remove micro
-  [[ -d "$micro_cfg" ]] && rm -rf "$micro_cfg"
+  find "$HOME/.config/" -maxdepth 2 -type d -name "micro" -exec rm -rf {} \;
+  [[ -d /root/.config/micro ]] && sudo rm -rf /root/.config/micro
   echo "Micro $cur_ver and configuration files have been removed."
 }
 
