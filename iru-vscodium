@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.8"
-readonly _updated="12 May 2023"
+readonly _version="0.2.9"
+readonly _updated="09 Jun 2023"
 readonly url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -83,11 +83,10 @@ install_vscodium() {
 }
 
 remove_vscodium() {
-  local vsc_cfg="${HOME}/.config/VSCodium"
   printf "Removing the VSCodium editor...\n"
   user_in_sudo
   sudo dpkg --remove codium
-  [[ -d "$vsc_cfg" ]] && rm -rf "$vsc_cfg"
+  find "$HOME/.config" -maxdepth 2 -type d -name "VSCcodium" -exec rm -rf {} \;
   printf "VSCodium editor has been removed.\n"
 }
 
