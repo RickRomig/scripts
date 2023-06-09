@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.3"
-readonly _updated="21 Apr 2023"
+readonly _version="0.1.4"
+readonly _updated="09 Jun 2023"
 readonly cfg_dir="${HOME}/.config/neofetch"
 readonly thumbnail_dir="${HOME}/.cache/thumbnails/neofetch"
 
@@ -78,7 +78,7 @@ remove_neofetch() {
 	user_in_sudo
 	if exist neofetch; then
 		sudo apt-get purge -yy > /dev/null 2>&1
-		[[ -d "$thumbnail_dir" ]] && rm -rf "$thumbnail_dir"
+		find "$HOME/" -maxdepth 3 -type d -name "neofetch" -exec rm -rf {} \;
 		leave "Neofetch and configuration files removed."
 	else
 		leave "Neofetch is not installed. No action taken."
