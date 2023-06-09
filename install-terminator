@@ -4,8 +4,8 @@
 # Description  : Installs the Terminator terminal emulator from repos.
 # Dependencies : None
 # Arguments    : -c -h -i -r (See help function)
-# Author       : Richard B. Romig, 14 Dec 2020
-# Email        : rick.romig@gmail.com
+# Author       :Copyright (C) 2020 Richard B. Romig, 14 Dec 2020
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : 
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.3"
-readonly _updated="21 Apr 2023"
+readonly _version="0.6.4"
+readonly _updated="09 Jun 2023"
 readonly term_cfg=$HOME"/.config/terminator"
 
 ## Functions ##
@@ -54,7 +54,7 @@ EOF
 
 remove_terminator() {
   sudo apt-get purge terminator
-  [[ -d "$term_cfg" ]] && rm -rf "$term_cfg"
+  find "$HOME/.config/" -maxdept 2 -type d -name "terminator" -exec rm -rf {} \;
   leave "Terminator and its configuration files have been removed."
 }
 
