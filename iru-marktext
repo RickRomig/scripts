@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.9"
-readonly _updated="12 May 2023"
+readonly _version="0.3.10"
+readonly _updated="09 Jun 2023"
 readonly url="https://github.com/marktext/marktext/releases"
 
 ## Functions ##
@@ -71,17 +71,15 @@ install_marktext() {
   dots "."
   wget -q -P "$tmp_dir/" "$url/download/v$new_ver/$new_pkg"
   kill "$!";printf "done\n";tput cnorm
-  printf "Installing Mark Text 5s...\n" "$new_ver"
+  printf "Installing Mark Text %s...\n" "$new_ver"
   sudo gdebi -n "$tmp_dir/$new_pkg"
   printf "Mark Text %s installed.\n" "$(marktext_version)"
 }
 
 remove_marktext() {
-  local mt_cfg_dir="$HOME/config/marktext"
-  local pref_json="preferences.json"
   echo "Removing the Mark Text markdown editor..."
   sudo apt-get remove --purge marktext -yy
-  [[ -f "$mt_cfg_dir/$pref_json" ]] && rm -rf "$mt_cfg_dir"
+  find "$HOME/.config/" -maxdepth 2 -type d -name "marktext" -exec rm -rf {} \;
   echo "Mark Text markdown editor has been removed."
 }
 
