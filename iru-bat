@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.10"
-readonly _updated="12 May 2023"
+readonly _version="0.4.11"
+readonly _updated="09 Jun 2023"
 readonly url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg=$HOME"/.config/bat"
 
@@ -47,7 +47,7 @@ check_dependencies() {
 check_distro() {
   codename=$(lsb_release -c -s)
   case "$codename" in
-    bullseye|elsie|focal|jammy|ulyana|ulyssa|uma|una|vanessa|vera ) return "$TRUE" ;;
+    bookworm|bullseye|elsie|focal|jammy|ulyana|ulyssa|uma|una|vanessa|vera ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
 }
@@ -88,18 +88,18 @@ install_bat() {
 }
 
 remove_bat() {
-  echo "Removing the Bat utility..."
+  printf "Removing Bat %s...\n" "$(bat_ver)"
   user_in_sudo
   sudo dpkg --remove bat
-  [[ -d "$bat_cfg" ]] && rm -rf "$bat_cfg"
-  echo "Bat and its configuration files have been removed."
+  find "$HOME/.config/" -maxdepth 3 -type d -name "bat" -exec {} \;
+  printf "Bat and its configuration files have been removed.\n"
 }
 
 apply_config() {
   [[ -d "$bat_cfg" ]] || mkdir -p "$bat_cfg"
-  echo "Applying Bat configuration..."
+  printf "Applying Bat configuration...\n"
   bat_config
-  echo "Bat configuration applied"
+  printf "Bat configuration applied.\n"
 }
 
 bat_config() {
