@@ -3,7 +3,7 @@
 # Script Name  : install-kitty
 # Description  : Installs kitty terminal emulator with basic configuration.
 # Dependencies : None
-# Arguments    : -c -h -i -r (see help function for more information)
+# Arguments    : -c -h -i -p -r (see help function for more information)
 # Author       : Copyright (C) 2022, Richard B. Romig, 26 Sep 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Configures as login terminal for Debian-based distros.
@@ -27,7 +27,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.11"
+readonly _version="0.2.0"
 readonly _updated="08 Jun 2023"
 readonly kitty_cfg="$HOME/.config/kitty"
 
@@ -41,8 +41,9 @@ ${orange}Options:${normal}
   -b  Copy Kitty keybindings list
   -c  Install Kitty configuration
   -h  Display help
-  -i  Install Kitty from repositories
-  -r  Remove Kitty from system
+  -i  Install Kitty from distro repositories
+  -p  Purge Kitty from system (remove config files)
+  -r  Remove Kitty from system (leave config files)
 END_HELP
 	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
@@ -73,10 +74,17 @@ install_kitty() {
 }
 
 remove_kitty() {
-  printf "Removing Kitty terminal emulator %s\n" "$(kitty_version)"
+  printf "Removing the Kitty terminal emulator %s\n" "$(kitty_version)"
   sudo apt-get remove kitty -yy
-  [[ -d "$kitty_cfg" ]] && rm -rf "$kitty_cfg"
-  printf "Kitty terminal emulator has been removed.\n"
+  printf "The Kitty terminal emulator has been uninstalled.\n"
+}
+
+purge_kitty() {
+  printf "Purging the Kitty terminal emulator %s\n" "$(kitty_version)"
+  sudo apt-get purge kitty -yy
+  find "$HOME/.config/" -maxdepth 3 -type d -name "kitty" -exec rm -rf {} \;
+  find "$HOME/.cache/" -maxdepth 2 -type d -name "kitty" -exec rm -rf {} \;
+  printf "The Kitty terminal emulator and configuration files have been removed.\n"
 }
 
 kitty_config() {
@@ -101,7 +109,7 @@ kitty_bindings() {
 ## Execution ##
 
 noOpt=1
-optstr=":bchir"
+optstr=":bchipr"
 while getopts "$optstr" opt; do
   case "$opt" in
     b )
@@ -121,6 +129,11 @@ while getopts "$optstr" opt; do
       exists kitty && leave "Kitty terminal emulator $(kitty_version) already installed."
       user_in_sudo
       install_kitty
+    ;;
+    p )
+      exists kitty || leave "Kitty is not installed."
+      user_in_sudo
+      purge_kitty
     ;;
     r )
       exists kitty || leave "Kitty is not installed."
