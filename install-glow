@@ -3,7 +3,7 @@
 # Script Name  : install-glow
 # Description  : Installs, updates, and removes the Glow markdown reader.
 # Dependencies : curl, gdebi
-# Arguments    : [-h] [-i] [-r] (See help function)
+# Arguments    : [-h] [-i] [-r] [-s] (See help function)
 # Author       : Copyright (C) 2022, Richard B. Romig, 10 Jan 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     :
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.11"
-readonly _updated="22 May 2023"
+readonly _version="0.4.12"
+readonly _updated="10 Jun 2023"
 readonly src_list="/etc/apt/sources.list.d"
 readonly keyring_dir="/etc/apt/keyrings"
 
@@ -41,21 +41,22 @@ add_src_gpg() {
   curl -fsSL "$charm_url/gpg.key" | sudo gpg --dearmor -o "$keyring_dir/charm.gpg"
   echo "Creating the the Charm apt source list..."
   echo "deb [signed-by=$keyring_dir/charm.gpg] $charm_url/ * *" | sudo tee "$src_list/charm.list" > /dev/null
+  printf "charm.list created, and gpg key applied.\n"
 }
 
 install_glow() {
-  echo "Installing the Glow markdown reader..."
+  printf "Installing the Glow markdown reader...\n"
   add_src_gpg
   sudo apt update && sudo apt install glow -yy
-  echo "glow $(glow_ver) successfully installed."
+  printf "glow %s) successfully installed." "$(glow_ver)"
 }
 
 remove_glow() {
-  echo "Removing the Glow markdown reader..."
+  printf "Removing the Glow markdown reader...\n"
   sudo apt-get remove glow -y
   [[ -f "$src_list/charm.list" ]] && sudo rm -v "$src_list/charm.list"
   [[ -f "$keyring_dir/charm.gpg" ]] && sudo rm -v "$keyring_dir/charm.gpg"
-  echo "Glow markdown reader has been removed."
+  printf "Glow markdown reader has been removed.\n"
 }
 
 glow_ver() {
@@ -68,7 +69,6 @@ check_dependencies() {
 }
 
 exists_glow() {
-
   dpkg -l | grep -qw glow && return "$TRUE" || return "$FALSE"
 }
 
@@ -80,7 +80,7 @@ ${orange}OPTIONS:${normal}
   -h    Displays help.
   -i    Installs the glow markdown reader.
   -r    Removes the glow markdown reader from the system.
-  -s    Apply charm.list and gpg key
+  -s    Apply charm.list and gpg key.
 END_HELP
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
@@ -88,7 +88,6 @@ END_HELP
 
 ## Execution ##
 
-check_dependencies
 printf "Installs or removes the Glow markdown reader.\n"
 
 noOpt=1
@@ -102,7 +101,8 @@ do
     i )
       exists_glow && leave "Glow $(glow_ver) is already installed."
       user_in_sudo
-      echo "${lightyellow}Installing Glow markdown reader...${normal}"
+      check_dependencies
+      printf "%sInstalling Glow markdown reader...%s\n" "$lightyellow" "$normal"
       install_glow
     ;;
     r )
@@ -113,11 +113,11 @@ do
     s )
       exists_glow || leave "Glow is not installed."
       user_in_sudo
-      src_gpg
-      echo "charm.list created, gpg key applied."
+      check_dependencies
+      add_src_gpg
     ;;
     ? )
-      echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
       help 2
   esac
 	noOpt=0
