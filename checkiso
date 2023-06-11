@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : checkiso
-# Description  : Verifies SHA256 and MD5 checksums of ISO files
+# Description  : Verifies SHA256, SHA512, and MD5 checksums of ISO files
 # Dependencies : None
 # Arguments    : ISO filename and checksum file
 # Author       : Copyright (C) 2022, Richard B. Romig, 09 Apr 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : Checksum file must be one line only.
+# Comments     : Checksum file must be one line only for ISO being checked.
 #              : Each ISO file must have its own checksum file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.9"
-readonly _updated="29 Apr 2023"
+readonly _version="0.4.0"
+readonly _updated="11 Jun 2023"
 readonly isofile="$1"
 readonly checksum="$2"
 readonly checksums_match="${green}The checksums match.${normal}"
@@ -39,7 +39,7 @@ check_code=0
 ## Functions ##
 
 usage() {
-  local errcode="$1"
+  local errcode="${1:-1}"
   printf "Usage:\n"
   printf "%s <distro.iso> <checksum.txt>\n" "$_script"
   printf "Should be run from the directory where the ISO and checksum files are located.\n"
@@ -60,7 +60,20 @@ check_sha256() {
   dots "."
 	iso_sha=$(/usr/bin/sha256sum "$iso_file" | awk '{print $1}')
 	src_sha=$(awk '{print $1}' "$sha_file")
-  kill "$!";tput cnorm
+  kill "$!"; tput cnorm
+  printf "\nISO: %s\n" "$iso_file"
+	printf "ISO checksum: %s\n" "$iso_sha"
+	printf "SHA checksum: %s\n" "$src_sha"
+	[[ "$iso_sha" == "$src_sha" ]] && return "$TRUE" || return "$FALSE"
+}
+
+check_sha512() {
+  local iso_file="$1"
+	local sha_file="$2"
+  dots "."
+	iso_sha=$(/usr/bin/sha512sum "$iso_file" | awk '{print $1}')
+	src_sha=$(awk '{print $1}' "$sha_file")
+  kill "$!"; tput cnorm
   printf "\nISO: %s\n" "$iso_file"
 	printf "ISO checksum: %s\n" "$iso_sha"
 	printf "SHA checksum: %s\n" "$src_sha"
@@ -73,7 +86,7 @@ check_md5() {
   dots "."
   iso_md5=$(/usr/bin/md5sum "$iso_file" | awk '{print $1}') 
   src_md5=$(awk '{print $1}' "$md5_file")
-  kill "$!";tput cnorm
+  kill "$!"; tput cnorm
   printf "\nISO: %s\n" "$iso_file"
   printf "ISO checksum: %s\n" "$iso_md5"
   printf "MD5 checksum: %s\n" "$src_md5"
@@ -82,7 +95,7 @@ check_md5() {
 
 ## Execution ##
 
-printf "Verifies SHA256/MD5 checksums of ISO files.\n"
+printf "Verifies SHA256/SHA512/MD5 checksums of ISO files.\n"
 if [[ "$#" -lt 2 ]]; then
   printf "%s Missing one or more arguments.\n" "$red_error" <&2
 	usage 2
@@ -90,10 +103,10 @@ elif [[ -f "$isofile" && -f "$checksum" ]]; then
   COLUMNS=40
   printf "Checksum types:\n"
   PS3="Choice: "
-  select opt in "SHA256" "MD5" "Exit"; do
+  select opt in "SHA256" "SHA512" "MD5" "Exit"; do
     case "$REPLY" in
       1 )
-        echo "Comparing checksums. This may take a while."
+        printf "Comparing checksums. This may take a while.\n"
         if check_sha256 "$isofile" "$checksum"; then
           printf "%s\n" "$checksums_match"
           check_code=0
@@ -105,6 +118,17 @@ elif [[ -f "$isofile" && -f "$checksum" ]]; then
       ;;
       2 )
         printf "Comparing checksums. This may take a while.\n"
+        if check_sha512 "$isofile" "$checksum"; then
+          printf "%s\n" "$checksums_match"
+          check_code=0
+        else
+          printf "%s\n" "$checksums_nomatch" >&2
+          check_code=1
+        fi
+        exit_msg "$check_code"
+      ;;
+      3 )
+        printf "Comparing checksums. This may take a while.\n"
         if check_md5 "$isofile" "$checksum"; then
           printf "\n%s\n" "$checksums_match"
           check_code=0
@@ -114,12 +138,12 @@ elif [[ -f "$isofile" && -f "$checksum" ]]; then
         fi
         exit_msg "$check_code"
       ;;
-      3 )
+      4 )
         printf "Exiting - No action taken\n"
         exit_msg "0"
       ;;
       * )
-        printf "%s Invalid choice:\n1) = SHA256\n2) = MD5\n3) = Exit\n" "$red_error" >&2
+        printf "%s Invalid choice:\n1) = SHA256\n2) = SHA512 3) = MD5\n4) = Exit\n" "$red_error" >&2
     esac
   done
 else
