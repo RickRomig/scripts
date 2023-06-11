@@ -27,13 +27,13 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.10"
-readonly _updated="04 Feb 2023"
+readonly _version="0.1.11"
+readonly _updated="10 Jun 2023"
 
 ## Functions ##
 
 install_gnome_plugin() {
-  # Install Gnome software plugin for flatpak
+  # Install Gnome software plugin for flatpak (only if using Gnome Desktop)
   echo "Installing Gnome software plugin for Flatpak ..."
   sudo apt install gnome-software-plugin-flatpak -yy
 }
@@ -55,23 +55,23 @@ if exists flatpak; then
 else
   ver_code=$(lsb_release -c | cut -f 2)
   case $ver_code in
-    bullseye|buster|focal|jammy )
+    bookworm|bullseye|buster|focal|jammy )
       # Debian 10/11, antiX 19.x, Ubuntu 20.04
       sudo apt update -qq
       sudo apt install flatpak -yy
-      ;;
+    ;;
     bionic|cosmic|disco|eoam )
       # Ubuntu 18.04, 18.10, 19.04, 19.10
       sudo add-apt-repository ppa:alexlarsson/flatpak
       sudo apt update -qq
       sudo apt install flatpak -yy
-      ;;
+    ;;
     * )
-      die "Flatpak can't be installed using this script." 1 ;;
+      die "Flatpak can't be installed using this script." 1
   esac
 fi
 
-install_gnome_plugin
+# install_gnome_plugin
 install_flathub
 
 leave "Flatpak and Flathub installed."
