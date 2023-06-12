@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : write-iso
+# Description  : Copies an ISO file to a USB drive using dd
+# Dependencies : None
+# Arguments    : None
+# Author       : Copyright (C) 2023, Richard B. Romig, 18 Feb 2023
+# Email        : rick.romig@gmail.com | rick.romig@mykmetronet.net
+# Comments     : Run script from directory containing the ISO file.
+# TODO (Rick)  :
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.2.0"
+readonly _updated="12 Jun 2023"
+
+## Functions ##
+
+write_dd() {
+	local usb="$1"
+	local iso="$2"
+	printf "Writing %s to %s...\n" "$iso_file" "$usb_drive"
+	sudo dd if="$iso" of="/dev/$usb" status=progress bs=4M oflag=sync
+	printf "%s written to /dev/%s.\n" "$iso" "$usb"
+}
+
+## Execution ##
+
+echo "$_script v$_version ($_updated)"
+echo "Writes ISO to a USB drive."
+[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || die "No USB drive connected." 1
+
+# List ISO files and select
+printf "\nAvailable ISO files in %s:\n" "$PWD"
+find ./ -maxdepth 1 -type f -name "*.iso" -print | sed 's/\.\///'
+read -rp "ISO file to write: " iso_file
+# printf "Selected ISO file: %s\n" "$iso_file"
+
+# List devices and select
+printf "\nChoose a USB drive:\n"
+lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '/disk/ {print $1,$2,$4}'
+printf "A '1' in the 3rd column indicates the drive is a removable device (USB).\n"
+read -rp "USB device to write to (sdX): " usb_drive
+# usb_drive=$(get_iso_file)
+printf "You selected %s. If you continue, all data will be erased from this device.\n\n" "$usb_drive"
+echo -e "Select option 1 only if you are ${bold}${orange}ABSOLUTELY${normal} sure you want to proceed.\n"
+
+COLUMNS=40
+options=("Write ISO to USB" "Cancel and exit")
+PS3="Choice: "
+select opt in "${options[@]}"; do
+  case $REPLY in
+  	1 )
+    	user_in_sudo
+    	write_dd "$iso_file" "$usb_drive"
+    	break
+    ;;
+    2 )
+      printf "Operation canceled. No action taken.\n"
+      break
+    ;;
+    * )
+      echo "${lightred}Invalid choice.${normal} Select 1 or 2."
+  esac
+done
+
+exit
