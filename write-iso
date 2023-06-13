@@ -26,8 +26,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.0"
-readonly _updated="12 Jun 2023"
+readonly _version="0.2.1"
+readonly _updated="13 Jun 2023"
 
 ## Functions ##
 
@@ -47,6 +47,7 @@ echo "Writes ISO to a USB drive."
 
 # List ISO files and select
 printf "\nAvailable ISO files in %s:\n" "$PWD"
+ls ./*glob*.iso > /dev/null 2>&1 || diehard "No ISO files found." "Change to a directory containing ISO files."
 find ./ -maxdepth 1 -type f -name "*.iso" -print | sed 's/\.\///'
 read -rp "ISO file to write: " iso_file
 # printf "Selected ISO file: %s\n" "$iso_file"
