@@ -27,7 +27,7 @@ fi
 
 _script=$(basename "$0"); readonly _script
 readonly _version="0.2.1"
-readonly _updated="13 Jun 2023"
+readonly _updated="14 Jun 2023"
 
 ## Functions ##
 
@@ -50,14 +50,12 @@ printf "\nAvailable ISO files in %s:\n" "$PWD"
 ls ./*glob*.iso > /dev/null 2>&1 || diehard "No ISO files found." "Change to a directory containing ISO files."
 find ./ -maxdepth 1 -type f -name "*.iso" -print | sed 's/\.\///'
 read -rp "ISO file to write: " iso_file
-# printf "Selected ISO file: %s\n" "$iso_file"
 
 # List devices and select
 printf "\nChoose a USB drive:\n"
 lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '/disk/ {print $1,$2,$4}'
 printf "A '1' in the 3rd column indicates the drive is a removable device (USB).\n"
 read -rp "USB device to write to (sdX): " usb_drive
-# usb_drive=$(get_iso_file)
 printf "You selected %s. If you continue, all data will be erased from this device.\n\n" "$usb_drive"
 echo -e "Select option 1 only if you are ${bold}${orange}ABSOLUTELY${normal} sure you want to proceed.\n"
 
