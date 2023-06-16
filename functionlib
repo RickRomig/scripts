@@ -729,3 +729,19 @@ spin() {
   local spinner=( '|' '/' '-' '\' )
   while true; do for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.2; done; done &
 }
+
+###############################################################################
+# yes_or_no
+# Purpose: Displays a yes or no prompt.
+# Returns: True or False
+# Example: yes_or_no "Question" && do_something || alternative_action
+###############################################################################
+yes_or_no() {
+  while true; do
+    read -rp "$* [y/n]: " yn
+    case "$yn" in
+      [Yy]* ) return "$TRUE" ;;
+      [Nn]* ) return "$FALSE" ;;
+    esac
+  done
+}
