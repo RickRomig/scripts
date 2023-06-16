@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.1"
-readonly _updated="26 Mar 2022"
+readonly _version="0.3.0"
+readonly _updated="15 Jun 2023"
 
 ## Execution ##
 
@@ -40,19 +40,14 @@ echo "Packages in the 'rc' state:"
 rc_img=$(dpkg --list | awk '/linux-image/ && /^rc/ {print $2}')
 echo "$rc_img"
 echo "These packages are in the remove/deinstall state with only the config files."
-PS3="Are you sure you want to purge the config files for these images? "
-select opt in "Yes" "No"
-do
-  case $REPLY in
-    1 )
-      sudo apt-get --purge remove "$rc_img"
-      echo "Linux headers and image packages:"
-      dpkg --list | grep -Ei --color 'linux-image|linux-headers'
-      break ;;
-    2 )
-      leave "No action taken. No packages were purged." ;;
-    * )
-      echo "${lightred}Invalid option!${normal} 1 = Yes 2 = No" ;;
-  esac
-done
+if yes_or_no "Are you sure you want to purge the config files for these images?"; then
+  rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}' | wc -l)
+  if [[ "$rcpkgs" -gt 0 ]]; then
+    printf "%sPurging obsolete linux kernel configuration files...%s\n" "$green" "$normal"
+    for i in $(dpkg -l | grep "^rc" | awk '{print $2}'); do sudo apt remove --purge "$i" -yy; done
+  fi
+  dpkg --list | grep -Ei --color 'linux-image|linux-headers'
+else
+  leave "No action taken. No packages were purged."
+fi
 exit
