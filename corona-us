@@ -28,12 +28,11 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.10"
-readonly _updated="12 Mar 2023"
+readonly _version="0.1.11"
+readonly _updated="15 Jun 2023"
 readonly url="https://corona-stats.online/states/us/?minimal=true"
-
-readonly today=$(date '+%d %b %Y')
-readonly now=$(date '+%R %Z')
+today=$(date '+%d %b %Y'); readonly today
+now=$(date '+%R %Z'); readonly now
 tmp_file=$(mktemp) || die "Failed to create temporary file." 1
 
 ## Functions ##
@@ -58,20 +57,11 @@ check_package curl
 
 curl -s -o "$tmp_file" "$url"   # Download the data to a temporary file
 sed -i 's/\x1b\[[0-9;]*m//g' "$tmp_file"    # Remove the color codes
-
 clear
 echo -n "${bold}${blue}United States Corona (COVID-19) virus stats for "
 echo -e "$today${normal}\n"
-less "$tmp_file"
+head -n -9 "$tmp_file"
 echo -e "Data downloaded $today, $now\n"
-echo "Save today's Corona data?"
-PS3="Choice: "
-select opt in "Yes" "No"; do
-  case $REPLY in
-    1 ) corona_data "$tmp_file"; break ;;
-    2 ) echo "Corona data not copied."; break ;;
-    * ) echo "${lightred}Invalid choice.${normal} 1 - Yes or 2 - No" ;;
-  esac
-done
+yes_or_no "Save today's Corona data?" &&  corona_data "$tmp_file" || echo "Corona data not copied."
 echo $'\n'$"${orange}Stay safe.  Wear a mask! Wash your hands! Practice physical distancing.${normal}"
 leave "[$_script v$_version ($_updated)]"

@@ -28,12 +28,11 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.7"
-readonly _updated="12 Mar 2023"
+readonly _version="0.3.8"
+readonly _updated="15 Jun 2023"
 readonly url="https://corona-stats.online/states/us/?minimal=true"
-
-readonly today=$(date '+%d %b %Y')
-readonly now=$(date '+%R %Z')
+today=$(date '+%d %b %Y'); readonly today
+now=$(date '+%R %Z'); readonly now
 tmp_file=$(mktemp) || die "Failed to create temporary file." 1
 
 ## Functions ##
@@ -82,12 +81,6 @@ print_line "-" 95
 echo -e "Data downloaded $today, $now\n"
 echo "Save today's Corona data?"
 PS3="Choice: "
-select opt in "Yes" "No"; do
-  case $REPLY in
-    1 ) corona_data "$tmp_file"; break ;;
-    2 ) echo "Corona data not copied."; break ;;
-    * ) echo "${lightred}Invalid choice.${normal} 1 - Yes or 2 - No" ;;
-  esac
-done
+yes_or_no "Save today's Corona data?" &&  corona_data "$tmp_file" || echo "Corona data not copied."
 echo $'\n'$"${orange}Stay safe. Wear a mask! Wash your hands! Practice physical distancing.${normal}"
 leave "$_script v$_version ($_updated)"
