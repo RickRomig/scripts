@@ -26,16 +26,19 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.2"
-readonly _updated="15 Jun 2023"
+readonly _version="0.2.3"
+readonly _updated="16 Jun 2023"
 
 ## Functions ##
 
 write_dd() {
 	local usb="$1"
 	local iso="$2"
-	printf "Writing %s to /dev/%s...\n" "$iso_file" "$usb_drive"
-	sudo dd if="$iso" of="/dev/$usb" status=progress bs=16M oflag=sync
+  # Assumes no other removable media is mounted to /media/$USER
+  mntpt=$(findmnt -l | grep "/media/$USER" | awk -F"/" '{print $4}')
+	printf "Writing %s to /dev/%s...\n" "$iso_file" "$usb_drive" grep 
+  [[ -n "$mntpt" ]] && sudo umount "/media/$USER/$mntpt"
+	sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync
 	printf "%s written to /dev/%s.\n" "$iso" "$usb"
 }
 
