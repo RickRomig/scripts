@@ -36,7 +36,7 @@ write_dd() {
 	local iso="$2"
   # Assumes no other removable media is mounted to /media/$USER
   mntpt=$(findmnt -l | grep "/media/$USER" | awk -F"/" '{print $4}')
-	printf "Writing %s to /dev/%s...\n" "$iso_file" "$usb_drive" grep 
+	printf "Writing %s to /dev/%s...\n" "$iso_file" "$usb_drive"
   [[ -n "$mntpt" ]] && sudo umount "/media/$USER/$mntpt"
 	sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync
 	printf "%s written to /dev/%s.\n" "$iso" "$usb"
