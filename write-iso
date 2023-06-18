@@ -7,6 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, 18 Feb 2023
 # Email        : rick.romig@gmail.com | rick.romig@mykmetronet.net
 # Comments     : Run script from directory containing the ISO file.
+#              : Testing indicates USB drive should not be unmounted.
 # TODO (Rick)  :
 ##########################################################################
 
@@ -26,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.3"
-readonly _updated="16 Jun 2023"
+readonly _version="0.2.4"
+readonly _updated="18 Jun 2023"
 
 ## Functions ##
 
@@ -35,9 +36,7 @@ write_dd() {
 	local usb="$1"
 	local iso="$2"
   # Assumes no other removable media is mounted to /media/$USER
-  mntpt=$(findmnt -l | grep "/media/$USER" | awk -F"/" '{print $4}')
-	printf "Writing %s to /dev/%s...\n" "$iso_file" "$usb_drive"
-  [[ -n "$mntpt" ]] && sudo umount "/media/$USER/$mntpt"
+ 	printf "Writing %s to /dev/%s...\n" "$iso_file" "$usb_drive"
 	sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync
 	printf "%s written to /dev/%s.\n" "$iso" "$usb"
 }
