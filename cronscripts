@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.6"
-readonly _updated="06 May 2023"
+readonly _version="0.3.7"
+readonly _updated="21 Jun 2023"
 readonly user_cron_path="$HOME/.local/bin/"
 readonly opt_cron_path="/opt/bin/"
 readonly sed_path="/usr/share/misc/"
@@ -134,7 +134,7 @@ cp_updatelogsed() {
   esac
 }
 
-cp_zytdlupdate() {
+cp_zytdlpupdate() {
   local script_path="$HOME/bin/z-ytdlupdate"
   local anacron_path="/etc/cron.daily/"
   case "$localip" in
@@ -147,7 +147,7 @@ cp_zytdlupdate() {
   esac
 }
 
-cp_ytdluplogsed() {
+cp_ytdlpuplogsed() {
 	local script_path="/home/rick/bin/files/ytdluplog.sed"
 	case "$localip" in
 		10|17|20 )
@@ -171,15 +171,15 @@ ${green}Usage:${normal} $_script [OPTIONS]
 ${orange}OPTIONS:${normal}
   -a    Copy all scripts to the appropriate directories.
   -b    Copy HomeBank archive script.
-  -d    Copy Defrag script.
-  -f    Copy updatelog.sed file.
+  -d    Copy defrag script.
+  -f    Copy sed sccript to cleanup update log.
   -h    Display Help.
-  -l    Copy Local Backup script.
-  -p    Copy Password Database script.
-  -s    Copy Script Archive script.
-  -u    Copy Update script.
-  -y    Copy YouTube-DL update script.
-  -z    Copy ytdluplog.sed file.
+  -l    Copy local backup script.
+  -p    Copy password database script.
+  -s    Copy script archive script.
+  -u    Copy system update script.
+  -y    Copy yt-dlp update script.
+  -z    Copy sed script to format yt-dlp update log.
   NOTE: Multiple arguments may be passed to the script.
 END_HELP
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
@@ -201,8 +201,8 @@ while getopts "$optstr" opt; do
       cp_zdefrag
       cp_zupdate
 			cp_updatelogsed
-      cp_zytdlupdate
-			cp_ytdluplogsed
+      cp_zytdlpupdate
+			cp_ytdlpuplogsed
     ;;
     b )
       cp_hbarchive
@@ -229,10 +229,10 @@ while getopts "$optstr" opt; do
       cp_zupdate
     ;;
     y )
-      cp_zytdlupdate
+      cp_zytdlpupdate
     ;;
 		z )
-			cp_ytdluplogsed
+			cp_ytdlpuplogsed
 		;;
     ? )
       printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
