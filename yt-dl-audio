@@ -2,11 +2,11 @@
 ###############################################################################
 # Script Name  : yt-dl-audio
 # Description  : Download mp3 audio from YouTube.com to current directory
-# Dependencies : youtube-dl
+# Dependencies : yt-dlp
 # Arguments    : Video URL or ID number
-# Author       : Richard B. Romig, 14 Nov 2019
-# Email        : rick.romig@gmail.com
-# Comment      : Accepts both full URLs and video id's such as AQcQgfvfF1M
+# Author       : Copyright © 2019, Richard B. Romig, 14 Nov 2019
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to current working directory
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.9"
-readonly _updated="04 Apr 2023"
+readonly _version="0.2.0"
+readonly _updated="22 Jun 2023"
 
 ## Functions
 
@@ -42,7 +42,7 @@ usage() {
 }
 
 check_dependencies() {
-  exists youtube-dl || die "youtube-dl must be installed. Run install-ytdl" 1
+  exists yt-dlp || die "yt-dlp must be installed. Run install-ytdl" 1
 }
 
 ## Execution ##
@@ -71,7 +71,7 @@ box "YouTube Audio Download"
 echo "$_script v$_version"
 echo "($_updated)"
 echo $'\n'$"${bold}${blue}Downloading mp3 audio for $URL${normal}"
-if /usr/local/bin/youtube-dl --add-metadata -xic --embed-thumbnail \
+if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail \
  --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" "$url"; then
   leave "Download successful."
 else

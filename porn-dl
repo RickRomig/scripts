@@ -2,10 +2,10 @@
 ###############################################################################
 # Script Name  : porn-dl
 # Description  : Download videos from porn sites with best quality
-# Dependencies : youtube-dl
+# Dependencies : yt-dlp
 # Arguments    : Video URL or ID number
-# Author       : Richard B. Romig, 05 April 2019
-# Email        : rick.romig@gmail.com
+# Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : match by regex, starts with http:// or https:// or by ID number
 #              : Downloads videos to ~/Videos/Pornography/<category>
 # TODO (Rick)  :
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.0.15"
-readonly _updated="06 Jul 2022"
+readonly _version="1.1.0"
+readonly _updated="22 Jun 2023"
 
 readonly porn_dir=$HOME"/Videos/Pornography"
 vid_format=$(mktemp) || die "Failed to create temporary file." 1
@@ -64,7 +64,7 @@ EOF
 
 script_info() {
   cat <<- EOF
-  $_script uses youtube-dl to download videos from adult sites such as PornHub
+  $_script uses yt-dlp to download videos from adult sites such as PornHub
   and RedTube. The video URL or ID is passed to the script on the command line.
   If the full URL is passed, the script will extract the name of the site for
   later use. If the video ID is passed, you are presented a menu of supported
@@ -72,7 +72,7 @@ script_info() {
 
   The script will then present a menu of categories corresponding to
   subdirectories under ~/Videos/Pornography/. Once the category is selected
-  youtube-dl will obtain the available formats and list them. By default, it
+  yt-dlp will obtain the available formats and list them. By default, it
   will choose the format marked as the recoommended best format. If only one
   format is listed, that format is selected.
 
@@ -94,7 +94,7 @@ EOF
 }
 
 check_dependencies() {
-  exists youtube-dl || die "youtube-dl must be installed. Run install-ytdl" 1
+  exists yt-dlp || die "yt-dlp is not installed." 1
 }
 
 cleanup() {
@@ -168,7 +168,7 @@ done
 # Fetch best format
 
 echo $'\n'$"${bold}${blue}Fetching available formats:${normal}"
-/usr/local/bin/youtube-dl -F "$url" | sed '/Downloading/d' | tee "$vid_format"
+/usr/local/bin/yt-dlp -F "$url" | sed '/Downloading/d' | tee "$vid_format"
 format=$(awk '/(best)/ {print $1}' "$vid_format")
 [[ -z "$format" ]] && format=$(tail -n1 "$vid_format" | cut -d " " -f1)
 
@@ -177,7 +177,7 @@ format=$(awk '/(best)/ {print $1}' "$vid_format")
 echo $'\n'$"${bold}${blue}Streaming from $site with format quality: $format${normal}"
 case "$subdir" in
   "none" )
-    if /usr/local/bin/youtube-dl -f "$format" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"
+    if /usr/local/bin/yt-dlp -f "$format" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"
     then
       leave "Download successful."
     else
@@ -186,7 +186,7 @@ case "$subdir" in
     fi
     ;;
   * )
-    if /usr/local/bin/youtube-dl -f "$format" --add-metadata -ic --restrict-filename -o "$porn_dir/$subdir/%(title)s.%(ext)s" "$url"
+    if /usr/local/bin/yt-dlp -f "$format" --add-metadata -ic --restrict-filename -o "$porn_dir/$subdir/%(title)s.%(ext)s" "$url"
     then
       leave "Download successful."
     else

@@ -2,10 +2,10 @@
 ###############################################################################
 # Script Name  : yt-dl-playlist
 # Description  : Download a playlist of YouTube audio files to current directory
-# Dependencies : youtube-dl
+# Dependencies : yt-dlp
 # Arguments    : Video URL
-# Author       : Richard B. Romig, 28 May 2020
-# Email        : rick.romig@gmail.com
+# Author       : Copyright © 2020, Richard B. Romig, 28 May 2020
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Accepts only full URL
 #              : Downloads to current working directory
 # TODO (Rick)  : Hangs after first file in playlist is downloaded.
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.7"
-readonly _updated="04 Apr 2023"
+readonly _version="0.2.0"
+readonly _updated="22 Jun 2023"
 
 ## Functions ##
 
@@ -41,7 +41,7 @@ usage() {
 }
 
 check_dependencies() {
-  exists youtube-dl || die "youtube-dl must be installed. Run install-ytdl" 1
+  exists yt-dlp || die "yt-dlp must be installed. Run install-ytdl" 1
 }
 
 ## Execution ##
@@ -69,10 +69,10 @@ box "YouTube Audio Playlist Download"
 echo "$_script v$_version"
 echo "($_updated)"
 echo $'\n'$"${bold}${blue}Downloading mp3 audio for $URL${normal}"
-# if /usr/local/bin/youtube-dl --add-metadata -xic --embed-thumbnail \
+# if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail \
 # --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" \
 # --yes-playlist "$url"; then
-if /usr/local/bin/youtube-dl --ignore-errors --format bestaudio --extract-audio \
+if /usr/local/bin/yt-dlp --ignore-errors --format bestaudio --extract-audio \
  --restrict-filename --audio-format mp3 --audio-quality 160K \
  --output "%(title)s.%(ext)s" --yes-playlist "$url"; then
   leave "Download successful."
@@ -81,4 +81,4 @@ else
   die "Download failed." "$ec"
 fi
 # Video Playlist
-# youtube-dl -i -f mp4 --output "%(title)s.%(ext)s" --yes-playlist "$url"
+# yt-dlp -i -f mp4 --output "%(title)s.%(ext)s" --yes-playlist "$url"
