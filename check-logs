@@ -20,42 +20,43 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
 
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.9"
-readonly _updated="26 Jun 2023"
-readonly lhost=$HOSTNAME
+readonly _version="0.7.0"
+readonly _updated="27 Jun 2023"
+readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
 
 sysinfo() {
   if [[ -f "$HOME/$lhost.info" ]]; then
     clear
-    echo -e "${lightgreen}$lhost information:${normal}\n"
+    printf "%s%s information:%s\n\n" "$lightgreen" "$lhost" "$normal"
     viewtext "$HOME/$lhost.info"
   else
-    echo -e "\n${orange}$HOME/$lhost.info not found on this system.${normal}\n"
+    printf "%s%s.info not found on this system.%s\n" "$orange" "$lhost" "$normal"
   fi
 }
 
 updates() {
-  local update_log="/var/log/update.log"
-  if [[ -f "$update_log" ]]; then
+  local log_dir="/var/log"
+  local log_file="update.log"
+  if [[ -f "$log_dir/$log_file" ]]; then
     clear
-    echo -e "${lightgreen}$lhost - Most recent unattended system update:${normal}\n"
-    viewtext "$update_log"
+    printf "%s%s - Most recent unattended system update:%s\n\n" "$lightgreen" "$lhost" "$normal"
+    viewtext "$log_dir/$log_file"
   else
-    echo $'\n'$"${orange}The system update log does not exist on $lhost.${normal}"
-    echo -n "The job is"
+    printf "%sThe system update log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
+    printf "The job is"
     if [[ -x "/etc/cron.weekly/z-update" || -x "/opt/bin/z-update" ]]; then
-      echo -e " scheduled but has not run.\n"
+      printf " scheduled but has not run.\n"
     else
-      echo -e " not scheduled to run.\n"
+      printf " not scheduled to run.\n"
     fi
   fi
 }
@@ -63,31 +64,32 @@ updates() {
 timeshift_snapshots() {
   if exists timeshift; then
     if pgrep timeshift > /dev/null 2>&1; then
-      echo -e "\n${orange}Timeshift is currently running.${normal} Try again later.\n"
+      printf "%sTimeshift is currently running.%s Try again later.\n" "$orange" "$normal"
     else
       user_in_sudo
       clear
-      echo -e "${lightgreen}$lhost - Timeshift Snapshots${normal}\n"
+      printf "%s%s - Timeshift Snapshorts:%s\n\n" "$lightgreen" "$lhost" "$normal"
       sudo timeshift --list | awk 'NR!=1 && NR!=3' 2>/dev/null
     fi
   else
-    echo -e "\n${orange}Timeshift is not installed on $lhost.${normal}\n"
+    printf "\n%sTimeshift is not installed on %s.%s\n" "$orange" "$lhost" "$normal"
   fi
 }
 
 defrag_log() {
-  local defrag_log="/var/log/defrag.log"
-  if [[ -f "$defrag_log" ]]; then
+  local log_dir="/var/log"
+  local log_file="defrag.log"
+  if [[ -f "$log_dir/$log_file" ]]; then
     clear
-    echo -e "${lightgreen}$lhost - Defragmentation report:${normal}\n"
-    viewtext "$defrag_log"
+    printf "%s%s - Defragmentation report:%s\n\n" "$lightgreen" "$lhost" "$normal"
+    viewtext "$log_dir/$log_file"
   else
-    echo $'\n'$"${orange}The defragmentation report does not exist on $lhost.${normal}"
-    echo -n "The job is"
+    printf "%sThe defragmentation report does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
+    printf "The job is"
     if [[ -x "/etc/cron.monthly/z-defrag" || -x "/opt/bin/z-defrag" ]]; then
-      echo -e " scheduled but has not run.\n"
+      printf " scheduled but has not run.\n"
     else
-      echo -e " not scheduled to run.\n"
+      printf " not scheduled to run.\n"
     fi
   fi
 }
@@ -97,18 +99,19 @@ ytdlpupdate_log() {
   local log_file="ytdlpup.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
-    echo -e "${lightgreen}$lhost - yt-dlp Update Log:${normal}\n"
+    printf "%s%s - yt-dlp Update Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
 		(printf "DATE|TIME|STATUS|VERSION\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "41"
     entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
-    (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
+    (( entries > 1 )) && printf "%s entries\n\n" "$entries" || printf "%s entry\n\n" "$entries"
   else
     echo $'\n'$"${orange}The yt-dlp update log does not exist on $lhost.${normal}"
-    echo -n "The job is"
+    printf "%sThe yt-dlp update log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
+    printf "The job is"
     if [[ -x "/etc/cron.daily/z-ytdlp-update" ]]; then
-      echo -e " scheduled but has not run.\n"
+      printf " scheduled but has not run.\n"
     else
-      echo -e " not scheduled to run.\n"
+      printf " not scheduled to run.\n"
     fi
   fi
 }
@@ -118,18 +121,18 @@ script_archive_log() {
 	local log_file="script-archive.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
-    echo -e "${lightgreen}$lhost - Bash Script Archive Log:${normal}\n"
+    printf "%s%s - Bash Script Archive Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
 		(printf "DAY|DATE|TIME|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "34"
     entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
-    (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
+    (( entries > 1 )) && printf "%s entries\n\n" "$entries" || printf "%s entry\n\n" "$entries"
   else
-    echo $'\n'$"${orange}The bash script archive log does not exist on $lhost.${normal}"
-    echo -n "The job is"
+    printf "%sThe bash script archive log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
+    printf "The job is"
     if [[ -x "$HOME/.local/bin/scriptarchive.sh" ]]; then
-      echo -e " scheduled but has not run.\n"
+      printf " scheduled but has not run.\n"
     else
-      echo -e " not scheduled to run.\n"
+      printf " not scheduled to run.\n"
     fi
   fi
 }
@@ -139,18 +142,18 @@ password_log() {
   local log_file="password-db.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
-    echo -e "${lightgreen}$lhost - Password Database Change Log:${normal}\n"
+    printf "%s%s - Password Database Change Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
     (printf "DATE|TIME|P.GORILLA|KEEPASSXC\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "39"
     entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
-    (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
+    (( entries > 1 )) && printf "%s entries\n\n" "$entries" || printf "%s entry\n\n" "$entries"
   else
-    echo $'\n'$"${orange}The Password Database Change Log does not exist on $lhost.${normal}"
-    echo -n "The job is"
+    printf "%sThe Password Database Change Log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
+    printf "The job is"
     if [[ -x "$HOME/.local/bin/passwdsync.sh" ]]; then
-      echo -e " scheduled but has not run.\n"
+      printf " scheduled but has not run.\n"
     else
-      echo -e " not scheduled to run.\n"
+      printf " not scheduled to run.\n"
     fi
   fi
 }
@@ -160,18 +163,18 @@ homebank_log() {
 	local log_file="HomeBank-archive.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
-    echo -e "${lightgreen}$lhost - HomeBank Archive Log:${normal}\n"
+    printf "%s%s- HomeBank Archive Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
     (printf "DAY|DATE|TIME|ARCHIVE|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "43"
     entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
-    (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
+    (( entries > 1 )) && printf "%s entries\n\n" "$entries" || printf "%s entry\n\n" "$entries"
   else
-    echo $'\n'$"${orange}The HomeBank archive log does not exist on $lhost.${normal}"
-    echo -n "The job is"
+    printf "%sThe HomeBank archive log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
+    printf "The job is"
     if [[ -x "$HOME/.local/bin/hb-archive.sh" ]]; then
-      echo -e " scheduled but has not run.\n"
+      printf " scheduled but has not run.\n"
     else
-      echo -e " not scheduled to run.\n"
+      printf " not scheduled to run.\n"
     fi
   fi
 }
@@ -181,18 +184,18 @@ local_backup_log() {
   local log_file="backup.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
-    echo -e "${lightgreen}$lhost - Local Backup Log:${normal}\n"
+    printf "%s%s - Local Backup Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
 		(printf "DAY|DATE|TIME|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "34"
     entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
-    (( entries > 1 )) && echo "$entries entries" || echo "$entries entry"
+    (( entries > 1 )) && printf "%s entries\n\n" "$entries" || printf "%s entry\n\n" "$entries"
   else
-    echo $'\n'$"${orange}The local backup log does not exist on $lhost.${normal}"
-    echo -n "The job is"
+    printf "%sThe local backup log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
+    printf "The job is"
     if [[ -x "/etc/cron.daily/z-backup" || -x "/opt/bin/z-backup" ]]; then
-      echo -e " scheduled but has not run.\n"
+      printf " scheduled but has not run.\n"
     else
-      echo -e " not scheduled to run.\n"
+      printf " not scheduled to run.\n"
     fi
   fi
 }
@@ -201,11 +204,11 @@ local_backup_log() {
 
 while true; do
   clear
-  echo "${orange}I solemnly swear that I'm up to no good.${normal}"
-  echo -e "\U1F427 $_script v$_version ($_updated)"
-  echo "Displays the contents of selected log files."
-  echo "Not all logs will be available on all systems."
-  echo $'\n'$"${lightgreen}Log files on $lhost:${normal}"
+  printf "%sI solemnly swear that I'm up to no good.%s\n" "$orange" "$normal"
+  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  printf "Displays the contents of selected log files.\n"
+  printf "Not all logs will be available on all systems.\n"
+  printf "\n%s%s Log files:%s\n" "$lightgreen" "$lhost" "$normal"
 
   COLUMNS=60
   options=("System Information" "System Updates" "Timeshift Snapshots" \
@@ -235,7 +238,7 @@ while true; do
       10 )
         leave "${orange}Mischief managed.${normal}" ;;
       * )
-        echo "${lightred}Invalid choice. Try again.${normal}" >&2 ;;
+        printf "%sInvalid choice. Try again.%s\n" "$lightred" "$normal" >&2
     esac
   done
 done
