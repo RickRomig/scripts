@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.7.0"
-readonly _updated="27 Jun 2023"
+readonly _version="0.7.1"
+readonly _updated="28 Jun 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -105,7 +105,6 @@ ytdlpupdate_log() {
     entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
     (( entries > 1 )) && printf "%s entries\n\n" "$entries" || printf "%s entry\n\n" "$entries"
   else
-    echo $'\n'$"${orange}The yt-dlp update log does not exist on $lhost.${normal}"
     printf "%sThe yt-dlp update log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
     if [[ -x "/etc/cron.daily/z-ytdlp-update" ]]; then
