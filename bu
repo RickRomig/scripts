@@ -33,7 +33,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="3.7"
+readonly _version="3.8"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -42,13 +42,11 @@ readonly mount_point="/media/$user/BU_Drive"
 
 drive_test() {
 	printf "Checking Backup USB Drive...\n"
-	check_usb || { printf "%s No USB drive connected!\n" >&2 "$red_error"; exit 1;  }
+  check_usb || die "No USB drive connected!" 1
 	bu_drive_label || die "Invalid partition label. Run 'bu --help' for drive setup information." 1 
-  # bu_drive_label || { printf "%s Invalid partition label. Run 'bu --help' for drive setup information." >&2 "$red_error"; exit 1; }
   check_uuid || die "Incorrect drive to backup $host." 1
   mount | grep -qw BU_Drive > /dev/null 2>&1 || mount_bu
   bu_drive_fs || die "Drive must be formatted with EXT4 or XFS." 1
-	# bu_drive_fs || { printf "%s Drive must be formatted with EXT4 or XFS." >&2 "$red_error"; exit 1; }
 	printf "Space available on BU_Drive: %s\n" "$(df -h "$mount_point" | tail -n1 | awk '{print $4}')"
 	printf "USB Backup Drive is mounted and meets all criteria.\n"
 }
