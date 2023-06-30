@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, Created: 04 Feb 2023
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Comments     : Based on USB Backup Tool (Version 1.1) by Joe Collins. (www.ezeelinux.com)
-# Last updated : 05 Jun 2023
+# Last updated : 30 Jun 2023
 # TODO (Rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -33,7 +33,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="3.6"
+readonly _version="3.7"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -43,9 +43,12 @@ readonly mount_point="/media/$user/BU_Drive"
 drive_test() {
 	printf "Checking Backup USB Drive...\n"
 	check_usb || { printf "%s No USB drive connected!\n" >&2 "$red_error"; exit 1;  }
-	bu_drive_label || { printf "%s Invalid partition label. Run 'bu --help' for drive setup information." >&2 "$red_error"; exit 1; }
+	bu_drive_label || die "Invalid partition label. Run 'bu --help' for drive setup information." 1 
+  # bu_drive_label || { printf "%s Invalid partition label. Run 'bu --help' for drive setup information." >&2 "$red_error"; exit 1; }
+  check_uuid || die "Incorrect drive to backup $host." 1
   mount | grep -qw BU_Drive > /dev/null 2>&1 || mount_bu
-	bu_drive_fs || { printf "%s Drive must be formatted with EXT4 or XFS." >&2 "$red_error"; exit 1; }
+  bu_drive_fs || die "Drive must be formatted with EXT4 or XFS." 1
+	# bu_drive_fs || { printf "%s Drive must be formatted with EXT4 or XFS." >&2 "$red_error"; exit 1; }
 	printf "Space available on BU_Drive: %s\n" "$(df -h "$mount_point" | tail -n1 | awk '{print $4}')"
 	printf "USB Backup Drive is mounted and meets all criteria.\n"
 }
@@ -54,20 +57,39 @@ check_usb() {
 	[[ $(lsblk -S -o  TRAN | grep 'usb') = *usb* ]] && return "$TRUE" || return "$FALSE"
 }
 
-bu_drive_fs() {
-	fs_type="$(mount | awk '/BU_Drive/ {print $5}')"
-	[[ "$fs_type" == "ext4" || "$fs_type" == "XFS" ]] && return "$TRUE" || return "$FALSE"
-}
-
 bu_drive_label() {
 	bu_label="$(lsblk -o label | grep -w BU_Drive)"
 	[[ -n "$bu_label" ]] && return "$TRUE" || return "$FALSE"
+}
+
+check_uuid() {
+  local g2_uuid="5d3290de-3fa7-4e3c-94b8-aca062c427ef"
+	local g3_uuid="5d1a8caa-36cf-4a36-8457-1a2bb2f85fd3"
+	local pb_uuid="89740987-ca0a-4b33-bb56-9055bb9e1daa"
+	local g2_host="hp-800g2-sff"
+	local g3_host="hp-850-g3"
+	local pb_host="hp-probook-6750"
+	local uuid_path="/dev/disk/by-uuid"
+	
+	if [[ -L "$uuid_path/$g2_uuid" ]]; then
+		[[ "$host" == "$g2_host" ]] && return "$TRUE" || return "$FALSE"
+	elif [[ -L "$uuid_path/$g3_uuid" ]]; then
+		[[ "$host" == "$g3_host" ]] && return "$TRUE" || return "$FALSE"
+	elif [[ -L "$uuid_path/$pb_uuid" ]]; then
+		[[ "$host" == "$pb_host" ]] && return "$TRUE" || return "$FALSE"
+	fi
+	return "$TRUE"
 }
 
 mount_bu() {
   usbdrv="$(lsblk -fs | awk '/BU_Drive/ {print $1}')"
   [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
   sudo mount /dev/"$usbdrv" "$mount_point"
+}
+
+bu_drive_fs() {
+	fs_type="$(mount | awk '/BU_Drive/ {print $5}')"
+	[[ "$fs_type" == "ext4" || "$fs_type" == "XFS" ]] && return "$TRUE" || return "$FALSE"
 }
 
 sync_drives() {
