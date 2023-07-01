@@ -3,16 +3,16 @@
 # Script Name  : bu
 # Description  : USB backup tool
 # Dependencies : rsync
-# Arguments    : --help, --restore (runs backup by default)
+# Arguments    : --help, --backup --restore (runs backup by default)
 # Author       : Copyright (C) 2023, Richard B. Romig, Created: 04 Feb 2023
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
-# Comments     : Based on USB Backup Tool (Version 1.1) by Joe Collins. (www.ezeelinux.com)
-# Last updated : 30 Jun 2023
+# Comments     : Based on USB Backup Tool (Version 1.1) by Joe Collins. (https://www.ezeelinux.com)
+# Last updated : 01 Jul 2023
 # TODO (Rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
-# BU -- USB Backup Tool (Version 1.1) -- by Joe Collins. (www.ezeelinux.com)
+# BU -- USB Backup Tool (Version 1.1) -- by Joe Collins. (https://www.ezeelinux.com)
 # Debian/Ubuntu Linux systems. (May 10, 2019)
 # (GNU/General Public License version 2.0)
 # For Debian 9 and up, Ubuntu 16.04 and up and Linux Mint 18.x and up.
@@ -33,7 +33,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="3.8"
+readonly _version="3.9"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -61,20 +61,16 @@ bu_drive_label() {
 }
 
 check_uuid() {
-  local g2_uuid="5d3290de-3fa7-4e3c-94b8-aca062c427ef"
-	local g3_uuid="5d1a8caa-36cf-4a36-8457-1a2bb2f85fd3"
-	local pb_uuid="89740987-ca0a-4b33-bb56-9055bb9e1daa"
-	local g2_host="hp-800g2-sff"
-	local g3_host="hp-850-g3"
-	local pb_host="hp-probook-6570"
+  local uuid=( "5d3290de-3fa7-4e3c-94b8-aca062c427ef" "5d1a8caa-36cf-4a36-8457-1a2bb2f85fd3" "89740987-ca0a-4b33-bb56-9055bb9e1daa" )
+  local hname=( "hp-800g2-sff" "hp-850-g3" "hp-probook-6570" )
 	local uuid_path="/dev/disk/by-uuid"
 	
-	if [[ -L "$uuid_path/$g2_uuid" ]]; then
-		[[ "$host" == "$g2_host" ]] && return "$TRUE" || return "$FALSE"
-	elif [[ -L "$uuid_path/$g3_uuid" ]]; then
-		[[ "$host" == "$g3_host" ]] && return "$TRUE" || return "$FALSE"
-	elif [[ -L "$uuid_path/$pb_uuid" ]]; then
-		[[ "$host" == "$pb_host" ]] && return "$TRUE" || return "$FALSE"
+	if [[ -L "$uuid_path/${uuid[0]}" ]]; then
+		[[ "$host" == "${hname[0]}" ]] && return "$TRUE" || return "$FALSE"
+	elif [[ -L "$uuid_path/${uuid[1]}" ]]; then
+		[[ "$host" == "${hname[1]}" ]] && return "$TRUE" || return "$FALSE"
+	elif [[ -L "$uuid_path/${uuid[2]}" ]]; then
+		[[ "$host" == "${hname[2]}" ]] && return "$TRUE" || return "$FALSE"
 	fi
 	return "$TRUE"
 }
@@ -151,7 +147,7 @@ restore() {
     exit 1
   fi
 
-  printf "\nBU Restore Function\n" "$_version"
+  printf "\nBU Restore Function\n"
   printf "\n%sWARNING!%s\n" "$lightred" "$normal"
   printf "Any new files created in /home since last backup WILL BE DELETED!\n"
   printf "Are you sure you want to restore now? [y/N]\n"
@@ -256,7 +252,7 @@ EOF
 
 ## Execution ##
 
-# Start timer (Added by R. Romig)
+# Start timer
 SECONDS=0
 box "BU -- USB Backup Tool (Version $_version)"
 # Checking command line arguments:
