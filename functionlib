@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 10 Jun 2023
+# Last updated : 03 Jul 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -187,8 +187,11 @@ get_distribution() {
 is_debian() {
   codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
-    bookworm|bullseye|buster|debbie|elsie ) return "$TRUE" ;;
-    * ) return "$FALSE"
+    bookworm|bullseye|buster|debbie|elsie )
+      return "$TRUE"
+    ;;
+    * )
+      return "$FALSE"
   esac
 }
 
@@ -199,7 +202,7 @@ is_debian() {
 ###############################################################################
 is_focal() {
   ubuntu_code=$(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release)
-  [ "$ubuntu_code" == "focal" ] && return "$TRUE" || return "$FALSE"
+  [[ "$ubuntu_code" == "focal" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -209,7 +212,7 @@ is_focal() {
 ###############################################################################
 is_jammy() {
   ubuntu_code=$(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release)
-  [ "$ubuntu_code" == "jammy" ] && return "$TRUE" || return "$FALSE"
+  [[ "$ubuntu_code" == "jammy" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -220,8 +223,11 @@ is_jammy() {
 support_ppa() {
   codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
-    focal|jammy|uma|una|vanessa|vera|victoria ) return "$TRUE" ;;
-    * ) return "$FALSE" ;;
+    focal|jammy|uma|una|vanessa|vera|victoria )
+      return "$TRUE"
+    ;;
+    * )
+      return "$FALSE"
   esac
 }
 
@@ -233,8 +239,11 @@ support_ppa() {
 antix_mx() {
   dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2> /dev/null)
   case "$dist_id" in
-    antiX|MX ) return "$TRUE" ;;
-    * ) return "$FALSE" ;;
+    antiX|MX )
+      return "$TRUE"
+    ;;
+    * )
+      return "$FALSE"
   esac
 }
 
@@ -264,7 +273,7 @@ is_arch() {
 ###############################################################################
 is_systemd() {
  init_sys=$(/usr/bin/ps -p 1 | awk '/1 ?/ {print $NF}')
- [[ "$init_sys" = systemd ]] && return "$TRUE" || return "$FALSE"
+ [[ "$init_sys" == systemd ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -274,7 +283,7 @@ is_systemd() {
 ###############################################################################
 is_sysv() {
  init_sys=$(/sbin/init --version 2>/dev/null | awk '{print $1}')
- [[ "$init_sys" = "SysV" ]]  && return "$TRUE" || return "$FALSE"
+ [[ "$init_sys" == "SysV" ]]  && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -412,19 +421,22 @@ edit_view_quit() {
           /usr/bin/nano "$filename"
           remove_tilde
         fi
-        break ;;
+        break
+      ;;
       2 )
         if exists bat; then
           /usr/bin/bat "$filename"
         else
           viewtext "$filename"
         fi
-        break ;;
+        break
+      ;;
       3 )
         printf "\nExiting.\n"
-        break ;;
+        break
+      ;;
       * )
-        printf "\e{33mInvalid choice. Try again.\e[0m\n" >&2 ;;
+        printf "\e{33mInvalid choice. Try again.\e[0m\n" >&2
     esac
   done
 }
@@ -440,7 +452,7 @@ viewtext() {
   trows=$(/usr/bin/tput lines)
   cat_limit=$(( trows*87/100 ))
   num_lines=$(wc -l "$file" | cut -d " " -f1)
-  if [[ "$num_lines" -ge "$cat_limit" ]]; then less "$file"; else cat "$file"; fi
+  if [[ "$num_lines" -gt "$cat_limit" ]]; then less "$file"; else cat "$file"; fi
 }
 
 ###############################################################################
