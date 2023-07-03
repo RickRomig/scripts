@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.11"
-readonly _updated="10 Jun 2023"
+readonly _version="0.1.12"
+readonly _updated="03 Jul 2023"
 
 ## Functions ##
 
@@ -51,12 +51,12 @@ echo "$_script v$_version ($_updated)"
 echo "Installs Flatpak & Flathub repository."
 
 if exists flatpak; then
-  echo "Flatpak is already installed."  # Mint 18.3+, LMDE 3+, Peppermnt 10, MX 19
+  echo "Flatpak is already installed."  # Mint 18.3+, LMDE 3+, Peppermnt 10, MX 19+
 else
   ver_code=$(lsb_release -c | cut -f 2)
   case $ver_code in
     bookworm|bullseye|buster|focal|jammy )
-      # Debian 10/11, antiX 19.x, Ubuntu 20.04
+      # Debian 10+, antiX 19.x, Ubuntu 20.04+
       sudo apt update -qq
       sudo apt install flatpak -yy
     ;;
@@ -71,7 +71,7 @@ else
   esac
 fi
 
-# install_gnome_plugin
+exists gnome-software && install_gnome_plugin
 install_flathub
 
 leave "Flatpak and Flathub installed."
