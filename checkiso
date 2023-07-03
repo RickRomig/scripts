@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.0"
-readonly _updated="11 Jun 2023"
+readonly _version="0.4.1"
+readonly _updated="03 Jul 2023"
 readonly isofile="$1"
 readonly checksum="$2"
 readonly checksums_match="${green}The checksums match.${normal}"
@@ -93,6 +93,12 @@ check_md5() {
   [[ "$iso_md5" == "$src_md5" ]] && return "$TRUE" || return "$FALSE"
 }
 
+check_checksum() {
+  local file="$1"
+  lines=$(wc -l "$file" | cut -d' ' -f1)
+  [[ "$lines" -eq 1 ]] && return "$TRUE" || return "$FALSE"
+}
+
 ## Execution ##
 
 printf "Verifies SHA256/SHA512/MD5 checksums of ISO files.\n"
@@ -100,6 +106,7 @@ if [[ "$#" -lt 2 ]]; then
   printf "%s Missing one or more arguments.\n" "$red_error" <&2
 	usage 2
 elif [[ -f "$isofile" && -f "$checksum" ]]; then
+  check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line."
   COLUMNS=40
   printf "Checksum types:\n"
   PS3="Choice: "
@@ -140,7 +147,7 @@ elif [[ -f "$isofile" && -f "$checksum" ]]; then
       ;;
       4 )
         printf "Exiting - No action taken\n"
-        exit_msg "0"
+        exit_msg "$check_code"
       ;;
       * )
         printf "%s Invalid choice:\n1) = SHA256\n2) = SHA512 3) = MD5\n4) = Exit\n" "$red_error" >&2
