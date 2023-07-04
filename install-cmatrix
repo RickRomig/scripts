@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-#####################################################################
+###############################################################################
 # Script Name  : install-cnatrix
 # Description  : installs cmatrix
-# Dependencies : apt, sudo
+# Dependencies : none
 # Arguments    : none
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
-# Comment      : requires sudo/root access
+# Comment      : 
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -24,20 +24,65 @@ else
   exit 1
 fi
 
+## Functions ##
+
+install_matrix() {
+  printf "Installing C-Matrix...\n"
+  sudo apt-get update -qq
+  sudo apt-get install cmatrix cmatrix-xfont -yy
+  leave "C-Matrix installed."
+}
+
+remove_matrix() {
+  sudo apt-get remove cmatrix cmatrix-xfont -yy
+  leave "C-Matrix removed."
+}
+
+help() {
+  errcode="${1:=-2}"
+  cat << END_HELP
+  Usage: $_script [OPTION]
+  OPTIONS:
+  -h  Display help
+  -i  Install C-Matrix
+  -r  Remove C-Matrix
+END_HELP
+  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="v1.0.8"
-readonly _updated="04 Jan 2022"
+readonly _version="1.2.0"
+readonly _updated="03 Jun 2023"
 
 ## Execution ##
 
+printf "Installs/Removes C-Matrix\n"
+noOpt=1
+optstr=":hir"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    h )
+      help 0
+    ;;
+    i )
+      exists cmatrix && leave "C-Matrix already installed."
+      user_in_sudo
+      install_matrix
+    ;;
+    r )
+      exists cmatrix || leave "C-Matrix is not installed."
+      user_in_sudo
+      remove_matrix
+    ;;
+    ? )
+      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+      help 2
+  esac
+  noOpt=0
+done
+[[ "$noOpt" == 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-printf "Installs C-Matrix\n\n"
-
-exists cmatrix && leave "C-Matrix already installed."
-
-printf "Installing C-Matrix...\n"
-sudo apt update -qq
-sudo apt install cmatrix cmatrix-xfont -yyq
-leave "C-Matrix installed."
+exit
