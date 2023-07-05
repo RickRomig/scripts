@@ -6,7 +6,7 @@
 # Arguments    : [-h] [-m] [-s] [-u] (See help function)
 # Author       : Copyright (C) 2022, Richard B. Romig, 04 Jul 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : For use with Joe Collins' BU backup script.
+# Comments     : For use with BU backup script.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -27,13 +27,14 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.11"
-readonly _updated="23 Apr 2023"
+readonly _version="0.2.12"
+readonly _updated="05 Jul 2023"
 readonly mount_point="/media/$USER/BU_Drive"
 
 ## Functions ##
 
 mount_bu() {
+  local usbdrv
   usbdrv="$(lsblk -fs | awk '/BU_Drive/ {print $1}')"
   user_in_sudo
   printf "Mounting backup drive: /dev/%s to %s ...\n" "$usbdrv" "$mount_point"
@@ -43,6 +44,7 @@ mount_bu() {
 }
 
 umount_bu() {
+  local usbdrv
   usbdrv=$(mount | awk '/BU_Drive/ {print $1}')
   user_in_sudo
   printf "Unmounting USB Backup drive at %s ...\n" "$mount_point"
@@ -110,5 +112,6 @@ while getopts "$optstr" opt; do
   esac
 	noOpt=0
 done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; bu_status; help 1; }
+# [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; bu_status; help 1; }
+[[ "$noOpt" = 1 ]] && bu_status
 exit
