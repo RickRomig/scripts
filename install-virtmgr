@@ -33,8 +33,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.1"
-readonly _updated="18 Feb 2022"
+readonly _version="0.2.2"
+readonly _updated="12 Jul 2023"
 
 ## Functions ##
 
@@ -146,6 +146,17 @@ add_to_kvm() {
   printf "the kvm group.\n"
 }
 
+install_packages() {
+  printf "Installing virt-manager, KVM/QEMU, and assoiciated tools...\n"
+  # Absolutely required:
+  sudo apt-get install qemu-kvm libvirt-daemon-system bridge-utils virt-manager -yy
+  # Optional or installed as dependencies:
+  sudo apt-get install virtinst virt-viewer qemu-utils libvirt-daemon libguestfs-tools genisoimage libosinfo-bin libvirt-clients -yy
+  sudo apt-get install dnsmasq vde2 openbsd-netcat
+  sudo apt-get install spice-vdagent
+  sudo modprobe vhost_net
+}
+
 ## Execution ##
 
 clear
@@ -155,16 +166,7 @@ printf "Installs Virt-Manager and KVM/QEMU...\n"
 is_systemd || die "Systemd is required to run background services." 1
 check_cpu
 user_in_sudo
-
-printf "Installing virt-manager, KVM/QEMU, and assoiciated tools...\n"
-# Absolutely required:
-sudo apt-get install qemu-kvm libvirt-daemon-system bridge-utils virt-manager -yy
-# Optional or installed as dependencies:
-sudo apt-get install virtinst virt-viewer qemu-utils libvirt-daemon \
-libguestfs-tools genisoimage libosinfo-bin libvirt-clients -yy
-# sudo apt-get install dnsmasq vde2 openbsd-netcat
-# sudo apt-get install spice-vdagent
-
+install_packages
 # Start Default Network for Networking
 start_networking
 printf "Adding %s to libvirt, libvirt-qemu, and kvm groups...\n" "$USER"
