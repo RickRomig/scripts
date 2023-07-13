@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.5"
-readonly _updated="21 Apr 2023"
+readonly _version="0.1.6"
+readonly _updated="13 Jul 2023"
 
 ## Functions ##
 
@@ -97,15 +97,15 @@ ufw_version() {
 debian_system() {
   codename=$(lsb_release --codename --short)
   case "$codename" in
-    bullseye|buster ) return "$TRUE" ;;
+    bookworm|bullseye|buster ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
 }
 
 ## Execution ##
 
-printf "For Debian, BunsenLabs, and MX Linux systems.\n"
-printf "UFW/GUFW is installed by default on Mint & Ubuntu.\n"
+printf "Installs UFW on Debian, BunsenLabs, and MX Linux systems.\n"
+printf "UFW/GUFW is installed by default on Linux Mint, LMDE, and Ubuntu.\n"
 noOpt=1
 optstr=":dehirs"
 while getopts "$optstr" opt; do
@@ -145,6 +145,7 @@ while getopts "$optstr" opt; do
       user_in_sudo
       printf "UFW %s\n" "$(ufw_version)"
       sudo ufw status numbered
+    ;;
     ? )
       printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
       help 2
