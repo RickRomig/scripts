@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.4"
-readonly _updated="09 Jun 2023"
+readonly _version="0.1.5"
+readonly _updated="13 Jul 2023"
 readonly cfg_dir="${HOME}/.config/neofetch"
 readonly thumbnail_dir="${HOME}/.cache/thumbnails/neofetch"
 
@@ -49,16 +49,12 @@ EOL
 }
 
 install_neofetch() {
-	if exists neofetch; then
-		leave "Neofetch is already installed."
-	else
-		user_in_sudo
-		[[ -d "$thumbnail_dir" ]] || mkdir -p "$thumbnail_dir"
-		sudo apt-get updates
-		sudo apt-get install neofetch -yy
-		apply_config
-		leave "Neofetch is installed."
-	fi
+	user_in_sudo
+	[[ -d "$thumbnail_dir" ]] || mkdir -p "$thumbnail_dir"
+	sudo apt-get updates
+	sudo apt-get install neofetch -yy
+	apply_config
+	printf "Neofetch %s installed.\n" "$(neofetch_version)"
 }
 
 apply_config() {
@@ -70,19 +66,20 @@ apply_config() {
 		sed -i -f "$sed_file" "$cfg_dir/config"
 		printf "Neofetch configuration applied.\n"
 	else
-		printf "Neofetch configuration not present.\n"
+		printf "Neofetch configuration not found.\n" >&2
 	fi
 }
 
 remove_neofetch() {
 	user_in_sudo
-	if exist neofetch; then
-		sudo apt-get purge -yy > /dev/null 2>&1
-		find "$HOME/" -maxdepth 3 -type d -name "neofetch" -exec rm -rf {} \;
-		leave "Neofetch and configuration files removed."
-	else
-		leave "Neofetch is not installed. No action taken."
-	fi
+	printf "Removing Neofetch %s...\n" "$(neofetch_version)"
+	sudo apt-get purge -yy > /dev/null 2>&1
+	find "{$HOME}/" -maxdepth 3 -type d -name "neofetch" -exec rm -rf {} \;
+	printf "Neofetch and configuration files removed.\n"
+}
+
+neofetch_version() {
+	neofetch --version | cut -d' ' -f2
 }
 
 ## Execution ##
@@ -94,20 +91,22 @@ optstr=":chir"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		c )
+			exists neofeatch || leave "Neofetch is not installed."
 			apply_config
-			exit 0
 		;;
 		h )
 			help 0
 			;;
 		i )
+			exists neofetch && leave " Neofetch $(neofetch_version) is already installed."
 			install_neofetch
 		;;
 		r )
+			exists neofeatch || leave "Neofetch is not installed."
 			remove_neofetch
 		;;
 		? )
-			echo "${lightred}ERROR:${normal}Invalid option -${OPTARG}" >&2
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
 			help 2
 	esac
 	noOpt=0
