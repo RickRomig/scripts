@@ -27,11 +27,11 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.2"
-readonly _updated="03 Jun 2023"
-readonly lhost=$HOSTNAME
-readonly bu_dir=$HOME"/.config/backup"
-readonly cfg_dir=$HOME"/.config"
+readonly _version="0.5.3"
+readonly _updated="14 Jul 2023"
+readonly lhost="${HOSTNAME:-$(hostname)}"
+readonly bu_dir="${HOME}/.config/backup"
+readonly cfg_dir="${HOME}/.config"
 
 count=0
 
@@ -133,7 +133,7 @@ bu_git_credentials() {
 bu_neofetch_config() {
 	if [[ -f "$cfg_dir/neofetch/config.conf" && -f "$bu_dir/neofetch/config.conf" ]]; then
 	  if [[ "$bu_dir/neofetch/config.conf" -ot "$cfg_dir/neofetch/config.conf" ]]; then
-	    cp -puv "$$cfg_dir/neofetch/config.conf" "$bu_dir/neofetch/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
+	    cp -puv "$cfg_dir/neofetch/config.conf" "$bu_dir/neofetch/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
 	    count=1
 	  fi
 	elif [[ -f "$cfg_dir/neofetch/config" && -f "$bu_dir/neofetch/config" ]]; then
@@ -220,7 +220,7 @@ bu_bluefish_rc() {
 [[ -f "$HOME/.xbindkeysrc" ]] && bu_home_cfg ".xbindkeysrc"
 [[ -f "$cfg_dir/marktext/preferences.json" ]] && bu_config_cfg "marktext" "preferences.json"
 [[ -f "$cfg_dir/keepassxc/keepassxc.ini" ]] && bu_config_cfg "keepassxc" "keepassxc.ini"
-[[ -f "$cfg_dir/neofetch/config.conf" || -f "$cfg_dir/neofetch/config" ]] && bu_neofetch_config
+[[ -f "$cfg_dir/neofetch/config.conf" || "$cfg_dir/neofetch/config" ]] && bu_neofetch_config
 [[ -f "$cfg_dir/keybindings-backup.dconf" ]] && bu_cinnamon_keybindings
 [[ -f "$cfg_dir/i3/config" ]] && bu_config_cfg "i3" "config"
 [[ -f "$cfg_dir/i3/bindings.list" ]] && bu_config_cfg "i3" "bindings.list"
