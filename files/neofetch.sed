@@ -2,6 +2,7 @@
 /"Theme"/ s/info/# info/
 /"Icons"/ s/info/# info/
 /"CPU Usage"/ s/# info/info/
+/cpu_temp/ s/off/C/
 /"Battery"/ s/# info/info/
 /"Local IP"/ s/# info/info/
 /os_arch/ s/on/off/
@@ -10,3 +11,4 @@
 /refresh_rate/ s/on/off/
 /de_version/ s/on/off/
 /color_blocks/ s/on/off/
+/image_source/ s/auto/~/.local/share/doc/neo-atheist.txt/
