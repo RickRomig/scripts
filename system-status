@@ -29,24 +29,21 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.6"
-readonly _updated="09 May 2023"
+readonly _version="0.5.7"
+readonly _updated="15 Jul 2023"
 
 ## Functions ##
 
 check_dependencies() {
-  if [[ -x /usr/bin/sensors ]]; then
-  	printf "lm-sensors - OK\n"
-  elif sudo apt-get install lm-sensors -yy; then
-  	printf "lm-sensors - OK\n"
-  else
-  	die "lm-sensors cannot be installed." 1
-	fi
+  local packages=( jq lm-sensors )
+  check_packages "${packages[@]}"
+  # Check for drivetemp modules for SATA drives.
   if [[ -b /dev/sda ]]; then
     sensors | grep -qw drivetemp || sudo modprobe drivetemp
     grep -qw drivetemp /etc/modules || echo drivetemp | sudo tee -a /etc/modules
+    printf "drivetemp module - OK\n"
+    sleep 2
   fi
-  check_package jq
 }
 
 nvme_temperature() {
