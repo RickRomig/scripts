@@ -27,9 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.1"
-readonly _updated="11 Apr 2023"
-readonly resume_path="/etc/initramfs-tools/conf.d/resume"
+readonly _version="0.5.0"
+readonly _updated="15 Jul 2023"
 
 ## Functions ##
 
@@ -44,6 +43,7 @@ EOF
 }
 
 get_uuid() {
+  printf "\nExtracting the swap partition UUID using /sbin/blkid ...\n"
   if antix_mx; then
     swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $4}')
   else
@@ -55,19 +55,24 @@ get_uuid() {
   printf "%s\n" "$swap_uuid"
 }
 
+set_resume() {
+  local uuid="$1"
+  local resume_path="/etc/initramfs-tools/conf.d/resume"
+  printf "\nSWAP UUID: %s\n" "$uuid"
+  printf "\nSetting the RESUME environment variable...\n"
+  printf "RESUME=UUID=%s\n" "$uuid" | sudo tee "$resume_path" > /dev/null
+  printf "\nUpdating initramfs ...\n"
+  sudo update-initramfs -u -k all
+  printf "Reboot the system for the change to take affect.\n"
+}
+
 ## Execution ##
 
 user_in_sudo
 
 printf "%s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
 print_message
-printf "\nExtracting the swap partition UUID using /sbin/blkid ...\n"
 swap_uuid=$(get_uuid)
 [[ -z "$swap_uuid" ]] && die "No UUID for swap found." 1
-printf "\nSWAP UUID: %s\n" "$swap_uuid"
-printf "\nSetting the RESUME environment variable...\n"
-printf "RESUME=UUID=%s\n" "$swap_uuid" | sudo tee "$resume_path" > /dev/null
-printf "\nUpdating initramfs ...\n"
-sudo update-initramfs -u -k all
-printf "Reboot the system for the change to take affect.\n"
+set_resume "$swap_uuid"
 exit
