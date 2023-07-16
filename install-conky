@@ -27,11 +27,10 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.5"
-readonly _updated="03 Feb 2023"
+readonly _version="0.5.6"
+readonly _updated="16 Jul 2023"
 readonly template_dir="$HOME/bin/Templates"
-
-readonly hname=$HOSTNAME
+readonly hname="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
 
@@ -42,7 +41,6 @@ check_dependencies() {
 
 cfg_desktop() {
   [[ -d "$HOME/.config/autostart" ]] || mkdir -p "$HOME/.config/autostart"
-
   pushd "$HOME/.config/autostart/" > /dev/null 2>&1 || die "pushd failed"
 
   if [[ -f Conky.desktop || -f conky.desktop ]]; then
@@ -56,6 +54,10 @@ cfg_desktop() {
   popd > /dev/null 2>&1 || die "popd failed"
 }
 
+conky_ver() {
+  conky --version | head -n1 | cut -d' ' -f2
+}
+
 ## Execution ##
 
 check_dependencies
@@ -67,17 +69,14 @@ echo "Installs conky, sets up conky.desktop and creates .conkyrc."
 # Install conky if not already installed
 
 if bunsenlabs || antix_mx; then
-  echo "Conky is pre-installed. Use the Conky Manager to configure conky."
-  exit
+  leave "Conky is pre-installed. Use the Conky Manager to configure conky."
 elif exists conky; then
-  conky_ver=$(conky --version | awk '/Linux/ {print $2}')
-  echo $'\n'$"Conky version $conky_ver is already installed."
+  echo $'\n'$"Conky version $(conky_ver) is already installed."
 else
   echo $'\n'$"Installing conky..."
   sudo apt update -qq
   if sudo apt install -yyq conky; then
-    conky_ver=$(conky --version | awk '/Linux/ {print $2}')
-    echo "Conky version $conky_ver installed."
+    echo "Conky version $(conky_ver) installed."
   else
     status="$?"
     die "Conky installation failed." "$status"
@@ -130,6 +129,4 @@ echo $'\n'$".conkyrc created and configured."
 
 edit_view_quit "$HOME/.conkyrc"
 
-echo "Please reboot or log out and log in again to complete the installation."
-
-exit
+leave "Please reboot or log out and log in again to complete the installation."
