@@ -27,10 +27,9 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.5"
-readonly _updated="13 Jul 2023"
+readonly _version="0.1.6"
+readonly _updated="16 Jul 2023"
 readonly cfg_dir="${HOME}/.config/neofetch"
-readonly thumbnail_dir="${HOME}/.cache/thumbnails/neofetch"
 
 ## Functions ##
 
@@ -49,11 +48,11 @@ EOL
 }
 
 install_neofetch() {
-	user_in_sudo
-	[[ -d "$thumbnail_dir" ]] || mkdir -p "$thumbnail_dir"
+	local thumbnail_dir="${HOME}/.cache/thumbnails/neofetch"
 	sudo apt-get updates
 	sudo apt-get install neofetch -yy
 	apply_config
+	[[ -d "$thumbnail_dir" ]] || mkdir -p "$thumbnail_dir"
 	printf "Neofetch %s installed.\n" "$(neofetch_version)"
 }
 
@@ -71,7 +70,6 @@ apply_config() {
 }
 
 remove_neofetch() {
-	user_in_sudo
 	printf "Removing Neofetch %s...\n" "$(neofetch_version)"
 	sudo apt-get purge -yy > /dev/null 2>&1
 	find "{$HOME}/" -maxdepth 3 -type d -name "neofetch" -exec rm -rf {} \;
@@ -91,18 +89,20 @@ optstr=":chir"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		c )
-			exists neofeatch || leave "Neofetch is not installed."
+			exists neofetch || leave "Neofetch is not installed."
 			apply_config
 		;;
 		h )
 			help 0
-			;;
+		;;
 		i )
 			exists neofetch && leave " Neofetch $(neofetch_version) is already installed."
+			user_in_sudo
 			install_neofetch
 		;;
 		r )
-			exists neofeatch || leave "Neofetch is not installed."
+			exists neofetch || leave "Neofetch is not installed."
+			user_in_sudo
 			remove_neofetch
 		;;
 		? )
@@ -112,5 +112,4 @@ while getopts "$optstr" opt; do
 	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-exit
+leave "$_script v$_version ($_updated)"
