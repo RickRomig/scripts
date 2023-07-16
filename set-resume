@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #############################################################################
 # Script Name  : set-resume
-# Description  : Set the RESUME variable after update-initramfs error
-# Dependencies : blkid, update-initramfs
+# Description  : Set the RESUME environment variable after update-initramfs error
+# Dependencies : None
 # Arguments    : None
-# Author       : Richard B. Romig, 12 Nov 2019
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2019, Richard B. Romig, 12 Nov 2019
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Extracts swap partition UUID from output of /sbin/blkid
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,10 +24,10 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.0"
+readonly _version="0.5.1"
 readonly _updated="15 Jul 2023"
 
 ## Functions ##
@@ -61,9 +61,11 @@ set_resume() {
   printf "\nSWAP UUID: %s\n" "$uuid"
   printf "\nSetting the RESUME environment variable...\n"
   printf "RESUME=UUID=%s\n" "$uuid" | sudo tee "$resume_path" > /dev/null
+}
+
+update_initramfs() {
   printf "\nUpdating initramfs ...\n"
   sudo update-initramfs -u -k all
-  printf "Reboot the system for the change to take affect.\n"
 }
 
 ## Execution ##
@@ -75,4 +77,5 @@ print_message
 swap_uuid=$(get_uuid)
 [[ -z "$swap_uuid" ]] && die "No UUID for swap found." 1
 set_resume "$swap_uuid"
-exit
+update_initramfs
+leave "Reboot the system for the change to take affect."
