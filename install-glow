@@ -24,29 +24,34 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.13"
-readonly _updated="13 Jul 2023"
+readonly _version="0.4.14"
+readonly _updated="16 Jul 2023"
+readonly charm_url="https://repo.charm.sh/apt"
 readonly src_list="/etc/apt/sources.list.d"
 readonly keyring_dir="/etc/apt/keyrings"
 
 ## Functions ##
 
-add_src_gpg() {
-  local charm_url="https://repo.charm.sh/apt"
-  echo "Adding the Charm GPG key..."
+add_gpg() {
+  printf "Adding the Charm GPG key...\n"
   [[ -d "$keyring_dir" ]] || sudo mkdir -p "$keyring_dir"
   curl -fsSL "$charm_url/gpg.key" | sudo gpg --dearmor -o "$keyring_dir/charm.gpg"
-  echo "Creating the the Charm apt source list..."
+  printf "Charm GPG key applied.\n"
+}
+
+add_src_list() {
+  printf "Creating the the Charm apt source list...\n"
   echo "deb [signed-by=$keyring_dir/charm.gpg] $charm_url/ * *" | sudo tee "$src_list/charm.list" > /dev/null
-  printf "charm.list created, and gpg key applied.\n"
+  printf "Charm apt source list created.\n"
 }
 
 install_glow() {
   printf "Installing the Glow markdown reader...\n"
-  add_src_gpg
+  add_gpg
+  add_src_list
   sudo apt update && sudo apt install glow -yy
   printf "glow %s successfully installed." "$(glow_ver)"
 }
@@ -60,16 +65,12 @@ remove_glow() {
 }
 
 glow_ver() {
-  glow --version | awk '{print $3}' | sed 's/v//'
+  glow --version | cut -d' ' -f3
 }
 
 check_dependencies() {
   local packages=( curl gdebi )
   check_packages "${packages[@]}"
-}
-
-exists_glow() {
-  dpkg -l | grep -qw glow && return "$TRUE" || return "$FALSE"
 }
 
 help() {
@@ -99,18 +100,18 @@ do
       help 0
     ;;
     i )
-      exists_glow && leave "Glow $(glow_ver) is already installed."
+      exists glow && leave "Glow $(glow_ver) is already installed."
       user_in_sudo
       check_dependencies
       install_glow
     ;;
     r )
-      exists_glow || leave "Glow is not installed."
+      exists glow || leave "Glow is not installed."
       user_in_sudo
       remove_glow
     ;;
     s )
-      exists_glow || leave "Glow is not installed."
+      exists glow || leave "Glow is not installed."
       user_in_sudo
       check_dependencies
       add_src_gpg
@@ -122,5 +123,4 @@ do
 	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-exit
+leave "$_script v$_version ($_updated)"
