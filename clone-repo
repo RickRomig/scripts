@@ -17,9 +17,9 @@
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.7"
-readonly _updated="16 May 2023"
-readonly repos=( scripts configs i3debian openboxdebian fnloc fnloc-win )
+readonly _version="0.2.8"
+readonly _updated="17 Jul 2023"
+readonly repos=( scripts configs i3debian deb12wm-scripts deb12wm-dotfiles openboxdebian fnloc fnloc-win )
 
 ## Functions ##
 
@@ -46,7 +46,7 @@ printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Clone a repository from the local Gitea server.\n\n"
 printf "Available repositories:\n"
 COLUMNS=40
-options=( "Bash scripts" "Configuration files" "i3-gaps Debian " "Openbox Debian" "FnLoC" "FnLoC-Win" "Exit" )
+options=( "Bash scripts" "Configuration files" "Debian 11 i3-gaps" "Debian 12 WM scripts" "Debian 12 WM dotfiles" "Openbox Debian" "FnLoC" "FnLoC-Win" "Exit" )
 PS3="Choose a repository to clone: "
 select opt in "${options[@]}"; do
   case "$REPLY" in
@@ -75,11 +75,19 @@ select opt in "${options[@]}"; do
       break
     ;;
     7 )
+      clone_repo "${repos[6}"
+      break
+    ;;
+    8 )
+      clone_repo "${repos[7]}"
+      break
+    ;;
+    9 )
       printf "Exiting. No repositories cloned.\n"
       break
     ;;
     * )
-      printf "\e[91mERROR:\e[0m Invalid choice. Choose 1-7.\n" >&2
+      printf "\e[91mERROR:\e[0m Invalid choice. Choose 1-9.\n" >&2
   esac
 done
 exit
