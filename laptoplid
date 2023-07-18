@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.1"
-readonly _updated="30 Mar 2023"
+readonly _version="0.3.2"
+readonly _updated="18 Jul 2023"
 readonly logind_conf="/etc/systemd/logind.conf"
 readonly sed_file="$HOME/bin/files/laptoplid.sed"
 
@@ -42,4 +42,5 @@ is_laptop || leave "This system is not a laptop. $logind_conf was not modified."
 [[ -f "$sed_file" ]] || die "A required file ($(basename "$sed_file")) was not found." 1
 user_in_sudo
 sudo sed -i.bak -f "$sed_file" "$logind_conf"
+sudo systemctl restart systemd-logind.service
 leave "$logind_conf modified. Backup (${logind_conf}.bak) created."
