@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.9"
-readonly _updated="11 Jul 2023"
+readonly _version="0.2.0"
+readonly _updated="18 Jul 2023"
 
 ## Functions ##
 
@@ -47,8 +47,9 @@ help() {
 Installs or removes the Zoom video conferencing software.
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
+	-f	Install Zoom (Flatpak)
 	-h 	Display help
-	-i 	Install Zoom
+	-i 	Install Zoom (deb package)
 	-r 	Remove Zoom
 END_HELP
 	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
@@ -57,6 +58,10 @@ END_HELP
 
 zoom_version() {
 	dpkg -l | awk '$2 == "zoom" {print $3}'
+}
+
+zoom_flat_ver() {
+	flatpak list | awk '/Zoom/ {print $3}'
 }
 
 install_zoom() {
@@ -74,9 +79,18 @@ install_zoom() {
 }
 
 remove_zoom() {
-	printf "Removing Zoom %s ...\n" "$(zoom_version)"
-	sudo apt-get remove zoom -yy
+	printf "Removing Zoom ...\n"
+	if [[ -d "$HOME/.var/app/ us.zoom.Zoom" ]]; then
+		flatpak uninstall --noninteractive --assumeyes  us.zoom.Zoom
+	else
+		sudo apt-get remove --purge zoom -yy
+	fi
 	printf "Zoom has been removed.\n"
+}
+
+flathub_zoom() {
+	flatpak install flathub us.zoom.Zoom
+	printf "Zoom %s installed from Flathub.\n" "$(zoom_flat_ver)"
 }
 
 webcam_info() {
@@ -92,18 +106,26 @@ webcam_info() {
 ## Execution ##
 
 noOpt=1
-optstr=":hir"
+optstr=":fhir"
 while getopts "$optstr" opt; do
 	case "$opt" in
+		f )
+			exists flatpak || leave "Flatpak is not isntalled."
+			flatpak list | grep -qw Zoom && leave "Zoom $(zoom_flat_ver) is installed."
+			exists zoom && remove_zoom
+			flathub_zoom
+		;;
 		h )
 			help 0
 		;;
 		i )
 			exists zoom && printf "Zoom %s is installed.\n" "$(zoom_version)"
+			flatpak list | grep -qw Zoom && leave "Zoom $(zoom_flat_ver) is installed."
 			webcam_info
 			tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 			trap cleanup EXIT
 			user_in_sudo
+			check_dependencies
 			install_zoom
 		;;
 		r )
