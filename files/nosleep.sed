@@ -1,16 +1,16 @@
-/AllowSuspend/ {
+/AllowSuspend=/ {
 s/^#//
 s/yes/no/
 }
-/AllowHibernation/ {
+/AllowHibernation=/ {
 s/^#//
 s/yes/no/
 }
-/AllowSuspendThenHibernate/ {
+/AllowSuspendThenHibernate=/ {
 s/^#//
 s/yes/no/
 }
-/AllowHybridSleep/ {
+/AllowHybridSleep=/ {
 s/^#//
 s/yes/no/
 }
