@@ -11,4 +11,4 @@
 /refresh_rate/ s/on/off/
 /de_version/ s/on/off/
 /color_blocks/ s/on/off/
-/image_source/ s/auto/~/.local/share/doc/neo-atheist.txt/
+/image_source/ s/auto/~\/.local\/share\/doc\/neo-atheist.txt/
