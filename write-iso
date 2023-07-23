@@ -27,18 +27,21 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.4"
-readonly _updated="18 Jun 2023"
+readonly _version="0.2.5"
+readonly _updated="23 Jul 2023"
 
 ## Functions ##
 
 write_dd() {
-	local usb="$1"
-	local iso="$2"
+	local iso="$1"
+	local usb="$2"
   # Assumes no other removable media is mounted to /media/$USER
  	printf "Writing %s to /dev/%s...\n" "$iso_file" "$usb_drive"
-	sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync
-	printf "%s written to /dev/%s.\n" "$iso" "$usb"
+	if sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync; then
+	  printf "%s written to /dev/%s.\n" "$iso" "$usb"
+  else
+    printf "%s write to /dev/%s failed.\n" "$iso" "$usb" >&2
+  fi
 }
 
 ## Execution ##
