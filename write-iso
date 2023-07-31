@@ -6,8 +6,8 @@
 # Arguments    : None
 # Author       : Copyright (C) 2023, Richard B. Romig, 18 Feb 2023
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : Run script from directory containing the ISO file.
-#              : Testing indicates USB drive should not be unmounted.
+# Comments     : Run script from a directory containing the ISO file.
+#              : Testing indicates USB drive should be mounted.
 # TODO (Rick)  :
 ##########################################################################
 
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.5"
-readonly _updated="23 Jul 2023"
+readonly _version="0.2.6"
+readonly _updated="31 Jul 2023"
 
 ## Functions ##
 
@@ -46,9 +46,10 @@ write_dd() {
 
 ## Execution ##
 
-printf "%s v%s (%s)\n" "$_script" "%_version" "$_updated"
-printf "Writes ISO to a USB drive.\n"
-[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || die "No USB drive connected." 1
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Writes ISO to a USB drive.\n\n"
+[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive."
+mount | grep -qw media || diehard "No USB drive mounted." "Check with GUI file manager."
 
 # List ISO files and select
 printf "\nAvailable ISO files in %s:\n" "$PWD"
@@ -57,15 +58,14 @@ find ./ -maxdepth 1 -type f -name "*.iso" -print | sed 's/\.\///'
 read -rp "ISO file to write: " iso_file
 
 # List devices and select
-printf "\nChoose a USB drive:\n"
-lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '/disk/ {print $1,$2,$4}'
-printf "A '1' in the 3rd column indicates the drive is a removable device (USB).\n"
-read -rp "USB device to write to (sdX): " usb_drive
+printf "\nAvailable USB drives. Choose one:\n"
+lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $1"\t"$2"\t"$3}'
+read -rp "USB (sdX) device to write to: " usb_drive
 printf "You selected /dev/%s. If you continue, all data will be erased from this device.\n\n" "$usb_drive"
 echo -e "Answer 'yes' only if you are ${bold}${orange}ABSOLUTELY${normal} sure you want to proceed.\n"
 
 while true; do
-  read -rp "Write $iso_file to /dev/$usb_drive? " yn
+  read -rp "Write $iso_file to /dev/$usb_drive (yes/no)? " yn
   case "$yn" in 
     yes )
       user_in_sudo
