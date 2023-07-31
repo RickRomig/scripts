@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.3"
+readonly _version="0.4.4"
 readonly _updated="31 Jul 2023"
 readonly isofile="$1"
 readonly checksum="$2"
@@ -154,8 +154,7 @@ elif [[ -f "$isofile" && -f "$checksum" ]]; then
     esac
   done
 else
-  printf "%s File(s) not found.\n" "$red_error" >&2
-  [[ -f "$isofile" ]] || printf "%s not found.\n" "$isofile" >&2
-  [[ -f "$checksum" ]] || printf "%s not found.\n" "$checksum" >&2
+  [[ -f "$isofile" ]] || printf "%s %s not found.\n" "$red_error" "$isofile" >&2
+  [[ -f "$checksum" ]] || printf %s "%s not found.\n" "$red_error" "$checksum" >&2
 	usage 2
 fi
