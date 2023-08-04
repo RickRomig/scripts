@@ -30,6 +30,7 @@ _script=$(basename "$0"); readonly _script
 readonly _version="0.2.10"
 readonly _updated="04 Aug 2023"
 readonly url="https://github.com/VSCodium/vscodium/releases"
+readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 
 ## Functions ##
 
@@ -168,6 +169,7 @@ while getopts "$optstr" opt; do
     ;;
 		u )
       exists codium || leave "VSCodium is not installed."
+      [[ -f "$src_list" ]] && leave "VSCodium installed via apt."
       check_dependencies
 			tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 			tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
