@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
 # Last updated : 04 Aug 2023
-# Comments     :
+# Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -29,10 +29,10 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.0"
+readonly _version="0.1.1"
 readonly _updated="04 Aug 2023"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
-readonly src_list="/etc/apt/sources.iist.d/vscodium.list"
+readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 
 ## Functions ##
 
@@ -41,6 +41,7 @@ help() {
 	cat << END_HELP
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
+	-a	Set apt gpg key and source list
 	-h	Display help
 	-i	Install VSCodium
 	-r	Remove VSCodium
@@ -90,22 +91,31 @@ settings() {
 EOL
 }
 
+set_key() {
+	wget https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg
+	sudo mv -v pub.gpg "$key_file"
+}
+
+set_src() {
+		echo 'deb [ signed-by=/usr/share/keyrings/vscodium-archive-keyring.asc ] https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main' | sudo tee "$src_list"
+}
+
 install_vscodium() {
 	user_in_sudo
 	printf "Installing VSCodium...\n"
-	wget https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg
-	sudo mv pub.gpg "$key_file"
-	echo 'deb [ signed-by=/usr/share/keyrings/vscodium-archive-keyring.asc ] https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main' | sudo tee "$src_list"
+	set_key
+	set_src
 	sudo apt-get update
-	sudo apt-get install codium codium-insiders
+	sudo apt-get install codium
 	install_cascadia_code
 	apply_settings
-	printf "VSCodium %s successfully installed.\n" "$(codium_ver)"
+	printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 }
 
 remove_vscodium() {
 	user_in_sudo
 	printf "Removing VSCodium...\n"
+	sudo apt-get remove codium
 	[[ -f "$key_file" ]] && sudo rm -v "$key_file"
 	[[ -f "$src_list" ]] && sudo rm -v "$src_list"
   find "$HOME/.config" -maxdepth 2 -type d -name "VSCcodium" -exec rm -rf {} \;
@@ -116,15 +126,20 @@ remove_vscodium() {
 
 # clear
 noOpt=1
-optstr=":hirs"
-# optstr=":h:i:r:s"
+optstr=":ahirs"
 while getopts "$optstr" opt; do
 	case "$opt" in
+		a)
+			exists codium || leave "VSCodium is not installed."
+			printf "Setting the GPG key and creating the source list file.\n"
+			set_key
+			set_src
+		;;
 		h )
 			help 0
 		;;
 		i )
-			exists codium && leave "VSCodium $(codium_ver) is already installed."
+			exists codium && leave "VSCodium $(codium_version) is already installed."
 			check_package wget
 			install_vscodium
 		;;
