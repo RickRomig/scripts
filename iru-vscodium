@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.9"
-readonly _updated="09 Jun 2023"
+readonly _version="0.2.10"
+readonly _updated="04 Aug 2023"
 readonly url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -153,6 +153,7 @@ while getopts "$optstr" opt; do
 			tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 			trap cleanup EXIT
 			new_ver="$(newest_version)"
+      [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
       echo "${lightyellow}Installing VSCodium $new_ver...${normal}"
 			install_vscodium
       apply_settings
@@ -172,6 +173,7 @@ while getopts "$optstr" opt; do
 			tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 			trap cleanup EXIT
 			new_ver="$(newest_version)"
+      [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
 			compare_versions
     ;;
 		? )
