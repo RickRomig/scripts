@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.10"
-readonly _updated="09 Jun 2023"
+readonly _version="0.3.11"
+readonly _updated="08 Aug2023"
 readonly url="https://github.com/marktext/marktext/releases"
 
 ## Functions ##
@@ -129,6 +129,7 @@ while getopts "$optstr" opt; do
       trap cleanup EXIT
       check_dependencies
       new_ver="$(newest_version)"
+      [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
       compare_versions
     ;;
     ? )
