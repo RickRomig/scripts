@@ -27,7 +27,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.0"
+readonly _version="0.3.1"
 readonly _updated="10 Aug 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly mhost="hp-800g2-sff"
@@ -39,7 +39,7 @@ readonly fhost="hp-probook-6570"
 # clear
 printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Syncrhonizing password databases to %s\n" "$mhost"
-
+check_package rsync
 # Ensure script is being run from HP-ProBook-6570 (21)
 [[ "$lhost" != "$fhost" ]] && die "$_script must be run from $fhost."
 rsync -avzh --delete "$HOME"/Documents/Rick_pwds* "$HOME"/Documents/Passwords* "$localnet.$mhostip":Documents/
