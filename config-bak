@@ -7,7 +7,7 @@
 # Author       : Cepyright (C) 2019, Richard B. Romig, 16 July 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     :
-# TODO (rick)  : create functions
+# TODO (rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -24,11 +24,11 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.3"
-readonly _updated="14 Jul 2023"
+readonly _version="0.5.0"
+readonly _updated="15 Aug 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="${HOME}/.config/backup"
 readonly cfg_dir="${HOME}/.config"
@@ -36,6 +36,8 @@ readonly cfg_dir="${HOME}/.config"
 count=0
 
 ## Functions ##
+
+# Well-behaved configs
 
 bu_home_cfg(){
 	local file="$1"
@@ -64,6 +66,8 @@ bu_config_cfg() {
 		count=1
 	fi
 }
+
+# Special cases
 
 bu_nanorc() {
 	if [[ -f "$HOME/.nanorc" && -f "$bu_dir/.nanorc" ]]; then
@@ -130,25 +134,6 @@ bu_git_credentials() {
 	fi
 }
 
-bu_neofetch_config() {
-	if [[ -f "$cfg_dir/neofetch/config.conf" && -f "$bu_dir/neofetch/config.conf" ]]; then
-	  if [[ "$bu_dir/neofetch/config.conf" -ot "$cfg_dir/neofetch/config.conf" ]]; then
-	    cp -puv "$cfg_dir/neofetch/config.conf" "$bu_dir/neofetch/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	    count=1
-	  fi
-	elif [[ -f "$cfg_dir/neofetch/config" && -f "$bu_dir/neofetch/config" ]]; then
-	  if [[ "$bu_dir/neofetch/config" -ot "$cfg_dir/neofetch/config" ]]; then
-	    cp -puv "$cfg_dir/neofetch/config." "$bu_dir/neofetch/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	    count=1
-	  fi
-	elif [[ -f "$cfg_dir/neofetch/config.conf" || -f "$$cfg_dir/neofetch/config" ]]; then
-	  [[ -d "$bu_dir/neofetch" ]] || mkdir -p "$bu_dir/neofetch"
-	  [[ -f "$cfg_dir/neofetch/config.conf" ]] && cp -pv "$cfg_dir/neofetch/config.conf" "$bu_dir/neofetch/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	  [[ -f "$cfg_dir/neofetch/config" ]] && cp -pv "$cfg_dir/neofetch/config" "$bu_dir/neofetch/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	  count=1
-	fi
-}
-
 bu_cinnamon_keybindings() {
 	local kb_bu_file="keybindings-backup.dconf"
 	if [[ -f "$cfg_dir/$kb_bu_file" && -f "$bu_dir/$kb_bu_file" ]]; then
@@ -178,63 +163,60 @@ bu_sshpwd_file() {
 	fi
 }
 
-bu_bluefish_rc() {
-	if [[ -f "$HOME/.bluefish/rcfile-2.0" && -f "$bu_dir/.bluefish/rcfile-2.0" ]]; then
-	  if [[ "$bu_dir/.bluefish/rcfile-2.0" -ot "$HOME/.bluefish/rcfile-2.0" ]]; then
-	    cp -puv "$HOME/.bluefish/rcfile-2.0" "$bu_dir/.bluefish/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	    count=1
-	  fi
-	elif [[ -f "$HOME/.bluefish/rcfile-2.0" ]]; then
-	  [[ -d "$bu_dir/.bluefish" ]] || mkdir -p "$bu_dir/.bluefish"
-	  cp -pv "$HOME/.bluefish/rcfile-2.0" "$bu_dir/.bluefish/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	  count=1
-	fi
-}
-
 ## Execution ##
 
-# Create backup directory if it doesn't exist
+# Create the backup directory if it doesn't exist
 
 [[ -d "$bu_dir" ]] || mkdir -p "$bu_dir"
 
+# User configs
 [[ -f "$HOME/$lhost.info" ]] && bu_home_cfg "$$lhost.info"
 [[ -f "$HOME/.profile" ]] && bu_home_cfg ".profile"
 [[ -f "$HOME/.bashrc" ]] && bu_home_cfg ".bashrc"
 [[ -f "$HOME/.bash_aliases" ]] && bu_home_cfg ".bash_aliases"
 [[ -f "$HOME/.bash_profile" ]] && bu_home_cfg ".bash_profile"
 [[ -f "$HOME/.bash_logout"  ]] && bu_home_cfg ".bash_logout"
-[[ -f "$HOME/.conkyrc" ]] && bu_home_cfg ".conkyrc"
-[[ -f "$cfg_dir/conky/conky.conf" ]] && bu_config_cfg "conky" "conky.conf"
-[[ -f "$HOME/.nanorc" || -f "$cfg_dir/nano/nanorc" ]] && bu_nanorc
+[[ -f "$HOME/.face" ]] && bu_home_cfg ".face"
 [[ -f "$HOME/.gitconfig" || -f "$cfg_dir/git/config" ]] && bu_git_config
 [[ -f "$HOME/.git-credentials" || -f "$cfg_dir/git/credentials" ]] && bu_git_credentials
-[[ -f "$HOME/.gorillarc" ]] && bu_home_cfg ".gorillarc"
-[[ -f "$cfg_dir/bat/config" ]] && bu_config_cfg "bat" "config"
-[[ -f "$HOME/.bluefish/rcfile-2.0" ]] && bu_home_cfg ".bluefish/rcfile-2.0"
-[[ -f "$HOME/.local/share/sshpwd_file" ]] && bu_sshpwd_file
-[[ -f "$HOME/.face" ]] && bu_home_cfg ".face"
-[[ -f "$cfg_dir/micro/settings.json" ]] && bu_config_cfg "micro" "settings.json"
-[[ -f "$cfg_dir/micro/bindings.json" ]] && bu_config_cfg "micro" "bindings.json"
-[[ -f "$cfg_dir/clipit/clipitrc" ]] && bu_config_cfg "clipit" "clipitrc"
-[[ -f "$cfg_dir/terminator/config" ]] && bu_config_cfg "terminator" "config"
-[[ -f "$HOME/.xbindkeysrc" ]] && bu_home_cfg ".xbindkeysrc"
-[[ -f "$cfg_dir/marktext/preferences.json" ]] && bu_config_cfg "marktext" "preferences.json"
-[[ -f "$cfg_dir/keepassxc/keepassxc.ini" ]] && bu_config_cfg "keepassxc" "keepassxc.ini"
-[[ -f "$cfg_dir/neofetch/config.conf" || "$cfg_dir/neofetch/config" ]] && bu_neofetch_config
-[[ -f "$cfg_dir/keybindings-backup.dconf" ]] && bu_cinnamon_keybindings
+# i3 and related configs
 [[ -f "$cfg_dir/i3/config" ]] && bu_config_cfg "i3" "config"
 [[ -f "$cfg_dir/i3/bindings.list" ]] && bu_config_cfg "i3" "bindings.list"
 [[ -f "$cfg_dir/i3/sxhkd/sxhkdrc" ]] && bu_config_cfg "i3/sxhkd" "sxhkdrc"
 [[ -f "$cfg_dir/i3/bar.conf" ]] && bu_config_cfg "i3" "bar.conf"
 [[ -f "$cfg_dir/i3/workspaces.conf" ]] && bu_config_cfg "i3" "workspaces.conf"
 [[ -f "$cfg_dir/i3/i3status.conf" ]] && bu_config_cfg "i3" "i3status.conf"
+[[ -f "$cfg_dir/polybar/i3bar.ini" ]] && bu_config_cfg "polybar" "i3bar.ini"
+[[ -f "$cfg_dir/polybar/config" ]] && bu_config_cfg "polybar" "config"
 [[ -f "$cfg_dir/rofi/config.rasi" ]] && bu_config_cfg "rofi" "config.rasi"
 [[ -f "$cfg_dir/rofi/arc_dark_colors.rasi" ]] && bu_config_cfg "rofi" "arc_dark_colors.rasi"
+# Editor configs
+[[ -f "$HOME/.nanorc" || -f "$cfg_dir/nano/nanorc" ]] && bu_nanorc
+[[ -f "$cfg_dir/micro/settings.json" ]] && bu_config_cfg "micro" "settings.json"
+[[ -f "$cfg_dir/micro/bindings.json" ]] && bu_config_cfg "micro" "bindings.json"
 [[ -f "$cfg_dir/VSCodium/User/settings.json" ]] && bu_config_cfg "VSCodium/User" "settings.json"
 [[ -f "$cfg_dir/geany/geany.conf" ]] && bu_config_cfg "geany" "geany.conf"
 [[ -f "$cfg_dir/geany/keybindings.conf" ]] && bu_config_cfg "geany" "keybindings.conf"
+[[ -f "$cfg_dir/marktext/preferences.json" ]] && bu_config_cfg "marktext" "preferences.json"
+[[ -f "$HOME/.bluefish/rcfile-2.0" ]] && bu_home_cfg ".bluefish/rcfile-2.0"
+# Terminal configs
 [[ -f "$cfg_dir/kitty/kitty.conf" ]] && bu_config_cfg "kitty" "kitty.conf"
 [[ -f "$cfg_dir/kitty/bindings.list" ]] && bu_config_cfg "kitty" "bindings.list"
+[[ -f "$cfg_dir/terminator/config" ]] && bu_config_cfg "terminator" "config"
+# Keybindings
+[[ -f "$cfg_dir/keybindings-backup.dconf" ]] && bu_cinnamon_keybindings
+[[ -f "$HOME/.xbindkeysrc" ]] && bu_home_cfg ".xbindkeysrc"
+# Conky configs
+[[ -f "$HOME/.conkyrc" ]] && bu_home_cfg ".conkyrc"
+[[ -f "$cfg_dir/conky/conky.conf" ]] && bu_config_cfg "conky" "conky.conf"
+# Miscellaneous config files
+[[ -f "$cfg_dir/bat/config" ]] && bu_config_cfg "bat" "config"
+[[ -f "$cfg_dir/neofetch/config.conf" ]] && bu_config_cfg "neofetch" "config.conf"
+[[ -f "$cfg_dir/neofetch/config" ]] && bu_config_cfg "neofetch" "config.conf"
+[[ -f "$cfg_dir/clipit/clipitrc" ]] && bu_config_cfg "clipit" "clipitrc"
+[[ -f "$cfg_dir/keepassxc/keepassxc.ini" ]] && bu_config_cfg "keepassxc" "keepassxc.ini"
+[[ -f "$HOME/.gorillarc" ]] && bu_home_cfg ".gorillarc"
+[[ -f "$HOME/.local/share/sshpwd_file" ]] && bu_sshpwd_file
 
 # Completion status
 
