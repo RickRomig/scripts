@@ -27,7 +27,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.3"
+readonly _version="0.5.4"
 readonly _updated="15 Aug 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="${HOME}/.config/backup"
@@ -79,12 +79,14 @@ bu_cinnamon_keybindings() {
 }
 
 bu_sshpwd_file() {
-	if [[ -f "$HOME/.local/share/sshpwd_file" && -f "$bu_dir/sshpwd_file" ]]; then
-	  if [[ "$bu_dir/sshpwd_file" -ot "$HOME/.local/share/sshpwd_file" ]]; then
-	    cp -puv "$HOME/.local/share/sshpwd_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	local folder="$1"
+	local file="$2"
+	if [[ -f "$folder/$file" && -f "$bu_dir/$file" ]]; then
+	  if [[ "$bu_dir/$file" -ot "$folder/$file" ]]; then
+	    cp -puv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 	  fi
-	elif [[ -f "$HOME/.local/share/sshpwd_file" ]]; then
-	  cp -pv "$HOME/.local/share/sshpwd_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	elif [[ -f "$folder/$file" ]]; then
+	  cp -pv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 	fi
 }
 
@@ -158,7 +160,7 @@ bu_bluefish_cfg() {
 [[ -f "$cfg_dir/git/config" ]] && bu_config_cfg "git" "config"
 [[ -f "$HOME/.git-credentials" ]] && bu_home_cfg ".git-credentials"
 [[ -f "$cfg_dir/git/credentials" ]] && bu_config_cfg "git" "credentials"
-[[ -f "$HOME/.local/share/sshpwd_file" ]] && bu_sshpwd_file
+[[ -f "$HOME/.local/share/doc/sshpwd_file" ]] && bu_sshpwd_file "$HOME/.local/share/doc" "sshpwd_file"
 
 # Completion status
 
