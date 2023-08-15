@@ -27,12 +27,11 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.1"
+readonly _version="0.5.2"
 readonly _updated="15 Aug 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="${HOME}/.config/backup"
 readonly cfg_dir="${HOME}/.config"
-
 count=0
 
 ## Functions ##
@@ -68,71 +67,6 @@ bu_config_cfg() {
 }
 
 # Special cases
-
-bu_nanorc() {
-	if [[ -f "$HOME/.nanorc" && -f "$bu_dir/.nanorc" ]]; then
-		if [[ "$bu_dir/.nanorc" -ot "$HOME/.nanorc" ]]; then
-			cp -puv "$HOME/.nanorc" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-			count=1
-		fi
-	elif [[ -f "$HOME/.nanorc" ]]; then
-		cp -pv "$HOME/.nanorc" "$bu_dir/" && (( count++ ))
-	elif [[ -f "$cfg_dir/nano/nanorc" && -f "$bu_dir/nano/nanorc" ]]; then
-		if [[ "$bu_dir/nano/nanorc" -ot "$cfg_dir/nano/nanorc" ]]; then
-			cp -puv "$cfg_dir/nano/nanorc" "$bu_dir/nano/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}}' | sed "s/'//"
-			count=1
-		fi
-	elif [[ -f "$cfg_dir/nano/nanorc" ]]; then
-		[[ -d "$bu_dir/nano" ]] || mkdir -p "$bu_dir/nano"
-		cp -pv "$cfg_dir/nano/nanorc" "$bu_dir/nano/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-		count=1
-		[[ -f "$bu_dir/.nanorc" ]] && rm "$bu_dir/.nanorc"
-	fi
-}
-
-bu_git_config() {
-	if [[ -f "$HOME/.gitconfig" && -f "$bu_dir/.gitconfig" ]]; then
-	  if [[ "$bu_dir/.gitconfig" -ot "$HOME/.gitconfig" ]]; then
-	    cp -puv "$HOME/.gitconfig" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	    count=1
-	  fi
-	elif [[ -f "$HOME/.gitconfig" ]]; then
-	  cp -pv "$HOME/.gitconfig" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	  count=1
-	elif [[ -f "$cfg_dir/git/config" && -f "$bu_dir/git/config" ]]; then
-	  if [[ "$bu_dir/git/config" -ot "$cfg_dir/git/config" ]]; then
-	    cp -puv "$cfg_dir/git/config" "$bu_dir/git/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	    count=1
-	  fi
-	elif [[ -f "$cfg_dir/git/config" ]]; then
-	  [[ -d "$bu_dir/git/" ]] || mkdir -p "$bu_dir/git/"
-	  cp -pv "$cfg_dir/git/config" "$bu_dir/git/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	  count=1
-	  [[ -f "$bu_dir/.gitconfig" ]] && rm "$bu_dir/.gitconfig"
-	fi
-}
-
-bu_git_credentials() {
-	if [[ -f "$HOME/.git-credentials" && -f "$bu_dir/.git-credentials" ]]; then
-	  if [[ "$bu_dir/.git-credentials" -ot "$HOME/.git-credentials" ]]; then
-	    cp -puv "$HOME/.git-credentials" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	    count=1
-	  fi
-	elif [[ -f "$HOME/.git-credentials" ]]; then
-	  cp -puv "$HOME/.git-credentials" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	  count=1
-	elif [[ -f "$cfg_dir/git/credentials" && -f "$bu_dir/git/credentials" ]]; then
-	  if [[ "$bu_dir/git/credentials" -ot "$cfg_dir/git/credentials" ]]; then
-	    cp -puv "$cfg_dir/git/credentials" "$bu_dir/git/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	    count=1
-	  fi
-	elif [[ -f "$cfg_dir/git/credentials" ]]; then
-	  [[ -d "$bu_dir/git/" ]] || mkdir -p "$bu_dir/git/"
-	  cp -pv "$cfg_dir/git/credentials" "$bu_dir/git/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	  count=1
-	  [[ -f "$bu_dir/.git-credentials" ]] && rm "$bu_dir/.git-credentials"
-	fi
-}
 
 bu_cinnamon_keybindings() {
 	local kb_bu_file="keybindings-backup.dconf"
@@ -177,8 +111,6 @@ bu_sshpwd_file() {
 [[ -f "$HOME/.bash_profile" ]] && bu_home_cfg ".bash_profile"
 [[ -f "$HOME/.bash_logout"  ]] && bu_home_cfg ".bash_logout"
 [[ -f "$HOME/.face" ]] && bu_home_cfg ".face"
-[[ -f "$HOME/.gitconfig" || -f "$cfg_dir/git/config" ]] && bu_git_config
-[[ -f "$HOME/.git-credentials" || -f "$cfg_dir/git/credentials" ]] && bu_git_credentials
 # i3 and related configs
 [[ -f "$cfg_dir/i3/config" ]] && bu_config_cfg "i3" "config"
 [[ -f "$cfg_dir/i3/bindings.list" ]] && bu_config_cfg "i3" "bindings.list"
@@ -193,7 +125,8 @@ bu_sshpwd_file() {
 [[ -f "$cfg_dir/rofi/config.rasi" ]] && bu_config_cfg "rofi" "config.rasi"
 [[ -f "$cfg_dir/rofi/arc_dark_colors.rasi" ]] && bu_config_cfg "rofi" "arc_dark_colors.rasi"
 # Editor configs
-[[ -f "$HOME/.nanorc" || -f "$cfg_dir/nano/nanorc" ]] && bu_nanorc
+[[ -f "$HOME/.nanorc" ]] && bu_home_cfg ".nanor"
+[[ -f "$cfg_dir/nano/nanorc" ]] && bu_config_cfg "nano" "nanorc"
 [[ -f "$cfg_dir/micro/settings.json" ]] && bu_config_cfg "micro" "settings.json"
 [[ -f "$cfg_dir/micro/bindings.json" ]] && bu_config_cfg "micro" "bindings.json"
 [[ -f "$cfg_dir/VSCodium/User/settings.json" ]] && bu_config_cfg "VSCodium/User" "settings.json"
@@ -218,6 +151,10 @@ bu_sshpwd_file() {
 [[ -f "$cfg_dir/clipit/clipitrc" ]] && bu_config_cfg "clipit" "clipitrc"
 [[ -f "$cfg_dir/keepassxc/keepassxc.ini" ]] && bu_config_cfg "keepassxc" "keepassxc.ini"
 [[ -f "$HOME/.gorillarc" ]] && bu_home_cfg ".gorillarc"
+[[ -f "$HOME/.gitconfig" ]] && bu_home_cfg ".gitconfig"
+[[ -f "$cfg_dir/git/config" ]] && bu_config_cfg "git" "config"
+[[ -f "$HOME/.git-credentials" ]] && bu_home_cfg ".git-credentials"
+[[ -f "$cfg_dir/git/credentials" ]] && bu_config_cfg "git" "credentials"
 [[ -f "$HOME/.local/share/sshpwd_file" ]] && bu_sshpwd_file
 
 # Completion status
