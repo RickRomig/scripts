@@ -27,7 +27,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.2"
+readonly _version="0.5.3"
 readonly _updated="15 Aug 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="${HOME}/.config/backup"
@@ -42,12 +42,10 @@ bu_home_cfg(){
 	local file="$1"
 	if [[ -f "$HOME/$file" && -f "$bu_dir/$file" ]]; then
 		if [[ "$bu_dir/$file" -ot "$HOME/$file" ]]; then
-	    cp -puv "$HOME/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	    count=1
+	    cp -puv "$HOME/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 	  fi
 	elif [[ -f "$HOME/$file" ]]; then
-	  cp -pv "$HOME/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	  count=1
+	  cp -pv "$HOME/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 	fi
 }
 
@@ -56,13 +54,11 @@ bu_config_cfg() {
 	local file="$2"
 	if [[ -f "$cfg_dir/$folder/$file" && -f "$bu_dir/$folder/$file" ]]; then
 		if [[ "$bu_dir/$folder/$file" -ot "$cfg_dir/$folder/$file" ]]; then
-			cp -puv "$cfg_dir/$folder/$file" "$bu_dir/$folder/$file" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-			count=1
+			cp -puv "$cfg_dir/$folder/$file" "$bu_dir/$folder/$file" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 		fi
 	elif [[ -f "$cfg_dir/$folder/$file" ]]; then
 		[[ -d "$bu_dir/$folder" ]] || mkdir -p "$bu_dir/$folder"
-		cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/$file" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-		count=1
+		cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/$file" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 	fi
 }
 
@@ -72,28 +68,35 @@ bu_cinnamon_keybindings() {
 	local kb_bu_file="keybindings-backup.dconf"
 	if [[ -f "$cfg_dir/$kb_bu_file" && -f "$bu_dir/$kb_bu_file" ]]; then
 	  if [[ "$bu_dir/$kb_bu_file" -ot "$cfg_dir/$kb_bu_file" ]]; then
-	    cp -puv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	    count=1
+	    cp -puv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 	  fi
 	elif [[ -f "$cfg_dir/$kb_bu_file" ]]; then
-	  cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	  count=1
+	  cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 	elif is_cinnamon; then
 	    dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$kb_bu_file"
-	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	    count=1
+	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 	fi
 }
 
 bu_sshpwd_file() {
 	if [[ -f "$HOME/.local/share/sshpwd_file" && -f "$bu_dir/sshpwd_file" ]]; then
 	  if [[ "$bu_dir/sshpwd_file" -ot "$HOME/.local/share/sshpwd_file" ]]; then
-	    cp -puv "$HOME/.local/share/sshpwd_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	    count=1
+	    cp -puv "$HOME/.local/share/sshpwd_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 	  fi
 	elif [[ -f "$HOME/.local/share/sshpwd_file" ]]; then
-	  cp -pv "$HOME/.local/share/sshpwd_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"
-	  count=1
+	  cp -pv "$HOME/.local/share/sshpwd_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	fi
+}
+
+bu_bluefish_cfg() {
+	local folder="$1"
+	local file="$2"
+	if [[ -f  "$folder/$file"  && -f "$bu_dir/$file" ]]; then
+		if [[ "$bu_dir/$file" -ot "$folder/$file" ]]; then
+			cp -puv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+		fi
+	elif [[ -f "$folder/$file" ]]; then
+		cp pv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 	fi
 }
 
@@ -133,7 +136,7 @@ bu_sshpwd_file() {
 [[ -f "$cfg_dir/geany/geany.conf" ]] && bu_config_cfg "geany" "geany.conf"
 [[ -f "$cfg_dir/geany/keybindings.conf" ]] && bu_config_cfg "geany" "keybindings.conf"
 [[ -f "$cfg_dir/marktext/preferences.json" ]] && bu_config_cfg "marktext" "preferences.json"
-[[ -f "$HOME/.bluefish/rcfile-2.0" ]] && bu_home_cfg ".bluefish/rcfile-2.0"
+[[ -f "$HOME/.bluefish/rcfile-2.0" ]] && bu_bluefish_cfg "${HOME}/.bluefish" "rcfile-2.0"
 # Terminal configs
 [[ -f "$cfg_dir/kitty/kitty.conf" ]] && bu_config_cfg "kitty" "kitty.conf"
 [[ -f "$cfg_dir/kitty/bindings.list" ]] && bu_config_cfg "kitty" "bindings.list"
@@ -159,10 +162,11 @@ bu_sshpwd_file() {
 
 # Completion status
 
-if (( count == 0 )); then
-  printf "Configuration files are up to date. No backup required.\n"
-else
+# printf "count = %d\n" "$count"
+if [[ "$count" -gt "0" ]]; then
   printf "Configuration files backed up.\n"
+else
+  printf "Configuration files are up to date. No backup required.\n"
 fi
 
 leave "$_script v$_version ($_updated)"
