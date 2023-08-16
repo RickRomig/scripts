@@ -27,16 +27,14 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.4"
-readonly _updated="15 Aug 2023"
+readonly _version="0.5.5"
+readonly _updated="16 Aug 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="${HOME}/.config/backup"
 readonly cfg_dir="${HOME}/.config"
 count=0
 
 ## Functions ##
-
-# Well-behaved configs
 
 bu_home_cfg(){
 	local file="$1"
@@ -62,7 +60,17 @@ bu_config_cfg() {
 	fi
 }
 
-# Special cases
+bu_misc_cfg() {
+	local folder="$1"
+	local file="$2"
+	if [[ -f "$folder/$file" && -f "$bu_dir/$file" ]]; then
+	  if [[ "$bu_dir/$file" -ot "$folder/$file" ]]; then
+	    cp -puv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	  fi
+	elif [[ -f "$folder/$file" ]]; then
+	  cp -pv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	fi
+}
 
 bu_cinnamon_keybindings() {
 	local kb_bu_file="keybindings-backup.dconf"
@@ -75,30 +83,6 @@ bu_cinnamon_keybindings() {
 	elif is_cinnamon; then
 	    dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$kb_bu_file"
 	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
-	fi
-}
-
-bu_sshpwd_file() {
-	local folder="$1"
-	local file="$2"
-	if [[ -f "$folder/$file" && -f "$bu_dir/$file" ]]; then
-	  if [[ "$bu_dir/$file" -ot "$folder/$file" ]]; then
-	    cp -puv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
-	  fi
-	elif [[ -f "$folder/$file" ]]; then
-	  cp -pv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
-	fi
-}
-
-bu_bluefish_cfg() {
-	local folder="$1"
-	local file="$2"
-	if [[ -f  "$folder/$file"  && -f "$bu_dir/$file" ]]; then
-		if [[ "$bu_dir/$file" -ot "$folder/$file" ]]; then
-			cp -puv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
-		fi
-	elif [[ -f "$folder/$file" ]]; then
-		cp pv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 	fi
 }
 
@@ -138,7 +122,7 @@ bu_bluefish_cfg() {
 [[ -f "$cfg_dir/geany/geany.conf" ]] && bu_config_cfg "geany" "geany.conf"
 [[ -f "$cfg_dir/geany/keybindings.conf" ]] && bu_config_cfg "geany" "keybindings.conf"
 [[ -f "$cfg_dir/marktext/preferences.json" ]] && bu_config_cfg "marktext" "preferences.json"
-[[ -f "$HOME/.bluefish/rcfile-2.0" ]] && bu_bluefish_cfg "${HOME}/.bluefish" "rcfile-2.0"
+[[ -f "$HOME/.bluefish/rcfile-2.0" ]] && bu_misc_cfg "${HOME}/.bluefish" "rcfile-2.0"
 # Terminal configs
 [[ -f "$cfg_dir/kitty/kitty.conf" ]] && bu_config_cfg "kitty" "kitty.conf"
 [[ -f "$cfg_dir/kitty/bindings.list" ]] && bu_config_cfg "kitty" "bindings.list"
@@ -160,7 +144,7 @@ bu_bluefish_cfg() {
 [[ -f "$cfg_dir/git/config" ]] && bu_config_cfg "git" "config"
 [[ -f "$HOME/.git-credentials" ]] && bu_home_cfg ".git-credentials"
 [[ -f "$cfg_dir/git/credentials" ]] && bu_config_cfg "git" "credentials"
-[[ -f "$HOME/.local/share/doc/sshpwd_file" ]] && bu_sshpwd_file "$HOME/.local/share/doc" "sshpwd_file"
+[[ -f "$HOME/.local/share/doc/sshpwd_file" ]] && bu_misc_cfg "$HOME/.local/share/doc" "sshpwd_file"
 
 # Completion status
 
