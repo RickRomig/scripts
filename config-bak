@@ -27,7 +27,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.5"
+readonly _version="0.5.6"
 readonly _updated="16 Aug 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="${HOME}/.config/backup"
@@ -40,10 +40,12 @@ bu_home_cfg(){
 	local file="$1"
 	if [[ -f "$HOME/$file" && -f "$bu_dir/$file" ]]; then
 		if [[ "$bu_dir/$file" -ot "$HOME/$file" ]]; then
-	    cp -puv "$HOME/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	    cp -pv "$HOME/$file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'//"
+			(( count++ ))
 	  fi
 	elif [[ -f "$HOME/$file" ]]; then
-	  cp -pv "$HOME/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	  cp -pv "$HOME/$file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'//"
+		(( count++ ))
 	fi
 }
 
@@ -52,11 +54,15 @@ bu_config_cfg() {
 	local file="$2"
 	if [[ -f "$cfg_dir/$folder/$file" && -f "$bu_dir/$folder/$file" ]]; then
 		if [[ "$bu_dir/$folder/$file" -ot "$cfg_dir/$folder/$file" ]]; then
-			cp -puv "$cfg_dir/$folder/$file" "$bu_dir/$folder/$file" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+			printf "==> "
+			cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/$file" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'//"
+			(( count++ ))
 		fi
 	elif [[ -f "$cfg_dir/$folder/$file" ]]; then
 		[[ -d "$bu_dir/$folder" ]] || mkdir -p "$bu_dir/$folder"
-		cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/$file" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+		printf "==> "
+		cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/$file" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'//"
+		(( count++ ))
 	fi
 }
 
@@ -65,10 +71,12 @@ bu_misc_cfg() {
 	local file="$2"
 	if [[ -f "$folder/$file" && -f "$bu_dir/$file" ]]; then
 	  if [[ "$bu_dir/$file" -ot "$folder/$file" ]]; then
-	    cp -puv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	    cp -pv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "==> " $NF]' | sed "s/'//"
+			(( count++ ))
 	  fi
 	elif [[ -f "$folder/$file" ]]; then
-	  cp -pv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	  cp -pv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'//"
+		(( count++ ))
 	fi
 }
 
@@ -76,13 +84,13 @@ bu_cinnamon_keybindings() {
 	local kb_bu_file="keybindings-backup.dconf"
 	if [[ -f "$cfg_dir/$kb_bu_file" && -f "$bu_dir/$kb_bu_file" ]]; then
 	  if [[ "$bu_dir/$kb_bu_file" -ot "$cfg_dir/$kb_bu_file" ]]; then
-	    cp -puv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 	  fi
 	elif [[ -f "$cfg_dir/$kb_bu_file" ]]; then
-	  cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	  cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 	elif is_cinnamon; then
 	    dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$kb_bu_file"
-	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "=> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
 	fi
 }
 
@@ -92,14 +100,18 @@ bu_cinnamon_keybindings() {
 
 [[ -d "$bu_dir" ]] || mkdir -p "$bu_dir"
 
+printf "Backing up configuration files...\n"
+
 # User configs
-[[ -f "$HOME/$lhost.info" ]] && bu_home_cfg "$$lhost.info"
+[[ -f "$HOME/$lhost.info" ]] && bu_home_cfg "$lhost.info"
 [[ -f "$HOME/.profile" ]] && bu_home_cfg ".profile"
 [[ -f "$HOME/.bashrc" ]] && bu_home_cfg ".bashrc"
 [[ -f "$HOME/.bash_aliases" ]] && bu_home_cfg ".bash_aliases"
 [[ -f "$HOME/.bash_profile" ]] && bu_home_cfg ".bash_profile"
 [[ -f "$HOME/.bash_logout"  ]] && bu_home_cfg ".bash_logout"
 [[ -f "$HOME/.face" ]] && bu_home_cfg ".face"
+[[ -f "$HOME/.pwd_file" ]] && bu_home_cfg ".pwd_file"
+[[ -f "$HOME/.xinitrc" ]] && bu_home_cfg ".xinitrc"
 # i3 and related configs
 [[ -f "$cfg_dir/i3/config" ]] && bu_config_cfg "i3" "config"
 [[ -f "$cfg_dir/i3/bindings.list" ]] && bu_config_cfg "i3" "bindings.list"
