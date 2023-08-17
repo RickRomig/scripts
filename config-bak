@@ -27,7 +27,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.7"
+readonly _version="0.5.8"
 readonly _updated="17 Aug 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="${HOME}/.config/backup"
@@ -55,13 +55,13 @@ bu_config_cfg() {
 	if [[ -f "$cfg_dir/$folder/$file" && -f "$bu_dir/$folder/$file" ]]; then
 		if [[ "$bu_dir/$folder/$file" -ot "$cfg_dir/$folder/$file" ]]; then
 			printf "==> "
-			cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/$file" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'//"
+			cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'//"
 			(( count++ ))
 		fi
 	elif [[ -f "$cfg_dir/$folder/$file" ]]; then
 		[[ -d "$bu_dir/$folder" ]] || mkdir -p "$bu_dir/$folder"
 		printf "==> "
-		cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/$file" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'//"
+		cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'//"
 		(( count++ ))
 	fi
 }
@@ -69,13 +69,16 @@ bu_config_cfg() {
 bu_misc_cfg() {
 	local folder="$1"
 	local file="$2"
-	if [[ -f "$folder/$file" && -f "$bu_dir/$file" ]]; then
-	  if [[ "$bu_dir/$file" -ot "$folder/$file" ]]; then
-	    cp -pv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "==> " $NF]' | sed "s/'//"
+	if [[ -f "$HOME/$folder/$file" && -f "$bu_dir/$folder/$file" ]]; then
+	  if [[ "$bu_dir/$folder/$file" -ot "$HOME/$folder/$file" ]]; then
+			printf "==> "
+	    cp -pv "$HOME/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'//"
 			(( count++ ))
 	  fi
-	elif [[ -f "$folder/$file" ]]; then
-	  cp -pv "$folder/$file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'//"
+	elif [[ -f "$HOME/$folder/$file" ]]; then
+		[[ -d "$bu_dir/$folder" ]] || mkdir -p "$bu_dir/$folder"
+		printf "==> "
+	  cp -pv "$HOME/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'//"
 		(( count++ ))
 	fi
 }
@@ -84,13 +87,13 @@ bu_cinnamon_keybindings() {
 	local kb_bu_file="keybindings-backup.dconf"
 	if [[ -f "$cfg_dir/$kb_bu_file" && -f "$bu_dir/$kb_bu_file" ]]; then
 	  if [[ "$bu_dir/$kb_bu_file" -ot "$cfg_dir/$kb_bu_file" ]]; then
-	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'//"; (( count++ ))
 	  fi
 	elif [[ -f "$cfg_dir/$kb_bu_file" ]]; then
-	  cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	  cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> "$NF}' | sed "s/'//"; (( count++ ))
 	elif is_cinnamon; then
 	    dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$kb_bu_file"
-	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $(NF-1) "/" $NF}' | sed "s/'//"; (( count++ ))
+	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'//"; (( count++ ))
 	fi
 }
 
@@ -110,8 +113,8 @@ printf "Backing up configuration files...\n"
 [[ -f "$HOME/.bash_profile" ]] && bu_home_cfg ".bash_profile"
 [[ -f "$HOME/.bash_logout"  ]] && bu_home_cfg ".bash_logout"
 [[ -f "$HOME/.face" ]] && bu_home_cfg ".face"
-[[ -f "$HOME/.pwd_file" ]] && bu_home_cfg ".pwd_file"
 [[ -f "$HOME/.xinitrc" ]] && bu_home_cfg ".xinitrc"
+
 # i3 and related configs
 [[ -f "$cfg_dir/i3/config" ]] && bu_config_cfg "i3" "config"
 [[ -f "$cfg_dir/i3/bindings.list" ]] && bu_config_cfg "i3" "bindings.list"
@@ -126,6 +129,7 @@ printf "Backing up configuration files...\n"
 [[ -f "$cfg_dir/rofi/config.rasi" ]] && bu_config_cfg "rofi" "config.rasi"
 [[ -f "$cfg_dir/rofi/arc_dark_colors.rasi" ]] && bu_config_cfg "rofi" "arc_dark_colors.rasi"
 [[ -f "$cfg_dir/rofi/arc_dark_transparent_colors.rasi" ]] && bu_config_cfg "rofi" "arc_dark_transparent_colors.rasi"
+
 # Editor configs
 [[ -f "$HOME/.nanorc" ]] && bu_home_cfg ".nanor"
 [[ -f "$cfg_dir/nano/nanorc" ]] && bu_config_cfg "nano" "nanorc"
@@ -135,17 +139,21 @@ printf "Backing up configuration files...\n"
 [[ -f "$cfg_dir/geany/geany.conf" ]] && bu_config_cfg "geany" "geany.conf"
 [[ -f "$cfg_dir/geany/keybindings.conf" ]] && bu_config_cfg "geany" "keybindings.conf"
 [[ -f "$cfg_dir/marktext/preferences.json" ]] && bu_config_cfg "marktext" "preferences.json"
-[[ -f "$HOME/.bluefish/rcfile-2.0" ]] && bu_misc_cfg "${HOME}/.bluefish" "rcfile-2.0"
+[[ -f "$HOME/.bluefish/rcfile-2.0" ]] && bu_misc_cfg ".bluefish" "rcfile-2.0"
+
 # Terminal configs
 [[ -f "$cfg_dir/kitty/kitty.conf" ]] && bu_config_cfg "kitty" "kitty.conf"
 [[ -f "$cfg_dir/kitty/bindings.list" ]] && bu_config_cfg "kitty" "bindings.list"
 [[ -f "$cfg_dir/terminator/config" ]] && bu_config_cfg "terminator" "config"
+
 # Keybindings
 [[ -f "$cfg_dir/keybindings-backup.dconf" ]] && bu_cinnamon_keybindings
 [[ -f "$HOME/.xbindkeysrc" ]] && bu_home_cfg ".xbindkeysrc"
+
 # Conky configs
 [[ -f "$HOME/.conkyrc" ]] && bu_home_cfg ".conkyrc"
 [[ -f "$cfg_dir/conky/conky.conf" ]] && bu_config_cfg "conky" "conky.conf"
+
 # Miscellaneous config files
 [[ -f "$cfg_dir/bat/config" ]] && bu_config_cfg "bat" "config"
 [[ -f "$cfg_dir/neofetch/config.conf" ]] && bu_config_cfg "neofetch" "config.conf"
@@ -157,7 +165,7 @@ printf "Backing up configuration files...\n"
 [[ -f "$cfg_dir/git/config" ]] && bu_config_cfg "git" "config"
 [[ -f "$HOME/.git-credentials" ]] && bu_home_cfg ".git-credentials"
 [[ -f "$cfg_dir/git/credentials" ]] && bu_config_cfg "git" "credentials"
-[[ -f "$HOME/.local/share/doc/sshpwd_file" ]] && bu_misc_cfg "$HOME/.local/share/doc" "sshpwd_file"
+[[ -f "$cfg_dir/.screenlayout/sidebyside.sh" ]] && bu_misc_cfg ".screenlayout" "sidebyside.sh"
 
 # Completion status
 
