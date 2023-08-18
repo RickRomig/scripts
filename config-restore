@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.1"
-readonly _updated="17 Aug 2023"
+readonly _version="0.5.2"
+readonly _updated="18 Aug 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="${HOME}/.config/backup"
 readonly cfg_dir="${HOME}/.config"
@@ -267,7 +267,7 @@ ed_cfgs() {
 	done
 }
 
-# i3 configuration files (Machine 22)
+# i3 configuration files
 i3_cfgs() {
 	while true; do
 		local options=("i3 config" "sxhkdrc" "bindings.list" "i3status.conf" "polybar" "bar.conf" "workspaces.conf" "autostart.sh" "logout" "rofi config" "rofi themes" "Main Menu")
@@ -292,6 +292,8 @@ i3_cfgs() {
 				4 )
           if [[ -f "$bu_dir/polybar/config" ]]; then
             res_config_cfg "polybar" "config"
+          elif [[ -f "$bu_dir/polybar/config.ini" ]]; then
+            res_config_cfg "polybar" "config.ini"
           elif [[ -f "$bu_dir/polybar/i3bar.ini" ]]; then
             res_config_cfg "polybar" "i3bar.ini"
           else
