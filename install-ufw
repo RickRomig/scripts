@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.6"
-readonly _updated="13 Jul 2023"
+readonly _version="0.1.7"
+readonly _updated="21 Aug 2023"
 
 ## Functions ##
 
@@ -37,6 +37,7 @@ help() {
   cat << END_HELP
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS${normal}
+  -a  Add rules to UFW
   -d  Disable UFW
   -e  Enable UFW
   -i  Install UFW on a Debian-based system
@@ -63,7 +64,7 @@ install_ufw() {
 }
 
 remove_ufw() {
-  printf "Removing UFW (Uncomplicated Firewall) versin %s...\n" "$(ufw_version)"
+  printf "Removing UFW (Uncomplicated Firewall) version %s...\n" "$(ufw_version)"
   sudo ufw disable
   sudo  apt-get purge ufw
 }
@@ -107,9 +108,16 @@ debian_system() {
 printf "Installs UFW on Debian, BunsenLabs, and MX Linux systems.\n"
 printf "UFW/GUFW is installed by default on Linux Mint, LMDE, and Ubuntu.\n"
 noOpt=1
-optstr=":dehirs"
+optstr=":adehirs"
 while getopts "$optstr" opt; do
   case "$opt" in
+    a )
+      dpkg -l | grep -qw ufw || leave "UFW is not installed."
+      user_in_sudo
+      add_rules
+      ufw_status || enable_ufw
+      printf "Rules for CUPS and SSH added.\n"
+    ;;
     d )
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
       user_in_sudo
@@ -126,7 +134,7 @@ while getopts "$optstr" opt; do
       help 0
     ;;
     i )
-      debian_system || die "Not a Debian-based system."
+      debian_system || die "Not a Debian system."
       dpkg -l | grep -qw ufw && leave "UFW $(ufw_version) is already installed."
       user_in_sudo
       install_ufw
