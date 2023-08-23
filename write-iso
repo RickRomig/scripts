@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.7"
-readonly _updated="21 Aug 2023"
+readonly _version="0.2.10"
+readonly _updated="23 Aug 2023"
 
 ## Functions ##
 
@@ -66,21 +66,12 @@ read -rp "USB device to write to: " usb_drive
 printf "Selected device: /dev/%s.\nIf you continue, ALL data will be erased from this device.\n\n" "$usb_drive"
 echo -e "Answer 'yes' only if you are ${bold}${orange}ABSOLUTELY${normal} sure you want to proceed.\n"
 
-while true; do
-  read -rp "Write $iso_file to /dev/$usb_drive [yes/no]? " yn
-  case "$yn" in 
-    yes )
-      user_in_sudo
-      write_dd "$iso_file" "$usb_drive"
-      break
-    ;;
-    no )
-      printf "Operation canceled. No action taken.\n"
-      break
-    ;;
-    * )
-      printf "%s Invalid choice. Enter yes or no.\n" "$red_error" >&2
-  esac
-done
+if yes_or_no "Write $iso_file to /dev/$usb_drive?"; then
+  user_in_sudo
+  write_dd "$iso_file" "$usb_drive"
+else
+  printf "Operation canceled. No action taken.\n"
+fi
+
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit
