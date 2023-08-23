@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 03 Jul 2023
+# Last updated : 23 Aug 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -19,6 +19,7 @@
 declare -r TRUE=0
 declare -r FALSE=1
 red_error=$(printf "\e[91mERROR:\e[0m")
+red_warning=$(printf "\e[91mWARNING!\e[0m")
 localnet=$(ip route | awk '/default via/ {print $3}' | sort -u | cut -d'.' -f1,2,3)
 # First three octets of the local network. Assumes a /24 private network.
 
@@ -743,17 +744,51 @@ spin() {
 }
 
 ###############################################################################
-# yes_or_no
-# Purpose: Displays a yes or no prompt.
+# y_or_n
+# Purpose: Displays a yes or no prompt (y|n).
 # Returns: True or False
-# Example: yes_or_no "Question" && do_something || alternative_action
+# Example: y_or_n "Question" && do_something || do_something_else
 ###############################################################################
-yes_or_no() {
+y_or_n() {
   while true; do
     read -rp "$* [y/n]: " yn
     case "$yn" in
-      [Yy]* ) return "$TRUE" ;;
-      [Nn]* ) return "$FALSE" ;;
+      [Yy]* )
+        return "$TRUE"
+      ;;
+      [Nn]* )
+        return "$FALSE"
+      ;;
+      '' )
+        printf "%s Response required -- try again.\n" "$red_warning" >&2
+      ;;
+      * )
+        printf "%s Invalid choice. Enter yes or no.\n" "$red_error" >&2
+    esac
+  done
+}
+
+###############################################################################
+# yes_or_no
+# Purpose: Displays a yes or no prompt (yes|no). 
+# Returns: True or False
+# Example: yes_or_no "Question" && do_something || do_something_else
+###############################################################################
+yes_or_no() {
+  while true; do
+    read -rp "$* [yes/no]: " yesno
+    case "${yesno,,}" in
+      yes )
+        return "$TRUE"
+      ;;
+      no )
+        return "$FALSE"
+      ;;
+      '' )
+        printf "%s Response required -- try again.\n" "$red_warning" >&2
+      ;;
+      * )
+        printf "%s Invalid choice. Enter yes or no.\n" "$red_error" >&2
     esac
   done
 }
