@@ -237,24 +237,12 @@ check_host() {
   echo -n "Synchronizing from host: ${lightyellow}$chost${normal} at "
   echo "IP: ${lightyellow}$localnet.$cur_ip${normal}"
   if [[ "$lhost" != "$chost" ]]; then
-    while true ; do
-      read -rp "Do you wish to continue? [Yes|No] " choice
-      shopt -s nocasematch
-      case "$choice" in
-        "yes" )
-          echo $'\n'$"Continuing with the script..."
-          shopt -u nocasematch
-          break
-        ;;
-        "no" )
-          echo $'\n'$"Synchronization canceled."
-          shopt -u nocasematch
-          leave "Exiting the script..."
-        ;;
-        * )
-          echo "${lightred}Invalid choice.${normal} Enter Yes or No"
-      esac
-    done
+    if yes_or_no "Do you wish to continue?"; then
+      printf "\nContinuing with the script...\n"
+    else
+      printf "\nSynchronization canceled.\n"
+      leave "Exiting the script..."
+    fi
   fi
 }
 
