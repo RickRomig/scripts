@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : i3configs
-# Description  : Copy default versions of i3 configuration files
+# Description  : Copy default i3 configuration files for bookworm and newer
 # Dependencies : curl
 # Arguments    : See help function
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
@@ -29,8 +29,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.0"
-readonly _updated="18 Apr 2023"
+readonly _version="0.1.1"
+readonly _updated="24 Aug 2023"
 
 ## Functions ##
 
@@ -40,13 +40,15 @@ help() {
 $_script copies default i3 configuration files from the local Gitea server.
 The files may need to be modified to fit a particular system configuration.
 Assumes i3wm has been installed from the i3debian repository on the local Gitea server.
+Assumes Debian 12 (Bookworm) or newer is installed.
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
 	-a	Copy autostart.sh (Launches programs necessary for i3 to run.)
-	-b	Copy bar.conf (Status bar configuration)
+	-b	Copy polybar/config.ini (Status bar configuration)
 	-c	Copy config (i3wm configuration)
 	-h	Display help
 	-k	Copy bindings.list (List of default keybindings, read by ~/bin/i3kb.sh)
+	-p	Copy polybar-i3 launch script
 	-l	Copy logout (Rofi menu of logout actions)
 	-s	Copy sxhkdrc (i3 keybindings)
 	-w	Copy workspaces.conf (Workspace configurations)
@@ -55,9 +57,20 @@ END_HELP
   exit "$errcode"
 }
 
+is_bookworm(){
+	codename=$(/usr/bin/lsb_release --codename --short)
+	case "$codename" in
+		bookworm )
+			return "$TRUE"
+		;;
+		* )
+			return "$FALSE"
+	esac
+}
+
 copy_config_file() {
 	local i3_file="$1"
-	local i3_dir=$HOME"/.config/i3"
+	local i3_dir="$HOME/.config/i3"
 	local gitea_url="http://192.168.0.16:3000/Nullifidian/i3debian/raw/branch/main/.config/i3"
 	[[ -d "$i3_dir" ]] || mkdir -p "$i3_dir"
 	[[ "$i3_file" == "sxhkd/sxhkdrc" ]] && check_sxhkd
@@ -66,11 +79,32 @@ copy_config_file() {
 	printf "%s copied from the Gitea Server.\n" "$i3_dir/$i3_file"
 }
 
+copy_polybar_config() {
+	local pb_cfg="$1"
+	local polybar_dir="$HOME/.config/polybar"
+	local config_url="http://192.168.0.16:3000/Nullifidian/i3debian/raw/branch/main/.config/polybar"
+	[[ -d "$polybar_dir" ]] || mkdir -p "$polybar_dir"
+	[[ -f "$polybar_dir/$pb_cfg" ]] && cp -pv "$polybar_dir/$pb_cfg" "$polybar_dir/$pb_cfg".bak
+	curl -os "$polybar_dir/$pb_cfg" "$config_url/$pb_cfg"
+	printf "%s copied from the Gitea Server.\n" "$polybar_dir/$pb_cfg"
+}
+
+copy_polybar_launch() {
+	local pbl_script="$1"
+	local pbl_dir="$HOME/.local/bin"
+	local pbl_url="http://192.168.0.16:3000/Nullifidian/i3debian/raw/branch/main/.local/bin"
+	[[ -f "$pbl_dir/$pbl_script" ]] && cp -pv "$pbl_dir/$pbl_script" "$pbl_dir/$pbl_script".bak
+	curl -os "$pbl_dir/$pbl_script" "$pbl_url/$pbl_script"
+	printf "%s copied from the Gitea Server.\n" "$pbl_dir/$pbl_script"
+}
+
 check_sxhkd() {
 	[[ -d "$HOME/.config/i3/sxhkd" ]] || mkdir -p "$HOME/.config/i3/sxhkd"
 }
 
 ## Execution ##
+
+is_bookworm || 	die "Unsupported Debian installation." 1
 
 if exists i3; then
 	printf "i3wm is installed.\n"
@@ -80,14 +114,14 @@ else
 	help 0
 fi
 noOpt=1
-optstr=":abchklsw"
+optstr=":abchklpsw"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		a )
 			copy_config_file "autostart.sh"
 		;;
 		b )
-			copy_config_file "bar.conf"
+			copy_polybar_config "config.ini"
 		;;
 		c )
 			copy_config_file "config"
@@ -100,6 +134,9 @@ while getopts "$optstr" opt; do
 		;;
 		l )
 			copy_config_file "logout"
+		;;
+		p )
+			copy_polybar_launch "polybar-i3"
 		;;
 		s )
 			copy_config_file "sxhkd/sxhkdrc"
