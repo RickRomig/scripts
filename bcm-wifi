@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.1.6"
-readonly _updated="21 Apr 2023"
+readonly _version="1.1.7"
+readonly _updated="24 Aug 2023"
 
 readonly bcm_dir="$HOME/Downloads/Drivers/Wifi/Broadcom"
 readonly bcm_drvr="bcmwl-kernel-source_6.30.223.271%2Bbdcom-0ubuntu7~20.04.2_amd64.deb"
@@ -78,15 +78,12 @@ check_package wget
 box "$_script v$_version ($_updated)"
 intro
 if lspci | grep -q "Network controller: Broadcom"; then
-  read -rn1 -p "Download and install Broadcom WiFi driver? [y/N] " yn
-  case "$yn" in
-    [Yy]* )
-      download_driver
-      install_driver
-    ;;
-    * )
-      leave "No action taken."
-  esac
+  if default_no "Download and install Broadcom WiFi driver?"; then
+    download_driver
+    install_driver
+  else
+    leave "No action taken."
+  fi
 else
   leave "No Broadcom WiFi device found."
 fi
