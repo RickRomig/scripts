@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.6"
-readonly _updated="15 May 2023"
+readonly _version="0.2.7"
+readonly _updated="24 Aug 2023"
 
 ## Functions ##
 
@@ -40,7 +40,7 @@ help() {
   OPTION: -h  --help  Displays help.
   $_script displays a text file using either cat or less depending the number of
   lines in the file and the number of rows in the current terminal window. Less 
-  is used when the number of lines is greater than the 90% of the rows, otherwise
+  is used when the number of lines is greater than the 87% of the rows, otherwise
   cat is used.
   Version: $_version
   Updated: $_updated
@@ -74,12 +74,7 @@ fi
 ## View the selected file ##
 
 clear
-cat_used && box "File: $filename"
+box "File: $filename"
 viewtext "$filename"
-
-if cat_used; then
-  print_line "*" 30
-else
-  box "File: $filename"
-fi
+cat_used && print_line "-" 30
 leave "$_script v$_version ($_updated)"
