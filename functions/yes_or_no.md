@@ -2,7 +2,7 @@
 
 - **Purpose**: Displays a yess or no prompt (yes|no).
 
-- **Aruments**: None
+- **Aruments**: A string requiring a yes or no response.
 
 - **Returns**: True or False
 
@@ -10,7 +10,7 @@
   
   - Requires either a `y` or `n` response and is case insensitive.
   
-  - Just pressing `Return` or `Enter` displays a warning that a response is required.
+  - Pressing `Return` or `Enter` displays a warning that a response is required.
   
   - A reponse beginning with anything but `yes` or `no` generates an invalid response message.
   

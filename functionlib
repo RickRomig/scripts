@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 23 Aug 2023
+# Last updated : 24 Aug 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -786,6 +786,50 @@ yes_or_no() {
       ;;
       '' )
         printf "%s Response required -- try again.\n" "$red_warning" >&2
+      ;;
+      * )
+        printf "%s Invalid choice. Enter yes or no.\n" "$red_error" >&2
+    esac
+  done
+}
+
+###############################################################################
+# default_yes
+# Purpose: Displays a yes or no prompt (Y|n), defaulsts to yes. 
+# Returns: True or False
+# Example: yes_or_no "Question" && do_something || do_something_else
+###############################################################################
+default_yes() {
+  while true; do
+    read -rp "$* [y/n]: " yn
+    case "$yn" in
+      [Yy]*|'' )
+        return "$TRUE"
+      ;;
+      [Nn]* )
+        return "$FALSE"
+      ;;
+      * )
+        printf "%s Invalid choice. Enter yes or no.\n" "$red_error" >&2
+    esac
+  done
+}
+
+###############################################################################
+# default_no
+# Purpose: Displays a yes or no prompt (y|N), defaults to no. 
+# Returns: True or False
+# Example: yes_or_no "Question" && do_something || do_something_else
+###############################################################################
+default_no() {
+  while true; do
+    read -rp "$* [y/n]: " yn
+    case "$yn" in
+      [Yy]* )
+        return "$TRUE"
+      ;;
+      [Nn]*|'' )
+        return "$FALSE"
       ;;
       * )
         printf "%s Invalid choice. Enter yes or no.\n" "$red_error" >&2
