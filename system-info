@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.3.0"
-readonly _updated="22 May 2023"
+readonly _version="3.3.1"
+readonly _updated="24 Aug 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -36,8 +36,7 @@ today=$(date +'%d %B %Y'); readonly today
 ## Functions ##
 
 check_dependencies() {
-  local packages=( jq lshw )
-  check_packages "${packages[@]}"
+  check_package "lshw"
   [[ -b /dev/sda ]] && check_package hdparm
   [[ -c /dev/nvme0 ]] && check_package nvme-cli
 }
@@ -48,24 +47,14 @@ cleanup() {
 }
 
 save_info() {
-  printf "\nSave system information to ~/%s?\n" "$(basename "$info_file")"
-  PS3="Choice: "
-  select opt in "Yes" "No"; do
-    case $REPLY in
-      1 )
-        printf "Writing system information to ~/%s\n" "$(basename "$info_file")"
-        cp -v "$tmp_file" "$info_file"
-        chmod 664 "$info_file"
-        break
-      ;;
-      2 )
-        printf "System information was not written to ~/%s\n" "$(basename "$info_file")"
-        break
-      ;;
-      * )
-        printf "%s Invalid choice! Select 1 for Yes, 2 for No\n" >&2 "$red_error"
-    esac
-  done
+  printf "\n"
+  if default_yes "Save system information to ~/$(basename "$info_file")"; then
+    printf "Writing system information to ~/%s\n" "$(basename "$info_file")"
+    cp -v "$tmp_file" "$info_file"
+    chmod 664 "$info_file"
+  else
+    printf "System information was not written to ~/%s\n" "$(basename "$info_file")"
+  fi
 }
 
 rename_mnt_pt() {
@@ -148,17 +137,16 @@ os_info() {
 }
 
 cpu_info() {
-  cpu_json=$(lscpu --json)
-  model=$(echo "$cpu_json" | jq -r ."lscpu[7].data" | sed 's/([^)]*)//g')
-  arch=$(echo "$cpu_json" | jq -r ."lscpu[0].data")
-  threads=$(echo "$cpu_json" | jq -r ."lscpu[4].data")
+  model=$(lscpu | awk -F: '/Model name:/ {print $NF}' | awk '{$1=$1}1' | sed 's/([^)]*)//g')
+  arch=$(lscpu | awk '/Architecture:/ {print $NF}')
+  threads=$(lscpu | awk '/CPU\(s\)/ {print $NF;exit}')
 	printf "\n%-9s %s, %s, %s threads \n" "CPU:" "$model" "$arch" "$threads"
 }
 
 mem_info() {
 	phys_mem=$(sudo lshw -class memory -short -quiet | awk '/System/ {print $(NF-2)}' | sed 's/GiB/ GB/')
 	mem_type=$(sudo dmidecode --type 17 | awk '/Type:/ {print $NF; exit}')
-	mem_max=$(sudo dmidecode -t 16 | awk -F: '/Capacity/ {print $NF; exit}' | sed 's/^ //')
+	mem_max=$(sudo dmidecode --type 16 | awk -F: '/Capacity/ {print $NF; exit}' | sed 's/^ //')
 	printf "%-9s %s %s (%s maximum)\n" "Memory:" "$phys_mem" "$mem_type" "$mem_max"
 }
 
