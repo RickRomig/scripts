@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Comments     : Based on USB Backup Tool (Version 1.1) by Joe Collins. (https://www.ezeelinux.com)
 #              : Joe's code at: https://github.com/EzeeLinux/bu-usb_backup_tool
-# Last updated : 23 Aug 2023
+# Last updated : 26 Aug 2023
 # TODO (Rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -34,7 +34,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="3.10"
+readonly _version="3.11"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -72,8 +72,9 @@ check_uuid() {
 		[[ "$host" == "${hname[1]}" ]] && return "$TRUE" || return "$FALSE"
 	elif [[ -L "$uuid_path/${uuid[2]}" ]]; then
 		[[ "$host" == "${hname[2]}" ]] && return "$TRUE" || return "$FALSE"
+  else
+	  return "$TRUE"
 	fi
-	return "$TRUE"
 }
 
 mount_bu() {
