@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.1.0"
-readonly _updated="22 Jun 2023"
+readonly _version="1.1.1"
+readonly _updated="26 Aug 2023"
 
 readonly porn_dir=$HOME"/Videos/Pornography"
 vid_format=$(mktemp) || die "Failed to create temporary file." 1
@@ -71,14 +71,10 @@ script_info() {
   sites and the ID will be appended to the URL for the chosen site.
 
   The script will then present a menu of categories corresponding to
-  subdirectories under ~/Videos/Pornography/. Once the category is selected
-  yt-dlp will obtain the available formats and list them. By default, it
-  will choose the format marked as the recoommended best format. If only one
-  format is listed, that format is selected.
-
-  Then the video will be downloaded to the selected sub-directory in the chosen
-  format. The script is hard-coded to save the file as title.ext. Spaces in the
-  title will be replaced by underscores. Metadata will also be added to the file.
+  subdirectories under ~/Videos/Pornography/. Select the category (subdirectory).
+  The the video will be downloaded to the selected sub-directory  The script is 
+  hard-coded to save the file as title.ext. Spaces in the title will be replaced 
+  by underscores. Metadata will also be added to the file.
 
   When the download is completed, success or failure is displayed. If the
   download fails, the script exits with an error code.
@@ -165,19 +161,12 @@ do
   esac
 done
 
-# Fetch best format
-
-echo $'\n'$"${bold}${blue}Fetching available formats:${normal}"
-/usr/local/bin/yt-dlp -F "$url" | sed '/Downloading/d' | tee "$vid_format"
-format=$(awk '/(best)/ {print $1}' "$vid_format")
-[[ -z "$format" ]] && format=$(tail -n1 "$vid_format" | cut -d " " -f1)
-
 # Download video to selected folder
 
 echo $'\n'$"${bold}${blue}Streaming from $site with format quality: $format${normal}"
 case "$subdir" in
   "none" )
-    if /usr/local/bin/yt-dlp -f "$format" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"
+    if /usr/local/bin/yt-dlp -f "bv*+ba/b" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"
     then
       leave "Download successful."
     else
@@ -186,7 +175,7 @@ case "$subdir" in
     fi
     ;;
   * )
-    if /usr/local/bin/yt-dlp -f "$format" --add-metadata -ic --restrict-filename -o "$porn_dir/$subdir/%(title)s.%(ext)s" "$url"
+    if /usr/local/bin/yt-dlp -f "bv*+ba/b" --add-metadata -ic --restrict-filename -o "$porn_dir/$subdir/%(title)s.%(ext)s" "$url"
     then
       leave "Download successful."
     else
