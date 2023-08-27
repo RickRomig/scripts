@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.3.1"
-readonly _updated="26 Aug 2023"
+readonly _version="2.3.2"
+readonly _updated="27 Aug 2023"
 
 readonly video_dir=$HOME"/Videos"
 vid_format=$(mktemp) || die "Failed to create temporary file." 1
@@ -136,13 +136,6 @@ select opt in "${options[@]}"; do
     * ) subdir="none"; break ;;
   esac
 done
-
-# Fetch best format
-
-# echo $'\n'$"${bold}${blue}Fetching available formats:${normal}"
-# /usr/local/bin/yt-dlp -F "$url" | sed '/Downloading/d' | tee "$vid_format"
-# format=$(awk '/(best)/ {print $1}' "$vid_format")
-# [[ -z "$format" ]] && format=$(tail -n1 "$vid_format" | cut -d " " -f1)
 
 # Download video to selected folder
 
