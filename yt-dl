@@ -28,11 +28,9 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.3.2"
+readonly _version="2.3.3"
 readonly _updated="27 Aug 2023"
-
 readonly video_dir=$HOME"/Videos"
-vid_format=$(mktemp) || die "Failed to create temporary file." 1
 
 ## Functions ##
 
@@ -80,16 +78,15 @@ EOF
 }
 
 check_dependencies() {
-  exists yt-dlp || die "yt-dlp must be installed. Run iru-yt-dlp -i" 1
-}
-
-cleanup() {
-  [[ -f "$vid_format" ]] && rm -f "$vid_format"
+  if exists yt-dlpl; then
+    printf "yt-dlp [OK]\n"
+    sleep 2
+  else
+    die "yt-dlp is not installed." 1
+  fi
 }
 
 ## Execution ##
-
-trap cleanup EXIT
 
 check_dependencies
 
@@ -139,7 +136,7 @@ done
 
 # Download video to selected folder
 
-echo $'\n'$"${bold}${blue}Streaming from YouTube with format quality: $format${normal}"
+echo $'\n'$"${bold}${blue}Downloading from YouTube ...${normal}"
 case "$subdir" in
   "none" )
     if /usr/local/bin/yt-dlp -f "bv*+ba/b" --add-metadata -ic --restrict-filename -o "$video_dir/%(title)s.%(ext)s" "$url"

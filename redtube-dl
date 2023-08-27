@@ -28,17 +28,11 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.5.1"
-readonly _updated="26 Aug 2023"
-
+readonly _version="2.5.3"
+readonly _updated="27 Aug 2023"
 readonly porn_dir=$HOME"/Videos/Pornography"
-vid_format=$(mktemp) || die "Failed to create temporary file." 1
 
 ## Functions ##
-
-cleanup() {
-  [[ -f "$vid_format" ]] && rm -f "$vid_format"
-}
 
 display_title() {
   clear
@@ -85,12 +79,15 @@ EOF
 }
 
 check_dependencies() {
-  [[ -x /usr/local/bin/yt-dlp ]] || die "yt-dlp must be installed. Run install-ytdl" 1
+  if exists yt-dlpl; then
+    printf "yt-dlp [OK]\n"
+    sleep 2
+  else
+    die "yt-dlp is not installed." 1
+  fi
 }
 
 ## Execution ##
-
-trap cleanup EXIT
 
 check_dependencies
 
@@ -139,7 +136,7 @@ done
 
 # Download video to selected folder
 
-echo $'\n'$"${bold}${blue}Streaming from RedTube with format quality: $format${normal}"
+echo $'\n'$"${bold}${blue}Streaming from RedTube ...${normal}"
 case "$subdir" in
   "none")
     if /usr/local/bin/yt-dlp -f "bv*+ba/b" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"
