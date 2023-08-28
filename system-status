@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.7"
-readonly _updated="15 Jul 2023"
+readonly _version="0.5.8"
+readonly _updated="28 Aug 2023"
 
 ## Functions ##
 
@@ -75,7 +75,12 @@ memory_usage() {
 }
 
 cpu_usage() {
-	printf "\n%sCPU usage:%s\n" "$orange" "$normal"
+  # cpu_use=$(echo "$[100-$(vmstat 1 2|tail -1|awk '{print $15}')]")
+  cores="$(grep -c "^processor" /proc/cpuinfo)"
+  cpu_usage="$(ps aux | awk 'BEGIN {sum=0} {sum+=$3}; END {print sum}')"
+  cpu_use="$((${cpu_usage/\.*} / ${cores:-1}))"
+
+	printf "\n%sCPU usage: %s%s%%\n" "$orange" "$normal" "$cpu_use"
   printf "Process\t\tPercentage\n"
   ps axch -o cmd:15,%cpu --sort=-%cpu | head -n 10
 }
