@@ -75,11 +75,10 @@ memory_usage() {
 }
 
 cpu_usage() {
-  # cpu_use=$(echo "$[100-$(vmstat 1 2|tail -1|awk '{print $15}')]")
+  # cpu_use=$(echo "$[100-$(vmstat 1 2 | tail -1 | awk '{print $15}')]")
   cores="$(grep -c "^processor" /proc/cpuinfo)"
   cpu_usage="$(ps aux | awk 'BEGIN {sum=0} {sum+=$3}; END {print sum}')"
   cpu_use="$((${cpu_usage/\.*} / ${cores:-1}))"
-
 	printf "\n%sCPU usage: %s%s%%\n" "$orange" "$normal" "$cpu_use"
   printf "Process\t\tPercentage\n"
   ps axch -o cmd:15,%cpu --sort=-%cpu | head -n 10
