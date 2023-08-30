@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.0.3"
-readonly _updated="17 Aug 2022"
+readonly _version="2.0.4"
+readonly _updated="30 Aug 2023"
 
 ## Functions ##
 
@@ -37,18 +37,20 @@ restart_network() {
   init_sys=$(strings /sbin/init | awk 'match($0, /(upstart|systemd|sysvinit)/) { print toupper(substr($0, RSTART, RLENGTH));exit; }')
 
   case $init_sys in
-    # "SYSTEMD" ) sudo systemctl restart network-manager ;;
-    "SYSTEMD" ) sudo systemctl restart NetworkManager.service ;;
-    "SYSVINIT" ) sudo service network-manager restart ;;
-    "UPSTART" ) upstart_restart ;;
-    * ) die "Init system is undetermined." 1 ;;
+    "SYSTEMD" )
+      sudo systemctl restart NetworkManager.service
+    ;;
+    "SYSVINIT" )
+      sudo service network-manager restart
+    ;;
+    "UPSTART" )
+      sudo service networking stop
+      sleep 5
+      sudo service networking start
+    ;;
+    * )
+      die "Init system is undetermined." 1
   esac
-}
-
-upstart_restart() {
-  sudo service networking stop
-  sleep 5
-  sudo service networking start
 }
 
 ## Execution ##
