@@ -2,10 +2,10 @@
 ##########################################################################
 # Script Name  : sync-installs
 # Description  : Updates installation directories on HP 6005
-# Dependencies : None
+# Dependencies : rsync
 # Arguments    : None
-# Author       : Richard B. Romig, 07 Jun 2020
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2020, Richard B. Romig, 07 Jun 2020
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : rsysnc excludes ~/bin/.git/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,11 +27,11 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.15"
-readonly _updated="24 May 2023"
+readonly _version="0.2.16"
+readonly _updated="31 Aug 2023"
 
 # Hostnames
-readonly lhost=$HOSTNAME
+readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly mhost="hp-800g2-sff"
 readonly fhost="hp-6005"
 readonly svr_ip="11"
@@ -45,8 +45,10 @@ readonly remote_dest="/data/installation"
 
 ## Execution ##
 
+check_package rsync
+
 # Ensure script is being run from the hp-800g2-sff (10)
-[["$lhost" != "$mhost" ]] && die "$_script must be run from the $mhost."
+[[ "$lhost" != "$mhost" ]] && die "$_script must be run from the $mhost."
 
 # Start timer
 SECONDS=0
@@ -55,7 +57,7 @@ clear
 echo "${orange}$_script v$_version ($_updated)${normal}"
 echo "Synchronizes installation scripts, configuration files and packages with $fhost"
 
-# Copy bat & micro config files to default configs folder
+# Copy config files to default configs folder
 echo $'\n'$"${orange}Updating bat, micro, terminator config files ...${normal}"
 cp -puv "$cfg_dir/bat/config" "$cfg_defaults/bat/"
 cp -puv "$cfg_dir/micro/bindings.json" "$cfg_defaults/micro/"
