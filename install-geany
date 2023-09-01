@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.7"
-readonly _updated="09 Jun 2023"
+readonly _version="0.2.8"
+readonly _updated="01 Sep 2023"
 
 ## Functions ##
 
@@ -52,25 +52,16 @@ geany_version() {
 
 clone_themes() {
   local theme_url="https://github.com/geany/geany-themes.git"
-  local dl_dir="$HOME/Downloads/geany-themes"
-  [[ -d "$dl_dir" ]] && remove_dl_dir
-  git clone "$theme_url" "$dl_dir"
+  git clone "$theme_url" "$tmp_dir"
   install_themes
 }
 
 install_themes() {
   local cs_dir="$HOME/.config/geany/colorschemes"
-  local dl_dir="$HOME/Downloads/geany-themes/colorschemes"
   [[ -d "$cs_dir" ]] || mkdir -p "$cs_dir"
   printf "Copying Geany colorschemes into %s\n" "$cs_dir"
-  cp -v "$dl_dir"/*.conf "$cs_dir/" | awk -F"/" '{print "=> " $NF}' | sed "s/'//"
+  cp -v "$tmp_dir/colorschemes/*.conf" "$cs_dir/" | awk -F"/" '{print "=> " $NF}' | sed "s/'//"
   printf "Geany themes installed.\n"
-}
-
-remove_dl_dir() {
-  local dl_dir="$HOME/Downloads/geany-themes"
-  printf "Removing %s...\n" "$dl_dir"
-  rm -rf "$dl_dir"
 }
 
 install_cascadia_code() {
@@ -87,14 +78,17 @@ install_geany() {
   sudo apt-get install geany libvte9 -yy
   clone_themes
   install_cascadia_code
-  remove_dl_dir
   printf "Geany %s installed.\n" "$(geany_version)"
 }
 
 remove_geany() {
   sudo apt remove geany -yy
-  find "$HOME/.config/" =maxdepth 2 -type d -name "geany" -exec rm -rf {} \;
+  find "$HOME/.config/" -maxdepth 2 -type d -name "geany" -exec rm -rf {} \;
   print "Geany and configuration files removed.\n"
+}
+
+cleanup() {
+  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
 }
 
 ## Execution ##
@@ -110,6 +104,8 @@ while getopts "$optstr" opt; do
     ;;
     i )
       exists geany && leave "Geany $(geany_version) is already installed."
+      tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
+      trap cleanup EXIT
       user_in_sudo
       install_geany
     ;;
@@ -120,8 +116,9 @@ while getopts "$optstr" opt; do
     ;;
     t )
       exists geany || leave "Geany is not installed."
+      tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
+      trap cleanup EXIT
       clone_themes
-      remove_dl_dir
     ;;
     ? )
       printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
@@ -130,5 +127,4 @@ while getopts "$optstr" opt; do
   noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-exit
+leave "$_script v$_version ($_updated)"
