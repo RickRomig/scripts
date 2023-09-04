@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.1"
-readonly _updated="03 Sep 2023"
+readonly _version="0.2.2"
+readonly _updated="04 Sep 2023"
 
 ## Functions ##
 
@@ -40,23 +40,23 @@ install_flatpak() {
     case $ver_code in
       bookworm|bullseye|buster|focal|jammy )
         # Debian 10+, antiX 19.x, Ubuntu 20.04+
+        echo "Installing Flatpak on ${ver_code^}..."
         sudo apt update -qq
         sudo apt install flatpak -yy
       ;;
       * )
-        die "Flatpak can't be installed using this script." 1
+        die "Flatpak can't be installed on ${ver_code^} using this script." 1
     esac
   fi
 }
 
 install_gnome_plugin() {
-  # Install Gnome software plugin for flatpak (only if using Gnome Desktop)
-  echo "Installing Gnome software plugin for Flatpak ..."
+  # Install only if using Gnome Desktop or Gnome Software Store
+  echo "Installing the Gnome software plugin for Flatpak .."
   sudo apt install gnome-software-plugin-flatpak -yy
 }
 
 install_flathub() {
-  # Install flathub repository
   echo "Installing Flathub repository ..."
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 }
