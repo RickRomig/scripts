@@ -4,7 +4,7 @@
 # Description  : Installs and configures the UFW firewall.
 # Dependencies : None
 # Arguments    : None
-# Author       : Copyright Richard B. Romig, 05 Oct 2022
+# Author       : Copyright (C) Richard B. Romig, 05 Oct 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Install & remove for Deian-based systems only.
 # TODO (Rick)  :
@@ -27,7 +27,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.8"
+readonly _version="0.1.9"
 readonly _updated="06 Sep 2023"
 
 ## Functions ##
@@ -35,13 +35,15 @@ readonly _updated="06 Sep 2023"
 help() {
   errcode="${1:-2}"
   cat << END_HELP
+Installs UFW on Debian, BunsenLabs, and MX Linux systems.
+UFW/GUFW is installed by default in Linux Mint, LMDE, and Ubuntu.
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS${normal}
-  -a  Add rules to UFW
+  -a  Add rules for CUPS and SSH
   -d  Disable UFW
   -e  Enable UFW
   -i  Install UFW on a Debian-based system
-  -r  Remove UFW on a Debian-based system
+  -r  Remove UFW from a Debian-based system
   -s  UFW status
 END_HELP
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
@@ -60,7 +62,7 @@ remove_ufw() {
 }
 
 add_rules() {
-  printf "Enabling rules for CUPS and SSH...\n"
+  printf "Adding rules for CUPS and SSH...\n"
   sudo sed -i '/IPV6=no/s/no/yes/' /etc/default/ufw
   sudo ufw allow 631   # CUPS 631
   sudo ufw allow SSH   # SSH 22/tcp
@@ -78,7 +80,7 @@ disable_ufw() {
   sudo ufw status
 }
 
-ufw_status() {
+ufw_active() {
   sudo ufw status | grep -qw active && return "$TRUE" || return "$FALSE"
 }
 
@@ -89,15 +91,16 @@ ufw_version() {
 debian_system() {
   codename=$(lsb_release --codename --short)
   case "$codename" in
-    bookworm|bullseye|buster ) return "$TRUE" ;;
-    * ) return "$FALSE" ;;
+    bookworm|bullseye|buster )
+      return "$TRUE"
+    ;;
+    * )
+      return "$FALSE"
   esac
 }
 
 ## Execution ##
 
-printf "Installs UFW on Debian, BunsenLabs, and MX Linux systems.\n"
-printf "UFW/GUFW is installed by default on Linux Mint, LMDE, and Ubuntu.\n"
 noOpt=1
 optstr=":adehirs"
 while getopts "$optstr" opt; do
@@ -106,19 +109,19 @@ while getopts "$optstr" opt; do
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
       user_in_sudo
       add_rules
-      ufw_status || enable_ufw
+      ufw_active || enable_ufw
       printf "Rules for CUPS and SSH added.\n"
     ;;
     d )
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
       user_in_sudo
-      ufw_status || leave "UFW $(ufw_version) is already disabled."
+      ufw_active || leave "UFW $(ufw_version) is already disabled."
       disable_ufw
     ;;
     e )
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
       user_in_sudo
-      ufw_status && leave "UFW $(ufw_version) is already enabled."
+      ufw_active && leave "UFW $(ufw_version) is already enabled."
       enable_ufw
     ;;
     h )
@@ -152,5 +155,4 @@ while getopts "$optstr" opt; do
   noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-exit
+leave "$_script v$_version ($_updated)"
