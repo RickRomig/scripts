@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.6"
-readonly _updated="18 Jul 2023"
+readonly _version="0.3.7"
+readonly _updated="06 Sep 2023"
 
 ## Functions ##
 
@@ -41,9 +41,7 @@ keepass_ver() {
 }
 
 flathub_keepassxc() {
-  # user_in_sudo
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-  # sudo flatpak install flathub org.keepassxc.KeePassXC
   flatpak install flathub org.keepassxc.KeePassXC
   printf "KeePassXC %s installed from flathub.\n" "$(keepass_ver)"
 }
@@ -58,14 +56,8 @@ remove_keepassxc() {
   user_in_sudo
   printf "Removing KeePassXC ...\n"
   if [[ -d "HOME/.var/app/org.keepassxc.KeePassXC" ]]; then
-    # sudo flatpak uninstall --noninteractive --assumeyes org.keepassxc.KeePassXC
     flatpak uninstall --noninteractive --assumeyes org.keepassxc.KeePassXC
   else
-    if support_ppa; then
-      sudo apt-add-repository --remove ppa:phoerious/keepassxc
-      sudo rm /etc/apt/sources.list.d/phoerious-keepassxc-focal.list
-      sudo apt-key del "D89C 66D0 E31F EA28 74EB  D205 6192 2AB6 0068 FCD6"
-    fi
     sudo apt-get remove --purge keepassxc -yy
     [[ -d "$HOME/.config/keepassxc" ]] && rm -rf "$HOME/.config/keepassxc"
   fi
