@@ -1,16 +1,13 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Script Name  : install-audioapps
-# Description  : Add repositiory and install mp3gain
-# Dependencies : apt-get, add-apt-repository, dpkg, wget
+# Description  : installs audio applications and utilities
+# Dependencies : None
 # Arguments    : None
 # Author       : Copyright (C) 2019, Richard B. Romig, 01 March 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : Ubuntu-based Linux distributions (Debian does not support PPA)
-# Also installs easyMP3Gain
-# URL:https://launchpad.net/~flexiondotorg/+archive/ubuntu/audio
-# https://sourceforge.net/projects/easymp3gain/files/easymp3gain%20i386/easymp3gain-0.5.0/"
-# TODO (rick)  : Menu to select appliations to install.
+# Comments     : 
+# TODO (rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -23,15 +20,39 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  printf "\e[91mERROR:\e[0m functionlib not found!" >&2
   exit 1
 fi
 
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="v1.2.2"
-readonly _updated="04 Feb 2023"
+readonly _version="v1.3.0"
+readonly _updated="06 Sep 2023"
+
+## Functions ##
+
+install_from_repos() {
+  printf "\nInstalling audio applications and utilities from repositories.\n"
+  sudo apt-get install -yy asunder lame easytag audacity
+}
+
+install_mp3gain() {
+  if in_repos mp3gain; then
+    printf "Installing mp3gain...\n"
+    sudo apt-get install -yy mp3gain
+  else
+    printf "mp3gain is not available in repo.\n"
+  fi
+}
+
+list_installed_apps() {
+  local apps=( asunder audacity easytag lame mp3gain )
+  printf "Audio applications installed:\n"
+  for app in "${apps[@]}"; do
+    exists "$app" && printf "\t%s\n" "${app^}"
+  done
+}
 
 ## Execution ##
 
@@ -40,32 +61,11 @@ user_in_sudo
 # Update apt cache
 sudo apt update -qq
 
-clear
-echo "$_script v$_version ($_updated)"
-echo "Installs audio applications on Ubuntu-based systems."
+# clear
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Installs audio applications on Debian/Ubuntu-based systems.\n"
 
-# Install audio apps from repositories
-echo $'\n'$"Installing audio applications and utilities from repositories."
-sudo apt install asunder lame easytag audacity -yyq
-echo $'\n'$"Audio applications and utilities installed."
-
-# Install mp3gain:
-# if support_ppa; then
-  # local src_list="/etc/apt/sources.list.d/flexiondotorg-audio-bionic.list"
-  # sudo add-apt-repository -y ppa:flexiondotorg/audio -y
-  # sudo add-apt-repository ppa:flacon/ppa
-  # sudo apt install mp3gain -yyq
-# else
-  # echo "PPA not supported. MP3Gain was not installed." >&2
-# fi
-
-# List apps installed
-
-echo "Audio applications installed:"
-exists asunder && echo -e "\tAsunder"
-exists lame && echo -e "\tLame"
-exists easytag  && exho -e "\tEasyTag"
-exists audacity && echo -e "\tAudacity"
-exists mpegain && echo -e "\tMP3Gain"
-
-exit
+install_from_repos
+install_mp3gain
+list_installed_apps
+leave "Audio applications and utilities installed."
