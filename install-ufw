@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.7"
-readonly _updated="21 Aug 2023"
+readonly _version="0.1.8"
+readonly _updated="06 Sep 2023"
 
 ## Functions ##
 
@@ -51,16 +51,6 @@ END_HELP
 install_ufw() {
   printf "Installing UFW (Uncomplicated Firewall)...\n"
   sudo apt-get install ufw -yy
-  printf "Enabling the UFW service...\n"
-  sudo systemctl enable ufw --now 
-  if grep -qw IPV6 /etc/default/ufw; then
-    printf "IPv6 enabled.\n"
-  else
-    printf "Enabling IPv6 support...\n"
-    sudo sed -i '/IPV6/s/no/yes/' /etc/default/ufw
-    sudo systemctl restart ufw
-    printf "IPv6 enabled.\n"
-  fi
 }
 
 remove_ufw() {
@@ -71,6 +61,7 @@ remove_ufw() {
 
 add_rules() {
   printf "Enabling rules for CUPS and SSH...\n"
+  sudo sed -i '/IPV6=no/s/no/yes/' /etc/default/ufw
   sudo ufw allow 631   # CUPS 631
   sudo ufw allow SSH   # SSH 22/tcp
 }
