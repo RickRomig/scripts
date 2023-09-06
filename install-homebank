@@ -29,13 +29,22 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.7"
-readonly _updated="06 Jul 2023"
+readonly _version="0.4.0"
+readonly _updated="06 Sep 2023"
 
 ## Functions ##
 
 homebank_ver() {
   homebank --version | cut -d' ' -f2
+}
+
+flatpak_homebank() {
+  exists flatpak || return "$FALSE"
+  flatpak list | grep -qw HomeBank && return "$TRUE" || return "$FALSE"
+}
+
+flatpak_version() {
+  flatpak list | awk '/HomeBank/ {print $3}'
 }
 
 add_ppa() {
@@ -51,23 +60,23 @@ install_homebank() {
   user_in_sudo
   support_ppa && add_ppa
   sudo apt-get install homebank -yyq
-  echo "HomeBank $(homebank_ver) installed."
+  printf "HomeBank %s installed.\n" "$(homebank_ver)"
 }
 
 remove_homebank() {
-  echo "Removing HomeBank $(homebank_ver)..."
+  printf "Removing HomeBank %s...\n" "$(homebank_ver)"
   user_in_sudo
   support_ppa && remove_ppa
   sudo apt-get remove homebank -yy > /dev/null 2>&1
-  echo "HomeBank has been removed."
+  printf "HomeBank has been removed.\n"
 }
 
 purge_homebank() {
-  echo "Removing HomeBank $(homebank_ver) and purging configuration files."
+  printf "Removing HomeBank %s and purging configuration files.\n" "$(homebank_ver)"
   user_in_sudo
   support_ppa && remove_ppa
   sudo apt-get purge homebank -yy > /dev/null 2>&1
-  echo "HomeBank and its configuration files have been removed."
+  printf "HomeBank and its configuration files have been removed.\n"
 }
 
 help() {
@@ -79,15 +88,15 @@ ${orange}OPTIONS:${normal}
   -i  Install HomeBank from PPA or repository
   -p  Remove HomeBank and purge configuration files (PPA or repository)
   -r  Remove HomeBank (PPA or repository)
-      HomeBank is also available as a Flatpak (Flathub or Mint Softwware Manager)
+      HomeBank is also available as a Flatpak (Flathub or Mint Software Manager)
 END_HELP
-  echo "$_script v$_version ($_updated)"
+  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
 ## Execution ##
 
-clear
+# clear
 echo "Installs HomeBank Personal Finance Software."
 
 noOpt=1
@@ -99,22 +108,23 @@ while getopts "$optstr" opt; do
     ;;
     i )
       exists homebank && leave "HomeBank $(homebank_ver) is already installed."
+      flatpak_homebank && leave "HomeBank $(flatpak_version) (flatpak) is installed."
       install_homebank
     ;;
     p )
-      exists hombank || leave "HomeBank is not installed."
+      exists hombank || leave "HomeBank (.deb) is not installed."
       purge_homebank
     ;;
     r )
-      exists hombank || leave "HomeBank is not installed."
+      exists hombank || leave "HomeBank (.deb) is not installed."
       remove_homebank
     ;;
     ? )
-      echo "${lightred}ERROR:${normal} Invalid option -$OPTARG" >&2
+      printf "%s Invalid option: -%s\n" "$red_error" "$OPTARG" >&2
       help 2
   esac
 	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-echo "$_script v$_version ($_updated)"
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit
