@@ -28,15 +28,18 @@ fi
 ## Functions ##
 
 req_sudo() {
-  lhost="$(uname -n)"
+  local lhost="${HOSTNAME:-$(hostname)}"
   case "$lhost" in
-    hp-probook-6570|hp-2560p ) return "$TRUE" ;;
-    * ) return "$FALSE" ;;
+    hp-probook-6570|hp-2560p )
+      return "$TRUE" 
+     ;;
+    * )
+      return "$FALSE"
   esac
 }
 
 show_public() {
-  public_ipv4=$(/usr/bin/curl -s ifconfig.me)
+  public_ipv4=$(/usr/bin/curl -s ifconfig.me)     # http://ident.me
   # public_ipv6=$(/usr/bin/curl -s ifconfig.co)
 
   [[ -n "$public_ipv4" ]] && echo -e "\t${darkgray}IPv4:${normal} $public_ipv4" || echo -e "\tNo public IPv4 address found."
@@ -79,7 +82,6 @@ show_wired() {
       ;;
     * )
       echo "No device found."
-      ;;
   esac
 }
 
@@ -134,7 +136,6 @@ show_wireless() {
       ;;
     * )
       echo "No device found."
-      ;;
   esac
 }
 
@@ -168,7 +169,7 @@ show_bridge() {
         echo -e "\t   ${gray}MAC:${normal} $br_mac"
         ;;
       * )
-        ;;
+        echo "No device found."
     esac
 	fi
 }
@@ -195,8 +196,8 @@ check_dependencies() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="2.5.6"
-  local _updated="04 Apr 2023"
+  local _version="2.5.7"
+  local _updated="06 Sep 2023"
 
   req_sudo && user_in_sudo
 
