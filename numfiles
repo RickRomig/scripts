@@ -3,32 +3,30 @@
 # Script Name  : numfiles
 # Description  : displays number of files in current directory
 #              : and how much disk space they use.
-# Dependencies : ls, grep, wc, du, awk
-# Arguments    :
-# Author       : Richard Romig, 22 November 2018
-# Email        : rick.romig@gmail.com
+# Dependencies : none
+# Arguments    : none
+# Author       : Copyright (C) 2018, Richard Romig, 22 November 2018
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comment      :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##############################################################################
 
-# Variables
+## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.0"
-readonly _updated="12 Jul 2021"
-
+readonly _version="0.2.0"
+readonly _updated="07 Sep 2023"
 # curdir=$(dirname "$(readlink -f "$0")")
-curdir=$PWD
+readonly curdir=$PWD
 num=$(find . -maxdepth 1 -type f -iname \* | wc -l)
 size=$(du -ch -d 1 ./* | awk '/total/ {print $1}')
 
 ## Execution ##
 
-echo "$_script v$_version ($_updated)"
-echo "Displays the number of files in the current directory"
-echo "and how much disk space they use."
-
-echo $'\n'$"$curdir contains $num files using $size."
+printf "%s contains %s " "$curdir" "$num"
+(( num >1 )) && printf "files " || printf "file "
+printf "using %s of disk space.\n" "$size"
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 
 exit
