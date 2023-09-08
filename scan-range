@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 ###############################################################################
-# Script Name  : scan-range.sh
+# Script Name  : scan-range
 # Description  : Scans a range of IP addresses to determine if online.
 # Dependencies : arping (iputils-arping)
 # Arguments    : Beginning and last octets of range to be scanned.
-# Author       : Richard B. Romig, 27 Jul 2022
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2022, Richard B. Romig, 27 Jul 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Adapted from a script by Dave McKay at howtogeek.com
 # TODO (Rick)  : 
 # License      : GNU General Public License, version 2.0
@@ -27,7 +27,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.0"
+readonly _version="0.2.1"
 readonly _updated="08 Sep 2023"
 
 ## Functions ##
@@ -38,7 +38,7 @@ help() {
 Scans a range of IP addresses to determine if they are online.
 ${orange}Usage:${normal} $_script IP1 IP2
 Example: $_script 10 20
-Takes 2 integers between 1 and 255 (last octets of the local network range)
+Takes 2 integers between 1 and 254 (last octets of the local network range)
 $_script $_version ($_updated)
 END_HELP
 	exit "$errcode"
@@ -49,11 +49,11 @@ check_arg_values() {
 	local ip2="$2"
 	if [[ "$ip1" =~ ^[0-9]+$ && "$ip2" =~ ^[0-9]+$ ]] 2>/dev/null; then
 		if [[ "$ip1" -lt 1 || "$ip2" -ge 255 ]]; then
-			printf "%s Invalid range. Values must be between 1 and 254.\n" "$red_error" <&2
+			printf "%s Invalid range. Values must be integers between 1 and 254.\n" "$red_error" <&2
 			help "1"
 		fi
 	else
-		printf "% Invalid arguments:.Values must be integers between 1 and 254.\n" "$red_error" <&2
+		printf "%s Invalid argument. Values must be integers between 1 and 254.\n" "$red_error" <&2
 		help "1"
 	fi
 }
