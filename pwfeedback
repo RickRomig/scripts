@@ -28,15 +28,16 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.2"
-readonly _updated="21 Apr 2023"
+readonly _version="0.4.3"
+readonly _updated="07 Sep 2023"
+readonly sudoers_file="/etc/sudoers"
 readonly pwfb_dir="/etc/sudoers.d"
 readonly pwfb_file="0pwfeedback"
 
 ## Functions ##
 
 pwfeedback_status() {
-  pwfb=$(sudo grep 'pwfeedback' /etc/sudoers)
+  pwfb=$(sudo grep -w pwfeedback "$sudoers_file")
   if [[ -n "$pwfb" || -f "$pwfb_dir/$pwfb_file" ]]; then
     printf "Password feedback is enabled by "
     [[  -n "$pwfb" ]] && printf "sudoers.\n" || printf "%s.\n" "$pwfb_file"
@@ -46,7 +47,7 @@ pwfeedback_status() {
 }
 
 enable_pwfeedback() {
-  pwfb=$(sudo grep 'pwfeedback' /etc/sudoers)
+  pwfb=$(sudo grep -w pwfeedback "$sudoers_file")
   if [[ -n "$pwfb" || -f "$pwfb_dir/$pwfb_file" ]]; then
     printf "Password feedback is already enabled by "
     [[  -n "$pwfb" ]] && printf "sudoers.\n" || printf "%s.\n" "$pwfb_file"
@@ -60,7 +61,7 @@ enable_pwfeedback() {
 }
 
 disable_pwfeedback() {
-  pwfb=$(sudo grep 'pwfeedback' /etc/sudoers)
+  pwfb=$(sudo grep -w pwfeedback "$sudoers_file")
   if [[ -f "$pwfb_dir/$pwfb_file" ]]; then
     sudo rm -fv "$pwfb_dir/$pwfb_file"
     printf "Password feeback is now disabled. %s has been deleted.\n" "$pwfb_dir/$pwfb_file"
@@ -68,7 +69,7 @@ disable_pwfeedback() {
     # Use of visudo to edit /etc/sudoers is highly recommended.
     printf "Remove 'pwfeedback' from the sudoers file using visudo.\n"
     sudo visudo
-    sudo grep -qw pwfeedback /etc/sudoers || printf "Password feeback is now disabled.\n"
+    sudo grep -qw pwfeedback "$sudoers_file" || printf "Password feeback is now disabled.\n"
   else
     printf "Password feedback is already disabled.\n"
   fi
