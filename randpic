@@ -27,8 +27,8 @@ fi
 ##  Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.3.5"
-readonly _updated="10 Apr 2023"
+readonly _version="3.3.6"
+readonly _updated="07 Sep 2023"
 readonly tmp_dir=$HOME"/tmp/journal"
 
 ## Functions ##
@@ -38,10 +38,16 @@ readonly tmp_dir=$HOME"/tmp/journal"
 valid_image() {
   local filename="$1"
   local ext="${filename##*.}"
-  shopt -s nocasematch
+  ext="${ext,,}"
+  # shopt -s nocasematch
   case $ext in
-    bmp|gif|jpeg|jpg|png|tiff ) shopt -u nocasematch; return "$TRUE" ;;
-    * ) shopt -u nocasematch; return "$FALSE" ;;
+    bmp|gif|jpeg|jpg|png|tiff )
+      # shopt -u nocasematch
+      return "$TRUE"
+    ;;
+    * )
+      # shopt -u nocasematch
+      return "$FALSE"
   esac
 }
 
@@ -98,23 +104,27 @@ while true; do
         echo $'\n'$"Selecting another random image..."
         kill $pic_pid
         sleep 2
-        break ;;
+        break
+      ;;
       2 )
         echo -e "\n${blue}Accepted image:${normal} $sel_dir/$pic_file\n"
         kill $pic_pid
-        leave ;;
+        leave
+      ;;
       3 )
         echo $'\n'$"${blue}Rejected image:${normal} $sel_dir/$pic_file"
         kill $pic_pid
         echo $'\n'$"Selecting another random image..."
         rm "$tmp_dir/$pic_file"
         sleep 2
-        break ;;
+        break
+      ;;
       4 )
         echo -e "\n${blue}Rejected image:${normal} $sel_dir/$pic_file\n"
         kill $pic_pid
         rm "$tmp_dir/$pic_file"
-        leave ;;
+        leave
+      ;;
       5 )
         echo -e $'\n'$"${blue}Image deleted:${normal} $sel_dir/$pic_file"
         kill $pic_pid
@@ -122,9 +132,10 @@ while true; do
         rm "$tmp_dir/$pic_file"
         rm "$pic_dir/$pic_file"
         sleep 2
-        break ;;
+        break
+      ;;
       * )
-        echo $'\n'$"${lightred}Invalid option. Try again.${normal}" ;;
+        echo $'\n'$"${lightred}Invalid option. Try again.${normal}"
     esac
   done
 done
