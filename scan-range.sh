@@ -25,31 +25,58 @@ else
 fi
 
 ## Variables ##
+
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.0"
-readonly _updated="27 Jul 2022"
+readonly _version="0.2.0"
+readonly _updated="08 Sep 2023"
+
+## Functions ##
+
+help() {
+	local errcode="${1:-2}"
+	cat << END_HELP
+Scans a range of IP addresses to determine if they are online.
+${orange}Usage:${normal} $_script IP1 IP2
+Example: $_script 10 20
+Takes 2 integers between 1 and 255 (last octets of the local network range)
+$_script $_version ($_updated)
+END_HELP
+	exit "$errcode"
+}
+
+check_arg_values() {
+	local ip1="$1"
+	local ip2="$2"
+	if [[ "$ip1" =~ ^[0-9]+$ && "$ip2" =~ ^[0-9]+$ ]] 2>/dev/null; then
+		if [[ "$ip1" -lt 1 || "$ip2" -ge 255 ]]; then
+			printf "%s Invalid range. Values must be between 1 and 254.\n" "$red_error" <&2
+			help "1"
+		fi
+	else
+		printf "% Invalid arguments:.Values must be integers between 1 and 254.\n" "$red_error" <&2
+		help "1"
+	fi
+}
+
+scan_range() {
+	local ip1="$1"
+	local ip2="$2"
+	for (( ip=ip1; ip<=ip2; ip++ )); do
+		if arping -c 1 "$localnet.$ip" | grep -E "0 response|0 packets received" > /dev/null; then
+			printf "%s.%s didn't respond.\n" "$localnet" "$ip"
+		else
+			printf "%s.%s responded.\n" "$localnet" "$ip"
+		fi
+	done
+}
 
 ## Execution ##
 
 box "$_script $_version ($_updated)"
-
-if [ $# -lt 2 ]; then
-	printf "Enter two integers for the range of addresses.\n" >&2
-	printf "Example: %s 15 20\n" >&2 "$_script"
-	exit 1
-elif [[ "$1" =~ ^[0-9]+$ && "$2" =~ ^[0-9]+$ ]] 2>/dev/null; then
-	for ((device=$1; device<=$2; device++))
-	do
-  	if arping -c 1 "$localnet.$device" | grep -E "0 response|0 packets received" > /dev/null
-		then
-    	printf "%s.%s didn't respond.\n" "$localnet" "$device"
-  	else
-    	printf "%s.%s responded.\n" "$localnet" "$device"
-  	fi
-	done
-else
-	printf "Arguments must be integer values.\n"
-	printf "Example: %s 15 20\n" >&2 "$_script"
-	exit 1
-fi
+check_package iputils-arping
+[[ $# -lt 2 ]] && help "1"
+addr1="$1"
+addr2="$2"
+check_arg_values "$addr1" "$addr2"
+scan_range "$addr1" "$addr2"
 leave "" 
