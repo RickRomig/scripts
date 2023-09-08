@@ -7,7 +7,7 @@
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Comments     : Based on a script by Joe Collins, EzeeLinux.com
-#              : die and localnet are declared in functionlib
+#              : localnet and valid_ip are declared in functionlib
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -28,42 +28,49 @@ fi
 # Variables
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.1.1"
-readonly _updated="04 May 2022"
+readonly _version="2.2.0"
+readonly _updated="08 Sep 2023"
 
 ## Functions ##
 
 usage() {
   local errcode="${1:-2}"
-  echo "Usage: $_script <last octet> [X]"
-  echo "Example 1: $_script 11"
-  echo "Example 2: $_script 11 X"
-  echo "First argument is the last octet of the remote server's IP address."
-  echo "X enables X11 forwarding."
+  cat << END_HELP
+${orange}Usage:${normal} $_script <last octet> [X]
+Example 1: $_script 15
+Example 2: $_script 11 X
+First argument is the last octet of the remote server's IP address.
+Second argment X enables X11 forwarding. Any other argument will continue without X forwarding.
+END_HELP
   exit "$errcode"
 }
 
 # Execution
 
-echo "$_script v$_version ($_updated)"
-echo "Log in to a remote server using Secure Shell (SSH)."
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Log in to a remote server using Secure Shell (SSH).\n"
 
 if [[ $# -eq 0 ]]; then
-  echo "Enter last octet of remote server's IP address" >&2
+  printf "%s No argument passed.\nEnter last octet of remote server's IP address.\n" "$red_error" >&2
   usage 2
+elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  printf "%s%s help%s\n" "$green" "$_script" "$normal"
+  usage 0
 elif [[ $# -gt 1 ]]; then
   valid_ip "$1" && hostip="$1"
   x_opt="$2"
   case "$x_opt" in
     X|x )
-      ssh -X "$localnet.$hostip" ;;
+      /usr/bin/ssh -X "$localnet.$hostip"
+    ;;
     * )
-      echo "${lightred}ERROR:${normal} Invalid option" >&2
-      ssh "$localnet.$hostip" ;;
+      printf "%s Invalid option %s\n" "$red_error" "$x_opt" >&2
+      printf "Continuing without X11 forwarding enabled.\n"
+      /usr/bin/ssh "$localnet.$hostip"
   esac
 else
   valid_ip "$1" && hostip="$1"
-  ssh "$localnet.$hostip"
+  /usr/bin/ssh "$localnet.$hostip"
 fi
 
 exit

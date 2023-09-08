@@ -6,7 +6,8 @@
 # arguments    : Last octet of target host's IP address
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
-# Comment      : Based on script by Joe Collins, EzeeLinux.com
+# Comments     : Based on script by Joe Collins, EzeeLinux.com
+#              : localnet and valid_ip are declared in functionlib
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -27,20 +28,35 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.0.2"
-readonly _updated="14 Feb 2022"
+readonly _version="2.1.0"
+readonly _updated="08 Sep 2023"
 
-# localnet is declared in functionlib
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  cat << END_HELP
+${orange}Usage:${normal} $_script <last octet>
+Example: $_script 15
+Argument is the last octet of the remote server's IP address.
+END_HELP
+  exit "$errcode"
+}
 
 ## Execution ##
 
-echo "$_script v$_version ($_updated)"
-echo "Log in to a remote server using Secure File Transfer Protocol (SFTP)."
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Log in to a remote server using Secure File Transfer Protocol (SFTP).\n"
 
-# Assign IP address to HOSTIP
-
-valid_ip "$1" && hostip="$1"
-
-/usr/bin/sftp "$localnet.$hostip"
+if [[ $# -eq 0 ]]; then
+  printf "%s No argument passed.\nEnter last octet of remote server's IP address.\n" "$red_error" >&2
+  usage 2
+elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  printf "%s%s help%s\n" "$green" "$_script" "$normal"
+  usage 0
+else
+  valid_ip "$1" && hostip="$1"
+  /usr/bin/sftp "$localnet.$hostip"
+fi
 
 exit
