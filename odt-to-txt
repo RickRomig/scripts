@@ -2,11 +2,11 @@
 ###############################################################################
 # Script Name  : odt-to-txt
 # Description  : Convert .odt files to .txt or .md files
-# Dependencies : odt2txt, select
+# Dependencies : odt2txt
 # Arguments    : None
-# Author       : Richard B. Romig, 10 May 2019
-# Email        : rick.romig@gmail.com
-# Comments     : Run from directory containing files to convert.
+# Author       : Copyright (C) 2019, Richard B. Romig, 10 May 2019
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Run from adirectory containing files to be converted.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -27,10 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.1.2"
-readonly _updated="14 Sep 2021"
-
-num_odt=$(find . -maxdepth 1 -type f -name \*.odt | wc -l)
+readonly _version="1.1.3"
+readonly _updated="07 Sep 2023"
 
 ## Functions ##
 
@@ -48,7 +46,15 @@ convert2md() {
   echo "$odt_file -> $txt_file"
 }
 
+ls_odt_files() {
+  ls ./*.odt > /dev/null 2>&1 || diehard "No .odt files found." "Change to a directory containing .odt files."
+  echo -e "Available .odt filse in $PWD:\n"
+  find ./ -maxdepth 1 -type f -name "*.odt" | sed 's/\.\///' | sort
+}
+
 ## Execution ##
+
+check_package odt2txt
 
 # Disable Crtl+C
 trap '' 2
@@ -56,53 +62,57 @@ trap '' 2
 while true; do
   clear
   echo "$_script v$_version ($_updated)"
-  echo "Converts *.odt files to *.txt or *.md"
-  print_line "*" 37
-  ls ./*.odt
-  echo "Use with care. May overwrite existing .txt or .md files."
-  print_line "*" 37
+  under_line "Converts *.odt files to *.txt or *.md" "*"
+  ls_odt_files
+  echo
+  under_line "Use with care. May overwrite existing .txt or .md files." "*"
   COLUMNS=12
-  options=("Convert a single .odt file to .txt" \
-    "Convert a single .odt file to .md" \
-    "Convert all .odt files in the current directory to .txt" \
-    "Convert all .odt files in the current directory to .md" "Quit and exit")
+  echo $'\n'$"Available operations:"
+  options=("Convert a single .odt file to .txt" "Convert a single .odt file to .md" \
+    "Convert all .odt files to .txt" "Convert all .odt files to .md" "Quit and exit")
   PS3="Choose an option: "
   select opt in "${options[@]}"; do
     case $REPLY in
       1 )
         read -rp "File to convert: " ofile
         if [[ -f "$ofile" ]]; then
-          echo "Converting *.odt to *.txt"; convert2txt "$ofile"
+          echo "Converting *.odt to *.txt"
+          convert2txt "$ofile"
         else
-          echo "${lightred}Error:${normal} $OFILE not found." >&2
+          echo "${lightred}Error:${normal} $ofile not found." >&2
         fi
-        anykey; break ;;
+        anykey; break
+      ;;
       2 )
         read -rp "File to convert: " ofile
         if [[ -f "$ofile" ]]; then
-          echo "Converting *.odt to *.md"; convert2md "$OFILE"
-        else
-          echo "${lightred}Error:${normal} $OFILE not found." >&2
-        fi
-        anykey; break ;;
-      3 )
-        if (( num_odt > 0 )); then
-          echo "Converting *.odt to *.txt"
-          for ofile in *.odt; do convert2txt "$ofile"; done
-        else
-          echo "${lightred}Error:${normal} No .odt files found." >&2
-        fi
-        anykey; break ;;
-      4 )
-        if (( num_odt > 0 )); then
           echo "Converting *.odt to *.md"
-          for ofile in *.odt; do convert2md "$ofile"; done
+          convert2md "$ofile"
         else
-          echo "${lightred}Error:${normal} No .odt files found." >&2
+          echo "${lightred}Error:${normal} $ofile not found." >&2
         fi
-        anykey; break ;;
-      5 ) trap 2; leave "All done! Exiting the script." ;;
-      * ) echo "${lightred}Invalid Option!${normal} Choose 1 - 5" >&2 ;;
+        anykey; break
+      ;;
+      3 )
+        echo "Converting *.odt to *.txt"
+        for ofile in *.odt; do
+          convert2txt "$ofile"
+        done
+        anykey; break
+      ;;
+      4 )
+        echo "Converting *.odt to *.md"
+        for ofile in *.odt; do
+          convert2md "$ofile"
+        done
+        anykey; break
+      ;;
+      5 )
+        trap 2
+        leave "All done! Exiting the script."
+      ;;
+      * )
+        echo "${lightred}Invalid Option!${normal} Choose 1 - 5" >&2
     esac
   done
 done
