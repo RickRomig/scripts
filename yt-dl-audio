@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.0"
-readonly _updated="22 Jun 2023"
+readonly _version="0.2.1"
+readonly _updated="09 Sep 2023"
 
 ## Functions
 
@@ -42,7 +42,12 @@ usage() {
 }
 
 check_dependencies() {
-  exists yt-dlp || die "yt-dlp must be installed. Run install-ytdl" 1
+  if [ -x /usr/local/bin/yt-dlp ]; then
+    printf "yt-dlp [OK]\n"
+    sleep 2
+  else
+    die "yt-dlp is not installed." 1
+  fi
 }
 
 ## Execution ##
@@ -71,8 +76,7 @@ box "YouTube Audio Download"
 echo "$_script v$_version"
 echo "($_updated)"
 echo $'\n'$"${bold}${blue}Downloading mp3 audio for $URL${normal}"
-if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail \
- --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" "$url"; then
+if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" "$url"; then
   leave "Download successful."
 else
   ec="$?"
