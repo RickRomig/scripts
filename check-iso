@@ -30,10 +30,10 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.1"
+readonly _version="0.5.2"
 readonly _updated="11 Sep 2023"
 readonly checksums_match="${green}The checksums match.${normal}"
-readonly checksums_nomatch="${red}The checksums do not match.${normal}"
+readonly checksums_nomatch="${lightred}The checksums do not match.${normal}"
 check_code=0
 
 ## Functions ##
@@ -41,7 +41,7 @@ check_code=0
 exit_msg() {
   local errcode="${1:-0}"
   [[ "$errcode" -eq 1 ]] && printf "Verify checksum with the ISO download site.\n"
-  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -107,7 +107,7 @@ read -rp "ISO file to check: " isofile
 num_files=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | wc -l)
 [[ "$num_files" = 0 ]] && diehard "No checksum files found." "$_script $_version ($_updated)"
 printf "\nAvailable checksum files:\n"
-find ./ -maxdepth 1 -type f -name "*.sha*" -print | sed 's/\.\///' | sort
+find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | sort
 read -rp "Checksum file: " checksum
 
 check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$_script $_version ($_updated)"
@@ -115,20 +115,18 @@ check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce
 # Compare the ISO with the checksum
 
 ext="${checksum##*.}"
+printf "\nComparing checksums.\nThis may take a while."
 case "$ext" in
   "md5" )
-    printf "Comparing checksums.\nThis may take a while."
     if check_md5 "$isofile" "$checksum"; then
-      printf "\n%s\n" "$checksums_match"
+      printf "%s\n" "$checksums_match"
       check_code=0
     else
       printf "%s\n" "$checksums_nomatch" >&2
       check_code=1
     fi
-    exit_msg "$check_code"
   ;;
   "sha256" )
-    printf "Comparing checksums.\nThis may take a while."
     if check_sha256 "$isofile" "$checksum"; then
       printf "%s\n" "$checksums_match"
       check_code=0
@@ -136,10 +134,8 @@ case "$ext" in
       printf "%s\n" "$checksums_nomatch" >&2
       check_code=1
     fi
-    exit_msg "$check_code"
  ;;
   "sha512" )
-    printf "Comparing checksums.\nThis may take a while."
     if check_sha512 "$isofile" "$checksum"; then
       printf "%s\n" "$checksums_match"
       check_code=0
@@ -147,6 +143,6 @@ case "$ext" in
       printf "%s\n" "$checksums_nomatch" >&2
       check_code=1
     fi
-    exit_msg "$check_code"
   ;;
 esac
+exit_msg "$check_code"
