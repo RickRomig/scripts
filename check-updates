@@ -31,7 +31,7 @@ set -euo pipefail
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.0.0"
+readonly _version="2.0.1"
 readonly _updated="11 Sep 2023"
 
 ## Functions ##
@@ -99,11 +99,8 @@ nala_autoremove() {
 }
 
 nala_autopurge() {
-  rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}' | wc -l)
-  if [[ "$rcpkgs" -gt 0 ]]; then
-    printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
-    sudo nala autopurge
-  fi
+  printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
+  sudo nala autopurge
 }
 
 apt_update() {
