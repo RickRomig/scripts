@@ -31,76 +31,78 @@ set -euo pipefail
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.8.0"
-readonly _updated="04 Apr 2023"
+readonly _version="2.0.0"
+readonly _updated="11 Sep 2023"
 
 ## Functions ##
 
 install_updates() {
-  echo $'\n'$"${orange}Installing updates...${normal}"
+  printf "\n%sInstalling updates...%s\n" "$orange" "$normal"
   sudo apt-get dist-upgrade -yy
 }
 
 clean_cache() {
-  echo $'\n'$"${orange}Cleaning up apt cache...${normal}"
+  printf "\n%sCleaning up apt cache...%s\n" "$orange" "$normal"
   sudo apt-get autoclean
 }
 
 remove_orphans() {
-  echo $'\n'$"${orange}Removing orphaned packages...${normal}"
+  printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
   sudo apt-get autoremove -yy
 }
 
 purge_configs() {
-  # Purge obsolete linux kernel configuration files
-  echo $'\n'$"${orange}Purging obsolete configuration files...${normal}"
+  printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
   rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}' | wc -l)
   if [[ "$rcpkgs" -gt 0 ]]; then
-    # sudo apt-get remove --purge "$(dpkg -l | awk '/^rc/ {print $2}')" -yy
     for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
       sudo apt-get remove --purge "$rcpkg" -yy
     done
   else
-    echo "No files to be purged found."
+    printf "No files to be purged found.\n"
   fi
 }
 
 update_complete() {
   local num_updates="$1"
-  echo -n $'\n'$"${orange}Update complete. $num_updates "
-  (( nupd > 1 )) && echo -n "updates were" || echo -n "update was"
-  echo -e " installed.${normal}\n"
+  printf "\n%sUpdate complete. " "$orange" "$num_updates"
+  (( nupd > 1 )) && printf "%d updates were" "$nupd" || printf "%d update was" "$nupd"
+  printf " installed.%s\n" "$normal"
 }
 
 defer_updates() {
   local num_updates="$1"
-  echo -n $'\n'$"${orange}No updates installed. $num_updates "
-  (( nupd > 1 )) && echo -n "updates were" || echo -n "update was"
-  echo -e " deferred.${normal}\n"
+  printf "\n%sNo updated installed. " "$orange"
+  (( nupd > 1 )) && printf "%d updates were" "$nupd" || printf "%d update was" "$nupd"
+  printf " deferred.%s\n" "$normal"
 }
 
 update_flatpak() {
-  echo "${orange}Flatpak:${normal}"
-  echo "User installations..."
+  printf "\n%sFlatpak:%s\n" "$orange" "$normal"
+  printf "User installations...\n"
   flatpak update --user --noninteractive --force-remove --assumeyes
-  echo "System-wide installations..."
+  printf "System-wide installations...\n"
   sudo flatpak update --system --noninteractive --force-remove --assumeyes
   printf "\n"
 }
 
 nala_update() {
   sudo nala upgrade
-  # nala_purge_configs
+  nala_autoremove
+  nala_autopurge
   printf "\n"
 }
 
-nala_purge_configs() {
+nala_autoremove() {
+  printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
+  sudo nala autoremove
+}
+
+nala_autopurge() {
   rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}' | wc -l)
   if [[ "$rcpkgs" -gt 0 ]]; then
-    printf "\n%sPurging obsolete configuration files...%s\n" "${orange}" "${normal}"
-    for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
-      sudo nala purge "$rcpkg" --assume-yes
-    done
+    printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
+    sudo nala autopurge
   fi
 }
 
@@ -110,52 +112,55 @@ apt_update() {
   nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
   # If there are packages to be upgraded
   if (( nupd > 0 )); then
-    echo -n "${orange}$nupd "
-    (( nupd > 1 )) && echo -n "packages" || echo -n "package"
-    echo " can be upgraded.${normal}"
+    printf "%s%s " "$orange" "$nupd"
+    (( nupd > 1 )) && printf "%d packages" "$nupd" || printf "%d package" "$nupd"
+    printf " can be upgraded%s.\n" "$normal"
     # List upgradeable packages
     apt list --upgradeable
     # Options menu
     COLUMNS=40
     echo $'\n'$"${underline}${green}Update options:${normal}"
     PS3="Choose an option: "
-    options=("Install updates." "Install updates & clean cache" \
-    "Install updates & remove orphaned packages." \
-    "Install updates, clean cache, & remove orphaned packages." \
-    "Defer updates until later.")
+    options=("Install updates." "Install updates & clean cache" "Install updates & remove orphaned packages." \
+    "Install updates, clean cache, & remove orphaned packages." "Defer updates until later.")
     select opt in "${options[@]}"; do
       case $REPLY in
         1 )
           install_updates
           update_complete "$nupd"
-          break ;;
+          break
+        ;;
         2 )
           install_updates
           clean_cache
           update_complete "$nupd"
-          break ;;
+          break
+        ;;
         3 )
           install_updates
           remove_orphans
           purge_configs
           update_complete "$nupd"
-          break ;;
+          break
+        ;;
         4 )
           install_updates
           clean_cache
           remove_orphans
           purge_configs
           update_complete "$nupd"
-          break ;;
+          break
+        ;;
         5 )
           defer_updates "$nupd"
-          break ;;
+          break
+        ;;
         * )
-          echo "${lightred}Invalid option!${normal} Select 1..5" >&2 ;;
+          printf "%sInvalid option!%s Select 1..5\n" "$lightred" "$normal" >&2
       esac
     done
   else
-    echo -e "\n${orange}All packages are up to date.${normal}\n"
+    printf "\n%sAll packages are up to date.%s\n" "$orange" "$normal"
   fi
 }
 
@@ -166,21 +171,18 @@ user_in_sudo
 SECONDS=0
 
 clear
-echo -e "${bold}${orange}$_script v$_version ($_updated)"
-echo "System: $(uname -n) (# $(local_ip))"
-echo "Distro: $(get_distribution)"
-echo -e "Kernel: $(uname -sr)\n"
-echo -e "Checking for updates...${normal}\n"
+printf "%s%s%s v%s (%s)\n" "$bold" "$orange" "$_script" "$_version" "$_updated"
+printf "System: %s (# %s)\n" "$(uname -n)" "$(local_ip)"
+printf "Distro: %s\n" "$(get_distribution)"
+printf "Kernel: %s\n\n" "$(uname -sr)"
+printf "Checking for updates...%s\n\n" "$normal"
 
-# Update apt cache
 if exists nala; then
   nala_update
 else
   apt_update
 fi
 
-# Update flatpak if installed
 exists flatpak && update_flatpak
 
-# Exit the script
 leave "Script completed in $(format_time $SECONDS)"
