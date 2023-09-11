@@ -3,11 +3,13 @@
 # Script Name  : check-iso
 # Description  : Verifies SHA256, SHA512, and MD5 checksums of ISO files
 # Dependencies : None
-# Arguments    : ISO filename and checksum file
+# Arguments    : None, user is prompted to enter the filenames.
 # Author       : Copyright (C) 2022, Richard B. Romig, 09 Apr 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Checksum file must be one line only for ISO being checked.
 #              : Each ISO file must have its own checksum file.
+#              : Checksum files must have one of the following extensions:
+#              : .md5, .sha256, or .sha512
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -28,28 +30,17 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.4"
-readonly _updated="31 Jul 2023"
-readonly isofile="$1"
-readonly checksum="$2"
+readonly _version="0.5.0"
+readonly _updated="11 Sep 2023"
 readonly checksums_match="${green}The checksums match.${normal}"
 readonly checksums_nomatch="${red}The checksums do not match.${normal}"
 check_code=0
 
 ## Functions ##
 
-usage() {
-  local errcode="${1:-1}"
-  printf "Usage:\n"
-  printf "%s <distro.iso> <checksum.txt>\n" "$_script"
-  printf "Must be run from the directory where the ISO and checksum files are located.\n"
-  printf "The checksum text file must consist of one line containing the checksum for that ISO.\n"
-  printf "%s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
-  exit "$errcode"
-}
-
 exit_msg() {
   local errcode="${1:-0}"
+  [[ "$errcode" -eq 1 ]] && printf "Verify checksum with the ISO download site.\n"
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
@@ -102,59 +93,59 @@ check_checksum() {
 ## Execution ##
 
 printf "Verifies SHA256/SHA512/MD5 checksums of ISO files.\n"
-if [[ "$#" -lt 2 ]]; then
-  printf "%s Missing one or more arguments.\n" "$red_error" <&2
-	usage 2
-elif [[ -f "$isofile" && -f "$checksum" ]]; then
-  check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line."
-  COLUMNS=40
-  printf "Checksum types:\n"
-  PS3="Choice: "
-  select opt in "SHA256" "SHA512" "MD5" "Exit"; do
-    case "$REPLY" in
-      1 )
-        printf "Comparing checksums.\nThis may take a while."
-        if check_sha256 "$isofile" "$checksum"; then
-          printf "%s\n" "$checksums_match"
-          check_code=0
-        else
-          printf "%s\n" "$checksums_nomatch" >&2
-          check_code=1
-        fi
-        exit_msg "$check_code"
-      ;;
-      2 )
-        printf "Comparing checksums.\nThis may take a while."
-        if check_sha512 "$isofile" "$checksum"; then
-          printf "%s\n" "$checksums_match"
-          check_code=0
-        else
-          printf "%s\n" "$checksums_nomatch" >&2
-          check_code=1
-        fi
-        exit_msg "$check_code"
-      ;;
-      3 )
-        printf "Comparing checksums.\nThis may take a while."
-        if check_md5 "$isofile" "$checksum"; then
-          printf "\n%s\n" "$checksums_match"
-          check_code=0
-        else
-          printf "%s\n" "$checksums_nomatch" >&2
-          check_code=1
-        fi
-        exit_msg "$check_code"
-      ;;
-      4 )
-        printf "Exiting - No action taken\n"
-        exit_msg "$check_code"
-      ;;
-      * )
-        printf "%s Invalid choice:\n1) = SHA256\n2) = SHA512 3) = MD5\n4) = Exit\n" "$red_error" >&2
-    esac
-  done
-else
-  [[ -f "$isofile" ]] || printf "%s %s not found.\n" "$red_error" "$isofile" >&2
-  [[ -f "$checksum" ]] || printf %s "%s not found.\n" "$red_error" "$checksum" >&2
-	usage 2
-fi
+
+# Select ISO file to be checked
+
+ls ./*.iso > /dev/null 2>&1 || diehard "No ISO files found." "Change to a directory containing the ISO file to be written." "$_script $_version ($_updated)"
+printf "Available ISO files:\n"
+find ./ -maxdepth 1 -type f -name "*.iso" -print | sed 's/\.\///' | sort
+read -rp "ISO file to check: " isofile
+
+# Select the checksum file
+
+num_files=$(find ./ -type f -name "*.md5" -or -name "*.sha*" | wc -l)
+[[ "$num_files" = 0 ]] && diehard "No checksum files found." "$_script $_version ($_updated)"
+printf "\nAvailable checksum files:\n"
+find ./ -maxdepth 1 -type f -name "*.sha*" -print | sed 's/\.\///' | sort
+read -rp "Checksum file: " checksum
+
+check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$_script $_version ($_updated)"
+
+# Compare the ISO with the checksum
+
+ext="${checksum##*.}"
+case "$ext" in
+  "md5" )
+    printf "Comparing checksums.\nThis may take a while."
+    if check_md5 "$isofile" "$checksum"; then
+      printf "\n%s\n" "$checksums_match"
+      check_code=0
+    else
+      printf "%s\n" "$checksums_nomatch" >&2
+      check_code=1
+    fi
+    exit_msg "$check_code"
+  ;;
+  "sha256" )
+    printf "Comparing checksums.\nThis may take a while."
+    if check_sha256 "$isofile" "$checksum"; then
+      printf "%s\n" "$checksums_match"
+      check_code=0
+    else
+      printf "%s\n" "$checksums_nomatch" >&2
+      check_code=1
+    fi
+    exit_msg "$check_code"
+ ;;
+  "sha512" )
+    printf "Comparing checksums.\nThis may take a while."
+    if check_sha512 "$isofile" "$checksum"; then
+      printf "%s\n" "$checksums_match"
+      check_code=0
+    else
+      printf "%s\n" "$checksums_nomatch" >&2
+      check_code=1
+    fi
+    exit_msg "$check_code"
+  ;;
+esac
