@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.10"
-readonly _updated="23 Aug 2023"
+readonly _version="0.2.11"
+readonly _updated="11 Sep 2023"
 
 ## Functions ##
 
@@ -40,7 +40,7 @@ write_dd() {
 	if sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync; then
 	  printf "%s written to /dev/%s.\n" "$iso" "$usb"
   else
-    printf "%s write to /dev/%s failed.\n" "$iso" "$usb" >&2
+    diehard "$iso write to /dev/$usb failed.\n" "$_script v$_version ($_updated)"
   fi
 }
 
@@ -49,22 +49,28 @@ write_dd() {
 printf "Writes ISO to a USB drive.\n\n"
 
 # Check if a USB drive is connected and mounted
-[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive."
-mount | grep -qw media || diehard "No USB drive mounted." "Check with GUI file manager."
+
+[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$_script v$_version ($_updated)"
+mount | grep -qw media || diehard "No USB drive mounted." "Check with GUI file manager." "$_script v$_version ($_updated)"
 
 # List available ISO files and select file to write
+
 printf "Available ISO files in %s:\n" "$PWD"
-ls ./*.iso > /dev/null 2>&1 || diehard "No ISO files found." "Change to a directory containing the ISO file to be written."
+num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
+[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be written." "$_script $_version ($_updated)"
 ls -lh ./*iso | awk '{print $NF,$5}' | sed 's/\.\///'
 # find ./ -maxdepth 1 -type f -name "*.iso" -print | sed 's/\.\///'
 read -rp "ISO file to write: " iso_file
 
 # List removable devices and select device to write to
+
 printf "\nAvailable USB drives. Choose one:\n"
 lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $3"\t"$2"\t"$1}'
 read -rp "USB device to write to: " usb_drive
 printf "Selected device: /dev/%s.\nIf you continue, ALL data will be erased from this device.\n\n" "$usb_drive"
-echo -e "Answer 'yes' only if you are ${bold}${orange}ABSOLUTELY${normal} sure you want to proceed.\n"
+printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\n" "$bold" "$orange" "$normal"
+
+# Confirm action
 
 if yes_or_no "Write $iso_file to /dev/$usb_drive?"; then
   user_in_sudo
@@ -73,5 +79,4 @@ else
   printf "Operation canceled. No action taken.\n"
 fi
 
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-exit
+leave "$_script v$_version ($_updated)"
