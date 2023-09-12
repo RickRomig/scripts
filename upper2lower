@@ -4,11 +4,9 @@
 # Description  : Renames uppercase in filenames to lowercase
 # Dependencies : rename
 # Args         : --all, --help, filename(s) to be renamed
-# Author       : Richard Romig, 2018
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2018, Richard Romig
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comment      :
-# 10 Nov 2021  : Added the ability to rename multiple files in CWD.
-# 11 Jan 2022  : Added options for help and to rename all files in CWD
 # License      : GNU General Public License, version 2.0
 ##############################################################################
 
@@ -28,12 +26,12 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.1.1"
-readonly _updated="04 May 2022"
+readonly _version="3.2.0"
+readonly _updated="12 Sep 2023"
 
 ## Functions ##
 
-usage() {
+help() {
   local errcode="${1:-2}"
   cat << EOF
 ${orange}Usage:${normal} $_script [option] [filename1] [filename2] ...
@@ -45,32 +43,39 @@ EOF
   exit "$errcode"
 }
 
+upper_lower() {
+	local filename="$1"
+	if [[ -f "$filename" ]]; then
+		rename -v 'y/A-Z/a-z/' "$filename"
+	else
+		printf "%s %s not found.\n" "$red_error" "$filename" >&2
+	fi
+}
+
 ## Execution ##
 
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-printf "Changes filenames from uppercase to lowercase.\n\n"
-
-if [[ $# -eq 0 || "$1" == "--help" ]]; then
-  usage 0
-elif [[ "$1" == "--all" ]]; then
-  printf "Changing all files in the current directory to lowercase.\n"
-  rename -v 'y/A-Z/a-z/' ./*
+if [[ $# -eq 0 ]]; then
+	printf "%s No argument passed.\n" "$red_error" >&2
+  help 1
 elif [[ $# -eq 1 ]]; then
-  printf "Changing %s to lowercase.\n" "$1"
-  if [[ -f "$1" ]]; then
-    rename -v 'y/A-Z/a-z/' "$1"
-  else
-    die "$1 not found." 1
-  fi
-else # more than one argument
-  for fname in "$@"; do
-    if [[ -f "$fname" ]]; then
-      echo "Changing $fname to lowercase."
-      rename -v 'y/A-Z/a-z/' "$fname"
-    else
-      echo "${lightred}ERROR:${normal} $fname not found." >&2
-    fi
-  done
+	case "$1" in
+		"--all" )
+			printf "Changing all files in the current directory to lowercase.\n"
+			rename -v 'y/A-Z/a-z/' ./*
+		;;
+		"--help" )
+			printf "%s help...\n" "$_script"
+			help 0
+		;;
+		"--*" )
+			printf "%s Invalid argument.\n" "$red_error" >&2
+			help 1
+		;;
+		* )
+			upper_lower "$1"
+	esac
+else
+	for fname in "$@"; do upper_lower "$fname"; done
 fi
 
-exit
+leave "$_script v$_version ($_updated)"
