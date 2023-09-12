@@ -24,11 +24,11 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.11"
-readonly _updated="11 Sep 2023"
+readonly _version="0.2.12"
+readonly _updated="12 Sep 2023"
 
 ## Functions ##
 
@@ -58,8 +58,7 @@ mount | grep -qw media || diehard "No USB drive mounted." "Check with GUI file m
 printf "Available ISO files in %s:\n" "$PWD"
 num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
 [[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be written." "$_script $_version ($_updated)"
-ls -lh ./*iso | awk '{print $NF,$5}' | sed 's/\.\///'
-# find ./ -maxdepth 1 -type f -name "*.iso" -print | sed 's/\.\///'
+find ./ -maxdepth 1 -type f -name "*.iso" -exec du -h {} + | sed 's/\.\///'
 read -rp "ISO file to write: " iso_file
 
 # List removable devices and select device to write to
@@ -70,7 +69,7 @@ read -rp "USB device to write to: " usb_drive
 printf "Selected device: /dev/%s.\nIf you continue, ALL data will be erased from this device.\n\n" "$usb_drive"
 printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\n" "$bold" "$orange" "$normal"
 
-# Confirm action
+# Confirm action or cancel
 
 if yes_or_no "Write $iso_file to /dev/$usb_drive?"; then
   user_in_sudo
