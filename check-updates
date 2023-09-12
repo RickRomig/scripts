@@ -31,8 +31,8 @@ set -euo pipefail
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.0.1"
-readonly _updated="11 Sep 2023"
+readonly _version="2.0.2"
+readonly _updated="12 Sep 2023"
 
 ## Functions ##
 
@@ -109,8 +109,8 @@ apt_update() {
   nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
   # If there are packages to be upgraded
   if (( nupd > 0 )); then
-    printf "%s%s " "$orange" "$nupd"
-    (( nupd > 1 )) && printf "%d packages" "$nupd" || printf "%d package" "$nupd"
+    printf "%s%d " "$orange" "$nupd"
+    (( nupd > 1 )) && printf "packages" || printf "package"
     printf " can be upgraded%s.\n" "$normal"
     # List upgradeable packages
     apt list --upgradeable
