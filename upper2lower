@@ -26,19 +26,22 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.2.1"
-readonly _updated="13 Sep 2023"
+readonly _version="3.2.2"
+readonly _updated="14 Sep 2023"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
   cat << EOF
+Renames filenames in the current directory to all lowercase.
 ${orange}Usage:${normal} $_script [option] [filename1] [filename2] ...
 ${orange}Options:${normal}
   --all    change all files in the current directory.
   --help   display this help message.
 One or more filenames may be entered to be renamed.
+$_script Filename	# Renames filename to lowercase
+$_script Filename1 Filename2	# Renames Filename1 and Filename2 to lowercase
 EOF
   exit "$errcode"
 }
@@ -60,21 +63,23 @@ if [[ $# -eq 0 ]]; then
 elif [[ $# -eq 1 ]]; then
 	case "$1" in
 		"--all" )
-			printf "Changing all files in the current directory to lowercase.\n"
-			find . -maxdepth 1 -type f -exec rename -v 'y/A-Z/a-z/' {} +
+			printf "Renaming all files in the current directory to lowercase.\n"
+			find . -maxdepth 1 -type f -exec rename -v 'y/A-Z/a-z/' {} + | sed 's/\.\///g'
 		;;
 		"--help" )
 			printf "%s help...\n" "$_script"
 			help 0
 		;;
 		--* )
-			printf "%s Invalid argument.\n" "$red_error" >&2
+			printf "%s Invalid argument, %s\n" "$red_error"  "$1">&2
 			help 1
 		;;
 		* )
+			printf "Renaming %s to lowercase.\n" "$1"
 			upper_lower "$1"
 	esac
 else
+	printf "Renaming selected files to lowercase.\n"
 	for fname in "$@"; do upper_lower "$fname"; done
 fi
 
