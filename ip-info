@@ -25,14 +25,10 @@ else
   exit 1
 fi
 
-## Global variables ##
-
-readonly local_host="${HOSTNAME:-$(hostname)}"
-
 ## Functions ##
 
 req_sudo() {
-  lhost="$1"
+  lhost="${HOSTNAME:-$(hostname)"
   case "$lhost" in
     hp-2560p )
       return "$TRUE" 
@@ -177,14 +173,14 @@ main() {
   local _version="2.6.3"
   local _updated="15 Sep 2023"
 
-  req_sudo "$local_host" && user_in_sudo
+  req_sudo && user_in_sudo
 
   check_dependencies
 
   clear
   echo "${lightyellow}"
   box "IP Information" "*"
-  echo "Host: $local_host"
+  echo "Host: $(uname -n)"
   echo "${normal}"
   echo "${orange}Public IP:${normal}"
   show_public
