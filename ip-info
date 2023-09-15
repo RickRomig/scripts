@@ -85,15 +85,12 @@ show_wireless() {
     wifi_state=$(cat "/sys/class/net/$wifi_int/operstate")
     wifi_ip=$(/usr/bin/nmcli dev show "$wifi_int" | awk '/IP4.ADDRESS/ {print $NF}')
     wifi_mac=$(/usr/bin/nmcli dev show "$wifi_int" | awk '/GENERAL.HWADDR/ {print $NF}')
-    if [[ -x /sbin/iwgetid || -x /usr/sbin/iwgetid ]]; then
-      wifi_ssid=$(/sbin/iwgetid -r)
-    else
-      wifi_ssid=$(nmcli dev show "$wifi_int" | awk '/GENERAL.CONNECTION/ {print $NF}')
-    fi
     if req_sudo; then
-      wifi_sig="$(sudo awk '/wl/ {print $4 " dBm"}' /proc/net/wireless | sed 's/\.//')"
+      wifi_ssid=$(sudo /sbin/iw dev "$wifi_int" link | awk '/SSID/ {print $2}')
+      wifi_sig=$(sudo /sbin/iw dev "$wifi_int" link | awk '/signal/ {print $2,$3}')
     else
-      wifi_sig=$(awk '/wl/ {print $4 " dBm"}' /proc/net/wireless | sed 's/\.//')
+      wifi_ssid=$(/sbin/iw dev "$wifi_int" link | awk '/SSID/ {print $2}')
+      wifi_sig=$(/sbin/iw dev "$wifi_int" link | awk '/signal/ {print $2,$3}')
     fi
     [[ -z "$wifi_ssid" ]] && wifi_ssid="Not available"
     [[ -z "$wifi_sig" ]] && wifi_sig="Not available"
@@ -177,8 +174,8 @@ check_dependencies() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="2.6.1"
-  local _updated="14 Sep 2023"
+  local _version="2.6.3"
+  local _updated="15 Sep 2023"
 
   req_sudo "$local_host" && user_in_sudo
 
