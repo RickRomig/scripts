@@ -1,3 +1,4 @@
+# Get interface name
 $ ip ad show | awk '/: en/ {print $2}' | sed 's/:$//'
 $ ip ad show | awk '/: wl/ {print $2}' | sed 's/:$//'
 $ ip ad show | awk '/: vir/ {print $2}' | sed 's/:$//'
@@ -24,11 +25,14 @@ SSID and Signal level:
 $ /sbin/iwconfig | grep 'ESSID' | cut -d: -f2 | sed 's/"//g'	# Requires sudo on #23
 $ /sbin/iwconfig | grep 'Signal' | cut -d= -f3 	# Requires sudo on #23
 
-# Method finally using in ip-info
-$ /sbin iw dev <interface> link | awk '/SSID/ {print $2}'	# Requires sudo on #23
-$ /sbin iw dev <interface> link | awk '/signal/ {print $2,$3}'	# Requires sudo on #23
+$ /sbin/iwconfig | awk -F: '/ESSID/ {print $2}' | sed 's/"//g'	# Requires sudo on #23
+$ /sbin/iwconfig | awk -F= '/Signal/ {print $3}' # Requires sudo on #23
 
-$ /sbin/iwgetid -r 	# SSID (does not exist on #19)
+# Method finally used in ip-info
+$ /sbin/iw dev <interface> link | awk '/SSID/ {print $2}'	# Requires sudo on #23
+$ /sbin/iw dev <interface> link | awk '/signal/ {print $2,$3}'	# Requires sudo on #23
+
+$ /sbin/iwgetid -r 	# SSID  does not exist on #19
 
 $ awk '/wl/ {print $4 " dBm"}' /proc/net/wireless | sed 's/\.//'	# Signal, requires sudo on #23
 
