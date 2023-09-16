@@ -28,14 +28,27 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.8"
-readonly _updated="21 Aug 2023"
+readonly _version="0.4.0"
+readonly _updated="16 Sep 2023"
 readonly user_cron_path="$HOME/.local/bin/"
 readonly opt_cron_path="/opt/bin/"
 readonly sed_path="/usr/share/misc/"
 localip="$(local_ip)"
 
 ## Functions ##
+
+cp_gitea_backup() {
+  case "$localip" in
+    10 )
+      cp -pv "$HOME/bin/gitea-daily.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      cp -pv "$HOME/bin/gitea-weekly.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      cp -pv "$HOME/bin/gitea-monthly.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      cp -pv "$HOME/bin/gitea-backup.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+    ;;
+    * )
+      no_copy "$script_path"
+  esac
+}
 
 cp_passwdsync() {
   local script_path="$HOME/bin/passwdsync.sh"
@@ -173,6 +186,7 @@ ${orange}OPTIONS:${normal}
   -b    Copy HomeBank archive script.
   -d    Copy defrag script.
   -f    Copy sed sccript to cleanup update log.
+  -g    Copy gitea repository backup scripts.
   -h    Display Help.
   -l    Copy local backup script.
   -p    Copy password database script.
@@ -191,13 +205,14 @@ END_HELP
 printf "Copies updated cron scripts to the appropriate directories.\n"
 
 noOpt=1
-optstr=":abdfhlpsuyz"
+optstr=":abdfghlpsuyz"
 while getopts "$optstr" opt; do
   case "$opt" in
     a )
       cp_hbarchive
       cp_passwdsync
       cp_scriptarchive
+      cp_gitea_backup
       cp_zdefrag
       cp_zupdate
 			cp_updatelogsed
@@ -212,6 +227,9 @@ while getopts "$optstr" opt; do
     ;;
     f )
       cp_updatelogsed
+    ;;
+    g )
+      cp_gitea_backup
     ;;
     h )
       help 0
@@ -240,6 +258,5 @@ while getopts "$optstr" opt; do
   esac
 	noOpt=0
 done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-exit
+[[ "$noOpt" = 1 ]] && { printf "%s No arguments passed.\n" "$red_error" >&2; help 1; }
+leave "$_script v$_version ($_updated)"
