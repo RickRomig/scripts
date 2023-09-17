@@ -13,6 +13,9 @@
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
-tar -zcf /home/rick/Downloads/archives/gitea/weekly/gitea-bu-"$(date +%y%m%d)".tar.gz -C "$HOME" gitea
-find /home/rick/Downloads/archives/gitea/weekly/* -mtime +31 -delete
+arc_dir="$HOME/Downloads/archives/gitea/weekly"
+archive="gitea-bu-$(date +%y%m%d).tar.gz"
+
+tar -zcf "$arc_dir/$archive" -C "$HOME" gitea
+find "$arc_dir"/* -mtime +31 -delete
 exit
