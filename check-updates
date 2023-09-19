@@ -31,8 +31,8 @@ set -euo pipefail
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.0.2"
-readonly _updated="12 Sep 2023"
+readonly _version="2.0.3"
+readonly _updated="18 Sep 2023"
 
 ## Functions ##
 
@@ -52,6 +52,8 @@ remove_orphans() {
 }
 
 purge_configs() {
+  local rcpkgs
+  local rcpkg
   printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
   rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}' | wc -l)
   if [[ "$rcpkgs" -gt 0 ]]; then
@@ -65,15 +67,15 @@ purge_configs() {
 
 update_complete() {
   local num_updates="$1"
-  printf "\n%sUpdate complete. " "$orange" "$num_updates"
-  (( nupd > 1 )) && printf "%d updates were" "$nupd" || printf "%d update was" "$nupd"
+  printf "\n%sUpdate complete: " "$orange"
+  (( nupd > 1 )) && printf  "%d updates were" "$num_updates" || printf "%d update was" "$num_updates"
   printf " installed.%s\n" "$normal"
 }
 
 defer_updates() {
   local num_updates="$1"
-  printf "\n%sNo updated installed. " "$orange"
-  (( nupd > 1 )) && printf "%d updates were" "$nupd" || printf "%d update was" "$nupd"
+  printf "\n%sNo updates installed: " "$orange"
+  (( nupd > 1 )) && printf "%d updates were" "$num_updates" || printf "%d update was" "$num_updates"
   printf " deferred.%s\n" "$normal"
 }
 
@@ -104,6 +106,7 @@ nala_autopurge() {
 }
 
 apt_update() {
+  local nupd
   sudo apt-get update
   # Get number of packages that can be upgraded
   nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
