@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.1"
-readonly _updated="28 Apr 2023"
+readonly _version="0.5.2"
+readonly _updated="19 Sep 2023"
 readonly homepage_dir=$HOME"/Documents/homepage"
 readonly dropbox_dir=$HOME"/Dropbox/homepage/"
 
@@ -40,25 +40,29 @@ check_dependencies() {
 }
 
 remove_bu_files() {
-  printf "Removing backup files (if any)...\n"
+  printf "\nRemoving backup files (if any)...\n"
   find "$homepage_dir"/ -name "*~" -delete
-  find "$homepage_dir"/ -maxdepth 1 -type f -name "*.bak" -exec rm{} \;
+  find "$homepage_dir"/ -maxdepth 2 -type f -name "*.bak" -exec rm{} \;
 }
 
 update_zip_file() {
-  printf "Updating homepage archive...\n"
+  printf "\nUpdating homepage archive...\n"
   rm "$homepage_dir"/homepage.zip
-  zip -q "$homepage_dir"/homepage.zip "$homepage_dir"/*
+  zip -r "$homepage_dir"/homepage.zip "$homepage_dir"/*
+}
+
+sync_dropbox() {
+  printf "\nSynchronizing ~/Documents/homepage with ~/Dropbox/homepage...\n"
+  rsync -av --delete "$homepage_dir"/ "$dropbox_dir"
 }
 
 ## Execution ##
 
 check_dependencies
 SECONDS=0
-printf "%s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 remove_bu_files
 update_zip_file
-printf "Synchronizing ~/Documents/homepage with ~/Dropbox/homepage...\n"
-rsync -av --delete "$homepage_dir"/ "$dropbox_dir"/
+sync_dropbox
 printf "\nScript completed in %s\n" "$(format_time $SECONDS)"
 exit
