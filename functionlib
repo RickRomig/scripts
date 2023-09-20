@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 24 Aug 2023
+# Last updated : 20 Sep 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -239,13 +239,7 @@ support_ppa() {
 ###############################################################################
 antix_mx() {
   dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2> /dev/null)
-  case "$dist_id" in
-    antiX|MX )
-      return "$TRUE"
-    ;;
-    * )
-      return "$FALSE"
-  esac
+  [[ "$dist_id" == "antiX" || "$dist_id" == "MX" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
