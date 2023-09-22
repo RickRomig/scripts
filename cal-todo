@@ -29,9 +29,9 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2 .7"
-readonly _updated="21 Apr 2023"
-readonly localdoc="$HOME/.local/share/doc"
+readonly _version="0.2.8"
+readonly _updated="21 Sep 2023"
+readonly docdir="$HOME/.local/share/doc"
 readonly todolist="todo.lst"
 calendar=$(mktemp -q) || die "Failed to create temporary file." 1
 
@@ -52,28 +52,24 @@ OPTIONS:
 	-h  display help
 	NOTE: To-do list should be limited to 7 short items.
 END_HELP
-	echo "$_script v$_version ($_updated)"
+	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 	exit "$errcode"	
 }
 
 edit_todo() {
 	if exists micro; then
-		/usr/bin/micro "$localdoc/$todolist"
+		/usr/bin/micro "$docdir/$todolist"
 	else
-		/usr/bin/nano "$localdoc/$todolist"
+		/usr/bin/nano "$docdir/$todolist"
 	fi
 }
 
 create_todo() {
-	local todo_list="$HOME/bin/Templates/todo.lst"
-	[[ -d "$localdoc" ]] || mkdir -p "$localdoc"
-	cp "$todo_list" "$localdoc"/
+	local templates="$HOME/bin/Templates"
+	printf "Creating todo list...\n"
+	[[ -d "$docdir" ]] || mkdir -p "$docdir"
+	cp "$templates/$todolist" "$docdir/"
 	edit_todo
-}
-
-display_cal_todo() {
-	[[ -f "$localdoc/$todolist" ]] || create_todo
-	paste "$calendar" "$localdoc/$todolist"
 }
 
 ## Execution ##
@@ -85,15 +81,17 @@ optstr=":cdeh"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		c )
+			[[ -f "$docdir/$todolist" ]] || create_todo
 			cal > "$calendar"
-			display_cal_todo
+			paste "$calendar" "$docdir/$todolist"
 		;;
 		d )
+			[[ -f "$docdir/$todolist" ]] || create_todo
 			cal -3 | sed '1d' > "$calendar"
-			display_cal_todo
+			paste "$calendar" "$docdir/$todolist"
 		;;
 		e )
-			if [[ -f "$localdoc/$todolist" ]]; then
+			if [[ -f "$docdir/$todolist" ]]; then
 				edit_todo
 			else
 				create_todo
