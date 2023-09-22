@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.7.2"
-readonly _updated="29 Jun 2023"
+readonly _version="0.7.3"
+readonly _updated="21 Sep 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -199,6 +199,18 @@ local_backup_log() {
   fi
 }
 
+gitea_svr_backups() {
+  local log_dir="$HOME/Downloads/archives/gitea"
+  if [[ -d "$log_dir" ]]; then
+  clear 
+  printf "%s%s - Gitea Repository Backups:%s\n\n" "$lightgreen" "$lhost" "$normal"
+  tree "$log_dir"
+  printf "\n"
+  else
+    printf "%sGitea Repository Backups do not exist on %s.%s\n" "$orange" "$lhost" "$normal"
+  fi
+}
+
 ## Execution ##
 
 while true; do
@@ -212,7 +224,7 @@ while true; do
   COLUMNS=60
   options=("System Information" "System Updates" "Timeshift Snapshots" \
     "Defrag Report" "Yt-dlp Updates" "Script archive" "Password Databases" \
-    "HomeBank Archive" "Local Backup" "Exit the script")
+    "HomeBank Archive" "Local Backup" "Gitea Backups" "Exit the script")
   PS3="Select a log to view: "
   select opt in "${options[@]}"; do
     case $REPLY in
@@ -235,6 +247,8 @@ while true; do
       9 )
         local_backup_log; anykey; break ;;
       10 )
+        gitea_svr_backups; anykey; break ;;
+      11 )
         leave "${orange}Mischief managed.${normal}" ;;
       * )
         printf "%sInvalid choice. Try again.%s\n" "$lightred" "$normal" >&2
