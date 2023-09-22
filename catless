@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.7"
-readonly _updated="24 Aug 2023"
+readonly _version="0.2.8"
+readonly _updated="21 Sep 2023"
 
 ## Functions ##
 
@@ -55,26 +55,24 @@ cat_used() {
   [[ "$num_lines" -lt "$cat_limit" ]] && return "$TRUE" || return "$FALSE"
 }
 
-## Check arguments ##
+## Execution ##
 
+# Check arguments
 if [[ $# -eq 0 ]]; then
-  # echo "${lightred}ERROR:${normal} No argument passed." >&2
   printf "%s No argument passed.\n" "$red_error" >&2
   help 2
 elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
   help 0
 elif [[ ! -f "$1" ]]; then
-  # echo "${lightred}ERROR:${normal} $1 not found." >&2
   printf "%s %s not found.\n" "$red_error" "$1" >&2
   help 2
 else
   filename="$1"
 fi
 
-## View the selected file ##
-
+# View the selected file
 clear
-box "File: $filename"
+box "File: $filename" "*"
 viewtext "$filename"
 cat_used && print_line "-" 30
 leave "$_script v$_version ($_updated)"
