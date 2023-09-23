@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.2"
-readonly _updated="15 May 2023"
+readonly _version="0.3.3"
+readonly _updated="23 Sep 2023"
 
 ## Functions ##
 
@@ -73,16 +73,16 @@ warning_level() {
   energy_act=$(awk '/energy-full:/ {printf "%i", $2}' "$battery_data")
 
   if [[ "$energy_act" -eq 0 || "$energy_des" -eq 0 ]]; then
-    return 0
+    capacity="0"
   else
     capacity=$(awk '/capacity/ {printf "%i", $2}' "$battery_data")
-    return "$capacity"
   fi
+  echo "$capacity"
 }
 
 battery_condition() {
-  warning_level
-  warn_level="$?"
+  warn_level="$(warning_level)"
+  # warn_level="$?"
   if [[ "$warn_level" -le "0" ]]; then
     warn="\U1F4A9"
     echo -e "    ${red}Replace the battery!${normal}  $warn"
