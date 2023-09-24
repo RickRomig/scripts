@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : hidpp-battery
+# Description  : Displays status of HIDPP battery
+# Dependencies : upower
+# Arguments    : See help function
+# Author       : Copyright © 2023 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 23 Sep 2023
+# Last updated : 23 Sep 2023
+# Comments     : 
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.1.0"
+readonly _updated="23 Sep 2023"
+
+## Functions ##
+
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+Displays HIDPP battery status.
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+	-h	Display help
+	-s	HIDPP battery status using /sys/class/power_supply
+	-u	HIDPP battery status using upower utility
+	Defaults to using /sys/class/power_supply if no argument passed. 
+END_HELP
+	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+sys_class_data() {
+	local hidpp_path="/sys/class/power_supply/hidpp_battery_0"
+	if [[ -d "$hidpp_path" ]]; then
+	  printf "%-17s%-15s%-7s%-8s%s\n" "Device" "Manufacturer" "Model" "Charge" "Serial number"
+	  printf "%-17s%-15s%-7s%-8s%s\n" "$(basename "$hidpp_path")" \
+	  "$(cat "$hidpp_path/manufacturer")" "$(cat "$hidpp_path/model_name")" \
+	  "$(cat "$hidpp_path/capacity")%" "$(cat "$hidpp_path/serial_number")"
+	else
+	  printf "No hidpp battery found.\n"
+	fi
+}
+
+upower_data() {
+	check_package upower
+	local hidpp_data
+	if /usr/bin/upower -e | grep -q mouse_hidpp_battery; then
+	  hidpp_data=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep hidpp)")
+	  printf "%-17s%-7s%-8s%s\n" "Device" "Model" "Charge" "Serial number"
+	  printf "%-17s%-7s%-8s%s\n" "$(echo "$hidpp_data"| awk '/native-path/ {print $NF}')" \
+	  "$(echo "$hidpp_data"| awk '/model/ {print $NF}')" \
+	  "$(echo "$hidpp_data"| awk '/percentage/ {print $NF}')" \
+	  "$(echo "$hidpp_data"| awk '/serial/ {print $NF}')"
+	else
+	  printf "No hidpp battery found.\n"
+	fi
+}
+
+## Execution ##
+
+noOpt=1
+optstr=":hsu"
+# optstr=":h:i:r:s:u"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		h )
+			help 0
+		;;
+		s )
+			sys_class_data
+		;;
+		u )
+			upower_data
+		;;
+		? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			help 2
+	esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && sys_class_data
+leave "$_script v$_version ($_updated)"
