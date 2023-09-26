@@ -27,13 +27,24 @@ fi
 ##  Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.4.0"
-readonly _updated="25 Sep 2023"
+readonly _version="3.4.1"
+readonly _updated="26 Sep 2023"
 readonly tmp_dir=$HOME"/tmp/journal"
 
 ## Functions ##
 
 # check_package and leave functions and colors declared in functionlib
+
+valid_folder() {
+  local folder="$1"
+  case "$folder" in
+    DCIM|Tech-pics|unsorted|wallpaper )
+      return "$FALSE"
+    ;;
+    * )
+      return "$TRUE"
+  esac
+}
 
 valid_image() {
   local filename="$1"
@@ -48,17 +59,6 @@ valid_image() {
   esac
 }
 
-valid_folder() {
-  local folder="$1"
-  case "$folder" in
-    DCIM|Tech-pics|unsorted|wallpaper )
-      return "$FALSE"
-    ;;
-    * )
-      return "$TRUE"
-  esac
-}
-
 ## Execution ##
 
 # Create temporary picture directory if it doesn't already exist
@@ -68,19 +68,12 @@ check_package imagemagick
 clear
 while true; do
   # Randomly select an image folder from ~/Pictures/
-  # pic_dir="$(shuf -en1 "$HOME/Pictures"/*)/"
   pic_dir=$(find ~/Pictures -maxdepth 1 -type d | shuf -n1)
-  [[ -d "$pic_dir" ]] || continue
-
-  # Reject invalid image folder
   sel_dir=$(basename "$pic_dir")
   valid_folder "$sel_dir" || continue
 
   # Choose a random image file from the selected folder
-  # random_file=$(shuf -en1 "$pic_dir"*)
   random_file=$(find "$pic_dir" -maxdepth 1 -type f | shuf -n1)
-
-  # Validate the randomly selected file
   pic_file="$(basename "$random_file")"
   valid_image "$pic_file" || continue
 
