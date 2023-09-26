@@ -51,7 +51,7 @@ valid_image() {
 valid_folder() {
   local folder="$1"
   case "$folder" in
-    Tech-pics|unsorted|wallpaper )
+    DCIM|Tech-pics|unsorted|wallpaper )
       return "$FALSE"
     ;;
     * )
@@ -68,7 +68,8 @@ check_package imagemagick
 clear
 while true; do
   # Randomly select an image folder from ~/Pictures/
-  pic_dir="$(shuf -en1 "$HOME/Pictures"/*)/"
+  # pic_dir="$(shuf -en1 "$HOME/Pictures"/*)/"
+  pic_dir=$(find ~/Pictures -maxdepth 1 -type d | shuf -n1)
   [[ -d "$pic_dir" ]] || continue
 
   # Reject invalid image folder
@@ -76,7 +77,8 @@ while true; do
   valid_folder "$sel_dir" || continue
 
   # Choose a random image file from the selected folder
-  random_file=$(shuf -en1 "$pic_dir"*)
+  # random_file=$(shuf -en1 "$pic_dir"*)
+  random_file=$(find "$pic_dir" -maxdepth 1 -type f | shuf -n1)
 
   # Validate the randomly selected file
   pic_file="$(basename "$random_file")"
