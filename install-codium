@@ -29,8 +29,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.1"
-readonly _updated="04 Aug 2023"
+readonly _version="0.1.2"
+readonly _updated="26 Sep 2023"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 
@@ -67,9 +67,11 @@ install_cascadia_code() {
 
 apply_settings() {
   local vsc_cfg="${HOME}/.config/VSCodium/User"
+	local vsc_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/VSCodium/User/settings.json"
   [[ -d "$vsc_cfg" ]] || mkdir -p "$vsc_cfg"
   printf "Applying VSCodium settings...\n"
-  settings
+	wget -P "$vsc_cfg" "$vsc_url"
+  # settings
   printf "VSCodium settings applied.\n"
 }
 
@@ -124,7 +126,7 @@ remove_vscodium() {
 
 ## Execution ##
 
-# clear
+check_package wget
 noOpt=1
 optstr=":ahirs"
 while getopts "$optstr" opt; do
@@ -140,7 +142,6 @@ while getopts "$optstr" opt; do
 		;;
 		i )
 			exists codium && leave "VSCodium $(codium_version) is already installed."
-			check_package wget
 			install_vscodium
 		;;
 		r )
@@ -158,5 +159,4 @@ while getopts "$optstr" opt; do
 	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-exit
+leave "$_script v$_version ($_updated)"
