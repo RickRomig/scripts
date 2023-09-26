@@ -27,27 +27,35 @@ fi
 ##  Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.3.6"
-readonly _updated="07 Sep 2023"
+readonly _version="3.4.0"
+readonly _updated="25 Sep 2023"
 readonly tmp_dir=$HOME"/tmp/journal"
 
 ## Functions ##
 
-# leave function and colors declared in functionlib
+# check_package and leave functions and colors declared in functionlib
 
 valid_image() {
   local filename="$1"
   local ext="${filename##*.}"
   ext="${ext,,}"
-  # shopt -s nocasematch
   case $ext in
     bmp|gif|jpeg|jpg|png|tiff )
-      # shopt -u nocasematch
       return "$TRUE"
     ;;
     * )
-      # shopt -u nocasematch
       return "$FALSE"
+  esac
+}
+
+valid_folder() {
+  local folder="$1"
+  case "$folder" in
+    Tech-pics|unsorted|wallpaper )
+      return "$FALSE"
+    ;;
+    * )
+      return "$TRUE"
   esac
 }
 
@@ -56,29 +64,23 @@ valid_image() {
 # Create temporary picture directory if it doesn't already exist
 [[ -d "$tmp_dir" ]] || mkdir -p "$tmp_dir"
 
-check_package imagemagick; sleep 1; clear
+check_package imagemagick
+clear
 while true; do
   # Randomly select an image folder from ~/Pictures/
   pic_dir="$(shuf -en1 "$HOME/Pictures"/*)/"
   [[ -d "$pic_dir" ]] || continue
-  # [[ "$pic_dir" == "$HOME/Pictures/unsorted" ]] && continue
 
-  # Selected image folder
+  # Reject invalid image folder
   sel_dir=$(basename "$pic_dir")
-  [[ "$sel_dir" == "unsorted" || "$sel_dir" == "wallpaper"  ]] && continue
+  valid_folder "$sel_dir" || continue
 
   # Choose a random image file from the selected folder
   random_file=$(shuf -en1 "$pic_dir"*)
 
   # Validate the randomly selected file
-  if [[ -f "$random_file" ]]; then
-    # Extract the image's base filename from the path
-    pic_file="$(basename "$random_file")"
-    # Is it a valid image file?
-    valid_image "$pic_file" || continue
-  else
-    continue
-  fi
+  pic_file="$(basename "$random_file")"
+  valid_image "$pic_file" || continue
 
   # Accept or reject selected file
   clear
@@ -86,10 +88,10 @@ while true; do
   echo "$_script v$_version ($_updated)"
   echo -e "Selects a random image from ~/Pictures\n"
   echo "${blue}Selected image: ${orange}$sel_dir/$pic_file${normal}"
-  cp -p "$pic_dir$pic_file" "$tmp_dir"
+  cp -p "$pic_dir/$pic_file" "$tmp_dir"
   /usr/bin/display -geometry +600+20 "$tmp_dir/$pic_file" &
   pic_pid="$!"
-  echo $'\n'$"${blue}Image file options:${normal}"
+  echo $'\n'$"${blue}Options:${normal}"
   COLUMNS=12
   options=( "Accept the selected image and select another image." \
     "Accept the selected image and exit." \
