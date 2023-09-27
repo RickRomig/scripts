@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.4"
-readonly _updated="09 Jun 2023"
+readonly _version="0.6.5"
+readonly _updated="26 Sep 2023"
 readonly term_cfg=$HOME"/.config/terminator"
 
 ## Functions ##
@@ -66,10 +66,17 @@ install_terminator() {
     echo "Terminator $(terminator_version) installed."
     leave "BunsenLabs uses its own profiles based on the version of the distribution."
   else
-    [[ -f "$term_cfg/config" ]] || teminator_config
+    # [[ -f "$term_cfg/config" ]] || teminator_config
+    apply_config
     is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg/config"
     leave "terminator $(terminator_version) installed with configuration file and Cascadia Code font."
   fi
+}
+
+apply_config() {
+  local gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/terminator"
+  [[ -d "$term_cfg" ]] || mkdir -p "$term_cfg"
+  curl -so "$term_cfg/config" "$gitea_url/config"
 }
 
 teminator_config() {
@@ -138,7 +145,8 @@ while getopts "$optstr" opt; do
         echo "Terminator configuration for BunsenLabs was not overwritten."
         leave "Configuration changes should be made through the Preferences menu."
       else
-        teminator_config
+        # teminator_config
+        apply_config
         is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg/config"
         leave "Terminator configuration file written."
       fi
