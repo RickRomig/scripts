@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.12"
-readonly _updated="08 Aug 2023"
+readonly _version="0.5.0"
+readonly _updated="28 Sep 2023"
 readonly url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg=$HOME"/.config/micro"
 
@@ -87,9 +87,11 @@ remove_micro() {
 }
 
 apply_settings() {
+  gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/micro/settings.json"
   [[ -d "$micro_cfg" ]] || mkdir -p "$micro_cfg"
   echo "Applying Micro settings..."
-  settings
+  curl -so "$micro_cfg/settings.json" "$gitea_url"
+  # settings
   echo "Micro setttings applied."
 }
 
@@ -106,9 +108,11 @@ EOF
 }
 
 apply_bindings() {
+  gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/micro/bindings.json"
   [[ -d "$micro_cfg" ]] || mkdir -p "$micro_cfg"
   echo "Applying Micro keybindings..."
-  bindings
+  curl -so "$micro_cfg/bindings.json" "$gitea_url"
+  # bindings
   echo "Micro keybindings applied."
 }
 
