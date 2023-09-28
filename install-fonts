@@ -27,16 +27,14 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.3"
-readonly _updated="04 Apr 2023"
+readonly _version="0.3.4"
+readonly _updated="28 Sep 2023"
 
 font_flag=0  # 0 = no fonts installed. 1 = at least one font installed.
 
 ## Functions ##
 
 cascadia_code() {
-  local github_url="https://github.com"
-  local release_path="microsoft/cascadia-code/releases"
   local ccf_dir="/usr/share/fonts/truetype/cascadia-code" 
   local user_ccf="$HOME/.local/share/fonts"
   check_package wget
@@ -53,15 +51,12 @@ cascadia_code() {
   else
     [[ -d "$ccf_dir" ]] || mkdir -p "$ccf_dir"
   fi
-  echo "Installing Cascadia-Code fonts."
-  wget -qO "$tmp_file" "$github_url/$release_path"
-  new_ver=$(sed 's/\// /g' "$tmp_file" | grep -v 'beta\|rc' | awk '/download/ && /.zip/ {print $7;exit}' | sed 's/^v//')
-  font_pkg="CascadiaCode-${new_ver}.zip"
-  wget -q -P "$tmp_dir/" "$github_url/$release_path/download/v$new_ver/$font_pkg"
+  echo "Installing Cascadia-Code fonts..."
+  wget -q -P "$tmp_dir/" https://github.com/microsoft/cascadia-code/releases/download/v2111.01/CascadiaCode-2111.01.zip
   [[ -d "$ccf_dir" ]] || mkdir -p "$ccf_dir"
-  sudo unzip -d "$ccf_dir" "$tmp_dir/$font_pkg"
+  sudo unzip "$tmp_dir/CascadiaCode-2111.01.zip" -d "$ccf_dir"
   sudo cp "$ccf_dir"/ttf/*.ttf "$user_ccf"/
-  echo "Cascadia Code fonts version $new_ver installed."
+  echo "Cascadia Code fonts installed."
 }
 
 carlito_caladea() {
@@ -144,11 +139,23 @@ vista_fonts() {
   fi
 }
 
+nerd_fonts() {
+  local font_dir="/usr/share/fonts"
+  [[ -d "$font_dir" ]] || sudo mkdir -p "$font_dir"
+  local fonts=( "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
+
+  for font in "${fonts[@]}"; do
+	  wget -P "$nerd_dir" https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/"$font.zip"
+	  sudo unzip "$nerd_dir/$font.zip" -d "$font_dir/$font/"
+  done
+}
+
 cleanup() {
   [[ -f "$tmp_file" ]] && rm "$tmp_file"
   [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
   [[ -d "$temp_dir" ]] && rm -rf "$temp_dir"
   [[ -d "$font_dl_dir" ]] && rm -rf "$font_dl_dir"
+  [[ -d "$nerd_dir" ]] && rm -rf "$nerd_dir"
 }
 
 ## Execution ##
@@ -159,8 +166,7 @@ while true; do
   echo "$_script v$_version ($_updated)"
   echo "Install extra fonts"
   COLUMNS=40
-  options=("Cascadia Code" "MS TTF Core Fonts" "Carlito and Caladea Fonts" \
-    "Vista Fonts" "Quit and Exit")
+  options=("Cascadia Code" "MS TTF Core Fonts" "Carlito and Caladea Fonts" "Vista Fonts" "Nerd Fonts" "Quit and Exit")
   PS3="Choose a font to install: "
   select opt in "${options[@]}"
   do
@@ -184,14 +190,21 @@ while true; do
         ;;
       4 )
         user_in_sudo
-        temp_dir=$(mktemp -d) || die "Failed to create temporary diectory!"
-        font_dl_dir=$(mktemp -d) || die "Failed to create temporary diectory!"
+        temp_dir=$(mktemp -d) || die "Failed to create temporary diectory." 1
+        font_dl_dir=$(mktemp -d) || die "Failed to create temporary diectory." 1
         vista_fonts
         font_flag=1
         ;;
       5 )
+        user_in_sudo
+        nerd_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+        nerd_fonts
+        font_flag=1
+      ;;
+      6 )
         (( font_flag != 0 )) && sudo /usr/bin/fc-cache -f > /dev/null 2>&1
-        leave "" ;;
+        leave ""
+        ;;
       * )
         echo "${lightred}Invalid Choice!${normal}" >&2 ;;
     esac
