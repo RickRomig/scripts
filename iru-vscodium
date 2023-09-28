@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.10"
-readonly _updated="04 Aug 2023"
+readonly _version="0.2.11"
+readonly _updated="28 Sep 2023"
 readonly url="https://github.com/VSCodium/vscodium/releases"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 
@@ -93,9 +93,11 @@ remove_vscodium() {
 
 apply_settings() {
   local vsc_cfg="${HOME}/.config/VSCodium/User"
+  local gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/VSCodium/User/settings.json"
   [[ -d "$vsc_cfg" ]] || mkdir -p "$vsc_cfg"
   printf "Applying VSCodium settings...\n"
-  settings
+  # settings
+  curl -so "$vsc_cfg/settings.json" "$gitea_url"
   printf "VSCodium settings applied.\n"
 }
 
