@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-nerdfonts
+# Description  : installs nerdfonts
+# Dependencies : wget unzip
+# Arguments    : none
+# Author       : Copyright © 2023 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 28 Sep 2023
+# Last updated : 28 Sep 2023
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.1.0"
+readonly _updated="28 Sep 2023"
+
+## Functions ##
+
+check_dependencies() {
+  local packages=( wget unzip )
+  check_packages "${packages[@]}"
+}
+
+cleanup() {
+    [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+}
+
+## Execution ##
+
+check_dependencies
+
+readonly font_dir="/usr/share/fonts"
+[[ -d "$font_dir" ]] || sudo mkdir -p "$font_dir"
+tmp_dir=$(mktemp -d) || { printf "%s Failed to create temporary directory.\n" "$red_error" >&2; exit 1; }
+
+trap cleanup EXIT
+
+fonts=( 
+"FiraCode" 
+"Go-Mono" 
+"Hack" 
+"Inconsolata" 
+"Iosevka" 
+"JetBrainsMono" 
+"Mononoki" 
+"RobotoMono" 
+"SourceCodePro" 
+)
+
+for font in "${fonts[@]}"; do
+	wget -P "$tmp_dir" https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/"$font.zip"
+	sudo unzip "$tmp_dir/$font.zip" -d "$font_dir/$font/"
+done
+fc-cache
+
+leave "$_script v$_version ($_updated)"
