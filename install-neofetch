@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.7"
-readonly _updated="04 Sep 2023"
+readonly _version="0.1.8"
+readonly _updated="28 Sep 2023"
 readonly cfg_dir="${HOME}/.config/neofetch"
 
 ## Functions ##
@@ -57,17 +57,10 @@ install_neofetch() {
 }
 
 apply_config() {
-	local sed_file="${HOME}/bin/files/neofetch.sed"
-	if [[ -f "$cfg_dir/config.conf" ]]; then
-		sed -i -f "$sed_file" "$cfg_dir/config.conf"
-		printf "Neofetch configuration applied.\n"
-	elif [[ -f "$cfg_dir/config" ]]; then
-		sed -i -f "$sed_file" "$cfg_dir/config"
-		cp -v "$cfg_dir/config" "$cfg_dir/config.conf"
-		printf "Neofetch configuration applied.\n"
-	else
-		printf "Neofetch configuration not found.\n" >&2
-	fi
+	local gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/neofetch/config.conf"
+	[[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
+	curl -so "$cfg_dir/config.conf" "$gitea_url"
+	printf "Neofetch configuration applied.\n"
 }
 
 remove_neofetch() {
