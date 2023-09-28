@@ -44,16 +44,6 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
-install_cascadia_code() {
-  if [[ -d /usr/share/fonts/truetype/cascadia-code ]]; then
-    printf "Cascadia Code fonts already installed.\n"
-  else
-    printf "Installing Cascadia Code fonts...\n"
-    sudo apt-get install fonts-cascadia-code -yy
-    printf "Cascadia Code fonts installed.\n"
-  fi
-}
-
 newest_version() {
   wget -qO "$tmp_file" "$url"
   new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}')
@@ -79,7 +69,6 @@ install_vscodium() {
   printf "Installing VSCodium %s...\n" "$new_ver"
   user_in_sudo
   sudo gdebi -n "$tmp_dir/$new_pkg"
-  install_cascadia_code
   printf "VSCodium %s successfully installed.\n" "$(codium_ver)"
 }
 
