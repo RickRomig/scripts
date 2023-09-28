@@ -27,7 +27,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.14"
+readonly _version="0.5.0"
 readonly _updated="28 Sep 2023"
 readonly url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg=$HOME"/.config/bat"
@@ -47,7 +47,7 @@ check_dependencies() {
 check_distro() {
   codename=$(lsb_release -c -s)
   case "$codename" in
-    bookworm|bullseye|elsie|faye|focal|jammy|ulyana|ulyssa|uma|una|vanessa|vera|victoria ) return "$TRUE" ;;
+    bookworm|bullseye|elsie|faye|focal|jammy|una|vanessa|vera|victoria ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
 }
@@ -93,6 +93,13 @@ remove_bat() {
   sudo dpkg --remove bat
   find "$HOME/.config/" -maxdepth 3 -type d -name "bat" -exec {} \;
   printf "Bat and its configuration files have been removed.\n"
+}
+
+bat_config() {
+  local gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/bat/config"
+  printf "Downloading configuration file...\n"
+  curl -so "$bat_cfg/config" "$gitea_url"
+  printf "Bat configuration applied.\n"
 }
 
 apply_config() {
@@ -155,7 +162,8 @@ while getopts "$optstr" opt; do
   case "$opt" in
     c )
       exists bat || leave "Bat is not installed. Run '$_script -i' to install."
-      apply_config
+      # apply_config
+      bat_config
     ;;
     h )
       help 0
@@ -170,7 +178,8 @@ while getopts "$optstr" opt; do
       echo "${lightyellow}Installing Bat version $new_ver...${normal}"
       check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
       install_bat
-      apply_config
+      # apply_config
+      bat_config
     ;;
     r )
       exists bat || leave "Bat is not installed. Run '$_script -i' to install."
