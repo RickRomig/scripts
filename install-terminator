@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.5"
-readonly _updated="26 Sep 2023"
+readonly _version="0.6.6"
+readonly _updated="28 Sep 2023"
 readonly term_cfg=$HOME"/.config/terminator"
 
 ## Functions ##
@@ -61,7 +61,6 @@ remove_terminator() {
 install_terminator() {
   sudo apt-get update -yyq
   sudo apt-get install terminator -yy
-  install_cascadia_code
   if bunsenlabs; then
     echo "Terminator $(terminator_version) installed."
     leave "BunsenLabs uses its own profiles based on the version of the distribution."
@@ -69,7 +68,7 @@ install_terminator() {
     # [[ -f "$term_cfg/config" ]] || teminator_config
     apply_config
     is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg/config"
-    leave "terminator $(terminator_version) installed with configuration file and Cascadia Code font."
+    leave "terminator $(terminator_version) installed with configuration file."
   fi
 }
 
@@ -113,17 +112,6 @@ teminator_config() {
     use_system_font = False
 EOF
   echo "Terminator configuration file created."
-}
-
-install_cascadia_code() {
-  if [[ -d "/usr/share/fonts/truetype/cascadia-code" ]]; then
-    printf "Casacadia Code fonts already installed.\n"
-  else
-    echo "Installing Cascadia-Code fonts."
-    sudo apt upgrade -yyq
-    sudo apt-get install fonts-cascadia-code -yyq
-    echo "Cascadia-Code fonts installed."
-  fi
 }
 
 terminator_version() {
