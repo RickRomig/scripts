@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.7.4"
-readonly _updated="23 Sep 2023"
+readonly _version="0.7.5"
+readonly _updated="30 Sep 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -142,8 +142,8 @@ password_log() {
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
     printf "%s%s - Password Database Change Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
-    (printf "DATE|TIME|P.GORILLA|KEEPASSXC\n"; cat "$log_dir/$log_file") | column -ts "|"
-    print_line "-" "39"
+    (printf "DATE|TIME|STATUS\n"; cat "$log_dir/$log_file") | column -ts "|"
+    print_line "-" "28"
     entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
     (( entries > 1 )) && printf "%s entries\n\n" "$entries" || printf "%s entry\n\n" "$entries"
   else
