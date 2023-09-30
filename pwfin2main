@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : pwfin2main
 # Description  : Synchronizes password database files with main PC
-# Dependencies : rsync
+# Dependencies : scp
 # Arguments    : none
 # Author       : Copyright (C) 2022 Richard B. Romig, 04 Mar 2022
 # Email        : rick.romig@gmail.com
@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.1"
-readonly _updated="10 Aug 2023"
+readonly _version="0.4.0"
+readonly _updated="30 Sep 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly mhost="hp-800g2-sff"
 readonly mhostip="10"
@@ -36,11 +36,11 @@ readonly fhost="hp-probook-6570"
 
 ## Execution ##
 
-# clear
 printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
-printf "Syncrhonizing password databases to %s\n" "$mhost"
-check_package rsync
+printf "Copying KeepassXC databases to %s\n" "$mhost"
+check_package scp
 # Ensure script is being run from HP-ProBook-6570 (21)
 [[ "$lhost" != "$fhost" ]] && die "$_script must be run from $fhost."
-rsync -avzh --delete "$HOME"/Documents/Rick_pwds* "$HOME"/Documents/Passwords* "$localnet.$mhostip":Documents/
-exit
+# rsync -avzh --delete "$HOME"/Documents/Rick_pwds* "$HOME"/Documents/Passwords* "$localnet.$mhostip":Documents/
+scp -p "$HOME"/Documents/Passwords* "$localnet.$mhostip":Documents/
+leave ""
