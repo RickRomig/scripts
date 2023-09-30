@@ -1,4 +1,6 @@
-# Capitalizing variables
+# Converting variables upper and lower case
+#### Capitalizing variables
+```bash
 foo="nullifidian - non fractus, non perditus, non ovis."
 ${foo^}				# Capitalize 1st letter of the string
 Nullifidian - non fractus, non perditus, non ovis.
@@ -14,8 +16,9 @@ ${foo^^[u]}		# Capitalize all instances of the designated letter
 nUllifidian - non fractUs, non perditUs, non ovis.
 ${foo^^[aeiou]}	# Capitalize all instances of the designated letters
 nUllIfIdIAn - nOn frActUs, nOn pErdItUs, nOn OvIs.
-
-# Lowercase variables
+```
+#### Lowercase variables
+```bash
 bar="NULLIFIDIAN - NON FRACTUS, NON PERDITUS, NON OVIS."
 ${bar,}				# Make 1st letter lowercase of the string
 nULLIFIDIAN - NON FRACTUS, NON PERDITUS, NON OVIS.
@@ -29,3 +32,24 @@ ${bar,,[I]		# Make all instances of a letter lowercase
 NULLiFiDiAN - NON FRACTUS, NON PERDiTUS, NON OViS.
 ${bar,,[AEIOU]}	# Make all instances of desiginated letter lowercase
 NuLLiFiDiaN - NoN FRaCTuS, NoN PeRDiTuS, NoN oViS.
+```
+
+#### Using the tr command
+```bash
+foo="$(tr '[:lower:]' '[:upper:]' <<< ${foo:0:1})${foo:1}"
+```
+
+#### Using the sed command
+```bash
+foo=$(echo "$foo" | sed 's/^./\U&\E/')	# convert 1st letter to uppercase
+echo "$(echo "$foo" | sed 's/.*/\U&/')"		# convert all letters to uppercase
+echo "$(echo "foo" | sed 's/^[^ ]*/\U&/E/'	# convert 1st workd to uppercase
+# Replace U with L to make lowercase.
+# \E = leave all preceding characters in their current state
+```
+
+#### Capitalize user's name
+```bash
+echo "Hello ${USER^}. I am $(uname -n), your computer."
+printf "Hello %s. I am %s, your computer.\n" "${USER^}" "$(uname -n)"
+```
