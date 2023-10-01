@@ -30,17 +30,20 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.2"
-readonly _updated="11 Sep 2023"
-readonly checksums_match="${green}The checksums match.${normal}"
-readonly checksums_nomatch="${lightred}The checksums do not match.${normal}"
+readonly _version="0.5.3"
+readonly _updated="01 Oct 2023"
 check_code=0
 
 ## Functions ##
 
 exit_msg() {
   local errcode="${1:-0}"
-  [[ "$errcode" -eq 1 ]] && printf "Verify checksum with the ISO download site.\n"
+  if [[ "$errcode" -eq 0 ]]; then
+  	printf "%sThe checksums match.%s\n" "$green" "$normal"
+  else
+  	printf "%sThe checksums do not match.%s\n" "$lightred" "$normal"
+  	printf "Verify checksum with the ISO download site.\n"
+  fi
   printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
@@ -119,30 +122,29 @@ printf "\nComparing checksums.\nThis may take a while."
 case "$ext" in
   "md5" )
     if check_md5 "$isofile" "$checksum"; then
-      printf "%s\n" "$checksums_match"
       check_code=0
+      exit_msg "$check_code"
     else
-      printf "%s\n" "$checksums_nomatch" >&2
       check_code=1
+      exit_msg "$check_code"
     fi
   ;;
   "sha256" )
     if check_sha256 "$isofile" "$checksum"; then
-      printf "%s\n" "$checksums_match"
       check_code=0
+      exit_msg "$check_code"
     else
-      printf "%s\n" "$checksums_nomatch" >&2
       check_code=1
+      exit_msg "$check_code"
     fi
   ;;
   "sha512" )
     if check_sha512 "$isofile" "$checksum"; then
-      printf "%s\n" "$checksums_match"
       check_code=0
+      exit_msg "$check_code"
     else
-      printf "%s\n" "$checksums_nomatch" >&2
       check_code=1
+      exit_msg "$check_code"
     fi
   ;;
 esac
-exit_msg "$check_code"
