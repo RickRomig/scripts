@@ -31,8 +31,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.5.7"
-readonly _updated="23 Aug 2023"
+readonly _version="1.5.8"
+readonly _updated="01 Oct 2023"
 
 ## Functions ##
 
@@ -128,6 +128,16 @@ sync_script() {
 
       echo $'\n'$"${orange}Syncing bin...${normal}"
       rsync -avh --delete --exclude '.git' /home/"$USER"/bin/ "$localnet.$hostip":bin/
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      echo $'\n'$"${orange}Syncing script configuration files...${normal}"
+      rsync -avh --delete /home/"$USER"/.config/scripts/ "$localnet.$hostip":.config/scripts/
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      echo $'\n'$"${orange}Syncing Password Databases...${normal}"
+      rsync -avh --delete /home/"$USER"/Documents/Passwords* "$localnet.$hostip":Documents/
       exit_status="$?"
       transfer_status "$exit_status"
     ;;
