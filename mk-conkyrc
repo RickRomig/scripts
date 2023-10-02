@@ -2,7 +2,7 @@
 ###############################################################################
 # Script Name  : mk-conkyrc
 # Description  : Configure .conkyrc from a template file
-# Dependencies : upower
+# Dependencies : none
 # Arguments    : None
 # Author       : Richard Romig, 26 December 2018
 # Email        : rick.romig@gmail.com
@@ -24,16 +24,11 @@ else
   exit 1
 fi
 
-## Check Dependencies ##
-
-# upower is used to extract battery information
-check_package upower
-
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.7.0"
-readonly _updated="11 Oct 2022"
+readonly _version="2.7.2"
+readonly _updated="02 Oct 2023"
 readonly template_dir="$HOME/bin/Templates"
 
 # number of CPU cores or threads
@@ -47,7 +42,7 @@ else
   e_name=$(ip ad show | awk '/: en/ {print $2}' | sed 's/:$//')
   w_name=$(ip ad show | awk '/: wl/ {print $2}' | sed 's/:$//')
 fi
-b_name=$(/usr/bin/upower -e | awk -F_ '/BAT/ {print $NF}')
+b_name=$(find /sys/class/power_supply/ -name "BAT*" | cut -d'/' -f5)
 
 # Set default names if not found
 [[ -z "$e_name" ]] && e_name="eth0"
