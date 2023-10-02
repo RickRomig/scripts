@@ -29,8 +29,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.2"
-readonly _updated="26 Sep 2023"
+readonly _version="0.1.3"
+readonly _updated="02 Oct 2023"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 
@@ -89,7 +89,9 @@ set_key() {
 }
 
 set_src() {
-		echo 'deb [ signed-by=/usr/share/keyrings/vscodium-archive-keyring.asc ] https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main' | sudo tee "$src_list"
+	local src_url="https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main"
+	# echo 'deb [ signed-by=/usr/share/keyrings/vscodium-archive-keyring.asc ] https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main' | sudo tee "$src_list"
+	echo "deb [ signed-by=$key_file ] $src_url" | sudo tee "$src_list"
 }
 
 install_vscodium() {
