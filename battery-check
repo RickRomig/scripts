@@ -30,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.3"
-readonly _updated="15 May 2023"
+readonly _version="0.5.4"
+readonly _updated="02 Oct 2023"
 
 ## Functions ##
 
@@ -125,20 +125,19 @@ battery_condition() {
 }
 
 ac_power() {
-  for ac_path in /sys/class/power_supply/AC*; do
-    ac_status="$(cat "$ac_path/online")"
-    echo -en "\tLaptop"
-    case "$ac_status" in
-      0 )
-        echo " is not plugged in to AC power."
-      ;;
-      1 )
-        echo " is plugged in to AC power."
-      ;;
-      * )
-        echo "'s AC power status cannot be determined."
-    esac
-  done
+  ac_path=$(find  /sys/class/power_supply/ -name "AC*")
+  ac_status="$(cat "$ac_path/online")"
+  echo -en "\tLaptop"
+  case "$ac_status" in
+    0 )
+      echo " is not plugged in to AC power."
+    ;;
+    1 )
+      echo " is plugged in to AC power."
+    ;;
+    * )
+      echo "'s AC power status cannot be determined."
+  esac
 }
 
 hidpp_battery() {
