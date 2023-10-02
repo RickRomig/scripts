@@ -2,7 +2,7 @@
 ################################################################################
 # Script Name  : install-conky
 # Description  : Install and configure Conky
-# Dependencies : network-manager, upower, wget
+# Dependencies : network-manager, wget
 # Arguments    : None
 # Author       : Copyright (C) 2018, Richard Romig, 26 December 2018
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -27,15 +27,15 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.6"
-readonly _updated="16 Jul 2023"
+readonly _version="0.5.7"
+readonly _updated="02 Oct 2023"
 readonly template_dir="$HOME/bin/Templates"
 readonly hname="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
 
 check_dependencies() {
-  local packages=( network-manager upower wget )
+  local packages=( network-manager wget )
   check_packages "${packages[@]}"
 }
 
@@ -63,20 +63,20 @@ conky_ver() {
 check_dependencies
 
 clear
-echo "$_script v$_version ($_updated)"
-echo "Installs conky, sets up conky.desktop and creates .conkyrc."
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Installs conky, sets up conky.desktop and creates .conkyrc.\n"
 
 # Install conky if not already installed
 
 if bunsenlabs || antix_mx; then
   leave "Conky is pre-installed. Use the Conky Manager to configure conky."
 elif exists conky; then
-  echo $'\n'$"Conky version $(conky_ver) is already installed."
+  printf "\nConky versino %s is already installed.\n" "$(conky_ver)"
 else
-  echo $'\n'$"Installing conky..."
+  printf "\nInstalling conky...\n"
   sudo apt update -qq
   if sudo apt install -yyq conky; then
-    echo "Conky version $(conky_ver) installed."
+    printf "Conky version %s installed.\n" "$(conky_ver)"
   else
     status="$?"
     die "Conky installation failed." "$status"
@@ -99,14 +99,14 @@ else
 fi
 [[ -z "$e_name" ]] && e_name="eth0"
 [[ -z "$w_name" ]] && w_name="wlan0"
-b_name=$(/usr/bin/upower -e | awk -F_ '/BAT/ {print $NF}')
+b_name=$(find /sys/class/power_supply/ -name "BAT*" | cut -d'/' -f5)
 [[ -z "$b_name" ]] && b_name="BAT0"
 
-# Display network and battery device names and number of cores,
-echo -e "Battery device name:\t$b_name"
-echo -e "Ethernet device name:\t$e_name"
-echo -e "Wireless device name:\t$w_name"
-echo -e "CPU cores/threads:\t$ncpu"
+# Display network and battery device names and number of cores
+printf "Battery device name:\t%s\n" "$b_name"
+printf "Ethernet device name:\t%s\n" "$e_name"
+printf "Wireless device name:\t%s\n" "$w_name"
+printf "CPU cores/threads:\t%s\n" "$ncpu"
 
 # Configure ~/.conkyrc using template
 
@@ -125,7 +125,7 @@ case "$ncpu" in
   * ) ;;
 esac
 
-echo $'\n'$".conkyrc created and configured."
+printf "\n.conkyrc created and configgured.\n"
 
 edit_view_quit "$HOME/.conkyrc"
 
