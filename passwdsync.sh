@@ -1,13 +1,13 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 #############################################################################
 # Script Name  : passwdsync.sh
-# Description  : syncs password databases with Dropbox folder
+# Description  : syncs password database with copy in Dropbox
 # Dependencies : none
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 19 August 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : run as a local daily cron job
-# Version      : 0.4.9, updated 30 Sep 2023
+# Version      : 0.4.10, updated 03 Oct 2023
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -23,16 +23,15 @@ log_file="password-db.log"
 
 {
   printf "%s|" "$(date '+%F|%R')"
-  if [ "$dbox_dir/Passwords.kdbx" -ot "$mstr_dir/Passwords.kdbx" ]; then
-    cp -p "$mstr_dir/Passwords.kdbx" "$mstr_dir/Passwords.old.kdbx" "$dbox_dir/"
-    printf "|updated\n"
+  if [[ -n $(find "$mstr_dir/Passwords.kdbx" -newer "$dbox_dir/Passwords.kdbx" ) ]]; then
+    cp -p "$mstr_dir/Passwords*.kdbx" "$dbox_dir/"
+    printf "updated\n"
   else
-    printf "|unchanged\n"
+    printf "unchanged\n"
   fi
 } >> "$log_dir/$log_file"
 
 # If more than 30 entries, remove the oldest entry
-
 log_len=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
 [ "$log_len" -gt 30 ] && sed -i '1d' "$log_dir/$log_file"
 
