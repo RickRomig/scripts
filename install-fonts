@@ -27,14 +27,16 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.4"
-readonly _updated="28 Sep 2023"
+readonly _version="0.3.5"
+readonly _updated="04 Oct 2023"
 
 font_flag=0  # 0 = no fonts installed. 1 = at least one font installed.
 
 ## Functions ##
 
 cascadia_code() {
+  local font_url="https://github.com/microsoft/cascadia-code/releases/download/v2111.01"
+  local font_zip="CascadiaCode-2111.01.zip"
   local ccf_dir="/usr/share/fonts/truetype/cascadia-code" 
   local user_ccf="$HOME/.local/share/fonts"
   check_package wget
@@ -52,17 +54,15 @@ cascadia_code() {
     [[ -d "$ccf_dir" ]] || mkdir -p "$ccf_dir"
   fi
   echo "Installing Cascadia-Code fonts..."
-  wget -q -P "$tmp_dir/" https://github.com/microsoft/cascadia-code/releases/download/v2111.01/CascadiaCode-2111.01.zip
+  wget -q -P "$tmp_dir/" "$font_url/$font_zip"
   [[ -d "$ccf_dir" ]] || mkdir -p "$ccf_dir"
-  sudo unzip "$tmp_dir/CascadiaCode-2111.01.zip" -d "$ccf_dir"
+  sudo unzip "$tmp_dir/C$font_zip" -d "$ccf_dir"
   sudo cp "$ccf_dir"/ttf/*.ttf "$user_ccf"/
   echo "Cascadia Code fonts installed."
 }
 
 carlito_caladea() {
   # Installs into /usr/share/fonts/truetype/crosextra
-  # dpkg -l | grep -w fonts-crosextra-carlito
-  # dpkg -l | grep -w fonts-crosextra-caladea
   if [[ -d /usr/share/fonts/truetype/crosextra ]]; then
     echo "Carlito and Caladea fonts are already installed."
   else
@@ -131,8 +131,7 @@ vista_fonts() {
       pushd "$fonts_dir" || die "pushd failed"
     fi
     mv cambria.ttc cambria.ttf
-    chmod 600 calibri{,b,i,z}.ttf cambria{,b,i,z}.ttf candara{,b,i,z}.ttf \
-    consola{,b,i,z}.ttf constan{,b,i,z}.ttf corbel{,b,i,z}.ttf
+    chmod 600 calibri{,b,i,z}.ttf cambria{,b,i,z}.ttf candara{,b,i,z}.ttf consola{,b,i,z}.ttf constan{,b,i,z}.ttf corbel{,b,i,z}.ttf
     if [[ "$start_dir" != "$fonts_dir" ]]; then
       popd || die "popd failed"
     fi
@@ -141,11 +140,12 @@ vista_fonts() {
 
 nerd_fonts() {
   local font_dir="/usr/share/fonts"
-  [[ -d "$font_dir" ]] || sudo mkdir -p "$font_dir"
+  local font_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2"
+  [[ -d "$font_dir" ]] || sudo mkdir -p "$font_url/$font_dir"
   local fonts=( "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
 
   for font in "${fonts[@]}"; do
-	  wget -P "$nerd_dir" https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/"$font.zip"
+	  wget -P "$nerd_dir" "$font_url/$font.zip"
 	  sudo unzip "$nerd_dir/$font.zip" -d "$font_dir/$font/"
   done
 }
