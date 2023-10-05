@@ -9,7 +9,6 @@
 # Comments     : Uses data from /sys/class/power_supply/BAT*
 #              : Batttery health based on a script by Elias W (eliasw4u on Ezeetalk.com)
 #              : Battery charge based on a script by Luke Smith (https://lukesmith.xyz)
-#              : Supports multiple batteries if they are active.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
 ###############################################################################
@@ -30,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.4"
-readonly _updated="02 Oct 2023"
+readonly _version="0.6.0"
+readonly _updated="05 Oct 2023"
 
 ## Functions ##
 
@@ -125,7 +124,7 @@ battery_condition() {
 }
 
 ac_power() {
-  ac_path=$(find  /sys/class/power_supply/ -name "AC*")
+  ac_path=$(find /sys/class/power_supply/ -name "AC*")
   ac_status="$(cat "$ac_path/online")"
   echo -en "\tLaptop"
   case "$ac_status" in
@@ -171,18 +170,18 @@ if [[ $# -gt 0 ]]; then
   esac
 fi
 
-echo -e "${bold}${orange}Battery Status${normal}"
+check_package bc
+echo "${bold}${orange}Battery Status${normal}"
 if [[ -d /proc/acpi/button/lid/ ]]; then
-  check_package bc
-  for battery_path in /sys/class/power_supply/BAT?; do
-    if [[ "$battery_path" != "/sys/class/power_supply/BAT?" ]]; then
-      echo $'\n'$"${orange}Battery:${normal} $(basename "$battery_path")"
-      battery_status
-      battery_capacity
-    else
-      echo $'\n'$"${lightred}No battery detected.${normal}" >&2
-    fi
-  done
+  battery_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
+  if [[ -n "$battery_name" ]]; then
+    battery_path="/sys/class/power_supply/$battery_name"
+    echo $'\n'$"${orange}Battery:${normal} $battery_name"
+    battery_status
+    battery_capacity
+  else
+    echo $'\n'$"No battery detected"
+  fi
   echo $'\n'$"${orange}AC Power:${normal}"
   ac_power
   hidpp_battery
