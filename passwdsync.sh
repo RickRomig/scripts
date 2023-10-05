@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, 19 August 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : run as a local daily cron job
-# Version      : 0.4.10, updated 03 Oct 2023
+# Version      : 0.4.11, updated 04 Oct 2023
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -24,7 +24,7 @@ log_file="password-db.log"
 {
   printf "%s|" "$(date '+%F|%R')"
   if [[ -n $(find "$mstr_dir/Passwords.kdbx" -newer "$dbox_dir/Passwords.kdbx" ) ]]; then
-    cp -p "$mstr_dir/Passwords*.kdbx" "$dbox_dir/"
+    cp -p "$mstr_dir"/Passwords*.kdbx "$dbox_dir/"
     printf "updated\n"
   else
     printf "unchanged\n"
