@@ -120,8 +120,21 @@ trap '' 2
 commands
 trap 2; exit
 ```
-# tar
+#### tar
 ```bash
 $ tar -zcf /path/to/archive.tar.gz -C "$HOME"/ <src_directory>
 $ tar -xzvf /path/to/archive.tar.gz # uncompresses to $PWD
+```
+
+#### Check multiple batteries on a laptop
+```bash
+for battery_path in /sys/class/power_supply/BAT?; do
+  if [[ "$battery_path" != "/sys/class/power_supply/BAT?" ]]; then
+    echo $'\n'$"${orange}Battery:${normal} $(basename "$battery_path")"
+    battery_status
+    battery_capacity
+  else
+    echo $'\n'$"${lightred}No battery detected.${normal}" >&2
+  fi
+done
 ```
