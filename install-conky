@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.7"
-readonly _updated="02 Oct 2023"
+readonly _version="0.5.8"
+readonly _updated="05 Oct 2023"
 readonly template_dir="$HOME/bin/Templates"
 readonly hname="${HOSTNAME:-$(hostname)}"
 
@@ -99,7 +99,7 @@ else
 fi
 [[ -z "$e_name" ]] && e_name="eth0"
 [[ -z "$w_name" ]] && w_name="wlan0"
-b_name=$(find /sys/class/power_supply/ -name "BAT*" | cut -d'/' -f5)
+b_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
 [[ -z "$b_name" ]] && b_name="BAT0"
 
 # Display network and battery device names and number of cores
