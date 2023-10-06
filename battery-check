@@ -126,7 +126,7 @@ battery_condition() {
 battery_specs() {
   battery_data=$(cat "$battery_path"/uevent)
   battery_serial=$(echo "$battery_data" | awk -F= '/SERIAL/ {print $NF}')
-  [[ -z "$battery_serial" ]] && battery_serial="Not specified"
+  [[ -z "$battery_serial" || "$battery_serial" == " " ]] && battery_serial="Not specified"
   printf "\n%sBattery Data:%s\n" "$orange" "$normal"
   printf "\t%s%-15s%s%s\n" "$lightgreen" "Manufacturer:" "$normal" "$(echo "$battery_data" | awk -F= '/MANUFACTURER/ {print $NF}' | sed 's/^ //')"
   printf "\t%s%-15s%s%s\n" "$lightgreen" "Nodel name:" "$normal" "$(echo "$battery_data" | awk -F= '/MODEL/ {print $NF}')"
