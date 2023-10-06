@@ -217,7 +217,7 @@ battery_info() {
     battery_path="/sys/class/power_supply/$battery_name"
     battery_data=$(cat "$battery_path"/uevent)
     battery_serial=$(echo "$battery_data" | awk -F= '/SERIAL/ {print $NF}')
-    [[ -z "$battery_serial" ]] && battery_serial="Not specified"
+    [[ -z "$battery_serial" || "$battery_serial" == " " ]] && battery_serial="Not specified"
     printf "%s\n" "$battery_name"
     printf "   %-15s%s\n" "Manufactuer:" "$(echo "$battery_data" | awk -F= '/MANUFACTURER/ {print $NF}' | sed 's/^ //')"
     printf "   %-15s%s\n" "Model name:" "$(echo "$battery_data" | awk -F= '/MODEL/ {print $NF}')"
