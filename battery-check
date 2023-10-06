@@ -29,7 +29,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.0"
+readonly _version="0.6.1"
 readonly _updated="05 Oct 2023"
 
 ## Functions ##
@@ -59,14 +59,14 @@ EOF
 }
 
 battery_status() {
-  echo -e "\n${orange}Battery charge:${normal}"
+  printf "\n%sBattery charge:%s\n" "$orange" "$normal"
   [[ -f "$battery_path/status" ]] || die "Problem with the battery! Replace it!"
   bat_status=$(cat "$battery_path/status")
   [[ -f "$battery_path/capacity" ]] || die "Problem with the battery! Replace it!"
   bat_charge=$(cat "$battery_path/capacity")
   [[ "$bat_status" == "Discharging" && "$bat_charge" -le 25 ]] && warn="\U26A0\UFE0F"
-  echo -e "\t${lightgreen}Status:${normal} $bat_status"
-  echo -e "\t${lightgreen}Charge:${normal} $bat_charge%  $warn"
+  printf "\t%sStatus:%s %s\n" "$lightgreen" "$normal" "$bat_status"
+  printf "\t%sCharge:%s %s%%  %s\n" "$lightgreen" "$normal" "$bat_charge" "$warn"
 }
 
 battery_capacity() {
@@ -93,10 +93,10 @@ battery_capacity() {
     bat_health=$(echo "$cap_percent" | awk 'NF{print $1/1}' OFMT="%2.2f")
   fi
 
-  echo -e "\n${orange}Battery health:${normal}"
-  echo -e "\t${lightgreen}Actual capacity:${normal} $actual_max $unit"
-  echo -e "\t${lightgreen}Design capacity:${normal} $design_max $unit"
-  echo -e "\t${lightgreen}Battery health:${normal} $bat_health%"
+  printf "\n%s%-17s%s\n" "$orange" "Battery health:" "$normal"
+  printf "\t%s%-17s%s %s %s\n" "$lightgreen" "Actual capacity:" "$normal" "$actual_max" "$unit"
+  printf "\t%s%-17s%s %s %s\n" "$lightgreen" "Design capacity:" "$normal" "$design_max" "$unit"
+  printf "\t%s%-17s%s %s%%\n" "$lightgreen" "Battery health:" "$normal" "$bat_health"
   battery_condition "$cap_percent"
 }
 
@@ -111,50 +111,58 @@ battery_condition() {
 
   if [[ "$warn_level" -le "0" ]]; then
     warn="\U1F4A9"
-    echo -e "\t${red}  Replace the Battery!${normal}  $warn"
+    printf "\t%sReplace the Battery!%s  %\n" "$red" "$normal" "$warn"
   elif [[ "$warn_level" -le "35" ]]; then
     warn="\U1F622"
-    echo -e "\t${red}  The battery should be replaced.${normal}  $warn"
+    printf "\t%sThe battery should be replaced.%s  %\n" "$red" "$normal" "$warn"
   elif [[ "$warn_level" -le "65" ]]; then
     warn="\U26A0\UFE0F"
-    echo -e "\t${orange}  The battery is getting weak.${normal}  $warn"
+    printf "\t%sThe battery is getting weak.%s  %\n" "$orange" "$normal" "$warn"
   else
-    echo -e "\t${green}  The battery is in good condition.${normal}"
+    printf "\t%sThe battery is in good condition.%s\n" "$green" "$normal"
   fi
+}
+
+battery_specs() {
+  battery_data=$(cat "$battery_path"/uevent)
+  battery_serial=$(echo "$battery_data" | awk -F= '/SERIAL/ {print $NF}')
+  [[ -z "$battery_serial" ]] && battery_serial="Not specified"
+  printf "\n%sBattery Data:%s\n" "$orange" "$normal"
+  printf "\t%s%-15s%s%s\n" "$lightgreen" "Manufacturer:" "$normal" "$(echo "$battery_data" | awk -F= '/MANUFACTURER/ {print $NF}' | sed 's/^ //')"
+  printf "\t%s%-15s%s%s\n" "$lightgreen" "Nodel name:" "$normal" "$(echo "$battery_data" | awk -F= '/MODEL/ {print $NF}')"
+  printf "\t%s%-15s%s%s\n" "$lightgreen" "Serial number:" "$normal" "$battery_serial"
+  printf "\t%s%-15s%s%s\n" "$lightgreen" "Technology:" "$normal" "$(echo "$battery_data" | awk -F= '/TECHNOLOGY/ {print $NF}')"
 }
 
 ac_power() {
   ac_path=$(find /sys/class/power_supply/ -name "AC*")
   ac_status="$(cat "$ac_path/online")"
-  echo -en "\tLaptop"
+  printf "\n%sAC Power:%s\n" "$orange" "$normal"
+  printf "\tLaptop"
   case "$ac_status" in
     0 )
-      echo " is not plugged in to AC power."
+      printf " is not plugged in to AC power.\n"
     ;;
     1 )
-      echo " is plugged in to AC power."
+      printf " is plugged in to AC power.\n"
     ;;
     * )
-      echo "'s AC power status cannot be determined."
+      printf "'s AC power status cannot be determined.\n"
   esac
 }
 
 hidpp_battery() {
-  echo $'\n'$"${orange}HID++ Battery:${normal}"
   for hidpp_path in /sys/class/power_supply/hidpp_battery_?; do
     if [[ "$hidpp_path" != "/sys/class/power_supply/hidpp_battery_?" ]]; then
-      echo -e "\t${lightgreen}Device:${normal} $(basename "$hidpp_path")"
-      echo -en "\t${lightgreen}$(cat "$hidpp_path/manufacturer") $(cat "$hidpp_path/model_name"):${normal} "
-      echo "$(cat "$hidpp_path/capacity")%"
-    else
-      echo -e "\tNo HID++ battery detected."
+      printf "\n%sHID++ Battery:%s\n" "$orange" "$normal"
+      printf "\t%sDevice:%s %s\n" "$lightgreen" "$normal" "$(basename "$hidpp_path")"
+      printf "\t%s%s %s:%s %s%%\n" "$lightgreen" "$(cat "$hidpp_path/manufacturer")" "$(cat "$hidpp_path/model_name")" "$normal" "$(cat "$hidpp_path/capacity")"
     fi
   done
 }
 
 ## Execution ##
 
-clear
 if [[ $# -gt 0 ]]; then
   case "$1" in
     -h|--help )
@@ -165,30 +173,31 @@ if [[ $# -gt 0 ]]; then
       exit
     ;;
     * )
-      echo "${lightred}Invalid argument: $1${normal}" >&2
+      printf "%sInvalid argument: %s%s\n" "$lightred" "$1" "$normal" >&2
       help 2
   esac
 fi
 
 check_package bc
-echo "${bold}${orange}Battery Status${normal}"
+clear
+printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
 if [[ -d /proc/acpi/button/lid/ ]]; then
   battery_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
   if [[ -n "$battery_name" ]]; then
     battery_path="/sys/class/power_supply/$battery_name"
-    echo $'\n'$"${orange}Battery:${normal} $battery_name"
+    printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$battery_name"
     battery_status
     battery_capacity
+    battery_specs
   else
-    echo $'\n'$"No battery detected"
+    printf"\nNo battery detected\n"
   fi
-  echo $'\n'$"${orange}AC Power:${normal}"
   ac_power
   hidpp_battery
 else
-  echo $'\n'$"This system is not a laptop." >&2
+  printf "\nThis system is not a laptop.\n" >&2
 fi
 
-echo $'\n'$"$_script v$_version ($_updated)"
+printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 
 exit
