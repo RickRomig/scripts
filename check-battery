@@ -100,11 +100,13 @@ battery_condition() {
 battery_specs() {
   battery_serial=$(awk -F: '/serial/ {print $NF}' "$battery_data" | awk '{$1=$1}1')
   [[ -z "$battery_serial" ]] && battery_serial="Not specified"
+  battery_tech=$(awk -F: '/technology/ {print $NF}' "$battery_data" | awk '{$1=$1}1')
+  [[ -z "$battery_tech" ]] && battery_tech="Unknown"
   printf "\n%sBattery Data:%s\n" "$orange" "$normal"
   printf "    %-21s%s\n" "Manufacturer:" "$(awk -F: '/vendor/ {print $NF}' "$battery_data" | awk '{$1=$1}1')"
   printf "    %-21s%s\n" "Nodel name:" "$(awk -F: '/model/ {print $NF}' "$battery_data" | awk '{$1=$1}1')"
   printf "    %-21s%s\n" "Serial number:" "$battery_serial"
-  printf "    %-21s%s\n" "Technology:" "$(awk -F: '/technology/ {print $NF}' "$battery_data" | awk '{$1=$1}1')"
+  printf "    %-21s%s\n" "Technology:" "$battery_tech"
 }
 
 
