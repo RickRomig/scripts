@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.8"
-readonly _updated="04 Apr 2023"
+readonly _version="0.1.9"
+readonly _updated="06 Oct 2023"
 
 ## Functions ##
 
@@ -48,6 +48,20 @@ check_cpu() {
 enable_libvirtd() {
   sudo systemctl start libvirt
   sudo systemctl restart libvirtd
+  printf "libvirtd started.\n"
+}
+
+add_to_kvm_group() {
+  printf "\nAdding %s to the kvm group.\n" "$USER"
+  sudo usermod -a -G kvm "$USER"
+  printf "%s added to the kvm group.\n" "$USER"
+  if [[ -f "/etc/libvirt/qemu.conf" ]]; then
+    printf "Allow users in the kvm group to start VMs.\n"
+    sudo sed -i.bak 's/\#group\ =\ "root"/group\ =\ "kvm"/' /etc/libvirt/qemu.conf
+    enable_libvirtd
+  else
+    die "/etc/libvirt/qemu.conf not found!" 2
+  fi
 }
 
 ## Execution ##
@@ -65,16 +79,7 @@ check_cpu
 printf "\nInstalling GNOME Boxes ...\n"
 sudo apt update -qq
 sudo apt install -yy gnome-boxes qemu-kvm libvirt-bin
-printf "Adding %s to the kvm group.\n" "$USER"
-sudo usermod -a -G kvm "$USER"
-if [[ -f "/etc/libvirt/qemu.conf" ]]; then
-  printf "Allow users in the kvm group to start VMs.\n"
-  sudo sed -i.bak 's/\#group\ =\ "root"/group\ =\ "kvm"/' /etc/libvirt/qemu.conf
-  enable_libvirtd
-  leave "Gnome boxes installed and configured."
-else
-  die "/etc/libvirt/qemu.conf not found!" 2
-fi
+add_to_kvm_group
 
 ## Not sure if these actions need to be done ##
 # Add lines to /etc/modprobe.d/qemu-system-x86.conf
@@ -93,4 +98,4 @@ fi
 # sudo systemctl enable libvirtd.service
 # sudo systemctl start libvirtd.service
 
-exit
+leave "Gnome boxes installed and configured."
