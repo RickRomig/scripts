@@ -30,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="v3.0.3"
-readonly _updated="06 Apr 2023"
+readonly _version="v3.1.0"
+readonly _updated="07 Oct 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 today=$(date +"%d %b %Y"); readonly today
@@ -66,9 +66,18 @@ create_conf() {
 
 usage() {
   local errcode="${1:-2}"
-  echo "Usage: $_script <myscript>"
-  echo "Example: $_script my-script"
-  echo "Example: $_script source.c"
+  cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -c  C code
+      $_script -c <c-source.c>
+  -e  Edit $_script.conf
+  -p  C++ code
+      $_script -p <c-source.cpp>
+  -s  Shell script
+      $_script -s <shell-script>
+  -u  Usage instructions
+END_HELP
   exit "$errcode"
 }
 
@@ -78,88 +87,102 @@ cleanup() {
 
 ## Execution ##
 
+noOpt=1
+optstr=":c:ep:s:u"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    c )
+			code_file="$OPTARG"
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
+      code_type="C"
+    ;;
+    e )
+			micro "$conf_dir/$conf_file"
+			printf "%s edited.\n" "$_script"
+			leave "$_script v$_version ($_updated)"
+    ;;
+    p )
+			code_file="$OPTARG"
+			[[ -f "$filename" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
+      code_type="C++"
+    ;;
+    s )
+			code_file="$OPTARG"
+			[[ -f "$filename" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
+      code_type="Shell"
+    ;;
+    u )
+      usage 0
+    ;;
+    ? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			usage 2
+  esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; usage 1; }
+
 ## Source script configuration file ##
 
 [[ -f "$conf_dir/$conf_file" ]] || create_conf
 source "$conf_dir/$conf_file"
 
-## Check arguments
-if  [[ $# -eq 0 ]]; then
-  echo "${lightred}Error:${normal} No argument passed." >&2
-  usage 2
-elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-  usage 0
-elif [[ ! -f "$1" ]]; then
-  echo "${lightred}Error:${normal} $1 not found." >&2
-  usage 2
-else
-  tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
-  trap cleanup EXIT
-  code_file="$1"
-fi
+tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+trap cleanup EXIT
 
 clear
-box " $_script, $_version"
-echo "Inserts a header into either a shell script or a C/C++ source file."
-echo "Licensed under the GNU General Public License, version 2."
-echo "Copyright 2019-2021, Richard B. Romig"
-echo "Last updated: $_updated"
+box " $_script $_version (Updated $_updated)"
+printf "Inserts a header into either a shell script or a C/C++ source file.\n"
+printf "Licensed under the GNU General Public License, version 2.\n"
+printf "Copyright 2019-2023, Richard B. Romig\n"
 
-# Select type of source
-COLUMNS=30
-echo $'\n'$"${bold}${orange}Code type:${normal}"
-options=("Shell script" "C source" "C++ source")
-PS3="Select the type of source file: "
-select opt in "${options[@]}"; do
-  case $REPLY in
-    1 )
-      header_type="Shell"
-      echo $'\n'$"${green}Inserting shell header into $code_file.${normal}"
-      sed -e '1d' \
-          -e "s/<FILE>/$code_file/" \
-          -e "s/<YEAR>/$cur_yr/" \
-          -e "s/<AUTHOR>/$copy_holder/" \
-          -e "s/<EMAIL>/$email_addr/" \
-          -e "s/<EMAIL1>/$email_addr1/" \
-          -e "s/<ORG>/$work_org/" \
-          -e "s/<TODAY>/$today/" \
-          -e "s/<CODER>/$coder/" \
-          -e "s/<LICENSE>/$license/" "$template_dir/bash-header" > "$tmp_file"
-      sed -i -e "1r ${tmp_file}" "$code_file"
-      break ;;
-    2 )
-      header_type="C"
-      echo $'\n'$"${green}Inserting C header into $code_file.${normal}"
-      sed -e '1d' \
-          -e "s/<PROGNAME>/$code_file/" \
-          -e "s/<YEAR>/$cur_yr/" \
-          -e "s/<AUTHOR>/$copy_holder/" \
-          -e "s/<ADDR>/$email_addr/" \
-          -e "s/<ADDR1>/$email_addr1/" \
-          -e "s/<ORG>/$work_org/" \
-          -e "s/<TODAY>/$today/" \
-          -e "s/<LICENSE>/$license/" "$template_dir/c-header" > "$tmp_file"
-      sed -i -e "1r ${tmp_file}" "$code_file"
-      break ;;
-    3 )
-      header_type="C++"
-      echo $'\n'$"${green}Inserting C++ header into $code_file.${normal}"
-      sed -e '1d' \
-          -e "s/<PROGNAME>/$code_file/" \
-          -e "s/<YEAR>/$cur_yr/" \
-          -e "s/<AUTHOR>/$copy_holder/" \
-          -e "s/<ADDR>/$email_addr/" \
-          -e "s/<ADDR1>/$email_addr1/" \
-          -e "s/<ORG>/$work_org/" \
-          -e "s/<TODAY>/$today/" \
-          -e "s/<LICENSE>/$license/" "$template_dir/cpp-header" > "$tmp_file"
-      sed -i -e "1r ${tmp_file}" "$code_file"
-      break ;;
-    * ) echo "${lightred}mInvalid option. Try again.${normal}" >&2 ;;
-  esac
-done
+case $code_type in
+  "C" )
+    printf "\n%sInserting C header into %s...%s\n" "$green" "$code_file" "$normal"
+    sed -e '1d' \
+        -e "s/<PROGNAME>/$code_file/" \
+        -e "s/<YEAR>/$cur_yr/" \
+        -e "s/<AUTHOR>/$copy_holder/" \
+        -e "s/<ADDR>/$email_addr/" \
+        -e "s/<ADDR1>/$email_addr1/" \
+        -e "s/<ORG>/$work_org/" \
+        -e "s/<TODAY>/$today/" \
+        -e "s/<LICENSE>/$license/" "$template_dir/c-header" > "$tmp_file"
+    sed -i -e "1r ${tmp_file}" "$code_file"
+  ;;
+  "C++" )
+    printf "\n%sInserting C++ header into %s...%s\n" "$green" "$code_file" "$normal"
+    sed -e '1d' \
+        -e "s/<PROGNAME>/$code_file/" \
+        -e "s/<YEAR>/$cur_yr/" \
+        -e "s/<AUTHOR>/$copy_holder/" \
+        -e "s/<ADDR>/$email_addr/" \
+        -e "s/<ADDR1>/$email_addr1/" \
+        -e "s/<ORG>/$work_org/" \
+        -e "s/<TODAY>/$today/" \
+        -e "s/<LICENSE>/$license/" "$template_dir/cpp-header" > "$tmp_file"
+    sed -i -e "1r ${tmp_file}" "$code_file"
+  ;;
+  "Shell" )
+    printf "\n%sInserting shell header into %s...%s\n" "$green" "$code_file" "$normal"
+    sed -e '1d' \
+        -e "s/<FILE>/$code_file/" \
+        -e "s/<YEAR>/$cur_yr/" \
+        -e "s/<AUTHOR>/$copy_holder/" \
+        -e "s/<EMAIL>/$email_addr/" \
+        -e "s/<EMAIL1>/$email_addr1/" \
+        -e "s/<ORG>/$work_org/" \
+        -e "s/<TODAY>/$today/" \
+        -e "s/<CODER>/$coder/" \
+        -e "s/<LICENSE>/$license/" "$template_dir/bash-header" > "$tmp_file"
+    sed -i -e "1r ${tmp_file}" "$code_file"
+  ;;
+  * )
+    printf "%sInvalid code type.%s\n" "$lightred" "$normal" >&2
+esac
 
-echo "$header_type header has been inserted into $code_file."
+printf "%s header has been inserted into %s.\n" "$code_type" "$code_file"
 edit_view_quit "$code_file"
 
-exit
+printf "\n"
+leave ""
