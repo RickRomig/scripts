@@ -2,10 +2,10 @@
 ###############################################################################
 # Script Name  : mk-bash
 # Description  : Creates script file with header information
-# Dependencies : bat, chmod, sed, nano
-# Arguments    : Name of script to be created
-# Author       : Richard Romig
-# Email        : rick.romig@gmail.com
+# Dependencies : bat, micro
+# Arguments    : See usage function
+# Author       : Copyright (C) 2023, Richard Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Creates the script in the current working directory.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.2"
-readonly _updated="06 Apr 2023"
+readonly _version="3.1.0"
+readonly _updated="07 Oct 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 today=$(date +"%d %b %Y"); readonly today
@@ -41,7 +41,7 @@ cur_yr=$(echo -e "\UA9 $(date +%Y)"); readonly cur_yr
 
 create_conf() {
   [[ -d "$conf_dir" ]] || mkdir -p "$conf_dir"
-  echo "Complete all fields"
+  printf "Complete all fields\n"
   read -rp "Full name: " copy_holder
   read -rp "Primary email: " email_addr
   read -rp "Alternate email: " email_addr1
@@ -62,50 +62,62 @@ create_conf() {
 }
 
 usage() {
-  local errcode="${1:-2}"
-  echo "${orange}Usage:${normal} $SCRIPT <myscript>"
-  echo "${orange}Example:${normal} $SCRIPT my-script.sh"
+	local errcode="${1:-2}"
+	cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -b  Standard BASH script
+      $_script -b <filename>
+  -e  Edit $_script.conf
+  -g  getopts BASH script <filename>
+      $_script -g <filename>
+  -u  Usage instructions
+$_script $_version ($_updated)
+END_HELP
   exit "$errcode"
 }
+
+## Execution ##
+
+noOpt=1
+optstr=":b:eg:u"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		b )
+			filename="$OPTARG"
+			[[ -f "$filename" ]] && { printf "%s %s already exists\n" "$red_error" "$filename" >&2; usage 2; }
+			template_file="bash-template"
+		;;
+		e )
+			micro "$conf_dir/$conf_file"
+			printf "%s edited.\n" "$_script"
+			leave "$_script v$_version ($_updated)"
+		;;
+		g )
+			filename="$OPTARG"
+			[[ -f "$filename" ]] && { printf "%s %s already exists\n" "$red_error" "$filename" >&2; usage 2; }
+			template_file="bash-getopts"
+		;;
+		u )
+			usage 0
+		;;
+		? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			usage 2
+	esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; usage 1; }
 
 ## Source script configuration file ##
 
 [[ -f "$conf_dir/$conf_file" ]] || create_conf
 source "$conf_dir/$conf_file"
 
-## Check arguments ##
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Creating %s BASH script.\n" "$filename"
 
-if [[ $# -eq 0 ]]; then
-  echo "${lightred}Error:${normal} No argment passed." >&2
-  usage 2
-elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-  echo "$_script v$_version ($_updated)"
-  usage 0
-elif [[ -f "$1" ]]; then
-  echo "${lightred}Error:${normal} $1 already exists." >&2
-  usage 2
-else
-  filename="$1"
-fi
-
-## Execution ##
-
-echo "$_script v$_version ($_updated)"
-echo "Creating $filename BASH script."
-
-COLUMNS=40
-echo "Which script template are you using?"
-PS3="Choice: "
-select opt in "Standard script" "Getopts script"
-do
-  case "$REPLY" in
-    1 ) template_file="bash-template"; break ;;
-    2 ) template_file="bash-getopts"; break ;;
-    * ) echo "${lightred}Invalid choice.${normal} 1 = Standard script 2 = Getopts script" >&2 ;;
-  esac
-done
-
-# Fill in placeholders and create the script
+# Fill in placeholders and create the script from template
 
 sed -e '1d' \
     -e "s/<FILE>/$filename/" \
@@ -121,8 +133,8 @@ sed -e '1d' \
 # Set file permissions for the new script to -rwxr-xr-xr
 chmod 755 "$filename"
 
-echo "The $filename script has been created."
+printf "The %s script has been created.\n" "$filename"
 edit_view_quit "$filename"
 
-echo ""
+printf "\n"
 leave ""
