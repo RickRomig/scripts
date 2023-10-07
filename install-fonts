@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.6"
-readonly _updated="05 Oct 2023"
+readonly _version="0.3.7"
+readonly _updated="06 Oct 2023"
 
 font_flag=0  # 0 = no fonts installed. 1 = at least one font installed.
 
@@ -53,7 +53,7 @@ cascadia_code() {
   else
     [[ -d "$ccf_dir" ]] || mkdir -p "$ccf_dir"
   fi
-  echo "Installing Cascadia-Code fonts..."
+  echo "Installing Cascadia Code fonts..."
   wget -q -P "$tmp_dir/" "$font_url/$font_zip"
   [[ -d "$ccf_dir" ]] || mkdir -p "$ccf_dir"
   sudo unzip "$tmp_dir/C$font_zip" -d "$ccf_dir"
@@ -61,14 +61,28 @@ cascadia_code() {
   echo "Cascadia Code fonts installed."
 }
 
+nerd_fonts() {
+  local font_dir="/usr/share/fonts"
+  local font_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2"
+  [[ -d "$font_dir" ]] || sudo mkdir -p "$font_dir"
+  local fonts=( "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
+  printf "Installing Nerd fonts...\n"
+  for font in "${fonts[@]}"; do
+	  wget -P "$nerd_dir" "$font_url/$font.zip"
+	  sudo unzip "$nerd_dir/$font.zip" -d "$font_dir/$font/"
+  done
+  printf "Nerd fonts installed.\n"
+}
+
 carlito_caladea() {
   # Installs into /usr/share/fonts/truetype/crosextra
   if [[ -d /usr/share/fonts/truetype/crosextra ]]; then
-    echo "Carlito and Caladea fonts are already installed."
+    printf "Carlito and Caladea fonts are already installed.\n"
   else
-    echo "Installing Carlito and Caladea fonts"
+    printf "Installing Carlito and Caladea fonts...\n"
     sudo apt upgrade -yyq
     sudo apt install fonts-crosextra-carlito fonts-crosextra-caladea -yyq
+    printf "Carlito and Caladea fonts installed.\n"
   fi
 }
 
@@ -82,11 +96,12 @@ ms_core_fonts() {
   # dpkg -l | grep -w ttf-mscorefonts-installer
 
   if [[ -d /usr/share/fonts/truetype/msttcorefonts ]]; then
-    echo "MS core fonts are aleady installed."
+    printf "MS core fonts are aleady installed.\n"
   else
-    echo "Installing MS core true-type fonts"
+    printf "Installing MS core true-type fonts...\n"
     sudo apt upgrade -yyq
     sudo apt install ttf-mscorefonts-installer -yyq
+    printf "MS core fonts installed.\n"
   fi
 }
 
@@ -100,7 +115,7 @@ vista_fonts() {
   local start_dir="$PWD"
 
   if [[ -d /usr/share/fonts/truetype/vista ]]; then
-    echo "Vista fonts are already installed."
+    printf "Vista fonts are already installed.\n"
   else
     check_package curl
     # Create font directory if required
@@ -109,14 +124,14 @@ vista_fonts() {
     # Check to see if cabextract is installed
     check_package cabextract
 
-    echo "Installing Vista true-type fonts"
+    printf "Installing Vista true-type fonts...\n"
     # Download the fonts to the font download directory
     if [[ "$start_dir" != "$font_dl_dir" ]]; then
       pushd "$font_dl_dir" || die "pushd failed"
     fi
     if [[ ! -e "$archive" ]]; then
       curl -A '' -LO "$url"
-      echo "$archive downloaded to $font_dl_dir"
+      printf "%s downloaded to %s\n" "$archive" "$font_dl_dir"
     fi
 
     # Extract the fonts from the archive
@@ -135,19 +150,8 @@ vista_fonts() {
     if [[ "$start_dir" != "$fonts_dir" ]]; then
       popd || die "popd failed"
     fi
+    printf "Vista fonts installed.\n"
   fi
-}
-
-nerd_fonts() {
-  local font_dir="/usr/share/fonts"
-  local font_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2"
-  [[ -d "$font_dir" ]] || sudo mkdir -p "$font_dir"
-  local fonts=( "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
-
-  for font in "${fonts[@]}"; do
-	  wget -P "$nerd_dir" "$font_url/$font.zip"
-	  sudo unzip "$nerd_dir/$font.zip" -d "$font_dir/$font/"
-  done
 }
 
 cleanup() {
@@ -166,7 +170,7 @@ while true; do
   echo "$_script v$_version ($_updated)"
   echo "Install extra fonts"
   COLUMNS=40
-  options=("Cascadia Code" "MS TTF Core Fonts" "Carlito and Caladea Fonts" "Vista Fonts" "Nerd Fonts" "Quit and Exit")
+  options=("Cascadia Code" "Nerd Fonts" "MS TTF Core Fonts" "Carlito and Caladea Fonts" "Vista Fonts" "Quit and Exit")
   PS3="Choose a font to install: "
   select opt in "${options[@]}"
   do
@@ -180,27 +184,27 @@ while true; do
         ;;
       2 )
         user_in_sudo
+        nerd_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+        nerd_fonts
+        font_flag=1
+      ;;
+      3 )
+        user_in_sudo
         ms_core_fonts
         font_flag=1
         ;;
-      3 )
+      4 )
         user_in_sudo
         carlito_caladea
         font_flag=1
         ;;
-      4 )
+      5 )
         user_in_sudo
         temp_dir=$(mktemp -d) || die "Failed to create temporary diectory." 1
         font_dl_dir=$(mktemp -d) || die "Failed to create temporary diectory." 1
         vista_fonts
         font_flag=1
         ;;
-      5 )
-        user_in_sudo
-        nerd_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-        nerd_fonts
-        font_flag=1
-      ;;
       6 )
         (( font_flag != 0 )) && sudo /usr/bin/fc-cache -f > /dev/null 2>&1
         leave ""
