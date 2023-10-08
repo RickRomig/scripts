@@ -59,47 +59,59 @@ create_conf() {
 
 usage() {
   local errcode="${1:-2}"
-  echo "${orange}Usage:${normal} $_script <source_file>"
-  echo "${orange}Example:${normal} $_script my-source.c"
+	cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -c  C code
+      $_script -c <filename>
+  -e  Edit $_script.conf
+  -p  C++ code  
+      $_script -p <filename>
+  -u  Usage instructions
+$_script $_version ($_updated)
+END_HELP
   exit "$errcode"
 }
+
+## Execution ##
+
+noOpt=1
+optstr=":c:ep:u"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		c )
+			filename="$OPTARG"
+			[[ -f "$filename" ]] && { printf "%s %s already exists\n" "$red_error" "$filename" >&2; usage 2; }
+			template_file="c-template"
+		;;
+		e )
+			micro "$conf_dir/$conf_file"
+			printf "%s edited.\n" "$_script"
+			leave "$_script v$_version ($_updated)"
+		;;
+		p )
+			filename="$OPTARG"
+			[[ -f "$filename" ]] && { printf "%s %s already exists\n" "$red_error" "$filename" >&2; usage 2; }
+			template_file="cpp-getopts"
+		;;
+		u )
+			usage 0
+		;;
+		? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			usage 2
+	esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; usage 1; }
 
 ## Source script configuration file ##
 
 [[ -f "$conf_dir/$conf_file" ]] || create_conf
 source "$conf_dir/$conf_file"
 
-## Check arguments ##
-
-if [[ $# -eq 0 ]]; then
-  echo "${lightred}Error:${normal} No argment passed." >&2
-  usage 2
-elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-  echo "$_script v$_version ($_updated)"
-  usage 0
-elif [[ -f "$1" ]]; then
-  echo "${lightred}Error:${normal} $1 already exists." >&2
-  usage 2
-else
-  filename=$1
-fi
-
-## Execution ##
-
-echo "$_script v$_version ($_updated)"
-echo "Creating $filename C/C++ source code file."
-
-COLUMNS=40
-echo "Which code template are you using?"
-PS3="Choice: "
-select opt in "C code" "C++ code"
-do
-  case "$REPLY" in
-    1 ) template_file="c-template"; break ;;
-    2 ) template_file="cpp-template"; break ;;
-    * ) echo "${lightred}Invalid choice.${normal} 1 = C code 2 = C++ code" >&2 ;;
-  esac
-done
+printf "%s v%s (Updated: %s)\n" "$_script" "$_version" "$_updated"
+printf "Creating %s C/C++ source code file.\n" "$filename"
 
 # Fill in the placeholders and create the source file
 
@@ -112,7 +124,8 @@ sed -e '1d' \
     -e "s/<EMAIL1>/$email_addr1/" \
     -e "s/<TODAY>/$today/"  "$template_dir/$template_file" > "$filename"
 
-echo "$filename has been created."
+printf "%s has been created." "$filename"
 edit_view_quit "$filename"
 
+printf "\n"
 leave ""
