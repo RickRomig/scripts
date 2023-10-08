@@ -2,7 +2,7 @@
 ###############################################################################
 # Script Name  : insert-license
 # Description  : Insert a license into a shell script or C source code.
-# Dependencies : bat, sed, select
+# Dependencies : bat, micro (nano)
 # Arguments    : Shell script or C source file
 # Author       : Copyright (C) 2019, Richard B. Romig, 05 June 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.3"
-readonly _updated="06 Apr 2023"
+readonly _version="3.1.0"
+readonly _updated="07 Oct 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 cur_yr=$(echo -e "\UA9 $(date +%Y)"); readonly cur_yr
@@ -53,9 +53,18 @@ create_conf() {
 
 usage() {
   local errcode="${1:-2}"
-  echo "Usage: $_script <source-file>"
-  echo "Example: $_script shell-script"
-  echo "Example: $_script source.c"
+  cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -c  C code
+      $_script -c <c-source.c>
+  -e  Edit $_script.conf
+  -p  C++ code
+      $_script -p <c-source.cpp>
+  -s  Shell script
+      $_script -s <shell-script>
+  -u  Usage instructions
+END_HELP
   exit "$errcode"
 }
 
@@ -65,90 +74,121 @@ cleanup() {
 
 ## Execution ##
 
+noOpt=1
+optstr=":c:ep:s:u"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    c )
+			code_file="$OPTARG"
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
+      code_type="C"
+    ;;
+    e )
+			micro "$conf_dir/$conf_file"
+			printf "%s edited.\n" "$_script"
+			leave "$_script v$_version ($_updated)"
+    ;;
+    p )
+			code_file="$OPTARG"
+			[[ -f "$filename" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
+      code_type="C++"
+    ;;
+    s )
+			code_file="$OPTARG"
+			[[ -f "$filename" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
+      code_type="Shell"
+    ;;
+    u )
+      usage 0
+    ;;
+    ? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			usage 2
+  esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; usage 1; }
+
 ## Source script configuration file ##
 
 [[ -f "$conf_dir/$conf_file" ]] || create_conf
 source "$conf_dir/$conf_file"
 
-## Check arguments
-if  [[ $# -eq 0 ]]; then
-  echo "${lightred}Error:${normal} No argument passed." >&2
-  usage 2
-elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-  usage 0
-elif [[ ! -f "$1" ]]; then
-  echo "${lightred}Error:${normal} $1 not found." >&2
-  usage 2
-else
-  tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
-  trap cleanup EXIT
-  code_file="$1"
-fi
+tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+trap cleanup EXIT
 
 clear
-box "$_script v$_version ($_updated)"
-echo "Inserts an Open Source license into a shell script or a source code file."
-echo "Licensed under the GNU General Public License, version 2."
-echo -e "Copyright \UA9 2019-2023, Richard B. Romig"
+box "$_script v$_version (Updated $_updated)"
+printf "Inserts an Open Source license into a shell script or a c/C++ source code file.\n"
+printf "Licensed under the GNU General Public License, version 2.\n"
+printf "Copyright \UA9 2019-2023, Richard B. Romig\n"
 
 # Select the type of license
 
-echo $'\n'$"${bold}${orange}License type:${normal}"
+printf "\n%sLicense type:%s\n" "$orange" "$normal"
 options=("GPL v1" "GPL v2" "GPL v3" "MIT")
 PS3="Select the type of license: "
 select opt in "${options[@]}"; do
   case $REPLY in
-    1 ) lic_type="$opt"; lic_file="gpl_v1"; break ;;
-    2 ) lic_type="$opt"; lic_file="gpl_v2"; break ;;
-    3 ) lic_type="$opt"; lic_file="gpl_v3"; break ;;
-    4 ) lic_type="$opt"; lic_file="mit_lic"; break ;;
-    * ) echo "${lightred}Invalid option. Try again.${normal}" >&2
-  esac
-done
-
-# Select code type
-
-echo $'\n'$"${bold}${orange}Code type:${normal}"
-options=("Shell script" "C source" "C++ source")
-PS3="Select the type of source file: "
-select opt in "${options[@]}"; do
-  case $REPLY in
-    1 ) code_type="Shell"; break ;;
-    2 ) code_type="C"; break ;;
-    3 ) code_type="C++"; break ;;
-    * ) echo "${lightred}Invalid choice! Please try again.${normal}" >&2 ;;
+    1 )
+      lic_type="$opt"
+      lic_file="gpl_v1"
+      break
+    ;;
+    2 )
+      lic_type="$opt"
+      lic_file="gpl_v2"
+      break
+    ;;
+    3 )
+      lic_type="$opt"
+      lic_file="gpl_v3"
+      break
+    ;;
+    4 )
+      lic_type="$opt"
+      lic_file="mit_lic"
+      break
+    ;;
+    * )
+      printf "%sInvalid option. Try again.%s\n" "$lightred" "$normal" >&2
   esac
 done
 
 # Insert the license into the source file
 
-echo $'\n'$"${bold}${orange}Inserting $lic_type license into $code_file...${normal}"
+printf "%sInserting %s license into %s...%s\n" "$orange" "$lic_type" "$code_file" "$normal"
 case $code_type in
-  "Shell" )
-    sed -e '1d' \
-        -e "s/<YEAR>/$cur_yr/" \
-        -e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
-        -e "s/<EMAIL>/$email_addr/" \
-        -e "s/^/# /" "$template_dir/$lic_file" > "$tmp_file"
-    sed -i -e "12r ${tmp_file}" "$code_file" ;;
   "C" )
     sed -e '1d' \
         -e "s/<YEAR>/$cur_yr/" \
         -e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
         -e "s/<EMAIL>/$email_addr/" \
         -e "s/^/ * /" "$template_dir/$lic_file" > "$tmp_file"
-    sed -i -e "21r ${tmp_file}" "$code_file" ;;
+    sed -i -e "21r ${tmp_file}" "$code_file"
+  ;;
   "C++" )
     sed -e '1d' \
         -e "s/<YEAR>/$cur_yr/" \
         -e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
         -e "s/<EMAIL>/$email_addr/" \
         -e "s/^/\/\/ /" "$template_dir/$lic_file" > "$tmp_file"
-    sed -i -e "20r ${tmp_file}" "$code_file" ;;
-  * ) die "Invalid code type. Exiting the script." 1 ;;
+    sed -i -e "20r ${tmp_file}" "$code_file"
+  ;;
+  "Shell" )
+    sed -e '1d' \
+        -e "s/<YEAR>/$cur_yr/" \
+        -e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
+        -e "s/<EMAIL>/$email_addr/" \
+        -e "s/^/# /" "$template_dir/$lic_file" > "$tmp_file"
+    sed -i -e "12r ${tmp_file}" "$code_file"
+  ;;
+  * )
+    die "Invalid code type. Exiting the script." 1
 esac
 
-echo $'\n'$"$lic_type license has been inserted into $code_file."
+printf "\n%s license has been inserted into %s.\n" "$lic_type" "$code_file"
 edit_view_quit "$code_file"
 
-exit
+printf "\n"
+leave ""
