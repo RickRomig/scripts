@@ -2,7 +2,7 @@
 #############################################################################
 # Script Name  : sync-home
 # Description  : Synchronize ~/Documents/homepage with ~/Dropbox/homepage
-# Dependencies : rsync zip
+# Dependencies : rsync
 # Arguments    : none
 # Author       : Copyright © 2023 Richard B. Romig, 24 Sep 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -27,16 +27,18 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.2"
-readonly _updated="19 Sep 2023"
+readonly _version="0.6.0"
+readonly _updated="09 Oct 2023"
 readonly homepage_dir=$HOME"/Documents/homepage"
-readonly dropbox_dir=$HOME"/Dropbox/homepage/"
+readonly dropbox_dir="$HOME/Dropbox/homepage"
+readonly archive_dir="$HOME/Downloads/archives/homepage"
 
 ## Functions ##
 
-check_dependencies() {
-  local packages=( rsync zip )
-  check_packages "${packages[@]}"
+check_host() {
+	local local_host="${HOSTNAME:-$(hostname)}"
+	local main_host="hp-800g2-sff"
+	[[ "$local_host" != "$main_host" ]] && die "$_script must be run from $main_host." 2
 }
 
 remove_bu_files() {
@@ -45,24 +47,26 @@ remove_bu_files() {
   find "$homepage_dir"/ -maxdepth 2 -type f -name "*.bak" -exec rm{} \;
 }
 
-update_zip_file() {
-  printf "\nUpdating homepage archive...\n"
-  rm "$homepage_dir"/homepage.zip
-  zip -r "$homepage_dir"/homepage.zip "$homepage_dir"/*
+backup_homepage() {
+	local archive
+	archive="homepage-archive-$(date +%y%m%d).tar.gz"
+	[[ -d "$archive_dir" ]] || mkdir -p "$archive_dir"
+	printf "Backing up %s...\n" "$homepage_dir"
+	tar -czvf "$archive_dir/$archive" -C "$HOME/Documents" homepage
 }
 
 sync_dropbox() {
   printf "\nSynchronizing ~/Documents/homepage with ~/Dropbox/homepage...\n"
-  rsync -av --delete "$homepage_dir"/ "$dropbox_dir"
+  rsync -av --delete "$homepage_dir"/ "$archive_dir"/ "$dropbox_dir"
 }
 
 ## Execution ##
 
-check_dependencies
 SECONDS=0
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "%s v%s (Updated: %s)\n" "$_script" "$_version" "$_updated"
+check_host
 remove_bu_files
-update_zip_file
-sync_dropbox
+backup_homepage
+[[ -d "$dropbox_dir" ]] && sync_dropbox
 printf "\nScript completed in %s\n" "$(format_time $SECONDS)"
 exit
