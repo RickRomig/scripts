@@ -55,8 +55,8 @@ ${orange}OPTIONS:${normal}
 	-r	Remove application
 	-s	Apply settings
 	-u	Update application
+$_script $_version (Updated $_updated)	
 END_HELP
-	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -107,6 +107,7 @@ while getopts "$optstr" opt; do
 done
 # [[ "$noOpt" = 1 ]] && { echo "${lightred}ERROR:${normal} No argument passed." >&2; help 1; }
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-# echo -e "$_script v$_version ($_updated)"
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-exit
+# echo "$_script v$_version ($_updated)"
+# printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+# exit
+leave "$_script $_version (Updated $_updated)"
