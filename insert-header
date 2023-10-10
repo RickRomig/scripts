@@ -17,7 +17,7 @@
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
 # shellcheck disable=SC1091,SC2034
-1
+
 ## Load function library ##
 
 if [[ -x "$HOME/bin/functionlib" ]]; then
@@ -30,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="v3.1.0"
-readonly _updated="07 Oct 2023"
+readonly _version="v3.1.1"
+readonly _updated="09 Oct 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 today=$(date +"%d %b %Y"); readonly today
@@ -113,6 +113,10 @@ while getopts "$optstr" opt; do
     ;;
     u )
       usage 0
+    ;;
+    : )
+      printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
+      usage 2
     ;;
     ? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
