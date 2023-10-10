@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.2"
-readonly _updated="06 Apr 2023"
+readonly _version="3.0.3"
+readonly _updated="09 Apr 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 today=$(date +"%d %b %Y"); readonly today
@@ -97,6 +97,10 @@ while getopts "$optstr" opt; do
 		u )
 			usage 0
 		;;
+    : )
+      printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
+      usage 2
+    ;;
 		? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
 			usage 2
