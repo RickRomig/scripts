@@ -27,13 +27,13 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.0"
-readonly _updated="19 May 2023"
+readonly _version="0.2.1"
+readonly _updated="10 Oct 2023"
 
 ## Functions ##
 
 vid_cam() {
-  /usr/bin/lsusb | grep -qs Webcam && return "$TRUE" || return "$FALSE"
+  /usr/bin/lsusb | grep -iqsw Webcam && return "$TRUE" || return "$FALSE"
 }
 
 ## Execution ##
@@ -42,7 +42,7 @@ printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Checks to see if a web cam is available.\n"
 if vid_cam; then
   printf "Available Webcams:\n"
-  /usr/bin/lsusb | grep -w Webcam | cut -d' ' -f7-
+  /usr/bin/lsusb | grep -iw Webcam | cut -d' ' -f7-
 else
   printf "No attached webcam found.\n"
 fi
