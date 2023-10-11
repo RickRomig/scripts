@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.1.1"
-readonly _updated="09 Oct 2023"
+readonly _version="3.1.2"
+readonly _updated="11 Oct 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 today=$(date +"%d %b %Y"); readonly today
@@ -89,8 +89,12 @@ while getopts "$optstr" opt; do
 			template_file="bash-template"
 		;;
 		e )
-			micro "$conf_dir/$conf_file"
-			printf "%s edited.\n" "$_script"
+      if [[ -f "$conf_dir/$conf_file" ]]; then
+        micro "$conf_dir/$conf_file"
+			  printf "%s edited.\n" "$_script"
+      else
+        create_conf
+      fi
 			leave "$_script v$_version ($_updated)"
 		;;
 		g )
