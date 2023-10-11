@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.1"
-readonly _updated="15 Jul 2023"
+readonly _version="0.5.2"
+readonly _updated="10 Oct 2023"
 
 ## Functions ##
 
@@ -43,7 +43,6 @@ EOF
 }
 
 get_uuid() {
-  printf "\nExtracting the swap partition UUID using /sbin/blkid ...\n"
   if antix_mx; then
     swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $4}')
   else
@@ -74,6 +73,7 @@ user_in_sudo
 
 printf "%s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
 print_message
+printf "\nExtracting the swap partition UUID using /sbin/blkid ...\n"
 swap_uuid=$(get_uuid)
 [[ -z "$swap_uuid" ]] && die "No UUID for swap found." 1
 set_resume "$swap_uuid"
