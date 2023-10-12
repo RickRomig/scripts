@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.6"
-readonly _updated="28 Sep 2023"
+readonly _version="0.6.7"
+readonly _updated="12 Oct 2023"
 readonly term_cfg=$HOME"/.config/terminator"
 
 ## Functions ##
@@ -53,8 +53,11 @@ EOF
 }
 
 remove_terminator() {
+  local term_cfg_bu="{$HOME}/backup/terminator"
   sudo apt-get purge terminator
   find "$HOME/.config/" -maxdept 2 -type d -name "terminator" -exec rm -rf {} \;
+  [[ -d "$term_cfg" ]] && rm -rf "$term_cfg"
+  [[ -d "$term_cfg_bu" ]] && rm -rf "$term_cfg_bu"
   leave "Terminator and its configuration files have been removed."
 }
 
