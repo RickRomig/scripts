@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.7"
-readonly _updated="09 Jun 2023"
+readonly _version="0.4.5"
+readonly _updated="12 Oct 2023"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 
@@ -72,8 +72,11 @@ remove_brave() {
 }
 
 remove_configs() {
+  local brave_cfg_dir="${HOME}/.config/BraveSoftware"
+  local brave_cache_dir="${HOME}/.cache/BraveSoftware"
   printf "Removing local configuration and cache files...\n"
-  find "$HOME/" -maxdepth 2 -type d -name "BraveSoftware" -exec rm -rf {} \;
+  [[ -d "$brave_cfg_dir" ]] && rm -rf "$brave_cfg_dir"
+  [[ -d "$brave_cache_dir" ]] && rm -rf "$brave_cache_dir"
   printf "Brave local configuration and cache files have been removed.\n"
 }
 
