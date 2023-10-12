@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.4"
-readonly _updated="28 Sep 2023"
+readonly _version="0.2.5"
+readonly _updated="12 Oct 2023"
 readonly kitty_cfg="$HOME/.config/kitty"
 
 ## Functions ##
@@ -68,10 +68,11 @@ remove_kitty() {
 }
 
 purge_kitty() {
+  local kitty_cache="$HOME/.cache/kitty"
   printf "Purging the Kitty terminal emulator %s\n" "$(kitty_version)"
   sudo apt-get purge kitty -yy
-  find "$HOME/.config/" -maxdepth 3 -type d -name "kitty" -exec rm -rf {} \;
-  find "$HOME/.cache/" -maxdepth 2 -type d -name "kitty" -exec rm -rf {} \;
+  [[ -d "$kitty_cfg" ]] && rm -rf "$kitty_cfg"
+  [[ -d "$kitty_cache" ]] && rm -rf "$kitty_cache"
   printf "The Kitty terminal emulator and configuration files have been removed.\n"
 }
 
