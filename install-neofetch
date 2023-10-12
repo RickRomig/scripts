@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.8"
-readonly _updated="28 Sep 2023"
+readonly _version="0.1.9"
+readonly _updated="12 Oct 2023"
 readonly cfg_dir="${HOME}/.config/neofetch"
 
 ## Functions ##
@@ -64,9 +64,11 @@ apply_config() {
 }
 
 remove_neofetch() {
+	local cfg_bu_dir="${HOME}/.config/backup/neofetch"
 	printf "Removing Neofetch %s...\n" "$(neofetch_version)"
 	sudo apt-get purge -yy > /dev/null 2>&1
-	find "{$HOME}/" -maxdepth 3 -type d -name "neofetch" -exec rm -rf {} \;
+	[[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
+	[[ -d "$cfg_bu_dir" ]] && rm -rf "$cfg_bu_dir"
 	printf "Neofetch and configuration files removed.\n"
 }
 
