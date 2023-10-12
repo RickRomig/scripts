@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.0"
-readonly _updated="28 Sep 2023"
+readonly _version="0.5.1"
+readonly _updated="12 Oct 2023"
 readonly url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg=$HOME"/.config/bat"
 
@@ -91,11 +91,11 @@ remove_bat() {
   printf "Removing Bat %s...\n" "$(bat_ver)"
   user_in_sudo
   sudo dpkg --remove bat
-  find "$HOME/.config/" -maxdepth 3 -type d -name "bat" -exec {} \;
+  [[ -d "$HOME"/.config/bat ]] && rm -rf "$HOME"/.config/bat
   printf "Bat and its configuration files have been removed.\n"
 }
 
-bat_config() {
+dl_bat_config() {
   local gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/bat/config"
   [[ -d "$bat_cfg" ]] || mkdir -p "$bat_cfg"
   printf "Downloading configuration file...\n"
@@ -164,7 +164,7 @@ while getopts "$optstr" opt; do
     c )
       exists bat || leave "Bat is not installed. Run '$_script -i' to install."
       # apply_config
-      bat_config
+      dl_bat_config
     ;;
     h )
       help 0
