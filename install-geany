@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.9"
-readonly _updated="28 Sep 2023"
+readonly _version="0.2.1"
+readonly _updated="12 Oct 2023"
 
 ## Functions ##
 
@@ -71,8 +71,9 @@ install_geany() {
 }
 
 remove_geany() {
+  local geany_cfg_dir="{$HOME}/.config/geany"
   sudo apt remove geany -yy
-  find "$HOME/.config/" -maxdepth 2 -type d -name "geany" -exec rm -rf {} \;
+  [[ -d "$geany_cfg_dir" ]] && rm -rf "$geany_cfg_dir"
   print "Geany and configuration files removed.\n"
 }
 
