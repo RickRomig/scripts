@@ -3,11 +3,11 @@
 # Script Name  : new-config
 # Description  : Sets up custom configurations for a new Linux system
 # Dependencies : curl
-# Arguments    : None
+# Arguments    : See help function for available options.
 # Author       : Copyright (C) 2019, Richard B. Romig, 15 August 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     :
-# TODO (rick)  : Convert to gethopts
+# Comments     : 
+# TODO (rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -27,7 +27,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.8.0"
+readonly _version="1.0.0"
 readonly _updated="13 Oct 2023"
 readonly cfg_bu_dir="$HOME/.config/backup"
 readonly repo_path="configs/raw/branch/main/"
@@ -35,10 +35,6 @@ readonly repo_path="configs/raw/branch/main/"
 count=0
 
 ## Functions ##
-
-check_dependencies() {
-  check_package sshfs
-}
 
 dl_bashrc() {
   cp -pv "$HOME/.bashrc" "$cfg_bu_dir/.bashrc.orig"
@@ -64,12 +60,9 @@ dl_profile() {
 dl_nanorc() {
   [[ -d "$cfg_bu_dir/nano" ]] || mkdir -p "$cfg_bu_dir/nano"
   [[ -d "$HOME/.config/nano" ]] || mkdir -p "$HOME/.config/nano"
-  # Backup  original .nanorc
   [[ -f "$HOME/.nanorc" ]] && cp -pv "$HOME/.nanorc" "$cfg_bu_dir/nano/nanorc.orig"
   [[ -f "$HOME/.config/nano/nanorc" ]] && cp -pv "$HOME/.config/nano/nanorc" "$cfg_bu_dir/nano/nanorc.orig"
-  # Downlaod nanorc
   curl -so "$HOME/.config/nano/nanorc" "$Gitea_URL/$repo_path/nano/nanorc"
-  # Remove old .nanorc files
   [[ -f "$HOME/.nanorc" ]] && rm "$HOME/.nanorc"
   [[ -f "$cfg_bu_dir/.nanorc" ]] && rm "$cfg_bu_dir/.nanorc"
   printf "Custom nanorc installed.\n"
@@ -91,80 +84,70 @@ dl_cinnamon_keybindings() {
     printf "Cinnamon Keybindings installed.\n"
     (( count++ ))
   else
-    echo $'\n'$"The desktop environment is not Cinnamon." >&2
+    printf "\nThe desktop environment is not Cinnamon.\n" >&2
   fi
 }
 
-main() {
-  while true; do
-    clear
-    echo "$_script v$_version ($_updated)"
-    echo "Installs custom configuration files for new Linux installations."
-    echo $'\n'$"${underline}${purple}Configuration files${normal}"
-    COLUMNS=60
-    options=( ".bashrc" ".bash_aliases" ".face" ".nanorc" ".profile" \
-    "Cinnamon Keybindings" "All" "Quit" )
-    PS3="Choose a configuration to install: "
-    select opt in "${options[@]}"; do
-      case "$REPLY" in
-        1 )
-          dl_bashrc
-          anykey
-          break
-        ;;
-        2 )
-          dl_aliases
-          anykey
-          break
-        ;;
-        3 )
-          dl_face
-          anykey
-          break
-        ;;
-        4 )
-          dl_nanorc
-          anykey
-          break
-        ;;
-        5 )
-          dl_profile
-          anykey
-          break
-        ;;
-        6 )
-          dl_cinnamon_keybindings
-          anykey
-          break
-        ;;
-        7 )
-          dl_bashrc
-          dl_aliases
-          dl_profile
-          dl_nanorc
-          dl_face
-          dl_cinnamon_keybindings
-          anykey
-          break
-        ;;
-        8 )
-          if (( count == 0 )); then
-            printf "No custom configuration files installed.\n"
-          else
-            printf "Custom configurations installed.\n"
-          fi
-          break
-        ;;
-        * )
-          printf "%s Invalid choice.%s Try again\n" "$lightred" "$normal" >&2
-      esac
-    done
-  done
-  leave "$_script v$_version ($_updated)"
+help() {
+  errcode="${1:-2}"
+  cat << _END_HELP_
+Installs customized configurations files for new Linux installations.
+Configurations are downloand from the Mosfanet Gitea server.
+
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -a  .bash_aliases
+  -b  .bashrc
+  -c  Cinnamon keybindings
+  -f  .face
+  -h  help
+  -n  nanorc
+  -p  .profile
+  Multiple options can be entered.
+$_script v$_version, updated: $_updated
+_END_HELP_
+  exit "$errcode"
 }
 
 ## Execution ##
 
-check_dependencies
+check_package curl
 [[ -d "$cfg_bu_dir" ]] || mkdir -p "$cfg_bu_dir"
-main
+noOpt=1
+optstr=":abcfhnp"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    a )
+      dl_bashrc
+    ;;
+    b )
+      dl_aliases
+    ;;
+    c )
+      dl_cinnamon_keybindings
+    ;;
+    f )
+      dl_face
+    ;;
+    h )
+      help 0
+    ;;
+    n )
+      dl_nanorc
+    ;;
+    p )
+      dl_profile
+    ;;
+    ? )
+      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+      help 2
+  esac
+  noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+if (( count == 0 )); then
+  printf "No custom configuration files installed.\n"
+else
+  printf "Custom configurations installed.\n"
+fi
+leave "$_script v$_version ($_updated)"
