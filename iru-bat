@@ -29,8 +29,8 @@ fi
 _script=$(basename "$0"); readonly _script
 readonly _version="0.5.1"
 readonly _updated="12 Oct 2023"
-readonly url="https://github.com/sharkdp/bat/releases"
-readonly bat_cfg=$HOME"/.config/bat"
+readonly gh_url="https://github.com/sharkdp/bat/releases"
+readonly bat_cfg_d=$HOME"/.config/bat"
 
 ## Functions ##
 
@@ -57,7 +57,7 @@ bat_ver() {
 }
 
 newest_version() {
-  wget -qO "$tmp_file" "$url"
+  wget -qO "$tmp_file" "$gh_url"
   new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
   check_distro || new_ver="0.19.0"
   echo "$new_ver"
@@ -79,7 +79,7 @@ install_bat() {
   local new_pkg="bat_${new_ver}_amd64.deb"
   printf "Downloading Bat %s from the sharkdp GitHub repository..." "$new_ver"
   dots "."
-  wget -q -P "$tmp_dir/" "$url/download/v$new_ver/$new_pkg"
+  wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
   kill "$!";printf "done\n";tput cnorm
   printf "Installing Bat %s...\n" "$new_ver"
   user_in_sudo
@@ -96,22 +96,22 @@ remove_bat() {
 }
 
 dl_bat_config() {
-  local gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/bat/config"
-  [[ -d "$bat_cfg" ]] || mkdir -p "$bat_cfg"
+  local repository="configs/raw/branch/main/bat/"
+  [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
   printf "Downloading configuration file...\n"
-  curl -so "$bat_cfg/config" "$gitea_url"
+  curl -so "$bat_cfg_d/config" "$Gitea_URL/$repository/config"
   printf "Bat configuration applied.\n"
 }
 
 apply_config() {
-  [[ -d "$bat_cfg" ]] || mkdir -p "$bat_cfg"
+  [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
   printf "Applying Bat configuration...\n"
   bat_config
   printf "Bat configuration applied.\n"
 }
 
 bat_config() {
-  cat << EOF > "$bat_cfg/config"
+  cat << EOF > "$bat_cfg_d/config"
 # Set the theme to "OneHalfDark"
 --theme="OneHalfDark"
 
