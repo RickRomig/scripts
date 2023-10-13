@@ -27,9 +27,9 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.5"
-readonly _updated="12 Oct 2023"
-readonly kitty_cfg="$HOME/.config/kitty"
+readonly _version="0.2.6"
+readonly _updated="13 Oct 2023"
+readonly kitty_cfg_d="$HOME/.config/kitty"
 
 ## Functions ##
 
@@ -71,28 +71,24 @@ purge_kitty() {
   local kitty_cache="$HOME/.cache/kitty"
   printf "Purging the Kitty terminal emulator %s\n" "$(kitty_version)"
   sudo apt-get purge kitty -yy
-  [[ -d "$kitty_cfg" ]] && rm -rf "$kitty_cfg"
+  [[ -d "$kitty_cfg_d" ]] && rm -rf "$kitty_cfg_d"
   [[ -d "$kitty_cache" ]] && rm -rf "$kitty_cache"
   printf "The Kitty terminal emulator and configuration files have been removed.\n"
 }
 
 kitty_config() {
-  # local files_dir="$HOME/bin/files"
-  # local doc_kitty="/usr/share/doc/kitty/examples"
-  local gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/kitty"
+  local repository="configs/raw/branch/main/kitty"
+  local kitty_conf="kitty.conf"
   printf "Setting up kitty.conf ...\n"
-  [[ -d "$kitty_cfg" ]] || mkdir -p "$kitty_cfg"
-  curl -so "$kitty_cfg/kitty.conf" "$gitea_url/kitty.conf"
-  # cp "$doc_kitty/kitty.conf" "$kitty_cfg/"
-  # sed -i -f "$files_dir/kitty.sed" "$kitty_cfg/kitty.conf"
-  # is_debian && sed -i 's/^shell \./#: shell ./ ; /#: shell \./a shell \/bin\/bash --login' "$kitty_cfg/kitty.conf"
-  printf "kitty.conf created and configured.\n"
+  [[ -d "$kitty_cfg_d" ]] || mkdir -p "$kitty_cfg_d"
+  curl -so "$kitty_cfg_d/$kitty_conf" "$Gitea_URL/$repository/$kitty_conf"
+  printf "%s created and configured.\n" "$kitty_conf"
 }
 
 kitty_bindings() {
   local bindings="bindings.list"
-  local gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/kitty"
-  curl -so "$kitty_cfg/$bindings" "$gitea_url/$bindings"
+  local repository="configs/raw/branch/main/kitty"
+  curl -so "$kitty_cfg_d/$bindings" "$Gitea_URL/$repository/$bindings"
   printf "Kitty keybindings list copied to ~/.config/kitty\n"
   printf "Run the kkb script to display keybindings.\n"
 }

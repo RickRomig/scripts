@@ -27,15 +27,15 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.7"
-readonly _updated="12 Oct 2023"
-readonly term_cfg=$HOME"/.config/terminator"
+readonly _version="0.6.8"
+readonly _updated="13 Oct 2023"
+readonly term_cfg_d=$HOME"/.config/terminator"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  cat << EOF
+  cat << END_HELP
 ${orange}Usage:${normal} $_script [-c] [-h] [-i] [-r]
 ${green}OPTIONS:${normal}
   -c  Writes custom configuration file.
@@ -47,17 +47,17 @@ ${bold}NOTES:${normal}
      Configuration changes should be made through the Preferences menu.
   2. For Debian and Debian-based distributions (Antix, MX Linux, LMDE),
      Terminator will be configured as a login shell.
-  3. Cascadia Code 14 font is installed by default.
-EOF
+$_script v$_version ($_updated)
+END_HELP
   exit "$errcode"
 }
 
 remove_terminator() {
-  local term_cfg_bu="{$HOME}/backup/terminator"
+  local term_cfg_d_bu="{$HOME}/backup/terminator"
   sudo apt-get purge terminator
   find "$HOME/.config/" -maxdept 2 -type d -name "terminator" -exec rm -rf {} \;
-  [[ -d "$term_cfg" ]] && rm -rf "$term_cfg"
-  [[ -d "$term_cfg_bu" ]] && rm -rf "$term_cfg_bu"
+  [[ -d "$term_cfg_d" ]] && rm -rf "$term_cfg_d"
+  [[ -d "$term_cfg_d_bu" ]] && rm -rf "$term_cfg_d_bu"
   leave "Terminator and its configuration files have been removed."
 }
 
@@ -68,53 +68,17 @@ install_terminator() {
     echo "Terminator $(terminator_version) installed."
     leave "BunsenLabs uses its own profiles based on the version of the distribution."
   else
-    # [[ -f "$term_cfg/config" ]] || teminator_config
     apply_config
-    is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg/config"
     leave "terminator $(terminator_version) installed with configuration file."
   fi
 }
 
 apply_config() {
-  local gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/terminator"
-  [[ -d "$term_cfg" ]] || mkdir -p "$term_cfg"
-  curl -so "$term_cfg/config" "$gitea_url/config"
-}
-
-teminator_config() {
-  [[ -d "$term_cfg" ]] || mkdir -p "$term_cfg"
-  cat << 'EOF' > "$term_cfg/config"
-[global_config]
-  always_split_with_profile = True
-  handle_size = 1
-  window_state = maximise
-  putty_paste_style = False
-  title_font = Cascadia Code 14
-  title_use_system_font = False
-[keybindings]
-[layouts]
-  [[default]]
-    [[[child1]]]
-      parent = window0
-      type = Terminal
-  [[[window0]]]
-      parent = ""
-      type = Window
-[plugins]
-[profiles]
-  [[default]]
-    audible_bell = True
-    background_darkness = 0.9
-    background_type = transparent
-    cursor_color = "#aaaaaa"
-    font = Cascadia Code 14
-    show_titlebar = False
-    scrollbar_position = hidden
-    palette =  "#282828:#cc241d:#98971a:#d79921:#458588:#b16286:#689d6a:#a89984:#928374:#fb4934:#b8bb26:#fabd2f:#83a598:#d3869b:#8ec07c:#ebdbb2"
-    login_shell = False
-    use_system_font = False
-EOF
-  echo "Terminator configuration file created."
+  local repsoitory="configs/raw/branch/main/terminator"
+  local term_cfg="config"
+  [[ -d "$term_cfg_d" ]] || mkdir -p "$term_cfg_d"
+  curl -so "$term_cfg_d/$term_cfg" "$Gitea_URL/$repsoitory/$term_cfg"
+  is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg_d/config"
 }
 
 terminator_version() {
@@ -123,7 +87,6 @@ terminator_version() {
 
 ## Execution ##
 
-echo "$_script v$_version ($_updated)"
 echo -e  "Installs or removes Terminator with config and Cascadia Code font.\n"
 
 noOpt=1
@@ -136,9 +99,7 @@ while getopts "$optstr" opt; do
         echo "Terminator configuration for BunsenLabs was not overwritten."
         leave "Configuration changes should be made through the Preferences menu."
       else
-        # teminator_config
         apply_config
-        is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg/config"
         leave "Terminator configuration file written."
       fi
     ;;
@@ -162,3 +123,4 @@ while getopts "$optstr" opt; do
   	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+leave "$_script v$_version ($_updated)"

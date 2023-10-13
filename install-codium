@@ -7,7 +7,6 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Last updated : 04 Aug 2023
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.4"
-readonly _updated="12 Oct 2023"
+readonly _version="0.1.5"
+readonly _updated="13 Oct 2023"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 
@@ -56,18 +55,19 @@ codium_version() {
 }
 
 apply_settings() {
-  local vsc_cfg="${HOME}/.config/VSCodium/User"
-	local vsc_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/VSCodium/User/settings.json"
-  [[ -d "$vsc_cfg" ]] || mkdir -p "$vsc_cfg"
+  local vsc_cfg_d="${HOME}/.config/VSCodium/User"
+	local repository="configs/raw/branch/main/VSCodium/User"
+  local json_file="settings.json"
+  [[ -d "$vsc_cfg_d" ]] || mkdir -p "$vsc_cfg_d"
   printf "Applying VSCodium settings...\n"
-	wget -P "$vsc_cfg" "$vsc_url"
+	wget -P "$vsc_cfg_d" "$Gitea_URL/$repository/$json_file"
   # settings
   printf "VSCodium settings applied.\n"
 }
 
 settings() {
-  local vsc_cfg="${HOME}/.config/VSCodium/User"
-  cat << EOL > "$vsc_cfg/settings.json"
+  local vsc_cfg_d="${HOME}/.config/VSCodium/User"
+  cat << EOL > "$vsc_cfg_d/settings.json"
 {
   "workbench.colorTheme": "Default High Contrast",
   "editor.tabSize": 2,
@@ -107,13 +107,13 @@ install_vscodium() {
 }
 
 remove_vscodium() {
-	local vsc_cfg="${HOME}/.config/VSCodium"
+	local vsc_cfg_d="${HOME}/.config/VSCodium"
 	user_in_sudo
 	printf "Removing VSCodium...\n"
 	sudo apt-get remove codium
 	[[ -f "$key_file" ]] && sudo rm -v "$key_file"
 	[[ -f "$src_list" ]] && sudo rm -v "$src_list"
-  [[ -d "$vsc_cfg" ]] && rm -rf "$vsc_cfg"
+  [[ -d "$vsc_cfg_d" ]] && rm -rf "$vsc_cfg_d"
 	printf "VSCodium has been removed.\n"
 }
 

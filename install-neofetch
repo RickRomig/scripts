@@ -29,7 +29,7 @@ fi
 _script=$(basename "$0"); readonly _script
 readonly _version="0.1.9"
 readonly _updated="12 Oct 2023"
-readonly cfg_dir="${HOME}/.config/neofetch"
+readonly neofetch_cfg_d="${HOME}/.config/neofetch"
 
 ## Functions ##
 
@@ -57,9 +57,10 @@ install_neofetch() {
 }
 
 apply_config() {
-	local gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/neofetch/config.conf"
-	[[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
-	curl -so "$cfg_dir/config.conf" "$gitea_url"
+	local respository="configs/raw/branch/main/neofetch"
+	local cfg_conf="config.conf"
+	[[ -d "$neofetch_cfg_d" ]] || mkdir -p "$neofetch_cfg_d"
+	curl -so "$neofetch_cfg_d/$cfg_conf" "$Gitea_URL/$respository/$cfg_conf"
 	printf "Neofetch configuration applied.\n"
 }
 
@@ -67,7 +68,7 @@ remove_neofetch() {
 	local cfg_bu_dir="${HOME}/.config/backup/neofetch"
 	printf "Removing Neofetch %s...\n" "$(neofetch_version)"
 	sudo apt-get purge -yy > /dev/null 2>&1
-	[[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
+	[[ -d "$neofetch_cfg_d" ]] && rm -rf "$neofetch_cfg_d"
 	[[ -d "$cfg_bu_dir" ]] && rm -rf "$cfg_bu_dir"
 	printf "Neofetch and configuration files removed.\n"
 }

@@ -27,9 +27,9 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.12"
-readonly _updated="12 Oct 2023"
-readonly url="https://github.com/VSCodium/vscodium/releases"
+readonly _version="0.2.13"
+readonly _updated="13 Oct 2023"
+readonly gh_url="https://github.com/VSCodium/vscodium/releases"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 
 ## Functions ##
@@ -45,7 +45,7 @@ check_dependencies() {
 }
 
 newest_version() {
-  wget -qO "$tmp_file" "$url"
+  wget -qO "$tmp_file" "$gh_url"
   new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}')
   echo "$new_ver"
 }
@@ -64,7 +64,7 @@ install_vscodium() {
   new_pkg="codium_${new_ver}_amd64.deb"
   printf "Downloading VSCodium %s from the VSCodium GitHub repository..." "$new_ver"
   dots "."
-  wget -q -P "$tmp_dir/" "$url/download/$new_ver/$new_pkg"
+  wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
   kill "$!";printf "done\n";tput cnorm
   printf "Installing VSCodium %s...\n" "$new_ver"
   user_in_sudo
@@ -73,27 +73,28 @@ install_vscodium() {
 }
 
 remove_vscodium() {
-  local vsc_cfg="${HOME}/.config/VSCodium"
+  local vsc_cfg_d="${HOME}/.config/VSCodium"
   printf "Removing the VSCodium editor...\n"
   user_in_sudo
   sudo dpkg --remove codium
-  [[ -d "$vsc_cfg" ]] && rm -rf "$vsc_cfg"
+  [[ -d "$vsc_cfg_d" ]] && rm -rf "$vsc_cfg_d"
   printf "VSCodium editor has been removed.\n"
 }
 
 apply_settings() {
-  local vsc_cfg="${HOME}/.config/VSCodium/User"
-  local gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/VSCodium/User/settings.json"
-  [[ -d "$vsc_cfg" ]] || mkdir -p "$vsc_cfg"
+  local vsc_cfg_d="${HOME}/.config/VSCodium/User"
+  local repository="configs/raw/branch/main/VSCodium/User"
+  local json_file="settings.json"
+  [[ -d "$vsc_cfg_d" ]] || mkdir -p "$vsc_cfg_d"
   printf "Applying VSCodium settings...\n"
   # settings
-  curl -so "$vsc_cfg/settings.json" "$gitea_url"
+  curl -so "$vsc_cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
   printf "VSCodium settings applied.\n"
 }
 
 settings() {
-  local vsc_cfg="${HOME}/.config/VSCodium/User"
-  cat << EOL > "$vsc_cfg/settings.json"
+  local vsc_cfg_d="${HOME}/.config/VSCodium/User"
+  cat << EOL > "$vsc_cfg_d/settings.json"
 {
   "workbench.colorTheme": "Default High Contrast",
   "editor.tabSize": 2,

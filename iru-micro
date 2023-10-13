@@ -27,10 +27,10 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.1"
-readonly _updated="12 Oct 2023"
-readonly url="https://github.com/zyedidia/micro/releases"
-readonly micro_cfg=$HOME"/.config/micro"
+readonly _version="0.5.2"
+readonly _updated="13 Oct 2023"
+readonly gh_url="https://github.com/zyedidia/micro/releases"
+readonly micro_cfg_d=$HOME"/.config/micro"
 
 ## Functions ##
 
@@ -49,8 +49,8 @@ micro_ver() {
 }
 
 newest_version() {
-  wget -qO "$tmp_file" "$url"
-  # curl -s -o "$tmp_file" "$url"
+  wget -qO "$tmp_file" "$gh_url"
+  # curl -s -o "$tmp_file" "$gh_url"
   new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
   echo "$new_ver"
 }
@@ -69,7 +69,7 @@ install_micro() {
   new_pkg="micro-${new_ver}-amd64.deb"
   printf "Downloading Micro %s from the zyedidia GitHub repository..." "$new_ver"
   dots "."
-  wget -q -P "$tmp_dir/" "$url/download/v$new_ver/$new_pkg"
+  wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
   kill "$!";printf "done\n";tput cnorm
   printf "Installing Micro %s...\n" "$new_ver"
   sudo gdebi -n "$tmp_dir/$new_pkg"
@@ -81,22 +81,23 @@ remove_micro() {
   cur_ver=$(micro_ver)
   echo "Removing the Micro CLI text editor..."
   sudo dpkg --remove micro
-  [[ -d "$micro_cfg" ]] && rm -rf "$micro_cfg"
+  [[ -d "$micro_cfg_d" ]] && rm -rf "$micro_cfg_d"
   [[ -d /root/.config/micro ]] && sudo rm -rf /root/.config/micro
   echo "Micro $cur_ver and configuration files have been removed."
 }
 
 apply_settings() {
-  gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/micro/settings.json"
-  [[ -d "$micro_cfg" ]] || mkdir -p "$micro_cfg"
+  local repository="configs/raw/branch/main/micro"
+  local json_file="settings.json"
+  [[ -d "$micro_cfg_d" ]] || mkdir -p "$micro_cfg_d"
   echo "Applying Micro settings..."
-  curl -so "$micro_cfg/settings.json" "$gitea_url"
+  curl -so "$micro_cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
   # settings
   echo "Micro setttings applied."
 }
 
 settings() {
-  cat <<- EOF > "$micro_cfg/settings.json"
+  cat <<- EOF > "$micro_cfg_d/settings.json"
 {
   "colorscheme": "atom-dark",
   "softwrap": true,
@@ -108,16 +109,17 @@ EOF
 }
 
 apply_bindings() {
-  gitea_url="http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/micro/bindings.json"
-  [[ -d "$micro_cfg" ]] || mkdir -p "$micro_cfg"
+  local repository="configs/raw/branch/main/micro"
+  local json_file="bindings.json"
+  [[ -d "$micro_cfg_d" ]] || mkdir -p "$micro_cfg_d"
   echo "Applying Micro keybindings..."
-  curl -so "$micro_cfg/bindings.json" "$gitea_url"
+  curl -so "$micro_cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
   # bindings
   echo "Micro keybindings applied."
 }
 
 bindings() {
-  cat << EOF > "$micro_cfg/bindings.json"
+  cat << EOF > "$micro_cfg_d/bindings.json"
 {
   "Alt-/": "lua:comment.comment",
   "CtrlUnderscore": "lua:comment.comment",
