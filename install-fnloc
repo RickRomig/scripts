@@ -51,8 +51,9 @@ help() {
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
 	-a  About FnLoC
+  -d  Download & install FnLoC .deb package
   -h	Display help
-	-i	Install FnLoC
+	-i	Clone FnLoC repo & install .deb package
 	-r	Remove FnLoC
 $_script $_version (Updated $_updated)	
 END_HELP
@@ -64,25 +65,40 @@ clone_fnloc_repo() {
   git clone "$Gitea_URL/$repo_path" "$package_dir"
 }
 
+dl_deb_pkg() {
+  local repo_path="fnloc/raw/branch/main"
+  [[ -d "$package_dir" ]] || mkdir -p "$package_dir"
+  curl -so "$package_dir/$package" "$Gitea_URL/$repo_path/$package"
+}
+
+install_fnloc() {
+  user_in_sudo
+  dpkg -l | grep -qw fnloc && { printf "%s %s already installed." "$package_name" "$package_version"; exit; }
+  sudo dpkg -i "$package_dir/$package"
+  printf "%s %s installed.\n" "$package_name" "$package_version"
+}
+
 ## Execution ##
 
 printf "Installs %s %s\n" "$package_name" "$package_version"
 
 noOpt=1
-optstr=":ahir"
+optstr=":adhir"
 while getopts "$optstr" opt; do
   case "$opt" in
     a )
       about_fnloc
     ;;
+    d )
+      dl_deb_pkg
+      install_fnloc
+    ;;
     h )
       help 0
     ;;
     i )
-      user_in_sudo
-      dpkg -l | grep -qw fnloc && { printf "%s %s already installed." "$package_name" "$package_version"; exit; }
-      sudo dpkg -i "$package_dir/$package"
-      printf "%s %s installed.\n" "$package_name" "$package_version"
+      clone_fnloc_repo
+      install_fnloc
     ;;
     r )
       user_in_sudo
