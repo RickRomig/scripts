@@ -11,11 +11,24 @@
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.0"
-readonly _updated="09 Oct 2023"
+readonly _version="0.2.1"
+readonly _updated="14 Oct 2023"
 readonly package="fnloc_2.3.1_amd64.deb"
 readonly package_name="FnLoC"
 readonly package_version="2.3.1"
@@ -47,8 +60,8 @@ END_HELP
 }
 
 clone_fnloc_repo() {
-  local gitea_url="http://192.168.0.16:3000/Nullifidian/fnloc.git"
-  git clone "http://192.168.0.16:3000/Nullifidian/fnloc.git" "$package_dir"
+  local repo_path="fnloc.git"
+  git clone "$Gitea_URL/$repo_path" "$package_dir"
 }
 
 ## Execution ##
