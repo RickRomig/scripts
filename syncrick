@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.8"
-readonly _updated="01 Oct 2023"
+readonly _version="3.0.9"
+readonly _updated="15 Oct 2023"
 readonly local_host="${HOSTNAME:-$(hostname)}"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
@@ -108,8 +108,13 @@ sync_script() {
   transfer_status "$exit_status"
 
   # Sync repositories
-  echo $'\n'$"${orange}Syncing Gitea repositoies...${normal}"
+  echo $'\n'$"${orange}Syncing Gitea repositories...${normal}"
   rsync -avh --delete /home/"$USER"/gitea/ "$localnet.$hostip":gitea/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Projects repositories...${normal}"
+  rsync -avh --delete /home/"$USER"/Projects/ "$localnet.$hostip":Projeccts/
   exit_status="$?"
   transfer_status "$exit_status"
 
