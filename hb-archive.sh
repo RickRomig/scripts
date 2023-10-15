@@ -6,8 +6,8 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Version      : Version 1.2.14
-# Last updated : 16 Mar 2023
+# Version      : Version 1.3.0
+# Last updated : 15 Oct 2023
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
@@ -21,6 +21,7 @@ arc_dir=$HOME"/Downloads/archives/homebank"
 hb_dir=$HOME"/Documents/HomeBank"
 log_dir=$HOME"/.local/share/logs"
 archive="$arc_date-backup.zip"
+cur_hb_bu="hb-bu-$(date +%F).tar.gz"
 log_file="HomeBank-archive.log"
 err_log="HomeBank-error.log"
 
@@ -47,7 +48,15 @@ rm -f "$arc_dir"/HomeBank\ Archive* > /dev/null 2>&1
 # Trim top entry from the log file when the length exceeds 36 entries.
 log_len=$(wc -l "$log_dir/$log_file" | cut -d " " -f1)
 [ "$log_len" -gt 36 ] && sed -i '1d' "$log_dir/$log_file"
+
+# Delete .bak archive files older than 3 years
+find "$arc_dir" -mtime +1095 -delete
+
+# Backup current contents of HomeBank & remove backup older that 60 days.
+tar -czf "$arc_dir/$cur_hb_bu" -C "$HOME/Documents" Homebank 2> "$arc_dir/$err_log"
+find "$arc_dir" -type f -name "hb-bu*" -mtime +90 -delete
+
 # Removes empty error log
 [ -s "$arc_dir/$err_log" ] || rm -f "$arc_dir/$err_log"
 
-exit
+exit 
