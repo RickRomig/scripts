@@ -30,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4..5"
-readonly _updated="21 Apr 2023"
+readonly _version="0.4.6"
+readonly _updated="16 Oct 2023"
 
 ## Functions ##
 
@@ -73,7 +73,7 @@ scan_static_addresses() {
           "192.168.0.17" ) printf "\thp-800-g1-usdt (Media PC)\n" ;;
           "192.168.0.18" ) printf "\tunassigned ip\n" ;;
           "192.168.0.19" ) printf "\thp-800-g1-dm (Desktop Mini)\n" ;;
-          "192.168.0.20" ) printf "\tprobook-6570 (Travel laptop)\n" ;;
+          "192.168.0.20" ) printf "\tprobook-6570\n" ;;
           "192.168.0.21" ) printf "\thp-probook-6570 (Finance)\n" ;;
           "192.168.0.22" ) printf "\thp-850-g3 (i3)\n" ;;
           "192.168.0.23" ) printf "\thp-2560p (MX)\n" ;;
@@ -160,5 +160,6 @@ while getopts "$optstr" opt; do
 	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
 printf "\n%s active addresses discovered in %s.\n\n" "$count" "$(format_time SECONDS)"
 leave "$_script v$_version ($_updated)"

@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.7"
-readonly _updated="10 Jun 2023"
+readonly _version="0.2.8"
+readonly _updated="16 Oct 2023"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
 
 ## Functions ##
@@ -85,8 +85,11 @@ EOT
 lm20_plus() {
   ver_code=$(awk -F= '/VERSION_CODENAME/ {print $2}' /etc/os-release)
   case "$ver_code" in
-    ulyana|ulyssa|uma|una|vanessa|vera|victoria ) return "$TRUE" ;;
-    * ) return "$FALSE" ;;
+    ulyana|ulyssa|uma|una|vanessa|vera|victoria )
+      return "$TRUE"
+    ;;
+    * )
+      return "$FALSE"
   esac
 }
 
@@ -105,7 +108,6 @@ END_HELP
 
 ## Execution ##
 
-box "$_script v$_version ($_updated)"
 printf "Enables or disables the installation of snapd and Snap packages in Linux Mint 20 and later.\n"
 
 if lm20_plus; then
@@ -135,7 +137,8 @@ if lm20_plus; then
 	  noOpt=0
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-  exit
+  shift "$(( OPTIND - 1 ))"
+  leave "$_script v$_version (Updated: $_updated)"
 else
-  die "This script is only for use with Linux Mint 20 or later." 1
+  leave "This script is only for use with Linux Mint 20 or later."
 fi
