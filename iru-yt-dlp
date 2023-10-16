@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.1"
-readonly _updated="21 Jun 2023"
+readonly _version="0.1.3"
+readonly _updated="16 Oct 2023"
 readonly ytdlp_prg="yt-dlp"
 readonly update_script="z-ytdlp-update"
 readonly sed_file="ytdlp-uplog.sed"
@@ -200,4 +200,5 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-exit
+shift "$(( OPTIND - 1 ))"
+leave "$_script v$_version (Updated: $_updated)"

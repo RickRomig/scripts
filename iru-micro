@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.2"
-readonly _updated="13 Oct 2023"
+readonly _version="0.5.3"
+readonly _updated="16 Oct 2023"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg_d=$HOME"/.config/micro"
 
@@ -146,7 +146,6 @@ EOF
 
 ## Execution ##
 
-printf "\%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Installs, updates, or removes the Micro CLI text editor.\n"
 
 noOpt=1
@@ -197,4 +196,5 @@ while getopts "$optstr" opt; do
   noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-exit
+shift "$(( OPTIND - 1 ))"
+leave "$_script v$_version (Updated: $_updated)"

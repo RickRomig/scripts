@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.1"
-readonly _updated="12 Oct 2023"
+readonly _version="0.5.2"
+readonly _updated="16 Oct 2023"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg_d=$HOME"/.config/bat"
 
@@ -80,8 +80,8 @@ install_bat() {
   printf "Downloading Bat %s from the sharkdp GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
-  kill "$!";printf "done\n";tput cnorm
-  printf "Installing Bat %s...\n" "$new_ver"
+  kill "$!"; tput cnorm
+  printf "printf "done\n"Installing Bat %s...\n" "$new_ver"
   user_in_sudo
   sudo gdebi -n "$tmp_dir/$new_pkg"
   printf "Bat %s installed.\n" "$(bat_ver)"
@@ -154,7 +154,6 @@ EOF
 
 ## Execution ##
 
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Installs, updates, or removes the Bat utililty.\n"
 
 noOpt=1
@@ -203,4 +202,5 @@ while getopts "$optstr" opt; do
 	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-
+shift "$(( OPTIND - 1 ))"
+leave "$_script v$_version ($_updated)"
