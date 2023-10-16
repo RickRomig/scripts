@@ -28,8 +28,8 @@ fi
 
 _script=$(basename "$0"); readonly _script
 readonly _script
-readonly _version="0.4.1 - beta"
-readonly _updated="09 Oct 2023"
+readonly _version="0.4.2 - beta"
+readonly _updated="16 Oct 2023"
 readonly source_list="/etc/apt/sources.list.d/home-ungoogled_chromium.list"
 readonly trusted_gpg="/etc/apt/trusted.gpg.d/home_ungoogled_chromium.gpg"
 
@@ -44,14 +44,19 @@ install_ungoogled_chrome() {
   local key_url="https://download.opensuse.org/repositories/home:/ungoogled_chromium/Debian_Bullseye/Release.key"
   
   user_in_sudo
+  show_me "Creating source list"
   echo "$repo_url" | sudo tee "$source_list" > /dev/null
+  show_me "Adding trusted key"
   curl -fsSL "$key_url" | gpg --dearmor | sudo tee "$trusted_gpg" > /dev/null
+  show_me "Installing ungoogled-chromium"
   sudo apt-get update
   sudo apt-get install ungoogled-chromium
   printf "ungoogled-chromium %s installed.\b" "$(uc_version)"
 }
 
 remove_ungoogle_chrome() {
+  user_in_sudo
+  show_me "Purging  ungoogled-chrome"
   sudo apt-get purge ungoogled-chrome
   [[ -f "$source_list" ]] && sudo rm "$source_list"
   [[ -f "$trusted_gpg" ]] && sudo rm "$trusted_gpg"
@@ -77,18 +82,25 @@ ${orange}OPTIONS:${normal}
 	-h	Display help
 	-i	Install application
 	-r	Remove application
+  -v  Enable verbose mode
   To be installed on Debian 11 Bullseye only
   $_script $_version (Updated $_updated)
 END_HELP
   exit "$errcode"
 }
 
+show_me() {
+  local message="$1"
+  [[ "$verbose_mode" = 0 ]] && cecho "$message"
+}
+
 ## Execution ##
 
 printf "Installs the ungoogled chromium browser on Debian-based systems./n"
 
+verbose_mode=1
 noOpt=1
-optstr=":hir"
+optstr=":hirv"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		h )
@@ -96,13 +108,17 @@ while getopts "$optstr" opt; do
 		;;
 		i )
 			exists ungoogled-chrome && leave "ungoogled-chrome $(uc_version) is already installed."
-      if distro_check; then install_ungoogled_chrome; else leave "$ver_code: Distribution is not supported."; fi
+      distro_check || leave "$ver_code: Distribution is not supported."
 			install_ungoogled_chrome
 		;;
 		r )
 			exists ungoogled-chrome || leave "ungoogled-chrome is not installed."
 			remove_ungoogled_chrome
 		;;
+    v )
+      verbose_mode=0
+      show_me "Verbose mode enabled."
+    ;;
 		? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
 			help 2
@@ -110,4 +126,5 @@ while getopts "$optstr" opt; do
 	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
 leave "$_script $_version (Updated $_updated)"
