@@ -24,18 +24,24 @@ else
   exit 1
 fi
 
+## Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="1.2.1"
+readonly _updated="16 Oct 2023"
+
 ## Functions ##
 
 install_matrix() {
   printf "Installing C-Matrix...\n"
   sudo apt-get update -qq
   sudo apt-get install cmatrix cmatrix-xfont -yy
-  leave "C-Matrix installed."
+  printf "C-Matrix installed.\n"
 }
 
 remove_matrix() {
   sudo apt-get remove cmatrix cmatrix-xfont -yy
-  leave "C-Matrix removed."
+  printf "C-Matrix removed.\n"
 }
 
 help() {
@@ -50,12 +56,6 @@ END_HELP
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
-
-## Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="1.2.0"
-readonly _updated="03 Jun 2023"
 
 ## Execution ##
 
@@ -84,5 +84,6 @@ while getopts "$optstr" opt; do
   noOpt=0
 done
 [[ "$noOpt" == 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit
