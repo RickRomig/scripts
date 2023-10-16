@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.2"
-readonly _updated="10 Oct 2023"
+readonly _version="0.5.3"
+readonly _updated="15 Oct 2023"
 
 ## Functions ##
 
@@ -47,9 +47,7 @@ get_uuid() {
     swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $4}')
   else
     swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $2}')
-    if [[ "$swap_uuid" = "LABEL=swap" ]]; then
-      swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $3}')
-    fi
+    [[ "$swap_uuid" == "LABEL=swap" ]] && swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $3}')
   fi
   printf "%s\n" "$swap_uuid"
 }
