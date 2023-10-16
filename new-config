@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.0.0"
-readonly _updated="13 Oct 2023"
+readonly _version="1.0.1"
+readonly _updated="16 Oct 2023"
 readonly cfg_bu_dir="$HOME/.config/backup"
 readonly repo_path="configs/raw/branch/main/"
 
@@ -145,6 +145,7 @@ while getopts "$optstr" opt; do
   noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
 if (( count == 0 )); then
   printf "No custom configuration files installed.\n"
 else

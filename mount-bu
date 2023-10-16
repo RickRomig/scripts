@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.12"
-readonly _updated="05 Jul 2023"
+readonly _version="0.2.13"
+readonly _updated="16 Oct 2023"
 readonly mount_point="/media/$USER/BU_Drive"
 
 ## Functions ##
@@ -79,7 +79,6 @@ EOL
 
 ## Execution ##
 
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Mount/Unmount USB Backup drive.\n"
 [[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || die "BU_Drive not attached."
 noOpt=1
@@ -112,6 +111,6 @@ while getopts "$optstr" opt; do
   esac
 	noOpt=0
 done
-# [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; bu_status; help 1; }
 [[ "$noOpt" = 1 ]] && bu_status
-exit
+shift "$(( OPTIND - 1 ))"
+leave "$_script v$_version (Updated: $_updated)"

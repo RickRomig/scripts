@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.1.2"
-readonly _updated="11 Oct 2023"
+readonly _version="3.1.3"
+readonly _updated="16 Oct 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 today=$(date +"%d %b %Y"); readonly today
@@ -95,7 +95,6 @@ while getopts "$optstr" opt; do
       else
         create_conf
       fi
-			leave "$_script v$_version ($_updated)"
 		;;
 		g )
 			filename="$OPTARG"
@@ -116,6 +115,7 @@ while getopts "$optstr" opt; do
 	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; usage 1; }
+shift "$(( OPTIND - 1 ))"
 
 ## Source script configuration file ##
 

@@ -16,7 +16,7 @@ END_HELP
 	exit "$errcode"
 }
 
-tell_me() {
+show_me() {
 	local message="$1"
 	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
@@ -68,5 +68,5 @@ done
 # [[ "$noOpt" = 1 ]] && { echo "${lightred}ERROR:${normal} No argument passed." >&2; help 1; }
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-exit
+leave "$_script v$_version (Updated: $_updated)"
 ```
