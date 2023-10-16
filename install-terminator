@@ -58,7 +58,7 @@ remove_terminator() {
   find "$HOME/.config/" -maxdept 2 -type d -name "terminator" -exec rm -rf {} \;
   [[ -d "$term_cfg_d" ]] && rm -rf "$term_cfg_d"
   [[ -d "$term_cfg_d_bu" ]] && rm -rf "$term_cfg_d_bu"
-  leave "Terminator and its configuration files have been removed."
+  echo "Terminator and its configuration files have been removed."
 }
 
 install_terminator() {
@@ -66,10 +66,10 @@ install_terminator() {
   sudo apt-get install terminator -yy
   if bunsenlabs; then
     echo "Terminator $(terminator_version) installed."
-    leave "BunsenLabs uses its own profiles based on the version of the distribution."
+    echo "BunsenLabs uses its own profiles based on the version of the distribution."
   else
     apply_config
-    leave "terminator $(terminator_version) installed with configuration file."
+    echo "terminator $(terminator_version) installed with configuration file."
   fi
 }
 
@@ -123,4 +123,5 @@ while getopts "$optstr" opt; do
   	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
 leave "$_script v$_version ($_updated)"
