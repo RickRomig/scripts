@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.5"
-readonly _updated="12 Oct 2023"
+readonly _version="0.4.6"
+readonly _updated="16 Oct 2023"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 
@@ -133,5 +133,6 @@ while getopts "$optstr" opt; do
   noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 exit

@@ -31,8 +31,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.7"
-readonly _updated="21 Apr 2023"
+readonly _version="0.3.8"
+readonly _updated="16 Oct 2023"
 readonly handbrake_ppa="ppa:stebbins/handbrake-releases"
 
 ## Functions ##
@@ -102,5 +102,5 @@ while getopts "$optstr" opt; do
 	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-echo "$_script v$_version ($_updated)"
-exit
+shift "$(( OPTIND - 1 ))"
+leave "$_script v$_version ($_updated)"

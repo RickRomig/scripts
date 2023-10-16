@@ -1,6 +1,7 @@
 # Basic usage for getopts in installation scripts
 red_error variable declared in functionlib
 ```bash
+
 help() {
 	errcode="${1:-2}"
 	cat << END_HELP
@@ -15,10 +16,16 @@ END_HELP
 	exit "$errcode"
 }
 
+tell_me() {
+	local message="$1"
+	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+}
+
 ## Execution ##
 
+verbose_mode="$FALSE"
 noOpt=1
-optstr=":hirsu"
+optstr=":hirsuv"
 # optstr=":h:i:r:s:u"
 while getopts "$optstr" opt; do
 	case "$opt" in
@@ -41,6 +48,9 @@ while getopts "$optstr" opt; do
 			exists application || leave "Application is not installed. run '$_script -i' to install."
 			update_application
 		;;
+		v )
+			verbose_mode="$TRUE"
+		;;
 		: )
 		  # echo "${lightred}ERROR:${normal} Must supply an argument to -${OPTARG}." >&2
 			# printf "\e[91mERROR:\e[0m Must supply an argument to -%s.\n" "$OPTARG" >&2
@@ -57,6 +67,6 @@ while getopts "$optstr" opt; do
 done
 # [[ "$noOpt" = 1 ]] && { echo "${lightred}ERROR:${normal} No argument passed." >&2; help 1; }
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-
+shift "$(( OPTIND - 1 ))"
 exit
 ```

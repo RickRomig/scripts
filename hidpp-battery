@@ -29,8 +29,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.0"
-readonly _updated="23 Sep 2023"
+readonly _version="0.1.1"
+readonly _updated="16 Oct 2023"
 
 ## Functions ##
 
@@ -80,7 +80,6 @@ upower_data() {
 
 noOpt=1
 optstr=":hsu"
-# optstr=":h:i:r:s:u"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		h )
@@ -99,4 +98,5 @@ while getopts "$optstr" opt; do
 	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && sys_class_data
+shift "$(( OPTIND - 1 ))"
 leave "$_script v$_version ($_updated)"

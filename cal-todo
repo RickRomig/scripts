@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.8"
-readonly _updated="21 Sep 2023"
+readonly _version="0.2.9"
+readonly _updated="16 Oct 2023"
 readonly docdir="$HOME/.local/share/doc"
 readonly todolist="todo.lst"
 calendar=$(mktemp -q) || die "Failed to create temporary file." 1
@@ -107,4 +107,5 @@ while getopts "$optstr" opt; do
 	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
 leave "$_script v$_version ($_updated)"
