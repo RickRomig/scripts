@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.5"
-readonly _updated="13 Oct 2023"
+readonly _version="0.1.6"
+readonly _updated="16 Oct 2023"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 
@@ -45,6 +45,7 @@ ${orange}OPTIONS:${normal}
 	-i	Install VSCodium
 	-r	Remove VSCodium
 	-s	Apply VSCodium settings
+  -v  Enable verbose mode
 END_HELP
 	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
@@ -85,23 +86,21 @@ EOL
 
 set_key() {
 	wget https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg
-	sudo mv -v pub.gpg "$key_file"
+	sudo mv pub.gpg "$key_file"
 }
 
 set_src() {
 	local src_url="https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main"
-	# echo 'deb [ signed-by=/usr/share/keyrings/vscodium-archive-keyring.asc ] https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main' | sudo tee "$src_list"
-	echo "deb [ signed-by=$key_file ] $src_url" | sudo tee "$src_list"
+	echo "deb [ signed-by=$key_file ] $src_url" | sudo tee "$src_list" > /dev/null
 }
 
 install_vscodium() {
 	user_in_sudo
-	printf "Installing VSCodium...\n"
+	show_me "Installing VSCodium..."
 	set_key
 	set_src
 	sudo apt-get update
 	sudo apt-get install codium
-	install_cascadia_code
 	apply_settings
 	printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 }
@@ -109,7 +108,7 @@ install_vscodium() {
 remove_vscodium() {
 	local vsc_cfg_d="${HOME}/.config/VSCodium"
 	user_in_sudo
-	printf "Removing VSCodium...\n"
+	show_me "Removing VSCodium..."
 	sudo apt-get remove codium
 	[[ -f "$key_file" ]] && sudo rm -v "$key_file"
 	[[ -f "$src_list" ]] && sudo rm -v "$src_list"
@@ -117,11 +116,16 @@ remove_vscodium() {
 	printf "VSCodium has been removed.\n"
 }
 
+show_me() {
+  local message="$1"
+  [[ "$verbose_mode" = 0 ]] && cecho "$message"
+}
+
 ## Execution ##
 
 check_package wget
 noOpt=1
-optstr=":ahirs"
+optstr=":ahirsv"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		a)
@@ -145,6 +149,10 @@ while getopts "$optstr" opt; do
 		  exists codium || leave "VSCodium is not installed."
     	apply_settings
 		;;
+		v )
+      verbose_mode=0
+      show_me "Verbose mode enabled."
+		;;
 		? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
 			help 2
@@ -152,4 +160,5 @@ while getopts "$optstr" opt; do
 	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
 leave "$_script v$_version ($_updated)"
