@@ -27,7 +27,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.5"
+readonly _version="3.0.6"
 readonly _updated="16 Oct 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
@@ -68,15 +68,23 @@ ${orange}OPTIONS:${normal}
   -p  C++ code  
       $_script -p <filename>
   -u  Usage instructions
+  -v  Enable verbose mode
 $_script $_version ($_updated)
 END_HELP
   exit "$errcode"
 }
 
+show_me() {
+	local message="$1"
+	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+}
+
 ## Execution ##
 
+printf "%s v%s (Updated: %s)\n" "$_script" "$_version" "$_updated"
+
 noOpt=1
-optstr=":c:ep:u"
+optstr=":c:ep:uv"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		c )
@@ -87,7 +95,7 @@ while getopts "$optstr" opt; do
 		e )
       if [[ -f "$conf_dir/$conf_file" ]]; then
         micro "$conf_dir/$conf_file"
-			  printf "%s edited.\n" "$_script"
+			  show_me "$conf_file edited."
       else
         create_conf
       fi
@@ -99,6 +107,10 @@ while getopts "$optstr" opt; do
 		;;
 		u )
 			usage 0
+		;;
+		v )
+			verbose_mode="$TRUE"
+			show_me "Verbose mode enabled."
 		;;
     : )
       printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
@@ -113,16 +125,18 @@ done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; usage 1; }
 shift "$(( OPTIND - 1 ))"
 
+[[ -z "$filename" ]] && leave "No source code file created."
+
 ## Source script configuration file ##
 
 [[ -f "$conf_dir/$conf_file" ]] || create_conf
+show_me "Sourcing $conf_file."
 source "$conf_dir/$conf_file"
 
-printf "%s v%s (Updated: %s)\n" "$_script" "$_version" "$_updated"
-printf "Creating %s C/C++ source code file.\n" "$filename"
+printf "Creating C/C++ source code file: %s\n" "$filename"
 
 # Fill in the placeholders and create the source file
-
+show_me "Filling in the template and creating the source code."
 sed -e '1d' \
     -e "s/<PROGNAME>/$filename/" \
     -e "s/<YEAR>/$cur_yr/" \
@@ -132,7 +146,8 @@ sed -e '1d' \
     -e "s/<EMAIL1>/$email_addr1/" \
     -e "s/<TODAY>/$today/"  "$template_dir/$template_file" > "$filename"
 
-printf "%s has been created." "$filename"
+printf "%s has been created.\n" "$filename"
+
 edit_view_quit "$filename"
 
 printf "\n"
