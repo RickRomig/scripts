@@ -16,7 +16,7 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -30,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="v3.1.3"
-readonly _updated="16 Oct 2023"
+readonly _version="v3.2.0"
+readonly _updated="17 Oct 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 today=$(date +"%d %b %Y"); readonly today
@@ -77,8 +77,15 @@ ${orange}OPTIONS:${normal}
   -s  Shell script
       $_script -s <shell-script>
   -u  Usage instructions
+  -v  Enable verbose mode
+$_script $_version ($_updated)
 END_HELP
   exit "$errcode"
+}
+
+show_me() {
+	local message="$1"
+	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
 
 cleanup() {
@@ -87,14 +94,21 @@ cleanup() {
 
 ## Execution ##
 
+clear
+box "$_script $_version (Updated $_updated)"
+
 noOpt=1
-optstr=":c:ep:s:u"
+optstr=":c:ep:s:uv"
 while getopts "$optstr" opt; do
   case "$opt" in
     c )
 			code_file="$OPTARG"
 			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
+      show_me "File: $code_file"
       code_type="C"
+      show_me "Code type: $code_type header"
+      template_file="c-header"
+      show_me "Template: $template_file"
     ;;
     e )
       if [[ -f "$conf_dir/$conf_file" ]]; then
@@ -103,21 +117,32 @@ while getopts "$optstr" opt; do
       else
         create_conf
       fi
-			leave "$_script v$_version ($_updated)"
     ;;
     p )
 			code_file="$OPTARG"
 			[[ -f "$filename" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
+      show_me "File: $code_file"
       code_type="C++"
-    ;;
+      show_me "Code type: $code_type header"
+      template_file="cpp-header"
+      show_me "Template: $template_file"
+   ;;
     s )
 			code_file="$OPTARG"
 			[[ -f "$filename" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
+      show_me "File: $code_file"
       code_type="Shell"
+      show_me "Code type: $code_type header"
+      template_file="bash-header"
+      show_me "Template: $template_file"
     ;;
     u )
       usage 0
     ;;
+		v )
+			verbose_mode="$TRUE"
+			show_me "Verbose mode enabled."
+		;;
     : )
       printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
       usage 2
@@ -131,23 +156,25 @@ done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; usage 1; }
 shift "$(( OPTIND - 1 ))"
 
+[[ -z "$code_file" ]] && leave "No file selected."
+
 ## Source script configuration file ##
 
 [[ -f "$conf_dir/$conf_file" ]] || create_conf
+show_me "Sourcing $conf_file."
 source "$conf_dir/$conf_file"
 
+show_me "Creating temporary file."
 tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 trap cleanup EXIT
 
-clear
-box " $_script $_version (Updated $_updated)"
-printf "Inserts a header into either a shell script or a C/C++ source file.\n"
+printf "Inserts a header into a shell script or a C/C++ source file.\n"
 printf "Licensed under the GNU General Public License, version 2.\n"
 printf "Copyright 2019-2023, Richard B. Romig\n"
 
+printf "\n%sInserting %s header into %s...%s\n" "$green" "$code_type" "$code_file" "$normal"
 case $code_type in
-  "C" )
-    printf "\n%sInserting C header into %s...%s\n" "$green" "$code_file" "$normal"
+  "C"|"C++" )
     sed -e '1d' \
         -e "s/<PROGNAME>/$code_file/" \
         -e "s/<YEAR>/$cur_yr/" \
@@ -156,24 +183,10 @@ case $code_type in
         -e "s/<ADDR1>/$email_addr1/" \
         -e "s/<ORG>/$work_org/" \
         -e "s/<TODAY>/$today/" \
-        -e "s/<LICENSE>/$license/" "$template_dir/c-header" > "$tmp_file"
-    sed -i -e "1r ${tmp_file}" "$code_file"
-  ;;
-  "C++" )
-    printf "\n%sInserting C++ header into %s...%s\n" "$green" "$code_file" "$normal"
-    sed -e '1d' \
-        -e "s/<PROGNAME>/$code_file/" \
-        -e "s/<YEAR>/$cur_yr/" \
-        -e "s/<AUTHOR>/$copy_holder/" \
-        -e "s/<ADDR>/$email_addr/" \
-        -e "s/<ADDR1>/$email_addr1/" \
-        -e "s/<ORG>/$work_org/" \
-        -e "s/<TODAY>/$today/" \
-        -e "s/<LICENSE>/$license/" "$template_dir/cpp-header" > "$tmp_file"
+        -e "s/<LICENSE>/$license/" "$template_dir/$template_file" > "$tmp_file"
     sed -i -e "1r ${tmp_file}" "$code_file"
   ;;
   "Shell" )
-    printf "\n%sInserting shell header into %s...%s\n" "$green" "$code_file" "$normal"
     sed -e '1d' \
         -e "s/<FILE>/$code_file/" \
         -e "s/<YEAR>/$cur_yr/" \
@@ -183,7 +196,7 @@ case $code_type in
         -e "s/<ORG>/$work_org/" \
         -e "s/<TODAY>/$today/" \
         -e "s/<CODER>/$coder/" \
-        -e "s/<LICENSE>/$license/" "$template_dir/bash-header" > "$tmp_file"
+        -e "s/<LICENSE>/$license/" "$template_dir/$template_file" > "$tmp_file"
     sed -i -e "1r ${tmp_file}" "$code_file"
   ;;
   * )
