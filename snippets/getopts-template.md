@@ -50,6 +50,7 @@ while getopts "$optstr" opt; do
 		;;
 		v )
 			verbose_mode="$TRUE"
+			show_me "Verbose mode enabled."
 		;;
 		: )
 		  # echo "${lightred}ERROR:${normal} Must supply an argument to -${OPTARG}." >&2
