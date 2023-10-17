@@ -27,7 +27,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.1.3"
+readonly _version="3.1.4"
 readonly _updated="16 Oct 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
@@ -72,26 +72,35 @@ ${orange}OPTIONS:${normal}
   -g  getopts BASH script
       $_script -g <filename>
   -u  Usage instructions
+  -v  Enable verbose mode
 $_script $_version ($_updated)
 END_HELP
   exit "$errcode"
 }
 
+show_me() {
+	local message="$1"
+	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+}
+
 ## Execution ##
 
+printf "%s v%s (Updated: %s)\n" "$_script" "$_version" "$_updated"
+
 noOpt=1
-optstr=":b:eg:u"
+optstr=":b:eg:uv"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		b )
 			filename="$OPTARG"
 			[[ -f "$filename" ]] && { printf "%s %s already exists\n" "$red_error" "$filename" >&2; usage 2; }
 			template_file="bash-template"
+      show_me "Template: $template_file"
 		;;
 		e )
       if [[ -f "$conf_dir/$conf_file" ]]; then
         micro "$conf_dir/$conf_file"
-			  printf "%s edited.\n" "$_script"
+			  show_me "$conf_file edited."
       else
         create_conf
       fi
@@ -100,9 +109,14 @@ while getopts "$optstr" opt; do
 			filename="$OPTARG"
 			[[ -f "$filename" ]] && { printf "%s %s already exists\n" "$red_error" "$filename" >&2; usage 2; }
 			template_file="bash-getopts"
+      show_me "Template: $template_file"
 		;;
 		u )
 			usage 0
+		;;
+		v )
+			verbose_mode="$TRUE"
+			show_me "Verbose mode enabled."
 		;;
     : )
       printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
@@ -117,15 +131,18 @@ done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; usage 1; }
 shift "$(( OPTIND - 1 ))"
 
+[[ -z "$filename" ]] && leave "No script created."
+
 ## Source script configuration file ##
 
 [[ -f "$conf_dir/$conf_file" ]] || create_conf
+show_me "Sourcing $conf_file."
 source "$conf_dir/$conf_file"
 
-printf "%s v%s (Updated: %s)\n" "$_script" "$_version" "$_updated"
-printf "Creating %s BASH script.\n" "$filename"
+printf "Creating BASH script: %s\n" "$filename"
 
 # Fill in placeholders and create the script from template
+show_me "Filling in the template and creating the script."
 
 sed -e '1d' \
     -e "s/<FILE>/$filename/" \
@@ -139,6 +156,7 @@ sed -e '1d' \
     -e "s/<LICENSE>/$license/" "$template_dir/$template_file" > "$filename"
 
 # Set file permissions for the new script to -rwxr-xr-xr
+show_me "Setting file permissions to 755."
 chmod 755 "$filename"
 
 printf "The %s script has been created.\n" "$filename"
