@@ -81,7 +81,7 @@ cleanup() {
 
 ## Execution ##
 
-clear
+# clear
 box " $_script $_version (Updated $_updated)"
 
 noOpt=1
@@ -105,14 +105,14 @@ while getopts "$optstr" opt; do
     ;;
     p )
 			code_file="$OPTARG"
-			[[ -f "$filename" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
       show_me "FIle: $code_file"
       code_type="C++"
       show_me "Code type: $code_type source code"
     ;;
     s )
 			code_file="$OPTARG"
-			[[ -f "$filename" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
       show_me "FIle: $code_file"
       code_type="Shell"
       show_me "Code type: $code_type script"
@@ -211,7 +211,7 @@ case $code_type in
         -e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
         -e "s/<EMAIL>/$email_addr/" \
         -e "s/^/# /" "$template_dir/$lic_file" > "$tmp_file"
-    sed -i -e "12r ${tmp_file}" "$code_file"
+    sed -i -e "15r ${tmp_file}" "$code_file"
   ;;
   * )
     die "Invalid code type. Exiting the script." 1
