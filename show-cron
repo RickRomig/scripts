@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #####################################################################
-# Script Name  : check-cron
+# Script Name  : show-cron
 # Description  : Shows when anacron jobs were last run and displays
 #              : crontabs for all normal and root users.
 # Dependencies : none
@@ -57,7 +57,7 @@ show_user_cron() {
   while [[ "$i" -le "$max" ]]; do
     norm_user="$(awk -v pat="$i" -F: '$0~pat{print $1}' "$passwd_file")"
     if [[ -n "$norm_user" ]]; then
-      echo $'\n'$"${orange}Cron jobs for $norm_user:${normal}"
+      echo $'\n'$"${orange}Cron jobs for ${norm_user^}:${normal}"
       sudo crontab -l -u "$norm_user" | grep -v '#'
     fi
     (( i++ ))
@@ -72,8 +72,8 @@ show_root_cron() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.4.2"
-  local _updated="12 Mar 2023"
+  local _version="0.4.3"
+  local _updated="18 Oct 2023"
 
   clear
   echo $'\n'$"${bold}${green}Jobs for $(uname -n)"
