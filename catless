@@ -2,11 +2,11 @@
 #############################################################################
 # Script Name  : catless
 # Description  : view text file with less or cat based on terminal window size.
-# Dependencies : functionlib (viewtext)
+# Dependencies : none
 # Arguments    : $1 -> file to be viewed
 # Author       : Copyright (C) 2020, Richard B. Romig, 02 Jan 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
-# Comments     : uses viewtext function from functionlib to view file.
+# Comments     : 
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -27,32 +27,24 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.8"
-readonly _updated="21 Sep 2023"
+readonly _version="0.3.0"
+readonly _updated="18 Oct 2023"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
   cat << END_HELP
-  Usage: $_script [filename]
-         $_script [OPTION]
-  OPTION: -h  --help  Displays help.
+  Usage: $_script [filename] [-h] [--help]
+
   $_script displays a text file using either cat or less depending the number of
   lines in the file and the number of rows in the current terminal window. Less 
   is used when the number of lines is greater than the 87% of the rows, otherwise
   cat is used.
-  Version: $_version
-  Updated: $_updated
+
+"$_script v$_version (updated $_updated)"
 END_HELP
   exit "$errcode"
-}
-
-cat_used() {
-  trows=$(tput lines)
-  cat_limit=$(( trows*87/100 ))
-  num_lines=$(wc -l "$filename" | cut -d " " -f1)
-  [[ "$num_lines" -lt "$cat_limit" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ## Execution ##
@@ -70,9 +62,17 @@ else
   filename="$1"
 fi
 
-# View the selected file
-clear
+# Get 87% of screen and size of file
+max=$(( $(tput lines)*87/100 ))
+size=$(wc -l "$filename" |  cut -d' ' -f1)
+
+# View the file
 box "File: $filename" "*"
-viewtext "$filename"
-cat_used && print_line "-" 30
-leave "$_script v$_version ($_updated)"
+if (( size < max )); then
+	cat "$filename"
+	over_line "$_script $_version (Updated $_updated)" "*"
+else
+	less "$filename"
+	echo "$_script $_version (Updated $_updated)"
+fi
+exit
