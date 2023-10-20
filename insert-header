@@ -30,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="v3.2.0"
-readonly _updated="17 Oct 2023"
+readonly _version="v3.2.1"
+readonly _updated="19 Oct 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 today=$(date +"%d %b %Y"); readonly today
@@ -94,7 +94,7 @@ cleanup() {
 
 ## Execution ##
 
-clear
+# clear
 box "$_script $_version (Updated $_updated)"
 
 noOpt=1
@@ -120,7 +120,7 @@ while getopts "$optstr" opt; do
     ;;
     p )
 			code_file="$OPTARG"
-			[[ -f "$filename" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
       show_me "File: $code_file"
       code_type="C++"
       show_me "Code type: $code_type header"
@@ -129,7 +129,7 @@ while getopts "$optstr" opt; do
    ;;
     s )
 			code_file="$OPTARG"
-			[[ -f "$filename" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
       show_me "File: $code_file"
       code_type="Shell"
       show_me "Code type: $code_type header"
