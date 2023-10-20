@@ -19,6 +19,21 @@ $ hostnamectl | grep 'Kernel' | cut -d' ' -f14-
 ```bash
 $ host="${HOSTNAME:-$(hostname)}"
 ```
+
+# Add a user
+```bash
+$ sudo useradd -s /bin/bash -m -c "First Last,Room Nr,Phone," username
+$ sudo vipw   # edit /etc/passwd to edit Gecos information - Full name, Room, phone, other
+```
+
+#### Gecos info from /etc/passwd
+```bash
+gecos=$(awk -F: '/rick/ {print $5}' /etc/passwd)
+name=$(echo "gecos" | cut -d',' -f1)
+room=$(echo "gecos" | cut -d',' -f2)
+phone=$(echo "gecos" | cut -d',' -f3)
+```
+
 #### ps command to find init system
 - From the command line:
   ```bash
@@ -70,7 +85,7 @@ die() {
 $ ssh rick@192.168.0.100 'bash -s' < local.sh
 ```
 #### Run a script on a remote host with arguments
-$ ssh rick@192.168.0.100 'bash -s' -- < local2.sh arg1 arg2 arg3 ...
+`$ ssh rick@192.168.0.100 'bash -s' -- < local2.sh arg1 arg2 arg3 ...`
 
 #### Run a section of a script (heredoc) on a remote host
 ```bash
@@ -137,4 +152,10 @@ for battery_path in /sys/class/power_supply/BAT?; do
     echo $'\n'$"${lightred}No battery detected.${normal}" >&2
   fi
 done
+```
+
+#### Find a mountable drive:
+```bash
+$ lsblk -lp | grep "part $" | awk '{print $1, "(" $4 ")"}'
+$ lsblk -lp |  awk '/part $/ {print $1, "(" $4 ")"}'
 ```
