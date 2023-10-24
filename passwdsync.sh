@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, 19 August 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : run as a local daily cron job
-# Version      : 0.4.11, updated 04 Oct 2023
+# Version      : 0.4.12, updated 24 Oct 2023
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -19,7 +19,7 @@ log_dir=$HOME"/.local/share/logs"
 log_file="password-db.log"
 
 # Create the log directory if it doesn't already exist
-[ -d "$log_dir" ] || mkdir -p "$log_dir"
+[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 
 {
   printf "%s|" "$(date '+%F|%R')"
@@ -33,6 +33,6 @@ log_file="password-db.log"
 
 # If more than 30 entries, remove the oldest entry
 log_len=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
-[ "$log_len" -gt 30 ] && sed -i '1d' "$log_dir/$log_file"
+[[ "$log_len" -gt 30 ]] && sed -i '1d' "$log_dir/$log_file"
 
 exit
