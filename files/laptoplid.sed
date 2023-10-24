@@ -1,20 +1,13 @@
 /HandleSuspendKey/ {
+s/^#//
 s/suspend$/ignore/
-s/^#//
-}
-/HandleLidSwitchExternalPower/ {
-s/suspend$/ignore/
-s/^#//
-}
-/#HandleLidSwitchDocked/ {
-s/^#//
 }
 /HandleLidSwitch/ {
-s/suspend$/ignore/
 s/^#//
+s/suspend$/ignore/
 }
 /LidSwitchIgnoreInhibited/ {
-s/yes$/no/
 s/^#//
+s/yes$/no/
 }
  
