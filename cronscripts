@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.0"
-readonly _updated="16 Sep 2023"
+readonly _version="0.4.10"
+readonly _updated="26 Oct 2023"
 readonly user_cron_path="$HOME/.local/bin/"
 readonly opt_cron_path="/opt/bin/"
 readonly sed_path="/usr/share/misc/"
@@ -37,13 +37,15 @@ localip="$(local_ip)"
 
 ## Functions ##
 
-cp_gitea_backup() {
+cp_repo_backup() {
   case "$localip" in
     10 )
-      cp -pv "$HOME/bin/gitea-daily.sh" "$user_cron_path" | awk '{print "==> "$NF}'
-      cp -pv "$HOME/bin/gitea-weekly.sh" "$user_cron_path" | awk '{print "==> "$NF}'
-      cp -pv "$HOME/bin/gitea-monthly.sh" "$user_cron_path" | awk '{print "==> "$NF}'
-      cp -pv "$HOME/bin/gitea-backup.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      cp -puv "$HOME/bin/gitea-daily.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      cp -puv "$HOME/bin/gitea-weekly.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      cp -puv "$HOME/bin/gitea-monthly.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      cp -puv "$HOME/bin/gitea-backup.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      cp -puv "$HOME/bin/gitea-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      cp -puv "$HOME/bin/projects-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}'
     ;;
     * )
       no_copy "$script_path"
@@ -186,10 +188,10 @@ ${orange}OPTIONS:${normal}
   -b    Copy HomeBank archive script.
   -d    Copy defrag script.
   -f    Copy sed sccript to cleanup update log.
-  -g    Copy gitea repository backup scripts.
   -h    Display Help.
   -l    Copy local backup script.
   -p    Copy password database script.
+  -r    Copy repository backup scripts.
   -s    Copy script archive script.
   -u    Copy system update script.
   -y    Copy yt-dlp update script.
@@ -205,14 +207,14 @@ END_HELP
 printf "Copies updated cron scripts to the appropriate directories.\n"
 
 noOpt=1
-optstr=":abdfghlpsuyz"
+optstr=":abdfhlprsuyz"
 while getopts "$optstr" opt; do
   case "$opt" in
     a )
       cp_hbarchive
       cp_passwdsync
       cp_scriptarchive
-      cp_gitea_backup
+      cp_repo_backup
       cp_zdefrag
       cp_zupdate
 			cp_updatelogsed
@@ -228,9 +230,6 @@ while getopts "$optstr" opt; do
     f )
       cp_updatelogsed
     ;;
-    g )
-      cp_gitea_backup
-    ;;
     h )
       help 0
     ;;
@@ -239,6 +238,9 @@ while getopts "$optstr" opt; do
 		;;
     p )
       cp_passwdsync
+    ;;
+    r )
+      cp_repo_backup
     ;;
     s )
       cp_scriptarchive
