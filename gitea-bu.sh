@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Oct 2023
-# Last updated : 27 Oct 2023 (Version 0.1.1)
+# Last updated : 27 Oct 2023 (Version 0.1.2)
 # Comments     : Run as a daily cron job
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -19,7 +19,7 @@ dow=$(date +%u)
 arc_date=$(date +%y%m%d)
 day=$(date +%a)
 snar="gitea.sngz"
-archive="gitea.$dow-$arc_date.tar.gz"
+archive="gitea.$arc_date-$dow.tar.gz"
 arc_dir="$HOME/Downloads/archives/gitea-repo"
 
 ## Execution ##
