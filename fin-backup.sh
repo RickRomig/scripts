@@ -31,6 +31,6 @@ fi
 
 tar -cvzf /"$arc_dir/$archive" -g "$arc_dir/$snar" "$HOME"/Documents/Finance/CY2022 "$HOME"/Documents/Finance/CY2023
 
-rsync -a --delete "$HOME"/Downloads/archives/finance/ rick@192.168.0.10:Downloads/archives/finance/
+rsync -aq --delete "$HOME"/Downloads/archives/finance/ 192.168.0.10:Downloads/archives/finance/
 
 exit
