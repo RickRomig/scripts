@@ -151,7 +151,12 @@ sync_script() {
       transfer_status "$exit_status"
 
       echo $'\n'$"${orange}Syncing HomeBank archives...${normal}"
-      rsync -avh --delete /home/"$USER"/Downloads/archives/homebank/ "$localnet.$hostip":Downloads/archives/homebank/
+      rsync -avh --delete /home/"$USER"/Downloads/archives/homebank/ "$localnet.$hostip":/data/archives/homebank/
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      echo $'\n'$"${orange}Syncing Finance archives...${normal}"
+      rsync -avh --delete /home/"$USER"/Downloads/archives/finance/ "$localnet.$hostip":/data/archives/finance/
       exit_status="$?"
       transfer_status "$exit_status"
       ;;
