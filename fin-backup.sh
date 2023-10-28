@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : fin-backup.sh
+# Description  : Incremental backups of Finance directories
+# Dependencies : none
+# Arguments    : none
+# Author       : Copyright © 2023 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 28 Oct 2023
+# Last updated : 28 Oct 2023 (Version 0.1.0)
+# Comments     : Run as a daily cron job on main system
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Global Variables ##
+
+dow=$(date +%u)
+arc_date=$(date +%y%m%d)
+day=$(date +%a)
+snar="finance.snar"
+archive="finance.$arc_date-$dow.tar.gz"
+arc_dir="$HOME/Downloads/archives/finance"
+
+## Execution ##
+
+if [[ "$day" == "Sun" ]]; then
+	[[ -e "$arc_dir/$snar" ]] && mv "$arc_dir/$snar" "$arc_dir/$snar.$(date --date '7 days ago' +%y%m%d)"
+  find "$arc_dir" -mtime +85 -delete
+fi
+
+tar -cvzf /"$arc_dir/$archive" -g "$arc_dir/$snar" "$HOME"/Documents/Finance/CY2022 "$HOME"/Documents/Finance/CY2023
+
+rsync -a --delete "$HOME"/Downloads/archives/finance/ rick@192.168.0.10:Downloads/archives/finance/
+
+exit
