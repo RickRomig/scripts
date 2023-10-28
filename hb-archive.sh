@@ -52,8 +52,8 @@ log_len=$(wc -l "$log_dir/$log_file" | cut -d " " -f1)
 # Delete .bak archive files older than 3 years
 find "$arc_dir" -mtime +1095 -delete
 
-# Backup current contents of HomeBank & remove backup older that 60 days.
-tar -czf "$arc_dir/$cur_hb_bu" -C "$HOME/Documents" Homebank 2> "$arc_dir/$err_log"
+# Backup current contents of HomeBank & remove backup older that 90 days.
+tar -czf "$arc_dir/$cur_hb_bu" -C "$HOME/Documents" HomeBank 2> "$arc_dir/$err_log"
 find "$arc_dir" -type f -name "hb-bu*" -mtime +90 -delete
 
 # Removes empty error log
