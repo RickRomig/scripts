@@ -33,4 +33,4 @@ tar -czg "$arc_dir/$snar" -f "$arc_dir/$archive" -C "$HOME" gitea
 
 rsync -a --delete "$HOME"/Downloads/archives/gitea-repo/ rick@192.168.0.16:Downloads/archives/gitea-repo/
 
-# exit
+exit
