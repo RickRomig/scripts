@@ -29,7 +29,7 @@ if [[ "$day" == "Sun" ]]; then
   find "$arc_dir" -mtime +85 -delete
 fi
 
-tar -cvzf /"$arc_dir/$archive" -g "$arc_dir/$snar" "$HOME"/Documents/Finance/CY2022 "$HOME"/Documents/Finance/CY2023
+tar -czf "$arc_dir/$archive" -g "$arc_dir/$snar" "$HOME"/Documents/Finance/CY2022 "$HOME"/Documents/Finance/CY2023
 
 rsync -aq --delete "$HOME"/Downloads/archives/finance/ 192.168.0.10:Downloads/archives/finance/
 
