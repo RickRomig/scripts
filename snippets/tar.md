@@ -23,3 +23,16 @@ tar -xfg /dev/null -f inc_archive.tar.gz							# incremental backup
 ```bash
 tar -xvf archive_file.tar.gz
 ```
+### More examples
+```bash
+ tar --create \
+				--file=archive.tar \
+				--listed-incremental=arcive.snar \
+				source-directory
+
+tar -czf archive.tar.gz -C ~/Downloads dir1 -C ~/Documnts dir2 -C ~/dir3/dir4 dir5
+
+tar -czf  archive.tar.gz ~/Downloads/dir1 ~/Documnts/dir2 ~/dir3/dir4/dir5
+
+tar -czf  archive.tar.gz -g archive.snar  ~/Documnts/dir2 ~/dir3/dir4/dir5	# only one -C allowed with -g
+```
