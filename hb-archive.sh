@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 ###############################################################################
 # Script Name  : hb-archive.sh
 # Description  : Create HomeBank archive as a cron job.
@@ -26,8 +26,8 @@ log_file="HomeBank-archive.log"
 err_log="HomeBank-error.log"
 
 # Create log and archive directories if they don't already exist
-[ -d "$log_dir" ] || mkdir -p "$log_dir"
-[ -d "$arc_dir" ] || mkdir -p "$arc_dir"
+[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
+[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
 
 # Remove flag file from archive directory.
 rm -f "$arc_dir"/HomeBank\ Archive* > /dev/null 2>&1
@@ -49,14 +49,17 @@ rm -f "$arc_dir"/HomeBank\ Archive* > /dev/null 2>&1
 log_len=$(wc -l "$log_dir/$log_file" | cut -d " " -f1)
 [ "$log_len" -gt 36 ] && sed -i '1d' "$log_dir/$log_file"
 
-# Delete .bak archive files older than 3 years
+# Delete archive files older than 3 years
 find "$arc_dir" -mtime +1095 -delete
 
-# Backup current contents of HomeBank & remove backup older that 90 days.
-tar -czf "$arc_dir/$cur_hb_bu" -C "$HOME/Documents" HomeBank 2> "$arc_dir/$err_log"
+# Backup current contents of HomeBank & remove backups older that 90 days.
+tar -czf "$arc_dir/$cur_hb_bu" -C "$HOME/Documents" HomeBank 2>> "$arc_dir/$err_log"
 find "$arc_dir" -type f -name "hb-bu*" -mtime +90 -delete
 
+# Sync HomeBank archive to main system
+rsync -aq --delete "$HOME"/Downloads/archives/homebank/ 192.168.0.10:Downloads/archives/homebank/ 2>> "$arc_dir/$err_log"
+
 # Removes empty error log
-[ -s "$arc_dir/$err_log" ] || rm -f "$arc_dir/$err_log"
+[[ -s "$arc_dir/$err_log" ]] || rm -f "$arc_dir/$err_log"
 
 exit 
