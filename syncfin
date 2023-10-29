@@ -88,16 +88,6 @@ sync_to_main() {
   rsync -avh --delete --exclude '.git' /home/"$USER"/Documents/HomeBank/ "$localnet.$main_ip":Documents/HomeBank/
   exit_status="$?"
   transfer_status "$exit_status"
-
-  # echo  $'\n'$"${orange}Syncing HomeBank Archives..${normal}"
-  # rsync -avh --delete /home/"$USER"/Downloads/archives/homebank/ "$localnet.$main_ip":Downloads/archives/homebank/
-  # exit_status="$?"
-  # transfer_status "$exit_status"
-
-  # echo  $'\n'$"${orange}Syncing Finance Archives..${normal}"
-  # rsync -avh --delete /home/"$USER"/Downloads/archives/finance/ "$localnet.$main_ip":Downloads/archives/finance/
-  # exit_status="$?"
-  # transfer_status "$exit_status"
 }
 
 sync_to_fin() {
@@ -107,7 +97,7 @@ sync_to_fin() {
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing bin directory...${normal}"
-  rsync -avh --delete  --exclude '.git' /home/"$USER"/bin/ "$localnet.$fin_ip":bin/
+  rsync -avh --delete --exclude '.git' /home/"$USER"/bin/ "$localnet.$fin_ip":bin/
   exit_status="$?"
   transfer_status "$exit_status"
 
@@ -117,7 +107,7 @@ sync_to_fin() {
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing homepage directory...${normal}"
-  rsync -avh --delete /home/"$USER"/Documents/homepage/ /home/"$USER"/Downloads/archives/homepage/ "$localnet.$fin_ip":Documents/homepage/
+  rsync -avh --delete --exclude '.git' /home/"$USER"/Documents/homepage/ /home/"$USER"/Downloads/archives/homepage/ "$localnet.$fin_ip":Documents/homepage/
   exit_status="$?"
   transfer_status "$exit_status"
 
