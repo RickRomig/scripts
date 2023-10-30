@@ -35,25 +35,18 @@ readonly _updated="04 Feb 2023"
 install_audacious() {
   exists audacious && leave "Audacious audio player is installed."
 
-  if support_ppa; then
-    echo "Installing Audacious audio player."
-    sudo add-apt-repository ppa:ubuntuhandbook1/apps
-    sudo apt update -qq
-    sudo apt install audacious audacious-plugins -yy
-    leave "Audacious audio player installed from PPA."
-  elif in_repos audacious; then
+  if in_repos audacious; then
     sudo apt update -qq
     sudo apt install audacious audacious-plugins -yy
     leave "Audacious audio player installed from distro repository."
   else
-    leave "PPA not supported or not in repository. Audacious audio player not installed."
+    leave "Audacious is not in repositories. Audacious audio player not installed."
   fi
 }
 
 remove_audacious() {
   if exists audacious; then
     echo "Removing Audacious audio player."
-    support_ppa && sudo add-apt-repository --remove ppa:ubuntuhandbook1/apps
     sudo apt remove --autoremove audacious audacious-plugins
     leave "Audacious audio player removed."
   else
@@ -75,5 +68,20 @@ select opt in "${options[@]}"; do
     2 ) user_in_sudo; remove_audacious; break ;;
     3 ) leave "No action taken. Exiting the script." ;;
     * ) echo "${lightred}Invalid option.${normal} Please try again." >&2 ;;
+  esac
+done
+
+noOpt=1
+optstr=":hir"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		h )
+			help 0
+		;;
+    i )
+    ;;
+    r )
+    ;;
+    ? )
   esac
 done
