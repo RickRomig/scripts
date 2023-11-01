@@ -6,8 +6,8 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Version      : Version 1.3.0
-# Last updated : 15 Oct 2023
+# Version      : Version 1.3.1
+# Last updated : 01 Nov 2023
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
@@ -56,10 +56,10 @@ find "$arc_dir" -mtime +1095 -delete
 tar -czf "$arc_dir/$cur_hb_bu" -C "$HOME/Documents" HomeBank 2>> "$arc_dir/$err_log"
 find "$arc_dir" -type f -name "hb-bu*" -mtime +90 -delete
 
-# Sync HomeBank archive to main system
-rsync -aq --delete "$HOME"/Downloads/archives/homebank/ 192.168.0.10:Downloads/archives/homebank/ 2>> "$arc_dir/$err_log"
-
 # Removes empty error log
 [[ -s "$arc_dir/$err_log" ]] || rm -f "$arc_dir/$err_log"
+
+# Sync HomeBank archive to main system
+rsync -aq --delete "$HOME"/Downloads/archives/homebank/ 192.168.0.10:Downloads/archives/homebank/ 2>> "$arc_dir/$err_log"
 
 exit 
