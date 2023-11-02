@@ -6,7 +6,7 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Version      : Version 1.3.1
+# Version      : Version 1.3.2
 # Last updated : 01 Nov 2023
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
@@ -53,7 +53,7 @@ log_len=$(wc -l "$log_dir/$log_file" | cut -d " " -f1)
 find "$arc_dir" -mtime +1095 -delete
 
 # Backup current contents of HomeBank & remove backups older that 90 days.
-tar -czf "$arc_dir/$cur_hb_bu" -C "$HOME/Documents" HomeBank 2>> "$arc_dir/$err_log"
+tar -cpzf "$arc_dir/$cur_hb_bu" -C "$HOME/Documents" HomeBank 2>> "$arc_dir/$err_log"
 find "$arc_dir" -type f -name "hb-bu*" -mtime +90 -delete
 
 # Removes empty error log

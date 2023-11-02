@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Oct 2023
-# Last updated : 27 Oct 2023 (Version 0.1.2)
+# Last updated : 01 Nov 2023 (Version 0.1.3)
 # Comments     : Run as a daily cron job
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,7 +29,7 @@ if [[ "$day" == "Sun" ]]; then
   find "$arc_dir" -mtime +85 -delete
 fi
 
-tar -czg "$arc_dir/$snar" -f "$arc_dir/$archive" -C "$HOME" gitea
+tar -cpzg "$arc_dir/$snar" -f "$arc_dir/$archive" -C "$HOME" gitea
 
 rsync -a --delete "$HOME"/Downloads/archives/gitea-repo/ rick@192.168.0.16:Downloads/archives/gitea-repo/
 
