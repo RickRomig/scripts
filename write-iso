@@ -29,7 +29,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.0"
+readonly _version="0.4.1"
 readonly _updated="02 Nov 2023"
 user=$(whoami)
 
@@ -40,7 +40,7 @@ select_iso() {
 	[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
 	
 	if exists fzf; then
-		isofile=$(find ./ -type f -name "*.iso" -print | sed 's/\.\///' | fzf --prompt "Select the ISO file to check: ")
+		isofile=$(find ./ -type f -name "*.iso" -print | sed 's/\.\///' | fzf --prompt "Select the ISO file to write: ")
 	else
 		PS3="Please select an ISO file: "
 		options=($(find ./ -maxdepth 1 -name "*.iso" | sed 's/\.\///'))
@@ -60,14 +60,14 @@ select_iso() {
 
 select_usb() {
 	if exists fzf; then
-		usb_device=$(lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $3"\t"$2"\t"$1}' | fzf --prompt "Select the USB drive to write to: ")
-		usb_device=$(echo "$usb_device" | awk '{print $3}')
+		usb_device=$(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL | awk '$2 == "disk" && $1 == "1" {print $0}' | awk '{$1=$1}1' | sed 's/1//' | fzf --prompt "Select the USB drive to write to: ")
+		usb_device=$(echo "$usb_device" | awk '{print $2}')
 	else
 		printf "Available drives:\n"
-		lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $3"\t"$2"\t"$1}'
-		print_line "-" 20
+		lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL | awk '$2 == "disk" && $1 == "1" {print $0}' | awk '{$1=$1}1' | sed 's/1//'
+		print_line "-" 40
 		PS3="Please select an available USB drive: "
-		options=($(lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $1}'))
+		options=($(lsblk -o NAME,TYPE,HOTPLUG | awk '$2 == "disk" && $3 == "1" {print $1}'))
 		select opt in "${options[@]}" "Quit"; do
 			if (( REPLY == 1 + ${#options[@]} )); then
 				printf "No USB device selected. Operation canceled. Exiting the script.\n"
@@ -76,7 +76,7 @@ select_usb() {
 				usb_device="$opt"
 				break
 			else
-				echo "Not a valid options Please try again."
+				printf "Invalid option. Choose 1 - %d\n" "${#options[@]}" 
 			fi
 		done
 	fi
@@ -106,12 +106,13 @@ simulate_dd() {
   printf "\n%s written to /dev/%s (SIMULATED)\n"  "$isofile" "$usb_device"
   printf "\nContents of /dev/%s\n\n" "$usb_device"
   ls "/media/$user/$mount_name"
-}
+
 
 mount_usb() {
   [[ -d "/media/$user/$mount_name" ]] || sudo mkdir -p "/media/$user/$mount_name"
 	sudo mount "/dev/$usbpart" "/media/$user/$mount_name" 2>/dev/null
-}
+	printf "USB drive /dev/%s is mounted at /media/$user/%s\n" "$usbpart" "$mount_name"
+}}
 
 unmount_usb() {
 	sudo umount "/dev/$usbpart"	&& printf "USB drive unmounted.\n" # /media/$user/"$mount_name"
@@ -144,12 +145,11 @@ printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\
 
 usbpart="${usb_device}1"
 if mount | grep -q "$usbpart" > /dev/null 2>&1; then
-	mount_name=$(lsblk | grep "/media/$user/" | cut -d'/' -f4- )
+	mount_name=$(lsblk | grep "$usbpart" | cut -d'/' -f4- )
 else
 	mount_name="$(date +%y%b%d)"
 	mount_usb #"/dev/$usbpart"
 fi
-printf "USB drive /dev/%s is mounted at /media/$user/%s\n" "$usbpart" "$mount_name"
 
 # Confirm action or cancel
 
