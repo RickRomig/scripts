@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.3.11"
-readonly _updated="29 Oct 2023"
+readonly _version="1.3.12"
+readonly _updated="03 Nov 2023"
 
 ## Functions ##
 
@@ -137,39 +137,45 @@ sync_script() {
   exit_status="$?"
   transfer_status "$exit_status"
 
-  case "$hostip" in
-    11 )
-      # Sync financial files.
-      echo $'\n'$"${orange}Syncing Finance...${normal}"
-      rsync -avh --delete /home/"$USER"/Documents/Finance/ "$localnet.$hostip":Documents/Finance/
-      exit_status="$?"
-      transfer_status "$exit_status"
+  if [[ "$hostip" == "11" ]]; then
+    # Sync financial files.
+    echo $'\n'$"${orange}Syncing Finance...${normal}"
+    rsync -avh --delete /home/"$USER"/Documents/Finance/ "$localnet.$hostip":Documents/Finance/
+    exit_status="$?"
+    transfer_status "$exit_status"
 
-      echo $'\n'$"${orange}Syncing HomeBank...${normal}"
-      rsync -avh --delete /home/"$USER"/Documents/HomeBank/ "$localnet.$hostip":Documents/HomeBank/
-      exit_status="$?"
-      transfer_status "$exit_status"
+    echo $'\n'$"${orange}Syncing HomeBank...${normal}"
+    rsync -avh --delete /home/"$USER"/Documents/HomeBank/ "$localnet.$hostip":Documents/HomeBank/
+    exit_status="$?"
+    transfer_status "$exit_status"
 
-      echo $'\n'$"${orange}Syncing HomeBank archives...${normal}"
-      rsync -avh --delete /home/"$USER"/Downloads/archives/homebank/ "$localnet.$hostip":/data/archives/homebank/
-      exit_status="$?"
-      transfer_status "$exit_status"
+    echo $'\n'$"${orange}Syncing HomeBank archives...${normal}"
+    rsync -avh --delete /home/"$USER"/Downloads/archives/homebank/ "$localnet.$hostip":/data/archives/homebank/
+    exit_status="$?"
+    transfer_status "$exit_status"
 
-      echo $'\n'$"${orange}Syncing Finance archives...${normal}"
-      rsync -avh --delete /home/"$USER"/Downloads/archives/finance/ "$localnet.$hostip":/data/archives/finance/
-      exit_status="$?"
-      transfer_status "$exit_status"
-      ;;
-    # 15 )
-    #   # sync ISO files
-    #   echo $'\n'$"${orange}Syncing ISO images...${normal}"
-    #   rsync -avh --delete /home/"$USER"/Downloads/ISO/ "$localnet.$hostip":Downloads/ISO/
-    #   exit_status="$?"
-    #   transfer_status "$exit_status"
-    #   ;;
-    * )
-      printf "\n"
-  esac
+    echo $'\n'$"${orange}Syncing Finance archives...${normal}"
+    rsync -avh --delete /home/"$USER"/Downloads/archives/finance/ "$localnet.$hostip":/data/archives/finance/
+    exit_status="$?"
+    transfer_status "$exit_status"
+  elif [[ "$hostip" == "16" ]]; then
+    # Sync Deb packages and Git repositories
+    printf "\n%sSyncing Deb Packages...%s\n" "$orange" "$normal"
+    rsync -avh --delete /home/"$USER"/debpkgs/  "$localnet.$hostip":debpkgs/
+    exit_status="$?"
+    transfer_status "$exit_status"
+
+    printf "\n%sSyncing Gitea Repositories...%s\n" "$orange" "$normal"
+    rsync -avh --delete --exclude '.git' /home/"$USER"/gitea/ "$localnet.$hostip":gitea/
+    exit_status="$?"
+    transfer_status "$exit_status"
+
+    printf "\n%sSyncing Github Repositories...%s\n" "$orange" "$normal"
+    rsync -avh --delete --exclude '.git' /home/"$USER"/Projects/ "$localnet.$hostip":Projects/
+    exit_status="$?"
+    transfer_status "$exit_status"
+fi
+  printf "\n"
 }
 
 sync_one() {
