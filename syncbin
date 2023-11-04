@@ -105,8 +105,13 @@ sync_script() {
 
   case "$hostip" in
     10|22|153 )
-      echo $'\n'$"${orange}Syncing Gitea repositoies...${normal}"
+      printf "\n%sSyncing Gitea Repositories...%s\n" "$orange" "$normal"
       rsync -avh --delete /home/"$USER"/gitea/ "$localnet.$hostip":gitea/
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      printf "\n%sSyncing Github Repositories...%s\n" "$orange" "$normal"
+      rsync -avh --delete --exclude '.git' /home/"$USER"/Projects/ "$localnet.$hostip":Projects/
       exit_status="$?"
       transfer_status "$exit_status"
     ;;
