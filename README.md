@@ -7,6 +7,6 @@ Bash scripts, support files, templates, and function documentation used on Mosfa
 3. The snippets directory contains code snippets and examples.
 4. The Templates directory contains templates for headers, scripts, and open-source licenses. Also contains imaages for `neofetch`
 
-Rick Romig
+#### Rick Romig
 #### The Luddite Geek
 ##### 04 November 2023
