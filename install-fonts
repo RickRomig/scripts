@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.7"
-readonly _updated="06 Oct 2023"
+readonly _version="0.3.8"
+readonly _updated="04 Nov 2023"
 
 font_flag=0  # 0 = no fonts installed. 1 = at least one font installed.
 
@@ -51,12 +51,12 @@ cascadia_code() {
       sudo rm -rf "$ccf_dir"/woff2/
     fi
   else
-    [[ -d "$ccf_dir" ]] || mkdir -p "$ccf_dir"
+    [[ -d "$ccf_dir" ]] || sudo mkdir -p "$ccf_dir"
   fi
   echo "Installing Cascadia Code fonts..."
   wget -q -P "$tmp_dir/" "$font_url/$font_zip"
-  [[ -d "$ccf_dir" ]] || mkdir -p "$ccf_dir"
-  sudo unzip "$tmp_dir/C$font_zip" -d "$ccf_dir"
+  [[ -d "$ccf_dir" ]] || sudo mkdir -p "$ccf_dir"
+  sudo unzip "$tmp_dir/$font_zip" -d "$ccf_dir"
   sudo cp "$ccf_dir"/ttf/*.ttf "$user_ccf"/
   echo "Cascadia Code fonts installed."
 }
@@ -181,22 +181,26 @@ while true; do
         tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
         cascadia_code
         font_flag=1
+        break
         ;;
       2 )
         user_in_sudo
         nerd_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
         nerd_fonts
         font_flag=1
+        break
       ;;
       3 )
         user_in_sudo
         ms_core_fonts
         font_flag=1
+        break
         ;;
       4 )
         user_in_sudo
         carlito_caladea
-        font_flag=1
+         break
+       font_flag=1
         ;;
       5 )
         user_in_sudo
@@ -204,13 +208,14 @@ while true; do
         font_dl_dir=$(mktemp -d) || die "Failed to create temporary diectory." 1
         vista_fonts
         font_flag=1
+        break
         ;;
       6 )
         (( font_flag != 0 )) && sudo /usr/bin/fc-cache -f > /dev/null 2>&1
         leave ""
         ;;
       * )
-        echo "${lightred}Invalid Choice!${normal}" >&2 ;;
+        echo "${lightred}Invalid Choice!${normal}" >&2
     esac
   done
 done
