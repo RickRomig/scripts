@@ -27,19 +27,18 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.2"
-readonly _updated="31 Oct 2023"
+readonly _version="0.4.3"
+readonly _updated="04 Nov 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly mhost="hp-800g2-sff"
 readonly mhostip="10"
-readonly fhost="hp-probook-6570"
 
 ## Execution ##
 
 check_package scp
 printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Copying KeepassXC databases to %s\n" "$mhost"
-# Ensure script is being run from HP-ProBook-6570 (21)
-[[ "$lhost" != "$fhost" ]] && die "$_script must be run from $fhost."
+# Ensure script is not being run from HP-800-G2-SFF (21)
+[[ "$lhost" == "$mhost" ]] && die "$_script cannot be run from $mhost."
 scp -pq "$HOME"/Documents/Passwords*.kdbx "$localnet.$mhostip":Documents/
 leave ""
