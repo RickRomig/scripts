@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.2"
-readonly _updated="16 Oct 2023"
+readonly _version="0.5.3"
+readonly _updated="04 Nov 2023"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg_d=$HOME"/.config/bat"
 
@@ -106,36 +106,8 @@ dl_bat_config() {
 apply_config() {
   [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
   printf "Applying Bat configuration...\n"
-  bat_config
+  dl_bat_config
   printf "Bat configuration applied.\n"
-}
-
-bat_config() {
-  cat << EOF > "$bat_cfg_d/config"
-# Set the theme to "OneHalfDark"
---theme="OneHalfDark"
-
-# Show line numbers, Git modifications, file header, and grid
---style="numbers,changes,header,grid"
-
-# Use italic text on the terminal (not supported on all terminals)
-# --italic-text=always
-
-# Add mouse scrolling support in less (does not work with older
-# versions of "less")
-# --pager="less -FR"
-
-# paging option - *auto*, always, never
---paging=always
-
-# Use C++ syntax (instead of C) for .h header files
-# --map-syntax h:cpp
-
-# Use "gitignore" highlighting for ".ignore" files
-# --map-syntax .ignore:.gitignore
---map-syntax ".ignore:Git Ignore"
-EOF
-  echo "Bat configuration file created."
 }
 
 help() {
@@ -162,7 +134,6 @@ while getopts "$optstr" opt; do
   case "$opt" in
     c )
       exists bat || leave "Bat is not installed. Run '$_script -i' to install."
-      # apply_config
       dl_bat_config
     ;;
     h )
@@ -178,8 +149,7 @@ while getopts "$optstr" opt; do
       echo "${lightyellow}Installing Bat version $new_ver...${normal}"
       check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
       install_bat
-      # apply_config
-      bat_config
+      apply_config
     ;;
     r )
       exists bat || leave "Bat is not installed. Run '$_script -i' to install."
