@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# Called by git commit to run shellcheck against staged scripts before making commit.
+# Execute from repository's .git/hooks directory
+# Excludes *.md files (README.md, etc)
+# Terminates the commit if shellcheck fails.
+
+for file in $(git diff --cached --name-only --diff-filter=AM | grep -Ev '\.md$')
+do
+  shellcheck -x --exclude=SC1001,SC2001 "$file" 
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
+done
