@@ -13,7 +13,7 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -27,99 +27,135 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.4"
+readonly _version="0.4.0"
 readonly _updated="09 Nov 2023"
 
 ## Functions ##
 
 mount_share() {
-  local ip_addr="$1"
+  local octet="$1"
   local share="$2"
-  ping -c3 "$localnet.$ip_addr" > /dev/null 2>&1 || die "$share at $localnet.$ip_addr is not online."
-  if [[ -d "$HOME/mnt/$share/" ]]; then
-    mounted=$(mount | grep "$share")
-    if [[ -z "$mounted" ]]; then
-      if [[ "$share" == "NASD97167" ]]; then
-        sshfs -o follow_symlinks rick@"$localnet.$ip_addr:" "$HOME/mnt/$share/"
-      else
-        sshfs -o follow_symlinks rick@"$localnet.$ip_addr:/home/rick" "$HOME/mnt/$share/"
-      fi
-      echo "$share home directory:"
-      ls "$HOME/mnt/$share/"
-      echo "$share at $localnet.$ip_addr has been mounted."
-    else
-      echo "$share at $localnet.$ip_addr is already mounted."
-    fi
-  else
-    # Share does not exist, create it.
-    mkdir -p "$HOME/mnt/$share"
-    if [[ "$share" == "NASD97167" ]]; then
-      sshfs -o follow_symlinks rick@"$localnet.$ip_addr:" "$HOME/mnt/$share/"
-    else
-      sshfs -o follow_symlinks rick@"$localnet.$ip_addr:/home/rick" "$HOME/mnt/$share/"
-    fi
-    echo "$share home directory:"
-    ls "$HOME/mnt/$share/"
-    echo "$share at $localnet.$ip_addr has been created and mounted."
-  fi
+  ping -c3 "$localnet.$octet" > /dev/null 2>&1 || die "$share at $localnet.$octet is not online."
+	[[ -d "$HOME/mnt/$share/" ]] || mkdir -p "$HOME/mnt/$share"
+	printf "Mounting %s...\n" "$share"
+	if [[ "$share" == "NASD97167" ]]; then
+  	sshfs -o follow_symlinks rick@"$localnet.$octet:" "$HOME/mnt/$share/"
+	else
+		sshfs -o follow_symlinks rick@"$localnet.$octet:/home/rick" "$HOME/mnt/$share/"
+	fi
+	printf "Home directory at %s:\n" "$share"
+	ls "$HOME/mnt/$share/"
+	printf "%s at %s.%s has been mounted.\n" "$share" "$localnet" "$octet"
 }
 
 unmount_share() {
   local share="$1"
-  [[ -d "$HOME/mnt/$share/" ]] || die "No mountpoint created for $share."
-  mounted=$(mount | grep "$share")
-  if [[ -n "$mounted" ]]; then
     cd "$HOME" || cd_fail
     if fusermount -u "$HOME/mnt/$share/"; then
-      echo "$share has been unmounted."
+      printf "%s has been unmounted.\n" "$share"
     else
-      echo "$red_error $share has not been unmounted." >&2
+      printf "%s %s has not been unmounted." >&2 "$red_error" "$share"
       fail_msg
     fi
-  else
-    echo "$share is not mounted."
-  fi
+}
+
+mounted() {
+	local share="$1"
+	mount | grep -q "$share" && return "$TRUE" || return "$FALSE"
+}
+
+handle_mount() {
+	local octet="$1"
+  local share="$2"
+  if mounted "$share"; then
+		if default_yes "Unmount $share"; then
+			unmount_share "$share"
+		else
+			printf "%s left mounted.\n" "$share"
+		fi
+	else
+		mount_share "$octet" "$share"
+	fi
 }
 
 cd_fail() {
-  echo "$red_error The cd shell builtin failed." >&2
-  echo "The SSHFS share has not been unmounted." >&2
+  printf "%s The cd shell builtin failed.\n" "$red_error" >&2
+  printf "The SSHFS share has not been unmounted.\n" >&2
   fail_msg
 }
 
 fail_msg() {
-  echo "Make sure you are not in the mountpoint and run the following command:" >&2
-  echo -e "\t${orange}fusermount -u $HOME/mnt/$share/${normal}" >&2
+  printf "Make sure you are not in the mountpoint and run the following command:\n" >&2
+  printf "\t%sfusermount -u \$HOME/mnt/%s/%s\n" "$orange" "$share" "$normal"  >&2
   exit 1
+}
+
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -c  toggle mount/umount HP Compaq 6005 Pro SSF (file server)
+  -e  toggle mount/umount HP EliteBook 850 G2 (laptop)
+  -f  toggle mount/umount HP ProBook 6570b (Finance)
+  -g  toggle mount/umount HP Compaq Elite 8300 USDT (Gitea Server)
+  -h  help
+  -l  toggle mount/umount Lenovo M91p (VM and media)
+  -n  toggle mount/umount QNAP NAS (network attached storage)
+$_script v$_version (Updated: $_updated)
+END_HELP
+	exit "$errcode"
 }
 
 ## Execution ##
 
 check_package sshfs
 
-echo "$_script v$_version ($_updated)"
-echo -e "Mount or unmount an SSHFS share.\n"
-options=( "Mount Finance" "Unmount Finance" "Mount Gitea Server" "Unmount Gitea Server" "Mount EliteBook 850-G3" \
-"Unmount EliteBook 850-G3" "Mount HP-6005" "Unmount HP-6005" "Mount Lenovo" "Unmount Lenovo"  "Mount NAS" "Unmount NAS" \
-"Quit" )
-COLUMNS=60
-PS3="Choose an action: "
-select opt in "${options[@]}"; do
-  case $REPLY in
-    1 ) mount_share 21 "HP-ProBook-6570b"; break ;;
-    2 ) unmount_share "HP-ProBook-6570b"; break ;;
-    3 ) mount_share 16 "Gitea-Server"; break ;;
-    4 ) unmount_share "Gitea-Server"; break ;;
-    5 ) mount_share 22 "EliteBook-850"; break ;;
-    6 ) unmount_share "EliteBook-850"; break ;;
-    7 ) mount_share 11 "HP-6005"; break ;;
-    8 ) unmount_share "HP-6005"; break ;;
-    9 ) mount_share 15 "Lenovo-M91p"; break ;;
-    10 ) unmount_share "Lenovo-M91p"; break ;;
-    11 ) mount_share 4 "NASD97167"; break ;;
-    12 ) unmount_share "NASD97167"; break ;;
-    13 ) echo "Exiting. No action taken."; break ;;
-    * ) echo "${lightred}Invalid option.${normal} Choose 1-13." >&2
-  esac
+printf "Mount or unmount an SSHFS share.\n\n"
+
+noOpt=1
+optstr=":cefghln"
+while getopts "$optstr" opt
+do
+	case "$opt" in
+		c )
+			share_name="HP-6005"
+			ip_address=11
+			handle_mount "$ip_address" "$share_name"
+		;;
+		e )
+			share_name="EliteBook-850"
+			ip_address=22
+			handle_mount "$ip_address" "$share_name"
+		;;
+		f )
+			share_name="HP-ProBook-6570b"
+			ip_address=21
+			handle_mount "$ip_address" "$share_name"
+		;;
+		g )
+			share_name="Gitea-Server"
+			ip_address=16
+			handle_mount "$ip_address" "$share_name"
+		;;
+		h )
+			help 0
+		;;
+		l )
+			share_name="Lenovo-M91p"
+			ip_address=15
+			handle_mount "$ip_address" "$share_name"
+		;;
+		n )
+			share_name="NASD97167"
+			ip_address=4
+			handle_mount "$ip_address" "$share_name"
+		;;
+		?)
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			help 2
+	esac
+	noOpt=0
 done
-exit
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+leave "$_script v$_version ($_updated)"
