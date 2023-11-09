@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.3"
-readonly _updated="08 Jan 2023"
+readonly _version="0.3.4"
+readonly _updated="09 Nov 2023"
 
 ## Functions ##
 
@@ -73,7 +73,7 @@ unmount_share() {
     if fusermount -u "$HOME/mnt/$share/"; then
       echo "$share has been unmounted."
     else
-      echo "${lightred}ERROR:${normal} $share has not been unmounted." >&2
+      echo "$red_error $share has not been unmounted." >&2
       fail_msg
     fi
   else
@@ -82,7 +82,7 @@ unmount_share() {
 }
 
 cd_fail() {
-  echo "${lightred}ERROR:${normal} The cd shell builtin failed." >&2
+  echo "$red_error The cd shell builtin failed." >&2
   echo "The SSHFS share has not been unmounted." >&2
   fail_msg
 }
@@ -99,24 +99,27 @@ check_package sshfs
 
 echo "$_script v$_version ($_updated)"
 echo -e "Mount or unmount an SSHFS share.\n"
-options=( "Mount Finance" "Unmount Finance" "Mount ProBook-6570" "Unmount ProBook-6570" \
-"Mount EliteBook 850-G3" "Unmount EliteBook 850-G3" "Mount HP-6005" "Unmount HP-6005" "Mount NAS" "Unmount NAS" "Quit" )
+options=( "Mount Finance" "Unmount Finance" "Mount Gitea Server" "Unmount Gitea Server" "Mount EliteBook 850-G3" \
+"Unmount EliteBook 850-G3" "Mount HP-6005" "Unmount HP-6005" "Mount Lenovo" "Unmount Lenovo"  "Mount NAS" "Unmount NAS" \
+"Quit" )
 COLUMNS=60
 PS3="Choose an action: "
 select opt in "${options[@]}"; do
   case $REPLY in
     1 ) mount_share 21 "HP-ProBook-6570b"; break ;;
     2 ) unmount_share "HP-ProBook-6570b"; break ;;
-    3 ) mount_share 20 "ProBook-6570b"; break ;;
-    4 ) unmount_share "ProBook-6570b"; break ;;
+    3 ) mount_share 16 "Gitea-Server"; break ;;
+    4 ) unmount_share "Gitea-Server"; break ;;
     5 ) mount_share 22 "EliteBook-850"; break ;;
     6 ) unmount_share "EliteBook-850"; break ;;
     7 ) mount_share 11 "HP-6005"; break ;;
     8 ) unmount_share "HP-6005"; break ;;
-    9 ) mount_share 4 "NASD97167"; break ;;
-    10 ) unmount_share "NASD97167"; break ;;
-    11 ) echo "Exiting. No action taken."; break ;;
-    * ) echo "${lightred}Invalid option.${normal} Choose 1-11." >&2 ;;
+    9 ) mount_share 15 "Lenovo-M91p"; break ;;
+    10 ) unmount_share "Lenovo-M91p"; break ;;
+    11 ) mount_share 4 "NASD97167"; break ;;
+    12 ) unmount_share "NASD97167"; break ;;
+    13 ) echo "Exiting. No action taken."; break ;;
+    * ) echo "${lightred}Invalid option.${normal} Choose 1-13." >&2
   esac
 done
 exit
