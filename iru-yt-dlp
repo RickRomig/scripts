@@ -104,12 +104,17 @@ remove_configs() {
 }
 
 remove_updater() {
-	[[ -f "$sed_location/$sed_file" ]] && sudo rm "$sed_location/$sed_file"
+	if [[ -f "$sed_location/$sed_file" ]]; then
+		sudo rm "$sed_location/$sed_file"
+		printf "%s removed.\n" "$sed_file"
+	else
+		printf "%s not found.\n"  "$sed_file"
+	fi
 	if [[ -x "$cron_location/$update_script" ]]; then
 		sudo rm "$cron_location/$update_script"
-  	printf "%s update script removed.\n" "$update_script"
+  	printf "%s script removed.\n" "$update_script"
 	else
-		printf "%s update script not found.\n" "$update_script"
+		printf "%s script not found.\n" "$update_script"
 	fi
 }
 
