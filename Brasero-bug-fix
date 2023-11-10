@@ -6,8 +6,10 @@
 # Arguments    : None
 # Author       : Copyright (C) 2019, Richard B. Romig, 12 February 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comment      : Bug in Brasero where you can't burn CDs
-#              : Joe Collins & Matt Hartley
+# Comments     : Bug in Brasero where you can't burn CDs
+#              : When a blank CD or DVD is inserted but pop-up screen, but
+#              : gives no application to select or options are greyed out:
+#              : From Joe Collins & Matt Hartley
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
 #####################################################################
@@ -15,8 +17,8 @@
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.1"
-readonly _updated="01 Mar 2023"
+readonly _version="0.2.2"
+readonly _updated="10 Nov 2023"
 
 ## Functions ##
 
@@ -35,23 +37,16 @@ set_permissions() {
   sudo chmod -v 0755 /usr/bin/growisofs
 }
 
-mimeaps_list_add() {
-  local mimeaps_list=".local/share/applications/mimeapps.list"
-  if [[ -f "$HOME/$mimeaps_list" ]]; then
-    if grep -qw 'brasero' "$HOME/mimeaps_list"; then
+mimeapps_list_add() {
+  local mimeapps_list=".local/share/applications/mimeapps.list"
+  if [[ -f "$HOME/$mimeapps_list" ]]; then
+    if grep -qw 'brasero' "$HOME/$mimeapps_list"; then
       {
         echo "x-content/blank-cd=brasero.desktop;"
         echo "x-content/blank-dvd=brasero.desktop;"
-      } >> "$HOME/$mimeaps_list"
+      } >> "$HOME/$mimeapps_list"
     fi
   fi
-
-  # When a blank CD or DVD is inserted but pop-up screen
-  # gives no application to select or options are greyed out:
-  # cat ~/.local/share/applications/mimeapps.list | grep 'brasero' > /dev/null 2&>1
-  # Add to end of file:
-  # x-content/blank-cd=brasero.desktop;
-  # x-content/blank-dvd=brasero.desktop;
 }
 
 ## Execution ##
@@ -61,7 +56,7 @@ intro
 
 if exists brasero; then
   set_permissions
-  mimeaps_list_add
+  mimeapps_list_add
 fi
 
 exit
