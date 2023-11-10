@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Oct 2023
-# Last updated : 01 Nov 2023 (Version 0.1.1)
-# Comments     : Run as a daily cron job on main system
+# Last updated : 10 Nov 2023 (Version 0.1.1)
+# Comments     : Run as a daily cron job on finance system
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
