@@ -17,9 +17,9 @@
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.9"
-readonly _updated="23 Sep 2023"
-readonly repos=( scripts configs i3debian deb12wm-scripts deb12wm-dotfiles  gitea-server openboxdebian fnloc fnloc-win )
+readonly _version="0.2.1"
+readonly _updated="10 Nov 2023"
+readonly repos=( scripts configs i3debian deb12wm-scripts deb12wm-dotfiles gitea-server openboxdebian fnloc fnloc-win homepage )
 
 ## Functions ##
 
@@ -46,7 +46,7 @@ printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Clone a repository from the local Gitea server.\n\n"
 printf "Available repositories:\n"
 COLUMNS=40
-options=( "Bash scripts" "Configuration files" "Debian 11 i3-gaps" "Debian 12 WM scripts" "Debian 12 WM dotfiles" "Gitea Server" "Openbox Debian" "FnLoC" "FnLoC-Win" "Exit" )
+options=( "Bash scripts" "Configuration files" "Debian i3 WM" "Debian 12 WM scripts" "Debian 12 WM dotfiles" "Gitea Server" "Openbox Debian" "FnLoC" "FnLoC-Win" "Homepage" "Exit" )
 PS3="Choose a repository to clone: "
 select opt in "${options[@]}"; do
   case "$REPLY" in
@@ -87,6 +87,10 @@ select opt in "${options[@]}"; do
       break
     ;;
     10 )
+      clone_repo "${repos[9]}"
+      break
+    ;;
+    11 )
       printf "Exiting. No repositories cloned.\n"
       break
     ;;
