@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.7.5"
-readonly _updated="30 Sep 2023"
+readonly _version="0.8.0"
+readonly _updated="13 Nov 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -199,15 +199,49 @@ local_backup_log() {
   fi
 }
 
-gitea_svr_backups() {
+gitea_snapshots() {
   local log_dir="$HOME/Downloads/archives/gitea"
   if [[ -d "$log_dir" ]]; then
     clear 
-    printf "%s%s - Gitea Repository Backups:%s\n\n" "$lightgreen" "$lhost" "$normal"
+    printf "%s%s - Gitea Repository Snapshots:%s\n\n" "$lightgreen" "$lhost" "$normal"
     tree "$log_dir"
     printf "\n"
   else
-    printf "%sGitea Repository Backups do not exist on %s.%s\n" "$orange" "$lhost" "$normal"
+    printf "%sGitea Repository Snapshots do not exist on %s.%s\n" "$orange" "$lhost" "$normal"
+    printf "The job is"
+    if [[ -x "$HOME/.local/bin/gitea-backup.sh" ]]; then
+      printf " scheduled but has not run.\n"
+    else
+      printf " not scheduled to run.\n"
+    fi
+  fi
+}
+
+incremental_backups() {
+  local bu_name="$1"
+  local sub_dir="$2"
+  local log_dir="$HOME/Downloads/archives"
+  if [[ -d "$log_dir/$sub_dir" ]]; then
+    clear
+    printf "%s%s - %s Incremental Backups (last 7):%s\n\n" "$lightgreen" "$lhost" "$bu_name" "$normal"
+    find "$log_dir/$sub_dir" -maxdepth 1 -type f -mtime -7 | sort | awk -F/ '{print $NF}' | head -n8
+    printf "\n"
+  else
+    printf "%s%s incremental backups  do not exits on %s.%s\n" "$orange" "$bu_name" "$lhost" "$normal"
+    case "$bu_name" in
+      "Finance" )
+        job_name="fin-backup.sh" ;;
+      "Gitea" )
+        job_name="gitea-bu.sh" ;;
+      "GitHub" )
+        job_name="projects-bu.sh" ;;
+    esac
+    printf "The job is"
+    if [[ -x "$HOME/.local/bin/$job_name" ]]; then
+      printf " scheduled but has not run.\n"
+    else
+      printf " not scheduled to run.\n"
+    fi
   fi
 }
 
@@ -222,9 +256,8 @@ while true; do
   printf "\n%s%s log files:%s\n" "$lightgreen" "$lhost" "$normal"
 
   COLUMNS=60
-  options=("System Information" "System Updates" "Timeshift Snapshots" \
-    "Defrag Report" "Yt-dlp Updates" "Script archive" "Password Databases" \
-    "HomeBank Archive" "Local Backup" "Gitea Backups" "Exit the script")
+  options=("System Information" "System Updates" "Timeshift Snapshots" "Defrag Report" "Yt-dlp Updates" "Script archive" "Password Databases" \
+    "HomeBank Archive" "Local Backup" "Gitea Snapshots"  "Finance Incremental" "Gitea Incremental" "GitHub Incremental" "Exit the script")
   PS3="Select a log to view: "
   select opt in "${options[@]}"; do
     case $REPLY in
@@ -247,8 +280,14 @@ while true; do
       9 )
         local_backup_log; anykey; break ;;
       10 )
-        gitea_svr_backups; anykey; break ;;
+        gitea_snapshots; anykey; break ;;
       11 )
+        incremental_backups "Finance" "finance"; anykey; break ;;
+      12 )
+        incremental_backups "Gitea" "gitea-repo"; anykey; break ;;
+      13 )
+        incremental_backups "GitHub" "projects-repo"; anykey; break ;;
+      14 )
         leave "${orange}Mischief managed.${normal}" ;;
       * )
         printf "%sInvalid choice. Try again.%s\n" "$lightred" "$normal" >&2
