@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.10"
-readonly _updated="03 Nov 2023"
+readonly _version="3.0.11"
+readonly _updated="13 Nov 2023"
 readonly local_host="${HOSTNAME:-$(hostname)}"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
@@ -141,6 +141,11 @@ sync_script() {
 
   echo $'\n'$"${orange}Syncing Quotes...${normal}"
   rsync -avh --delete /home/"$USER"/Documents/Quotes/ "$localnet.$hostip":Documents/Quotes/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  echo $'\n'$"${orange}Syncing Language...${normal}"
+  rsync -avh --delete /home/"$USER"/Documents/Language/ "$localnet.$hostip":Documents/Language/
   exit_status="$?"
   transfer_status "$exit_status"
 
