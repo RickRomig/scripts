@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-polybar
+# Description  : Installs polybar on Debian 11 i3-gaps systems.
+# Dependencies : curl
+# Arguments    : None
+# Author       : Copyright © 2023 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 16 Nov 2023
+# Last updated : 16 Nov 2023
+# Comments     : For systems running Debian 11 with i3-gaps and Bumblebee-status.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.1.0"
+readonly _updated="16 Nov 2023"
+readonly i3_cfg_dir="$HOME/.config/i3"
+deb_version="$(/usr/bin/lsb_release --codename --short)"; readonly deb_version
+localip="$(local_ip)"
+
+## Functions ##
+
+cp_polybar_cfg() {
+	local polybar_cfg="config.ini"
+	local polybar_dir="$HOME/.config/polybar"
+	[[ -d "$polybar_dir" ]] || mkdir -p "$polybar_dir"
+	printf "Copying the Polybar %s from the Gitea server...\n" "$polybar_cfg"
+	if [[ "$localip" == "16" ]]; then
+		local repo_path="$HOME/gitea/i3debian/.config/polybar"
+		cp "$repo_path/$polybar_cfg" "$polybar_dir/"
+	else
+		local repo_path="i3debian/raw/branch/main/.config/polybar"
+		curl -os "$polybar_dir/$polybar_cfg" "$Gitea_URL/$repo_path/$polybar_cfg"
+	fi
+	printf "Polybar %s copied from the Gitea server to %s/.\n" "$polybar_cfg" "$polybar_dir"
+}
+
+cp_polybar_launch() {
+	local launcher="polybar-i3"
+	local launch_dir="$HOME/.local/bin"
+	[[ -d "$launch_dir" ]] || mkdir -p "$launch_dir"
+	printf "Copying the %s launcher from the Gitea server...\n" "$launcher"
+	if [[ "$localip" == "16" ]]; then
+		local repo_path=$HOME/gitea/i3debian/.local/bin"
+		cp "$repo_path/$launcher" "$launch_dir/"
+		cp "$repo_path/$launcher" "$launch_dir/polybar-i3 ~/.local/bin/
+	else
+		local repo_path="i3debian/raw/branch/main/.local/bin"
+		curl -os "$launch_dir/$launcher" "$Gitea_URL/$repo_path/$launcher"
+	fi
+	printf "%s copied from the Gitea server to %s/.\n" "$launcher" "$launch_dir"
+}
+
+## Execution ##
+
+# clear
+check_package curl
+printf "Installs Polybar on Debian 11 i3-gaps.\n"
+exists polybar && leave "Polybar is already installed."
+[[ "$deb_version" != "bullseye" ]] && leave "Script is intended for Bullseye with i3-gaps."
+
+if in_repos polybar; then
+	sudo apt-get install -y polybar
+	cp_polybar_cfg
+	cp_polybar_launch
+	sed -i.bak '/policykit/a ~/.local/bin/polybar-i3 &' "$i3_cfg_dir/autostart.sh"
+	sed -i.bak '/bar/s/^/# /' "$i3_cfg_dir/config"
+else
+	leave "Polybar is not available in the ${deb_version^} repositories."
+fi
+
+leave "$_script $_version (Updated $_updated)"
