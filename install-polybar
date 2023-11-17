@@ -28,16 +28,16 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.1"
-readonly _updated="16 Nov 2023"
+readonly _version="0.2.1"
+readonly _updated="17 Nov 2023"
 readonly i3_cfg_dir="$HOME/.config/i3"
 deb_version="$(/usr/bin/lsb_release --codename --short)"; readonly deb_version
-localip="$(local_ip)"
+localip="$(local_ip)"; readonly localip
 
 ## Functions ##
 
-cp_polybar_cfg() {
-	local polybar_cfg="config.ini"
+copy_polybar_config() {
+	local polybar_cfg="config"
 	local polybar_dir="$HOME/.config/polybar"
 	[[ -d "$polybar_dir" ]] || mkdir -p "$polybar_dir"
 	printf "Copying the Polybar %s from the Gitea server...\n" "$polybar_cfg"
@@ -51,15 +51,14 @@ cp_polybar_cfg() {
 	printf "Polybar %s copied from the Gitea server to %s/.\n" "$polybar_cfg" "$polybar_dir"
 }
 
-cp_polybar_launch() {
+copy_polybar_launcher() {
 	local launcher="polybar-i3"
 	local launch_dir="$HOME/.local/bin"
 	[[ -d "$launch_dir" ]] || mkdir -p "$launch_dir"
 	printf "Copying the %s launcher from the Gitea server...\n" "$launcher"
 	if [[ "$localip" == "16" ]]; then
-		local repo_path=$HOME/gitea/i3debian/.local/bin"
-		cp "$repo_path/$launcher" "$launch_dir/"
-		cp "$repo_path/$launcher" "$launch_dir/polybar-i3 ~/.local/bin/
+		local repo_path="$HOME/gitea/i3debian/.local/bin"
+		cp -p "$repo_path/$launcher" "$launch_dir/"
 	else
 		local repo_path="i3debian/raw/branch/main/.local/bin"
 		curl -so "$launch_dir/$launcher" "$Gitea_URL/$repo_path/$launcher"
@@ -68,20 +67,35 @@ cp_polybar_launch() {
 	printf "%s copied from the Gitea server to %s/.\n" "$launcher" "$launch_dir"
 }
 
+update_polybar_config() {
+	local polybar_dir="$HOME/.config/polybar"
+	e_name=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
+	[[ -z "$e_name" ]] && e_name="eth0"
+	w_name=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
+	[[ -z "$w_name" ]] && w_name="wlan0"
+	b_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
+	[[ -z "$b_name" ]] && b_name="BAT0"
+	[[ "$w_name" == "wlan0" ]] || sed -i "s/wlan0/$w_name/" "$polybar_dir"/config
+	[[ "$e_name" == "eth0" ]] || sed -i "s/eth0/$e_name/" "$polybar_dir"/config
+	[[ "$b_name" == "BAT0" ]] || sed -i "s/BAT0/$b_name/" "$polybar_dir"/config
+}
+
 ## Execution ##
 
 # clear
 check_package curl
-printf "Installs Polybar on Debian 11 i3-gaps.\n"
+printf "Installs Polybar on Debian 11 with i3-gaps.\n"
 exists polybar && leave "Polybar is already installed."
 [[ "$deb_version" != "bullseye" ]] && leave "Script is intended for Bullseye with i3-gaps."
 
 if in_repos polybar; then
 	sudo apt-get install -y polybar
-	cp_polybar_cfg
-	cp_polybar_launch
-	sed -i.bak '/policykit/a ~/.local/bin/polybar-i3 &' "$i3_cfg_dir/autostart.sh"
-	sed -i.bak '/bar/s/^/# /' "$i3_cfg_dir/config"
+	copy_polybar_config
+	copy_polybar_launcher
+	sed -i '/policykit/a ~/.local/bin/polybar-i3 &' "$i3_cfg_dir/autostart.sh"
+	sed -i '/bar/s/^/# /' "$i3_cfg_dir/config"
+	sed -i 's/Bumblebee-status/Polybar/' ~/.config/neofetch/config.conf
+	update_polybar_config
 else
 	leave "Polybar is not available in the ${deb_version^} repositories."
 fi
