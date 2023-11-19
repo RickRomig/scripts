@@ -1,16 +1,19 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : z-defrag
+# Description  : Script to check defrag condition on spinning drives.
+# Dependencies : None
+# Arguments    : None
+# Author       : Copyright (C) 2021-2023, Richard B. Romig
+# Email        : rick.romig@gmail.com
+# Comments     : Do not run this e4defrag on SSD or NVME drives.
+#              : anacron job: Copy to /etc/cron.monthly as root (or sudo) user
+#              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
+# Last updated : 19 Nov 2023 Version 1.2.5
+# License      : GNU General Public License, version 2.0
+###############################################################################
 
 set -e
-
-# Script to check defrag condition on spinning drives.
-# Will not run e4defrag on SSD or NVME drives.
-# Run as root user.
-# Place in /etc/cron.monthly/ for anacron jobs.
-# Place in /usr/local/bin/ or /opt/bin/ for cron jobs.
-# Last updated: 04 Nov 2023
-# Version 1.2.4
-# Copyright (C) 2021-2023, Richard B. Romig
-# License : GNU General Public License, version 2.0
 
 log_dir="/var/log"
 log_file="defrag.log"
@@ -23,13 +26,13 @@ host_name=$(/usr/bin/uname -n)
 			printf "SSD - e4defrag not run.\n"
 		;;
 		hp-860-g3 )
-			printf "NVMe - e4defrag not run,\n"
+			printf "NVMe - e4defrag not run.\n"
 		;;
 		hp-6005 )
 			/usr/sbin/e4defrag -c / /home /data
 		;;
 		hp-800g2-sff )
-			# e4defrag not run on /dev/sda (SSD)
+			printf "e4defrag not run on /dev/sda (SSD)\n\n"
 			/usr/sbin/e4defrag -c /home
 		;;
 		* )
@@ -37,7 +40,5 @@ host_name=$(/usr/bin/uname -n)
 	esac
 	printf "\n"
 } > "$log_dir/$log_file" 2>&1
-if [ -f "$log_dir/$log_file" ]; then
-	sed -i '/^e4defrag/d;/0-30/d;/^ Done/d' "$log_dir/$log_file"
-fi
+[[ -f "$log_dir/$log_file" ]] && sed -i '/^e4defrag/d;/0-30/d;/^ Done/d' "$log_dir/$log_file"
 exit

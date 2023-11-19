@@ -1,12 +1,18 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : z-update
+# Description  : Updates youtube-dl automatically using anacron
+# Dependencies : None
+# Arguments    : None
+# Author       : Copyright (C) 2023, Richard B. Romig, 20 Jun 2023
+# Email        : rick.romig@gmail.com
+# Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
+#              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
+# Last updated : 19 Nov 2023
+# License      : GNU General Public License, version 2.0
+###############################################################################
 
 set -e
-
-# Update Script
-# anacron job: Copy to /etc/cron.weekly as root (or sudo) user
-# cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
-# Last updated 25 Mar 2023
-# License : GNU General Public License, version 2.0
 
 check_flatpak() {
   printf "\\n*** Flatpak ***\\n"
@@ -26,9 +32,9 @@ sed_file="/usr/share/misc/updatelog.sed"
   printf "\\n*** Checking for updates ***\\n"
   /usr/bin/apt-get update
   nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
-  if [ "$nupd" -eq 1 ]; then
+  if [[ "$nupd" -eq 1 ]]; then
     printf "%d package can be upgraded.\\n" "$nupd"
-  elif [ "$nupd" -gt 1 ]; then
+  elif [[ "$nupd" -gt 1 ]]; then
     printf "%d packages can be upgraded.\\n" "$nupd"
   else
     printf "All packages are up to date.\\n"
@@ -46,12 +52,9 @@ sed_file="/usr/share/misc/updatelog.sed"
   printf "\\n*** Purging obsolete configuration files ***\\n"
   rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}' | wc -l)
   if [ "$rcpkgs" -gt 0 ]; then
-    # /usr/bin/apt-get remove --purge "$(dpkg -l | awk '/^rc/ {print $2}')" -yy
-    for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
-      DEBIAN_FRONTEND=noninteractive apt-get remove --purge "$rcpkg" -yy
-    done
+    for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do DEBIAN_FRONTEND=noninteractive apt-get remove --purge "$rcpkg" -y; done
   else
-    printf "No files to be purged found.\\n"
+    printf "No obsolete configuration files to be purged.\\n"
   fi
   exists flatpak && check_flatpak
   printf "\\nCompleted at: %s\\n" "$(date '+%a %F %T')"

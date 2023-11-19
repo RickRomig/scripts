@@ -1,13 +1,13 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 ###############################################################################
 # Script Name  : z-ytdlp-update
 # Description  : Updates youtube-dl automatically using anacron
-# Dependencies : anacron, awk, sed, youtube-dl
+# Dependencies : anacron, yt-dlp (downloaded from GitHub)
 # Arguments    : None
-# Author       : Richard B. Romig, 20 Jun 2023
+# Author       : Copyright (C) 2023, Richard B. Romig, 20 Jun 2023
 # Email        : rick.romig@gmail.com
 # Comments     : copy as root to /etc/cron.daily
-# Last updated : 18 Nov 2023
+# Last updated : 19 Nov 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -19,13 +19,12 @@ log_file="ytdlpup.log"
 # sed_file="/usr/share/misc/ytdlp-uplog.sed"
 log_date=$(date '+%F|%R')
 update_status=$(/usr/local/bin/yt-dlp --update | awk '/Latest version/ {print $3}' | sed 's/stable@//')
+[[ -z "$update_status" ]] && update_status="Update unavailable"
 
-# Run youtube-dl update
 printf "%s|%s\n" "$log_date" "$update_status" >> "$log_dir/$log_file" 2>&1
-# Format log file for column command.
 # sed -i -f "$sed_file" "$log_dir/$log_file"
 # Remove top entry if more than 30 entries.
 log_len=$(wc -l "$log_dir/$log_file" | cut -d ' ' -f1)
-[ "$log_len" -gt 30 ] && sed -i '1d' "$log_dir/$log_file"
+[[ "$log_len" -gt 30 ]] && sed -i '1d' "$log_dir/$log_file"
 
 exit
