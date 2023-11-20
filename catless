@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.1"
-readonly _updated="10 Nov 2023"
+readonly _version="0.4.0"
+readonly _updated="20 Nov 2023"
 
 ## Functions ##
 
@@ -47,6 +47,27 @@ END_HELP
   exit "$errcode"
 }
 
+is_text() {
+  file -bL --mime "$1" | grep -q '^text' && return "$TRUE" || return "$FALSE"
+}
+
+main() {
+  local textfile="$1"
+  # Get 87% of screen and size of file
+  catmax=$(( $(tput lines)*87/100 ))
+  filesize=$(wc -l "$textfile" | cut -d' ' -f1)
+
+  # View the file
+  box "File: $textfile" "*"
+  if (( filesize < catmax )); then
+	  cat "$textfile"
+	  over_line "$_script $_version (Updated $_updated)" "*"
+  else
+	  less "$textfile"
+	  echo "$_script $_version (Updated $_updated)"
+  fi
+}
+
 ## Execution ##
 
 # Check arguments
@@ -58,21 +79,11 @@ elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
 elif [[ ! -f "$1" ]]; then
   printf "%s %s not found.\n" "$red_error" "$1" >&2
   help 2
-else
+elif is_text "$1"; then
   filename="$1"
-fi
-
-# Get 87% of screen and size of file
-max=$(( $(tput lines)*87/100 ))
-size=$(wc -l "$filename" | cut -d' ' -f1)
-
-# View the file
-box "File: $filename" "*"
-if (( size < max )); then
-	cat "$filename"
-	over_line "$_script $_version (Updated $_updated)" "*"
+  main "$filename"
 else
-	less "$filename"
-	echo "$_script $_version (Updated $_updated)"
+  printf "%s %s is not a text file.\n" "$red_error" "$1"
+  help 1
 fi
 exit
