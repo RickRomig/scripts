@@ -24,7 +24,7 @@ hb_dir=$HOME"/Documents/HomeBank"
 log_dir=$HOME"/.local/share/logs"
 # archive="$arc_date-backup.zip"
 archive="$arc_date-backup.tar.gz"
-cur_hb_bu="hb-bu-$(date +%F).tar.gz"
+# cur_hb_bu="hb-bu-$(date +%F).tar.gz"
 log_file="HomeBank-archive.log"
 err_log="HomeBank-error.log"
 
@@ -57,7 +57,7 @@ log_len=$(wc -l "$log_dir/$log_file" | cut -d " " -f1)
 find "$arc_dir" -mtime +1095 -delete
 
 # Backup current contents of HomeBank & remove backups older that 90 days.
-tar -cpzf "$arc_dir/$cur_hb_bu" -C "$HOME/Documents" HomeBank 2>> "$arc_dir/$err_log"
+# tar -cpzf "$arc_dir/$cur_hb_bu" -C "$HOME/Documents" HomeBank 2>> "$arc_dir/$err_log"
 find "$arc_dir" -type f -name "hb-bu*" -mtime +90 -delete
 
 # Removes empty error log
