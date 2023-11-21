@@ -3,8 +3,7 @@
 # Script Name  : cronscripts
 # Description  : Copies cron scripts to the appropriate directories.
 # Dependencies : None
-# Arguments    : [-a] [-b] [-d] [-f] [-h] [-l] [-p] [-s] [-u] [-y] [-z]
-#              : (See help function.)
+# Arguments    : See help function for list of arguments.
 # Author       : Copyright (C) 2022, Richard B. Romig, 17 Feb 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     :
@@ -28,7 +27,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.5"
+readonly _version="0.5.6"
 readonly _updated="21 Nov 2023"
 readonly user_cron_path="$HOME/.local/bin/"
 readonly opt_cron_path="/opt/bin/"
@@ -93,7 +92,7 @@ cp_empty_trash() {
   local script_path="$HOME/bin/empty-trash.sh"
   [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
   case "$localip" in
-    10|11|12|13|14|15|16|17|19|20|21|23|24|25|227 )
+    10|11|12|13|14|15|16|17|19|20|21|22|23|24|25|227 )
       cp -puv "$script_path" "$user_cron_path" | awk '{print "==> "$NF}'
     ;;
     * )
