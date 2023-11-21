@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.4"
-readonly _updated="19 Nov 2023"
+readonly _version="0.5.5"
+readonly _updated="21 Nov 2023"
 readonly user_cron_path="$HOME/.local/bin/"
 readonly opt_cron_path="/opt/bin/"
 readonly sed_path="/usr/share/misc/"
@@ -87,6 +87,19 @@ cp_scriptarchive() {
     * )
       no_copy "$(basename "$script_path") is"  
   esac
+}
+
+cp_empty_trash() {
+  local script_path="$HOME/bin/empty-trash.sh"
+  [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
+  case "$localip" in
+    10|11|12|13|14|15|16|17|19|20|21|23|24|25|227 )
+      cp -puv "$script_path" "$user_cron_path" | awk '{print "==> "$NF}'
+    ;;
+    * )
+      no_copy "$(basename "$script_path") is"  
+  esac
+
 }
 
 cp_zbackup() {
@@ -174,6 +187,7 @@ ${orange}OPTIONS:${normal}
   -p    Copy password database script.
   -r    Copy repository backup scripts.
   -s    Copy script archive script.
+  -t    Copy empty trash script.
   -u    Copy system update script.
   -y    Copy yt-dlp update script.
   NOTE: Multiple arguments may be passed to the script.
@@ -187,7 +201,7 @@ END_HELP
 printf "Copies updated cron scripts to the appropriate directories.\n"
 
 noOpt=1
-optstr=":abdfhprsuy"
+optstr=":abdfhprstuy"
 while getopts "$optstr" opt; do
   case "$opt" in
     a )
@@ -195,6 +209,7 @@ while getopts "$optstr" opt; do
       cp_passwdsync
       cp_repo_backup
       cp_scriptarchive
+      cp_empty_trash
       cp_zupdate
       cp_zdefrag
       cp_zytdlpupdate
@@ -220,6 +235,9 @@ while getopts "$optstr" opt; do
     ;;
     s )
       cp_scriptarchive
+    ;;
+    t )
+      cp_empty_trash
     ;;
     u )
       cp_zupdate

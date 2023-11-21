@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.8.2"
-readonly _updated="18 Nov 2023"
+readonly _version="0.8.3"
+readonly _updated="21 Nov 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -199,6 +199,23 @@ local_backup_log() {
   fi
 }
 
+trash_log() {
+  local log_dir="/var/log"
+  local log_file="trash.log"
+  if [[ -f "$log_dir/$log_file" ]]; then
+    clear
+    printf "%s%s Local Trash Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
+  else
+    printf "%sThe local trash log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
+    printf "The job is"
+    if [[ -x "$HOME/bin/empty-trash.sh" ]]; then
+      printf " scheduled but has not run.\n"
+    else
+      printf " not scheduled to run.\n"
+    fi
+  fi
+}
+
 gitea_snapshots() {
   local log_dir="$HOME/Downloads/archives/gitea"
   if [[ -d "$log_dir" ]]; then
@@ -257,7 +274,7 @@ while true; do
 
   COLUMNS=60
   options=("System Information" "System Updates" "Timeshift Snapshots" "Defrag Report" "Yt-dlp Updates" "Script archive" "Password Databases" \
-    "HomeBank Archive" "Local Backup" "Gitea Snapshots"  "Finance Incremental" "Gitea Incremental" "GitHub Incremental" "Exit the script")
+    "HomeBank Archive" "Local Backup" "Gitea Snapshots"  "Finance Incremental" "Gitea Incremental" "GitHub Incremental" "Local Trash" "Exit the script")
   PS3="Select a log to view: "
   select opt in "${options[@]}"; do
     case $REPLY in
@@ -288,6 +305,8 @@ while true; do
       13 )
         incremental_backups "GitHub" "projects-repo"; anykey; break ;;
       14 )
+        trash_log; anykey; break ;;
+      15 )
         leave "${orange}Mischief managed.${normal}" ;;
       * )
         printf "%sInvalid choice. Try again.%s\n" "$lightred" "$normal" >&2
