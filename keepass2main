@@ -5,8 +5,8 @@
 # Dependencies : scp
 # Arguments    : none
 # Author       : Copyright (C) 2022 Richard B. Romig, 04 Mar 2022
-# Email        : rick.romig@gmail.com
-# Comments     : Only run from the Finance laptop (21) to the 800-G3 (10)
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : 
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -27,18 +27,17 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.3"
-readonly _updated="04 Nov 2023"
+readonly _version="0.4.4"
+readonly _updated="24 Nov 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly mhost="hp-800g2-sff"
 readonly mhostip="10"
 
 ## Execution ##
 
-check_package scp
 printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Copying KeepassXC databases to %s\n" "$mhost"
 # Ensure script is not being run from HP-800-G2-SFF (21)
-[[ "$lhost" == "$mhost" ]] && die "$_script cannot be run from $mhost."
+[[ "$lhost" == "$mhost" ]] && die "$_script cannot be run from $mhost." 1
 scp -pq "$HOME"/Documents/Passwords*.kdbx "$localnet.$mhostip":Documents/
 leave ""
