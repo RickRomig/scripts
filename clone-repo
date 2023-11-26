@@ -17,8 +17,8 @@
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.1"
-readonly _updated="10 Nov 2023"
+readonly _version="0.2.2"
+readonly _updated="26 Nov 2023"
 readonly repos=( scripts configs i3debian deb12wm-scripts deb12wm-dotfiles gitea-server openboxdebian fnloc fnloc-win homepage )
 
 ## Functions ##
@@ -26,6 +26,8 @@ readonly repos=( scripts configs i3debian deb12wm-scripts deb12wm-dotfiles gitea
 exist_git() {
   if command -v git > /dev/null 2>&1; then
     printf "git - [OK]\n"
+    sleep 2
+    printf '\e[A\e[K'
   else
     sudo apt-get install git -yyq
   fi
@@ -95,7 +97,7 @@ select opt in "${options[@]}"; do
       break
     ;;
     * )
-      printf "\e[91mERROR:\e[0m Invalid choice. Choose 1-9.\n" >&2
+      printf "\e[91mERROR:\e[0m Invalid choice. Choose 1-%d.\n" "${#options[@]}" >&2
   esac
 done
 exit
