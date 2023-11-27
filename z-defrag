@@ -9,11 +9,11 @@
 # Comments     : Do not run this e4defrag on SSD or NVME drives.
 #              : anacron job: Copy to /etc/cron.monthly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
-# Last updated : 19 Nov 2023 Version 1.2.5
+# Last updated : 19 Nov 2023 Version 1.2.6
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
-set -e
+set -euo pipefail
 
 log_dir="/var/log"
 log_file="defrag.log"
@@ -32,7 +32,7 @@ host_name=$(/usr/bin/uname -n)
 			/usr/sbin/e4defrag -c / /home /data
 		;;
 		hp-800g2-sff )
-			printf "e4defrag not run on /dev/sda (SSD)\n\n"
+			printf "/dev/sda is an SSD, e4defrag not run.\n\n"
 			/usr/sbin/e4defrag -c /home
 		;;
 		* )

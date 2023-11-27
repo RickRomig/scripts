@@ -7,11 +7,12 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, 19 August 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : run as a local daily cron job
-# Version      : 0.4.12, updated 24 Oct 2023
+# Version      : 0.4.13, updated 26 Nov 2023
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
-set -e
+
+set -euo pipefail
 
 mstr_dir=$HOME"/Documents"
 dbox_dir=$HOME"/Dropbox"

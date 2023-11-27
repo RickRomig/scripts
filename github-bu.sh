@@ -7,11 +7,13 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Oct 2023
-# Last updated : 15 Nov 2023 (Version 0.1.4)
+# Last updated : 27 Nov 2023 (Version 0.1.5)
 # Comments     : Run as a daily cron job
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
+
+set -euo pipefail
 
 ## Global Variables ##
 

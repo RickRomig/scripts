@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-set -e
-
 # Script to remove old packages from apt cache and orphaned packages.
 # Anacron - copy to /etc/cron.monthly/
 # Cron - copy to /usr/local/bin/ or /opt/bin/
-# Last updated: 19 Nov 2023
+# Last updated: 27 Nov 2023
 # License: GNU General Public License, version 2.0
+
+set -euo pipefail
 
 log_dir="/var/log"
 log_file="clean.log"
@@ -16,7 +16,7 @@ log_date=$(date '+%a %F %R')
   printf "Autoclean log: %s\n\n" "$log_date"
   printf "Removing orphaned packages...\n"
   DEBIAN_FRONTEND=noninteractive apt-get autoremove -yy
-  printf "\\nCleaning APT cache...\n"
+  printf "\nCleaning APT cache...\n"
   DEBIAN_FRONTEND=noninteractive apt-get autoclean
 } > "$log_dir/$log_file" 2>&1
 

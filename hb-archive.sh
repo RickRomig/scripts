@@ -6,14 +6,16 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Version      : 1.3.4
-# Last updated : 25 Nov 2023
+# Version      : 1.3.5
+# Last updated : 27 Nov 2023
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 # shellcheck disable=SC2038
 # SC2038 (warning): Use -print0/-0 or -exec + to allow for non-alphanumeric filenames. (find command)
+
+set -euo pipefail
 
 # Variables
 ref_date=$(date -d "$(date +%Y-%m-01) - 1 month" +%m%d%Y)
