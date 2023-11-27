@@ -137,7 +137,8 @@ os_info() {
 }
 
 cpu_info() {
-  model=$(lscpu | awk -F: '/Model name:/ {print $NF}' | awk '{$1=$1}1' | sed 's/([^)]*)//g')
+  # model=$(/usr/bin/lscpu | awk -F: '/Model name:/ {print $NF}' | awk '{$1=$1}1' | sed 's/([^)]*)//g')
+  model=$(/usr/bin/lscpu | awk -F: '/Model name:/ {print $NF}' | sed 's/^  *//g;s/([^)]*)//g')
   arch=$(lscpu | awk '/Architecture:/ {print $NF}')
   threads=$(lscpu | awk '/CPU\(s\)/ {print $NF;exit}')
 	printf "\n%-9s %s, %s, %s threads \n" "CPU:" "$model" "$arch" "$threads"
