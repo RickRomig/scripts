@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Comments     : Based on USB Backup Tool (Version 1.1) by Joe Collins. (https://www.ezeelinux.com)
 #              : Joe's code at: https://github.com/EzeeLinux/bu-usb_backup_tool
-# Last updated : 20 Oct 2023
+# Last updated : 28 Nov 2023
 # TODO (Rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -23,7 +23,6 @@
 # shellcheck disable=SC1091,SC2034
 
 # Load function library
-# Adds check_package, die, dots, user_in_sudo and format_time functions
 
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
@@ -34,7 +33,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="3.12"
+readonly _version="3.13"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -103,7 +102,7 @@ unmount_usb_drive() {
   printf "It's now safe to remove the USB drive.\n"
 }
 
-script_et() {
+script_time() {
   printf "Script completed in %s\n" "$(format_time $SECONDS)"
 }
 
@@ -125,7 +124,7 @@ backup() {
     touch "$mount_point/BU_Backups/$host/BU Backup was successful: $(date '+%F')"
 		sync_drives
     unmount_usb_drive
-    script_et
+    script_time
     exit
   else
     # Clear any accidental input during backup:
@@ -136,7 +135,7 @@ backup() {
     printf "There were errors! Try reinserting the backup drive and running the command again to correct them.\n" >&2
     printf "If errors persist then you may have corrupt files or failing hardware.\n" >&2
     unmount_usb_drive
-    script_et
+    script_time
     exit 1
   fi
 }
@@ -166,7 +165,7 @@ restore() {
 			sync_drives
       unmount_usb_drive
       printf "Restart machine for all changes to take effect.\n"
-      script_et
+      script_time
       exit
     else
       # If rsync fails, clear any accidental input during restore:
@@ -178,13 +177,13 @@ restore() {
       printf "Wait a few seconds and try running 'bu --restore' again.\n" >&2
       printf "You may need to manually restore your data if errors persist.\n" >&2
       mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
-      script_et
+      script_time
       exit 1
     fi
   else
     printf "Restoration canceled.\n"
     unmount_usb_drive
-    script_et
+    script_time
     exit
   fi
 }
@@ -262,6 +261,8 @@ printf "Copyright \UA9 2019, Joe Collins\nCopyright \UA9 2023, Rick Romig\n"
 # Check command line arguments:
 if [[ "$#" -eq 0 ]]; then
   user_in_sudo
+  sleep 2
+  printf '\e[A\e[K'
 	drive_test
 	check_package rsync
 	backup
@@ -269,6 +270,8 @@ else
   case "$1" in
     "--backup" )
       user_in_sudo
+      sleep 2
+      printf '\e[A\e[K'
 	    drive_test
 	    check_package rsync
 	    backup
@@ -279,6 +282,8 @@ else
     ;;
     "--restore" )
       user_in_sudo
+      sleep 2
+      printf '\e[A\e[K'
 	    drive_test
 	    check_package rsync
 	    restore
@@ -287,6 +292,7 @@ else
       printf "%s %s is not a valid option.\n" "$red_error" "$1" >&2
       printf "Valid options:\n" >&2
       printf "\tbu --%s\n" "backup" "help" "restore" >&2
-      printf "\tbu without an argument performs a backup of /etc/ and /home.\n" >&2
+      printf "\tbu without an argument performs a backup of /etc/ and /home directories.\n" >&2
+      exit 1
   esac
 fi
