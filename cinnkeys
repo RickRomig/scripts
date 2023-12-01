@@ -28,9 +28,10 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.0"
-readonly _updated="18 Oct 2023"
+readonly _version="0.2.1"
+readonly _updated="01 Dec 2023"
 readonly kb_bu="keybindings-backup.dconf"
+readonly verbose_mode="$FALSE"
 
 ## Functions ##
 
@@ -41,9 +42,9 @@ Creates a backup file of Cinnamon keybindings and restores from a backup.
 
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
-  -b  Creates a backup of Cinnamon keybindings in ~/.config.
+  -d  Dump Cinnamon keybindings to a backup file in ~/.config.
   -h  Displays help.
-  -r  Restores the Cinnamon keybindings from the backup.
+  -l  Loads Cinnamon keybindings from the backup file.
   -v  Enable verbose mode
 $_script v$_version, updated: $_updated
 _END_HELP_
@@ -59,22 +60,22 @@ showme() {
 
 if is_cinnamon; then
   noOpt=1
-  optstr=":bhrv"
+  optstr=":dhlv"
   while getopts "$optstr" opt; do
     case "$opt" in
-      b )
+      d )
         showme "Dumping keybindings to backup file."
         dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$kb_bu"
-        echo "Cinnamon Keybindings backed up to $HOME/.config/$kb_bu."
+        echo "Cinnamon Keybindings dumped to $HOME/.config/$kb_bu."
       ;;
       h )
         usage 0
       ;;
-      r )
+      l )
         if [[ -f "$HOME/.config/$kb_bu" ]]; then
           showme "loading keybindings from backup file."
           dconf load /org/cinnamon/desktop/keybindings/ < "$HOME/.config/$kb_bu"
-          echo "Cinnamon Keybindings restored from $HOME/.config/$kb_bu."
+          echo "Cinnamon Keybindings loaded from $HOME/.config/$kb_bu."
         else
           echo "$kb_bu does not exist. Run $_script -b to create it." >&2
         fi
@@ -91,6 +92,6 @@ if is_cinnamon; then
   [[ "$noOpt" = 1 ]] && { echo "$red_error No argument passed." >&2; usage 1; }
   shift "$(( OPTIND - 1 ))"
 else
-  echo "The desktop environment is not Cinnamon."
+  echo "The desktop environment is not Cinnamon." >&2
 fi
 leave "$_script v$_version (updated: $_updated)"
