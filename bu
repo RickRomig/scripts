@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Comments     : Based on USB Backup Tool (Version 1.1) by Joe Collins. (https://www.ezeelinux.com)
 #              : Joe's code at: https://github.com/EzeeLinux/bu-usb_backup_tool
-# Last updated : 28 Nov 2023
+# Last updated : 01 Dec 2023
 # TODO (Rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -33,7 +33,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="3.13"
+readonly _version="3.14"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -41,7 +41,7 @@ readonly mount_point="/media/$user/BU_Drive"
 ## Functions ##
 
 drive_test() {
-	printf "Checking Backup USB Drive...\n"
+	printf "%sChecking Backup USB Drive%s\n" "$green" "$normal"
   check_usb || die "No USB drive connected!" 1
 	bu_drive_label || die "Invalid partition label. Run 'bu --help' for drive setup information." 1 
   check_uuid || die "Incorrect drive to backup $host." 1
@@ -88,7 +88,7 @@ bu_drive_fs() {
 }
 
 sync_drives() {
-	printf "Wait! Syncing Drives"
+	printf "Syncing Drives"
 	dots "."
 	sync
 	kill "$!"
@@ -106,6 +106,13 @@ script_time() {
   printf "Script completed in %s\n" "$(format_time $SECONDS)"
 }
 
+display_title() {
+  clear
+  box "BU -- USB Backup Tool (Version $_version)"
+  printf "Copyright \UA9 2019, Joe Collins\n"
+  printf "Copyright \UA9 2023, Rick Romig\n\n"
+}
+
 backup() {
   printf "Changing ownership of BU_Drive to %s...\n" "$user"
   sudo chown "$user" "$mount_point"
@@ -114,11 +121,11 @@ backup() {
   [[ -d "$mount_point"/BU_Backups/"$host" ]] || mkdir -p "$mount_point"/BU_Backups/"$host"
 	printf "BU_Drive is ready.\n"
 
-  printf "Backing up /etc and /home to BU_Drive/BU_Backups/%s/...\n" "$host"
+  printf "%sBacking up /etc and /home to BU_Drive/BU_Backups/%s/%s\n" "$green" "$host" "$normal"
   if sudo rsync -aH --delete --exclude 'timeshift' --exclude '.local/share/libvirt/images' --exclude 'mnt' --info=progress2 /etc /home "$mount_point"/BU_Backups/"$host"/;   then
     # Clear any accidental input during backup:
     read -rt 1 -n 10000 discard
-    box "Backup completed." "*"
+    printf "%sBackup completed.%s\n" "$green" "$normal"
     # Remove old and create new timestamp file:
     rm -f /"$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
     touch "$mount_point/BU_Backups/$host/BU Backup was successful: $(date '+%F')"
@@ -132,8 +139,9 @@ backup() {
     # Remove old timestamp file and create a new one:
     rm -f "$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
     touch "$mount_point/BU_Backups/$host/BU Backup had some errors: $(date '+%F')"
-    printf "There were errors! Try reinserting the backup drive and running the command again to correct them.\n" >&2
+    printf "%sThere were errors!$s Try reinserting the backup drive and running the command again to correct them.\n" >&2 "$lightred" "$normal"
     printf "If errors persist then you may have corrupt files or failing hardware.\n" >&2
+		sync_drives
     unmount_usb_drive
     script_time
     exit 1
@@ -151,17 +159,16 @@ restore() {
     exit 1
   fi
 
-  printf "\nBU Restore Function\n"
-  printf "\n%s\n" "$red_warning"
+  printf "%s\n" "$red_warning"
   printf "Any new files created in /home since last backup WILL BE DELETED!\n"
   if y_or_n "Are you sure you want to restore now? [y/n]"; then
     printf "Close any running applications and press any key to continue.\n"
-    read -rn 1 -s
-    printf $"\nRestoring /home... Please DO NOT open any applications.\n"
+    anykey
+    printf "\n%sRestoring /home... Please DO NOT open any applications.$s\n" "$green" "$normal"
     if sudo rsync -aH --delete --exclude 'timeshift' --info=progress2 "$mount_point"/BU_Backups/"$host"/home/ /home/; then
       # Clear any accidental input during restore:
       read -rt 1 -n 10000 discard
-      box "Restoration Complete!" "*"
+      printf "%sRestoration Complete!%s\n" "$green" "$normal"
 			sync_drives
       unmount_usb_drive
       printf "Restart machine for all changes to take effect.\n"
@@ -170,9 +177,9 @@ restore() {
     else
       # If rsync fails, clear any accidental input during restore:
       read -rt 1 -n 10000 discard
-      printf "\n%s rsync exited with errors!\n" >&2 "$red_error"
+      printf "%s rsync exited with errors!\n" >&2 "$red_error"
       printf "DO NOT DO ANYTHING UNTIL YOU:\n" >&2
-      printf "\nMake sure BU_Drive USB is still plugged in.\n" >&2
+      printf "Make sure BU_Drive USB is still plugged in.\n" >&2
       printf "Remount BU_Drive USB by unplugging it and plugging it back in.\n" >&2
       printf "Wait a few seconds and try running 'bu --restore' again.\n" >&2
       printf "You may need to manually restore your data if errors persist.\n" >&2
@@ -181,7 +188,7 @@ restore() {
       exit 1
     fi
   else
-    printf "Restoration canceled.\n"
+    printf "%Restoration canceled.%s\n" "$orange" "$normal"
     unmount_usb_drive
     script_time
     exit
@@ -255,12 +262,11 @@ END_HELP
 
 # Start timer
 SECONDS=0
-box "BU -- USB Backup Tool (Version $_version)"
-printf "Copyright \UA9 2019, Joe Collins\nCopyright \UA9 2023, Rick Romig\n"
 
 # Check command line arguments:
 if [[ "$#" -eq 0 ]]; then
   user_in_sudo
+  display_title
 	drive_test
 	check_package rsync
 	backup
@@ -268,6 +274,7 @@ else
   case "$1" in
     "--backup" )
       user_in_sudo
+      display_title
 	    drive_test
 	    check_package rsync
 	    backup
@@ -278,6 +285,7 @@ else
     ;;
     "--restore" )
       user_in_sudo
+      display_title
 	    drive_test
 	    check_package rsync
 	    restore
