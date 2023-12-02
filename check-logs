@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.8.4"
-readonly _updated="26 Nov 2023"
+readonly _version="0.8.5"
+readonly _updated="02 Dec 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -115,6 +115,27 @@ ytdlpupdate_log() {
   fi
 }
 
+local_backup_log() {
+  local log_dir="/var/log"
+  local log_file="backup.log"
+  if [[ -f "$log_dir/$log_file" ]]; then
+    clear
+    printf "%s%s - Local Backup Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
+		(printf "DAY|DATE|TIME|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
+    print_line "-" "34"
+    entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
+    (( entries > 1 )) && printf "%s entries\n\n" "$entries" || printf "%s entry\n\n" "$entries"
+  else
+    printf "%sThe local backup log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
+    printf "The job is"
+    if [[ -x "/etc/cron.daily/z-backup" || -x "/opt/bin/z-backup" ]]; then
+      printf " scheduled but has not run.\n"
+    else
+      printf " not scheduled to run.\n"
+    fi
+  fi
+}
+
 script_archive_log() {
   local log_dir="$HOME/.local/share/logs"
 	local log_file="script-archive.log"
@@ -178,37 +199,18 @@ homebank_log() {
   fi
 }
 
-local_backup_log() {
-  local log_dir="/var/log"
-  local log_file="backup.log"
-  if [[ -f "$log_dir/$log_file" ]]; then
-    clear
-    printf "%s%s - Local Backup Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
-		(printf "DAY|DATE|TIME|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
-    print_line "-" "34"
-    entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
-    (( entries > 1 )) && printf "%s entries\n\n" "$entries" || printf "%s entry\n\n" "$entries"
-  else
-    printf "%sThe local backup log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
-    printf "The job is"
-    if [[ -x "/etc/cron.daily/z-backup" || -x "/opt/bin/z-backup" ]]; then
-      printf " scheduled but has not run.\n"
-    else
-      printf " not scheduled to run.\n"
-    fi
-  fi
-}
-
 trash_log() {
-  local log_dir="/var/log"
+  local log_dir="$HOME/.local/share/logs"
   local log_file="trash.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
     printf "%s%s Local Trash Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
+    viewtext "$log_dir/$log_file"
+    printf "\n"
   else
     printf "%sThe local trash log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
-    if [[ -x "$HOME/bin/empty-trash.sh" ]]; then
+    if [[ -x "$HOME/.local/bin/empty-trash.sh" ]]; then
       printf " scheduled but has not run.\n"
     else
       printf " not scheduled to run.\n"
