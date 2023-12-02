@@ -24,7 +24,7 @@ log_date=$(date '+%a|%F|%R')
 arc_dir=$HOME"/Downloads/archives/homebank"
 hb_dir=$HOME"/Documents/HomeBank"
 log_dir=$HOME"/.local/share/logs"
-archive="$arc_date-backup.tar.gz"
+archive="$arc_date-backup.zip"
 log_file="HomeBank-archive.log"
 err_log="HomeBank-error.log"
 
@@ -38,8 +38,7 @@ rm -f "$arc_dir"/HomeBank\ Archive* > /dev/null 2>&1
 # Archive the .bak files for the 2nd month prior & write success/failure to log.
 {
   printf "%s|%s|" "$log_date" "$arc_date"
-  # if zip -qmtt "$ref_date" "$arc_dir/$archive" "$hb_dir"/*.bak 2> "$arc_dir/$err_log"
-  if find "$hb_dir"/  ! -newermt "$ref_date" | xargs tar -czpf "$arc_dir/$archive" -C "$HOME/Documents" HomeBank --remove-files 2> "$arc_dir/$err_log"
+  if zip -qmtt "$ref_date" "$arc_dir/$archive" "$hb_dir"/*.bak 2> "$arc_dir/$err_log"
   then
     printf "successful\n"
     touch "$arc_dir/HomeBank Archive successful ($(date +%F))"
@@ -60,6 +59,6 @@ find "$arc_dir" -mtime +1095 -delete
 [[ -s "$arc_dir/$err_log" ]] || rm -f "$arc_dir/$err_log"
 
 # Sync HomeBank archive with archive copy on the main system
-rsync -aq --delete "$HOME"/Downloads/archives/homebank/ 192.168.0.10:Downloads/archives/homebank/ 2>> "$arc_dir/$err_log"
+rsync -aq --delete "$HOME"/Downloads/archives/homebank/ 192.168.0.10:Downloads/archives/homebank/
 
 exit 
