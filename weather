@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.0"
-readonly _updated="16 Sep 2023"
+readonly _version="0.6.1"
+readonly _updated="05 Dec 2023"
 
 ## Functions ##
 
@@ -103,9 +103,9 @@ current_wx() {
   clear
   box "$_script v$_version ($_updated)"
   if [[ -n "$json" ]]; then
-    printf "\nLocation: %s, %s\n" "$city" "$state"
-    printf "Coordinates: %s latitude %s longitude\n\n" "$latitude" "$longitude"
-    printf "Current conditions:\n"
+    printf "\n%sLocation:%s %s, %s\n" "$green" "$normal" "$city" "$state"
+    printf "%sLat/Long:%s %s latitude %s longitude\n\n" "$green" "$normal" "$latitude" "$longitude"
+    printf "%sCurrent conditions:%s\n" "$green" "$normal"
     printf "%15s: %s\n" "Atomosphere" "$description"
     printf "%15s: %s%s\U2109 (%s\U2103 )%s\n" "Temperature" "$tcolor" "$temp_F" "$temp_C" "$normal"
     printf "%15s: %s%s\U2109 (%s\U2103 )%s\n" "Feels like" "$fcolor" "$feels_F" "$feels_C" "$normal"
@@ -156,9 +156,9 @@ feels_color() {
   elif [[ "$feels_F" -ge 75 ]]; then
     fcolor=${orange}
   elif [[ "$feels_F" -le 32 ]]; then
-    fcolor=${lightpurple}
-  elif [[ "$feels_F" -le 50 ]]; then
     fcolor=${blue}
+  elif [[ "$feels_F" -le 50 ]]; then
+    fcolor=${lightblue}
   else
     fcolor=${default} # Temperature is between 50 and 75 degrees Fahrenheit
   fi
@@ -199,14 +199,14 @@ uv_warning() {
 tmp_file=$(mktemp -q) || dies "Failed to create temporary file." 1
 trap cleanup EXIT
 
-location="${1:-Dayton}"
+location="${1:-Huber+Heights}"
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then show_help; exit; fi
 
 check_dependencies
 while true; do
   clear
   box "$_script v$_version ($_updated)"
-  under_line "Location: $(echo "$location" | sed 's/+/ /g')"
+  under_line "$(echo "$location" | sed 's/+/ /g')"
   COLUMNS="40"
   PS3="Choice: "
   select opt in "Current conditions" "3-day forecast" "Usage/Help" "Quit"; do
@@ -227,6 +227,7 @@ while true; do
         break
       ;;
       4 )
+        printf "%sMOTD:%s " "$darkgray" "$normal"
         leave ""
       ;;
       * )
