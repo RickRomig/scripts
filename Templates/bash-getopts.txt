@@ -8,7 +8,7 @@
 # Author       : Copyright <YEAR> <AUTHOR>, <ORG>
 # Email        : <EMAIL> | <EMAIL1>
 # Created      : <TODAY>
-# Last updated : <TODAY>
+# Last updated : <TODAY> (Version 0.1.0)
 # Comments     :
 # TODO (<CODER>)  :
 # License      : <LICENSE>
@@ -55,6 +55,7 @@ ${orange}OPTIONS:${normal}
 	-r	Remove application
 	-s	Apply settings
 	-u	Update application
+	-v	Enabel verbose mode
 $_script $_version (Updated $_updated)	
 END_HELP
   exit "$errcode"
@@ -64,12 +65,17 @@ app_version() {
 	application --version
 }
 
+show_message() {
+	local message="$1"
+	[[ "$verbose_mode" = 0 ]] && echo "$message"
+}
+
 ## Execution ##
 
 # clear
 noOpt=1
-optstr=":hirsu"
-# optstr=":h:i:r:s:u"
+optstr=":hirsuv"
+# optstr=":h:i:r:s:u:v"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		h )
@@ -92,6 +98,10 @@ while getopts "$optstr" opt; do
 		u )
 			exists application || leave "Application is not installed."
 			update_application
+		;;
+		v )
+			verbose_mode=0
+			show_message "Verbose mode enabled."
 		;;
 		: )
 			# echo "${lightred}ERROR:${normal} Must supply an argument to -${OPTARG}." >&2
