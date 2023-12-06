@@ -27,11 +27,11 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.0.1"
-readonly _updated="21 Mar 2023"
+readonly _version="1.0.2"
+readonly _updated="06 Dec 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
-readonly today=$(date +"%d %B %Y")
+today=$(date +"%d %B %Y"); readonly today
 
 # Data to insert into new bash script
 # template directory, copy_holder, email_addr, email_addr1, coder, license contained in script's .conf file.
@@ -92,7 +92,7 @@ sed -e '1d' \
     -e "s/<AUTHOR>/$copy_holder/" \
     -e "s/<EMAIL>/$email_addr/" \
     -e "s/<EMAIL1>/$email_addr1/" \
-    -e "s/<DATE>/$today/" "$template_dir/changelog" > changelog.md
+    -e "s/<DATE>/$today/" "$template_dir/changelog.txt" > changelog.md
 
 echo "The changelog.md for $project has been created."
 edit_view_quit changelog.md
