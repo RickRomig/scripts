@@ -2,8 +2,8 @@
 
 # Called by git commit to run shellcheck against staged scripts before making commit.
 # Execute from repository's .git/hooks directory
-# Excludes *.md files (README.md, etc)
+# Excludes *.md, *.txt, *.conf, *.json, *.lst  files
 # Terminates the commit if shellcheck fails.
 
-for file in $(git diff --cached --name-only --diff-filter=AM | grep -Ev '\.md$')
+for file in $(git diff --cached --name-only --diff-filter=AM | grep -Ev '\.md$|\.txt$|\.conf$}\.json$|\.lst$|rc$')
 do shellcheck -x --exclude=SC1001,SC2001 "$file" || exit 1; done
