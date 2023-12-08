@@ -42,6 +42,6 @@
 5. `todo.lst` - Template for To-Do list called by `cal-todo` script.
 6. `weather.json` - Sample JSON file for `weather` script.
 
-**Rick Romig, The Luddite Geek
+Rick Romig, The Luddite Geek
 
 08 December 2023
