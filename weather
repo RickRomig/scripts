@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.1"
-readonly _updated="05 Dec 2023"
+readonly _version="0.6.2"
+readonly _updated="08 Dec 2023"
 
 ## Functions ##
 
@@ -104,7 +104,7 @@ current_wx() {
   box "$_script v$_version ($_updated)"
   if [[ -n "$json" ]]; then
     printf "\n%sLocation:%s %s, %s\n" "$green" "$normal" "$city" "$state"
-    printf "%sLat/Long:%s %s latitude %s longitude\n\n" "$green" "$normal" "$latitude" "$longitude"
+    printf "%sLat/Long:%s %s, %s\n\n" "$green" "$normal" "$latitude" "$longitude"
     printf "%sCurrent conditions:%s\n" "$green" "$normal"
     printf "%15s: %s\n" "Atomosphere" "$description"
     printf "%15s: %s%s\U2109 (%s\U2103 )%s\n" "Temperature" "$tcolor" "$temp_F" "$temp_C" "$normal"
@@ -141,9 +141,9 @@ temp_color() {
   elif [[ "$temp_F" -ge 75 ]]; then
     tcolor=${orange}
   elif [[ "$temp_F" -le 32 ]]; then
-    tcolor=${lightpurple}
-  elif [[ "$temp_F" -le 50 ]]; then
     tcolor=${blue}
+  elif [[ "$temp_F" -le 50 ]]; then
+    tcolor=${lightblue}
   else
     tcolor=${default} # Temperature is between 50 and 75 degrees Fahrenheit
   fi
