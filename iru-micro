@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.3"
-readonly _updated="16 Oct 2023"
+readonly _version="0.5.4"
+readonly _updated="12 Dec 2023"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg_d=$HOME"/.config/micro"
 
@@ -167,12 +167,14 @@ while getopts "$optstr" opt; do
       check_dependencies
       new_ver="$(newest_version)"
       echo "${lightyellow}Installing Micro version $new_ver...${normal}"
+      sudo_login
       install_micro
       apply_settings
       apply_bindings
     ;;
     r )
       exists micro || leave "Micro is not installed. Run '$_script -i' to install."
+      sudo_login
       remove_micro
     ;;
     s )
