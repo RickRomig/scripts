@@ -127,7 +127,8 @@ while getopts "$optstr" opt; do
       trap cleanup EXIT
       check_dependencies
       new_ver="$(newest_version)"
-      echo "${lightyellow}Installing MarkText version $new_ver...${normal}"  
+      echo "${lightyellow}Installing MarkText version $new_ver...${normal}"
+      sudo_login
       install_marktext
     ;;
     p )
@@ -135,7 +136,8 @@ while getopts "$optstr" opt; do
       dl_preferences
     ;;
     r )
-      exists marktext || leave "Marktext is not installed. "
+      exists marktext || leave "Marktext is not installed."
+      sudo_login
       remove_marktext
     ;;
     u )
