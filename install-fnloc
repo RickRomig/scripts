@@ -72,7 +72,7 @@ dl_deb_pkg() {
 }
 
 install_fnloc() {
-  user_in_sudo
+  sudo_login
   dpkg -l | grep -qw fnloc && { printf "%s %s already installed." "$package_name" "$package_version"; exit; }
   sudo dpkg -i "$package_dir/$package"
   printf "%s %s installed.\n" "$package_name" "$package_version"
@@ -101,7 +101,7 @@ while getopts "$optstr" opt; do
       install_fnloc
     ;;
     r )
-      user_in_sudo
+      sudo_login
       clone_fnloc_repo
       dpkg -l | grep -qw fnloc || { printf "%s is not installed." "$package_name"; exit; }
       sudo dpkg -r fnloc

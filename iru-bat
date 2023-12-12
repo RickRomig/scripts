@@ -81,15 +81,15 @@ install_bat() {
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
   kill "$!"; tput cnorm
-  printf "printf "done\n"Installing Bat %s...\n" "$new_ver"
-  user_in_sudo
+  printf "done\nInstalling Bat %s...\n" "$new_ver"
+  sudo_login
   sudo gdebi -n "$tmp_dir/$new_pkg"
   printf "Bat %s installed.\n" "$(bat_ver)"
 }
 
 remove_bat() {
   printf "Removing Bat %s...\n" "$(bat_ver)"
-  user_in_sudo
+  sudo_login
   sudo dpkg --remove bat
   [[ -d "$HOME"/.config/bat ]] && rm -rf "$HOME"/.config/bat
   printf "Bat and its configuration files have been removed.\n"

@@ -173,7 +173,7 @@ while getopts "$optstr" opt; do
 		;;
 		i )
 			[[ -f "$ytdlp_location/$ytdlp_prg" ]] && leave "$ytdlp_prg $(ytdlp_version) already installed."
-			user_in_sudo
+			sudo_login
 			check_dependencies
 			install_intro
 			dpkg -l | grep -qw yt-dlp && remove_repo_ver
@@ -183,18 +183,18 @@ while getopts "$optstr" opt; do
 			remove_intro
 			dpkg -l | grep -qw yt-dlp && remove_repo_ver
 			[[ -f "$ytdlp_location/$ytdlp_prg" ]] || leave "$ytdlp_prg $(ytdlp_version) is not installed."
-			user_in_sudo
+			sudo_login
 			remove_ytdlp
 		;;
 		u )
 			[[ -f "$ytdlp_location/$ytdlp_prg" ]] || leave "$ytdlp_prg $(ytdlp_version) is not installed."
-			user_in_sudo
+			sudo_login
 			update_ytdlp
 		;;
 		x )
 			dpkg -l | grep -qw yt-dlp || leave "The repo version of $ytdlp_prg is not installed."
 			printf "Removing %s installed from the distribution repository.\n" "$ytdlp_prg"
-			user_in_sudo
+			sudo_login
 			remove_repo_ver
 		;;
 		? )

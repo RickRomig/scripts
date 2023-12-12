@@ -67,7 +67,7 @@ install_vscodium() {
   wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
   kill "$!";printf "done\n";tput cnorm
   printf "Installing VSCodium %s...\n" "$new_ver"
-  user_in_sudo
+  sudo_login
   sudo gdebi -n "$tmp_dir/$new_pkg"
   printf "VSCodium %s successfully installed.\n" "$(codium_ver)"
 }
@@ -75,7 +75,7 @@ install_vscodium() {
 remove_vscodium() {
   local vsc_cfg_d="${HOME}/.config/VSCodium"
   printf "Removing the VSCodium editor...\n"
-  user_in_sudo
+  sudo_login
   sudo dpkg --remove codium
   [[ -d "$vsc_cfg_d" ]] && rm -rf "$vsc_cfg_d"
   printf "VSCodium editor has been removed.\n"

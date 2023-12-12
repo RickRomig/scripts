@@ -116,7 +116,7 @@ main() {
   local _version="0.3.2"
   local _updated="11 Apr 2023"
 
-  user_in_sudo
+  sudo_login
 
   clear
   box "$_script v$_version ($_updated)"

@@ -46,7 +46,7 @@ chrome_ver() {
 install_chrome() {
   local trusted_key_url="https://dl.google.com/linux/linux_signing_key.pub"
   local source_list="deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main"
-  user_in_sudo
+  sudo_login
   curl -fSsL "$trusted_key_url" | gpg --dearmor | sudo tee "$keyring_dir/$trusted_key" > /dev/null
   echo "source_list" | sudo tee "$chrome_list" > /dev/null
   sudo apt update
@@ -58,7 +58,7 @@ install_chrome() {
 }
 
 purge_chrome() {
-  user_in_sudo
+  sudo_login
   sudo apt purge google-chrome-stable
   [[ -f "$keyring_dir/$trusted_key" ]] && sudo rm -v "$keyring_dir/$trusted_key"
   # sudo apt-key del D38B4796 2>/dev/null #apt-key deprecated
@@ -68,7 +68,7 @@ purge_chrome() {
 }
 
 update_chrome() {
-  user_in_sudo
+  sudo_login
   sudo apt install google-chrome-stable
   echo "Google Chrome updated to $(chrome_ver)."
 }

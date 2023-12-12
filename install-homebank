@@ -57,7 +57,7 @@ remove_ppa() {
 }
 
 install_homebank() {
-  user_in_sudo
+  sudo_login
   support_ppa && add_ppa
   sudo apt-get install homebank -yyq
   printf "HomeBank %s installed.\n" "$(homebank_ver)"
@@ -65,7 +65,7 @@ install_homebank() {
 
 remove_homebank() {
   printf "Removing HomeBank %s...\n" "$(homebank_ver)"
-  user_in_sudo
+  sudo_login
   support_ppa && remove_ppa
   sudo apt-get remove homebank -yy > /dev/null 2>&1
   printf "HomeBank has been removed.\n"
@@ -73,7 +73,7 @@ remove_homebank() {
 
 purge_homebank() {
   printf "Removing HomeBank %s and purging configuration files.\n" "$(homebank_ver)"
-  user_in_sudo
+  sudo_login
   support_ppa && remove_ppa
   sudo apt-get purge homebank -yy > /dev/null 2>&1
   printf "HomeBank and its configuration files have been removed.\n"

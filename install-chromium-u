@@ -43,7 +43,7 @@ install_ungoogled_chrome() {
   local repo_url="deb http://download.opensuse.org/repositories/home:/ungoogled_chromium/Debian_Bullseye/ /"
   local key_url="https://download.opensuse.org/repositories/home:/ungoogled_chromium/Debian_Bullseye/Release.key"
   
-  user_in_sudo
+  sudo_login
   show_me "Creating source list"
   echo "$repo_url" | sudo tee "$source_list" > /dev/null
   show_me "Adding trusted key"
@@ -55,7 +55,7 @@ install_ungoogled_chrome() {
 }
 
 remove_ungoogle_chrome() {
-  user_in_sudo
+  sudo_login
   show_me "Purging  ungoogled-chrome"
   sudo apt-get purge ungoogled-chrome
   [[ -f "$source_list" ]] && sudo rm "$source_list"

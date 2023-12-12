@@ -36,7 +36,7 @@ readonly mount_point="/media/$USER/BU_Drive"
 mount_bu() {
   local usbdrv
   usbdrv="$(lsblk -fs | awk '/BU_Drive/ {print $1}')"
-  user_in_sudo
+  sudo_login
   printf "Mounting backup drive: /dev/%s to %s ...\n" "$usbdrv" "$mount_point"
   [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
   sudo mount /dev/"$usbdrv" "$mount_point"
@@ -46,7 +46,7 @@ mount_bu() {
 umount_bu() {
   local usbdrv
   usbdrv=$(mount | awk '/BU_Drive/ {print $1}')
-  user_in_sudo
+  sudo_login
   printf "Unmounting USB Backup drive at %s ...\n" "$mount_point"
   sudo umount "$mount_point"
   printf "BU_Drive (%s) is unmounted.\n" "$usbdrv"

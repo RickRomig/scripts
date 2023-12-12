@@ -117,7 +117,7 @@ while getopts "$optstr" opt; do
 			webcam_info
 			tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 			trap cleanup EXIT
-			user_in_sudo
+			sudo_login
 			check_dependencies
 			install_zoom_deb
 		;;
@@ -133,7 +133,7 @@ while getopts "$optstr" opt; do
 		;;
 		r )
 			if exists zoom || flatpak_zoom; then
-				user_in_sudo
+				sudo_login
 				remove_zoom
 			else
 				printf "Zoom is not installed.\n"

@@ -169,7 +169,7 @@ while getopts "$optstr" opt; do
 		;;
 		i )
 			[[ -f "$ytdl_location/$ytdl_prg" ]] && leave "$ytdl_prg $(ytdl_version) already installed."
-			user_in_sudo
+			sudo_login
 			check_dependencies
 			install_intro
 			dpkg -l | grep -qw youtube-dl && remove_repo_ver
@@ -179,18 +179,18 @@ while getopts "$optstr" opt; do
 			remove_intro
 			dpkg -l | grep -qw youtube-dl && remove_repo_ver
 			[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
-			user_in_sudo
+			sudo_login
 			remove_youtubedl
 		;;
 		u )
 			[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
-			user_in_sudo
+			sudo_login
 			update_youtubedl
 		;;
 		x )
 			dpkg -l | grep -qw youtube-dl || leave "The repo version of $ytdl_prg is not installed."
 			printf "Removing %s installed from the distribution repository.\n" "$ytdl_prg"
-			user_in_sudo
+			sudo_login
 			remove_repo_ver
 		;;
 		? )

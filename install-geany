@@ -96,12 +96,12 @@ while getopts "$optstr" opt; do
       exists geany && leave "Geany $(geany_version) is already installed."
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
       trap cleanup EXIT
-      user_in_sudo
+      sudo_login
       install_geany
     ;;
     r )
       exists geany || leave "Geany is not installed."
-      user_in_sudo
+      sudo_login
       remove_geany
     ;;
     t )

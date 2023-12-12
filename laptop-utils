@@ -127,7 +127,7 @@ start_tlp() {
 
 tlp_service() {
   if is_systemd; then
-    user_in_sudo
+    sudo_login
     sudo systemctl enable tlp.service
     sudo systemctl start tlp.service
     sudo systemctl mask systemd-rfkill.service
@@ -162,7 +162,7 @@ while getopts "$optstr" opt; do
       help 0
     ;;
     i )
-      user_in_sudo
+      sudo_login
       intro
       main
     ;;
@@ -170,7 +170,7 @@ while getopts "$optstr" opt; do
       util_status
     ;;
     s )
-      user_in_sudo
+      sudo_login
       start_tlp
     ;;
     ? )
