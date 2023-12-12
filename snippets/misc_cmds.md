@@ -159,22 +159,3 @@ done
 $ lsblk -lp | grep "part $" | awk '{print $1, "(" $4 ")"}'
 $ lsblk -lp |  awk '/part $/ {print $1, "(" $4 ")"}'
 ```
-
-### Check sudoo access
-```bash
-check-sudo() {
-    local prompt
-    prompt=$(sudo -nv 2>&1)
-    if [[ $? -ne 0 ]]; then
-        if [[ echo "$prompt" | grep -q "^sudo"; then
-            echo "Script needs sudo. Enter password."
-            sudo touch /var/run/$_script.pid
-        else
-            die "$USER is not a member of the sudo group. Access denied." 1
-        fi
-    fi
-  }
-```
-
-sudo: a password is required
-Sorry, user ludditegeek may not run sudo on hp-2560p.
