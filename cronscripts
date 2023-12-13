@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.8"
-readonly _updated="09 Dec 2023"
+readonly _version="0.5.9"
+readonly _updated="12 Dec 2023"
 readonly user_cron_path="$HOME/.local/bin/"
 readonly opt_cron_path="/opt/bin/"
 readonly sed_path="/usr/share/misc/"
@@ -81,7 +81,7 @@ cp_scriptarchive() {
   local script_path="$HOME/bin/scriptarchive.sh"
   [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
   case "$localip" in
-    10|11|12|13|14|15|16|17|19|20|21|23 )
+    10|11|12|13|14|15|16|19|20|23 )
       cp -puv "$script_path" "$user_cron_path" | awk '{print "==> "$NF}'
     ;;
     * )
@@ -204,15 +204,18 @@ while getopts "$optstr" opt; do
       cp_repo_backup
       cp_scriptarchive
       cp_empty_trash
+      sudo_login
       cp_zupdate
       cp_zdefrag
       cp_zytdlpupdate
       cp_zbackup
     ;;
 		b )
+      sudo_login
 			cp_zbackup
 		;;
     d )
+      sudo_login
       cp_zdefrag
     ;;
     f )
@@ -234,9 +237,11 @@ while getopts "$optstr" opt; do
       cp_empty_trash
     ;;
     u )
+      sudo_login
       cp_zupdate
     ;;
     y )
+      sudo_login
       cp_zytdlpupdate
     ;;
     ? )
