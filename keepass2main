@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.6"
-readonly _updated="08 Dec 2023"
+readonly _version="0.4.7"
+readonly _updated="17 Dec 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly mhost="hp-800g2-sff"
 readonly mhostip="10"
@@ -38,8 +38,8 @@ readonly mhostip="10"
 printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
 # Ensure script is not being run from HP-800-G2-SFF (10)
 [[ "$lhost" == "$mhost" ]] && die "$_script cannot be run from $mhost." 1
-printf "Making a backup of Passwords.kdbx on %s/n" "$mhost"
-ssh rick@"$localnet.$mhostip" cp -v ~/Documents/Passwords.kdbx ~/Documents/Passwords.kdbx."$(date '+%y%m%d')"
+printf "Making a backup of Passwords.kdbx on %s\n" "$mhost"
+ssh rick@"$localnet.$mhostip" cp -pv ~/Documents/Passwords.kdbx ~/Documents/Passwords.kdbx."$(date '+%y%m%d')"
 printf "Copying updated KeepassXC databases to %s\n" "$mhost"
 scp -p "$HOME"/Documents/Passwords*.kdbx rick@"$localnet.$mhostip":Documents/
 printf "MOTD: "
