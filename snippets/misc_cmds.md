@@ -20,18 +20,30 @@ $ hostnamectl | grep 'Kernel' | cut -d' ' -f14-
 $ host="${HOSTNAME:-$(hostname)}"
 ```
 
-# Add a user
+#### Add a user
+- `adduser` - A frontend for `useradd` that sets up a user with basic attributes. Prompt for info.
+- `useradd` - Low level utility that creates a user. Needs additional flags to set up attributes.
 ```bash
 $ sudo useradd -s /bin/bash -m -c "First Last,Room Nr,Phone," username
 $ sudo vipw   # edit /etc/passwd to edit Gecos information - Full name, Room, phone, other
+$ sudo adduser username
+$ sudo useradd -d /home/username -s /bin/bash -c Fullname,RoomNr,Phone,Other username && passwd username
 ```
 
 #### Gecos info from /etc/passwd
 ```bash
 gecos=$(awk -F: '/rick/ {print $5}' /etc/passwd)
-name=$(echo "gecos" | cut -d',' -f1)
-room=$(echo "gecos" | cut -d',' -f2)
-phone=$(echo "gecos" | cut -d',' -f3)
+name=$(echo "$gecos" | cut -d',' -f1)
+room=$(echo "$gecos" | cut -d',' -f2)
+phone=$(echo "$gecos" | cut -d',' -f3)
+```
+
+#### Change a user's default shell
+```bash
+sudo usermod --shell /bin/bash <user>
+sudo usermod -s /bin/bash <user>
+sudo chsh --shell  /bin/bash <user>
+sudo chsh -s /bin/bash <user>
 ```
 
 #### ps command to find init system
