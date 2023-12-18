@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.8.5"
-readonly _updated="02 Dec 2023"
+readonly _version="0.8.6"
+readonly _updated="18 Dec 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -63,10 +63,12 @@ updates() {
 
 timeshift_snapshots() {
   if exists timeshift; then
+    sudo_login
     if pgrep timeshift > /dev/null 2>&1; then
-      printf "%sTimeshift is currently running.%s Try again later.\n" "$orange" "$normal"
+      printf "\n%sTimeshift is currently running.%s Try again later.\n" "$orange" "$normal"
+    elif [[ $(sudo timeshift --list | tail -n1) == "No snapshots found" ]]; then
+      printf "\nNo Timeshift snapshots found.\n"
     else
-      sudo_login
       clear
       printf "%s%s - Timeshift Snapshorts:%s\n\n" "$lightgreen" "$lhost" "$normal"
       sudo timeshift --list | awk 'NR!=1 && NR!=3' 2>/dev/null
