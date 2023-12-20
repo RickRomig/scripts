@@ -29,8 +29,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.1"
-readonly _updated="12 Dec 2023"
+readonly _version="0.1."
+readonly _updated="20 Dec 2023"
 
 ## Functions ##
 
@@ -39,6 +39,8 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
     [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
 }

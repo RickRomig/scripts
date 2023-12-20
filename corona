@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.8"
-readonly _updated="15 Jun 2023"
+readonly _version="0.3.9"
+readonly _updated="20 Dec 2023"
 readonly url="https://corona-stats.online/?minimal=true"
 today=$(date '+%d %b %Y'); readonly today
 now=$(date '+%R %Z'); readonly now
@@ -37,6 +37,8 @@ tmp_file=$(mktemp) || die "Failed to create temporary file." 1
 
 ## Functions ##
 
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
   [[ -f "$tmp_file" ]] && rm "$tmp_file"
 }

@@ -29,14 +29,16 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.9"
-readonly _updated="16 Oct 2023"
+readonly _version="0.2.10"
+readonly _updated="20 Dec 2023"
 readonly docdir="$HOME/.local/share/doc"
 readonly todolist="todo.lst"
 calendar=$(mktemp -q) || die "Failed to create temporary file." 1
 
 ## Functions ##
 
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
 	[[ -f "$calendar" ]] && rm -f "$calendar"
 }
