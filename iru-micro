@@ -27,13 +27,15 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.4"
-readonly _updated="12 Dec 2023"
+readonly _version="0.5.5"
+readonly _updated="20 Dec 2023"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg_d=$HOME"/.config/micro"
 
 ## Functions ##
 
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
   [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
   [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
@@ -92,20 +94,7 @@ apply_settings() {
   [[ -d "$micro_cfg_d" ]] || mkdir -p "$micro_cfg_d"
   echo "Applying Micro settings..."
   curl -so "$micro_cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
-  # settings
   echo "Micro setttings applied."
-}
-
-settings() {
-  cat <<- EOF > "$micro_cfg_d/settings.json"
-{
-  "colorscheme": "atom-dark",
-  "softwrap": true,
-	"tabsize": 2,
-  "wordwrap": true
-}
-EOF
-  echo "Micro settings.json created."
 }
 
 apply_bindings() {
@@ -114,19 +103,7 @@ apply_bindings() {
   [[ -d "$micro_cfg_d" ]] || mkdir -p "$micro_cfg_d"
   echo "Applying Micro keybindings..."
   curl -so "$micro_cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
-  # bindings
   echo "Micro keybindings applied."
-}
-
-bindings() {
-  cat << EOF > "$micro_cfg_d/bindings.json"
-{
-  "Alt-/": "lua:comment.comment",
-  "CtrlUnderscore": "lua:comment.comment",
-  "Alt-s": "Save,Quit"
-}
-EOF
-  echo "micro bindings.json created."
 }
 
 help() {
