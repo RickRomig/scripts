@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.4"
-readonly _updated="20 Dec 2023"
+readonly _version="0.5.5"
+readonly _updated="21 Dec 2023"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg_d=$HOME"/.config/bat"
 
@@ -49,7 +49,7 @@ check_dependencies() {
 check_distro() {
   codename=$(lsb_release -c -s)
   case "$codename" in
-    bookworm|bullseye|elsie|faye|focal|jammy|una|vanessa|vera|victoria ) return "$TRUE" ;;
+    bookworm|bullseye|elsie|faye|focal|jammy|una|vanessa|vera|victoria|virginia ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
 }
@@ -84,16 +84,14 @@ install_bat() {
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
   kill "$!"; tput cnorm
   printf "done\nInstalling Bat %s...\n" "$new_ver"
-  sudo_login
   sudo gdebi -n "$tmp_dir/$new_pkg"
   printf "Bat %s installed.\n" "$(bat_ver)"
 }
 
 remove_bat() {
   printf "Removing Bat %s...\n" "$(bat_ver)"
-  sudo_login
   sudo dpkg --remove bat
-  [[ -d "$HOME"/.config/bat ]] && rm -rf "$HOME"/.config/bat
+  [[ -d "$bat_cfg_d" ]] && rm -rf "$bat_cfg_d"
   printf "Bat and its configuration files have been removed.\n"
 }
 
@@ -146,6 +144,7 @@ while getopts "$optstr" opt; do
       tmp_file=$(mktemp) || die "Failed to create temporary file." 1
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
       trap cleanup EXIT
+      sudo_login
       check_dependencies
       new_ver="$(newest_version)"
       echo "${lightyellow}Installing Bat version $new_ver...${normal}"
@@ -162,6 +161,7 @@ while getopts "$optstr" opt; do
       tmp_file=$(mktemp) || die "Failed to create temporary file." 1
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
       trap cleanup EXIT
+      sudo_login
       check_dependencies
       new_ver="$(newest_version)"
       [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
