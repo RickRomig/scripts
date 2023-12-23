@@ -184,3 +184,7 @@ find /path/to/search -maxdepth 1 -type f -exec grep -n 'pattern' {} +
 ```bash
 ps aux | grep php
 ```
+#### Status of updates
+```bash
+zgrep -h "status installed Package-name" /var/log/dpkg.log* | sort | tail -n 1
+```
