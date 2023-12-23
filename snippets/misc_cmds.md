@@ -147,6 +147,7 @@ trap '' 2
 commands
 trap 2; exit
 ```
+
 #### tar
 ```bash
 $ tar -zcf /path/to/archive.tar.gz -C "$HOME"/ <src_directory>
@@ -170,4 +171,16 @@ done
 ```bash
 $ lsblk -lp | grep "part $" | awk '{print $1, "(" $4 ")"}'
 $ lsblk -lp |  awk '/part $/ {print $1, "(" $4 ")"}'
+```
+#### Combine find and grep to search for files containing a specific pattern:
+```bash
+find /path/to/search -type f -exec grep -H 'pattern' {} +
+find /path/to/search -type f -exec grep -n 'pattern' {} +
+find /path/to/search -maxdepth 1 -type f -exec grep -n 'pattern' {} +
+```
+`grep -H` prints the file name for each match. This is the default when there is more than one file to search. (a GNU extension)
+
+#### Combine ps aux with grep to find running processes by name:
+```bash
+ps aux | grep php
 ```
