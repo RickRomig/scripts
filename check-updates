@@ -31,8 +31,8 @@ set -euo pipefail
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.1.1"
-readonly _updated="17 Dec 2023"
+readonly _version="2.1.2"
+readonly _updated="24 Dec 2023"
 
 ## Functions ##
 
@@ -100,10 +100,12 @@ update_flatpak() {
 
 nala_update() {
   sudo nala upgrade
-  printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
-  sudo nala autoremove
-  printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
-  sudo nala autopurge --config
+  if default_no "Run autoremove/autopurge?"; then
+    printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
+    sudo nala autoremove
+    printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
+    sudo nala autopurge --config
+  fi
   printf "\n"
 }
 
