@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Oct 2023
-# Last updated : 17 Dec 2023 (Version 0.1.3)
+# Last updated : 27 Dec 2023 (Version 0.1.4)
 # Comments     : Run as a daily cron job on the finance system
 #              : Excludes ~/Documents/Finance/Archives directory
 # TODO (Rick)  :
@@ -25,14 +25,17 @@ arc_dir="$HOME/Downloads/archives/finance"
 
 ## Execution ##
 
+# On Sunday, set up SNAR file for full backup & delete archives older than 3 months.
 if [[ "$day" == "Sun" ]]; then
 	[[ -e "$arc_dir/$snar" ]] && mv "$arc_dir/$snar" "$arc_dir/$snar.$(date --date '7 days ago' +%y%m%d)"
   find "$arc_dir" -mtime +85 -delete
 fi
 
-# tar -cpzf "$arc_dir/$archive" -g "$arc_dir/$snar" "$HOME"/Documents/Finance/CY2022 "$HOME"/Documents/Finance/CY2023 "$HOME"/Documents/HomeBank
+# Incremental backup of Finance and HomeBank directories.
 tar --exclude='Archives' -cpzf "$arc_dir/$archive" -g "$arc_dir/$snar" "$HOME"/Documents/Finance "$HOME"/Documents/HomeBank
 
+# Copy backup and updated Finance and HomeBank directories to main system.
 rsync -aq --delete "$HOME"/Downloads/archives/finance/ 192.168.0.10:Downloads/archives/finance/
-
+rsync -aq --delete "$HOME"/Documents/Finance/ 192.168.0.10:Documents/Finance/
+rsync -aq --delete "$HOME"/Documents/HomeBank/ 192.168.0.10:Documents/HomeBank/
 exit
