@@ -28,8 +28,8 @@ fi
 
 readonly local_host="${HOSTNAME:-$(hostname)}"
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.18"
-readonly _updated="12 Dec 2023"
+readonly _version="0.2.19"
+readonly _updated="27 Dec 2023"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 
@@ -85,7 +85,7 @@ sync_to_main() {
   transfer_status "$exit_status"
 
   echo  $'\n'$"${orange}Syncing HomeBank directory...${normal}"
-  rsync -avh --delete --exclude '.git' /home/"$USER"/Documents/HomeBank/ "$localnet.$main_ip":Documents/HomeBank/
+  rsync -avh --delete /home/"$USER"/Documents/HomeBank/ "$localnet.$main_ip":Documents/HomeBank/
   exit_status="$?"
   transfer_status "$exit_status"
 }
