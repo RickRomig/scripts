@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 27 Dec 2023
+# Last updated : 28 Dec 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -140,10 +140,11 @@ user_exists() {
 # If user is not in the sudo group, displays error message and exits.
 ###############################################################################
 sudo_login() {
+  local delay="${1:-2}"
   if id -nG "$USER" | grep -qw sudo; then
     if ! sudo -vn 2>/dev/null; then
       sudo ls > /dev/null 2>&1
-      sleep 2
+      sleep "$delay"
       printf '\e[A\e[K'
     fi
   else
@@ -630,7 +631,7 @@ check_packages() {
       sleep 2
       printf '\e[A\e[K'
 		else
-			printf "Installing %s ..\n" "$pkg"
+			printf "Installing %s ...\n" "$pkg"
 			sudo apt-get install "$pkg" -yyq
 		fi
 	done
