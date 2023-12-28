@@ -113,12 +113,11 @@ valid_version() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.3.2"
-  local _updated="11 Apr 2023"
+  local _version="0.3.3"
+  local _updated="28 Dec 2023"
 
-  sudo_login
+  sudo_login 2
 
-  clear
   box "$_script v$_version ($_updated)"
   printf "Installs Chromium on Linux Mint 20.x from Debian 10 repositories\n"
   printf "instead of installing Snapd and using the Ubuntu Snap Store.\n"
