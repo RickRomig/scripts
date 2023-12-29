@@ -9,7 +9,7 @@
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
-## TODO (rick)  :
+# TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -31,7 +31,7 @@ set -euo pipefail
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.1.3"
+readonly _version="2.1.4"
 readonly _updated="28 Dec 2023"
 
 ## Functions ##
@@ -78,14 +78,14 @@ purge_configs() {
 update_complete() {
   local num_updates="$1"
   printf "\n%sUpdate complete. %d" "$orange" "$num_updates"
-  (( nupd > 1 )) && printf  " updates were" || printf  " update was"
+  (( num_updates > 1 )) && printf  " updates were" || printf  " update was"
   printf " installed.%s\n" "$normal"
 }
 
 defer_updates() {
   local num_updates="$1"
   printf "\n%sNo updates installed. %d" "$orange" "$num_updates"
-  (( nupd > 1 )) && printf " updates were" || printf " update was"
+  (( num_updates > 1 )) && printf " updates were" || printf " update was"
   printf " deferred.%s\n" "$normal"
 }
 
