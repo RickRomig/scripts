@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.7"
-readonly _updated="17 Dec 2023"
+readonly _version="0.4.8"
+readonly _updated="02 Jan 2024"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly mhost="hp-800g2-sff"
 readonly mhostip="10"
@@ -41,6 +41,7 @@ printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Making a backup of Passwords.kdbx on %s\n" "$mhost"
 ssh rick@"$localnet.$mhostip" cp -pv ~/Documents/Passwords.kdbx ~/Documents/Passwords."$(date '+%y%m%d')".kdbx
 printf "Copying updated KeepassXC databases to %s\n" "$mhost"
-scp -p "$HOME"/Documents/Passwords*.kdbx rick@"$localnet.$mhostip":Documents/
+# scp -p "$HOME"/Documents/Passwords*.kdbx rick@"$localnet.$mhostip":Documents/
+scp -p "$HOME"/Documents/Passwords.kdbx "$HOME"/Documents/Passwords.old.kdbx  rick@"$localnet.$mhostip":Documents/
 printf "MOTD: "
 leave ""
