@@ -31,8 +31,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.5.11"
-readonly _updated="28 Dec 2023"
+readonly _version="1.5.12"
+readonly _updated="02 Jan 2024"
 
 ## Functions ##
 
@@ -89,66 +89,66 @@ transfer() {
 
 sync_script() {
   echo $'\n'$"${orange}Syncing aliases...${normal}"
-  rsync -avh --delete /home/"$USER"/.bash_aliases "$localnet.$hostip":
+  rsync -avh --delete "$HOME"/.bash_aliases "$localnet.$hostip":
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing script configuration files...${normal}"
-  rsync -avh --delete /home/"$USER"/.config/scripts/ "$localnet.$hostip":.config/scripts/
+  rsync -avh --delete "$HOME"/.config/scripts/ "$localnet.$hostip":.config/scripts/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Templates...${normal}"
-  rsync -avh --delete /home/"$USER"/Templates/ "$localnet.$hostip":Templates/
+  rsync -avh --delete "$HOME"/Templates/ "$localnet.$hostip":Templates/
   exit_status="$?"
   transfer_status "$exit_status"
 
   case "$hostip" in
     10|22|153 )
       printf "\n%sSyncing Gitea Repositories...%s\n" "$orange" "$normal"
-      rsync -avh --delete /home/"$USER"/gitea/ "$localnet.$hostip":gitea/
+      rsync -avh --delete "$HOME"/gitea/ "$localnet.$hostip":gitea/
       exit_status="$?"
       transfer_status "$exit_status"
 
       printf "\n%sSyncing Github Repositories...%s\n" "$orange" "$normal"
-      rsync -avh --delete /home/"$USER"/Projects/ "$localnet.$hostip":Projects/
+      rsync -avh --delete "$HOME"/Projects/ "$localnet.$hostip":Projects/
       exit_status="$?"
       transfer_status "$exit_status"
     ;;
     24|25|227 )
       echo $'\n'$"${orange}Syncing Homepage...${normal}"
-      rsync -avh --delete --exclude '.git' /home/"$USER"/Documents/homepage/ "$localnet.$hostip":Documents/homepage/
+      rsync -avh --delete --exclude '.git' "$HOME"/Documents/homepage/ "$localnet.$hostip":Documents/homepage/
       exit_status="$?"
       transfer_status "$exit_status"
 
       echo $'\n'$"${orange}Syncing Todo list...${normal}"
-      rsync -avh --delete /home/"$USER"/.local/share/doc/ "$localnet.$hostip":.local/share/doc/
+      rsync -avh --delete "$HOME"/.local/share/doc/ "$localnet.$hostip":.local/share/doc/
       exit_status="$?"
       transfer_status "$exit_status"
 
       echo $'\n'$"${orange}Syncing wallpaper directory...${normal}"
-      rsync -avh --delete /home/"$USER"/Pictures/wallpaper/ "$localnet.$hostip":Pictures/wallpaper/
+      rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$localnet.$hostip":Pictures/wallpaper/
       exit_status="$?"
       transfer_status "$exit_status"
 
       echo $'\n'$"${orange}Syncing bin...${normal}"
-      rsync -avh --delete --exclude '.git' /home/"$USER"/bin/ "$localnet.$hostip":bin/
+      rsync -avh --delete --exclude '.git' "$HOME"/bin/ "$localnet.$hostip":bin/
       exit_status="$?"
       transfer_status "$exit_status"
 
       echo $'\n'$"${orange}Syncing script configuration files...${normal}"
-      rsync -avh --delete /home/"$USER"/.config/scripts/ "$localnet.$hostip":.config/scripts/
+      rsync -avh --delete "$HOME"/.config/scripts/ "$localnet.$hostip":.config/scripts/
       exit_status="$?"
       transfer_status "$exit_status"
 
       echo $'\n'$"${orange}Syncing Password Databases...${normal}"
-      rsync -avh --delete /home/"$USER"/Documents/Passwords* "$localnet.$hostip":Documents/
+      rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$localnet.$hostip":Documents/
       exit_status="$?"
       transfer_status "$exit_status"
     ;;
    * )
       echo $'\n'$"${orange}Syncing bin...${normal}"
-      rsync -avh --delete --exclude '.git' /home/"$USER"/bin/ "$localnet.$hostip":bin/
+      rsync -avh --delete --exclude '.git'"$HOME"/bin/ "$localnet.$hostip":bin/
       exit_status="$?"
       transfer_status "$exit_status"
   esac
