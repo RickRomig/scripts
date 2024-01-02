@@ -28,8 +28,8 @@ fi
 
 readonly local_host="${HOSTNAME:-$(hostname)}"
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.19"
-readonly _updated="27 Dec 2023"
+readonly _version="0.2.21"
+readonly _updated="02 Jan 2024"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 
@@ -80,54 +80,54 @@ transfer() {
 
 sync_to_main() {
   echo  $'\n'$"${orange}Syncing Finance directory...${normal}"
-  rsync -avh --delete /home/"$USER"/Documents/Finance/ "$localnet.$main_ip":Documents/Finance/
+  rsync -avh --delete "$HOME"/Documents/Finance/ "$localnet.$main_ip":Documents/Finance/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo  $'\n'$"${orange}Syncing HomeBank directory...${normal}"
-  rsync -avh --delete /home/"$USER"/Documents/HomeBank/ "$localnet.$main_ip":Documents/HomeBank/
+  rsync -avh --delete "$HOME"/Documents/HomeBank/ "$localnet.$main_ip":Documents/HomeBank/
   exit_status="$?"
   transfer_status "$exit_status"
 }
 
 sync_to_fin() {
   echo $'\n'$"${orange}Syncing bash aliases...${normal}"
-  rsync -avh --delete /home/"$USER"/.bash_aliases "$localnet.$fin_ip":
+  rsync -avh --delete "$HOME"/.bash_aliases "$localnet.$fin_ip":
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing bin directory...${normal}"
-  rsync -avh --delete --exclude '.git' /home/"$USER"/bin/ "$localnet.$fin_ip":bin/
+  rsync -avh --delete --exclude '.git' "$HOME"/bin/ "$localnet.$fin_ip":bin/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing script configuration files...${normal}"
-  rsync -avh --delete /home/"$USER"/.config/scripts/ "$localnet.$fin_ip":.config/scripts/
+  rsync -avh --delete "$HOME"/.config/scripts/ "$localnet.$fin_ip":.config/scripts/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing homepage directory...${normal}"
-  rsync -avh --delete --exclude '.git' /home/"$USER"/Documents/homepage/ "$localnet.$fin_ip":Documents/homepage/
+  rsync -avh --delete --exclude '.git' "$HOME"/Documents/homepage/ "$localnet.$fin_ip":Documents/homepage/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Password Databases...${normal}"
-  rsync -avh --delete /home/"$USER"/Documents/Passwords* "$localnet.$fin_ip":Documents/
+  rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$localnet.$fin_ip":Documents/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Templates directory...${normal}"
-  rsync -avh --delete /home/"$USER"/Templates/ "$localnet.$fin_ip":Templates/
+  rsync -avh --delete "$HOME"/Templates/ "$localnet.$fin_ip":Templates/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing wallpaper directory...${normal}"
-  rsync -avh --delete /home/"$USER"/Pictures/wallpaper/ "$localnet.$fin_ip":Pictures/wallpaper/
+  rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$localnet.$fin_ip":Pictures/wallpaper/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing .local/share/doc...${normal}"
-  rsync -avh --delete /home/"$USER"/.local/share/doc/ "$localnet.$fin_ip":.local/share/doc/
+  rsync -avh --delete "$HOME"/.local/share/doc/ "$localnet.$fin_ip":.local/share/doc/
   exit_status="$?"
   transfer_status "$exit_status"
 }
