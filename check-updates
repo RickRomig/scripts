@@ -31,8 +31,8 @@ set -euo pipefail
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.1.4"
-readonly _updated="28 Dec 2023"
+readonly _version="2.1.5"
+readonly _updated="02 Jan 2024"
 
 ## Functions ##
 
@@ -58,21 +58,13 @@ purge_configs() {
   rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}')
   if [[ -n "$rcpkgs" ]]; then
     printf "Packages in the 'rc' state:\n"
-    printf "%s\n" "${rcpkgs[@]}"
+    printf "\t%s\n" "${rcpkgs[@]}"
     for rcpkg in "${rcpkgs[@]}"; do
       sudo apt-get remove --purge "$rcpkg" -yy
     done
   else
     printf "No packages in the 'rc' state to be purged.\n"
   fi
-  # rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}' | wc -l)
-  # if [[ "$rcpkgs" -gt 0 ]]; then
-  #   for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
-  #     sudo apt-get remove --purge "$rcpkg" -yy
-  #   done
-  # else
-  #   printf "No files to be purged found.\n"
-  # fi
 }
 
 update_complete() {
