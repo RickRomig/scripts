@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : fin-backup.sh
+# Script Name  : fin-bu.sh
 # Description  : Incremental backups of Finance & HomeBank directories
 # Dependencies : none
 # Arguments    : none
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Oct 2023
-# Last updated : 27 Dec 2023 (Version 0.1.4)
-# Comments     : Run as a daily cron job on the finance system
+# Last updated : 05 Jan 2024 (Version 0.1.5)
+# Comments     : Run as a daily cron job on the finance system.
 #              : Excludes ~/Documents/Finance/Archives directory
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -16,11 +16,10 @@
 
 ## Global Variables ##
 
-dow=$(date +%u)
-arc_date=$(date +%y%m%d)
 day=$(date +%a)
-snar="finance.snar"
-archive="finance.$arc_date-$dow.tar.gz"
+snar="gitea.snar"
+arc_date=$(date +'%y%m%d-%u')
+archive="finance.$arc_date.tar.gz"
 arc_dir="$HOME/Downloads/archives/finance"
 
 ## Execution ##
@@ -28,7 +27,7 @@ arc_dir="$HOME/Downloads/archives/finance"
 # On Sunday, set up SNAR file for full backup & delete archives older than 3 months.
 if [[ "$day" == "Sun" ]]; then
 	[[ -e "$arc_dir/$snar" ]] && mv "$arc_dir/$snar" "$arc_dir/$snar.$(date --date '7 days ago' +%y%m%d)"
-  find "$arc_dir" -mtime +85 -delete
+  find "$arc_dir" -mtime +90 -delete
 fi
 
 # Incremental backup of Finance and HomeBank directories.
