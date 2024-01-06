@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Comments     : Based on USB Backup Tool (Version 1.1) by Joe Collins. (https://www.ezeelinux.com)
 #              : Joe's code at: https://github.com/EzeeLinux/bu-usb_backup_tool
-# Last updated : 01 Dec 2023
+# Last updated : 06 Jan 2024
 # TODO (Rick)  : 
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -33,7 +33,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="3.14"
+readonly _version="3.15"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -83,7 +83,8 @@ mount_bu() {
 }
 
 bu_drive_fs() {
-	fs_type="$(mount | awk '/BU_Drive/ {print $5}')"
+	# fs_type="$(mount | awk '/BU_Drive/ {print $5}')"
+	fs_type="$(lsblk -f | awk '/BU_Drive/ {print $2}')"
 	[[ "$fs_type" == "ext4" || "$fs_type" == "XFS" ]] && return "$TRUE" || return "$FALSE"
 }
 
