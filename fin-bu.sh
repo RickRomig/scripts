@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Oct 2023
-# Last updated : 05 Jan 2024 (Version 0.1.5)
+# Last updated : 06 Jan 2024 (Version 0.1.6)
 # Comments     : Run as a daily cron job on the finance system.
 #              : Excludes ~/Documents/Finance/Archives directory
 # TODO (Rick)  :
@@ -17,7 +17,7 @@
 ## Global Variables ##
 
 day=$(date +%a)
-snar="gitea.snar"
+snar="finance.snar"
 arc_date=$(date +'%y%m%d-%u')
 archive="finance.$arc_date.tar.gz"
 arc_dir="$HOME/Downloads/archives/finance"
