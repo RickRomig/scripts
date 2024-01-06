@@ -18,7 +18,7 @@ set -euo pipefail
 ## Global Variables ##
 
 day=$(date +%a)
-snar="gitea.snar"
+snar="gitea.sngz"
 arc_date=$(date +'%y%m%d-%u')
 archive="gitea.$arc_date.tar.gz"
 arc_dir="$HOME/Downloads/archives/gitea-repo"
