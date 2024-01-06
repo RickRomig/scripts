@@ -18,7 +18,7 @@ set -euo pipefail
 ## Global Variables ##
 
 day=$(date +%a)
-snar="projects.snar"
+snar="projects.sngz"
 arc_date=$(date +'%y%m%d-%u')
 archive="projects.$arc_date.tar.gz"
 arc_dir="$HOME/Downloads/archives/projects-repo"
@@ -28,7 +28,7 @@ arc_dir="$HOME/Downloads/archives/projects-repo"
 # On Sunday, set up SNAR file for full backup & delete archives older than 3 months.
 if [[ "$day" == "Sun" ]]; then
 	[[ -e "$arc_dir/$snar" ]] && mv "$arc_dir/$snar" "$arc_dir/$snar.$(date --date '7 days ago' +%y%m%d)"
-  find "$arc_dir" -mtime +85 -delete
+  find "$arc_dir" -mtime +60 -delete
 fi
 
 # Incremental backup of GitHbe repositories (Projects directory).
