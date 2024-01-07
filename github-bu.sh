@@ -21,7 +21,7 @@ day=$(date +%a)
 snar="github.snar"
 sngz="projects.sngz"
 arc_date=$(date +'%y%m%d-%u')
-archive="projects.$arc_date.tar.gz"
+archive="github.$arc_date.tar.gz"
 arc_dir="$HOME/Downloads/archives/projects-repo"
 
 ## Execution ##
