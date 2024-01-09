@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.1.0"
-readonly _updated="02 Jan 2024"
+readonly _version="3.1.1"
+readonly _updated="09 Jan 2024"
 readonly local_host="${HOSTNAME:-$(hostname)}"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
@@ -179,6 +179,7 @@ if [[ "$local_host" == "$main_host" ]]; then
   fi
 elif [[ "$local_host" == "$lap_host" ]]; then
   if ping -c 3 "$localnet.$main_ip" >/dev/null 2>&1; then
+    default_no "Are you sure you want to sync to $main_host?" || leave "Sync to $main_host canceled."
     printf "Syncing %s to %s ...\n" "$lap_host" "$main_host"
     sync_script "$main_ip"
     printf "\n%s synced with %s.\n" "$main_host" "$lap_host"
