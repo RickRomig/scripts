@@ -27,8 +27,9 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.1"
-readonly _updated="12 Jan 2024"
+readonly _version="0.4.2"
+readonly _updated="14 Jan 2024"
+localip="$(local_ip)"
 
 ## Functions ##
 
@@ -95,13 +96,14 @@ help() {
 	cat << END_HELP
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
-  -c  toggle mount/umount HP Compaq 6005 Pro SSF (file server)
-  -e  toggle mount/umount HP EliteBook 850 G2 (laptop)
+  -e  toggle mount/umount HP EliteBook 850 G3 (laptop)
   -f  toggle mount/umount HP ProBook 6570b (Finance)
   -g  toggle mount/umount HP Compaq Elite 8300 USDT (Gitea Server)
   -h  help
   -l  toggle mount/umount Lenovo M91p (VM and media)
+  -m  toggle mount/umount HP 800 G2 (Main system)
   -n  toggle mount/umount QNAP NAS (network attached storage)
+  -s  toggle mount/umount HP Compaq 6005 Pro SSF (file server)
 $_script v$_version (Updated: $_updated)
 END_HELP
 	exit "$errcode"
@@ -114,29 +116,36 @@ check_package sshfs
 printf "Mount or unmount an SSHFS share.\n\n"
 
 noOpt=1
-optstr=":cefghln"
+optstr=":efghlmns"
 while getopts "$optstr" opt
 do
 	case "$opt" in
-		c )
-			share_name="HP-6005"
-			ip_address=11
-			handle_mount "$ip_address" "$share_name"
-		;;
 		e )
 			share_name="EliteBook-850"
 			ip_address=22
-			handle_mount "$ip_address" "$share_name"
+			if [[ "$localip" == "$ip_address" ]]; then
+				diehard "Cannot mount/unmount local system." "$_script v$_version ($_updated)"
+			else
+				handle_mount "$ip_address" "$share_name"
+			fi
 		;;
 		f )
 			share_name="HP-ProBook-6570b"
 			ip_address=21
-			handle_mount "$ip_address" "$share_name"
+			if [[ "$localip" == "$ip_address" ]]; then
+				diehard "Cannot mount/unmount local system." "$_script v$_version ($_updated)"
+			else
+				handle_mount "$ip_address" "$share_name"
+			fi
 		;;
 		g )
 			share_name="Gitea-Server"
 			ip_address=16
-			handle_mount "$ip_address" "$share_name"
+			if [[ "$localip" == "$ip_address" ]]; then
+				diehard "Cannot mount/unmount local system." "$_script v$_version ($_updated)"
+			else
+				handle_mount "$ip_address" "$share_name"
+			fi
 		;;
 		h )
 			help 0
@@ -144,12 +153,38 @@ do
 		l )
 			share_name="Lenovo-M91p"
 			ip_address=15
-			handle_mount "$ip_address" "$share_name"
+			if [[ "$localip" == "$ip_address" ]]; then
+				diehard "Cannot mount/unmount local system." "$_script v$_version ($_updated)"
+			else
+				handle_mount "$ip_address" "$share_name"
+			fi
+		;;
+		m )
+			share_name="HP-800-G2"
+			ip_address=10
+			if [[ "$localip" == "$ip_address" ]]; then
+				diehard "Cannot mount/unmount local system." "$_script v$_version ($_updated)"
+			else
+				handle_mount "$ip_address" "$share_name"
+			fi
 		;;
 		n )
 			share_name="NASD97167"
 			ip_address=4
-			handle_mount "$ip_address" "$share_name"
+			if [[ "$localip" == "$ip_address" ]]; then
+				diehard "Cannot mount/unmount local system." "$_script v$_version ($_updated)"
+			else
+				handle_mount "$ip_address" "$share_name"
+			fi
+		;;
+		s )
+			share_name="HP-6005"
+			ip_address=11
+			if [[ "$localip" == "$ip_address" ]]; then
+				diehard "Cannot mount/unmount local system." "$_script v$_version ($_updated)"
+			else
+				handle_mount "$ip_address" "$share_name"
+			fi
 		;;
 		?)
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
