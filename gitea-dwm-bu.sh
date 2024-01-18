@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Jan 2024
-# Last updated : 17 Jan 2024 Version 1.0.1
+# Last updated : 18 Jan 2024 Version 1.0.2
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -15,7 +15,7 @@
 
 set -euo pipefail
 
-arc_dir="$HOME/Work/shell/backup/gitea"
+arc_dir="$HOME/Downloads/archives/gitea"
 archive="gitea-bu-$(date +%y%m%d).tar.gz"
 dow=$(date +%a)
 dom=$(date +%d)
