@@ -69,7 +69,7 @@ show_user_cron() {
   while [[ "$i" -le "$max" ]]; do
     norm_user="$(awk -v pat="$i" -F: '$0~pat{print $1}' "$passwd_file")"
     if [[ -n "$norm_user" ]]; then
-      printf "\n%sCron jobs for %s:%s\n" "$orange" "$norm_user^"  "$normal"
+      printf "\n%sCron jobs for %s:%s\n" "$orange" "${norm_user^}"  "$normal"
       sudo crontab -l -u "$norm_user" | grep -v '#'
     fi
     (( i++ ))
