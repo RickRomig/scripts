@@ -31,17 +31,31 @@ set -euo pipefail
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.1.5"
-readonly _updated="02 Jan 2024"
+readonly _version="2.2.0"
+readonly _updated="19 Jan 2024"
 
 ## Functions ##
+
+update_apt_cache() {
+  local cache_file="/var/cache/apt/pkgcache.bin"
+  local current_time; current_time=$(date +%s)
+  local updated_time; updated_time=$(stat -c%Y "$cache_file")
+  local time_diff; time_diff=$(( current_time - updated_time ))
+  local threshold=86400
+  if [[ "$time_diff" -le "$threshold" ]]; then
+    printf "%sApt cache is up to date.%s\n" "$orange" "$normal"
+  else
+    printf "%sUpdating apt cache...%s\n" "$orange" "$normal"
+    sudo apt-get update
+  fi
+}
 
 install_updates() {
   printf "\n%sInstalling updates...%s\n" "$orange" "$normal"
   sudo apt-get dist-upgrade -yy
 }
 
-clean_cache() {
+clean_apt_cache() {
   printf "\n%sCleaning up apt cache...%s\n" "$orange" "$normal"
   sudo apt-get autoclean
 }
@@ -103,7 +117,7 @@ nala_update() {
 
 apt_update() {
   local nupd
-  sudo apt-get update
+  grep -qw debian /etc/os-release && update_apt_cache
   # Get number of packages that can be upgraded
   nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
   # If there are packages to be upgraded
@@ -128,7 +142,7 @@ apt_update() {
         ;;
         2 )
           install_updates
-          clean_cache
+          clean_apt_cache
           update_complete "$nupd"
           break
         ;;
@@ -141,7 +155,7 @@ apt_update() {
         ;;
         4 )
           install_updates
-          clean_cache
+          clean_apt_cache
           remove_orphans
           purge_configs
           update_complete "$nupd"
