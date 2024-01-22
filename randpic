@@ -27,9 +27,9 @@ fi
 ##  Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.4.3"
-readonly _updated="18 Jan 2024"
-readonly tmp_dir=$HOME"/tmp/journal"
+readonly _version="3.4.4"
+readonly _updated="22 Jan 2024"
+readonly tmp_pics=$HOME"/tmp/journal"
 
 ## Functions ##
 
@@ -62,7 +62,7 @@ valid_image() {
 ## Execution ##
 
 # Create temporary picture directory if it doesn't already exist
-[[ -d "$tmp_dir" ]] || mkdir -p "$tmp_dir"
+[[ -d "$tmp_pics" ]] || mkdir -p "$tmp_dir"
 
 check_package imagemagick
 clear
@@ -83,8 +83,8 @@ while true; do
   echo "$_script v$_version ($_updated)"
   echo -e "Selects a random image from ~/Pictures\n"
   echo "${blue}Selected image: ${orange}$sel_dir/$pic_file${normal}"
-  cp -p "$pic_dir/$pic_file" "$tmp_dir"
-  /usr/bin/display -geometry +600+20 "$tmp_dir/$pic_file" &
+  cp -p "$pic_dir/$pic_file" "$tmp_pics"
+  /usr/bin/display -geometry +600+20 "$tmp_pics/$pic_file" &
   pic_pid="$!"
   echo $'\n'$"${blue}Options:${normal}"
   COLUMNS=12
@@ -112,21 +112,21 @@ while true; do
         echo $'\n'$"${blue}Rejected image:${normal} $sel_dir/$pic_file"
         kill $pic_pid
         echo $'\n'$"Selecting another random image..."
-        rm "$tmp_dir/$pic_file"
+        rm "$tmp_pics/$pic_file"
         sleep 2
         break
       ;;
       4 )
         echo -e "\n${blue}Rejected image:${normal} $sel_dir/$pic_file\n"
         kill $pic_pid
-        rm "$tmp_dir/$pic_file"
+        rm "$tmp_pics/$pic_file"
         leave
       ;;
       5 )
         echo -e $'\n'$"${blue}Image deleted:${normal} $sel_dir/$pic_file"
         kill $pic_pid
         echo $'\n'$"Selecting another random image..."
-        rm "$tmp_dir/$pic_file"
+        rm "$tmp_pics/$pic_file"
         rm "$pic_dir/$pic_file"
         sleep 2
         break
