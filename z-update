@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
-# Last updated : 17 Dec 2023
+# Last updated : 25 Jan 2024
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -50,9 +50,9 @@ sed_file="/usr/share/misc/updatelog.sed"
   printf "\n*** Removing orphaned packages ***\n"
   DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove -yy
   printf "\n*** Purging obsolete configuration files ***\n"
-  rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}')
-  if [[ -n "$rcpkgs" ]]; then
-    for rcpkg in "${rcpkgs[@]}"; do
+  rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}' | wc -l)
+  if [[ "$rcpkgs" -gt 0 ]]; then
+    for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
       DEBIAN_FRONTEND=noninteractive apt-get remove --purge "$rcpkg" -yy
     done
   else
