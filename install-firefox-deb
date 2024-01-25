@@ -54,6 +54,8 @@ wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /et
 # Verify keys
 key1=$(gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); print "\n"$0"\n"}')
 key2=$(cat "$HOME"/bin/files/firefox-gpg.dat)
+printf "%s\n" "$key1"
+printf "%s\n" "$key2"
 [[ "$key1" == "$key2" ]] || die "GPG keys do not match." 1
 
 # Add Mozilla APT repository to sources list
