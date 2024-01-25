@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
 # Last updated : 24 Jan 2024
-# Comments     :
+# Comments     : For Debian systems with Firefox ESR installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -31,8 +31,9 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.0"
-readonly _updated="24 Jan 2024"
+readonly _version="0.1.1"
+readonly _updated="25 Jan 2024"
+readonly key2="35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3"
 
 ## Execution ##
 
@@ -53,7 +54,6 @@ wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /et
 
 # Verify keys
 key1=$(gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); print "\n"$0"\n"}')
-key2=$(cat "$HOME"/bin/files/firefox-gpg.dat)
 printf "%s\n" "$key1"
 printf "%s\n" "$key2"
 [[ "$key1" == "$key2" ]] || die "GPG keys do not match." 1
