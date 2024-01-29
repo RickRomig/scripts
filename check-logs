@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.8.7"
-readonly _updated="28 Dec 2023"
+readonly _version="0.9.0"
+readonly _updated="29 Jan 2024"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -277,8 +277,23 @@ while true; do
   printf "\n%s%s log files:%s\n" "$lightgreen" "$lhost" "$normal"
 
   COLUMNS=60
-  options=("System Information" "System Updates" "Timeshift Snapshots" "Defrag Report" "Yt-dlp Updates" "Script archive" "Password Databases" \
-    "HomeBank Archive" "Local Backup" "Gitea Snapshots"  "Finance Incremental" "Gitea Incremental" "GitHub Incremental" "Local Trash" "Exit the script")
+  options=(
+    "System Information"
+    "System Updates"
+    "Timeshift Snapshots"
+    "Defrag Report"
+    "Yt-dlp Updates"
+    "Script archive"
+    "Password Databases"
+    "HomeBank Archive"
+    "Local Backup"
+    "Local Trash"
+    "Finance Incremental"
+    "Gitea Snapshots"
+    "Gitea Incremental"
+    "GitHub Incremental"
+    "Exit the script"
+  )
   PS3="Select a log to view: "
   select opt in "${options[@]}"; do
     case $REPLY in
@@ -301,15 +316,15 @@ while true; do
       9 )
         local_backup_log; anykey; break ;;
       10 )
-        gitea_snapshots; anykey; break ;;
+        trash_log; anykey; break ;;
       11 )
         incremental_backups "Finance" "finance"; anykey; break ;;
       12 )
-        incremental_backups "Gitea" "gitea-repo"; anykey; break ;;
+        gitea_snapshots; anykey; break ;;
       13 )
-        incremental_backups "GitHub" "projects-repo"; anykey; break ;;
+        incremental_backups "Gitea" "gitea-repo"; anykey; break ;;
       14 )
-        trash_log; anykey; break ;;
+        incremental_backups "GitHub" "projects-repo"; anykey; break ;;
       15 )
         leave "${orange}Mischief managed.${normal}" ;;
       * )
