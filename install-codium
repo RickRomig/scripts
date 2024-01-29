@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.7"
-readonly _updated="06 Dec 2023"
+readonly _version="0.1.8"
+readonly _updated="29 Jan 2024"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 
@@ -56,32 +56,13 @@ codium_version() {
 }
 
 apply_settings() {
-  local vsc_cfg_d="${HOME}/.config/VSCodium/User"
+  local cfg_dir="${HOME}/.config/VSCodium/User"
 	local repository="configs/raw/branch/main/VSCodium/User"
   local json_file="settings.json"
-  [[ -d "$vsc_cfg_d" ]] || mkdir -p "$vsc_cfg_d"
+  [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
   printf "Applying VSCodium settings...\n"
-	wget -P "$vsc_cfg_d" "$Gitea_URL/$repository/$json_file"
-  # settings
+	wget -P "$cfg_dir" "$Gitea_URL/$repository/$json_file"
   printf "VSCodium settings applied.\n"
-}
-
-settings() {
-  local vsc_cfg_d="${HOME}/.config/VSCodium/User"
-  cat << EOL > "$vsc_cfg_d/settings.json"
-{
-  "workbench.colorTheme": "Default High Contrast",
-  "editor.tabSize": 2,
-  "editor.fontFamily": "'Fira Code', 'Cascadia Code', 'Droid Sans Mono', 'monospace'",
-  "editor.fontLigatures": true,
-  "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font'",
-  "editor.wordWrap": "on",
-  "editor.fontSize": 16,
-  "window.restoreFullscreen": true,
-  "editor.insertSpaces": false,
-  "editor.autoClosingQuotes": "always"
-}
-EOL
 }
 
 set_key() {
@@ -95,7 +76,7 @@ set_src() {
 }
 
 install_vscodium() {
-	sudo_login
+	sudo_login 2
 	show_me "Installing VSCodium..."
 	set_key
 	set_src
@@ -106,13 +87,13 @@ install_vscodium() {
 }
 
 remove_vscodium() {
-	local vsc_cfg_d="${HOME}/.config/VSCodium"
-	sudo_login
+	local cfg_dir="${HOME}/.config/VSCodium"
+	sudo_login 2
 	show_me "Removing VSCodium..."
 	sudo apt-get remove codium
 	[[ -f "$key_file" ]] && sudo rm -v "$key_file"
 	[[ -f "$src_list" ]] && sudo rm -v "$src_list"
-  [[ -d "$vsc_cfg_d" ]] && rm -rf "$vsc_cfg_d"
+  [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
 	printf "VSCodium has been removed.\n"
 }
 
