@@ -129,3 +129,13 @@
   }
   gcommitall foobar.tar.gz
   ```
+14. Parse git branch, identifies git branch in bash prompt (~/.bashrc)
+  ```bash
+  parse_git_branch() {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+  }
+```
+15. Alias for ssh if terminal is kitty
+  ```bash
+  [[ "$TERM" = "xterm-kitty" ]] && alias ssh="kitty +kitten ssh"
+  ```
