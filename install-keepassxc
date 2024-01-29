@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.8"
-readonly _updated="6 Oct 2023"
+readonly _version="0.3.9"
+readonly _updated="29 Jan 2024"
 
 ## Functions ##
 
@@ -41,19 +41,20 @@ keepass_ver() {
 }
 
 flathub_keepassxc() {
+  sudo_login 2
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   flatpak install flathub org.keepassxc.KeePassXC
   printf "KeePassXC %s installed from flathub.\n" "$(keepass_ver)"
 }
 
 distro_keepassxc() {
-  sudo_login
+  sudo_login 2
   sudo apt-get install keepassxc -yy
   printf "Keepassxc %s installed from distro repositories.\n" "$(kpxc_ver)"
 }
 
 remove_keepassxc() {
-  sudo_login
+  sudo_login 2
   printf "Removing KeePassXC ...\n"
   if [[ -d "HOME/.var/app/org.keepassxc.KeePassXC" ]]; then
     flatpak uninstall --noninteractive --assumeyes org.keepassxc.KeePassXC
