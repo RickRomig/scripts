@@ -7,8 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Last updated : 24 Jan 2024
-# Comments     : For Debian systems with Firefox ESR installed.
+# Comments     : For Debian/Ubuntu=based systems with ESR, Flatpak, or Snap versions of Firefox installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -31,8 +30,8 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.1"
-readonly _updated="25 Jan 2024"
+readonly _version="0.1.2"
+readonly _updated="30 Jan 2024"
 readonly key2="35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3"
 
 ## Execution ##
@@ -41,11 +40,20 @@ sudo_login 2
 check_package wget
 sudo apt update
 
-# Remove Firefox ESR if it exists
-if dkpg -l | grep -qw firefox-esr; then
+# Remove ESR, Flatpak, Snap versions of Firefox
+if  dkpg -l | grep -qw firefox-esr; then
 	sudo apt-get remove firefox-esr
-else
-	leave "firefox-esr is not installed on this system."
+	printf "Firefox ESR has been removed.\n"
+fi
+
+if exists flatpak; then
+	flatpak uninstall --noninteractive --assumeyes org.mozilla.firefox
+	printf "Flatpak version of Firefox has been removed.\n"
+fi
+
+if [[ -d /snapd ]]; then
+	snap list | grep -qw firefox & sudo snap remove --purge firefox
+	printf "Snap version of Firefox has been removed.\n"
 fi
 
 # Import Mozilla APT repository keys
@@ -56,7 +64,7 @@ wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /et
 key1=$(gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); print "\n"$0"\n"}')
 printf "%s\n" "$key1"
 printf "%s\n" "$key2"
-[[ "$key1" == "$key2" ]] || die "GPG keys do not match." 1
+[[ "$key1" == "$key2" ]] || die "Mozilla Firefox GPG keys do not match." 1
 
 # Add Mozilla APT repository to sources list
 echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null
@@ -68,8 +76,8 @@ Pin: origin packages.mozilla.org
 Pin-Priority: 1000
 ' | sudo tee /etc/apt/preferences.d/mozilla
 
-# Update package list and isntall Firefox .deb package
-sudo apt-get update && sudo apt-get install firefox
+# Update package list and install Firefox .deb package
+sudo apt-get update && sudo apt-get install firefox -yy
 printf "%s installed.\n" "$(firefox --version)"
 
 leave "$_script $_version (Updated $_updated)"
