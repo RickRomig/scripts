@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.9"
-readonly _updated="23 Oct 2023"
+readonly _version="0.2.10"
+readonly _updated="30 Jan 2024"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
 
 ## Functions ##
@@ -85,7 +85,7 @@ NO_SNAPS
 lm20_plus() {
   ver_code=$(awk -F= '/VERSION_CODENAME/ {print $2}' /etc/os-release)
   case "$ver_code" in
-    ulyana|ulyssa|uma|una|vanessa|vera|victoria )
+    ulyana|ulyssa|uma|una|vanessa|vera|victoria|virginia )
       return "$TRUE"
     ;;
     * )
@@ -116,11 +116,11 @@ if lm20_plus; then
   while getopts "$optstr" opt; do
     case "$opt" in
       d )
-        sudo_login
+        sudo_login 2
         disable_snaps
       ;;
       e )
-        sudo_login
+        sudo_login 2
         enable_snaps
       ;;
       h )
