@@ -40,11 +40,11 @@ bu_home_cfg(){
 	local file="$1"
 	if [[ -f "$HOME/$file" && -f "$bu_dir/$file" ]]; then
 		if [[ "$bu_dir/$file" -ot "$HOME/$file" ]]; then
-	    cp -pv "$HOME/$file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'//"
+	    cp -pv "$HOME/$file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
 			(( count++ ))
 	  fi
 	elif [[ -f "$HOME/$file" ]]; then
-	  cp -pv "$HOME/$file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'//"
+	  cp -pv "$HOME/$file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
 		(( count++ ))
 	fi
 }
@@ -55,13 +55,13 @@ bu_config_cfg() {
 	if [[ -f "$cfg_dir/$folder/$file" && -f "$bu_dir/$folder/$file" ]]; then
 		if [[ "$bu_dir/$folder/$file" -ot "$cfg_dir/$folder/$file" ]]; then
 			printf "==> "
-			cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'//"
+			cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
 			(( count++ ))
 		fi
 	elif [[ -f "$cfg_dir/$folder/$file" ]]; then
 		[[ -d "$bu_dir/$folder" ]] || mkdir -p "$bu_dir/$folder"
 		printf "==> "
-		cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'//"
+		cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
 		(( count++ ))
 	fi
 }
@@ -72,13 +72,13 @@ bu_misc_cfg() {
 	if [[ -f "$HOME/$folder/$file" && -f "$bu_dir/$folder/$file" ]]; then
 	  if [[ "$bu_dir/$folder/$file" -ot "$HOME/$folder/$file" ]]; then
 			printf "==> "
-	    cp -pv "$HOME/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'//"
+	    cp -pv "$HOME/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
 			(( count++ ))
 	  fi
 	elif [[ -f "$HOME/$folder/$file" ]]; then
 		[[ -d "$bu_dir/$folder" ]] || mkdir -p "$bu_dir/$folder"
 		printf "==> "
-	  cp -pv "$HOME/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'//"
+	  cp -pv "$HOME/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
 		(( count++ ))
 	fi
 }
@@ -87,13 +87,13 @@ bu_cinnamon_keybindings() {
 	local kb_bu_file="keybindings-backup.dconf"
 	if [[ -f "$cfg_dir/$kb_bu_file" && -f "$bu_dir/$kb_bu_file" ]]; then
 	  if [[ "$bu_dir/$kb_bu_file" -ot "$cfg_dir/$kb_bu_file" ]]; then
-	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'//"; (( count++ ))
+	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"; (( count++ ))
 	  fi
 	elif [[ -f "$cfg_dir/$kb_bu_file" ]]; then
-	  cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> "$NF}' | sed "s/'//"; (( count++ ))
+	  cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> "$NF}' | sed "s/'$//"; (( count++ ))
 	elif is_cinnamon; then
 	    dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$kb_bu_file"
-	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'//"; (( count++ ))
+	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$S//"; (( count++ ))
 	fi
 }
 
