@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : verify-iso
 # Description  : Verifies SHA256, SHA512, and MD5 checksums of ISO files
-# Dependencies : None
+# Dependencies : fzf (optional)
 # Arguments    : None, user is prompted to enter the filenames.
 # Author       : Copyright (C) 2022, Richard B. Romig, 09 Apr 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -31,8 +31,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.7.0"
-readonly _updated="02 Nov 2023"
+readonly _version="0.7.1"
+readonly _updated="31 Jan 2024"
 
 ## Functions ##
 
@@ -144,20 +144,17 @@ check_checksum() {
 printf "Verifies SHA256/SHA512/MD5 checksums with ISO files.\n\n"
 
 # Select ISO file to be checked
-
 select_iso
 printf "Selected ISO: %s\n\n" "$isofile"
 
 # Select and check the checksum file
-
 select_checksum
 printf "Selected Checksum: %s\n\n" "$checksum"
 check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$_script $_version ($_updated)"
 
 # Compare checksuma
-
 ext="${checksum##*.}"
-printf "Comparing checksums.\nThis may take a while."
+printf "Comparing checksums."
 case "$ext" in
   "md5" )
     check_md5 "$isofile" "$checksum"
@@ -173,5 +170,5 @@ case "$ext" in
   ;;
   * )
     printf "\n"
-    diehard "Invalid extension" "Checksum must be one of the following:" "md5 sha256 sha512" "$_script $_version ($_updated)"
+    diehard "Invalid extension" "Checksum must be one of the following:" ".md5 .sha256 .sha512" "$_script $_version ($_updated)"
 esac
