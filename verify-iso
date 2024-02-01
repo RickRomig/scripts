@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : verify-iso
 # Description  : Verifies SHA256, SHA512, and MD5 checksums of ISO files
-# Dependencies : fzf (optional)
+# Dependencies : fzf (optional), zenity (optional)
 # Arguments    : None, user is prompted to enter the filenames.
 # Author       : Copyright (C) 2022, Richard B. Romig, 09 Apr 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -10,8 +10,8 @@
 #              : Each ISO file must have its own checksum file.
 #              : Checksum files must have one of the following extensions:
 #              : .md5, .sha256, or .sha512
-#              : Works with fuzzy finder (fzf), if installed.
-# TODO (Rick)  :
+#              : Options for fuzzy finder (fzf) and zenity
+# TODO (Rick)  : value too great for base (error token is "64bit") on #10 with select menu
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -31,67 +31,138 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.7.1"
+readonly _version="0.8.0"
 readonly _updated="31 Jan 2024"
 
 ## Functions ##
 
-exit_msg() {
-  local errcode="${1:-0}"
-  if [[ "$errcode" -eq 0 ]]; then
-  	printf "%sThe checksums match.%s\n" "$green" "$normal"
-  else
-  	printf "%sThe checksums do not match.%s\n" "$lightred" "$normal"
-  	printf "Verify checksum with the ISO download site.\n"
-  fi
-  printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+	-f	Select with Fuzzy Finder (fzf)
+	-h	Display help
+	-s	Select with Select Menu
+	-z	Select with Zenity dialog
+$_script $_version (Updated $_updated)
+END_HELP
   exit "$errcode"
 }
 
+select_iso_directory() {
+	local iso_dir="${HOME}/Downloads/ISO"
+	under_line "ISO Directories" "*"
+	PS3="Select an ISO directory: "
+	COLUMNS=60
+	options=(
+		"antiX-Linux"
+		"ArchLabs"
+		"Artix"
+		"BunsenLabs"
+		"Debian"
+		"Linux_Lite"
+		"Mint"
+		"MX_Linux"
+		"Tails"
+		"Ubuntu"
+		"Utilities"
+		"Current directory"
+	)
+	select opt in "${options[@]}"; do
+		case "$REPLY" in
+			1 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
+			2 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
+			3 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
+			4 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
+			5 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
+			6 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
+			7 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
+			8 ) pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
+			9 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
+			11 ) pushd "$iso_dir/$opt" || die "pushd failed!"; break ;;
+			12 ) iso_dir="$PWD" || die "pushd failed!"; break ;;
+			* ) printf "Invalid option. Choose 1 - %d\n" "${#options[@]}"
+		esac
+	done
+	printf "\n"
+}
+
 select_iso() {
+	local num_iso
 	num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
 	[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
-	
-	if exists fzf; then
-		isofile=$(find ./ -type f -name "*.iso" -print | sed 's/\.\///' | fzf --prompt "Select the ISO file to check: ")
-	else
-		PS3="Please select an ISO file: "
-		options=($(find ./ -maxdepth 1 -name "*.iso" | sed 's/\.\///'))
-		select opt in "${options[@]}" "Quit"; do
-			if (( REPLY == 1 + ${#options[@]} )); then
-				printf "No ISO file selected. Operation canceled. Exiting the script."
-				leave "$_script $_version (updated: $_updated)"
-			elif (( REPLY > 0 && REPLY <= ${#options[@]} )); then
-				isofile="$opt"
-				break
-			else
-				printf "Invalid option. Choose 1 - %d\n" "${#options[@]}" 
-			fi
-		done
-	fi
+
+	under_line "ISO files:" "*"
+	PS3="Please select an ISO file: "
+	options=($(find ./ -maxdepth 1 -name "*.iso" | sed 's/\.\///' | sort -u))
+	select opt in "${options[@]}" "Quit"; do
+		if (( REPLY == 1 + ${#options[@]} )); then
+			printf "No ISO file selected. Operation canceled. Exiting the script."
+			leave "$_script $_version (updated: $_updated)"
+		elif (( REPLY > 0 && REPLY <= ${#options[@]} )); then
+			isofile="$opt"
+			break
+		else
+			printf "Invalid option. Choose 1 - %d\n" "${#options[@]}"
+		fi
+	done
+	printf "\n"
+}
+
+fzf_select_iso() {
+	local num_iso
+	num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
+	[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
+	isofile=$(find ./ -type f -name "*.iso" -print | sed 's/\.\///' | fzf --prompt "Select the ISO file to check: ")
+}
+
+zen_select_iso() {
+	local file
+	file=$(zenity --file-selection --file-filter='ISO files (iso) | *.iso' --file-filter='All files | *' --title="Select an ISO file.")
+	case "$?" in
+		0 ) isofile="$(basename "$file")" ;;
+		1 ) echo "$file not selected." ;;
+		-1 ) echo "$file not selected"
+	esac
 }
 
 select_checksum() {
+	local num_iso
 	num_files=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | wc -l)
 	[[ "$num_files" = 0 ]] && diehard "No checksum files found." "$_script $_version ($_updated)"
-	
-	if exists fzf; then
-		checksum=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | fzf --prompt "Select the checksum file: ")
-	else
-		PS3="Please select a checksum file: "
-		options=($(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///'))
-		select opt in "${options[@]}" "Quit"; do
-			if (( REPLY == 1 + ${#options[@]} )); then
-				printf "No checksum file selected. Operation canceled. Exiting the script."
-				leave "$_script $_version (updated: $_updated)"
-			elif (( REPLY > 0 && REPLY <= ${#options[@]} )); then
-				checksum="$opt"
-				break
-			else
-				printf "Invalid option. Choose 1 - %d\n" "${#options[@]}" 
-			fi
-		done
-	fi
+
+	under_line "Checksum files:" "*"
+	PS3="Please select a checksum file: "
+	options=($(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | sort -u))
+	select opt in "${options[@]}" "Quit"; do
+		if (( REPLY == 1 + ${#options[@]} )); then
+			printf "No checksum file selected. Operation canceled. Exiting the script."
+			leave "$_script $_version (updated: $_updated)"
+		elif (( REPLY > 0 && REPLY <= ${#options[@]} )); then
+			checksum="$opt"
+			break
+		else
+			printf "Invalid option. Choose 1 - %d\n" "${#options[@]}"
+		fi
+	done
+	printf "\n"
+}
+
+fzf_select_checksum() {
+	num_files=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | wc -l)
+	[[ "$num_files" = 0 ]] && diehard "No checksum files found." "$_script $_version ($_updated)"
+	checksum=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | fzf --prompt "Select the checksum file: ")
+}
+
+zen_select_checksum() {
+	local file
+	file=$(zenity --file-selection --file-filter='checksum files (md5,sha256,sha512) | *.md5 *.sha256 *.sha512' --file-filter='All files | *' --title="Select a checksum file.")
+	case "$?" in
+		0 ) checksum="$(basename "$file")" ;;
+		1 ) echo "$file not selected." ;;
+		-1 ) echo "$file not selected"
+	esac
 }
 
 check_sha256() {
@@ -124,7 +195,7 @@ check_md5() {
   local iso_file="$1"
   local md5_file="$2"
   dots "."
-  iso_md5=$(/usr/bin/md5sum "$iso_file" | awk '{print $1}') 
+  iso_md5=$(/usr/bin/md5sum "$iso_file" | awk '{print $1}')
   src_md5=$(awk '{print $1}' "$md5_file")
   kill "$!"; tput cnorm
   printf "done\n\nSelected ISO: %s\n" "$iso_file"
@@ -133,42 +204,93 @@ check_md5() {
   [[ "$iso_md5" == "$src_md5" ]] && return "$TRUE" || return "$FALSE"
 }
 
+exit_msg() {
+  local errcode="${1:-0}"
+  if [[ "$errcode" -eq 0 ]]; then
+		printf "%sThe checksums match.%s\n" "$green" "$normal"
+  else
+		printf "%sThe checksums do not match.%s\n" "$lightred" "$normal"
+		printf "Verify checksum with the ISO download site.\n"
+  fi
+  printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
 check_checksum() {
   local file="$1"
   lines=$(wc -l "$file" | cut -d' ' -f1)
   [[ "$lines" -eq 1 ]] && return "$TRUE" || return "$FALSE"
 }
 
+compare_checksums() {
+	local ext
+	ext="${checksum##*.}"
+	printf "Comparing checksums."
+	case "$ext" in
+	  "md5" )
+	    check_md5 "$isofile" "$checksum"
+	    exit_msg "$?"
+	  ;;
+	  "sha256" )
+	    check_sha256 "$isofile" "$checksum"
+	    exit_msg "$?"
+	  ;;
+	  "sha512" )
+	    check_sha512 "$isofile" "$checksum"
+	    exit_msg "$?"
+	  ;;
+	  * )
+	    printf "\n"
+	    diehard "Invalid extension" "Checksum must be one of the following:" ".md5 .sha256 .sha512" "$_script $_version ($_updated)"
+	esac
+}
+
 ## Execution ##
 
 printf "Verifies SHA256/SHA512/MD5 checksums with ISO files.\n\n"
 
-# Select ISO file to be checked
-select_iso
-printf "Selected ISO: %s\n\n" "$isofile"
+noOpt=1
+optstr=":fhsz"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		f )
+			if exists fzf; then
+				select_iso_directory
+				fzf_select_iso
+				fzf_select_checksum
+			else
+				leave "fzf (Fuzzy Finder) is not installed on this system."
+			fi
+		;;
+		h )
+			help 0
+		;;
+		s )
+			select_iso_directory
+			select_iso
+			select_checksum
+		;;
+		z )
+			if exists zenity; then
+				select_iso_directory
+				zen_select_iso
+				zen_select_checksum
+			else
+				leave "Zenity is not installed on this system."
+			fi
+		;;
+		? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			help 2
+	esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
 
-# Select and check the checksum file
-select_checksum
-printf "Selected Checksum: %s\n\n" "$checksum"
+printf "%-18s %s\n" "Selected ISO:" "$isofile"
+printf "%-18s %s\n\n" "Selected Checksum:" "$checksum"
 check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$_script $_version ($_updated)"
-
-# Compare checksuma
-ext="${checksum##*.}"
-printf "Comparing checksums."
-case "$ext" in
-  "md5" )
-    check_md5 "$isofile" "$checksum"
-    exit_msg "$?"
-  ;;
-  "sha256" )
-    check_sha256 "$isofile" "$checksum"
-    exit_msg "$?"
-  ;;
-  "sha512" )
-    check_sha512 "$isofile" "$checksum"
-    exit_msg "$?"
-  ;;
-  * )
-    printf "\n"
-    diehard "Invalid extension" "Checksum must be one of the following:" ".md5 .sha256 .sha512" "$_script $_version ($_updated)"
-esac
+compare_checksums
+popd || die "popd failed!" 1
+leave "$_script $_version (Updated $_updated)"
