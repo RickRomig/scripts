@@ -6,10 +6,10 @@
 # Arguments    : see help function
 # Author       : Copyright (C) 2023, Richard B. Romig, 18 Feb 2023
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : Testing indicates USB drive should be mounted.
+# Comments     : Testing indicates USB drive need to be mounted.
 #              : Works with fuzzy finder (fzf) or zenity, if installed.
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
-#              : After a dryrun, USB drives will not be unmounted.
+#              : After a dryrun, USB drive will not be unmounted.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -30,8 +30,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.0"
-readonly _updated="01 Feb 2024"
+readonly _version="0.5.2"
+readonly _updated="05 Feb 2024"
 user=$(whoami)
 dryrun="$FALSE"
 
@@ -39,6 +39,25 @@ dryrun="$FALSE"
 
 cleanup() {
 	[[ -f devfile ]] && rm -f devfile
+}
+
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+	-d	Enable Dry Run simulation
+	-f	Select with Fuzzy Finder (fzf)
+	-h	Display help
+	-s	Select with Select Menu
+	-z	Select with Zenity Dialog
+$_script $_version (Updated $_updated)
+END_HELP
+  exit "$errcode"
+}
+
+check_usb_drive() {
+	[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$_script v$_version ($_updated)"
 }
 
 select_iso_directory() {
@@ -62,21 +81,64 @@ select_iso_directory() {
 	)
 	select opt in "${options[@]}"; do
 		case "$REPLY" in
-			1 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
-			2 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
-			3 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
-			4 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
-			5 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
-			6 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
-			7 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
-			8 ) pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
-			9 )	pushd "$iso_dir/Linux/$opt" || die "pushd failed!"; break ;;
-			11 ) pushd "$iso_dir/$opt" || die "pushd failed!"; break ;;
-			12 ) iso_dir="$PWD" || die "pushd failed!"; break ;;
+			1)
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-16s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			2 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-16s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			3 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-16s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			4 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-16s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			5 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-16s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			6 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-16s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			7 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-16s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			8 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-16s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			9 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-16s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			11 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-16s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			12 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-16s %s/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
 			* ) printf "Invalid option. Choose 1 - %d\n" "${#options[@]}"
 		esac
 	done
-	printf "\n"
 }
 
 # List available ISO files and select file to write
@@ -141,7 +203,7 @@ select_usb() {
 }
 
 fzf_select_usb() {
-	usb_device=$(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL | awk '$2 == "disk" && $1 == "1" {print $0}' | awk '{$1=$1}1' | sed 's/1//' | fzf --prompt "Select the USB drive to write to: ")
+	usb_device=$(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL | awk '$2 == "disk" && $1 == "1" {print $0}' | awk '{$1=$1}1' | sed 's/1//' | fzf --height 40% --reverse --prompt "Select the USB drive to write to: ")
 	usb_device=$(echo "$usb_device" | awk '{print $2}')
 }
 
@@ -201,29 +263,11 @@ unmount_usb() {
 	printf "It's now safe to remove the USB drive.\n"
 }
 
-help() {
-	errcode="${1:-2}"
-	cat << END_HELP
-${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
-	-d	Enable Dry Run simulation
-	-f	Select with Fuzzy Finder (fzf)
-	-h	Display help
-	-s	Select with Select Menu
-	-z	Select with Zenity dialog
-$_script $_version (Updated $_updated)
-END_HELP
-  exit "$errcode"
-}
-
 ## Execution ##
 
 trap cleanup EXIT
 
 printf "Writes ISO to a USB drive.\n\n"
-
-# Check if a USB drive is connected
-[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$_script v$_version ($_updated)"
 
 noOpt=1
 optstr=":dfhsz"
@@ -231,10 +275,11 @@ while getopts "$optstr" opt; do
 	case "$opt" in
 		d )
 			dryrun="$TRUE"
-			printf "%sPerforming a dryrun, USB drive will NOT be written to%s.\n\n" "$orange" "$normal"
+			printf "%sPerforming a dryrun. The ISO will NOT be written to USB drive.%s\n\n" "$orange" "$normal"
 		;;
 		f )
 			if exists fzf; then
+				check_usb_drive
 				select_iso_directory
 				fzf_select_iso
 				fzf_select_usb
@@ -246,12 +291,14 @@ while getopts "$optstr" opt; do
 			help 0
 		;;
 		s )
+			check_usb_drive
 			select_iso_directory
 			select_iso
 			select_usb
 		;;
 		z )
 			if exists zenity; then
+				check_usb_drive
 				select_iso_directory
 				zen_select_iso
 				zen_select_usb
@@ -268,9 +315,8 @@ done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
 
-# [[ "$dryrun" == "$FALSE" ]] && sudo_login 2
-printf "Selected ISO: %s\n\n" "$isofile"
-printf "Selected device: /dev/%s\n" "$usb_device"
+printf "%-16s %s\n" "Selected ISO:" "$isofile"
+printf "%-16s /dev/%s\n" "Selected device:" "$usb_device"
 
 # Mount selected USB drive if not already mounted.
 usbpart="${usb_device}1"
@@ -297,5 +343,5 @@ else
 	printf "Operation canceled. No action taken.\n"
 	fi
 fi
-popd || die "popd failed!" 1
+popd > /dev/null || printf "%s popd failed!" "$red_error" >&2
 leave "$_script v$_version (Updated: $_updated)"
