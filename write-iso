@@ -30,7 +30,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.2"
+readonly _version="0.5.3"
 readonly _updated="05 Feb 2024"
 user=$(whoami)
 dryrun="$FALSE"
@@ -38,7 +38,7 @@ dryrun="$FALSE"
 ## Functions ##
 
 cleanup() {
-	[[ -f devfile ]] && rm -f devfile
+	[[ -f "$devfile" ]] && rm -f "$devfile"
 }
 
 help() {
@@ -221,8 +221,8 @@ zen_select_usb() {
 	zenity --list \
 	--title="USB Devices" \
 	--column="Index" --column="Device" --column="Size" \
-	--print-column=2 > devfile  2>/dev/null
-	usb_device=$(cat devfile)
+	--print-column=2 > "$devfile"  2>/dev/null
+	usb_device=$(cat "$devfile")
 }
 
 write_dd() {
@@ -299,6 +299,7 @@ while getopts "$optstr" opt; do
 		z )
 			if exists zenity; then
 				check_usb_drive
+				devfile=$(mktemp -q) || die "Failed to create temporary file." 1
 				select_iso_directory
 				zen_select_iso
 				zen_select_usb
