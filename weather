@@ -27,8 +27,9 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.2"
-readonly _updated="08 Dec 2023"
+readonly _version="0.6.3"
+readonly _updated="05 Feb 2024"
+location="${1:-Huber+Heights}"
 
 ## Functions ##
 
@@ -124,12 +125,13 @@ current_wx() {
 wx_forecast() {
   local url="http://wttr.in"
   local wx_loc="$1"
+  tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
   clear
   box "$_script v$_version ($_updated)"
   printf "\n"
   if curl -so "$tmp_file" "$url/$wx_loc"; then
     sed '1 s/:.*//;/Follow/d' "$tmp_file"
-  else 
+  else
     timeout_exit "$wx_loc"
   fi
 }
@@ -196,13 +198,10 @@ uv_warning() {
 
 ## Execution ##
 
-tmp_file=$(mktemp -q) || dies "Failed to create temporary file." 1
 trap cleanup EXIT
 
-location="${1:-Huber+Heights}"
-if [[ "$1" == "-h" || "$1" == "--help" ]]; then show_help; exit; fi
-
 check_dependencies
+
 while true; do
   clear
   box "$_script v$_version ($_updated)"
