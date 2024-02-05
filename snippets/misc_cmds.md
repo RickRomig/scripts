@@ -191,3 +191,8 @@ zgrep -h "status installed Package-name" /var/log/dpkg.log* | sort | tail -n 1
 #### Last terminal line off screen workaround
 In .bashrc, add `\n\n\[\033[2A\]` to the beginning of the PS1 prompt. This will move down 2 lines, then back up 2 lines before displaying the prompt.
 Adjust by adding or deleting newlines and changing the number before the `A`.
+
+#### Check if caps lock is on
+```bash
+xset -q | grep 'Caps Lock:   on' && echo "Caps Lock on."
+```
