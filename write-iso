@@ -30,8 +30,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.3"
-readonly _updated="05 Feb 2024"
+readonly _version="0.5.4"
+readonly _updated="06 Feb 2024"
 user=$(whoami)
 dryrun="$FALSE"
 
@@ -142,7 +142,6 @@ select_iso_directory() {
 }
 
 # List available ISO files and select file to write
-
 select_iso() {
 	local num_iso
 	num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
@@ -208,8 +207,6 @@ fzf_select_usb() {
 }
 
 zen_select_usb() {
-	# usb_device=$(zenity --list --title "Choose USB device:" --column=Device $(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL | awk '$2 == "disk" && $1 == "1" {print $0}' | awk '{$1=$1}1' | sed 's/1//'))
-	# usbdev=$(zenity --list --title "Choose USB device:" --column=Device $(lsblk -o NAME,TYPE,HOTPLUG | awk '$2 == "disk" && $3 == "1" {print $1}')); echo $usbdev
 	usbdev=$(lsblk -o HOTPLUG,TYPE,NAME,SIZE | awk '$2 == "disk" && $1 == "1" {print $3,$4}')
 	echo "$usbdev" | \
 	awk '{
