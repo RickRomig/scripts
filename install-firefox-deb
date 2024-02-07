@@ -30,8 +30,8 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.2"
-readonly _updated="30 Jan 2024"
+readonly _version="0.1.3"
+readonly _updated="07 Feb 2024"
 readonly key2="35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3"
 
 ## Execution ##
@@ -40,20 +40,47 @@ sudo_login 2
 check_package wget
 sudo apt update
 
-# Remove ESR, Flatpak, Snap versions of Firefox
+[[ -d /etc/apt/sources.list.d/mozilla.list ]] && leave "Mozilla Firefox .deb packagge is already installed."
+
+# Remove other versions of Firefox
 if  dkpg -l | grep -qw firefox-esr; then
-	sudo apt-get remove firefox-esr
-	printf "Firefox ESR has been removed.\n"
+	if yes_or_no "Remove Firefox ESR"; then
+		sudo apt-get remove firefox-esr
+		printf "Firefox ESR has been removed.\n"
+	else
+		leave "Operation canceled. No action taken"
+	fi
 fi
 
 if exists flatpak; then
-	flatpak uninstall --noninteractive --assumeyes org.mozilla.firefox
-	printf "Flatpak version of Firefox has been removed.\n"
+	if flatpak list | grep -qw firefox; then
+		if yes_or_no "Remove Firefox flatpak"; then
+			flatpak uninstall --noninteractive --assumeyes org.mozilla.firefox
+			printf "Flatpak version of Firefox has been removed.\n"
+		else
+			leave "Operation canceled. No action taken"
+		fi
+	fi
 fi
 
 if [[ -d /snapd ]]; then
-	snap list | grep -qw firefox & sudo snap remove --purge firefox
-	printf "Snap version of Firefox has been removed.\n"
+	if snap list | grep -qw firefox; then
+		if yes_or_no "Remove Firefox Snap"; then
+			snap list | grep -qw firefox & sudo snap remove --purge firefox
+			printf "Snap version of Firefox has been removed.\n"
+		else
+			leave "Operation canceled. No action taken"
+		fi
+	fi
+fi
+
+if exists firefox; then
+	if yes_or_no "Remove Firefox"; then
+		sudo apt-get remove firefox firefox-locale-en
+		printf "Firefox browser has been removed.\n"
+	else
+		leave "Operation canceled. No action taken"
+	fi
 fi
 
 # Import Mozilla APT repository keys
