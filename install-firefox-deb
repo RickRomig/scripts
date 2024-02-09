@@ -30,9 +30,86 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.4"
-readonly _updated="07 Feb 2024"
-readonly ref_key="35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3"
+readonly _version="0.2.0"
+readonly _updated="09 Feb 2024"
+
+## Functions ##
+
+rm_firefox_esr() {
+	printf "Firefox version installed: %s\n" "$(firefox --version | cut -d' ' -f3)"
+	if yes_or_no "Remove Firefox ESR?"; then
+		sudo apt-get remove firefox-esr
+		printf "Firefox ESR has been removed.\n"
+	else
+		printf "Operation canceled. No action taken.\n"
+	fi
+}
+
+rm_firefox_flatpak() {
+	if flatpak list | grep -qw firefox; then
+		printf "Firefox version installed: %s\n" "$(flatpak list | awk '/Firefox/ {print $3}')"
+		if yes_or_no "Remove Firefox flatpak?"; then
+			flatpak uninstall --noninteractive --assumeyes org.mozilla.firefox
+			printf "Flatpak version of Firefox has been removed.\n"
+		else
+			printf "Operation canceled. No action taken.\n"
+		fi
+	fi
+}
+
+rm_firefox_snap() {
+	if snap list | grep -qw firefox; then
+		printf "Firefox version installed: %s\n" "$(snap list | awk '/Firefox/ {print $2}')"
+		if yes_or_no "Remove Firefox Snap?"; then
+			snap list | grep -qw firefox & sudo snap remove --purge firefox
+			printf "Snap version of Firefox has been removed.\n"
+		else
+			printf "Operation canceled. No action taken.\n"
+		fi
+	fi
+}
+
+rm_firefox_package() {
+	printf "Firefox version installed: %s\n" "$(firefox --version | cut -d' ' -f3)"
+	if yes_or_no "Remove Firefox?"; then
+		sudo apt-get remove firefox firefox-locale-en
+		printf "Firefox browser has been removed.\n"
+	else
+		printf "Operation canceled. No action taken.\n"
+	fi
+}
+
+mozilla_deb_install() {
+	local ref_key="35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3"
+	local list_d="/etc/apt/sources.list"
+	local keyrings_d="/etc/apt/keyrings"
+	local asc_file="packages.mozilla.org.as"
+
+	printf "Installing Mozilla Firefox DEB package...\n"
+	# Import Mozilla APT repository keys
+	[[ -d /etc/apt/keyrings ]] || sudo install -d -m 0755 /etc/apt/keyrings
+	wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee "$keyrings_d/$asc_file" > /dev/null
+
+	# Verify keys
+	gen_key=$(gpg -n -q --import --import-options import-show "$keyrings_d/$asc_file" | awk '/pub/{getline; gsub(/^ +| +$/,""); print $0}')
+	printf "Generated key: %s\n" "$gen_key"
+	printf "Reference key: %s\n" "$ref_key"
+	[[ "$gen_key" == "$ref_key" ]] || die "Mozilla Firefox GPG keys do not match." 1
+
+	# Add Mozilla APT repository to sources list
+	echo "deb [signed-by=$keyrings_d/$asc_file] https://packages.mozilla.org/apt mozilla main" | sudo tee -a "$list_d"/mozilla.list > /dev/null
+
+	# Preference file to prioritize packages from Mozilla repository
+	echo '
+Package: *
+Pin: origin packages.mozilla.org
+Pin-Priority: 1000
+' | sudo tee /etc/apt/preferences.d/mozilla
+
+	# Update package list and install Firefox .deb package
+	sudo apt-get update && sudo apt-get install firefox -yy
+	printf "%s installed.\n" "$(firefox --version)"
+}
 
 ## Execution ##
 
@@ -40,71 +117,22 @@ sudo_login 2
 check_package wget
 sudo apt update
 
-[[ -d /etc/apt/sources.list.d/mozilla.list ]] && leave "Mozilla Firefox .deb packagge is already installed."
+# Check if Mozilla package is already installed
+[[ -d /etc/apt/sources.list.d/mozilla.list ]] && leave "Mozilla Firefox DEB package is already installed."
+clear
 
 # Remove other versions of Firefox
-if  dpkg -l | grep -qw firefox-esr; then
-	if yes_or_no "Remove Firefox ESR"; then
-		sudo apt-get remove firefox-esr
-		printf "Firefox ESR has been removed.\n"
-	else
-		leave "Operation canceled. No action taken"
-	fi
+printf "Removing other Firefox packages...\n"
+dpkg -l | grep -qw firefox-esr && rm_firefox_esr
+exists flatpak && rm_firefox_flatpak
+[[ -d /snapd ]] && rm_firefox_snap
+dpkg -l | grep -qw firefox && rm_firefox_package
+
+# Install Mozilla DEB package
+if yes_or_no "Install Mozilla Firefox DEB package?"; then
+	mozilla_deb_install
+else
+	printf "Operation canceled. No action taken.\n"
 fi
-
-if exists flatpak; then
-	if flatpak list | grep -qw firefox; then
-		if yes_or_no "Remove Firefox flatpak"; then
-			flatpak uninstall --noninteractive --assumeyes org.mozilla.firefox
-			printf "Flatpak version of Firefox has been removed.\n"
-		else
-			leave "Operation canceled. No action taken"
-		fi
-	fi
-fi
-
-if [[ -d /snapd ]]; then
-	if snap list | grep -qw firefox; then
-		if yes_or_no "Remove Firefox Snap"; then
-			snap list | grep -qw firefox & sudo snap remove --purge firefox
-			printf "Snap version of Firefox has been removed.\n"
-		else
-			leave "Operation canceled. No action taken"
-		fi
-	fi
-fi
-
-if exists firefox; then
-	if yes_or_no "Remove Firefox"; then
-		sudo apt-get remove firefox firefox-locale-en
-		printf "Firefox browser has been removed.\n"
-	else
-		leave "Operation canceled. No action taken"
-	fi
-fi
-
-# Import Mozilla APT repository keys
-[[ -d /etc/apt/keyrings ]] || sudo install -d -m 0755 /etc/apt/keyrings
-wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
-
-# Verify keys
-gen_key=$(gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); print $0}')
-printf "Generated key: %s\n" "$gen_key"
-printf "Reference key: %s\n" "$ref_key"
-[[ "$gen_key" == "$ref_key" ]] || die "Mozilla Firefox GPG keys do not match." 1
-
-# Add Mozilla APT repository to sources list
-echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null
-
-# Preference file to prioritize packages from Mozilla repository
-echo '
-Package: *
-Pin: origin packages.mozilla.org
-Pin-Priority: 1000
-' | sudo tee /etc/apt/preferences.d/mozilla
-
-# Update package list and install Firefox .deb package
-sudo apt-get update && sudo apt-get install firefox -yy
-printf "%s installed.\n" "$(firefox --version)"
 
 leave "$_script $_version (Updated $_updated)"
