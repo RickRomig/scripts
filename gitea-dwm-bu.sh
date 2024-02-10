@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Jan 2024
-# Last updated : 24 Jan 2024 Version 1.0.3
+# Last updated : 10 Feb 2024 Version 1.0.3
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -21,17 +21,20 @@ dow=$(date +%a)
 dom=$(date +%d)
 
 daily_bu() {
-	tar -zpcf "$arc_dir/daily/$archive" -C "$HOME" gitea
+	# tar -zpcf "$arc_dir/daily/$archive" -C "$HOME" gitea
+	tar -zpcf "$arc_dir/daily/$archive" "$HOME"/gitea "$HOME"/Projects
 	find "$arc_dir/daily" -mtime +7 -delete
 }
 
 weekly_bu() {
-	tar -zpcf "$arc_dir/weekly/$archive" -C "$HOME" gitea
+	# tar -zpcf "$arc_dir/weekly/$archive" -C "$HOME" gitea
+	tar -zpcf "$arc_dir/weekly/$archive" "$HOME"/gitea "$HOME"/Projects
 	find "$arc_dir/weekly" -mtime +31 -delete
 }
 
 monthly_bu() {
-	tar -zpcf "$arc_dir/monthly/$archive" -C "$HOME" gitea
+	# tar -zpcf "$arc_dir/monthly/$archive" -C "$HOME" gitea
+	tar -zpcf "$arc_dir/monthly/$archive" "$HOME"/gitea "$HOME"/Projects
 	find "$arc_dir/monthly" -mtime +365 -delete
 }
 
