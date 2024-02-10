@@ -2,21 +2,24 @@
 
 # Called by git commit to run shellcheck against staged scripts before making commit.
 # Execute from repository's .git/hooks directory
-# Excludes *.md, *.txt, *.sed, *.conf, *.json, *.lst files
+# Excludes *.md, *.txt, *.sed, *.conf, *.json, *.lst, *.dat, *.key, *.list, *.pub, and rc files
 # Terminates the commit if shellcheck fails.
 
 if git rev-parse --verify HEAD >/dev/null 2>&1; then
 	against=HEAD
 else
-	# Initiial commit: diff against an empty tree object
+	# Initial commit: diff against an empty tree object
 	against=$(git hash-object -t tree /dev/null)
 fi
 
 # Redirect ouput to stderr.
 exec 1>&2
 
-for file in $(git diff --cached --name-only --diff-filter=AM | grep -Ev '\.md$|\.txt$|\.dat$|\.sed$|\.conf$\.json$|\.list$\.lst$|rc$')
-do shellcheck -x --exclude=SC1001,SC2001 "$file" || exit 1; done
+# Run shellcheck against files except for listed extensions
+for file in $(git diff --cached --name-only --diff-filter=AM | grep -Ev '\.md$|\.txt$|\.dat$|\.sed$|\.conf$\.json$|\.key$|\.list$|\.lst$|\.pub$|rc$')
+do
+	shellcheck -x --exclude=SC1001,SC2001 "$file" || exit 1
+done
 
 # If there are whitespace errors, print the offending file names and fail.
 exec git diff-index --check --cached "$against" --
