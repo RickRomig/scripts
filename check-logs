@@ -27,7 +27,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.9.1"
+readonly _version="0.9.2"
 readonly _updated="12 Feb 2024"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
@@ -224,11 +224,11 @@ gitea_snapshots() {
   local log_dir="$HOME/Downloads/archives/gitea"
   if [[ -d "$log_dir" ]]; then
     clear
-    printf "%s%s - Gitea Repository Snapshots:%s\n\n" "$lightgreen" "$lhost" "$normal"
+    printf "%s%s - Git Repository Snapshots:%s\n\n" "$lightgreen" "$lhost" "$normal"
     tree "$log_dir"
     printf "\n"
   else
-    printf "%sGitea Repository Snapshots do not exist on %s.%s\n" "$orange" "$lhost" "$normal"
+    printf "%sGit Repository Snapshots do not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
     if [[ -x "$HOME/.local/bin/gitea-backup.sh" ]]; then
       printf " scheduled but has not run.\n"
@@ -241,11 +241,11 @@ gitea_snapshots() {
 incremental_backups() {
   local bu_name="$1"
   local sub_dir="$2"
-  local log_dir="$HOME/Downloads/archives"
-  if [[ -d "$log_dir/$sub_dir" ]]; then
+  local arc_dir_dir="$HOME/Downloads/archives"
+  if [[ -d "$arc_dir_dir/$sub_dir" ]]; then
     clear
     printf "%s%s - %s Incremental Backups (last 7):%s\n\n" "$lightgreen" "$lhost" "$bu_name" "$normal"
-    find "$log_dir/$sub_dir" -maxdepth 1 -type f -mtime -7 | sort | awk -F/ '{print $NF}' | head -n8
+    find "$arc_dir_dir/$sub_dir" -maxdepth 1 -type f -mtime -7 | sort | awk -F/ '{print $NF}' | head -n8
     printf "\n"
   else
     printf "%s%s incremental backups do not exit on %s.%s\n" "$orange" "$bu_name" "$lhost" "$normal"
@@ -285,11 +285,11 @@ while true; do
     "Yt-dlp Updates"
     "Script archive"
     "Password Databases"
-    "HomeBank Archive"
     "Local Backup"
     "Local Trash"
     "Finance Incremental"
-    "Gitea Snapshots"
+    "HomeBank Archive"
+    "Git Snapshots"
     "Gitea Incremental"
     "GitHub Incremental"
     "Exit the script"
@@ -312,13 +312,13 @@ while true; do
       7 )
         password_log; anykey; break ;;
       8 )
-        homebank_log; anykey; break ;;
-      9 )
         local_backup_log; anykey; break ;;
-      10 )
+      9 )
         trash_log; anykey; break ;;
-      11 )
+      10 )
         incremental_backups "Finance" "finance"; anykey; break ;;
+      11 )
+        homebank_log; anykey; break ;;
       12 )
         gitea_snapshots; anykey; break ;;
       13 )
