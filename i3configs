@@ -89,6 +89,9 @@ copy_polybar_config() {
 	[[ -d "$polybar_dir" ]] || mkdir -p "$polybar_dir"
 	[[ -f "$polybar_dir/$pb_cfg" ]] && cp -pv "$polybar_dir/$pb_cfg" "$polybar_dir/$pb_cfg".bak
 	curl -so "$polybar_dir/$pb_cfg" "$Gitea_URL/$repo_path/$pb_cfg"
+	# Remove battery and wlan from modules-right in polybar config.ini if not needed
+	lspci | grep -q 'Network controller:' || sed -i '/^modules-right/s/ wlan//' ~/.config/polybar/config.ini
+	[[ ! -d /sys/class/power_supply/BAT0 && ! -d /sys/class/power_supply/BAT1 ]] && sed -i '/^modules-right/s/ battery//' ~/.config/polybar/config.ini
 	printf "%s copied from the Gitea Server.\n" "$polybar_dir/$pb_cfg"
 }
 
@@ -133,7 +136,6 @@ copy_dmconf() {
 	local repo_path="i3debian/raw/branch/main/.local/bin"
 	curl -so "$bin_dir/$dm_script" "$Gitea_URL/$repo_path/$dm_script"
 	printf "%s copied from the Gitea Server.\n" "$dm_script"
-
 }
 
 ## Execution ##
@@ -148,7 +150,7 @@ else
 	help 0
 fi
 noOpt=1
-optstr=":abcdhklprsw"
+optstr=":abcdehklprsw"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		a )
