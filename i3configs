@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Apr 2023
-# Comments     : Assumes i3wm has been installed from the local i3debian repository
+# Comments     : Assumes i3wm, polybar, rofi, dunst have been installed
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.4"
-readonly _updated="11 Nov 2023"
+readonly _version="0.2.0"
+readonly _updated="13 Feb 2024"
 
 ## Functions ##
 
@@ -39,16 +39,19 @@ help() {
 $_script copies default i3 configuration files from the local Gitea server.
 The files may need to be modified to fit a particular system configuration.
 Assumes i3wm has been installed from the i3debian repo_path on the local Gitea server.
-Assumes Debian 12 (Bookworm) or newer is installed.
+Assumes Debian 12 (Bookworm) or LMDE 6 (Faye) is installed.
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
 	-a	Copy autostart.sh (Launches programs necessary for i3 to run.)
 	-b	Copy polybar/config.ini (Status bar configuration)
 	-c	Copy config (i3wm configuration)
+	-d	Copy dunstrc
+	-e	Copy everything (all configuration files and scripts)
 	-h	Display help
 	-k	Copy bindings.list (List of default keybindings, read by ~/bin/i3kb.sh)
-	-p	Copy polybar-i3 launch script
 	-l	Copy logout (Rofi menu of logout actions)
+	-p	Copy polybar-i3 launch script
+	-r	Copy rofi configuration files
 	-s	Copy sxhkdrc (i3 keybindings)
 	-w	Copy workspaces.conf (Workspace configurations)
 END_HELP
@@ -57,7 +60,15 @@ END_HELP
 }
 
 is_bookworm(){
-	[[ $(/usr/bin/lsb_release --codename --short) == "bookworm" ]]  && return "$TRUE" || return "$FALSE"
+	local codename
+	codename=$(/usr/bin/lsb_release --codename --short)
+	case "$codename" in
+		bookworm|faye )
+			return "$TRUE"
+		;;
+		* )
+			return "$FALSE"
+	esac
 }
 
 copy_config_file() {
@@ -94,6 +105,37 @@ check_sxhkd() {
 	[[ -d "$HOME/.config/i3/sxhkd" ]] || mkdir -p "$HOME/.config/i3/sxhkd"
 }
 
+copy_rofi_config() {
+	local rofi_dir="$HOME/.config/rofi"
+	local repo_path="i3debian/raw/branch/main/.config/rofi"
+	local rofi_cfg="config.rasi"
+	local dark_colors="arc_dark_colors.rasi"
+	local trans_colors="arc_dark_transparent_colors.rasi"
+	[[ -d "$rofi_dir" ]] || mkdir -p "$rofi_dir"
+	curl -so "$rofi_dir/$rofi_cfg" "$Gitea_URL/$repo_path/$rofi_cfg"
+	curl -so "$rofi_dir/$dark_colors" "$Gitea_URL/$repo_path/$dark_colors"
+	curl -so "$rofi_dir/$trans_colors" "$Gitea_URL/$repo_path/$trans_colors"
+	printf "Rofi configuration files copied from the Gietea Server.\n"
+}
+
+copy_dunst_config() {
+	local dunst_cfg="dunstrc"
+	local dunst_dir="$HOME/.config/dunst"
+	local repo_path="i3debian/raw/branch/main/.config/dunst"
+	[[ -d "$dunst_dir" ]] || mkdir -p "$dunst_dir"
+	curl -so "$rofi_dir/$dunst_cfg" "$Gitea_URL/$repo_path/$dunst_cfg"
+	printf "%s copied from the Gietea Server.\n" "$dunst_cfg"
+}
+
+copy_dmconf() {
+	local dm_script="dmconf.sh"
+	local bin_dir="$HOME/.local/bin"
+	local repo_path="i3debian/raw/branch/main/.local/bin"
+	curl -so "$bin_dir/$dm_script" "$Gitea_URL/$repo_path/$dm_script"
+	printf "%s copied from the Gitea Server.\n" "$dm_script"
+
+}
+
 ## Execution ##
 
 is_bookworm || 	die "Unsupported Debian installation." 1
@@ -106,7 +148,7 @@ else
 	help 0
 fi
 noOpt=1
-optstr=":abchklpsw"
+optstr=":abcdhklprsw"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		a )
@@ -117,6 +159,22 @@ while getopts "$optstr" opt; do
 		;;
 		c )
 			copy_config_file "config"
+		;;
+		d )
+			copy_dunst_config
+		;;
+		e )
+			copy_config_file "config"
+			copy_config_file "sxhkd/sxhkdrc"
+			copy_config_file "workspaces.conf"
+			copy_config_file "autostart.sh"
+			copy_config_file "logout"
+			copy_dmconf
+			copy_config_file "bindings.list"
+			copy_dunst_config
+			copy_polybar_config "config.ini"
+			copy_polybar_launch "polybar-i3"
+			copy_rofi_config
 		;;
 		h )
 			help 0
@@ -129,6 +187,10 @@ while getopts "$optstr" opt; do
 		;;
 		p )
 			copy_polybar_launch "polybar-i3"
+			copy_dmconf
+		;;
+		r )
+			copy_rofi_config
 		;;
 		s )
 			copy_config_file "sxhkd/sxhkdrc"
