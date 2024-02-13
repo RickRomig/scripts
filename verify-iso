@@ -31,8 +31,9 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.8.1"
-readonly _updated="06 Feb 2024"
+readonly _version="0.8.2"
+readonly _updated="13 Feb 2024"
+init_dir=$(pwd)
 
 ## Functions ##
 
@@ -121,13 +122,12 @@ select_iso_directory() {
 				break
 			;;
 			11 )
-				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				pushd "$iso_dir/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-18s %s/%s\n" "ISO directory:" "$iso_dir" "$opt"
 				break
 			;;
 			12 )
-				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-18s %s/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				printf "\n%-18s %s\n" "ISO directory:" "$PWD"
 				break
 			;;
 			* ) printf "Invalid option. Choose 1 - %d\n" "${#options[@]}"
@@ -344,5 +344,5 @@ printf "%-18s %s\n" "Selected ISO:" "$isofile"
 printf "%-18s %s\n\n" "Selected Checksum:" "$checksum"
 check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$_script $_version ($_updated)"
 compare_checksums
-popd > /dev/null || printf "%s popd failed!" "$red_error" >&2
+if [[ "$init_dir" != "$PWD" ]]; then popd > /dev/null || printf "%s popd failed!" "$red_error" >&2; fi
 exit
