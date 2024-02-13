@@ -30,10 +30,11 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.4"
-readonly _updated="06 Feb 2024"
+readonly _version="0.5.5"
+readonly _updated="13 Feb 2024"
 user=$(whoami)
 dryrun="$FALSE"
+init_dir=$(pwd)
 
 ## Functions ##
 
@@ -64,7 +65,7 @@ select_iso_directory() {
 	local iso_dir="${HOME}/Downloads/ISO"
 	under_line "ISO Directories" "*"
 	PS3="Select an ISO directory: "
-	COLUMNS=60
+	COLUMNS=40
 	options=(
 		"antiX-Linux"
 		"ArchLabs"
@@ -127,13 +128,12 @@ select_iso_directory() {
 				break
 			;;
 			11 )
-				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-16s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				pushd "$iso_dir/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-16s %s/%s\n" "ISO directory:" "$iso_dir" "$opt"
 				break
 			;;
 			12 )
-				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-16s %s/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				printf "\n%-16s %s\n" "ISO directory:" "$PWD"
 				break
 			;;
 			* ) printf "Invalid option. Choose 1 - %d\n" "${#options[@]}"
@@ -341,5 +341,5 @@ else
 	printf "Operation canceled. No action taken.\n"
 	fi
 fi
-popd > /dev/null || printf "%s popd failed!" "$red_error" >&2
+if [[ "$init_dir" != "$PWD" ]]; then popd > /dev/null || printf "%s popd failed!" "$red_error" >&2; fi
 leave "$_script v$_version (Updated: $_updated)"
