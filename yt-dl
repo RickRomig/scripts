@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.3.4"
-readonly _updated="09 Sep 2023"
+readonly _version="2.3.5"
+readonly _updated="14 Feb 2024"
 readonly video_dir=$HOME"/Videos"
 
 ## Functions ##
@@ -60,8 +60,8 @@ script_info() {
 
   The script will then present a menu of categories corresponding to
   subdirectories under ~/Videos/Pornography/. Select the category (subdirectory).
-  The the video will be downloaded to the selected sub-directory  The script is 
-  hard-coded to save the file as title.ext. Spaces in the title will be replaced 
+  The the video will be downloaded to the selected sub-directory  The script is
+  hard-coded to save the file as title.ext. Spaces in the title will be replaced
   by underscores. Metadata will also be added to the file.
 
   When the download is completed, success or failure is displayed. If the
@@ -113,6 +113,7 @@ fi
 # Choose the download folder
 
 echo $'\n'$"${bold}${blue}Available directories:${normal}"
+COLUMNS=40
 options=("Automotive" "Band" "Comedy" "History" "Movies" "Music" "Naturism" \
  "Philippines" "Religion" "Sayaw FilipinOH" "Tech-Computers" "Yoga")
 PS3="Choose a download folder: "
@@ -139,7 +140,7 @@ done
 echo $'\n'$"${bold}${blue}Downloading from YouTube ...${normal}"
 case "$subdir" in
   "none" )
-    if /usr/local/bin/yt-dlp -f "bv*+ba/b" --add-metadata -ic --restrict-filename -o "$video_dir/%(title)s.%(ext)s" "$url"
+    if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$video_dir/%(title)s.%(ext)s" "$url"
     then
       leave "Download successful."
     else
@@ -148,7 +149,7 @@ case "$subdir" in
     fi
     ;;
   * )
-    if /usr/local/bin/yt-dlp -f "bv*+ba/b" --add-metadata -ic --restrict-filename -o "$video_dir/$subdir/%(title)s.%(ext)s" "$url"
+    if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$video_dir/$subdir/%(title)s.%(ext)s" "$url"
     then
       leave "Download successful."
     else
