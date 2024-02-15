@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.4"
-readonly _updated="23 Oct 2023"
+readonly _version="0.5.5"
+readonly _updated="14 Feb 2024"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="${HOME}/.config/backup"
 readonly cfg_dir="${HOME}/.config"
@@ -100,7 +100,7 @@ main_menu() {
 	local options=("System Configs" "Editor Configs" "i3 Configs" \
 	"BunsenLabs Configs" "Misc Configs" "Quit")
 	clear
-	COLUMNS=60
+	COLUMNS=40
   printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Restore configuration files from local backup.\n"
 	printf "\nConfiguration Classes\n"
@@ -146,7 +146,7 @@ sys_cfgs() {
 	while true; do
 		local options=(".bashrc" ".bash_aliases" ".bash_logout" ".bash_profile" ".profile" ".face" "neofetch" "Cinnamon keybindings" ".conkyrc" ".xinitrc" "System Info" "Main Menu")
 		clear
-		COLUMNS=60
+		COLUMNS=40
     printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
 		printf "\nSystem Configurations\n"
 		select opt in "${options[@]}"; do
@@ -157,7 +157,7 @@ sys_cfgs() {
         ;;
 				2 )
           res_home_cfg ".bash_aliases"
-          break 
+          break
         ;;
         3 )
           res_home_cfg ".bash_logout"
@@ -165,14 +165,14 @@ sys_cfgs() {
         ;;
 				4 )
           res_home_cfg ".bash_profile"
-          break 
+          break
          ;;
 				5 )
           res_home_cfg ".profile"
           break
          ;;
 				6 )
-           res_face; 
+           res_face;
           res_home_cfg ".face"
           break
          ;;
@@ -188,7 +188,7 @@ sys_cfgs() {
         ;;
 				8 )
           res_cinnamon_keybindings
-          break 
+          break
         ;;
 				9 )
           res_home_cfg ".conkyrc"
@@ -217,7 +217,7 @@ ed_cfgs() {
 	while true; do
 		local options=("Bluefish" "Geany" "Mark Text" "Micro" "Nano" "VSCodium" "Main Menu")
 		clear
-		COLUMNS=60
+		COLUMNS=20
     printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
 		printf "\nEditor Configurations\n"
 		select opt in "${options[@]}"; do
@@ -233,7 +233,7 @@ ed_cfgs() {
           break
         ;;
         3 )
-          res_marktext; 
+          res_marktext;
           res_config_cfg "marktext" "preferences.json"
           break
         ;;
@@ -272,7 +272,7 @@ i3_cfgs() {
 	while true; do
 		local options=("i3 config" "sxhkdrc" "bindings.list" "i3status.conf" "polybar" "bar.conf" "workspaces.conf" "autostart.sh" "logout" "rofi config" "rofi themes" "Main Menu")
 		clear
-		COLUMNS=60
+		COLUMNS=40
     printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
 		printf "\ni3 Configurations\n"
 		select opt in "${options[@]}"; do
@@ -326,7 +326,7 @@ i3_cfgs() {
           break
         ;;
 				11 )
-          res_rofi_theme; 
+          res_rofi_theme;
           res_config_cfg "rofi" "arc_dark_colors.rasi"
           res_config_cfg "rofi" "arc_dark_transparent_colors.rasi"
           break
@@ -347,7 +347,7 @@ bl_cfgs() {
 	while true; do
 		local options=(".xbindkeysrc" "clipitrc" "conky.conf" "Main Menu")
 		clear
-		COLUMNS=60
+		COLUMNS=20
     printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
 		printf "\nBunsenLabs Configurations\n"
 		select opt in "${options[@]}"; do
@@ -380,7 +380,7 @@ misc_cfgs() {
 	while true; do
 		local options=("Bat" "gitconfig" "git-credentials" "KeepassXC" "Kitty" "Terminator" "imwheelrc" "Main Menu")
 		clear
-		COLUMNS=60
+		COLUMNS=20
     printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
 		printf "\nMiscellaneous Configurations\n"
 		select opt in "${options[@]}"; do
