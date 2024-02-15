@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.1.2"
-readonly _updated="27 Aug 2023"
+readonly _version="1.1.3"
+readonly _updated="14 Feb 2024"
 readonly porn_dir=$HOME"/Videos/Pornography"
 
 ## Functions ##
@@ -70,8 +70,8 @@ script_info() {
 
   The script will then present a menu of categories corresponding to
   subdirectories under ~/Videos/Pornography/. Select the category (subdirectory).
-  The the video will be downloaded to the selected sub-directory  The script is 
-  hard-coded to save the file as title.ext. Spaces in the title will be replaced 
+  The the video will be downloaded to the selected sub-directory  The script is
+  hard-coded to save the file as title.ext. Spaces in the title will be replaced
   by underscores. Metadata will also be added to the file.
 
   When the download is completed, success or failure is displayed. If the
@@ -137,12 +137,11 @@ fi
 # Choose the download folder
 
 echo $'\n'$"${bold}${blue}Categories:${normal}"
-COLUMNS=60
+COLUMNS=40
 options=("Anal" "Asian" "Bi Gay Trans" "Full movies" "Kink" \
  "Masturbation" "Miscellaneous" "Oral" "Pinay" "Straight")
 PS3="Choose category: "
-select opt in "${options[@]}"
-do
+select opt in "${options[@]}"; do
   case "$REPLY" in
     1 ) subdir="Anal"; break ;;
     2 ) subdir="Asian"; break ;;
@@ -163,7 +162,8 @@ done
 echo $'\n'$"${bold}${blue}Downloading from $site ...${normal}"
 case "$subdir" in
   "none" )
-    if /usr/local/bin/yt-dlp -f "bv*+ba/b" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"
+    # if /usr/local/bin/yt-dlp -f "bv*+ba/b" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"
+    if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"
     then
       leave "Download successful."
     else
@@ -172,7 +172,8 @@ case "$subdir" in
     fi
     ;;
   * )
-    if /usr/local/bin/yt-dlp -f "bv*+ba/b" --add-metadata -ic --restrict-filename -o "$porn_dir/$subdir/%(title)s.%(ext)s" "$url"
+    # if /usr/local/bin/yt-dlp -f "bv*+ba/b" --add-metadata -ic --restrict-filename -o "$porn_dir/$subdir/%(title)s.%(ext)s" "$url"
+    if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/$subdir/%(title)s.%(ext)s" "$url"
     then
       leave "Download successful."
     else
