@@ -31,8 +31,8 @@ set -euo pipefail
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.2.3"
-readonly _updated="10 Feb  2024"
+readonly _version="2.2.4"
+readonly _updated="15 Feb  2024"
 
 ## Functions ##
 
@@ -96,12 +96,17 @@ defer_updates() {
 }
 
 update_flatpak() {
+  fp_count=$(flatpak list | wc -l)
   printf "\n%sFlatpak:%s\n" "$orange" "$normal"
-  printf "User installations...\n"
-  flatpak update --user --noninteractive --force-remove --assumeyes
-  printf "System-wide installations...\n"
-  sudo flatpak update --system --noninteractive --force-remove --assumeyes
-  printf "\n"
+  if [[ "$fp_count" -gt 0 ]]; then
+    printf "User installations...\n"
+    flatpak update --user --noninteractive --force-remove --assumeyes
+    printf "System-wide installations...\n"
+    sudo flatpak update --system --noninteractive --force-remove --assumeyes
+    printf "\n"
+  else
+    printf "No Flatpaks installed.\n"
+  fi
 }
 
 nala_update() {
