@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : install-firefox-deb
 # Description  : install Firefox .deb package from Mozilla repos
-# Dependencies : wget
+# Dependencies : wget, ~/.gnupg/pubring.kbx
 # Arguments    : none
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -30,16 +30,17 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.1"
-readonly _updated="10 Feb 2024"
+readonly _version="0.3.0"
+readonly _updated="18 Feb 2024"
 
 ## Functions ##
 
-rm_firefox_esr() {
+rm_firefox_package() {
 	printf "Firefox version installed: %s\n" "$(firefox --version | cut -d' ' -f3)"
-	if yes_or_no "Remove Firefox ESR?"; then
-		sudo apt-get remove firefox-esr
-		printf "Firefox ESR has been removed.\n"
+	if yes_or_no "Remove Firefox?"; then
+		sudo apt-get remove firefox -yy
+		dpkg -l | grep -qw firefox-locale-en && sudo apt remove firefox-locale-en -yy
+		printf "Firefox browser has been removed.\n"
 	else
 		printf "Operation canceled. No action taken.\n"
 	fi
@@ -69,21 +70,11 @@ rm_firefox_snap() {
 	fi
 }
 
-rm_firefox_package() {
-	printf "Firefox version installed: %s\n" "$(firefox --version | cut -d' ' -f3)"
-	if yes_or_no "Remove Firefox?"; then
-		sudo apt-get remove firefox firefox-locale-en
-		printf "Firefox browser has been removed.\n"
-	else
-		printf "Operation canceled. No action taken.\n"
-	fi
-}
-
 mozilla_deb_install() {
 	local ref_key="35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3"
-	local list_d="/etc/apt/sources.list"
+	local list_d="/etc/apt/sources.list.d"
 	local keyrings_d="/etc/apt/keyrings"
-	local asc_file="packages.mozilla.org.as"
+	local asc_file="packages.mozilla.org.asc"
 
 	printf "Installing Mozilla Firefox DEB package...\n"
 	# Import Mozilla APT repository keys
@@ -119,14 +110,14 @@ sudo apt update
 
 # Check if Mozilla package is already installed
 [[ -f /etc/apt/sources.list.d/mozilla.list ]] && leave "Mozilla Firefox DEB package is already installed."
+[[ -f "$HOME/.gnupg/pubring.kbx" ]] || die ".gnupg/pubring.kbx not found.\n" 1
 clear
 
 # Remove other versions of Firefox
 printf "Removing other Firefox packages...\n"
-dpkg -l | grep -qw firefox-esr && rm_firefox_esr
+dpkg -l | grep -qw firefox && rm_firefox_package
 exists flatpak && rm_firefox_flatpak
 [[ -d /snapd ]] && rm_firefox_snap
-dpkg -l | grep -qw firefox && rm_firefox_package
 
 # Install Mozilla DEB package
 if yes_or_no "Install Mozilla Firefox DEB package?"; then
