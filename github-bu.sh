@@ -28,7 +28,7 @@ arc_dir="$HOME/Downloads/archives/projects-repo"
 # On Sunday, rename SNAR file for full backup & delete archives older than 3 months.
 if [[ "$day" == "Sun" ]]; then
 	[[ -e "$arc_dir/$snar" ]] && mv "$arc_dir/$snar" "$arc_dir/$snar.$(date --date '7 days ago' +%y%m%d)"
-  find "$arc_dir" -mtime +90 -delete
+  find "$arc_dir" -mtime +91 -delete
 fi
 
 # Incremental backup of GitHbe repositories (Projects directory).
