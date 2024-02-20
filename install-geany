@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.2"
-readonly _updated="20 Dec 2023"
+readonly _version="0.2.3"
+readonly _updated="20 Feb 2024"
 
 ## Functions ##
 
@@ -52,13 +52,9 @@ geany_version() {
 
 clone_themes() {
   local theme_url="https://github.com/geany/geany-themes.git"
-  git clone "$theme_url" "$tmp_dir"
-  install_themes
-}
-
-install_themes() {
   local cs_dir="$HOME/.config/geany/colorschemes"
   [[ -d "$cs_dir" ]] || mkdir -p "$cs_dir"
+  git clone "$theme_url" "$tmp_dir"
   printf "Copying Geany colorschemes into %s\n" "$cs_dir"
   cp -v "$tmp_dir/colorschemes/*.conf" "$cs_dir/" | awk -F"/" '{print "=> " $NF}' | sed "s/'//"
   printf "Geany themes installed.\n"
@@ -98,12 +94,12 @@ while getopts "$optstr" opt; do
       exists geany && leave "Geany $(geany_version) is already installed."
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
       trap cleanup EXIT
-      sudo_login
+      sudo_login 2
       install_geany
     ;;
     r )
       exists geany || leave "Geany is not installed."
-      sudo_login
+      sudo_login 2
       remove_geany
     ;;
     t )
