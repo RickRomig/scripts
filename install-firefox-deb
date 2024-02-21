@@ -30,17 +30,29 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.1"
-readonly _updated="18 Feb 2024"
+readonly _version="0.3.2"
+readonly _updated="21 Feb 2024"
 
 ## Functions ##
 
-rm_firefox_package() {
+rm_firefox() {
+	local mozilla_list="/etc/apt/sources.list.d/mozilla.list"
 	printf "Firefox version installed: %s\n" "$(firefox --version | cut -d' ' -f3)"
 	if yes_or_no "Remove Firefox?"; then
 		sudo apt-get remove firefox -yy
 		dpkg -l | grep -qw firefox-locale-en && sudo apt remove firefox-locale-en -yy
+		[[ -f "$mozilla_list" ]] && sudo rm "$mozilla_list"
 		printf "Firefox browser has been removed.\n"
+	else
+		printf "Operation canceled. No action taken.\n"
+	fi
+}
+
+rm_firefox_esr() {
+	printf "Firefox version installed: %s\n" "$(firefox --version | cut -d' ' -f3)"
+	if yes_or_no "Remove Firefox ESR?"; then
+		sudo apt-get remove firefox-esr -yy
+		printf "Firefox ESR browser has been removed.\n"
 	else
 		printf "Operation canceled. No action taken.\n"
 	fi
@@ -115,8 +127,11 @@ sudo apt update
 clear
 
 # Remove other versions of Firefox
-printf "Removing other Firefox packages...\n"
-dpkg -l | grep -qw firefox && rm_firefox_package
+if exists firefox-esr; then
+	rm_firefox_esr
+elif exists firefox; then
+	rm_firefox
+fi
 exists flatpak && rm_firefox_flatpak
 [[ -d /snapd ]] && rm_firefox_snap
 
