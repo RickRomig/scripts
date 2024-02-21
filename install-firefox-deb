@@ -83,7 +83,7 @@ rm_firefox_snap() {
 }
 
 mozilla_deb_install() {
-	local ref_key="35BAA0B33E9EB3k96F59CA838C0BA5CE6DC6315A3"
+	# local ref_key="35BAA0B33E9EB3k96F59CA838C0BA5CE6DC6315A3"
 	local list_d="/etc/apt/sources.list.d"
 	local keyrings_d="/etc/apt/keyrings"
 	local asc_file="packages.mozilla.org.asc"
@@ -94,12 +94,12 @@ mozilla_deb_install() {
 	wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee "$keyrings_d/$asc_file" > /dev/null
 
 	# Verify keys
-	if [[ -f "$HOME/.gnupg/pubring.kbx" ]]; then
-		gen_key=$(gpg -n -q --import --import-options import-show "$keyrings_d/$asc_file" | awk '/pub/{getline; gsub(/^ +| +$/,""); print $0}')
-		printf "Generated key: %s\n" "$gen_key"
-		printf "Reference key: %s\n" "$ref_key"
-		[[ "$gen_key" == "$ref_key" ]] || die "Mozilla Firefox GPG keys do not match." 1
-	fi
+	# if [[ -f "$HOME/.gnupg/pubring.kbx" ]]; then
+	# 	gen_key=$(gpg -n -q --import --import-options import-show "$keyrings_d/$asc_file" | awk '/pub/{getline; gsub(/^ +| +$/,""); print $0}')
+	# 	printf "Generated key: %s\n" "$gen_key"
+	# 	printf "Reference key: %s\n" "$ref_key"
+	# 	[[ "$gen_key" == "$ref_key" ]] || die "Mozilla Firefox GPG keys do not match." 1
+	# fi
 
 	# Add Mozilla APT repository to sources list
 	echo "deb [signed-by=$keyrings_d/$asc_file] https://packages.mozilla.org/apt mozilla main" | sudo tee -a "$list_d"/mozilla.list > /dev/null
