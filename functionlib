@@ -373,6 +373,7 @@ local_ip() {
   #   die "No IP address found. Check network status." 1
   # fi
   octet=$(ip route get 1.2.3.4 | awk '{print $7}' | cut -d'.' -f4)
+  [[ -z "$octet" ]] && die "No IP address found. Check network status." 1
   printf "%s" "$octet"
 }
 
