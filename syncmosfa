@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.3.14"
-readonly _updated="02 Jan 2024"
+readonly _version="1.3.15"
+readonly _updated="23 Feb 2024"
 
 ## Functions ##
 
@@ -67,6 +67,7 @@ transfer_status() {
 
 transfer() {
   # Skip local machine:
+  local ip_addr
   ip_addr="$(local_ip)"
   if [ "$ip_addr" = "$hostip" ]; then
     echo -e "${green}...Syncing from $hostip${normal}\n"
@@ -221,16 +222,17 @@ all_done() {
 }
 
 check_host() {
-  local lhost="hp-800g2-sff"
-  local chost="${HOSTNAME:-$(hostname)}"
-  cur_ip="$(local_ip)"
-  echo -n "Synchronizing from host: ${lightyellow}$chost${normal} at "
-  echo "IP: ${lightyellow}$localnet.$cur_ip${normal}"
-  if [[ "$lhost" != "$chost" ]]; then
+  local main_host="hp-800g2-sff"
+  local src_host="${HOSTNAME:-$(hostname)}"
+  local ip_addr
+  ip_addr="$(local_ip)"
+  echo -n "Synchronizing from host: ${lightyellow}$src_host${normal} at "
+  echo "IP: ${lightyellow}$localnet.$ip_addr${normal}"
+  if [[ "$src_host" != "$main_host" ]]; then
     if yes_or_no "Do you wish to continue?"; then
-      printf "\nContinuing with the script...\n"
+      printf "\nContinuing with the synchronization operation...\n"
     else
-      printf "\nSynchronization canceled.\n"
+      printf "\nSynchronization operation aborted.\n"
       leave "Exiting the script..."
     fi
   fi
