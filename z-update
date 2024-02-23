@@ -8,15 +8,21 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
-# Last updated : 25 Jan 2024
+# Last updated : 23 Feb 2024
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
 set -euo pipefail
 
 check_flatpak() {
+  local fp_count
+  fp_count=$(flatpak list | wc -l)
   printf "\n*** Flatpak ***\n"
-  flatpak update --system --noninteractive --force-remove --assumeyes
+  if [[ "$fp_count" -gt 0 ]]; then
+    flatpak update --system --noninteractive --force-remove --assumeyes
+  else
+    printf "No Flatpaks installed.\n\n"
+  fi
 }
 
 exists() {
@@ -39,7 +45,7 @@ sed_file="/usr/share/misc/updatelog.sed"
   else
     printf "All packages are up to date.\n"
   fi
-  if [ "$nupd" -gt 0 ]; then
+  if [[ "$nupd" -gt 0 ]]; then
     printf "\n*** Installing updates ***\n"
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get dist-upgrade -yy
   else
