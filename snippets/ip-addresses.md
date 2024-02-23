@@ -8,7 +8,30 @@ $ hostname -I
 $ ip -4 a | awk '/inet / {print $2}' | grep -v "127.0.0.1" | cut -d\/ -f1
 $ ip -4 a | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1'
 $ ip route show | awk '/src/ {print $9}'
+$ ip route get 1.2.3.4 | awk '{print $7}'
 ```
+#### Extracts last octet from local IP address
+```bash
+$ ip route show | awk '/src/ {print $9}' | cut -d'.' -f4
+$ ip route get 1.2.3.4 | awk '{print $7}' | cut -d'.' -f4
+local_ip() {
+  en_ip=$(/usr/bin/ip route show | awk '/en/ && /link src/ {print $9}')
+  wl_ip=$(/usr/bin/ip route show | awk '/wl/ && /link src/ {print $9}')
+  et_ip=$(/usr/bin/ip route show | awk '/eth/ && /link src/ {print $9}')
+
+  if [[ -n "$en_ip" ]]; then
+    octet="${en_ip##*.}"
+  elif [[ -n "$et_ip" ]]; then
+    octet="${et_ip##*.}"
+  elif [[ -n "$wl_ip" ]]; then
+    octet="${wl_ip##*.}"
+  else
+    die "No IP address. Check network status." 1
+  fi
+  printf "%s" "$octet"
+}
+```
+
 #### Extract DNS addresses from /etc/NetworkManager/system-connections/
 ```bash
 $ sudo awk -F= '/dns=/ {print $2}' /etc/NetworkManager/system-connections/'Wired connection 1.nmconnection' | sed 's|;|\n|g'
