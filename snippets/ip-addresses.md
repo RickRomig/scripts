@@ -10,10 +10,13 @@ $ ip -4 a | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1'
 $ ip route show | awk '/src/ {print $9}'
 $ ip route get 1.2.3.4 | awk '{print $7}'
 ```
-#### Extracts last octet from local IP address
+#### Extract last octet from local IP address
 ```bash
-$ ip route show | awk '/src/ {print $9}' | cut -d'.' -f4
+$ ip route show | awk '/link src/ {print $9}' | cut -d'.' -f4
 $ ip route get 1.2.3.4 | awk '{print $7}' | cut -d'.' -f4
+```
+**Original method in functionlib**
+```bash
 local_ip() {
   en_ip=$(/usr/bin/ip route show | awk '/en/ && /link src/ {print $9}')
   wl_ip=$(/usr/bin/ip route show | awk '/wl/ && /link src/ {print $9}')
@@ -26,7 +29,26 @@ local_ip() {
   elif [[ -n "$wl_ip" ]]; then
     octet="${wl_ip##*.}"
   else
-    die "No IP address. Check network status." 1
+    die "No IP address found. Check network status." 1
+  fi
+  printf "%s" "$octet"
+}
+```
+**Revised method in functionlib**
+```bash
+local_ip() {
+  en_ip=$(/usr/bin/ip route show | awk '/en/ && /link src/ {print $9}' | cut -d'.' -f4)
+  wl_ip=$(/usr/bin/ip route show | awk '/wl/ && /link src/ {print $9}' | cut -d'.' -f4)
+  et_ip=$(/usr/bin/ip route show | awk '/eth/ && /link src/ {print $9}' | cut -d'.' -f4)
+
+  if [[ -n "$en_ip" ]]; then
+    octet="$en_ip"
+  elif [[ -n "$et_ip" ]]; then
+    octet="$et_ip"
+  elif [[ -n "$wl_ip" ]]; then
+    octet="$wl_ip"
+  else
+    die "No IP address found. Check network status." 1
   fi
   printf "%s" "$octet"
 }
