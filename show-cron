@@ -70,7 +70,7 @@ show_user_cron() {
     norm_user="$(awk -v pat="$i" -F: '$0~pat{print $1}' "$passwd_file")"
     if [[ -n "$norm_user" ]]; then
       printf "\n%sCron jobs for %s:%s\n" "$orange" "${norm_user^}"  "$normal"
-      sudo crontab -l -u "$norm_user" | grep -v '^#' | sed 's/>\/dev\/null 2&&1//'
+      sudo crontab -l -u "$norm_user" | grep -v '^#' | sed 's/>\/dev\/null 2>&1//'
     fi
     (( i++ ))
   done
@@ -78,7 +78,7 @@ show_user_cron() {
 
 show_root_cron() {
   printf "\n%sCron jobs for root:%s\n" "$orange" "$normal"
-  sudo crontab -l | grep -v '^#' | sed 's/>\/dev\/null 2&&1//'
+  sudo crontab -l | grep -v '^#' | sed 's/>\/dev\/null 2>&1//'
   printf "\n"
 }
 
