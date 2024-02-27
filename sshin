@@ -8,6 +8,7 @@
 # Email        : rick.romig@gmail.com
 # Comments     : Based on a script by Joe Collins, EzeeLinux.com
 #              : localnet and valid_ip are declared in functionlib
+#              : X11 forwarding should be enabled in /etc/ssh/sshd_config
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -28,19 +29,19 @@ fi
 # Variables
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.2.0"
-readonly _updated="08 Sep 2023"
+readonly _version="2.2.1"
+readonly _updated="27 Feb 2024"
 
 ## Functions ##
 
 usage() {
   local errcode="${1:-2}"
   cat << END_HELP
-${orange}Usage:${normal} $_script <last octet> [X]
+${orange}Usage:${normal} $_script <last-octet> [X]
 Example 1: $_script 15
 Example 2: $_script 11 X
 First argument is the last octet of the remote server's IP address.
-Second argment X enables X11 forwarding. Any other argument will continue without X forwarding.
+Second argment X|x enables X11 forwarding. Any other argument will continue without X11 forwarding.
 END_HELP
   exit "$errcode"
 }
@@ -64,7 +65,7 @@ elif [[ $# -gt 1 ]]; then
       /usr/bin/ssh -X "$localnet.$hostip"
     ;;
     * )
-      printf "%s Invalid option %s\n" "$red_error" "$x_opt" >&2
+      printf "%s Invalid option: %s\n" "$red_error" "$x_opt" >&2
       printf "Continuing without X11 forwarding enabled.\n"
       /usr/bin/ssh "$localnet.$hostip"
   esac
