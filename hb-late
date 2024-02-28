@@ -6,7 +6,7 @@
 # Arguments    : none
 # Author       : Copyright (C) 2019, Richard B. Romig, 02 September 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : Use only if hb-cron.sh fails to run on 1st of the month.
+# Comments     : Use only if hb-archive.sh fails to run on 1st of the month.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.2"
-readonly _updated="31 Aug 2023"
+readonly _version="0.2.3"
+readonly _updated="28 Feb 2024"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly fhost="hp-probook-6570b"
 readonly hb_dir=$HOME"/Documents/HomeBank"
@@ -48,15 +48,18 @@ hb_archive=$(date -d "$(date +%Y-%m-01) - 2 months" +%Y-%m)-backup.zip; readonly
 # Is the script running from the correct host?
 [[ "$lhost" != "$fhost" ]] && die "$_script must be run from the $fhost."
 
-box "$_script v$_version ($_updated)"
-echo "Archive HomeBank backup files when I forget at the end of the month."
+check_package zip
 
-if zip -qmtt "$ref_date" "$arc_dir/$hb_archive" "$hb_dir/*.bak" 2>/dev/null; then
+box "$_script v$_version ($_updated)"
+echo "Archive HomeBank backup files if hb-archive.sh fails to run on 1st of the month."
+
+zip -qmtt "$ref_date" "$arc_dir/$hb_archive" "$hb_dir/*.bak" 2>/dev/null
+status="$?"
+if [[ "$status" -eq 0 ]]; then
   echo "${orange}HomeBank backup files for $prev_month archived.${normal}"
   echo "HomeBank Archives:"
   ls -1 "$arc_dir"
 else
-  status="$?"
   echo "No backup files for $prev_month available to be archived."
   echo "Zip Error Code: $status" >&2
 fi
