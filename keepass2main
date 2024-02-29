@@ -6,7 +6,7 @@
 # Arguments    : none
 # Author       : Copyright (C) 2022 Richard B. Romig, 04 Mar 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : 
+# Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.8"
-readonly _updated="02 Jan 2024"
+readonly _version="0.4.9"
+readonly _updated="29 Feb 2024"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly mhost="hp-800g2-sff"
 readonly mhostip="10"
@@ -37,11 +37,10 @@ readonly mhostip="10"
 
 printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
 # Ensure script is not being run from HP-800-G2-SFF (10)
-[[ "$lhost" == "$mhost" ]] && die "$_script cannot be run from $mhost." 1
+[[ "$lhost" == "$mhost" ]] && leave "$_script cannot be run from $mhost."
 printf "Making a backup of Passwords.kdbx on %s\n" "$mhost"
 ssh rick@"$localnet.$mhostip" cp -pv ~/Documents/Passwords.kdbx ~/Documents/Passwords."$(date '+%y%m%d')".kdbx
 printf "Copying updated KeepassXC databases to %s\n" "$mhost"
-# scp -p "$HOME"/Documents/Passwords*.kdbx rick@"$localnet.$mhostip":Documents/
-scp -p "$HOME"/Documents/Passwords.kdbx "$HOME"/Documents/Passwords.old.kdbx  rick@"$localnet.$mhostip":Documents/
+scp -p "$HOME"/Documents/Passwords.kdbx "$HOME"/Documents/Passwords.old.kdbx "$HOME"/Documents/Tina-passwords.kdbx  rick@"$localnet.$mhostip":Documents/
 printf "MOTD: "
 leave ""
