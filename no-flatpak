@@ -27,7 +27,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.0-test"
+readonly _version="0.1.0"
 readonly _updated="02 Mar 2024"
 readonly pref_file="/etc/apt/preferences.d/noflatpak.pref"
 
@@ -42,7 +42,6 @@ flatpak_status() {
 }
 
 enable_flatpak() {
-	is_systemd || leave "SystemD is required for Snaps."
 	if [[ -f "$pref_file" ]]; then
 		if grep -q '^Package:' "$pref_file"; then
 			sed -i '/^Package/s/^/# /;/^Pin/s/^/# /' "$pref_file"
@@ -102,11 +101,11 @@ optstr=":dehs"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		d )
-			# sudo_login 2
+			sudo_login 2
 			disable_flatpak
 		;;
 		e )
-			# sudo_login 2
+			sudo_login 2
 			enable_flatpak
 		;;
 		h )
