@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.3"
-readonly _updated="05 Feb 2024"
+readonly _version="0.6.4"
+readonly _updated="07 Mar 2024"
 location="${1:-Huber+Heights}"
 
 ## Functions ##
@@ -38,6 +38,8 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
 cleanup() {
   [[ -f "$tmp_file" ]] && rm "$tmp_file"
 }
@@ -46,7 +48,6 @@ timeout_exit() {
   local wx_loc; wx_loc="$(echo "$1" | sed 's/+/ /g')"
   printf "Current weather data for %s is not available.\n" "$wx_loc"
   printf "Try again later.\n\n"
-  exit 1
 }
 
 show_help() {
@@ -57,7 +58,10 @@ Example 2: $_script New+York
 Example 3: $_script "Los Angeles"
 * Locations with spaces must have a '+' in place of the space
   or be enclosed in double quotes.
+* A US state can be indicated with a comma after the city name.
+  Kettering,OH or Kettering, OH
 * If no location is passed, the default location will be used.
+* 3-digit airport codes can be used as a location (LAX, ATL, DAY)
 For help: $_script -h or $_script --help, or Choice 3 in the menu.
 END_HELP
 }
@@ -205,10 +209,17 @@ check_dependencies
 while true; do
   clear
   box "$_script v$_version ($_updated)"
-  under_line "$(echo "$location" | sed 's/+/ /g')"
+  under_line "$(echo "$location" | sed 's/[+_]/ /g')"
   COLUMNS="40"
+  options=(
+    "Current conditions"
+    "3-day forecast"
+    "Change location"
+    "Usage/Help"
+    "Quit"
+  )
   PS3="Choice: "
-  select opt in "Current conditions" "3-day forecast" "Usage/Help" "Quit"; do
+  select opt in "${options[@]}"; do
     case $REPLY in
       1 )
         current_wx "$(echo "$location" | sed 's/ /+/g')"
@@ -220,17 +231,24 @@ while true; do
         anykey
         break
       ;;
-      3 )
+     3 )
+        printf "\nChange location.\n"
+        printf "Replace any spaces with + or _\n"
+        printf "Just pressing ENTER will use public IP as location.\n"
+        read -rp "New location: " location
+        break
+      ;;
+      4 )
         show_help
         anykey
         break
       ;;
-      4 )
+      5 )
         printf "%sMOTD:%s " "$darkgray" "$normal"
         leave ""
       ;;
       * )
-        printf "%s Invalid choice. Choose 1, 2, 3, or 4\n" "$red_error" >&2
+        printf "%s Invalid choice. Choose 1, 2, 3, 4, or 5\n" "$red_error" >&2
     esac
   done
 done
