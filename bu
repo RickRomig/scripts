@@ -9,7 +9,7 @@
 # Comments     : Based on USB Backup Tool (Version 1.1) by Joe Collins. (https://www.ezeelinux.com)
 #              : Joe's code at: https://github.com/EzeeLinux/bu-usb_backup_tool
 # Last updated : 30 Jan 2024
-# TODO (Rick)  : 
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -33,7 +33,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="3.16"
+readonly _version="3.17"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -43,7 +43,7 @@ readonly mount_point="/media/$user/BU_Drive"
 drive_test() {
 	printf "%sChecking Backup USB Drive%s\n" "$green" "$normal"
   check_usb || die "No USB drive connected!" 1
-	bu_drive_label || die "Invalid partition label. Run 'bu --help' for drive setup information." 1 
+	bu_drive_label || die "Invalid partition label. Run 'bu --help' for drive setup information." 1
   check_uuid || die "Incorrect drive to backup $host." 1
   mount | grep -qw BU_Drive > /dev/null 2>&1 || mount_bu
   bu_drive_fs || die "Drive must be formatted with EXT4 or XFS." 1
@@ -64,7 +64,7 @@ check_uuid() {
   local uuid=( "5d3290de-3fa7-4e3c-94b8-aca062c427ef" "5d1a8caa-36cf-4a36-8457-1a2bb2f85fd3" "89740987-ca0a-4b33-bb56-9055bb9e1daa" )
   local hname=( "hp-800g2-sff" "hp-850-g3" "hp-probook-6570" )
 	local uuid_path="/dev/disk/by-uuid"
-	
+
 	if [[ -L "$uuid_path/${uuid[0]}" ]]; then
 		[[ "$host" == "${hname[0]}" ]] && return "$TRUE" || return "$FALSE"
 	elif [[ -L "$uuid_path/${uuid[1]}" ]]; then
@@ -108,7 +108,6 @@ script_time() {
 }
 
 display_title() {
-  clear
   box "BU -- USB Backup Tool (Version $_version)"
   printf "Copyright \UA9 2019, Joe Collins\n"
   printf "Copyright \UA9 2023, Rick Romig\n\n"
@@ -266,7 +265,7 @@ SECONDS=0
 
 # Check command line arguments:
 if [[ "$#" -eq 0 ]]; then
-  sudo_login 0
+  sudo_login 2
   display_title
 	drive_test
 	check_package rsync
@@ -274,7 +273,7 @@ if [[ "$#" -eq 0 ]]; then
 else
   case "$1" in
     "--backup" )
-      sudo_login 0
+      sudo_login 2
       display_title
 	    drive_test
 	    check_package rsync
@@ -285,7 +284,7 @@ else
       exit
     ;;
     "--restore" )
-      sudo_login 0
+      sudo_login 2
       display_title
 	    drive_test
 	    check_package rsync
