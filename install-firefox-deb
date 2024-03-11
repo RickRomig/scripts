@@ -30,8 +30,8 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.2"
-readonly _updated="21 Feb 2024"
+readonly _version="0.3.3"
+readonly _updated="10 Mar 2024"
 
 ## Functions ##
 
@@ -40,7 +40,8 @@ rm_firefox() {
 	printf "Firefox version installed: %s\n" "$(firefox --version | cut -d' ' -f3)"
 	if yes_or_no "Remove Firefox?"; then
 		sudo apt-get remove firefox -yy
-		dpkg -l | grep -qw firefox-locale-en && sudo apt remove firefox-locale-en -yy
+		is_locale="$(dpkg -l | grep -w firefox-locale-en | awk '{print $2}')"
+		[[ -n "$is_locale" ]] && sudo apt-get remove firefox-locale-en -yy
 		[[ -f "$mozilla_list" ]] && sudo rm "$mozilla_list"
 		printf "Firefox browser has been removed.\n"
 	else
