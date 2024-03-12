@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.11"
-readonly _updated="24 Jan 2024"
+readonly _version="0.5.12"
+readonly _updated="12 Mar 2024"
 readonly user_cron_path="$HOME/.local/bin/"
 readonly opt_cron_path="/opt/bin/"
 readonly sed_path="/usr/share/misc/"
@@ -44,6 +44,7 @@ cp_repo_backup() {
       cp -puv "$HOME/bin/github-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}'
       cp -puv "$HOME/bin/sync-nas.sh" "$user_cron_path" | awk '{print "==> "$NF}'
       cp -puv "$HOME/bin/sync6005.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      cp -puv "$HOME/bin/journal-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}'
     ;;
     * )
       no_copy "Repository archives are"
@@ -82,7 +83,7 @@ cp_scriptarchive() {
       cp -puv "$script_path" "$user_cron_path" | awk '{print "==> "$NF}'
     ;;
     * )
-      no_copy "$(basename "$script_path") is"  
+      no_copy "$(basename "$script_path") is"
   esac
 }
 
@@ -94,9 +95,8 @@ cp_empty_trash() {
       cp -puv "$script_path" "$user_cron_path" | awk '{print "==> "$NF}'
     ;;
     * )
-      no_copy "$(basename "$script_path") is"  
+      no_copy "$(basename "$script_path") is"
   esac
-
 }
 
 cp_zbackup() {
