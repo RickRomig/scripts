@@ -18,4 +18,6 @@ $ sudo nano /etc/default/zramswap
 ALGO=lz4
 # Uncomment Percent=50
 PERCENT=25
+# Use sed instead of nano:
+sed -i.bak '/ALGO/s/^#//;/PERCENT/s/^#//;s/50$/25/' /etc/default/zramswap
 ```
