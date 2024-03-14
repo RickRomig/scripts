@@ -196,3 +196,10 @@ Adjust by adding or deleting newlines and changing the number before the `A`.
 ```bash
 xset -q | grep 'Caps Lock:   on' && echo "Caps Lock on."
 ```
+#### Display screen resolution
+```bash
+resolution="$(xrandr | grep '*' | head -n 1 | awk '{print $1}')"
+refresh_rate="$(xrandr | grep '*' | head -n 1 | awk '{print $2}' | sed 's/*+//')"
+width="$(xrandr | grep '*' | head -n 1 | awk '{print $1}' | cut -d\x -f1)"
+height="$(xrandr | grep '*' | head -n 1 | awk '{print $1}' | cut -d\x -f2)"
+```
