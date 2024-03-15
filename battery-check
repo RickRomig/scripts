@@ -7,7 +7,6 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, 28 Jul 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Uses data from /sys/class/power_supply/BAT*
-#              : Batttery health based on a script by Elias W (eliasw4u on Ezeetalk.com)
 #              : Battery charge based on a script by Luke Smith (https://lukesmith.xyz)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -29,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.2"
-readonly _updated="05 Oct 2023"
+readonly _version="0.6.3"
+readonly _updated="15 Mar 2024"
 
 ## Functions ##
 
@@ -59,6 +58,8 @@ EOF
 }
 
 battery_status() {
+  local bat_status
+  local bat_charge
   printf "\n%sBattery charge:%s\n" "$orange" "$normal"
   [[ -f "$battery_path/status" ]] || die "Problem with the battery! Replace it!"
   bat_status=$(cat "$battery_path/status")
@@ -70,6 +71,15 @@ battery_status() {
 }
 
 battery_capacity() {
+  local actual_full
+  local design_full
+  local unit
+  local actual_max
+  local design_max
+  local int_des
+  local int_act
+  local cap_percent
+  local bat_health
   if [[ -f "$battery_path/charge_full" ]]; then
     actual_full="charge_full"
     design_full="charge_full_design"
@@ -103,6 +113,8 @@ battery_capacity() {
 battery_condition() {
   local cap_pct="$1"
   local c_pct="${cap_pct%%.*}"
+  local warn_level
+  local warn
   if [[ "$c_pct" -eq 0 ]]; then
     warn_level=0
   else
@@ -124,6 +136,8 @@ battery_condition() {
 }
 
 battery_specs() {
+  local battery_data
+  local battery_serial
   battery_data=$(cat "$battery_path"/uevent)
   battery_serial=$(echo "$battery_data" | awk -F= '/SERIAL/ {print $NF}')
   [[ -z "$battery_serial" || "$battery_serial" == " " ]] && battery_serial="Not specified"
@@ -135,6 +149,8 @@ battery_specs() {
 }
 
 ac_power() {
+  local ac_path
+  local ac_status
   ac_path=$(find /sys/class/power_supply/ -name "AC*")
   ac_status="$(cat "$ac_path/online")"
   printf "\n%sAC Power:%s\n" "$orange" "$normal"
@@ -152,6 +168,7 @@ ac_power() {
 }
 
 hidpp_battery() {
+  local hidpp_path
   for hidpp_path in /sys/class/power_supply/hidpp_battery_?; do
     if [[ "$hidpp_path" != "/sys/class/power_supply/hidpp_battery_?" ]]; then
       printf "\n%sHID++ Battery:%s\n" "$orange" "$normal"
