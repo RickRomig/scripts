@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.3"
-readonly _updated="20 Dec 2023"
+readonly _version="0.4."
+readonly _updated="15 Mar 2024"
 
 ## Functions ##
 
@@ -121,13 +121,11 @@ ac_status() {
 }
 
 hidpp_battery() {
-  if /usr/bin/upower -e | grep -q mouse_hidpp_battery; then
-    hidpp_data=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep hidpp)")
-    echo $'\n'$"${orange}HID++ Battery:${normal}"
-    echo "    Device: $(echo "$hidpp_data" | awk '/native-path/ {print $NF}')"
-    echo -n "    $(echo "$hidpp_data" | awk '/model/ {print $NF}'):   "
-    echo "$hidpp_data" | awk '/percentage/ {print $NF}'
-  fi
+  hidpp_data=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep hidpp)")
+  echo $'\n'$"${orange}HID++ Battery:${normal}"
+  echo "    Device: $(echo "$hidpp_data" | awk '/native-path/ {print $NF}')"
+  echo -n "    $(echo "$hidpp_data" | awk '/model/ {print $NF}'):   "
+  echo "$hidpp_data" | awk '/percentage/ {print $NF}'
 }
 
 ## Execution ##
@@ -164,11 +162,11 @@ if [[ -d /proc/acpi/button/lid/ ]]; then
     echo $'\n'"${lightred}No battery detected.${normal}" >&2
   fi
   ac_status
-  hidpp_battery
+  /usr/bin/upower -e | grep -q mouse_hidpp_battery && hidpp_battery
 else
-  echo $'\n'$"This system is not a laptop." >&2
+  printf "\nThis system is not a laptop.\n" >&2
 fi
 
-echo $'\n'$"$_script v$_version ($_updated)"
+printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 
 exit
