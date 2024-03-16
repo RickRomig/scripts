@@ -7,11 +7,11 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Last updated : 18 Dec 2023 Version 0.1.1
+# Last updated : 16 Mar 2024 Version 0.1.2
 # Comments     : Run as a user cron job.
-#              : Trash directory does not exist until a file is sent to trash by file manager.
-#              : Tested with Debian 11/12, LMDE 6, Mint 21.2, MX Linux 23.1, BunsenLabs 11.
-# TODO (Rick)  : 
+#              : Trash directory does not exist until a file is moved to the trash.
+#              : Tested with Debian 11/12, LMDE 6, Mint 21.x, MX Linux 23.1, BunsenLabs 11.
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -20,7 +20,7 @@ readonly log_dir="$HOME/.local/share/logs"
 readonly log_file="trash.log"
 
 empty_trash() {
-	if [[ $(ls -A "$trash_dir/files") ]]; then
+	if [[ $(find "$trash_dir/files" -type f | wc -l) -ne 0 ]]; then
 		rm -rf "$trash_dir"/files/*
 		rm -rf "$trash_dir"/info/*
 		printf "Trash emptied.\n"
