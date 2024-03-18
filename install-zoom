@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.2"
-readonly _updated="20 Dec 2023"
+readonly _version="0.3.3"
+readonly _updated="18 Mar 2024"
 
 ## Functions ##
 
@@ -119,7 +119,7 @@ while getopts "$optstr" opt; do
 			webcam_info
 			tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 			trap cleanup EXIT
-			sudo_login
+			sudo_login 2
 			check_dependencies
 			install_zoom_deb
 		;;
@@ -135,7 +135,7 @@ while getopts "$optstr" opt; do
 		;;
 		r )
 			if exists zoom || flatpak_zoom; then
-				sudo_login
+				sudo_login 2
 				remove_zoom
 			else
 				printf "Zoom is not installed.\n"
