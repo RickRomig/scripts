@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.1"
-readonly _updated="14 Oct 2023"
+readonly _version="0.2.2"
+readonly _updated="18 Mar 2024"
 readonly package="fnloc_2.3.1_amd64.deb"
 readonly package_name="FnLoC"
 readonly package_version="2.3.1"
@@ -55,7 +55,7 @@ ${orange}OPTIONS:${normal}
   -h	Display help
 	-i	Clone FnLoC repo & install .deb package
 	-r	Remove FnLoC
-$_script $_version (Updated $_updated)	
+$_script $_version (Updated $_updated)
 END_HELP
   exit "$errcode"
 }
@@ -72,7 +72,7 @@ dl_deb_pkg() {
 }
 
 install_fnloc() {
-  sudo_login
+  sudo_login 2
   dpkg -l | grep -qw fnloc && { printf "%s %s already installed." "$package_name" "$package_version"; exit; }
   sudo dpkg -i "$package_dir/$package"
   printf "%s %s installed.\n" "$package_name" "$package_version"
@@ -101,7 +101,7 @@ while getopts "$optstr" opt; do
       install_fnloc
     ;;
     r )
-      sudo_login
+      sudo_login 2
       clone_fnloc_repo
       dpkg -l | grep -qw fnloc || { printf "%s is not installed." "$package_name"; exit; }
       sudo dpkg -r fnloc
