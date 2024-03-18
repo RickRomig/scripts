@@ -18,7 +18,7 @@ exec 1>&2
 # Run shellcheck against files except for listed extensions
 for file in $(git diff --cached --name-only --diff-filter=AM | grep -Ev '\.md$|\.txt$|\.dat$|\.sed$|\.conf$\.json$|\.key$|\.list$|\.lst$|\.pub$|rc$')
 do
-	shellcheck -x --exclude=SC1001,SC2001 "$file" || exit 1
+	shellcheck -x "$file" || exit 1
 done
 
 # If there are whitespace errors, print the offending file names and fail.
