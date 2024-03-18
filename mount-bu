@@ -28,7 +28,7 @@ fi
 
 _script=$(basename "$0"); readonly _script
 readonly _version="0.2.13"
-readonly _updated="16 Oct 2023"
+readonly _updated="18 Mar 2024"
 readonly mount_point="/media/$USER/BU_Drive"
 
 ## Functions ##
@@ -36,7 +36,7 @@ readonly mount_point="/media/$USER/BU_Drive"
 mount_bu() {
   local usbdrv
   usbdrv="$(lsblk -fs | awk '/BU_Drive/ {print $1}')"
-  sudo_login
+  sudo_login 2
   printf "Mounting backup drive: /dev/%s to %s ...\n" "$usbdrv" "$mount_point"
   [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
   sudo mount /dev/"$usbdrv" "$mount_point"
@@ -46,7 +46,7 @@ mount_bu() {
 umount_bu() {
   local usbdrv
   usbdrv=$(mount | awk '/BU_Drive/ {print $1}')
-  sudo_login
+  sudo_login 2
   printf "Unmounting USB Backup drive at %s ...\n" "$mount_point"
   sudo umount "$mount_point"
   printf "BU_Drive (%s) is unmounted.\n" "$usbdrv"
