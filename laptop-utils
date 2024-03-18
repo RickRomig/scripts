@@ -26,8 +26,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.5.6"
-readonly _updated="24 Oct 2023"
+readonly _version="1.5.7"
+readonly _updated="18 Mar 2024"
 
 ## Funtions ##
 
@@ -127,7 +127,7 @@ start_tlp() {
 
 tlp_service() {
   if is_systemd; then
-    sudo_login
+    sudo_login 2
     sudo systemctl enable tlp.service
     sudo systemctl start tlp.service
     sudo systemctl mask systemd-rfkill.service
@@ -162,7 +162,7 @@ while getopts "$optstr" opt; do
       help 0
     ;;
     i )
-      sudo_login
+      sudo_login 2
       intro
       main
     ;;
@@ -170,7 +170,7 @@ while getopts "$optstr" opt; do
       util_status
     ;;
     s )
-      sudo_login
+      sudo_login 2
       start_tlp
     ;;
     ? )
