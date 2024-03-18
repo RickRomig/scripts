@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.17"
-readonly _updated="16 Oct 2023"
+readonly _version="0.4.18"
+readonly _updated="18 Mar 2024"
 readonly charm_url="https://repo.charm.sh/apt"
 readonly src_list="/etc/apt/sources.list.d"
 readonly keyring_dir="/etc/apt/keyrings"
@@ -100,18 +100,18 @@ while getopts "$optstr" opt; do
     ;;
     i )
       exists glow && leave "Glow $(glow_ver) is already installed."
-      sudo_login
+      sudo_login 2
       check_dependencies
       install_glow
     ;;
     r )
       exists glow || leave "Glow is not installed."
-      sudo_login
+      sudo_login 2
       remove_glow
     ;;
     s )
       exists glow || leave "Glow is not installed."
-      sudo_login
+      sudo_login 2
       check_dependencies
       add_gpg
       add_src_list
