@@ -28,8 +28,8 @@ fi
 
 _script=$(basename "$0"); readonly _script
 readonly _script
-readonly _version="0.4.2 - beta"
-readonly _updated="16 Oct 2023"
+readonly _version="0.4.3 - beta"
+readonly _updated="18 Mar 2024"
 readonly source_list="/etc/apt/sources.list.d/home-ungoogled_chromium.list"
 readonly trusted_gpg="/etc/apt/trusted.gpg.d/home_ungoogled_chromium.gpg"
 
@@ -42,8 +42,8 @@ uc_version() {
 install_ungoogled_chrome() {
   local repo_url="deb http://download.opensuse.org/repositories/home:/ungoogled_chromium/Debian_Bullseye/ /"
   local key_url="https://download.opensuse.org/repositories/home:/ungoogled_chromium/Debian_Bullseye/Release.key"
-  
-  sudo_login
+
+  sudo_login 2
   show_me "Creating source list"
   echo "$repo_url" | sudo tee "$source_list" > /dev/null
   show_me "Adding trusted key"
@@ -55,7 +55,7 @@ install_ungoogled_chrome() {
 }
 
 remove_ungoogle_chrome() {
-  sudo_login
+  sudo_login 2
   show_me "Purging  ungoogled-chrome"
   sudo apt-get purge ungoogled-chrome
   [[ -f "$source_list" ]] && sudo rm "$source_list"
@@ -68,7 +68,7 @@ distro_check() {
   case $ver_code in
     bullseye|elsie )
       return "$TRUE"
-    ;; 
+    ;;
     * )
       return "$FALSE"
   esac
