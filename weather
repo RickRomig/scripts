@@ -45,7 +45,8 @@ cleanup() {
 }
 
 timeout_exit() {
-  local wx_loc; wx_loc="$(echo "$1" | sed 's/+/ /g')"
+  # local wx_loc; wx_loc="$(echo "$1" | sed 's/+/ /g')"
+  local wx_loc; wx_loc="${1//[+_]/ }"
   printf "Current weather data for %s is not available.\n" "$wx_loc"
   printf "Try again later.\n\n"
 }
@@ -209,7 +210,8 @@ check_dependencies
 while true; do
   clear
   box "$_script v$_version ($_updated)"
-  under_line "$(echo "$location" | sed 's/[+_]/ /g')"
+  # under_line "$(echo "$location" | sed 's/[+_]/ /g')"
+  under_line "${location//[+_]/ }"
   COLUMNS="40"
   options=(
     "Current conditions"
@@ -222,12 +224,14 @@ while true; do
   select opt in "${options[@]}"; do
     case $REPLY in
       1 )
-        current_wx "$(echo "$location" | sed 's/ /+/g')"
+        # current_wx "$(echo "$location" | sed 's/ /+/g')"
+        current_wx "${location// /+}"
         anykey
         break
       ;;
       2 )
-        wx_forecast "$(echo "$location" | sed 's/ /+/g')"
+        # wx_forecast "$(echo "$location" | sed 's/ /+/g')"
+        wx_forecast "${location// /+}"
         anykey
         break
       ;;
