@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.15"
-readonly _updated="20 Dec 2023"
+readonly _version="0.2.16"
+readonly _updated="18 Mar 2024"
 readonly gh_url="https://github.com/VSCodium/vscodium/releases"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 
@@ -69,7 +69,7 @@ install_vscodium() {
   wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
   kill "$!";printf "done\n";tput cnorm
   printf "Installing VSCodium %s...\n" "$new_ver"
-  sudo_login
+  sudo_login 2
   sudo gdebi -n "$tmp_dir/$new_pkg"
   printf "VSCodium %s successfully installed.\n" "$(codium_ver)"
 }
@@ -77,7 +77,7 @@ install_vscodium() {
 remove_vscodium() {
   local vsc_cfg_d="${HOME}/.config/VSCodium"
   printf "Removing the VSCodium editor...\n"
-  sudo_login
+  sudo_login 2
   sudo dpkg --remove codium
   [[ -d "$vsc_cfg_d" ]] && rm -rf "$vsc_cfg_d"
   printf "VSCodium editor has been removed.\n"
