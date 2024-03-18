@@ -30,7 +30,7 @@ fi
 
 _script=$(basename "$0"); readonly _script
 readonly _version="0.1.0"
-readonly _updated="18 Jul 2023"
+readonly _updated="18 Mar 2024"
 readonly sleep_file="/etc/systemd/sleep.conf"
 readonly sed_file="${HOME}/bin/files/nosleep.sed"
 
@@ -40,7 +40,7 @@ printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 printf "Disables sleep and hiberation on Debian-based systems.\n"
 
 [[ -f "$sed_file" ]] || die "A required files ($(basename "$sed_file")) was not found." 1
-sudo_login
+sudo_login 2
 sudo sed -i.bak -f "$sed_file" "$sleep_file"
 leave "$sleep_file modified. Backup (${sleep_file}.bak) created."
 exit
