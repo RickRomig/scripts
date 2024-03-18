@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.3"
-readonly _updated="16 Oct 2023"
+readonly _version="0.2.4"
+readonly _updated="18 Mar 2024"
 readonly ytdl_prg="youtube-dl"
 readonly update_script="z-ytdlupdate"
 readonly sed_file="ytdluplog.sed"
@@ -169,7 +169,7 @@ while getopts "$optstr" opt; do
 		;;
 		i )
 			[[ -f "$ytdl_location/$ytdl_prg" ]] && leave "$ytdl_prg $(ytdl_version) already installed."
-			sudo_login
+			sudo_login 2
 			check_dependencies
 			install_intro
 			dpkg -l | grep -qw youtube-dl && remove_repo_ver
@@ -179,18 +179,18 @@ while getopts "$optstr" opt; do
 			remove_intro
 			dpkg -l | grep -qw youtube-dl && remove_repo_ver
 			[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
-			sudo_login
+			sudo_login 2
 			remove_youtubedl
 		;;
 		u )
 			[[ -f "$ytdl_location/$ytdl_prg" ]] || leave "$ytdl_prg $(ytdl_version) is not installed."
-			sudo_login
+			sudo_login 2
 			update_youtubedl
 		;;
 		x )
 			dpkg -l | grep -qw youtube-dl || leave "The repo version of $ytdl_prg is not installed."
 			printf "Removing %s installed from the distribution repository.\n" "$ytdl_prg"
-			sudo_login
+			sudo_login 2
 			remove_repo_ver
 		;;
 		? )
