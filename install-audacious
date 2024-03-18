@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, 23 Mar 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Does not support installation from Ubuntu PPAs.
-# TODO (Rick)  : 
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
 
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.0"
-readonly _updated="30 Oct 2023"
+readonly _version="0.2.1"
+readonly _updated="18 Mar 2024"
 
 ## Functions ##
 
@@ -40,14 +40,14 @@ ${orange}OPTIONS:${normal}
 	-h	Display help
 	-i	Install Audacious audio player
 	-r	Remove Audacious audio player
-$_script $_version (Updated $_updated)	
+$_script $_version (Updated $_updated)
 END_HELP
   exit "$errcode"
 }
 
 install_audacious() {
   if in_repos audacious; then
-    sudo_login
+    sudo_login 2
     sudo apt update -qq
     sudo apt install audacious audacious-plugins -yy
     leave "Audacious audio player installed from distro repository."
@@ -58,7 +58,7 @@ install_audacious() {
 
 remove_audacious() {
   echo "Removing Audacious audio player."
-  sudo_login
+  sudo_login 2
   sudo apt remove --autoremove audacious audacious-plugins
   leave "Audacious audio player removed."
 }
