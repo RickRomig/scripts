@@ -28,7 +28,7 @@ ${bar,[N]}		# Make 1st letter lowercase of the string if it's an 'N'
 nULLIFIDIAN - NON FRACTUS, NON PERDITUS, NON OVIS.
 ${bar,,}			# Make all letters lowercase
 nullifidian - non fractus, non perditus, non ovis.
-${bar,,[I]		# Make all instances of a letter lowercase
+${bar,,[I]}		# Make all instances of a letter lowercase
 NULLiFiDiAN - NON FRACTUS, NON PERDiTUS, NON OViS.
 ${bar,,[AEIOU]}	# Make all instances of desiginated letter lowercase
 NuLLiFiDiaN - NoN FRaCTuS, NoN PeRDiTuS, NoN oViS.
@@ -43,7 +43,7 @@ foo="$(tr '[:lower:]' '[:upper:]' <<< ${foo:0:1})${foo:1}"
 ```bash
 foo=$(echo "$foo" | sed 's/^./\U&\E/')	# convert 1st letter to uppercase
 echo "$(echo "$foo" | sed 's/.*/\U&/')"		# convert all letters to uppercase
-echo "$(echo "foo" | sed 's/^[^ ]*/\U&/E/'	# convert 1st workd to uppercase
+echo "$(echo "foo" | sed 's/^[^ ]*/\U&\E/'	# convert 1st word to uppercase
 # Replace U with L to make lowercase.
 # \E = leave all preceding characters in their current state
 ```
@@ -52,4 +52,11 @@ echo "$(echo "foo" | sed 's/^[^ ]*/\U&/E/'	# convert 1st workd to uppercase
 ```bash
 echo "Hello ${USER^}. I am $(uname -n), your computer."
 printf "Hello %s. I am %s, your computer.\n" "${USER^}" "$(uname -n)"
+```
+
+#### Using parameter expansion to change characters in a string
+Syntax `${variable//search/replace}`
+```bash
+string="stirng" ; echo "$string" | sed -e "s/ir/ri/"	# Problematic code
+string="stirng" ; echo "${string//ir/ri}"	# Correct code
 ```
