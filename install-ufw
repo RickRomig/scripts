@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.10"
-readonly _updated="15 Dec 2023"
+readonly _version="0.1.11"
+readonly _updated="18 Mar 2024"
 
 ## Functions ##
 
@@ -107,20 +107,20 @@ while getopts "$optstr" opt; do
   case "$opt" in
     a )
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
-      sudo_login
+      sudo_login 2
       add_rules
       ufw_active || enable_ufw
       printf "Rules for CUPS and SSH added.\n"
     ;;
     d )
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
-      sudo_login
+      sudo_login 2
       ufw_active || leave "UFW $(ufw_version) is already disabled."
       disable_ufw
     ;;
     e )
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
-      sudo_login
+      sudo_login 2
       ufw_active && leave "UFW $(ufw_version) is already enabled."
       enable_ufw
     ;;
@@ -130,7 +130,7 @@ while getopts "$optstr" opt; do
     i )
       debian_system || die "Not a Debian system."
       dpkg -l | grep -qw ufw && leave "UFW $(ufw_version) is already installed."
-      sudo_login
+      sudo_login 2
       install_ufw
       add_rules
       enable_ufw
@@ -139,12 +139,12 @@ while getopts "$optstr" opt; do
     r )
       debian_system || die "Not a Debian-based system."
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
-      sudo_login
+      sudo_login 2
       remove_ufw
     ;;
     s )
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
-      sudo_login
+      sudo_login 2
       printf "UFW %s\n" "$(ufw_version)"
       sudo ufw status numbered
     ;;
