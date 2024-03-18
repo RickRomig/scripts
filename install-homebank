@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.2"
-readonly _updated="16 Oct 2023"
+readonly _version="0.4.3"
+readonly _updated="118 Mar 2024"
 
 ## Functions ##
 
@@ -57,7 +57,7 @@ remove_ppa() {
 }
 
 install_homebank() {
-  sudo_login
+  sudo_login 2
   support_ppa && add_ppa
   sudo apt-get install homebank -yyq
   printf "HomeBank %s installed.\n" "$(homebank_ver)"
@@ -65,7 +65,7 @@ install_homebank() {
 
 remove_homebank() {
   printf "Removing HomeBank %s...\n" "$(homebank_ver)"
-  sudo_login
+  sudo_login 2
   support_ppa && remove_ppa
   sudo apt-get remove homebank -yy > /dev/null 2>&1
   printf "HomeBank has been removed.\n"
@@ -73,7 +73,7 @@ remove_homebank() {
 
 purge_homebank() {
   printf "Removing HomeBank %s and purging configuration files.\n" "$(homebank_ver)"
-  sudo_login
+  sudo_login 2
   support_ppa && remove_ppa
   sudo apt-get purge homebank -yy > /dev/null 2>&1
   printf "HomeBank and its configuration files have been removed.\n"
