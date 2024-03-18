@@ -6,7 +6,7 @@
 # Arguments    : $1 -> file to be viewed
 # Author       : Copyright (C) 2020, Richard B. Romig, 02 Jan 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
-# Comments     : 
+# Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -27,8 +27,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.3"
-readonly _updated="18 Dec 2023"
+readonly _version="0.4.4"
+readonly _updated="18 Mar 2024"
 
 ## Functions ##
 
@@ -38,7 +38,7 @@ help() {
   Usage: $_script filename [-h] [--help]
 
   $_script displays a text file using either cat or less depending the number of
-  lines in the file and the number of rows in the current terminal window. Less 
+  lines in the file and the number of rows in the current terminal window. Less
   is used when the number of lines is greater than the 87% of the rows, otherwise
   cat is used.
 
@@ -49,6 +49,8 @@ END_HELP
 
 main() {
   local textfile="$1"
+  local catmax
+  local filesize
   # Get 87% of screen and size of file
   catmax=$(( $(tput lines)*87/100 ))
   filesize=$(wc -l "$textfile" | cut -d' ' -f1)
