@@ -60,3 +60,26 @@ Syntax `${variable//search/replace}`
 string="stirng" ; echo "$string" | sed -e "s/ir/ri/"	# Problematic code
 string="stirng" ; echo "${string//ir/ri}"	# Correct code
 ```
+#### Variable delarations
+Using the declare command in a function makes the variable local to the function (`-g` suppress it).
+- Options:
+	```bash
+	declare -f	# restrict action or display to function names and definitions
+	declare -F	# restrict display to function names only (plus line number & source file when debuggigng)
+	declare -g	# create global variables when used in a shell function; otherwise ignore
+	declare -I	# if creating a local varibable, inherit attributes and value	of a variable with the same name at a previous scope
+	declare -p	# display the attributes and values of each NAME
+	```
+- Options which set attributed:
+	```bash
+	declare -a	# makes NAMEs indexed arrays (if supported)
+	declare -A	# makes NAMEs associative arrays (if supported)
+	declare -i	# makes NAMEs have the 'integer' attribute
+	declare -l	# convert the value of each NAME to lower case on assignment
+	declare -n	# make NAME a reference to the variable named by its value
+	declare -r	# make NAMEs readonly
+	declare -t	# make NAMEs have the 'trace' attribute
+	declare -u	# conver the value of each NMAE to upper case on assignment
+	declare -x	# make the NAMEs export
+	```
+Uing `+` instead of `-` turns off the given attribute.
