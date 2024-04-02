@@ -203,3 +203,13 @@ refresh_rate="$(xrandr | grep '*' | head -n 1 | awk '{print $2}' | sed 's/*+//')
 width="$(xrandr | grep '*' | head -n 1 | awk '{print $1}' | cut -d\x -f1)"
 height="$(xrandr | grep '*' | head -n 1 | awk '{print $1}' | cut -d\x -f2)"
 ```
+#### grep tricks
+```bash
+grep -v ^\# filename | grep .   # ignore commented and blank lines
+grep -A 4 term    # display 4 lines after the matched term
+grep -B 2 term    # display 2 lines before the matched term
+grep -C 2 term    # display 2 lines befor and after the matched term
+grep -c term      # display the number of matches
+grep -n term      # display the line number of each match
+grep -r term      # search recursively
+```
