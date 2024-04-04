@@ -30,8 +30,8 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.3"
-readonly _updated="10 Mar 2024"
+readonly _version="0.3.4"
+readonly _updated="04 Apr 2024"
 
 ## Functions ##
 
@@ -68,6 +68,8 @@ rm_firefox_flatpak() {
 		else
 			printf "Operation canceled. No action taken.\n"
 		fi
+	else
+		printf "Firefox is not installed as a Flatpak.\n"
 	fi
 }
 
@@ -80,6 +82,8 @@ rm_firefox_snap() {
 		else
 			printf "Operation canceled. No action taken.\n"
 		fi
+	else
+		printf "Firefox is not installed as a Snap.\n"
 	fi
 }
 
@@ -134,7 +138,7 @@ elif exists firefox; then
 	rm_firefox
 fi
 exists flatpak && rm_firefox_flatpak
-[[ -d /snapd ]] && rm_firefox_snap
+exists snap && rm_firefox_snap
 
 # Install Mozilla DEB package
 if yes_or_no "Install Mozilla Firefox DEB package?"; then
