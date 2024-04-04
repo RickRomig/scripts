@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Comments     : Based on USB Backup Tool (Version 1.1) by Joe Collins. (https://www.ezeelinux.com)
 #              : Joe's code at: https://github.com/EzeeLinux/bu-usb_backup_tool
-# Last updated : 18 Mar 2024
+# Last updated : 03 Apr 2024
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -33,7 +33,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="3.18"
+readonly _version="3.19"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -133,7 +133,7 @@ backup() {
 		sync_drives
     unmount_usb_drive
     script_time
-    exit
+    exit 0
   else
     # Clear any accidental input during backup:
     read -rt 1 -n 10000 discard
@@ -174,7 +174,7 @@ restore() {
       unmount_usb_drive
       printf "Restart machine for all changes to take effect.\n"
       script_time
-      exit
+      exit 0
     else
       # If rsync fails, clear any accidental input during restore:
       read -rt 1 -n 10000 discard
@@ -192,7 +192,7 @@ restore() {
     printf "%Restoration canceled.%s\n" "$orange" "$normal"
     unmount_usb_drive
     script_time
-    exit
+    exit 0
   fi
 }
 
@@ -282,7 +282,7 @@ else
     ;;
     "--help" )
       help
-      exit
+      exit 0
     ;;
     "--restore" )
       sudo_login 2
