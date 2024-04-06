@@ -6,6 +6,7 @@
 # Arguments    : See usage function
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Last updated : 05 Apr 2024
 # Comments     : Creates the script in the current working directory.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,12 +28,13 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.1.6"
-readonly _updated="06 Dec 2023"
+readonly _version="3.6.24096"
+readonly _updated="05 Apr 2024"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 today=$(date +"%d %b %Y"); readonly today
 cur_yr=$(echo -e "\UA9 $(date +%Y)"); readonly cur_yr
+init_ver="1.0.$(date +%y%j)"; readonly init_ver
 
 # Data to insert into new bash script
 # template directory, copy_holder, email_addr, email_addr1, coder, license contained in script's .conf file.
@@ -85,7 +87,7 @@ show_me() {
 
 ## Execution ##
 
-box " $_script $_version (Updated $_updated)"
+box " $_script $_version"
 
 noOpt=1
 optstr=":b:eg:uv"
@@ -131,7 +133,7 @@ done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; usage 1; }
 shift "$(( OPTIND - 1 ))"
 
-[[ -z "$filename" ]] && leave "No script created."
+# [[ -z "$filename" ]] && leave "No script created."
 
 ## Source script configuration file ##
 
@@ -153,7 +155,8 @@ sed -e '1d' \
     -e "s/<EMAIL1>/$email_addr1/" \
     -e "s/<TODAY>/$today/" \
     -e "s/<CODER>/$coder/" \
-    -e "s/<LICENSE>/$license/" "$template_dir/$template_file" > "$filename"
+    -e "s/<LICENSE>/$license/" \
+    -e "s/<VERSION>/$init_ver/" "$template_dir/$template_file" > "$filename"
 
 # Set file permissions for the new script to -rwxr-xr-xr
 show_me "Setting file permissions to 755."
