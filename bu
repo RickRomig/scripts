@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 05 Apr 2024
+# Last updated : 08 Apr 2024
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins. (https://www.ezeelinux.com)
 #              : Joe's code at: https://github.com/EzeeLinux/bu-usb_backup_tool
 # TODO (Rick)  :
@@ -21,7 +21,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
 
 # Load function library
 
@@ -34,7 +33,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="4.1.24096"
+readonly _version="4.1.24098"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -125,13 +124,13 @@ backup() {
   printf "%sBacking up /etc and /home to BU_Drive/BU_Backups/%s/%s\n" "$green" "$host" "$normal"
   if sudo rsync -aH --delete --exclude 'timeshift' --exclude '.local/share/libvirt/images' --exclude 'mnt' --exclude 'lost+found' --info=progress2 /etc /home "$mount_point"/BU_Backups/"$host"/; then
     # Clear any accidental input during backup:
-    read -rt 1 -n 10000 discard
+    read -rt 1 -n 10000 _discard
     printf "%sBackup completed.%s\n" "$green" "$normal"
     rm -f /"$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
     touch "$mount_point/BU_Backups/$host/BU Backup was successful: $(date '+%F')"
   else
     # Clear any accidental input during backup:
-    read -rt 1 -n 10000 discard
+    read -rt 1 -n 10000 _discard
     rm -f "$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
     touch "$mount_point/BU_Backups/$host/BU Backup had some errors: $(date '+%F')"
     printf "%sThere were errors!%s Try reinserting the backup drive and running the command again to correct them.\n" "$lightred" "$normal" >&2
@@ -151,13 +150,13 @@ restore() {
 			printf "\n%sRestoring /home... Please DO NOT open any applications.$s\n" "$green" "$normal"
 			if sudo rsync -aH --delete --exclude 'timeshift' --info=progress2 "$mount_point"/BU_Backups/"$host"/home/ /home/; then
 				# Clear any accidental input during restore:
-				read -rt 1 -n 10000 discard
+				read -rt 1 -n 10000 _discard
 				printf "%sRestoration Complete!%s\n" "$green" "$normal"
 	      printf "Restart machine for all changes to take effect.\n"
 	      sync_drives
 				else
 				# If rsync fails, clear any accidental input during restore:
-				read -rt 1 -n 10000 discard
+				read -rt 1 -n 10000 _discard
 				printf "%s rsync exited with errors!\n" >&2 "$red_error"
 				printf "DO NOT DO ANYTHING UNTIL YOU:\n" >&2
 				printf "Make sure BU_Drive USB is still plugged in.\n" >&2
