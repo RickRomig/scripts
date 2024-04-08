@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-dsh
+# Description  : Installs & configures DSH
+# Dependencies : none
+# Arguments    : none
+# Author       : Copyright © 2024 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 08 Apr 2024
+# Last updated : 08 Apr 2024
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+set -euo pipefail
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="1.0.24099"
+readonly _updated="08 Apr 2024"
+
+## Functions ##
+
+install_dsh() {
+  local grps=( desktop i3wm laptops )
+  local dshpath="/etc/dsh"
+  local srcpath="$HOME/bin/files"
+  sudo apt-get -yy install dsh
+  sudo sed -i 'remoteshell/s/rsh/ssh/' "$dshpath/dsh.conf"
+  sudo cp -v "$srcpath/machines.list" "$dshpath/" | awk '{print "==> " $NF}'
+  for grp in "${grps[@]}"; do
+    sudo cp -v "$srcpath/$grp" "$dshpath/group/" | awk '{print "==> " $NF}'
+  done
+  sudo ln -s /etc/dsh/machines.list /etc/dsh/group/all
+}
+
+## Execution ##
+
+sudo_login 2
+install_dsh
+leave "$_script $_version"
