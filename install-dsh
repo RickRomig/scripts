@@ -31,20 +31,74 @@ set -euo pipefail
 
 _script=$(basename "$0"); readonly _script
 readonly _version="1.0.24099"
-readonly _updated="08 Apr 2024"
+readonly dsh_path="/etc/dsh"
 
 ## Functions ##
 
+machine_list() {
+  cat << END_FILE sudo tee "$dsh_path"/machine.list
+192.168.0.11
+192.168.0.12
+192.168.0.13
+192.168.0.14
+192.168.0.15
+192.168.0.16
+192.168.0.17
+192.168.0.19
+192.168.0.20
+192.168.0.21
+192.168.0.22
+192.168.0.23
+192.168.0.24
+192.168.0.227
+END_FILE
+  printf "%s/machiine.list created." "$dsh_path"
+}
+
+desktop_list() {
+  cat << END_FILE sudo tee "$dsh_path"/group/desktops
+192.168.0.11
+192.168.0.14
+192.168.0.15
+192.168.0.16
+192.168.0.17
+192.168.0.19
+END_FILE
+  printf "%s/group/desktops created." "$dsh_path"
+}
+
+laptop_list() {
+  cat << END_FILE sudo tee "$dsh_path"/group/laptops
+192.168.0.12
+192.168.0.13
+192.168.0.20
+192.168.0.21
+192.168.0.22
+192.168.0.23
+192.168.0.24
+192.168.0.227
+END_FILE
+  printf "%s/group/laptops created." "$dsh_path"
+}
+
+i3wm_list() {
+  cat << END_FILE sudo tee "$dsh_path"/group/i3wm
+192.168.0.12
+192.168.0.13
+192.168.0.14
+192.168.0.16
+192.168.0.22
+END_FILE
+  printf "%s/group/i3wm created." "$dsh_path"
+}
+
 install_dsh() {
-  local grps=( desktop i3wm laptops )
-  local dshpath="/etc/dsh"
-  local srcpath="$HOME/bin/files"
   sudo apt-get -yy install dsh
-  sudo sed -i 'remoteshell/s/rsh/ssh/' "$dshpath/dsh.conf"
-  sudo cp -v "$srcpath/machines.list" "$dshpath/" | awk '{print "==> " $NF}'
-  for grp in "${grps[@]}"; do
-    sudo cp -v "$srcpath/$grp" "$dshpath/group/" | awk '{print "==> " $NF}'
-  done
+  sudo sed -i 'remoteshell/s/rsh/ssh/' "$dsh_path/dsh.conf"
+  machine_list
+  desktop_list
+  laptop_list
+  i3wm_list
   sudo ln -s /etc/dsh/machines.list /etc/dsh/group/all
 }
 
