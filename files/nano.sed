@@ -9,7 +9,9 @@
 s/8/4/
 s/^# //
 }
-/tabstospaces/ s/^# //
+/tabstospaces/ s/^set /# set/
+/miinbar/ s/^# //
+/saveonexit/ s/^# //
 /bind \^Q/ s/^#//
 /bind \^F/ s/^#//
 /bind \^X/ s/^#//
