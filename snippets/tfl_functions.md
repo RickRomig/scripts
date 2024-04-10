@@ -1,3 +1,5 @@
+# Terminal For Life
+```bash
 #!/usr/bin/env bash
 #cito M:600 O:1000 G:1000 T:$HOME/.bash_functions
 #------------------------------------------------------------------------------
@@ -127,9 +129,8 @@ fixmodes() {
 		printf '%b\n' "$REPLY"
 	done <<-EOF
 		\e[91mWARNING\e[0m: You're about to irreversably \e[3mrecursively\e[0m change all files and
-		         directories in the CWD, \e[3mexcept\e[0m '~/GitHub' and '~/.steam', to
-		         \e[93m600\e[0m and \e[93m700\e[0m, respectively. Ownership will \e[3mnot\e[0m be effected.
-
+		directories in the CWD, \e[3mexcept\e[0m '~/GitHub' and '~/.steam', to
+		\e[93m600\e[0m and \e[93m700\e[0m, respectively. Ownership will \e[3mnot\e[0m be effected.
 	EOF
 
 	if AskYN 'Are you sure?'; then
@@ -145,8 +146,7 @@ if type -P ffmpeg &> /dev/null; then
 		if ! (( $# == 0 || $# == 1 )); then
 			printf "file '%s'\n" "$@" > flist
 			ffmpeg -f concat -i flist -safe 0 -codec:a\
-				copy -codec:v copy output.mp4
-
+			copy -codec:v copy output.mp4
 			rm flist
 		else
 			printf 'Err: No video clips provided.\n' 1>&2
@@ -562,3 +562,4 @@ exin() {
 		}
 	done <<< "$(dpkg -L "$1" 2>&-)"
 }
+```
