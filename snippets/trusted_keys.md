@@ -1,5 +1,5 @@
 # Add OpenGPG repository signing key and sources.list file
-
+```bash
 # Global variables:
 readonly keyring_dir="/usr/share/keyrings"
 readonly sources_list="/etc/apt/sources.list.d/<repo>.list"
@@ -22,3 +22,4 @@ echo "deb-src $sources_list_url" | sudo tee -a "$sources_list"
 [[ -f "$sources_list" ]] && sudo rm "$sources_list"
 # Removal from /etc/apt/trusted.gpg will have to be done manually
 # sudo apt-key del <KEY-ID>
+```
