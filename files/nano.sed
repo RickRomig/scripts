@@ -10,7 +10,7 @@ s/8/4/
 s/^# //
 }
 /tabstospaces/ s/^set /# set/
-/miinbar/ s/^# //
+/minibar/ s/^# //
 /saveonexit/ s/^# //
 /bind \^Q/ s/^#//
 /bind \^F/ s/^#//
