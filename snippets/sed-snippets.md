@@ -59,3 +59,7 @@ done
 ```bash
 find . -maxdepth 1 -type f | grep " " >/dev/null && rename -v 's/ /_/g' ./* || echo "No filenames containing spaces found."
 ```
+### Copy `/etc/nanorc` to `~/.config/nano/` and run `nano.sed` on it.
+```bash
+cp /etc/nanorc .config/nano/nanorc; sed -i -f bin/files/nano.sed .config/nano/nanorc
+```
