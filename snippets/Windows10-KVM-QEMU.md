@@ -1,9 +1,9 @@
 # Windows 10 on KVM/QEMU
 
 - Youtube URL
-https://www.youtube.com/watch?v=ZqBJzrQy7Do
+<https://www.youtube.com/watch?v=ZqBJzrQy7Do>
 - Windows 10 ISO
-https://www.microsoft.com/en-us/software-download/windows10ISO/
+<https://www.microsoft.com/en-us/software-download/windows10ISO/>
 
 **Minimum requirements:**
 - 20GB disk space (100 GB)
@@ -16,9 +16,9 @@ sudo acpidump -n MSDM
 ```
 
 **VirtIO drivers (Set up 2nd CD-ROM in Virt-Manager before install.)**
-https://docs.fedoraproject.org/en-US/quick-docs/creating-windows-virtual-machines-using-virtio-drivers/index.html
+<https://docs.fedoraproject.org/en-US/quick-docs/creating-windows-virtual-machines-using-virtio-drivers/index.html>
 
-https://github.com/virtio-win/virtio-win-pkg-scripts/blob/master/README.md
+<https://github.com/virtio-win/virtio-win-pkg-scripts/blob/master/README.md>
 
 **SPICE guest tools**
-https://www.spice-space.org/download.html
+https://www.spice-space.org/download.html><>
