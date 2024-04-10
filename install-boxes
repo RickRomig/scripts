@@ -4,8 +4,10 @@
 # Description  : Installs GNOME boxes.
 # Dependencies : none
 # Arguments    : none
-# Author       : Copyright (C) 2020, Richard B. Romig, 29 Feb 2020
+# Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 29 Feb 2020
+# Updated      : 10 April 2024
 # Comments     : Based on instructions from Joe Collins @ Ezeelinux.com
 # TODO (Rick)  : Test this. Test for Intel/AMD CPU.
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -27,17 +28,26 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.10"
-readonly _updated="28 Dec 2023"
+readonly _version="1.10.24101"
 
 ## Functions ##
 
 check_cpu() {
   # Check if virtualization is enabled in BIOS (is flag set?)
+  local vcpu
   vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo)  # egrep -c '(vmx|svm)'
   printf "Virtualization is "
   if [[ "$vcpu" -gt 0 ]]; then
     printf "enabled in the BIOS. (%s threads)\n" "$vcpu"
+    case $vcpu in
+      vmx )
+        sudo sh -c 'echo "options kvm_intel nested=1" >> /etc/modprobe.d/qemu-system-x86.conf' ;;
+      svm )
+        sudo sh -c 'echo "options kvm_amd nested=1" >> /etc/modprobe.d/qemu-system-x86.conf' ;;
+      * )
+        echo "CPU does not support virtualization." ;;
+    esac
+    sudo sh -c 'echo "group=kvm" >> /etc/modprobe.d/qemu-system-x86.conf'
   else
     printf "not enabled in the BIOS.\n"
     printf "Enable virtualization before installing Gnome Boxes.\n"
@@ -48,6 +58,8 @@ check_cpu() {
 enable_libvirtd() {
   sudo systemctl start libvirt
   sudo systemctl restart libvirtd
+  # sudo systemctl enable libvirtd.service
+  # sudo systemctl start libvirtd.service
   printf "libvirtd started.\n"
 }
 
@@ -68,7 +80,7 @@ add_to_kvm_group() {
 
 sudo_login 2
 
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "%s v%s\n" "$_script" "$_version"
 printf "Installs GNOME Boxes.\n"
 
 check_cpu
@@ -79,22 +91,5 @@ printf "\nInstalling GNOME Boxes ...\n"
 sudo apt update -qq
 sudo apt install -yy gnome-boxes qemu-kvm libvirt-bin
 add_to_kvm_group
-
-## Not sure if these actions need to be done ##
-# Add lines to /etc/modprobe.d/qemu-system-x86.conf
-# vcpu=$(egrep -oq '(vmx|svm)' /proc/cpuinfo)
-# case $vcpu in
-#   vmx )
-#     sudo sh -c 'echo "options kvm_intel nested=1" >> /etc/modprobe.d/qemu-system-x86.conf' ;;
-#   svm )
-#     sudo sh -c 'echo "options kvm_amd nested=1" >> /etc/modprobe.d/qemu-system-x86.conf' ;;
-#   * )
-#     echo "CPU does not support virtualization." ;;
-# esac
-# sudo sh -c 'echo "group=kvm" >> /etc/modprobe.d/qemu-system-x86.conf'
-
-# Enable and start libvirt daemon
-# sudo systemctl enable libvirtd.service
-# sudo systemctl start libvirtd.service
 
 leave "Gnome boxes installed and configured."
