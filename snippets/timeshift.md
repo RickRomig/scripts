@@ -1,8 +1,8 @@
-Timeshift
+# Timeshift
 
-Timeshift jobs can be schedule by editing the json file.
-
-/etc/timeshift/timeshift.json
+### Timeshift jobs can be schedule by editing the json file.
+```bash
+nano /etc/timeshift/timeshift.json
 {
   "backup_device_uuid" : "0f4a8008-1742-400a-951a-7b994b58cd18",
   "parent_device_uuid" : "",
@@ -33,3 +33,4 @@ Timeshift jobs can be schedule by editing the json file.
   "exclude-apps" : [
   ]
 }
+```
