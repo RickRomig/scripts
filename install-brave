@@ -6,6 +6,8 @@
 # Arguments    : -h, -i, -p, -p (see help function)
 # Author       : Copyright (C) 2019, Richard B. Romig, 12 Dec 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 12 Dec 2019
+# Updated      : 11 Apr 2024
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -28,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.7"
-readonly _updated="18 Mar 2024"
+readonly _version="4.7.24102"
+readonly _updated="11 Apr 2024"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 
@@ -97,6 +99,13 @@ END_HELP
 check_dependencies() {
   local packages=( apt-transport-https curl libu2f-udev )
   check_packages "${packages[@]}"
+  if [[ $(uname -m) == "x86_64" ]]; then
+    printf "x68_54 - OK\n"
+    sleep 2
+    printf '\e[A\e[K'
+  else
+    die "System architecture is not 64-bit." 1
+  fi
 }
 
 ## Execution ##
@@ -134,5 +143,5 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "%s v%s\n" "$_script" "$_version"
 exit
