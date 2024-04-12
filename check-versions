@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 06 Apr 2024
+# Last updated : 12 Apr 2024
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 # TODO (Rick)  :
@@ -38,7 +38,7 @@ cleanup() {
 github_versions() {
   local github_url="https://github.com"
   local new_ver="Not found"
-  local packages=( bat marktext micro vSCodium )
+  local packages=( bat codium marktext micro )
   local cur_ver
 
   printf "%-15s%-16s%s\n" "GitHub Package" "Latest version" "Installed version"
@@ -57,7 +57,7 @@ github_versions() {
         local release_path="marktext/marktext/releases"
         cur_ver=$(dpkg -l | awk '$2 == "marktext" {print $3}' | sed 's/[+-].*//')
       ;;
-		  "vSCodium" )
+		  "codium" )
 			  local release_path="VSCodium/vscodium/releases"
 			  cur_ver=$(dpkg -l | awk '$2 == "codium" {print $3}' | sed 's/[+-].*//')
       ;;
@@ -187,7 +187,7 @@ browsers() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="11.5.24097"
+  local _version="11.6.24103"
   clear
   printf "%s v%s\n" "$_script" "$_version"
   printf "Newest & installed versions of select programs.\n\n"
