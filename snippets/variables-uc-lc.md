@@ -30,7 +30,7 @@ ${bar,,}			# Make all letters lowercase
 nullifidian - non fractus, non perditus, non ovis.
 ${bar,,[I]}		# Make all instances of a letter lowercase
 NULLiFiDiAN - NON FRACTUS, NON PERDiTUS, NON OViS.
-${bar,,[AEIOU]}	# Make all instances of desiginated letter lowercase
+${bar,,[AEIOU]}	# Make all instances of designated letter lowercase
 NuLLiFiDiaN - NoN FRaCTuS, NoN PeRDiTuS, NoN oViS.
 ```
 
@@ -70,7 +70,7 @@ Using the declare command in a function makes the variable local to the function
 	declare -I	# if creating a local varibable, inherit attributes and value	of a variable with the same name at a previous scope
 	declare -p	# display the attributes and values of each NAME
 	```
-- Options which set attributed:
+- Options which set attributes:
 	```bash
 	declare -a	# makes NAMEs indexed arrays (if supported)
 	declare -A	# makes NAMEs associative arrays (if supported)
@@ -79,7 +79,7 @@ Using the declare command in a function makes the variable local to the function
 	declare -n	# make NAME a reference to the variable named by its value
 	declare -r	# make NAMEs readonly
 	declare -t	# make NAMEs have the 'trace' attribute
-	declare -u	# conver the value of each NMAE to upper case on assignment
+	declare -u	# conver the value of each NAME to upper case on assignment
 	declare -x	# make the NAMEs export
 	```
 Uing `+` instead of `-` turns off the given attribute.
