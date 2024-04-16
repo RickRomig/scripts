@@ -37,21 +37,21 @@ count=0
 ## Functions ##
 
 dl_bashrc() {
-  cp -pv "$HOME/.bashrc" "$cfg_bu_dir/.bashrc.orig"
+  cp -pv "$HOME/.bashrc" "$cfg_bu_dir/.bashrc" | awk '{print "==> "$NF}'
   curl -so "$HOME/.bashrc" "$Gitea_URL/$repo_path/.bashrc"
   printf "Custom .bashrc installed in the home directory.\n"
   (( count++ ))
 }
 
 dl_aliases() {
-  [[ -f "$HOME/.bash_aliases" ]] && cp -pv "$HOME/.bash_aliases" "$cfg_bu_dir/.bash_aliases.orig"
+  [[ -f "$HOME/.bash_aliases" ]] && cp -pv "$HOME/.bash_aliases" "$cfg_bu_dir/.bash_aliases" | awk '{print "==> "$NF}'
   curl -so "$HOME/.bash_aliases" "$Gitea_URL/$repo_path/.bash_aliases"
   printf "Custom .bash_aliases added to the home directory.\n"
   (( count++ ))
 }
 
 dl_profile() {
-  [[ -f "$HOME/.profile" ]] && cp -pv "$HOME/.profile" "$cfg_bu_dir/.profile.orig"
+  [[ -f "$HOME/.profile" ]] && cp -pv "$HOME/.profile" "$cfg_bu_dir/.profile" | awk '{print "==> "$NF}'
   curl -so "$HOME/.profile" "$Gitea_URL/$repo_path/.profile"
   printf "Custom .profile installed in the home directory.\n"
   (( count++ ))
@@ -60,8 +60,8 @@ dl_profile() {
 dl_nanorc() {
   [[ -d "$cfg_bu_dir/nano" ]] || mkdir -p "$cfg_bu_dir/nano"
   [[ -d "$HOME/.config/nano" ]] || mkdir -p "$HOME/.config/nano"
-  [[ -f "$HOME/.nanorc" ]] && cp -pv "$HOME/.nanorc" "$cfg_bu_dir/nano/nanorc.orig"
-  [[ -f "$HOME/.config/nano/nanorc" ]] && cp -pv "$HOME/.config/nano/nanorc" "$cfg_bu_dir/nano/nanorc.orig"
+  [[ -f "$HOME/.nanorc" ]] && cp -pv "$HOME/.nanorc" "$cfg_bu_dir/nano/nanorc" | awk '{print "==> "$NF}'
+  [[ -f "$HOME/.config/nano/nanorc" ]] && cp -pv "$HOME/.config/nano/nanorc" "$cfg_bu_dir/nano/nanorc" | awk '{print "==> "$NF}'
   curl -so "$HOME/.config/nano/nanorc" "$Gitea_URL/$repo_path/nano/nanorc"
   [[ -f "$HOME/.nanorc" ]] && rm "$HOME/.nanorc"
   [[ -f "$cfg_bu_dir/.nanorc" ]] && rm "$cfg_bu_dir/.nanorc"
@@ -70,14 +70,14 @@ dl_nanorc() {
 }
 
 dl_face() {
-  [[ -f "$HOME/.face" ]] && cp -pv "$HOME/.face" "$cfg_bu_dir/.face.orig"
+  [[ -f "$HOME/.face" ]] && cp -pv "$HOME/.face" "$cfg_bu_dir/.face" | awk '{print "==> "$NF}'
   curl -so "$HOME/.face" "$Gitea_URL/$repo_path/.face"
   printf ".face added to the home directory.\n"
   (( count++ ))
 }
 
 dl_inputrc() {
-  [[ -f "$HOME/.inputrc" ]] && cp -pv "$HOME/.inputrc" "$cfg_bu_dir/.inputrc"
+  [[ -f "$HOME/.inputrc" ]] && cp -pv "$HOME/.inputrc" "$cfg_bu_dir/.inputrc" | awk '{print "==> "$NF}'
   curl -so "$HOME/.inputrc" "$Gitea_URL/$repo_path/.inputrc"
   printf ".inputrc added to the home directory.\n"
   (( count++ ))
