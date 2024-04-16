@@ -4,10 +4,11 @@
 # Description  : Sets up custom configurations for a new Linux system
 # Dependencies : curl
 # Arguments    : See help function for available options.
-# Author       : Copyright (C) 2019, Richard B. Romig, 15 August 2019
+# Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : 
-# TODO (rick)  : 
+# Created      : 15 August 2019
+# Comments     : 16 April 2024
+# TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -27,11 +28,10 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.0.1"
-readonly _updated="16 Oct 2023"
+readonly _version="1.1.24107"
+readonly _updated="16 April 2024"
 readonly cfg_bu_dir="$HOME/.config/backup"
 readonly repo_path="configs/raw/branch/main/"
-
 count=0
 
 ## Functions ##
@@ -76,6 +76,13 @@ dl_face() {
   (( count++ ))
 }
 
+dl_inputrc() {
+  [[ -f "$HOME/.inputrc" ]] && cp -pv "$HOME/.inputrc" "$cfg_bu_dir/.inputrc"
+  curl -so "$HOME/.inputrc" "$Gitea_URL/$repo_path/.inputrc"
+  printf ".inputrc added to the home directory.\n"
+  (( count++ ))
+}
+
 dl_cinnamon_keybindings() {
   if is_cinnamon; then
     local cinnamon_keybindings="keybindings-backup.dconf"
@@ -101,6 +108,7 @@ ${orange}OPTIONS:${normal}
   -c  Cinnamon keybindings
   -f  .face
   -h  help
+  -i  .inputrc
   -n  nanorc
   -p  .profile
   Multiple options can be entered.
@@ -114,7 +122,7 @@ _END_HELP_
 check_package curl
 [[ -d "$cfg_bu_dir" ]] || mkdir -p "$cfg_bu_dir"
 noOpt=1
-optstr=":abcfhnp"
+optstr=":abcfhinp"
 while getopts "$optstr" opt; do
   case "$opt" in
     a )
@@ -131,6 +139,9 @@ while getopts "$optstr" opt; do
     ;;
     h )
       help 0
+    ;;
+    i )
+      dl_inputrc
     ;;
     n )
       dl_nanorc
@@ -151,4 +162,4 @@ if (( count == 0 )); then
 else
   printf "Custom configurations installed.\n"
 fi
-leave "$_script v$_version ($_updated)"
+leave "$_script v$_version"
