@@ -4,10 +4,11 @@
 # Description  : Updates youtube-dl automatically using anacron
 # Dependencies : anacron, yt-dlp (downloaded from GitHub)
 # Arguments    : None
-# Author       : Copyright (C) 2023, Richard B. Romig, 20 Jun 2023
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2023, Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 20 Jun 2023
+# Last updated : 20 Apr 2024
 # Comments     : copy as root to /etc/cron.daily
-# Last updated : 27 Nov 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -20,7 +21,7 @@ log_file="ytdlpup.log"
 # sed_file="/usr/share/misc/ytdlp-uplog.sed"
 log_date=$(date '+%F|%R')
 update_status=$(/usr/local/bin/yt-dlp --update | awk '/Latest version/ {print $3}' | sed 's/stable@//')
-[[ -z "$update_status" ]] && update_status="Update unavailable"
+[[ -z "$update_status" ]] && update_status="Unavailable"
 
 printf "%s|%s\n" "$log_date" "$update_status" >> "$log_dir/$log_file" 2>&1
 # sed -i -f "$sed_file" "$log_dir/$log_file"
