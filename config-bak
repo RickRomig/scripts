@@ -6,14 +6,15 @@
 # Arguments    : none
 # Author       : Cepyright (C) 2019, Richard B. Romig, 16 July 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 16 July 2019
+# Updated      : 23 Oct 2023
 # Comments     :
-# TODO (rick)  : 
+# TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -27,8 +28,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.12"
-readonly _updated="23 Oct 2023"
+readonly _version="5.13.24113"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="${HOME}/.config/backup"
 readonly cfg_dir="${HOME}/.config"
@@ -79,6 +79,22 @@ bu_misc_cfg() {
 		[[ -d "$bu_dir/$folder" ]] || mkdir -p "$bu_dir/$folder"
 		printf "==> "
 	  cp -pv "$HOME/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
+		(( count++ ))
+	fi
+}
+
+bu_etc_cfg() {
+	local folder="$1"
+	local file="$2"
+	if [[ -f "$folder/$file" && -f "$bu_dir/$file" ]]; then
+		if [[ "$bu_dir/$file" -ot "$folder/$file" ]]; then
+			printf "==> "
+			cp -v "$folder/$file" "$bu_dir/$file" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
+			(( count++ ))
+		fi
+	elif [[ -f "$folder/$file" ]]; then
+		printf "==> "
+		cp -v "$folder/$file" "$bu_dir/$file" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
 		(( count++ ))
 	fi
 }
@@ -164,7 +180,7 @@ printf "Backing up configuration files...\n"
 [[ -f "$cfg_dir/git/config" ]] && bu_config_cfg "git" "config"
 [[ -f "$HOME/.git-credentials" ]] && bu_home_cfg ".git-credentials"
 [[ -f "$cfg_dir/git/credentials" ]] && bu_config_cfg "git" "credentials"
-[[ -f "$cfg_dir/.screenlayout/sidebyside.sh" ]] && bu_misc_cfg ".screenlayout" "sidebyside.sh"
+[[ -f /etc/X11/xorg.conf.d/10-monitor.conf ]] && bu_etc_cfg "/etc/X11/xorg.conf.d" "10-monitor.conf"
 [[ -f "$HOME/.imwheelrc" ]] && bu_home_cfg ".imwheelrc"
 
 # Completion status
@@ -176,4 +192,4 @@ else
   printf "Configuration files are up to date. No backup required.\n"
 fi
 
-leave "$_script v$_version ($_updated)"
+leave "$_script v$_version"
