@@ -4,8 +4,10 @@
 # Description  : Individually restore config files from ~/.config/backup
 # Dependencies : none
 # Arguments    : none
-# Author       : Copyright (C) 2019,Richard B. Romig, 14 April 2019
+# Author       : Copyright (C) 2019,Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 14 Apr 2019
+# Updated      : 23 Oct 2023
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,7 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -27,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.5"
-readonly _updated="14 Feb 2024"
+readonly _version="5.6.24113"
+readonly _updated="22 Apr 2024"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="${HOME}/.config/backup"
 readonly cfg_dir="${HOME}/.config"
@@ -378,7 +380,7 @@ bl_cfgs() {
 # Miscellaneous configuration files
 misc_cfgs() {
 	while true; do
-		local options=("Bat" "gitconfig" "git-credentials" "KeepassXC" "Kitty" "Terminator" "imwheelrc" "Main Menu")
+		local options=("Bat" "gitconfig" "git-credentials" "KeepassXC" "Kitty" "Monitor Config" "Terminator" "imwheelrc" "Main Menu")
 		clear
 		COLUMNS=20
     printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
@@ -418,16 +420,25 @@ misc_cfgs() {
           res_config_cfg "kitty" "bindings.list"
           break
         ;;
-				6 )
+        6 )
+          if [[ -f "$bu_dir/10-monitor.conf" ]]; then
+            sudo_login 2
+            sudo cp pv "$bu_dir/10-monitor.conf" /etc/X11/xorg.conf.d/
+          else
+            printf "10-monitor.conf not found.\n"
+          fi
+          (( count++ ))
+          break
+        ;;
+				7 )
           res_config_cfg "terminator" "config"
           break
         ;;
-        7 )
+        8 )
           res_home_cfg ".imwheelrc"
           break
         ;;
-
-        8 )
+        9 )
           main_menu
           break
         ;;
