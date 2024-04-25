@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 ###############################################################################
-# Script Name  : new-config
-# Description  : Sets up custom configurations for a new Linux system
+# Script Name  : mosfanet-configs
+# Description  : Custom configurations for a new Linux system
 # Dependencies : curl
 # Arguments    : See help function for available options.
 # Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Created      : 15 August 2019
-# Comments     : 16 April 2024
+# Created      : 15 Aug 2019
+# updated      : 25 Apr 2024
+# Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -28,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.1.24107"
-readonly _updated="16 April 2024"
+readonly _version="1.1.24116"
+readonly _updated="25 April 2024"
 readonly cfg_bu_dir="$HOME/.config/backup"
 readonly repo_path="configs/raw/branch/main/"
 count=0
@@ -58,6 +59,7 @@ dl_profile() {
 }
 
 dl_nanorc() {
+  # Since nano options may differ widely between versions, recommend copying /etc/nanorc to ~/.config/nano and running nano.sed on the file.
   [[ -d "$cfg_bu_dir/nano" ]] || mkdir -p "$cfg_bu_dir/nano"
   [[ -d "$HOME/.config/nano" ]] || mkdir -p "$HOME/.config/nano"
   [[ -f "$HOME/.nanorc" ]] && cp -pv "$HOME/.nanorc" "$cfg_bu_dir/nano/nanorc" | awk '{print "==> "$NF}'
@@ -66,6 +68,17 @@ dl_nanorc() {
   [[ -f "$HOME/.nanorc" ]] && rm "$HOME/.nanorc"
   [[ -f "$cfg_bu_dir/.nanorc" ]] && rm "$cfg_bu_dir/.nanorc"
   printf "Custom nanorc installed.\n"
+  (( count++ ))
+}
+
+nanorc_cfg() {
+  local cfg_dir="$HOME/.config/nano"
+  local sed_file="$HOM#/bin/files/nano.sed"
+  [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
+  cp -v /etc/nanorc "$cfg_dir/nanorc" | awk '{print "==> "$NF}'
+  sed -i -f "$sed_file" "$cfg_dir/nanorc"
+  [[ -f "$HOME/.nanorc" ]] && rm "$HOME/.nanorc"
+  printf "nanorc configured.\n"
   (( count++ ))
 }
 
@@ -144,7 +157,8 @@ while getopts "$optstr" opt; do
       dl_inputrc
     ;;
     n )
-      dl_nanorc
+      # dl_nanorc
+      nanorc_cfg
     ;;
     p )
       dl_profile
