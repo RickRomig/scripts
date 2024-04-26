@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 08 Apr 2024
+# Last updated : 26 Apr 2024
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins. (https://www.ezeelinux.com)
 #              : Joe's code at: https://github.com/EzeeLinux/bu-usb_backup_tool
 # TODO (Rick)  :
@@ -33,7 +33,7 @@ fi
 
 ## Global Variables ##
 
-readonly _version="4.1.24098"
+readonly _version="4.2.24117"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -133,8 +133,9 @@ backup() {
     read -rt 1 -n 10000 _discard
     rm -f "$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
     touch "$mount_point/BU_Backups/$host/BU Backup had some errors: $(date '+%F')"
-    printf "%sThere were errors!%s Try reinserting the backup drive and running the command again to correct them.\n" "$lightred" "$normal" >&2
-    printf "If errors persist then you may have corrupt files or failing hardware.\n" >&2
+		printf "%s rsync exited with errors!\n" "$red_error" >&2
+		printf "* Try reinserting the backup drive and running the command again to correct them.\n" >&2
+    printf "* If errors persist then you may have corrupt files or failing hardware.\n" >&2
 		exit_status=1
   fi
 }
@@ -153,16 +154,15 @@ restore() {
 				read -rt 1 -n 10000 _discard
 				printf "%sRestoration Complete!%s\n" "$green" "$normal"
 	      printf "Restart machine for all changes to take effect.\n"
-	      sync_drives
 				else
 				# If rsync fails, clear any accidental input during restore:
 				read -rt 1 -n 10000 _discard
-				printf "%s rsync exited with errors!\n" >&2 "$red_error"
+				printf "%s rsync exited with errors!\n" "$red_error" >&2
 				printf "DO NOT DO ANYTHING UNTIL YOU:\n" >&2
-				printf "Make sure BU_Drive USB is still plugged in.\n" >&2
-				printf "Remount BU_Drive USB by unplugging it and plugging it back in.\n" >&2
-				printf "Wait a few seconds and try running 'bu --restore' again.\n" >&2
-				printf "You may need to manually restore your data if errors persist.\n" >&2
+				printf "* Make sure BU_Drive USB is still plugged in.\n" >&2
+				printf "* Remount BU_Drive USB by unplugging it and plugging it back in.\n" >&2
+				printf "* Wait a few seconds and try running 'bu --restore' again.\n" >&2
+				printf "* You may need to manually restore your data if errors persist.\n" >&2
 	      exit_status=1
 			fi
 		else
@@ -175,11 +175,6 @@ restore() {
     printf "* Hostname or username may have changed since last backup.\n" >&2
     exit_status=1
 	fi
-}
-
-show_options() {
-	printf "Valid options:\n" >&2
-	printf "\tbu -%s\n" "b = backup" "h = help" "r = restore" >&2
 }
 
 help() {
@@ -270,11 +265,13 @@ while getopts "$optstr" opt; do
 			drive_test
 			check_package rsync
 			restore
+	    sync_drives
 			unmount_usb_drive
 		;;
 		? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-			show_options
+			printf "Valid options:\n" >&2
+			printf "\tbu -%s\n" "b = backup" "h = help" "r = restore" >&2
 	esac
 	noOpt=0
 done
@@ -284,5 +281,6 @@ printf "Script completed in %s\n" "$(format_time $SECONDS)"
 if [[ "$exit_status" -eq 0 ]]; then
 	leave ""
 else
+	printf "%sThere were errors!%s\n" "$lightred" "$normal" >&2
 	exit "$exit_status"
 fi
