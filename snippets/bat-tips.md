@@ -18,7 +18,7 @@ fzf --preview "bat --color=always --style=numbers -- line-range=400 {}"
 ```
 ### `find`
 ```bash
-find... -exec bat {} +
+find ./ -maxdepth 1 -type f -iname "*.sh" -exec bat {} +
 ```
 ### `git`
 ```bash
