@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : system-info
 # Description  : Gathers system information and writes to a file in home directory
-# Dependencies : dmidecode, hdparm, lshw, tune2fs, nvme-cli, ieee-data
+# Dependencies : dmidecode, hdparm, lshw, tune2fs, nvme-cli, ieee-data, wmctrl
 # Arguments    : none
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -38,7 +38,7 @@ today=$(date +'%d %B %Y'); readonly today
 ## Functions ##
 
 check_dependencies() {
-	local packages=( lshw ieee-data )
+	local packages=( lshw ieee-data wmctrl )
   check_packages "${packages[@]}"
   [[ -b /dev/sda ]] && check_package hdparm
   [[ -c /dev/nvme0 ]] && check_package nvme-cli
