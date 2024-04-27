@@ -4,18 +4,19 @@
 # Description  : Example script to display command output and file side by side.
 # Dependencies : none
 # Arguments    : none
-# Author       : Copyright (C) 2022, Richard B. Romig, Created: 28 Dec 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
+# Created      : 28 Dec 2022
+# Updated      : 27 Apr 2024
 # Comments     : base script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
 #              : Limit to-do list to 7 items to maintain proper formating.
 #              : If no argument is passed, defaults to current month and todo list.
-# TODO (Rick)  : 
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -29,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.10"
-readonly _updated="20 Dec 2023"
+readonly _version="2.10.24118"
+readonly _updated="27 Apr 2024"
 readonly docdir="$HOME/.local/share/doc"
 readonly todolist="todo.lst"
 calendar=$(mktemp -q) || die "Failed to create temporary file." 1
@@ -50,18 +51,18 @@ Usage: $_script [OPTION]
 OPTIONS:
 	-c  display current month calendar and to-do list.
 	-d  display 3 month calendar and to-do list.
-	-e  edit to-do list.
+	-e  edit/create to-do list.
 	-h  display help
 	NOTE: To-do list should be limited to 7 short items.
 END_HELP
 	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-	exit "$errcode"	
+	exit "$errcode"
 }
 
 edit_todo() {
 	if exists micro; then
 		/usr/bin/micro "$docdir/$todolist"
-	else
+	else0 Dec 202
 		/usr/bin/nano "$docdir/$todolist"
 	fi
 }
@@ -110,4 +111,4 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version ($_updated)"
+leave "$_script v$_version"
