@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 24 Feb 2024
+# Last updated : 28 Apr 2024
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : source "$HOME/bin/functionlib"
@@ -20,8 +20,9 @@
 declare -r TRUE=0
 declare -r FALSE=1
 declare -r Gitea_URL="http://192.168.0.16:3000/Nullifidian"
-localnet=$(ip route | awk '/default via/ {print $3}' | sort -u | cut -d'.' -f1,2,3)
-# First three octets of the local network. Assumes a /24 private network.
+# Get the local network from the first three octets of the default gateway address. Assumes a /24 (class C) private network.
+localnet=$(ip route get 1.2.3.4 | awk '{print $3}' | cut -d '.' -f1,2,3)
+# localnet=$(ip route | awk '/default via/ {print $3}' | sort -u | cut -d'.' -f1,2,3)
 red_error=$(printf "\e[91mERROR:\e[0m")
 red_warning=$(printf "\e[91mWARNING!\e[0m")
 
@@ -357,7 +358,6 @@ leapyear() {
 # Purpose: Extract the last octet of the local IP address
 # Arguments: none
 # Assumes a Class C /24 network, last octet of 1 - 254
-# Priority is wired connection, then wireless.
 # See ~/bin/snippets/ip-addresses.md for other methods
 ###############################################################################
 local_ip() {
@@ -762,9 +762,8 @@ unmount_nas() {
 #   $1 -> name of the repository to clone
 ###############################################################################
 clone_repo() {
-  local git_svr="http://192.168.0.16:3000/Nullifidian"
   local git_repo="${1}.git"
-  git clone "$git_svr/$git_repo" "$HOME/Downloads"
+  git clone "$Gitea_URL/$git_repo" "$HOME/Downloads"
 }
 
 ###############################################################################
