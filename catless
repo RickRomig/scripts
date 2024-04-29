@@ -6,14 +6,15 @@
 # Arguments    : $1 -> file to be viewed
 # Author       : Copyright (C) 2020, Richard B. Romig, 02 Jan 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
-# Comments     :
+# Crated       : 02 Jan 2020
+# Updated      : 29 Apr 2024
+# Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -27,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.4"
-readonly _updated="18 Mar 2024"
+readonly _version="4.5.24120"
+readonly _updated="29 Apr 2024"
 
 ## Functions ##
 
@@ -59,10 +60,10 @@ main() {
   box "File: $textfile" "*"
   if (( filesize < catmax )); then
 	  cat "$textfile"
-	  over_line "$_script $_version (Updated $_updated)" "*"
+	  over_line "$_script $_version" "*"
   else
 	  less "$textfile"
-	  echo "$_script $_version (Updated $_updated)"
+	  echo "$_script $_version"
   fi
 }
 
@@ -81,10 +82,9 @@ elif [[ ! -s "$1" ]]; then
   printf "%s %s is an empty file.\n" "$red_error" "$1" >&2
   exit 1
 elif file -bL --mime "$1" | grep -qEi "text|json"; then
-  filename="$1"
-  main "$filename"
+  main "$1"
+  exit 0
 else
   printf "%s %s is not a text file.\n" "$red_error" "$1" >&2
   help 1
 fi
-exit
