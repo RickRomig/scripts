@@ -3,11 +3,11 @@
 # Script Name  : no-snaps
 # Description  : Enable/disable Snaps in Debian/Ubuntu-based systems.
 # Dependencies : None
-# Arguments    : [-d] [-e] [-h] [-s] (See help function)
+# Arguments    : [-d] [-e] [-h] [-r] [-s] (See help function)
 # Author       : Copyright (C) 2020, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 30 Jun 2020
-# Updated      : 24 Apr 2024
+# Updated      : 30 Apr 2024
 # Comments     : See EZNix snapkill script
 #              : /home/rick/Downloads/Utilities/snapkill.d/snapkill
 # TODO (Rick)  : Incorporate elements from snapkill
@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.1.24115"
-readonly _updated="24 Apr 2024"
+readonly _version="3.2.24121"
+readonly _updated="30 Apr 2024"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
 
 ## Functions ##
@@ -50,6 +50,21 @@ snap_status() {
   else
     return "$TRUE"
   fi
+}
+
+remove_snaps() {
+	local snap_pkgs
+	local snap_pkg
+	snap_pkgs=$(snap list)
+	for snap_pkg in "${snap_pkgs[@]}"; do
+		[[ "$snap_pkg" != "snap_pkg" || "$pkg" != "snapd-desktop-integration" ]] && sudo snap remove --purge "$snap_pkg"
+	done
+	for snap_pkg in "${snap_pkgs[@]}"; do
+		[[ "$snap_pkg" == "snap_pkg" || "$pkg" == "snapd-desktop-integration" ]] && sudo snap remove --purge "$snap_pkg"
+	done
+	sudo apt remove --autoremove snapd
+	sudo apt install synaptic
+	printf "Snap packages and snapd removed.\n"
 }
 
 enable_snaps() {
@@ -100,6 +115,7 @@ ${orange}OPTIONS:${normal}
   -e    Enable the installation of snapd and snap packages
   -d    Disable the installation of snapd and snap packages
   -h    Help
+  -r		Remove snapd and all snap packages.
   -s    Status of snapd and snap package installation
 $_script v$_version, updated $_updated
 END_HELP
@@ -117,14 +133,18 @@ while getopts "$optstr" opt; do
   case "$opt" in
     d )
       sudo_login 2
-      disable_snaps
+      snap_status && disable_snaps
     ;;
      e )
       sudo_login 2
-      enable_snaps
+      snap_status || enable_snaps
     ;;
     h )
       help 0
+    ;;
+    r )
+      sudo_login 2
+      remove_snaps
     ;;
     s )
       printf "\nStatus of snapd and snap packages: "
