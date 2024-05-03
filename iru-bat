@@ -4,8 +4,10 @@
 # Description  : Installs, updates, and removes the Bat utillity program.
 # Dependencies : gdebi, wget
 # Arguments    : -c -h -i -r -u (See the help function for details.)
-# Author       : Copyright (C) 2022, Richard B. Romig, 09 Jan 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 09 Jan 2022
+# Updated      : 02 May 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,7 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC2034
 
 ## Source function library ##
 
@@ -27,7 +29,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.6"
+readonly _version="5.6.24123"
 readonly _updated="18 Mar 2024"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg_d=$HOME"/.config/bat"
@@ -47,6 +49,7 @@ check_dependencies() {
 }
 
 check_distro() {
+  local codename
   codename=$(lsb_release -c -s)
   case "$codename" in
     bookworm|bullseye|elsie|faye|focal|jammy|una|vanessa|vera|victoria|virginia ) return "$TRUE" ;;
@@ -96,7 +99,7 @@ remove_bat() {
 }
 
 dl_bat_config() {
-  local repository="configs/raw/branch/main/bat/"
+  local repository="configs/raw/branch/main/bat"
   [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
   printf "Downloading configuration file...\n"
   curl -so "$bat_cfg_d/config" "$Gitea_URL/$repository/config"
@@ -133,7 +136,7 @@ optstr=":chiru"
 while getopts "$optstr" opt; do
   case "$opt" in
     c )
-      exists bat || leave "Bat is not installed. Run '$_script -i' to install."
+      exists bat || leave "Bat is not installed."
       dl_bat_config
     ;;
     h )
@@ -153,11 +156,12 @@ while getopts "$optstr" opt; do
       apply_config
     ;;
     r )
-      exists bat || leave "Bat is not installed. Run '$_script -i' to install."
+      exists bat || leave "Bat is not installed."
+      sudo_login 2
       remove_bat
     ;;
     u )
-      exists bat || leave "Bat is not installed. Run '$_script -i' to install."
+      exists bat || leave "Bat is not installed."
       tmp_file=$(mktemp) || die "Failed to create temporary file." 1
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
       trap cleanup EXIT
@@ -175,4 +179,4 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version ($_updated)"
+leave "$_script v$_version "
