@@ -1,0 +1,188 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : iru-fastfetch
+# Description  : Install/udadate/remove FastFetch
+# Dependencies : gdebi, wget
+# Arguments    : See help() function
+# Author       : Copyright © 2024 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 02 May 2024
+# Last updated : 02 May 2024
+# Comments     : This is a work in progress
+# TODO (Rick)  : Confirm configuration details
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+set -euo pipefail
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="1.0.24123"
+readonly _updated="02 May 2024"
+readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
+readonly ff_cfg_d="$HOME/.config/fastfetch/config.jsonc"
+readonly ff_logo_d="$HOME/.local/share/fastfetch/logos"
+
+## Functions ##
+
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+cleanup() {
+	[[ -f "$tmp_file" ]] && rm "$tmp_file"
+	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+}
+
+check_dependencies() {
+  local packages=( gdebi wget )
+  check_packages "${packages[@]}"
+}
+
+check_distro() {
+	# Changes to version 2.8.2 show change to glibc 2.35 which does not support Debian 11 or Ubuntu 20.04 (Mint 20.x )
+	local codename
+	codename=$(lsb_release --codename --short)
+	case "$codename" in
+		bookworm|faye|jammy|vanessa|vera|victoria|virginia ) return "$TRUE" ;;
+		* ) return "$FALSE"
+	esac
+}
+
+ff_version() {
+	fastfetch --version | awk '{print $2}'	# need to confirm
+}
+
+newest_version() {
+  wget -qO "$tmp_file" "$gh_url"
+  new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}')
+  check_distro || new_ver="2.7.1"
+  echo "$new_ver"
+}
+
+compare_versions() {
+  cur_ver="$(ff_version)"
+  if [[ "$cur_ver" == "$new_ver" ]]; then
+    echo "${lightyellow}FastFetch $cur_ver is the current version. No update required.${normal}"
+    check_distro || echo "FastFetch $new_ver is the latest version compatible with $(get_distribution)."
+  else
+    echo "${lightyellow}Installed version of FastFetch is $cur_ver, updating to $new_ver...${normal}"
+    check_distro || echo "FastFetch $new_ver is the latest version compatible with $(get_distribution)."
+    install_fastfetch
+  fi
+}
+
+install_fastfetch(){
+  local new_pkg="fastfetch-linux-amd64.deb"
+  printf "Downloading FastFetch %s from the fastfetch-cli GitHub repository..." "$new_ver"
+  dots "."
+  wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
+  kill "$!"; tput cnorm
+  printf "done\nInstalling FastFetch %s...\n" "$new_ver"
+  sudo gdebi -n "$tmp_dir/$new_pkg"
+  printf "FastFetch %s installed.\n" "$(ff_version)"
+}
+
+remove_fastfetch() {
+	printf "Removing FastFetch %s ...\n" "$(ff_version)"
+	sudo dpkgs --remove fastfetch
+	[[ -d "$ff_cfg_d" ]] && rm -rf "$ff_cfg_d"
+	[[ -d "$ff_logo_d" ]] && rm -rf "$ff_logo_d"
+	printf "Fastfetch and its configuration files have been removed.\n"
+}
+
+dl_fasttectch_config() {
+	local repository="config/raw/branch/main/configs/fastfetch"
+	local ff_conf="config.jsonc"
+	local ff_logo="atheist.txt"
+	[[ -d "$ff_cfg_d" ]] && mkdir -p "$ff_cfg_d"
+	[[ -d "$ff_logo_d" ]] && mkdir -p "$ff_logo_d"
+	printf "Downloading configuration files...\n"
+	curl -so "$ff_cfg_d/$ff_conf" "$Gitea_URL/$repository/$ff_conf"
+	curl -so "$ff_logo_d/$ff_conf" "$Gitea_URL/$repository/$ff_logo"
+}
+
+apply_config() {
+	[[ -d "$ff_cfg_d" ]] && mkdir -p "$ff_cfg_d"
+	dl_fasttectch_config
+	printf "Fastfetch configuration applied.\n"
+}
+
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+	-h	Display help
+	-i	Install Fastfetch
+	-r	Remove Fastfetch
+	-s	Apply settings
+	-u	Update Fastfetch
+$_script $_version (Updated $_updated)
+END_HELP
+  exit "$errcode"
+}
+
+## Execution ##
+
+noOpt=1
+optstr=":hirsu"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		h )
+			help 0
+		;;
+		i )
+			exists fastfetch && leave "Fastfetch $(ff_version) is already installed."
+      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+      trap cleanup EXIT
+      sudo_login 2
+      check_dependencies
+      check_distro || leave "Fastfetch $new_ver is the latest version compatible with $(get_distribution)/"
+      new_ver="$(newest_version)"
+      [[ "$new_ver" ]] || die "No download available. Try again later." 1
+      echo "${lightyellow}Installing Fastfetch version $new_ver...${normal}"
+			install_fastfetch
+			apply_config
+		;;
+		r )
+			exists fastfech || leave "Fastfetch is not installed."
+			sudo_login 2
+			remove_fastfetch
+		;;
+		s )
+			exists fastfech || leave "Fastfetch is not installed."
+			apply_settings
+		;;
+		u )
+			exists fastfech || leave "Fastfetch is not installed."
+      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+      trap cleanup EXIT
+      sudo_login 2
+      check_dependencies
+      new_ver="$(newest_version)"
+      [[ "$new_ver" ]] || die "No download available. Try again later." 1
+			compare_versions
+		;;
+		? )
+			echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+			help 2
+	esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { echo "${lightred}ERROR:${normal} No argument passed." >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
+leave "$_script $_version"
