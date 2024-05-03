@@ -30,10 +30,10 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.0.24124"
+readonly _version="1.1.24124"
 readonly _updated="03 May 2024"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
-readonly ff_cfg_d="$HOME/.config/fastfetch/config.jsonc"
+readonly ff_cfg_d="$HOME/.config/fastfetch"
 readonly ff_logo_d="$HOME/.local/share/fastfetch/logos"
 
 ## Functions ##
@@ -102,20 +102,17 @@ remove_fastfetch() {
 	printf "Fastfetch and its configuration files have been removed.\n"
 }
 
-dl_fasttectch_config() {
-	local repository="config/raw/branch/main/configs/fastfetch"
-	local ff_conf="config.jsonc"
-	local ff_logo="atheist.txt"
-	[[ -d "$ff_cfg_d" ]] && mkdir -p "$ff_cfg_d"
-	[[ -d "$ff_logo_d" ]] && mkdir -p "$ff_logo_d"
+dl_fastfetch_config() {
+	# local repository="configs/raw/branch/main/fastfetch"
+	# local ff_conf="config.jsonc"
+	# local ff_logo="atheist.txt"
+	[[ -d "$ff_cfg_d" ]] || mkdir -p "$ff_cfg_d"
+	[[ -d "$ff_logo_d" ]] || mkdir -p "$ff_logo_d"
 	printf "Downloading configuration files...\n"
-	curl -so "$ff_cfg_d/$ff_conf" "$Gitea_URL/$repository/$ff_conf"
-	curl -so "$ff_logo_d/$ff_conf" "$Gitea_URL/$repository/$ff_logo"
-}
-
-apply_config() {
-	[[ -d "$ff_cfg_d" ]] && mkdir -p "$ff_cfg_d"
-	dl_fasttectch_config
+	# curl -so "$ff_cfg_d/$ff_conf" "$Gitea_URL/$repository/$ff_conf"
+	# curl -so "$ff_logo_d/$ff_logo" "$Gitea_URL/$repository/$ff_logo"
+	curl -so "$HOME/.config/fastfetch/config.jsonc" http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/fastfetch/config.jsonc
+	curl -so "$HOME/.local/share/fastfetch/logos/atheist.txt" http://192.168.0.16:3000/Nullifidian/configs/raw/branch/main/fastfetch/atheist.txt
 	printf "Fastfetch configuration applied.\n"
 }
 
@@ -155,16 +152,16 @@ while getopts "$optstr" opt; do
       [[ "$new_ver" ]] || die "No download available. Try again later." 1
       echo "${lightyellow}Installing Fastfetch version $new_ver...${normal}"
 			install_fastfetch
-			apply_config
+			dl_fastfetch_config
 		;;
 		r )
-			exists fastfech || leave "Fastfetch is not installed."
+			exists fastfetch || leave "Fastfetch is not installed."
 			sudo_login 2
 			remove_fastfetch
 		;;
 		s )
-			exists fastfech || leave "Fastfetch is not installed."
-			apply_settings
+			exists fastfetch || leave "Fastfetch is not installed."
+			dl_fastfetch_config
 		;;
 		u )
 			exists fastfetch || leave "Fastfetch is not installed."
