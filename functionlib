@@ -7,10 +7,11 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 28 Apr 2024
+# Last updated : 04 May 2024
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : source "$HOME/bin/functionlib"
+#              : Using 'set -o pipefail' in script may cause unexpected behavior or some variables to not be recognized.
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -629,6 +630,7 @@ format_time() {
 # Argurment:
 #   $1 -> name of package to check and install
 # Example: check_package "$package"
+# Note: if set -o pipefail is used in script, function will try to install package even if already installed.
 ###############################################################################
 check_package() {
   local package="$1"
@@ -648,6 +650,7 @@ check_package() {
 # Argurment:
 #   $@ -> array of packages to check and install
 # Example: packages=( pkg1 pkg2 ... ); check_packages "${packages[@]}"
+# Note: if set -o pipefail is used in script, function will try to install package even if already installed.
 ###############################################################################
 check_packages() {
 	local pkgs=("$@")
