@@ -4,8 +4,10 @@
 # Description  : Installs, updates, and removes the Micro CLI text editor.
 # Dependencies : gdebi, wget
 # Arguments    : [-b] [-h] [-i] [-r] [-s] [-u] (See help function)
-# Author       : Copyright (C) 2022, Richard B. Romig, 10 Jan 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 10 Jan 2022
+# Updated      : 04 May 2024
 # Comments     : -u option updates installed version only. Does not do initial install.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,7 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC2034
 
 ## Source function library ##
 
@@ -27,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.7"
-readonly _updated="18 Mar 2024"
+readonly _version="5.7.24125"
+readonly _updated="04 Ma 2024"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg_d=$HOME"/.config/micro"
 
@@ -122,6 +124,7 @@ EOF
 
 ## Execution ##
 
+box "$_script v$_version (Updated: $_updated)"
 printf "Installs, updates, or removes the Micro CLI text editor.\n"
 
 noOpt=1
@@ -177,4 +180,4 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version (Updated: $_updated)"
+exit
