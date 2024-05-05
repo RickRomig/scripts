@@ -4,8 +4,10 @@
 # Description  : A script to sync data main PC and main laptop.
 # Dependencies : rsync
 # Arguments    : none, addresses hard coded.
-# Author       : Copyright (C) 2023, Richard Romig 12 Mar 2023
+# Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 12 Mar 2023
+# Updated      : 05 May 2024
 # Comments     : Uses a configuration file to store hostnames & IP addresses.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -27,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.1.2"
-readonly _updated="28 Jan 2024"
+readonly _version="3.2.24126"
+readonly _updated="05 May 2024"
 readonly local_host="${HOSTNAME:-$(hostname)}"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
@@ -159,7 +160,8 @@ sync_script() {
 
 SECONDS=0
 
-box "$_script v$_version (Updated: $_updated)" "*"
+box "$_script v$_version" "*"
+printf "Synchronizes files between %s and %s.\n" "$main_host" "$lap_host"
 
 [[ -f "$conf_dir/$conf_file" ]] || create_conf
 source "$conf_dir/$conf_file"
