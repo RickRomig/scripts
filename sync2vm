@@ -4,8 +4,10 @@
 # Description  : Synchronize .bash_aliases, ~/bin to VM
 # Dependencies : rsync
 # Arguments    : none
-# Author       : Richard B. Romig, 08 Feb 2022
+# Author       : Copyright (C) 2022,Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com
+# Created      : 08 Feb 2022
+# Updated      : 05 May 2024
 # Comments     : Run frmo KVM/QEMU VM on 192.168.122.0 network
 #              : Copy script to ~/.local/bin on virtual machine.
 # TODO (Rick)  :
@@ -14,7 +16,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -28,9 +29,9 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.6"
-readonly _updated="31 Mar 2023"
-readonly host_ip="$localnet.1"
+readonly _version="1.6.24126"
+readonly gateway_ip="$localnet.1"
+# readonly gateway_ip="${$localnet.1:-192.168.122.1}"
 
 ## Functions ##
 
@@ -42,15 +43,15 @@ transfer_status() {
 
 sync_script() {
 	printf "\n%sSyncing .bash_aliases ...%s\n" "$orange" "$normal"
-	rsync -avh --delete rick@"$host_ip":.bash_aliases "$HOME/"
+	rsync -avh --delete rick@"$gateway_ip":.bash_aliases "$HOME/"
 	exit_status="$?"
 	transfer_status "$exit_status"
 	printf "\n%sSyncing bin directory ...%s\n" "$orange" "$normal"
-	rsync -avh --delete --exclude '.git' rick@"$host_ip":bin/ "$HOME/bin/"
+	rsync -avh --delete --exclude '.git' rick@"$gateway_ip":bin/ "$HOME/bin/"
 	exit_status="$?"
 	transfer_status "$exit_status"
   echo $'\n'$"${orange}Syncing .local/share/doc...${normal}"
-  rsync -avzh --delete rick@"$host_ip":.local/share/doc/ "$HOME"/.local/share/doc/
+  rsync -avzh --delete rick@"$gateway_ip":.local/share/doc/ "$HOME"/.local/share/doc/
   exit_status="$?"
   transfer_status "$exit_status"
 }
@@ -65,7 +66,6 @@ all_done() {
 [[ "$localnet" != "192.168.122" ]] && die "Must be run from a KVM/QEMU virtual machine."
 check_package rsync
 SECONDS=0
-box "$_script v$_version ($_updated)"
+box "$_script v$_version"
 sync_script
 all_done
-leave ""
