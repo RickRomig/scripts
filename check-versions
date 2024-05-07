@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 03 MY 2024
+# Last updated : 07 MY 2024
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 # TODO (Rick)  :
@@ -41,7 +41,7 @@ github_versions() {
   local packages=( bat codium fastfetch marktext micro )
   local cur_ver
 
-  printf "%-15s%-16s%s\n" "GitHub Package" "Latest version" "Installed version"
+  printf "%-16s%-16s%s\n" "GitHub Package" "Latest version" "Installed version"
   for package in "${packages[@]}"; do
     # Set URL of GitHub repoository and currently installed version of package.
     case "$package" in
@@ -74,7 +74,7 @@ github_versions() {
     # Extract newest version number, ignoring beta and release candidate releases.
     new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
     # Print capitalized package name
-    printf "%s%-15s" "${darkgray}" "${package^}"
+    printf "%s%-16s" "${darkgray}" "${package^}"
     # Print newest version
     if [[ -z "$new_ver" ]]; then
       printf "%s%-16s" "${red}" "No release"
@@ -87,7 +87,7 @@ github_versions() {
     elif [[ "$new_ver" == "$cur_ver" ]]; then
       printf "%s%s\n" "${gray}" "$cur_ver"
     else
-      printf "%s\t%sUpdate available\n" "$cur_ver" "${orange}"
+      printf "%s%-16s%sUpdate available\n" "${gray}" "$cur_ver" "${orange}"
     fi
   done
   printf "%s\n" "${normal}"
@@ -191,7 +191,7 @@ browsers() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="11.7.24124"
+  local _version="11.7.24128"
   clear
   printf "%s v%s\n" "$_script" "$_version"
   printf "Newest & installed versions of select programs.\n\n"
