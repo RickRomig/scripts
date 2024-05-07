@@ -4,8 +4,10 @@
 # Description  : Synchronizes password database files with main PC
 # Dependencies : scp (openssh-server)
 # Arguments    : none
-# Author       : Copyright (C) 2022 Richard B. Romig, 04 Mar 2022
+# Author       : Copyright (C) 2022 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 04 Mar 2022
+# Updated      : 07 May 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -27,15 +28,14 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.9"
-readonly _updated="29 Feb 2024"
+readonly _version="4.9.24128"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly mhost="hp-800g2-sff"
 readonly mhostip="10"
 
 ## Execution ##
 
-printf "%s %s (%s)\n" "$_script" "$_version" "$_updated"
+box "$_script v$_version" "*"
 # Ensure script is not being run from HP-800-G2-SFF (10)
 [[ "$lhost" == "$mhost" ]] && leave "$_script cannot be run from $mhost."
 printf "Making a backup of Passwords.kdbx on %s\n" "$mhost"
