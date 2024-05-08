@@ -2,10 +2,12 @@
 ##########################################################################
 # Script Name  : install-kitty
 # Description  : Installs kitty terminal emulator with basic configuration.
-# Dependencies : None
+# Dependencies : git
 # Arguments    : -c -h -i -p -r (see help function for more information)
-# Author       : Copyright (C) 2022, Richard B. Romig, 26 Sep 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 26 Sep 2022
+# Updated      : 08 May 2024
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.8"
-readonly _updated="18 Mar 2024"
+readonly _version="2.8.24129"
+readonly _updated="08 May 2024"
 readonly kitty_cfg_d="$HOME/.config/kitty"
 
 ## Functions ##
@@ -50,7 +52,7 @@ END_HELP
 }
 
 kitty_version() {
-  kitty --version | awk '{print $2}'
+  kitty --version | cut -d' ' -f2
 }
 
 install_kitty() {
@@ -101,11 +103,13 @@ while getopts "$optstr" opt; do
   case "$opt" in
     b )
       exists kitty || leave "Kitty is not installed."
+      check_package git
       printf "Copying Kitty keybindings...\n"
       kitty_bindings
     ;;
     c )
       exists kitty || leave "Kitty is not installed."
+      check_package git
       printf "Configuring Kitty %s...\n" "$(kitty_version)"
       kitty_config
     ;;
@@ -115,6 +119,7 @@ while getopts "$optstr" opt; do
     i )
       exists kitty && leave "Kitty terminal emulator $(kitty_version) already installed."
       sudo_login 2
+      check_package git
       install_kitty
     ;;
     p )
@@ -135,5 +140,5 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "%s v%s\n" "$_script" "$_version"
 exit
