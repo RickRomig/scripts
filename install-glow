@@ -4,8 +4,10 @@
 # Description  : Installs and removes the Glow markdown reader.
 # Dependencies : curl, gdebi
 # Arguments    : [-h] [-i] [-r] [-s] (See help function)
-# Author       : Copyright (C) 2022, Richard B. Romig, 10 Jan 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 10 Jan 2022
+# Updated      : 08 May 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -27,24 +28,24 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.18"
-readonly _updated="18 Mar 2024"
+readonly _version="4.18.24129"
+readonly _updated="08 May 2024"
 readonly charm_url="https://repo.charm.sh/apt"
-readonly src_list="/etc/apt/sources.list.d"
-readonly keyring_dir="/etc/apt/keyrings"
+readonly src_list_d="/etc/apt/sources.list.d"
+readonly keyring_d="/etc/apt/keyrings"
 
 ## Functions ##
 
 add_gpg() {
   printf "Adding the Charm GPG key...\n"
-  [[ -d "$keyring_dir" ]] || sudo mkdir -p "$keyring_dir"
-  curl -fsSL "$charm_url/gpg.key" | sudo gpg --dearmor -o "$keyring_dir/charm.gpg"
+  [[ -d "$keyring_d" ]] || sudo mkdir -p "$keyring_d"
+  curl -fsSL "$charm_url/gpg.key" | sudo gpg --dearmor -o "$keyring_d/charm.gpg"
   printf "Charm GPG key applied.\n"
 }
 
 add_src_list() {
   printf "Creating the the Charm apt source list...\n"
-  echo "deb [signed-by=$keyring_dir/charm.gpg] $charm_url/ * *" | sudo tee "$src_list/charm.list" > /dev/null
+  echo "deb [signed-by=$keyring_d/charm.gpg] $charm_url/ * *" | sudo tee "$src_list_d/charm.list" > /dev/null
   printf "Charm apt source list created.\n"
 }
 
@@ -59,8 +60,8 @@ install_glow() {
 remove_glow() {
   printf "Removing the Glow markdown reader...\n"
   sudo apt-get remove glow -y
-  [[ -f "$src_list/charm.list" ]] && sudo rm -v "$src_list/charm.list"
-  [[ -f "$keyring_dir/charm.gpg" ]] && sudo rm -v "$keyring_dir/charm.gpg"
+  [[ -f "$src_list_d/charm.list" ]] && sudo rm -v "$src_list_d/charm.list"
+  [[ -f "$keyring_d/charm.gpg" ]] && sudo rm -v "$keyring_d/charm.gpg"
   printf "Glow markdown reader has been removed.\n"
 }
 
@@ -124,4 +125,4 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version ($_updated)"
+leave "$_script v$_version"
