@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : install-keepassxc
 # Description  : Installs/removes KeePassXC from Flathub or distro repos
-# Dependencies : none
-# Arguments    : -d -f -h -m -r (see help function)
-# Author       : Copyright (C) 2021, Richard B. Romig, 26 Jan 2021
+# Dependencies : git
+# Arguments    : -c -d -f -h -r (see help function)
+# Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Jan 2021
-# Updated      : 09 May 2024
+# Updated      : 10 May 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,9 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.10.24130"
-readonly _updated="09 May 2024"
+readonly _version="3.11.24131"
+readonly _updated="10 May 2024"
+readonly cfg_dir="$HOME/.config/keepassxc"
 
 ## Functions ##
 
@@ -51,6 +52,7 @@ flathub_keepassxc() {
 distro_keepassxc() {
   sudo_login 2
   sudo apt-get install keepassxc -yy
+  create_ini
   printf "Keepassxc %s installed from distro repositories.\n" "$(kpxc_ver)"
 }
 
@@ -61,18 +63,21 @@ remove_flatpak_keepassxc() {
 }
 
 remove_distro_keeepassxc() {
+  local cfg_bu_d="$HOME/.config/backup/keepassxc"
   sudo_login 2
   printf "Removing the KeePassXC DEB package...\n"
   sudo apt-get remove --purge keepassxc -yy
-  [[ -d "$HOME/.config/keepassxc" ]] && rm -rf "$HOME/.config/keepassxc"
-  [[ -d "$HOME/.config/backup/keepassxc" ]] && rm -rf "$HOME/.config/backup/keepassxc"
+  [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
+  [[ -d "$cfg_bu_d" ]] && rm -rf "$cfg_bu_d"
   printf "KeePassXC DEB package removed.\n"
 }
 
-move_vault() {
-  local vault_dir="$HOME/Documents"
-  printf "Moving password databases to ~/Documents...\n"
-  find "$HOME/Documents/mosfanet/" -maxdepth 1 -type f -iname "*.kdbx" -print -exec mv {} "$vault_dir/" \;
+create_ini() {
+  local repository="configs/raw/branch/main/keepassxc"
+  local ini_file="keepassxc.ini"
+  [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
+	wget -P "$cfg_dir" "$Gitea_URL/$repository/$ini_file"
+  printf "%s created and applied.\n" "$ini_file"
 }
 
 help() {
@@ -80,10 +85,10 @@ help() {
   cat << END_HELP
 Usage: $_script [OPTIONS]
 OPTIONS:
+  -c  Apply KeePassXC configuration.
   -d  Install KeePassXC from distribution repositories.
   -f  Install KeePassXC from flathub repositories.
   -h  Display help.
-  -m  Move password vaults from ~/Documents/mosfanet to ~/Documents.
   -r  Remove KeePassXC from the system.
 $_script v$_version (Updated $_updated)
 END_HELP
@@ -95,9 +100,12 @@ END_HELP
 box "$_script v$_version"
 echo "Installs KeePassXC password manager"
 noOpt=1
-optstr=":dfhmr"
+optstr=":cdfhr"
 while getopts "$optstr" opt; do
   case "$opt" in
+    c )
+      create_ini
+    ;;
     d )
       if exists keepassxc; then
         printf "KeePassXC version %s is already installed from distro.\n" "$(kpxc_ver)"
@@ -118,9 +126,6 @@ while getopts "$optstr" opt; do
     ;;
     h )
       help 0
-    ;;
-    m )
-      move_vault
     ;;
     r )
       if flatpak list | grep -qw KeePassXC; then
