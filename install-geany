@@ -82,7 +82,6 @@ cleanup() {
 
 ## Execution ##
 
-check_package git
 noOpt=1
 optstr=":hirt"
 while getopts "$optstr" opt; do
@@ -96,6 +95,7 @@ while getopts "$optstr" opt; do
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
       trap cleanup EXIT
       sudo_login 2
+      check_package git
       install_geany
     ;;
     r )
@@ -107,6 +107,7 @@ while getopts "$optstr" opt; do
       exists geany || leave "Geany is not installed."
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
       trap cleanup EXIT
+      check_package git
       clone_themes
     ;;
     ? )
