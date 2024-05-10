@@ -6,6 +6,8 @@
 # Arguments    : -d -f -h -m -r (see help function)
 # Author       : Copyright (C) 2021, Richard B. Romig, 26 Jan 2021
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 26 Jan 2021
+# Updated      : 09 May 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -27,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.10"
-readonly _updated="29 Mar 2024"
+readonly _version="3.10.24130"
+readonly _updated="09 May 2024"
 
 ## Functions ##
 
@@ -53,23 +54,25 @@ distro_keepassxc() {
   printf "Keepassxc %s installed from distro repositories.\n" "$(kpxc_ver)"
 }
 
-remove_keepassxc() {
+remove_flatpak_keepassxc() {
+  printf "Removing the KeePassXC flatpak...\n"
+  [[ -d "HOME/.var/app/org.keepassxc.KeePassXC" ]] && flatpak uninstall --noninteractive --assumeyes org.keepassxc.KeePassXC
+  printf "KeePassXC flatpak removed.\n"
+}
+
+remove_distro_keeepassxc() {
   sudo_login 2
-  printf "Removing KeePassXC ...\n"
-  if [[ -d "HOME/.var/app/org.keepassxc.KeePassXC" ]]; then
-    flatpak uninstall --noninteractive --assumeyes org.keepassxc.KeePassXC
-  else
-    sudo apt-get remove --purge keepassxc -yy
-    [[ -d "$HOME/.config/keepassxc" ]] && rm -rf "$HOME/.config/keepassxc"
-  fi
-  printf "KeePassXC removed.\n"
+  printf "Removing the KeePassXC DEB package...\n"
+  sudo apt-get remove --purge keepassxc -yy
+  [[ -d "$HOME/.config/keepassxc" ]] && rm -rf "$HOME/.config/keepassxc"
+  [[ -d "$HOME/.config/backup/keepassxc" ]] && rm -rf "$HOME/.config/backup/keepassxc"
+  printf "KeePassXC DEB package removed.\n"
 }
 
 move_vault() {
   local vault_dir="$HOME/Documents"
   printf "Moving password databases to ~/Documents...\n"
   find "$HOME/Documents/mosfanet/" -maxdepth 1 -type f -iname "*.kdbx" -print -exec mv {} "$vault_dir/" \;
-  find "$HOME/Documents/mosfanet/" -maxdepth 1 -type f -iname "Rick_pwds*" -print -exec mv {} "$vault_dir/" \;
 }
 
 help() {
@@ -82,28 +85,36 @@ OPTIONS:
   -h  Display help.
   -m  Move password vaults from ~/Documents/mosfanet to ~/Documents.
   -r  Remove KeePassXC from the system.
+$_script v$_version (Updated $_updated)
 END_HELP
   exit "$errcode"
 }
 
 ## Execution ##
 
-echo "$_script v$_version ($_updated)"
+box "$_script v$_version"
 echo "Installs KeePassXC password manager"
 noOpt=1
 optstr=":dfhmr"
 while getopts "$optstr" opt; do
   case "$opt" in
     d )
-      exists keepassxc && leave "KeePassXC $(kpxc_ver) already installed."
-      flatpak list | grep -qw KeePassXC && leave "KeePassXC $(keepass_ver) flatpak installed."
-      distro_keepassxc
+      if exists keepassxc; then
+        printf "KeePassXC version %s is already installed from distro.\n" "$(kpxc_ver)"
+      elif  flatpak list | grep -qw KeePassXC; then
+        printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_ver)"
+      else
+        distro_keepassxc
+      fi
     ;;
     f )
-      exists flatpak || leave "Flatpak is not installed."
-      flatpak list | grep -qw KeePassXC && leave "KeePassXC $(keepass_ver) flatpak installed."
-      exists keepassxc && remove_keepassxc
-      flathub_keepassxc
+      if exists keepassxc; then
+        printf "KeePassXC version %s is already installed from distro.\n" "$(kpxc_ver)"
+      elif  flatpak list | grep -qw KeePassXC; then
+        printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_ver)"
+      else
+        flathub_keepassxc
+      fi
     ;;
     h )
       help 0
@@ -112,8 +123,10 @@ while getopts "$optstr" opt; do
       move_vault
     ;;
     r )
-      if exists keepassxc || flatpak list | grep -qw KeePassXC; then
-        remove_keepassxc
+      if flatpak list | grep -qw KeePassXC; then
+        remove_flatpak_keepassxc
+      elif exists keepassxc; then
+        remove_distro_keeepassxc
       else
         leave "KeePassXC is not installed."
       fi
