@@ -1,5 +1,10 @@
 # Miscellaneous Commands
 
+#### Command priorty
+1. alias
+2. function
+3. bash builtin
+4. command
 #### hostenamectl - hostname
 ```bash
 $ hostnamectl | grep 'hostname' | cut -d':' -f2 | sed 's/^ //'
