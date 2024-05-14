@@ -52,14 +52,21 @@ cleanup() {
 }
 
 save_info() {
+  local main_host="hp-850g2-ssf"
   printf "\n"
   if default_yes "Save system information to ~/$(basename "$info_file")"; then
     printf "Writing system information to ~/%s\n" "$(basename "$info_file")"
     cp -v "$tmp_file" "$info_file"
     chmod 664 "$info_file"
+    default_yes "Copy $(basename "$info_file") to $main_host?" && send_to_main
   else
     printf "System information was not written to ~/%s\n" "$(basename "$info_file")"
   fi
+}
+
+send_to_main() {
+  local main_ip="10"
+  scp -p "$info_file" rick@"$localnet.$main_ip":Documents/mosfanet/Compuuters/info/
 }
 
 rename_mnt_pt() {
