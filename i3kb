@@ -7,6 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Apr 2023
+# Updated      : 15 May 2024
 # Comments     : Install with bindings.list in ~/.config/i3/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -14,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -28,29 +28,27 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.5"
-readonly _updated="13 Oct 2023"
+readonly _version="1.5.24136"
 readonly i3_dir=$HOME"/.config/i3"
+readonly bindings="bindings.list"
 
 ## Functions ##
 
 copy_bindings() {
-	local list="$1"
-	local repo_path="i3debian/raw/branch/main/.config/i3"
-	curl -so "$i3_dir/$list" "$Gitea_URL/$repo_path/$list"
+	local repository="configs/raw/branch/main/"
+	curl -so "$i3_dir/$bindings" "$Gitea_URL/$repository/$bindings"
 }
 
 show_bindings() {
-	local bindings="bindings.list"
-	[[ -f "$i3_dir/$bindings" ]] || copy_bindings "$bindings"
+	[[ -f "$i3_dir/$bindings" ]] || copy_bindings
 	(printf "Binding|Action|Binding|Action\n"; less "$i3_dir/$bindings") | column -ts "|"
 }
 
 ## Execution ##
 
-exists i3 || leave "i3-wm is not installed."
-check_package curl
+exists i3 || leave "i3wm is not installed."
 clear
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+check_package curl
+printf "%s v%s\n" "$_script" "$_version"
 show_bindings
 exit
