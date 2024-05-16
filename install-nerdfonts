@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Sep 2023
-# Last updated : 12 Dec 2023
+# Last updated : 15 May 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -15,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -29,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.3"
-readonly _updated="18 Mar 2024"
+readonly _version="1.3.24136"
+readonly font_dir="/usr/share/fonts"
 
 ## Functions ##
 
@@ -45,33 +44,26 @@ cleanup() {
     [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
 }
 
+install_nerd_fonts() {
+  local font
+  local fonts=( "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
+  local font_repo="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2"
+  for font in "${fonts[@]}"; do
+	  wget -P "$tmp_dir" "$font_repo/$font.zip"
+	  sudo unzip "$tmp_dir/$font.zip" -d "$font_dir/$font/"
+  done
+  fc-cache
+  printf "Nerd fonts installed.\n"
+}
+
 ## Execution ##
 
 sudo_login 2
 check_dependencies
 
-readonly font_dir="/usr/share/fonts"
 [[ -d "$font_dir" ]] || sudo mkdir -p "$font_dir"
 tmp_dir=$(mktemp -d) || { printf "%s Failed to create temporary directory.\n" "$red_error" >&2; exit 1; }
 
 trap cleanup EXIT
-
-fonts=(
-"FiraCode"
-"Go-Mono"
-"Hack"
-"Inconsolata"
-"Iosevka"
-"JetBrainsMono"
-"Mononoki"
-"RobotoMono"
-"SourceCodePro"
-)
-
-for font in "${fonts[@]}"; do
-	wget -P "$tmp_dir" https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/"$font.zip"
-	sudo unzip "$tmp_dir/$font.zip" -d "$font_dir/$font/"
-done
-fc-cache
-
-leave "$_script v$_version ($_updated)"
+install_nerd_fonts
+leave "$_script v$_version"
