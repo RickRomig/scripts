@@ -6,14 +6,15 @@
 # Arguments    : See help function
 # Author       : Copyright (C) 2020, Richard B. Romig, 05 Jul 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : Debian 11 bullseye, LMDE 5 else, BunsenLabs 11 berylium
-# TODO (Rick)  : Test
+# Created      : 05 Jul 2020
+# Updated      : 17 May 2024
+# Comments     : Debian 11 bullseye, LMDE 5 elsie, BunsenLabs 11 berylium
+# TODO (Rick)  : Install and test
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -28,15 +29,16 @@ fi
 
 _script=$(basename "$0"); readonly _script
 readonly _script
-readonly _version="0.4.3 - beta"
-readonly _updated="18 Mar 2024"
+readonly _version="4.3.24138 - beta"
+readonly _updated="17 May 2024"
 readonly source_list="/etc/apt/sources.list.d/home-ungoogled_chromium.list"
 readonly trusted_gpg="/etc/apt/trusted.gpg.d/home_ungoogled_chromium.gpg"
 
 ## Functions ##
 
 uc_version() {
-  ungoogled_chromium -- version # need to get proper command
+  # ungoogled_chromium -- version # need to get proper command
+  echo "unknown"
 }
 
 install_ungoogled_chrome() {
@@ -51,12 +53,12 @@ install_ungoogled_chrome() {
   show_me "Installing ungoogled-chromium"
   sudo apt-get update
   sudo apt-get install ungoogled-chromium
-  printf "ungoogled-chromium %s installed.\b" "$(uc_version)"
+  printf "ungoogled-chromium %s installed.\n" "$(uc_version)"
 }
 
 remove_ungoogle_chrome() {
   sudo_login 2
-  show_me "Purging  ungoogled-chrome"
+  show_me "Purging ungoogled-chrome"
   sudo apt-get purge ungoogled-chrome
   [[ -f "$source_list" ]] && sudo rm "$source_list"
   [[ -f "$trusted_gpg" ]] && sudo rm "$trusted_gpg"
@@ -64,14 +66,9 @@ remove_ungoogle_chrome() {
 }
 
 distro_check() {
+  local ver_code
   ver_code=$(lsb_release --codename --short)
-  case $ver_code in
-    bullseye|elsie )
-      return "$TRUE"
-    ;;
-    * )
-      return "$FALSE"
-  esac
+  if [[ "$ver_code" == "bullseye" || "$ver_code" == "elsie" ]]; then true; else die "${ver_code^} is not a supported distribution." 1; fi
 }
 
 help() {
@@ -79,9 +76,9 @@ help() {
 	cat << END_HELP
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
-	-h	Display help
-	-i	Install application
-	-r	Remove application
+  -h  Display help
+  -i  Install application
+  -r  Remove application
   -v  Enable verbose mode
   To be installed on Debian 11 Bullseye only
   $_script $_version (Updated $_updated)
@@ -91,12 +88,12 @@ END_HELP
 
 show_me() {
   local message="$1"
-  [[ "$verbose_mode" = 0 ]] && cecho "$message"
+  [[ "$verbose_mode" = 0 ]] && echo "$message"
 }
 
 ## Execution ##
 
-printf "Installs the ungoogled chromium browser on Debian-based systems./n"
+printf "Installs the ungoogled chromium browser on Debian-based systems.\n"
 
 verbose_mode=1
 noOpt=1
@@ -108,7 +105,7 @@ while getopts "$optstr" opt; do
 		;;
 		i )
 			exists ungoogled-chrome && leave "ungoogled-chrome $(uc_version) is already installed."
-      distro_check || leave "$ver_code: Distribution is not supported."
+      distro_check
 			install_ungoogled_chrome
 		;;
 		r )
@@ -127,4 +124,4 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script $_version (Updated $_updated)"
+leave "$_script $_version"
