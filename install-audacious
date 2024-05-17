@@ -4,16 +4,17 @@
 # Description  : Installs/Removes Audacious audio player
 # Dependencies : none
 # Arguments    : none
-# Author       : Copyright (C) 2020, Richard B. Romig, 23 Mar 2020
+# Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : Does not support installation from Ubuntu PPAs.
+# Created      : 23 Mar 2020
+# Updated      : 17 May 2024
+# Comments     : Does not support installation from Ubuntu PPAs or flatpak.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
 
 ## Load function library ##
 
@@ -27,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.1"
-readonly _updated="18 Mar 2024"
+readonly _version="2.1.24138"
+readonly _updated="17 May 2024"
 
 ## Functions ##
 
@@ -48,19 +49,20 @@ END_HELP
 install_audacious() {
   if in_repos audacious; then
     sudo_login 2
+    printf "Installing Audacious audio player...\n"
     sudo apt update -qq
     sudo apt install audacious audacious-plugins -yy
-    leave "Audacious audio player installed from distro repository."
+    printf "Audacious audio player installed from distro repository.\n"
   else
-    leave "Audacious is not in repositories. Audacious audio player not installed."
+    printf "Audacious is not in repositories. Audacious audio player not installed.\n"
   fi
 }
 
 remove_audacious() {
-  echo "Removing Audacious audio player."
   sudo_login 2
+  printf "Removing Audacious audio player....\n"
   sudo apt remove --autoremove audacious audacious-plugins
-  leave "Audacious audio player removed."
+  printf "Audacious audio player removed.\n"
 }
 
 ## Execution ##
@@ -88,4 +90,4 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version (Updated: $_updated)"
+leave "$_script v$_version"
