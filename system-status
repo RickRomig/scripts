@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
 #####################################################################
-# Script Name  : check-status
+# Script Name  : system-status
 # Description  : Displays a snapshot of system resources
 # Dependencies : jq, lm-sensors, sensors
 # Arguments    : none
-# Author       : Copyright (C) 2018,Richard Romig, 17 November 2018
+# Author       : Copyright (C) 2018,Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 17 Nov 2018
+# Updated      : 17 May 2024
 # Comments     : Inspired by Joe Collins <https://www.ezeeLinux.com>
 #              : and Luke Smith <https://lukesmith.xyz>
-# 13 Feb 2022  : Added `-x fuse.portal` to df command to eliminate this error:
-#              : df: /run/user/1000/doc: Operation not permitted
 # License      : GNU General Public License, version 2.0
 #####################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -26,11 +25,10 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.8"
-readonly _updated="28 Aug 2023"
+readonly _version="5.8.24138"
 
 ## Functions ##
 
@@ -75,6 +73,9 @@ memory_usage() {
 }
 
 cpu_usage() {
+  local cores
+  local cpu_usage
+  local cpu_use
   # cpu_use=$(echo "$[100-$(vmstat 1 2 | tail -1 | awk '{print $15}')]")
   cores="$(grep -c "^processor" /proc/cpuinfo)"
   cpu_usage="$(ps aux | awk 'BEGIN {sum=0} {sum+=$3}; END {print sum}')"
@@ -86,7 +87,7 @@ cpu_usage() {
 
 disk_usage() {
 	printf "\n%sDisk usage:%s\n" "$orange" "$normal"
-  df -hT -x fuse.portal | sed -n '1p;/^\//p'
+  df -hT -x fuse.portal | sed -n '1p;/^\//p'  # '-x fuse.portal' to eliminate 'df: /run/user/1000/doc: Operation not permitted' error
 }
 
 main() {
@@ -101,13 +102,13 @@ main() {
   [[ -b /dev/sda ]] && sata_temperature
   disk_usage
   printf "\nThe system has been %s\n" "$(/usr/bin/uptime -p)"
-  printf "\n%s %s (%s)\n" "$_script" "$_version" "$_updated"
+  printf "\n%s %s\n" "$_script" "$_version"
   exit
 }
 
 ## Execution ##
 
 check_dependencies
-json="$(sensors -j)"
+json="$(sensors -j)"; readonly json
 clear
 main
