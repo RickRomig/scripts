@@ -4,16 +4,17 @@
 # Description  : Installs flatpak, Gnome Software plugin, and Flathub repository
 # Dependencies : None
 # Arguments    : None
-# Author       : Copyright (C) 2020, Richard B. Romig, 01 Mar 2020
+# Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : Debian 10, Ubuntu 18.04, Mint 19.x
+# Created      : 01 Mar 2020
+# Updated      : 17 May 2024
+# Comments     : Debian 10+, Ubuntu 18.04, Mint 19.x
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
 #############################################################################
 
 ### Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -27,19 +28,17 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.2"
-readonly _updated="04 Sep 2023"
+readonly _version="2.2.24138"
 
 ## Functions ##
 
 install_flatpak() {
   if exists flatpak; then
-    leave "Flatpak is already installed."  # Mint 18.3+, LMDE 3+, Peppermnt 10, MX 19+
+    leave "Flatpak is already installed."  # Mint 18.3+, LMDE 3+, MX 19+
   else
-    ver_code=$(lsb_release -c | cut -f 2)
-    case $ver_code in
-      bookworm|bullseye|buster|focal|jammy )
-        # Debian 10+, antiX 19.x, Ubuntu 20.04+
+    ver_code=$(lsb_release -c | awk '{print $2}')
+    case "$ver_code" in
+      bookworm|bullseye )
         echo "Installing Flatpak on ${ver_code^}..."
         sudo apt update -qq
         sudo apt install flatpak -yy
@@ -64,11 +63,9 @@ install_flathub() {
 ## Execution ##
 
 clear
-echo "$_script v$_version ($_updated)"
+echo "$_script v$_version"
 echo "Installs Flatpak & Flathub repository."
-
 install_flatpak
 exists gnome-software && install_gnome_plugin
 install_flathub
-
 leave "Flatpak and Flathub installed."
