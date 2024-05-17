@@ -218,3 +218,16 @@ grep -c term      # display the number of matches
 grep -n term      # display the line number of each match
 grep -r term      # search recursively
 ```
+### Last reboot
+```bash
+$ last reboot | head -1
+reboot   system boot  5.15.0-107-gener Tue May 14 11:18   still running
+$ who -b
+         system boot  2024-05-14 11:18
+$ uptime -s
+2024-05-14 11:17:58
+$ journalctl --list-boots | tail -1
+0 0ea13566e91843ae979c01341daedf93 Tue 2024-05-14 11:18:03 EDT—Fri 2024-05-17 10:54:08 EDT
+$ journalctl -b <boot_id> # 1st field from --list-boots
+# produces hundreds of lines of information
+```
