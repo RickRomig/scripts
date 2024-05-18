@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Apr 2023
-# Updated      : 11 May 2024
+# Updated      : 18 May 2024
 # Comments     : Assumes i3wm, polybar, rofi, dunst have been installed
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,11 +28,13 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.24132"
-readonly _updated="11 May 2024"
+readonly _version="3.1.24139"
+readonly _updated="18 May 2024"
 readonly repository="configs/raw/branch/main/"
+readonly local_repo="$HOME/gitea/configs"
 readonly config_dir="$HOME/.config"
 readonly bin_dir="$HOME/.local/bin"
+localip="$(local_ip)"; readonly localip
 
 ## Functions ##
 
@@ -80,10 +82,18 @@ copy_i3_config() {
 	local file="$1"
 	[[ -d "$config_dir/i3/sxhkd" ]] || mkdir -p "$config_dir/i3/sxhkd"
 	printf "Downloading i3 configuration file from Gitea server...\n"
-	if [[ "$file" == "sxhkdrc" ]]; then
-		curl -so "$config_dir/i3/sxhkd/$file" "$Gitea_URL/$repository/i3/sxhkd/$file"
+	if [[ "$localip" == "16" ]]; then
+		if [[ "$file" == "sxhkdrc" ]]; then
+			cp "$local_repo/i3/sxhkd/$file" "$config_dir/i3/sxhkd/"
+		else
+			cp "$local_repo/i3/$file" "$config_dir/i3/"
+		fi
 	else
-		curl -so "$config_dir/i3/$file" "$Gitea_URL/$repository/i3/$file"
+		if [[ "$file" == "sxhkdrc" ]]; then
+			curl -so "$config_dir/i3/sxhkd/$file" "$Gitea_URL/$repository/i3/sxhkd/$file"
+		else
+			curl -so "$config_dir/i3/$file" "$Gitea_URL/$repository/i3/$file"
+		fi
 	fi
 	printf "%s copied from the Gitea Server.\n" "$file"
 }
@@ -95,43 +105,85 @@ copy_all_i3_configs() {
 }
 
 copy_polybar_config() {
-	local file="config.ini"
-	local bat_dir="/sys/class/power_supply"
 	[[ -d "$config_dir/polybar" ]] || mkdir -p "$config_dir/polybar"
 	printf "Downloading Polybar configuration file from Gitea server...\n"
-	curl -so "$config_dir/polybar/$file" "$Gitea_URL/$repository/polybar/$file"
-	# Remove battery from modules-right in polybar config.ini if not needed
-	lspci | grep -q 'Network controller:' || sed -i '/^modules-right/s/ wlan//' "$config_dir/polybar/$file"
-	[[ ! -d "$bat_dir/BAT0" && ! -d "$bat_dir/BAT1" ]] && sed -i '/^modules-right/s/ battery//' "$config_dir/polybar/$file"
-	# Remove wlan from modules-right in polybar config.ini if not needed
+	if [[ "$localip" == "16" ]]; then
+		local file="config"
+		cp "$local_repo/polybar/$file" "$config_dir/polybar/"
+	else
+		local file="config.ini"
+		curl -so "$config_dir/polybar/$file" "$Gitea_URL/$repository/polybar/$file"
+	fi
+	configure_polybar
 	printf "%s copied from the Gitea Server.\n" "$file"
+}
+
+configure_polybar() {
+	local b_name e_name w_name
+	local cfg_file="config.ini"
+	[[ "$localip" == "16" ]] && cfg_file="config"
+	e_name=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
+	w_name=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
+	b_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
+	if [[ "$w_name" ]]; then
+		sed -i "s/wlan0/$w_name/" "$$config_dir/polybar/$cfg_file"
+	else
+		sed -i '/^modules-right/s/ wlan//' "$$config_dir/polybar/$cfg_file"
+	fi
+	if [[ "$e_name" ]]; then
+		sed -i "s/eth0/$e_name/" "$$config_dir/polybar/$cfg_file"
+	else
+		sed -i '/^modules-right/s/ eth//' "$$config_dir/polybar/$cfg_file"
+	fi
+	if [[ "$b_name" ]]; then
+		sed -i "s/BAT0/$b_name/" "$$config_dir/polybar/$cfg_file"
+	else
+		sed -i '/^modules-right/s/ battery//' "$$config_dir/polybar/$cfg_file"
+	fi
 }
 
 copy_polybar_launch() {
 	local file="polybar-i3"
-	local repo_path="i3debian/raw/branch/main/.local/bin"
-	curl -so "$bin_dir/$file" "$Gitea_URL/$repo_path/$file"
+	printf "Copying the Polybar launch script from the Gitea server...\n"
+	if [[ "$localip" == "16" ]]; then
+		cp -p "$HOME/gitea/i3debian/.local/bin/$file" "$HOME/.local/bin/"
+	else
+		local repo_path="i3debian/raw/branch/main/.local/bin"
+		curl -so "$bin_dir/$file" "$Gitea_URL/$repo_path/$file"
+	fi
 	printf "%s copied from the Gitea Server.\n" "$file"
 }
 
 copy_rofi_configs() {
 	local files=( "config.rasi" "arc_dark_colors.rasi" "arc_dark_transparent_colors.rasi"	)
 	[[ -d "$config_dir/rofi" ]] || mkdir -p "$config_dir/rofi"
-	for file in "${files[@]}"; do curl -so "$config_dir/rofi/$file" "$Gitea_URL/$repository/rofi/$file"; done
+	if [[ "$localip" == "16" ]]; then
+		for file in "${files[@]}"; do cp "$local_repo/rofi/$file" "$config_dir/rofi/"; done
+	else
+		for file in "${files[@]}"; do curl -so "$config_dir/rofi/$file" "$Gitea_URL/$repository/rofi/$file"; done
+	fi
 	printf "%s copied from the Gitea Server.\n" "${files[@]}"
 }
 
 copy_dunst_config() {
 	local file="dunstrc"
 	[[ -d "$config_dir/dunst" ]] || mkdir -p "$config_dir/dunst"
-	curl -so "$config_dir/dunst/$file" "$Gitea_URL/$repository/dunst$file"
+	if [[ "$localip" == "16" ]]; then
+		cp "$local_repo/dunst/$file" "$config_dir/dunst/"
+	else
+		curl -so "$config_dir/dunst/$file" "$Gitea_URL/$repository/dunst$file"
+	fi
 	printf "%s copied from the Gietea Server.\n" "$file"
 }
 
 copy_dmconf() {
 	local file="dmconf.sh"
-	local repo_path="i3debian/raw/branch/main/.local/bin"
-	curl -so "$bin_dir/$file" "$Gitea_URL/$repo_path/$file"
+	if [[ "$localip" == "16" ]]; then
+		cp -p "$HOME/gitea/i3debian/.local/bin/$file" "$HOME/.local/bin/"
+	else
+		local repo_path="i3debian/raw/branch/main/.local/bin"
+		curl -so "$bin_dir/$file" "$Gitea_URL/$repo_path/$file"
+	fi
 	printf "%s copied from the Gitea Server.\n" "$file"
 }
 
