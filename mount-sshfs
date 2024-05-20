@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : mount-sshfs
-# Description  : Mount or unmount an SSHFS share.
+# Description  : Mount or unmount a local SSHFS share.
 # Dependencies : sshfs
 # Arguments    : None
-# Author       : Copyright (C) 2020 Richard B. Romig, 18 May 2020
+# Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 18 May 2020
+# Updated      : 20 May 2024
 # Comments     : Mount points are at ~/mnt/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -27,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.3"
-readonly _updated="14 Jan 2024"
+readonly _version="4.3.24141"
+readonly _updated="20 May 2024"
 readonly local_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -113,7 +114,7 @@ END_HELP
 
 check_package sshfs
 
-printf "Mount or unmount an SSHFS share.\n\n"
+printf "Mount or unmount an SSHFS share.\n"
 
 noOpt=1
 optstr=":efghlmns"
@@ -124,7 +125,7 @@ do
 			share_name="EliteBook-850"
 			ip_address=22
 			if [[ "$local_host" == "hp-850-g3" ]]; then
-				diehard "Cannot mount/unmount local system." "$_script v$_version ($_updated)"
+				diehard "Cannot mount/unmount local system." "$_script v$_version"
 			else
 				handle_mount "$ip_address" "$share_name"
 			fi
@@ -133,7 +134,7 @@ do
 			share_name="HP-ProBook-6570b"
 			ip_address=21
 			if [[ "$local_host" == "hp-probook-6570" ]]; then
-				diehard "Cannot mount/unmount local system." "$_script v$_version ($_updated)"
+				diehard "Cannot mount/unmount local system." "$_script v$_version"
 			else
 				handle_mount "$ip_address" "$share_name"
 			fi
@@ -142,7 +143,7 @@ do
 			share_name="Gitea-Server"
 			ip_address=16
 			if [[ "$local_host" == "hp-8300-usdt" ]]; then
-				diehard "Cannot mount/unmount local system." "$_script v$_version ($_updated)"
+				diehard "Cannot mount/unmount local system." "$_script v$_version"
 			else
 				handle_mount "$ip_address" "$share_name"
 			fi
@@ -154,7 +155,7 @@ do
 			share_name="Lenovo-M91p"
 			ip_address=15
 			if [[ "$local_host" == "lenovo-m91p" ]]; then
-				diehard "Cannot mount/unmount local system." "$_script v$_version ($_updated)"
+				diehard "Cannot mount/unmount local system." "$_script v$_version"
 			else
 				handle_mount "$ip_address" "$share_name"
 			fi
@@ -163,7 +164,7 @@ do
 			share_name="HP-800-G2"
 			ip_address=10
 			if [[ "$local_host" == "hp-800g2-sff" ]]; then
-				diehard "Cannot mount/unmount local system." "$_script v$_version ($_updated)"
+				diehard "Cannot mount/unmount local system." "$_script v$_version"
 			else
 				handle_mount "$ip_address" "$share_name"
 			fi
@@ -172,7 +173,7 @@ do
 			share_name="NASD97167"
 			ip_address=4
 			if [[ "$local_host" == "NASD97167" ]]; then
-				diehard "Cannot mount/unmount local system." "$_script v$_version ($_updated)"
+				diehard "Cannot mount/unmount local system." "$_script v$_version"
 			else
 				handle_mount "$ip_address" "$share_name"
 			fi
@@ -181,7 +182,7 @@ do
 			share_name="HP-6005"
 			ip_address=11
 			if [[ "$local_host" == "hp-6005" ]]; then
-				diehard "Cannot mount/unmount local system." "$_script v$_version ($_updated)"
+				diehard "Cannot mount/unmount local system." "$_script v$_version"
 			else
 				handle_mount "$ip_address" "$share_name"
 			fi
@@ -194,4 +195,4 @@ do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version ($_updated)"
+leave "$_script v$_version"
