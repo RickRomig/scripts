@@ -4,8 +4,10 @@
 # Description  : create C source file from template
 # Dependencies : sed
 # Arguments    : new C source file
-# Author       : Richard Romig
+# Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com
+# Created      : unknown
+# Last updated : 20 May 2024
 # Comment      : C template includes GNU GPL v2 license
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,7 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -27,15 +29,13 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.7"
-readonly _updated="06 Dec 2023"
+readonly _version="3.7.24141"
+readonly _updated="20 May 2024"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 today=$(date +"%d %b %Y"); readonly today
 cur_yr=$(echo -e "\UA9 $(date +%Y)"); readonly cur_yr
-
-# Data to insert into new bash script
-# template directory, copy_holder, email_addr, email_addr1, coder, license contained in script's .conf file.
+verbose_mode="$FALSE"
 
 ## Functions ##
 
@@ -65,7 +65,7 @@ ${orange}OPTIONS:${normal}
   -c  C code
       $_script -c <filename>
   -e  Edit $_script.conf
-  -p  C++ code  
+  -p  C++ code
       $_script -p <filename>
   -u  Usage instructions
   -v  Enable verbose mode
@@ -81,7 +81,7 @@ show_me() {
 
 ## Execution ##
 
-printf "%s v%s (Updated: %s)\n" "$_script" "$_version" "$_updated"
+box "$_script v$_version"
 
 noOpt=1
 optstr=":c:ep:uv"
