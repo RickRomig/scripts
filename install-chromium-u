@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, 05 Jul 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jul 2020
-# Updated      : 17 May 2024
+# Updated      : 20 May 2024
 # Comments     : Debian 11 bullseye, LMDE 5 elsie, BunsenLabs 11 berylium
 # TODO (Rick)  : Install and test
 # License      : GNU General Public License, version 2.0
@@ -29,8 +29,8 @@ fi
 
 _script=$(basename "$0"); readonly _script
 readonly _script
-readonly _version="4.3.24138 - beta"
-readonly _updated="17 May 2024"
+readonly _version="4.3.241341- beta"
+readonly _updated="20 May 2024"
 readonly source_list="/etc/apt/sources.list.d/home-ungoogled_chromium.list"
 readonly trusted_gpg="/etc/apt/trusted.gpg.d/home_ungoogled_chromium.gpg"
 
@@ -88,14 +88,14 @@ END_HELP
 
 show_me() {
   local message="$1"
-  [[ "$verbose_mode" = 0 ]] && echo "$message"
+  [[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
 
 ## Execution ##
 
 printf "Installs the ungoogled chromium browser on Debian-based systems.\n"
 
-verbose_mode=1
+verbose_mode="$FALSE"
 noOpt=1
 optstr=":hirv"
 while getopts "$optstr" opt; do
@@ -113,7 +113,7 @@ while getopts "$optstr" opt; do
 			remove_ungoogled_chrome
 		;;
     v )
-      verbose_mode=0
+      verbose_mode="$TRUE"
       show_me "Verbose mode enabled."
     ;;
 		? )
