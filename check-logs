@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 29 Aug 2019
-# Updated      : 29 Apr 2024
+# Updated      : 19 May 2024
 # Comments     : sudo access required to view Timeshift snapshots
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,7 +29,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="9.3.24120"
+readonly _version="9.3.24140"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -226,7 +226,7 @@ gitea_snapshots() {
   if [[ -d "$log_dir" ]]; then
     clear
     printf "%s%s - Git Repository Snapshots:%s\n\n" "$lightgreen" "$lhost" "$normal"
-    tree "$log_dir"
+    tree -CAhF --dirsfirst "$log_dir"
     printf "\n"
   else
     printf "%sGit Repository Snapshots do not exist on %s.%s\n" "$orange" "$lhost" "$normal"
