@@ -34,6 +34,7 @@ set -eu
 _script=$(basename "$0"); readonly _script
 readonly _version="<VERSION>"
 readonly _updated="<TODAY>"
+verbose_mode="$FALSE"
 
 ## Functions ##
 
@@ -71,7 +72,7 @@ app_version() {
 
 show_message() {
 	local message="$1"
-	[[ "$verbose_mode" = 0 ]] && echo "$message"
+	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
 
 ## Execution ##
@@ -104,7 +105,7 @@ while getopts "$optstr" opt; do
 			update_application
 		;;
 		v )
-			verbose_mode=0
+			verbose_mode="$TRUE"
 			show_message "Verbose mode enabled."
 		;;
 		: )
