@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Dec 2018
-# Updated      : 21 May 2024
+# Updated      : 22 May 2024
 # Comment      : copies .conkyrc to conkyrc-hostname for archiving purposes.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="6.0.24142"
+readonly _version="6.1.24143"
 readonly _updated="21 May 2024"
 readonly repository="configs/raw/branch/main/"
 readonly template_d="$HOME/bin/Templates"
@@ -113,12 +113,13 @@ remove_conky() {
   printf "Removing Conky and its configuration files...\n"
   show_me "Removing conky..."
   sudo apt-get remove --purge -yy conky
-  show_me "Removing start-conky.sh"
-  [[ -d "$localbin_d" ]] && rm -rf "$localbin_d"
-  show_me "Removing conky.desktop"
-  [[ -d "$autostart_d" ]] && rm -rf "$autostart_d"
-  show_me "Removing conky.conf"
-  [[ -d "$conf_d" ]] && rm -rf"$conf_d"
+  show_me "Removing cnnky configuration files..."
+  [[ -d "$localbin_d" ]] && { show_me "Removing start-conky.sh";  rm -rf "$localbin_d"; }
+  [[ -d "$autostart_d" ]] && { show_me "Removing conky.desktop"; rm -rf "$autostart_d"; }
+  [[ -d "$conf_d" ]] && { show_me "Removing conky.conf"; rm -rf"$conf_d"; }
+  [[ -d "$conf_d/backup/conky" ]] && { show_me "Removing conky.conf backup file."; rm "$conf_d.backup/conky"; }
+  [[ -f "$HOME/.conkyrc" ]] && { show_me "Removing .conkyrc."; rm "$HOME/.conkyrc"; }
+  [[ -d "$conf_d/backup/.conkyrc" ]] && { show_me "Removing conky.conf backup file."; rm "$conf_d.backup/.conkyrc"; }
 }
 
 eth_name() {
