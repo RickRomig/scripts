@@ -2,18 +2,19 @@
 ################################################################################
 # Script Name  : install-conky
 # Description  : Install and configure Conky
-# Dependencies : network-manager, wget
+# Dependencies : curl network-manager wget
 # Arguments    : None
-# Author       : Copyright (C) 2018, Richard Romig, 26 December 2018
+# Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 26 Dec 2018
+# Updated      : 21 May 2024
 # Comment      : copies .conkyrc to conkyrc-hostname for archiving purposes.
-# TODO (rick)  : 
+# TODO (rick)  :
 # License      : GNU General Public License, version 2
 ###############################################################################
 
 # Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
 
 ## Load function library ##
 
@@ -24,109 +25,235 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.9"
-readonly _updated="06 Dec 2023"
-readonly template_dir="$HOME/bin/Templates"
-readonly hname="${HOSTNAME:-$(hostname)}"
+readonly _version="6.0.24142"
+readonly _updated="21 May 2024"
+readonly repository="configs/raw/branch/main/"
+readonly template_d="$HOME/bin/Templates"
+readonly localbin_d="$HOME/.local/bin"
+readonly autostart_d="$HOME/.config/autostart"
+readonly conf_d="$HOME/.config/conky"
+verbose_mode="$FALSE"
 
 ## Functions ##
 
-check_dependencies() {
-  local packages=( network-manager wget )
-  check_packages "${packages[@]}"
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+	-c	Install conky.conf
+	-d	Install conky.desktop & start-conky.sh
+	-e	Edit conky.comf
+	-h	Display help
+	-i	Install conky
+	-r	Remove conky & configuration files
+	-v	Enable verbose mode
+$_script $_version (Updated $_updated)
+END_HELP
+  exit "$errcode"
 }
 
-cfg_desktop() {
-  [[ -d "$HOME/.config/autostart" ]] || mkdir -p "$HOME/.config/autostart"
-  pushd "$HOME/.config/autostart/" > /dev/null 2>&1 || die "pushd failed"
-
-  if [[ -f Conky.desktop || -f conky.desktop ]]; then
-    echo "conky.desktop aleady exits."
-    [[ -f Conky.desktop ]] && mv Conky.desktop conky.desktop
-  else
-    cp "$template_dir/conky.desktop.txt" ./conky.desktop
-    echo "conky.desktop configured."
+bl_antix_mx() {
+  if bunsenlabs || antix_mx; then
+    printf "Conky is pre-installed on BunsenLabs, antiX, and MX Linux.\n"
+    printf "Use the distibution's Conky Manager to configure conky.\n"
+    exit
   fi
+}
 
-  popd > /dev/null 2>&1 || die "popd failed"
+show_me() {
+  local message="$1"
+  [[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+}
+
+check_dependencies() {
+  local packages=( curl network-manager wget )  # wget is used in conky.conf
+  check_packages "${packages[@]}"
 }
 
 conky_ver() {
   conky --version | head -n1 | cut -d' ' -f2
 }
 
-## Execution ##
-
-check_dependencies
-
-clear
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-printf "Installs conky, sets up conky.desktop and creates .conkyrc.\n"
-
-# Install conky if not already installed
-
-if bunsenlabs || antix_mx; then
-  leave "Conky is pre-installed. Use the Conky Manager to configure conky."
-elif exists conky; then
-  printf "\nConky versino %s is already installed.\n" "$(conky_ver)"
-else
+install_conky() {
   printf "\nInstalling conky...\n"
+  show_me "Updating apt cache"
   sudo apt update -qq
-  if sudo apt install -yyq conky; then
-    printf "Conky version %s installed.\n" "$(conky_ver)"
+  show_me "Installing conky and dependencies"
+  sudo apt install -yyq conky
+  printf "Conky version %s installed.\n" "$(conky_ver)"
+}
+
+conky_desktop() {
+  [[ -d "$autostart_d" ]] || mkdir -p "$autostart_d"
+  if [[ -f "$autostart_d/Conky.desktop" || -f "$autostart_d/conky.desktop" ]]; then
+    echo "conky.desktop aleady exists."
+    [[ -f "$autostart_d/Conky.desktop" ]] && mv "$autostart_d/Conky.desktop" "$autostart_d/conky.desktop"
   else
-    status="$?"
-    die "Conky installation failed." "$status"
+    show_me "Downloading conky.desktop from the Gitea server to .config/autostart"
+    curl -so "$autostart_d/conky.desktop" "$Gitea_URL/$repository/autostart/conky.desktop"
+    # cp "$template_d/conky.desktop.txt" "$autostart_d/conky.desktop"
+    echo "conky.desktop configured."
   fi
-fi
+}
 
-# Copy Conky.desktop to ~/.config/autostart if not present
-cfg_desktop
+start_script() {
+  [[ -d "$localbin_d" ]] || mkdir -p "$localbin_d"
+  if [[ ! -f "$localbin_d/start-conky.sh" ]]; then
+    show_me "Downloading start-conky.sh from the Gitea server to .local/bin"
+    curl -so "$localbin_d/start-conky.sh" "$Gitea_URL/$repository/local/bin/start-conky.sh"
+    printf "start-conky.sh installed.\n"
+  fi
+}
 
-# Find the number of CPU cores/threads
-ncpu=$(/usr/bin/nproc --all)
+remove_conky() {
+  printf "Removing Conky and its configuration files...\n"
+  show_me "Removing conky..."
+  sudo apt-get remove --purge -yy conky
+  show_me "Removing start-conky.sh"
+  [[ -d "$localbin_d" ]] && rm -rf "$localbin_d"
+  show_me "Removing conky.desktop"
+  [[ -d "$autostart_d" ]] && rm -rf "$autostart_d"
+  show_me "Removing conky.conf"
+  [[ -d "$conf_d" ]] && rm -rf"$conf_d"
+}
 
-# Find device names
-if [[ -x /usr/bin/nmcli ]]; then
+eth_name() {
   e_name=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
+  [[ "$e_name" ]] || e_name="eth0"
+  echo "$e_name"
+}
+
+wlan_name() {
   w_name=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
-else
-  e_name=$(ip ad show | awk '/: en/ {print $2}' | sed 's/:$//')
-  w_name=$(ip ad show | awk '/: wl/ {print $2}' | sed 's/:$//')
-fi
-[[ -z "$e_name" ]] && e_name="eth0"
-[[ -z "$w_name" ]] && w_name="wlan0"
-b_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
-[[ -z "$b_name" ]] && b_name="BAT0"
+  [[ "$w_name" ]] || w_name="wlan0"
+  echo "$w_name"
+}
 
-# Display network and battery device names and number of cores
-printf "Battery device name:\t%s\n" "$b_name"
-printf "Ethernet device name:\t%s\n" "$e_name"
-printf "Wireless device name:\t%s\n" "$w_name"
-printf "CPU cores/threads:\t%s\n" "$ncpu"
+bat_name() {
+  b_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
+  [[ "$b_name" ]] || b_name="BAT0"
+  echo "$b_name"
+}
 
-# Configure ~/.conkyrc using template
+cpu_cores() {
+  ncpu=$(/usr/bin/nproc --all)
+  echo "$ncpu"
+}
 
-sed -e '1d' \
+configure_conky() {
+  [[ -d "$conf_d" ]] || mkdir -p "$conf_d"
+  # Display network and battery device names and number of cores
+  printf "%-24s%s\n" "Battery device name:" "$(bat_name)"
+  printf "%-24s%s\n" "Ethernet device name:" "$(eth_name)"
+  printf "%-24s%s\n" "Wireless device name:" "$(wlan_name)"
+  printf "%-24s%s\n" "CPU cores/threads:" "$(cpu_cores)"
+
+  show_me "Configuring conky.conf with device names"
+  sed -e '1d' \
     -e "s/<BAT>/$b_name/g" \
     -e "s/<EN>/$e_name/g" \
-    -e "s/<WL>/$e_name/g" "$template_dir/conkyrc" > "$HOME/.conkyrc"
-case "$ncpu" in
-  1 ) sed -i '57,63d' "$HOME/.conkyrc" ;;
-  2 ) sed -i '58,63d' "$HOME/.conkyrc" ;;
-  3 ) sed -i '59,63d' "$HOME/.conkyrc" ;;
-  4 ) sed -i '60,63d' "$HOME/.conkyrc" ;;
-  5 ) sed -i '61,63d' "$HOME/.conkyrc" ;;
-  6 ) sed -i '62,63d' "$HOME/.conkyrc" ;;
-  7 ) sed -i '63d' "$HOME/.conkyrc" ;;
-  * ) ;;
-esac
+    -e "s/<WL>/$e_name/g" "$template_d/conkyrc" > "$conf_d/conky.conf"
 
-printf "\n.conkyrc created and configgured.\n"
+    show_me "Configuring CPU cores/threads"
+    case "$ncpu" in
+      1 )
+        sed -i '57,63d' "$conf_d/.conky.conf"
+        show_me "$ncpu core configured."
+      ;;
+      2 )
+        sed -i '58,63d' "$conf_d/.conky.conf"
+        show_me "$ncpu cores configured."
+      ;;
+      3 )
+        sed -i '59,63d' "$conf_d/.conky.conf"
+        show_me "$ncpu cores configured."
+      ;;
+      4 )
+        sed -i '60,63d' "$conf_d/.conky.conf"
+        show_me "$ncpu cores configured."
+      ;;
+      5 )
+        sed -i '61,63d' "$conf_d/.conky.conf"
+        show_me "$ncpu cores configured."
+      ;;
+      6 )
+        sed -i '62,63d' "$conf_d/.conky.conf"
+        show_me "$ncpu cores configured."
+      ;;
+      7 )
+        sed -i '63d' "$conf_d/.conky.conf"
+        show_me "$ncpu cores configured."
+      ;;
+      8 )
+        show_me "$ncpu cores configured."
+      ;;
+    * )
+      printf "%s More cores than template allows for. Modify template to accomodate.\n" "$red_warning"
+  esac
+  if [[ -f "$HOME/.conkyrc" ]]; then
+    show_me "Removing .conkyrc"
+    rm "$HOME/.conkyrc"
+  fi
+  # shellcheck disable=SC2088
+  printf "~/.config/conky/conky.conf configured.\n"
+}
 
-edit_view_quit "$HOME/.conkyrc"
+## Execution ##
 
-leave "Please reboot or log out and log in again to complete the installation."
+# clear
+bl_antix_mx
+printf "Installs conky, sets up conky.desktop and creates .conky.conf.\n"
+
+noOpt=1
+optstr=":cdehirv"
+while getopts "$optstr" opt; do
+	case "$opt" in
+    c )
+      exists conky || leave "Conky is not installed."
+      configure_conky
+      edit_view_quit "$conf_d/conky.conf"
+    ;;
+    d )
+      exists conky || leave "Conky is not installed."
+      conky_desktop
+      start_script
+    ;;
+    e )
+      "$EDITOR" "$conf_d/conky.conf"
+    ;;
+		h )
+			help 0
+		;;
+		i )
+      exists conky && leave "Conky $(conky_ver) is already installed."
+      sudo_login 2
+      check_dependencies
+      install_conky
+      configure_conky
+      conky_desktop
+      start_script
+      edit_view_quit "$conf_d/conky.conf"
+		;;
+		r )
+      exists conky || leave "Conky is not installed."
+	    sudo_login 2
+			remove_conky  # remove conky, conky.conf, conky.desktop, start-conky.sh
+		;;
+		v )
+			verbose_mode="$TRUE"
+			show_message "Verbose mode enabled."
+		;;
+		? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			help 2
+	esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
+box "$_script v$_version"
+exit
