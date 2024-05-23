@@ -4,20 +4,22 @@
 # Description  : Verifies SHA256, SHA512, and MD5 checksums of ISO files
 # Dependencies : fzf (optional), zenity (optional)
 # Arguments    : see help function
-# Author       : Copyright (C) 2022, Richard B. Romig, 09 Apr 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
+# Crated       : 09 Apr 2022
+# Updated      : 22 May 2024
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
 #              : .md5, .sha256, or .sha512
 #              : Options for fuzzy finder (fzf) and zenity
-# TODO (Rick)  : value too great for base (error token is "64bit") on #10 with select menu
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034,SC2207
+# shellcheck disable=SC2034,SC2207
 
 ## Source function library ##
 
@@ -31,8 +33,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.8.2"
-readonly _updated="13 Feb 2024"
+readonly _version="8.2.24133"
+readonly _updated="22 May 2024"
 init_dir=$(pwd)
 
 ## Functions ##
@@ -56,6 +58,7 @@ END_HELP
 }
 
 select_iso_directory() {
+	local options opt
 	local iso_dir="${HOME}/Downloads/ISO"
 	under_line "ISO Directories" "*"
 	PS3="Select an ISO directory: "
@@ -121,6 +124,11 @@ select_iso_directory() {
 				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
 				break
 			;;
+			10 )
+				pushd "$iso_dir/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-18s %s/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
 			11 )
 				pushd "$iso_dir/$opt" > /dev/null || die "pushd failed!"
 				printf "\n%-18s %s/%s\n" "ISO directory:" "$iso_dir" "$opt"
@@ -136,9 +144,7 @@ select_iso_directory() {
 }
 
 select_iso() {
-	local num_iso
-	local opt
-	local options
+	local num_iso opt options
 	num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
 	[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
 
@@ -170,16 +176,19 @@ zen_select_iso() {
 	local file
 	file=$(zenity --file-selection --file-filter='ISO files (iso) | *.iso' --file-filter='All files | *' --title="Select an ISO file.")
 	case "$?" in
-		0 ) isofile="$(basename "$file")" ;;
-		1 ) echo "$file not selected." ;;
-		-1 ) echo "$file not selected"
+		0 )
+			isofile="$(basename "$file")"
+		;;
+		1 )
+			echo "$file not selected."
+		;;
+		-1 )
+			echo "$file not selected"
 	esac
 }
 
 select_checksum() {
-	local num_files
-	local opt
-	local options
+	local num_files opt options
 	num_files=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | wc -l)
 	[[ "$num_files" = 0 ]] && diehard "No checksum files found." "$_script $_version ($_updated)"
 
@@ -211,9 +220,14 @@ zen_select_checksum() {
 	local file
 	file=$(zenity --file-selection --file-filter='checksum files (md5,sha256,sha512) | *.md5 *.sha256 *.sha512' --file-filter='All files | *' --title="Select a checksum file.")
 	case "$?" in
-		0 ) checksum="$(basename "$file")" ;;
-		1 ) echo "$file not selected." ;;
-		-1 ) echo "$file not selected"
+		0 )
+			checksum="$(basename "$file")"
+		;;
+		1 )
+			echo "$file not selected."
+		;;
+		-1 )
+			echo "$file not selected"
 	esac
 }
 
@@ -268,8 +282,8 @@ status_msg() {
 }
 
 check_checksum() {
-  local file="$1"
 	local lines
+  local file="$1"
   lines=$(wc -l "$file" | cut -d' ' -f1)
   [[ "$lines" -eq 1 ]] && return "$TRUE" || return "$FALSE"
 }
