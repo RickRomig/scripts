@@ -4,8 +4,10 @@
 # Description  : Copies an ISO file to a USB drive using dd
 # Dependencies : fzf (optional), zenity (optional)
 # Arguments    : see help function
-# Author       : Copyright (C) 2023, Richard B. Romig, 18 Feb 2023
+# Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 18 Feb 2023
+# Updated      : 22 May 2024
 # Comments     : Testing indicates USB drive need to be mounted.
 #              : Works with fuzzy finder (fzf) or zenity, if installed.
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
@@ -30,14 +32,16 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.5"
-readonly _updated="13 Feb 2024"
+readonly _version="5.5.24143"
+readonly _updated="22 May 2024"
 user=$(whoami)
 dryrun="$FALSE"
 init_dir=$(pwd)
 
 ## Functions ##
 
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
 	[[ -f "$devfile" ]] && rm -f "$devfile"
 }
@@ -62,6 +66,7 @@ check_usb_drive() {
 }
 
 select_iso_directory() {
+	local options opt
 	local iso_dir="${HOME}/Downloads/ISO"
 	under_line "ISO Directories" "*"
 	PS3="Select an ISO directory: "
@@ -127,6 +132,11 @@ select_iso_directory() {
 				printf "\n%-16s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
 				break
 			;;
+			10 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-16s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
 			11 )
 				pushd "$iso_dir/$opt" > /dev/null || die "pushd failed!"
 				printf "\n%-16s %s/%s\n" "ISO directory:" "$iso_dir" "$opt"
@@ -143,7 +153,7 @@ select_iso_directory() {
 
 # List available ISO files and select file to write
 select_iso() {
-	local num_iso
+	local num_iso options opt
 	num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
 	[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
 
@@ -175,14 +185,20 @@ zen_select_iso() {
 	local file
 	file=$(zenity --file-selection --file-filter='ISO files (iso) | *.iso' --file-filter='All files | *' --title="Select an ISO file.")
 	case "$?" in
-		0 ) isofile="$(basename "$file")" ;;
-		1 ) echo "$file not selected." ;;
-		-1 ) echo "$file not selected"
+		0 )
+			isofile="$(basename "$file")"
+		;;
+		1 )
+			echo "$file not selected."
+		;;
+		-1 )
+			echo "$file not selected"
 	esac
 }
 
 # List removable devices and select device to write to
 select_usb() {
+	local options opt
 	printf "Available drives:\n"
 	lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL | awk '$2 == "disk" && $1 == "1" {print $0}' | awk '{$1=$1}1' | sed 's/1//;s/disk //'
 	print_line "-" 40
@@ -342,4 +358,4 @@ else
 	fi
 fi
 if [[ "$init_dir" != "$PWD" ]]; then popd > /dev/null || printf "%s popd failed!" "$red_error" >&2; fi
-leave "$_script v$_version (Updated: $_updated)"
+leave "$_script v$_version"
