@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 30 Jul 2020
-# Updated      : 29 Apr 2024
+# Updated      : 22 May 2024
 # Comments     : Obtains battery data from upower utility.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.4.24120"
-readonly _updated="29 Apr 2024"
+readonly _version="4.4.24143"
+readonly _updated="22 May 2024"
 
 ## Functions ##
 
@@ -71,8 +71,7 @@ battery_capacity() {
 }
 
 warning_level() {
-  local energy_design
-  local energy_actual
+  local energy_design energy_actual
   energy_design=$(awk '/energy-full-design:/ {printf "%i", $2}' "$battery_data")
   energy_actual=$(awk '/energy-full:/ {printf "%i", $2}' "$battery_data")
   if [[ "$energy_actual" -eq 0 || "$energy_design" -eq 0 ]]; then
@@ -83,8 +82,7 @@ warning_level() {
 }
 
 battery_condition() {
-  local warn
-  local warn_level
+  local warn warn_level
   warn_level="$(warning_level)"
   # warn_level="$?"
   if [[ "$warn_level" -le "0" ]]; then
@@ -102,8 +100,7 @@ battery_condition() {
 }
 
 battery_specs() {
-  local battery_serial
-  local battery_tech
+  local battery_serial battery_tech
   battery_serial=$(awk -F: '/serial/ {print $NF}' "$battery_data" | awk '{$1=$1}1')
   [[ -z "$battery_serial" ]] && battery_serial="Not specified"
   battery_tech=$(awk -F: '/technology/ {print $NF}' "$battery_data" | awk '{$1=$1}1')
