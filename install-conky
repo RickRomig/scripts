@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Dec 2018
-# Updated      : 22 May 2024
+# Updated      : 24 May 2024
 # Comment      : copies .conkyrc to conkyrc-hostname for archiving purposes.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2
@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="6.1.24143"
-readonly _updated="21 May 2024"
+readonly _version="6.2.24145"
+readonly _updated="24 May 2024"
 readonly repository="configs/raw/branch/main/"
 readonly template_d="$HOME/bin/Templates"
 readonly localbin_d="$HOME/.local/bin"
@@ -56,10 +56,13 @@ END_HELP
   exit "$errcode"
 }
 
-bl_antix_mx() {
+bl_antix_mx_i3() {
   if bunsenlabs || antix_mx; then
     printf "Conky is pre-installed on BunsenLabs, antiX, and MX Linux.\n"
     printf "Use the distibution's Conky Manager to configure conky.\n"
+    exit
+  elif [[ $(/usr/bin/wmctrl -m | awk '/Name:/ {print $2}') == "i3" ]]; then
+    printf "Window manager is i3wm. This installation of Conky is not necessry.\n"
     exit
   fi
 }
@@ -114,12 +117,12 @@ remove_conky() {
   show_me "Removing conky..."
   sudo apt-get remove --purge -yy conky
   show_me "Removing cnnky configuration files..."
-  [[ -d "$localbin_d" ]] && { show_me "Removing start-conky.sh";  rm -rf "$localbin_d"; }
-  [[ -d "$autostart_d" ]] && { show_me "Removing conky.desktop"; rm -rf "$autostart_d"; }
-  [[ -d "$conf_d" ]] && { show_me "Removing conky.conf"; rm -rf"$conf_d"; }
-  [[ -d "$conf_d/backup/conky" ]] && { show_me "Removing conky.conf backup file."; rm "$conf_d.backup/conky"; }
+  [[ -f "$localbin_d/start-conky.sh" ]] && { show_me "Removing start-conky.sh"; rm "$localbin_d/start-conky.sh"; }
+  [[ -f "$autostart_d/conky.desktop" ]] && { show_me "Removing conky.desktop"; rm "$autostart_d/conky.desktop;"; }
+  [[ -d "$conf_d" ]] && { show_me "Removing conky.conf"; rm -rf "$conf_d"; }
+  [[ -d "$conf_d/backup/conky" ]] && { show_me "Removing conky.conf backup file."; rm "$conf_d/backup/conky"; }
   [[ -f "$HOME/.conkyrc" ]] && { show_me "Removing .conkyrc."; rm "$HOME/.conkyrc"; }
-  [[ -d "$conf_d/backup/.conkyrc" ]] && { show_me "Removing conky.conf backup file."; rm "$conf_d.backup/.conkyrc"; }
+  [[ -d "$conf_d/backup/.conkyrc" ]] && { show_me "Removing conky.conf backup file."; rm "$conf_d/backup/.conkyrc"; }
 }
 
 eth_name() {
@@ -199,15 +202,15 @@ configure_conky() {
     show_me "Removing .conkyrc"
     rm "$HOME/.conkyrc"
   fi
-  # shellcheck disable=SC2088
+  # shellcheck disable=SC2088 # tilde does not expand in quotes
   printf "~/.config/conky/conky.conf configured.\n"
 }
 
 ## Execution ##
 
 # clear
-bl_antix_mx
 printf "Installs conky, sets up conky.desktop and creates .conky.conf.\n"
+bl_antix_mx_i3
 
 noOpt=1
 optstr=":cdehirv"
