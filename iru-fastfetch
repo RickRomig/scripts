@@ -119,11 +119,10 @@ help() {
 	cat << END_HELP
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
-	-c	Install config files
 	-h	Display help
 	-i	Install Fastfetch
 	-r	Remove Fastfetch
-	-s	Apply settings
+	-s	Apply Fastretch configuration and logo
 	-u	Update Fastfetch
 $_script $_version (Updated $_updated)
 END_HELP
@@ -134,14 +133,9 @@ END_HELP
 
 box "$_script $_version"
 noOpt=1
-optstr=":chirsu"
+optstr=":hirsu"
 while getopts "$optstr" opt; do
 	case "$opt" in
-		c )
-			exists fastfetch || leave "Fastfetch is not installed."
-			echo "${lightyellow}Installing custom Fastfetch configuration...${normal}"
-			fastfetch_config
-		;;
 		h )
 			help 0
 		;;
@@ -168,7 +162,8 @@ while getopts "$optstr" opt; do
 		;;
 		s )
 			exists fastfetch || leave "Fastfetch is not installed."
-			dl_fastfetch_config
+			echo "${lightyellow}Installing custom Fastfetch configuration...${normal}"
+			fastfetch_config
 		;;
 		u )
 			exists fastfetch || leave "Fastfetch is not installed."
