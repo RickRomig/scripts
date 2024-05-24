@@ -136,7 +136,7 @@ $ brave-browser --version | awk '{print $NF}'
 $ brave-browser --version | cut -d' ' -f3
 $ dpkg -l | awk '$2 == "brave-browser" {print $3}'	# leaves off first xxx.
 $ google-chrome-stable --version | awk '{print $NF}'
-$ google-chrome-stable --version | cut -d' ' -f3'
+$ google-chrome-stable --version | cut -d' ' -f3
 $ dpkg -l | awk '$2 == "google-chrome-stable" {print $3}' | sed 's/[+-].*//'
 $ firefox --version | awk '{print $NF}'
 $ firefox --version | cut -d' ' -f3
@@ -171,7 +171,6 @@ for battery_path in /sys/class/power_supply/BAT?; do
   fi
 done
 ```
-
 #### Find a mountable drive:
 ```bash
 $ lsblk -lp | grep "part $" | awk '{print $1, "(" $4 ")"}'
