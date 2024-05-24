@@ -44,8 +44,8 @@ ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
 	-h	Display help
 	-v	Verify ISO and checkfile
-Checksum files must be a single line specifically for the ISO file you wish to check.
-Checksum files must have a file extension of .md5, .sha256. or .sha512.
+Checksum files must be a single line specifically for the ISO file you wish to check,
+and must have a file extension of .md5, .sha256. or .sha512.
 For ease of identifying them, the basename should match the basename name of the ISO.
 
 $_script $_version (Updated $_updated)
@@ -62,6 +62,7 @@ select_checksum() {
 }
 
 check_sha256() {
+	local iso_sha src_sha
 	local iso_file="$1"
 	local sha_file="$2"
   dots "."
@@ -75,6 +76,7 @@ check_sha256() {
 }
 
 check_sha512() {
+	local iso_sha src_sha
   local iso_file="$1"
 	local sha_file="$2"
   dots "."
@@ -88,6 +90,7 @@ check_sha512() {
 }
 
 check_md5() {
+	local iso_md5 src_md5
   local iso_file="$1"
   local md5_file="$2"
   dots "."
@@ -108,7 +111,6 @@ status_msg() {
 		printf "%sThe checksums do not match.%s\n" "$lightred" "$normal"
 		printf "Verify checksum with the ISO download site.\n"
   fi
-  # printf "\n%s v%s\n" "$_script" "$_version"
 }
 
 check_checksum() {
@@ -156,7 +158,6 @@ verify() {
 
 box "$_script v$_version"
 printf "Verifies SHA256/SHA512/MD5 checksums with ISO files.\n"
-
 noOpt=1
 optstr=":hv"
 while getopts "$optstr" opt; do
@@ -165,12 +166,8 @@ while getopts "$optstr" opt; do
 			help 0
 		;;
 		v )
-			if exists fzf; then
-				check_package fzf
-				verify
-			else
-				leave "fzf (Fuzzy Finder) is not installed on this system."
-			fi
+			check_package fzf
+			verify
 		;;
 		? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
