@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Jan 2024
-# Last updated : 10 Feb 2024 Version 1.0.3
+# Last updated : 25 May 2024 Version 1.3.24146
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -17,23 +17,20 @@ set -euo pipefail
 
 arc_dir="$HOME/Downloads/archives/gitea"
 archive="gitea-bu-$(date +%y%m%d).tar.gz"
-dow=$(date +%a)
-dom=$(date +%d)
+dow=$(date +%a)		# day of week (Sun - Sat)
+dom=$(date +%d)		# day of month (1-31)
 
 daily_bu() {
-	# tar -zpcf "$arc_dir/daily/$archive" -C "$HOME" gitea
 	tar -zpcf "$arc_dir/daily/$archive" "$HOME"/gitea "$HOME"/Projects
 	find "$arc_dir/daily" -mtime +7 -delete
 }
 
 weekly_bu() {
-	# tar -zpcf "$arc_dir/weekly/$archive" -C "$HOME" gitea
 	tar -zpcf "$arc_dir/weekly/$archive" "$HOME"/gitea "$HOME"/Projects
 	find "$arc_dir/weekly" -mtime +31 -delete
 }
 
 monthly_bu() {
-	# tar -zpcf "$arc_dir/monthly/$archive" -C "$HOME" gitea
 	tar -zpcf "$arc_dir/monthly/$archive" "$HOME"/gitea "$HOME"/Projects
 	find "$arc_dir/monthly" -mtime +365 -delete
 }
@@ -43,7 +40,7 @@ monthly_bu() {
 [[ -d "$arc_dir/weekly" ]] || mkdir -p "$arc_dir/weekly"
 [[ -d "$arc_dir/monthly" ]] || mkdir -p "$arc_dir/monthly"
 
-# Snapshots
+# Snapshot schedule
 daily_bu
 [[ "$dow" == "Sun" ]] && weekly_bu
 [[ "$dom" -eq 1 ]] && monthly_bu
