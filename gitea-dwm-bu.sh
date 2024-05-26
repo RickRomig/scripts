@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : gitea-dwm-bu.sh
-# Description  : daily, weekly, monthly snapshots of gitea repositories
+# Description  : daily, weekly, monthly snapshots of git repositories
 # Dependencies : none
 # Arguments    : none
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
@@ -13,7 +13,7 @@
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
-set -euo pipefail
+set -eu
 
 arc_dir="$HOME/Downloads/archives/gitea"
 archive="gitea-bu-$(date +%y%m%d).tar.gz"
@@ -46,6 +46,6 @@ daily_bu
 [[ "$dom" -eq 1 ]] && monthly_bu
 
 # Sync archives to Gitea server
-rsync -aq --delete "$HOME"/Downloads/archives/gitea/ rick@192.168.0.16:Downloads/archives/gitea/
+# rsync -aq --delete "$HOME"/Downloads/archives/gitea/ rick@192.168.0.16:Downloads/archives/gitea/
 
 exit
