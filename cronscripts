@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 17 Feb 2022
-# Updated      : 29 Apr 2024
+# Updated      : 25 May 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.12.24120"
-readonly _updated="29 Apr 2024"
+readonly _version="5.13.24146"
+readonly _updated="25 May 2024"
 readonly user_cron_path="$HOME/.local/bin/"
 readonly opt_cron_path="/opt/bin/"
 readonly sed_path="/usr/share/misc/"
@@ -39,28 +39,27 @@ localip="$(local_ip)"
 
 cp_repo_backup() {
   case "$localip" in
-    10 )
+    10|16 )
       cp -puv "$HOME/bin/gitea-dwm-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}'
       cp -puv "$HOME/bin/gitea-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}'
       cp -puv "$HOME/bin/github-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}'
-      cp -puv "$HOME/bin/sync-nas.sh" "$user_cron_path" | awk '{print "==> "$NF}'
-      cp -puv "$HOME/bin/sync6005.sh" "$user_cron_path" | awk '{print "==> "$NF}'
-      cp -puv "$HOME/bin/journal-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}'
     ;;
     * )
       no_copy "Repository archives are"
   esac
 }
 
-cp_passwdsync() {
-  local script_path="$HOME/bin/passwdsync.sh"
-  [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
+cp_main_bu() {
   case "$localip" in
-    10 )
-      cp -puv "$script_path" "$user_cron_path" | awk '{print "==> "$NF}'
-    ;;
+  10 )
+      cp -puv "$HOME/bin/sync-nas.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      cp -puv "$HOME/bin/sync6005.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      cp -puv "$HOME/bin/journal-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      cp -puv "$HOME/bin/passwdsync.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      cp -puv $"$HOME/bin/repo-backup.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+  ;;
     * )
-      no_copy "$(basename "$script_path") is"
+      no_copy "Main system sync scripts are"
   esac
 }
 
@@ -163,7 +162,7 @@ cp_zytdlpupdate() {
 
 no_copy() {
   local script="$1"
-  printf "%s not applicable to this system and was not copied.\n" "$(basename "$script")"
+  printf "%s not applicable to this system and not copied.\n" "$(basename "$script")"
 }
 
 help() {
@@ -176,7 +175,7 @@ ${orange}OPTIONS:${normal}
   -d    Copy defrag script.
   -f    Copy Finance backup scripts.
   -h    Display Help.
-  -p    Copy password database script.
+  -m    Main PC backup
   -r    Copy repository backup scripts.
   -s    Copy script archive script.
   -t    Copy empty trash script.
@@ -193,7 +192,7 @@ END_HELP
 printf "Copies updated cron scripts to the appropriate directories.\n"
 
 noOpt=1
-optstr=":abdfhprstuy"
+optstr=":abdfhrstuy"
 while getopts "$optstr" opt; do
   case "$opt" in
     a )
@@ -222,8 +221,8 @@ while getopts "$optstr" opt; do
     h )
       help 0
     ;;
-    p )
-      cp_passwdsync
+    m )
+      cp_main_bu
     ;;
     r )
       cp_repo_backup
