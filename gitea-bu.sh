@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Oct 2023
-# Last updated : 24 Jan 2024 (Version 0.1.9)
+# Last updated : 25 May 2024 (Version 1.9.24146)
 # Comments     : Run as a daily cron job on the main system.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -35,5 +35,5 @@ fi
 tar -cpzg "$arc_dir/$snar" -f "$arc_dir/$archive" -C "$HOME" gitea
 
 # Copy archive to Gitea server.
-rsync -aq --delete "$HOME"/Downloads/archives/gitea-repo/ rick@192.168.0.16:Downloads/archives/gitea-repo/
+# rsync -aq --delete "$HOME"/Downloads/archives/gitea-repo/ rick@192.168.0.16:Downloads/archives/gitea-repo/
 exit
