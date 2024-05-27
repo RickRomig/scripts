@@ -4,8 +4,10 @@
 # Description  : Displays local weather conditions in the terminal.
 # Dependencies : curl, jq (JSON processor)
 # Arguments    : location (optional)
-# Author       : Copyright (C) 2021, Richard B. Romig, 14 Jul 2021
+# Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 14 Jul 2021
+# Updated      : 27 May 2024
 # Comments     : Based on script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,7 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -27,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.5"
-readonly _updated="18 Mar 2024"
+readonly _version="6.5.24148"
+readonly _updated="27 May 2024"
 location="${1:-Huber+Heights}"
 
 ## Functions ##
@@ -54,16 +56,19 @@ timeout_exit() {
 show_help() {
   cat << END_HELP
 ${orange}Usage:${normal} $_script [location]
-Example 1: $_script Cincinnati
-Example 2: $_script New+York
-Example 3: $_script "Los Angeles"
+Exampl 1: $_script  # Uses default location
+Example 2: $_script Cincinnati
+Example 3: $_script New+York
+Example 4: $_script "Los Angeles"
 * Locations with spaces must have a '+' in place of the space
   or be enclosed in double quotes.
 * A US state can be indicated with a comma after the city name.
   Kettering,OH or Kettering, OH
 * If no location is passed, the default location will be used.
-* 3-digit airport codes can be used as a location (LAX, ATL, DAY)
-For help: $_script -h or $_script --help, or Choice 3 in the menu.
+* 3-digit airport codes can be used as a location (LAX, ATL, DAY).
+* Menu options include current conditions, 3-day forecast, change locations, and help.
+* For help: $_script -h or $_script --help or Choice 4 in the menu.
+$_script v$_version, $_updated
 END_HELP
 }
 
@@ -106,7 +111,7 @@ current_wx() {
   uv_warning
 
   # Display current conditions
-  clear
+  # clear
   box "$_script v$_version ($_updated)"
   if [[ -n "$json" ]]; then
     printf "\n%sLocation:%s %s, %s\n" "$green" "$normal" "$city" "$state"
@@ -203,14 +208,15 @@ uv_warning() {
 
 ## Execution ##
 
+[[ "$1" == "-h" || "$1" == "--help" ]] && { show_help; exit; }
+
 trap cleanup EXIT
 
 check_dependencies
 
 while true; do
-  clear
-  box "$_script v$_version ($_updated)"
-  # under_line "$(echo "$location" | sed 's/[+_]/ /g')"
+  # clear
+  box "$_script v$_version"
   under_line "${location//[+_]/ }"
   COLUMNS="40"
   options=(
