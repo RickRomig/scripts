@@ -76,7 +76,6 @@ current_wx() {
   local wx_loc="$1"
   local url="http://wttr.in/$wx_loc?format=j1"
   json=$(curl -s "$url")
-  # echo "$json" | grep -q 'Unknown location' && die "Location not available from http://wttr.in. Try again later." 1
   echo "$json" | grep -q 'Unknown location' && { echo "Location not available from http://wttr.in. Try again later."; return 1; }
 
   # Location data
