@@ -76,6 +76,7 @@ current_wx() {
   local wx_loc="$1"
   local url="http://wttr.in/$wx_loc?format=j1"
   json=$(curl -s "$url")
+  echo "$json" | grep -q 'Unknown location' && die "Location not available from http://wttr.in. Try again later." 1
 
   # Location data
   city=$(echo "$json"|jq -r ."nearest_area[0]|(.areaName[0].value)")
@@ -111,7 +112,7 @@ current_wx() {
   uv_warning
 
   # Display current conditions
-  # clear
+  clear
   box "$_script v$_version ($_updated)"
   if [[ -n "$json" ]]; then
     printf "\n%sLocation:%s %s, %s\n" "$green" "$normal" "$city" "$state"
@@ -215,7 +216,7 @@ trap cleanup EXIT
 check_dependencies
 
 while true; do
-  # clear
+  clear
   box "$_script v$_version"
   under_line "${location//[+_]/ }"
   COLUMNS="40"
