@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 27 May 2024
+# Updated      : 28 May 2024
 # Comments     : Based on script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -26,11 +26,13 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="6.5.24148"
-readonly _updated="27 May 2024"
+readonly _version="6.6.24149"
+readonly _updated="28 May 2024"
 location="${1:-Huber+Heights}"
 
 ## Functions ##
@@ -76,7 +78,7 @@ current_wx() {
   local wx_loc="$1"
   local url="http://wttr.in/$wx_loc?format=j1"
   json=$(curl -s "$url")
-  echo "$json" | grep -q 'Unknown location' && { echo "Location not available from http://wttr.in. Try again later."; return 1; }
+  echo "$json" | grep -q 'Unknown location' && { echo "Location data not available from http://wttr.in. Try again later."; return 1; }
 
   # Location data
   city=$(echo "$json"|jq -r ."nearest_area[0]|(.areaName[0].value)")
@@ -113,8 +115,8 @@ current_wx() {
 
   # Display current conditions
   clear
-  box "$_script v$_version ($_updated)"
-  if [[ -n "$json" ]]; then
+  box "$_script v$_version"
+  if [[ "$json" ]]; then
     printf "\n%sLocation:%s %s, %s\n" "$green" "$normal" "$city" "$state"
     printf "%sLat/Long:%s %s, %s\n\n" "$green" "$normal" "$latitude" "$longitude"
     printf "%sCurrent conditions:%s\n" "$green" "$normal"
@@ -138,7 +140,7 @@ wx_forecast() {
   local wx_loc="$1"
   tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
   clear
-  box "$_script v$_version ($_updated)"
+  box "$_script v$_version"
   printf "\n"
   if curl -so "$tmp_file" "$url/$wx_loc"; then
     sed '1 s/:.*//;/Follow/d' "$tmp_file"
@@ -209,7 +211,9 @@ uv_warning() {
 
 ## Execution ##
 
-[[ "$1" == "-h" || "$1" == "--help" ]] && { show_help; exit; }
+if [[ "$#" -gt 0 ]]; then
+  [[ "$1" == "-h" || "$1" == "--help" ]] && { show_help; exit; }
+fi
 
 trap cleanup EXIT
 
