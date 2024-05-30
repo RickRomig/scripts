@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Apr 2023
-# Updated      : 18 May 2024
+# Updated      : 29 May 2024
 # Comments     : Assumes i3wm, polybar, rofi, dunst have been installed
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,12 +28,12 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.1.24139"
-readonly _updated="18 May 2024"
+readonly _version="3.2.24150"
+readonly _updated="29 May 2024"
 readonly repository="configs/raw/branch/main/"
 readonly local_repo="$HOME/gitea/configs"
 readonly config_dir="$HOME/.config"
-readonly bin_dir="$HOME/.local/bin"
+# readonly bin_dir="$HOME/.local/bin"
 localip="$(local_ip)"; readonly localip
 
 ## Functions ##
@@ -100,7 +100,7 @@ copy_i3_config() {
 
 copy_all_i3_configs() {
 	local i3file
-	local i3files=( "config" "sxhkdrc" "workspaces.conf" "autostart.sh" "logout" "bindings.list" )
+	local i3files=( "config" "sxhkdrc" "workspaces.conf" "autostart.sh" "logout" "dmconf.sh" "bindings.list" )
 	for i3file in "${i3files[@]}"; do copy_i3_config "$i3file"; done
 }
 
@@ -126,19 +126,19 @@ configure_polybar() {
 	w_name=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
 	b_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
 	if [[ "$w_name" ]]; then
-		sed -i "s/wlan0/$w_name/" "$$config_dir/polybar/$cfg_file"
+		sed -i "s/wlan0/$w_name/" "$config_dir/polybar/$cfg_file"
 	else
-		sed -i '/^modules-right/s/ wlan//' "$$config_dir/polybar/$cfg_file"
+		sed -i '/^modules-right/s/ wlan//' "$config_dir/polybar/$cfg_file"
 	fi
 	if [[ "$e_name" ]]; then
 		sed -i "s/eth0/$e_name/" "$$config_dir/polybar/$cfg_file"
 	else
-		sed -i '/^modules-right/s/ eth//' "$$config_dir/polybar/$cfg_file"
+		sed -i '/^modules-right/s/ eth//' "$config_dir/polybar/$cfg_file"
 	fi
 	if [[ "$b_name" ]]; then
-		sed -i "s/BAT0/$b_name/" "$$config_dir/polybar/$cfg_file"
+		sed -i "s/BAT0/$b_name/" "$config_dir/polybar/$cfg_file"
 	else
-		sed -i '/^modules-right/s/ battery//' "$$config_dir/polybar/$cfg_file"
+		sed -i '/^modules-right/s/ battery//' "$config_dir/polybar/$cfg_file"
 	fi
 }
 
@@ -146,10 +146,9 @@ copy_polybar_launch() {
 	local file="polybar-i3"
 	printf "Copying the Polybar launch script from the Gitea server...\n"
 	if [[ "$localip" == "16" ]]; then
-		cp -p "$HOME/gitea/i3debian/.local/bin/$file" "$HOME/.local/bin/"
+		cp "$local_repo/polybar/$file" "$config_dir/polybar/"
 	else
-		local repo_path="i3debian/raw/branch/main/.local/bin"
-		curl -so "$bin_dir/$file" "$Gitea_URL/$repo_path/$file"
+		curl -so "$config_dir/polybar/$file" "$Gitea_URL/$repository/$file"
 	fi
 	printf "%s copied from the Gitea Server.\n" "$file"
 }
@@ -179,10 +178,9 @@ copy_dunst_config() {
 copy_dmconf() {
 	local file="dmconf.sh"
 	if [[ "$localip" == "16" ]]; then
-		cp -p "$HOME/gitea/i3debian/.local/bin/$file" "$HOME/.local/bin/"
+		cp -p "$local_repo/i3/$file" "$config_dir/i3/"
 	else
-		local repo_path="i3debian/raw/branch/main/.local/bin"
-		curl -so "$bin_dir/$file" "$Gitea_URL/$repo_path/$file"
+		curl -so "$config_dir/i3/$file" "$Gitea_URL/$repository/i3/$file"
 	fi
 	printf "%s copied from the Gitea Server.\n" "$file"
 }
@@ -222,7 +220,7 @@ while getopts "$optstr" opt; do
 			copy_polybar_launch
 			copy_rofi_config
 			copy_dunst_config
-			copy_dmconf
+			# copy_dmconf
 		;;
 		h )
 			help 0
