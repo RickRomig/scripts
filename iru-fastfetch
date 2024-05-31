@@ -46,7 +46,7 @@ cleanup() {
 }
 
 check_dependencies() {
-  local packages=( gdebi wget )
+  local packages=( curl gdebi wget )
   check_packages "${packages[@]}"
 }
 
@@ -153,7 +153,7 @@ while getopts "$optstr" opt; do
 			install_fastfetch
 			fastfetch_config
 			sed -i '/neofetch/s/^\[/# \[/' "$HOME/.bashrc"		# Comments call to neofetch
-			echo "[[ -x /usr/bin/fastfetch ]] && /usr/bin/fastfetch" | tee -a "$HOME/.bashrc"
+			grep -qw 'fastfetch' "$HOME/.bashrc" && echo '[[ -x /usr/bin/fastfetch ]] && /usr/bin/fastfetch' | tee -a "$HOME/.bashrc"
 		;;
 		r )
 			exists fastfetch || leave "Fastfetch is not installed."
