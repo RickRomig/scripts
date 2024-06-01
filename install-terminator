@@ -7,7 +7,7 @@
 # Author       :Copyright (C) 2020 Richard B. Romig, 14 Dec 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 09 May 2024
+# Updated      : 01 Jun 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -15,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -26,11 +25,11 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="6.9/24130"
-readonly _updated="09 May 2024"
+readonly _version="6.10.24153"
+readonly _updated="01 Jun 2024"
 readonly term_cfg_d=$HOME"/.config/terminator"
 
 ## Functions ##
@@ -45,8 +44,8 @@ ${green}OPTIONS:${normal}
   -i  Installs Terminator & configuration files.
   -r  Removes Terminator & configuration files.
 ${bold}NOTES:${normal}
-  1. Script will not overwrite Terminator config for BunsenLabs installation.
-     Configuration changes should be made through the Preferences menu.
+  1. Script will not overwrite Terminator config for BunsenLabs installations.
+     Configuration changes should be made through the Terminator Preferences menu.
   2. For Debian and Debian-based distributions (Antix, MX Linux, LMDE),
      Terminator will be configured as a login shell.
 $_script v$_version ($_updated)
@@ -56,6 +55,7 @@ END_HELP
 
 remove_terminator() {
   local term_cfg_d_bu="{$HOME}/backup/terminator"
+  echo "Removing terminator $(terminator_version) ancd configuration files..."
   sudo apt-get purge terminator
   find "$HOME/.config/" -maxdepth 2 -type d -name "terminator" -exec rm -rf {} \;
   [[ -d "$term_cfg_d" ]] && rm -rf "$term_cfg_d"
@@ -64,6 +64,7 @@ remove_terminator() {
 }
 
 install_terminator() {
+  echo "Installing terminator..."
   sudo apt-get update -yyq
   sudo apt-get install terminator -yy
   if bunsenlabs; then
@@ -78,6 +79,7 @@ install_terminator() {
 apply_config() {
   local repsoitory="configs/raw/branch/main/terminator"
   local term_cfg="config"
+  echo "Appling Terminator configuration..."
   [[ -d "$term_cfg_d" ]] || mkdir -p "$term_cfg_d"
   curl -so "$term_cfg_d/$term_cfg" "$Gitea_URL/$repsoitory/$term_cfg"
   is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg_d/config"
@@ -89,7 +91,7 @@ terminator_version() {
 
 ## Execution ##
 
-echo -e  "Installs or removes Terminator with config and Cascadia Code font.\n"
+echo -e  "Installs or removes Terminator with config.\n"
 
 noOpt=1
 optstr=":chir"
@@ -99,7 +101,7 @@ while getopts "$optstr" opt; do
       exists terminator || leave "Terminator is not installed."
       if bunsenlabs; then
         echo "Terminator configuration for BunsenLabs was not overwritten."
-        leave "Configuration changes should be made through the Preferences menu."
+        leave "Configuration changes should be made through the Terminator Preferences menu."
       else
         apply_config
         leave "Terminator configuration file written."
