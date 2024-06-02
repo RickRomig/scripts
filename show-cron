@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, 6 March 2018
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Mar 2018
-# Updated      : 05 May 2024
+# Updated      : 02 Jun 2024
 # Comments     : Requires sudo privileges
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -70,7 +70,7 @@ show_user_cron() {
     norm_user="$(awk -v pat="$i" -F: '$0~pat{print $1}' "$passwd_file")"
     if [[ "$norm_user" ]]; then
       printf "\n%sCron jobs for %s:%s\n" "$orange" "${norm_user^}"  "$normal"
-      sudo crontab -l -u "$norm_user" | grep -v '^#' | sed 's/>\/dev\/null 2>&1//' | awk -F"/" '{print "  " $NF}'
+      sudo crontab -l -u "$norm_user" | grep -v '^#' | sed 's/>\/dev\/null 2>&1//' | awk -F'/' '{print "  "$1"\t"$NF}'
     fi
     (( i++ ))
   done
@@ -78,13 +78,13 @@ show_user_cron() {
 
 show_root_cron() {
   printf "\n%sCron jobs for root:%s\n" "$orange" "$normal"
-  sudo crontab -l | grep -v '^#' | sed 's/>\/dev\/null 2>&1//' | awk -F"/" '{print "  " $NF}'
+  sudo crontab -l | grep -v '^#' | sed 's/>\/dev\/null 2>&1//' | awk -F"/" '{print "  "$1"\t"$NF}'
   printf "\n"
 }
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="5.3.24126"
+  local _version="5.4.24154"
   local lhost="${HOSTNAME:-$(hostname)}"
 
   sudo_login 0
