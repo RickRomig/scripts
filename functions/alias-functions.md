@@ -150,7 +150,7 @@
 16. Restore files from the trash directory
 ```bash
 restore-trash() { gio trash --restore trash:///$1; }
-restore-tras <trashed-filename>
+restore-trash <trashed-filename>
 ```
 17. bat help wrapper for syntax highlighting with --help (requres bat to be installed)
 ```bash
