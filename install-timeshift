@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : install-timeshift
+# Description  : installs and configures timeshift
+# Dependencies : none
+# Arguments    : none
+# Author       : Copyright © 2024, Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
+# Created      : 03 Jun 2024
+# Last updated : 03 Jun 2024
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Global variables ##
+_script=$(basename "$0"); readonly _script
+_version="1.0.24155"
+
+## Execution ##
+
+echo "$_script v$_version"
+# Install timeshift
+sudo apt-get -y timeshift
+# configure timeshift
+[[ -f ./timeshift.json ]] || cp /etc/timeshift/default.json ./timeshift.json
+sed -i.bak -f ./timeshift.sed ./timeshift.json
+sed -i 's/^"/    "/' ./timeshift.json
+echo "Timeshift installed and configured."
+exit
