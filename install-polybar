@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Nov 2023
-# Updated      : 18 May 2024
+# Updated      : 05 Jun 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,12 +28,12 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.1.24139"
-readonly _updated="17 Nov 2023"
+readonly _version="2.2.24157"
+readonly _updated="05 Jun 2024"
 readonly i3_dir="$HOME/.config/i3"
 readonly polybar_d="$HOME/.config/polybar"
-readonly localbin_d="$HOME/.local/bin"
 readonly repository="configs/raw/branch/main/"
+readonly local_repo="$HOME/gitea/configs/polybar"
 localip="$(local_ip)"; readonly localip
 
 ## Functions ##
@@ -42,7 +42,7 @@ copy_polybar_config() {
 	[[ -d "$polybar_d" ]] || mkdir -p "$polybar_d"
 	printf "Copying the Polybar configuration file from the Gitea server...\n"
 	if [[ "$localip" == "16" ]]; then
-		cp "$HOME/gitea/configs/polybar/config" "$polybar_d/"
+		cp -v "$local_repo/config" "$polybar_d/"
 	else
 		curl -so "$polybar_d/config.ini" "$Gitea_URL/$repository/config.ini"
 	fi
@@ -51,20 +51,19 @@ copy_polybar_config() {
 
 copy_polybar_launcher() {
 	local launcher="polybar-i3"
-	printf "Copying the %s launcher from the Gitea server...\n" "$launcher"
+	printf "Installing the %s launcher...\n" "$launcher"
 	if [[ "$localip" == "16" ]]; then
-		cp -p "$HOME/gitea/i3debian/.local/bin/$launcher" "$localbin_d/"
+		cp -p "$local_repo/$launcher" "$polybar_d/"
 	else
-		local repo_path="i3debian/raw/branch/main/.local/bin"
-		curl -so "$localbin_d/$launcher" "$Gitea_URL/$repo_path/$launcher"
+		curl -so "$polybar_d/$launcher" "$Gitea_URL/$repository/$launcher"
 	fi
-	[[ -x "$localbin_d/$launcher" ]] || chmod +x "$localbin_d/$launcher"
-	printf "%s copied from the Gitea server to %s/.\n" "$launcher" "$localbin_d"
+	[[ -x "$polybar_d/$launcher" ]] || chmod +x "$polybar_d/$launcher"
+	printf "%s installed.\n" "$launcher"
 }
 
 configure_polybar() {
-	local b_name e_name w_name
-	local cfg_file="config.ini"
+	local cfg_file b_name e_name w_name
+	cfg_file="config.ini"
 	[[ "$localip" == "16" ]] && cfg_file="config"
 	# Get device names from system.
 	e_name=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
