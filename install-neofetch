@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Jul 2022
-# Updated      : 10 May 2024
+# Updated      : 05 Jun 2024
 # Comments     : NeoFetch is no longer in development. Rrecommnd Fastfetch.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.11.24131"
-readonly _updated="10 May 2024"
+readonly _version="1.11.24157"
+readonly _updated="05 Jun 2024"
 readonly neofetch_cfg_d="${HOME}/.config/neofetch"
 
 ## Functions ##
@@ -59,10 +59,17 @@ install_neofetch() {
 }
 
 apply_config() {
-	local respository="configs/raw/branch/main/neofetch"
-	local cfg_conf="config.conf"
+	local localip repository cfg_conf
+	cfg_conf="config.conf"
 	[[ -d "$neofetch_cfg_d" ]] || mkdir -p "$neofetch_cfg_d"
-	curl -so "$neofetch_cfg_d/$cfg_conf" "$Gitea_URL/$respository/$cfg_conf"
+  printf "Appying %s ...\n" "$cfg_conf"
+	if [[ "$localip" == "16" ]]; then
+    repository="$HOME/gitea/configs/neofetch"
+    cp -v "$repository/$cfg_conf" "$neofetch_cfg_d/"
+  else
+		respository="configs/raw/branch/main/neofetch"
+		curl -so "$neofetch_cfg_d/$cfg_conf" "$Gitea_URL/$respository/$cfg_conf"
+	fi
 	printf "Neofetch configuration applied.\n"
 }
 
