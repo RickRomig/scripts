@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 04 May 2024
+# Updated      : 05 JUn 2024
 # Comments     : -u option updates installed version only. Does not do initial install.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.7.24125"
-readonly _updated="04 Ma 2024"
+readonly _version="5.8.24157"
+readonly _updated="05 JUn 2024"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg_d=$HOME"/.config/micro"
 
@@ -90,20 +90,34 @@ remove_micro() {
 }
 
 apply_settings() {
-  local repository="configs/raw/branch/main/micro"
-  local json_file="settings.json"
+  local json_file localip repository
+  localip=$(local_ip)
+  json_file="settings.json"
   [[ -d "$micro_cfg_d" ]] || mkdir -p "$micro_cfg_d"
   echo "Applying Micro settings..."
+  if [[ "$localip" == "16" ]]; then
+    repository="HOME/gitea/configs/micro"
+    cp -v "$repository/$json_file" "$micro_cfg_d/"
+  else
+    repository="configs/raw/branch/main/micro"
   curl -so "$micro_cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
+  fi
   echo "Micro setttings applied."
 }
 
 apply_bindings() {
-  local repository="configs/raw/branch/main/micro"
-  local json_file="bindings.json"
+  local json_file localip repository
+  localip=$(local_ip)
+  json_file="bindings.json"
   [[ -d "$micro_cfg_d" ]] || mkdir -p "$micro_cfg_d"
   echo "Applying Micro keybindings..."
-  curl -so "$micro_cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
+  if [[ "$localip" == "16" ]]; then
+    repository="HOME/gitea/configs/micro"
+    cp -v "$repository/$json_file" "$micro_cfg_d/"
+  else
+    repository="configs/raw/branch/main/micro"
+    curl -so "$micro_cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
+  fi
   echo "Micro keybindings applied."
 }
 
