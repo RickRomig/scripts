@@ -102,7 +102,8 @@ dl_bat_config() {
   local cfg_file localip repository
   localip=$(local_ip)
   cfg_file="config"
- [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
+  [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
+  printf "Applying Bat configuration...\n"
 	if [[ "$localip" == "16" ]]; then
     repository="HOME/gitea/configs/bat"
     cp -v "$repository/$cfg_file" "$bat_cfg_d/"
@@ -110,13 +111,6 @@ dl_bat_config() {
     repository="configs/raw/branch/main/bat"
     curl -so "$bat_cfg_d/$cfg_file" "$Gitea_URL/$repository/$cfg_file"
   fi
-  printf "Bat configuration applied.\n"
-}
-
-apply_config() {
-  [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
-  printf "Applying Bat configuration...\n"
-  dl_bat_config
   printf "Bat configuration applied.\n"
 }
 
