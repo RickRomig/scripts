@@ -3,14 +3,14 @@
 ## Basic information
 
 - **i3 Version**
-  
+
   ```bash
   $ i3 -v | awk '{print $3}' | sed 's/-.*//'
   $ i3 -v | cut -d' ' -f3  | sed 's/-.*//'
   ```
 
 - **Location**
-  
+
   ```bash
   $ which i3
   /usr/local/bin/i3
@@ -35,8 +35,6 @@
 | 30%        | 576 324   | 432 270  | 410 230  | 384 200  | 307 180  |
 | 25%        | 480 270   | 360 225  | 342 192  | 320 200  | 256 150  |
 
-### 
-
 ## Miscellaneous
 
 - dmenu script - multipmonitor (super+x or super+z or super+shift+x)
@@ -58,7 +56,7 @@ sxhkd -c $HOME/.config/sxhkd/sxhkd-i3 &
 ```
 
 - picom configuration (rounded corners)
-  
+
   ```bash
   ~/.config/picom.conf
   corner-radius = 10;
@@ -71,9 +69,9 @@ sxhkd -c $HOME/.config/sxhkd/sxhkd-i3 &
   ```
 
 - Polybar
-  
+
   - [Polybar]([GitHub - polybar/polybar: A fast and easy-to-use status bar](https://github.com/polybar/polybar))
-  
+
   - [Fontawesome icons]([Icons Icon | Font Awesome](https://fontawesome.com/v6/icons/))
-  
+
   - `$ fc-list | grep -i awesome`
