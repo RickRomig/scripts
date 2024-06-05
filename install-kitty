@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 08 May 2024
+# Updated      : 05 Jun 2024
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.8.24129"
-readonly _updated="08 May 2024"
+readonly _version="2.8.24157"
+readonly _updated="05 Jun 2024"
 readonly kitty_cfg_d="$HOME/.config/kitty"
 
 ## Functions ##
@@ -79,11 +79,18 @@ purge_kitty() {
 }
 
 kitty_config() {
-  local repository="configs/raw/branch/main/kitty"
-  local kitty_conf="kitty.conf"
-  printf "Setting up kitty.conf ...\n"
+  local localip kitty_conf repository
+	localip=$(local_ip)
+  kitty_conf="kitty.conf"
   [[ -d "$kitty_cfg_d" ]] || mkdir -p "$kitty_cfg_d"
-  curl -so "$kitty_cfg_d/$kitty_conf" "$Gitea_URL/$repository/$kitty_conf"
+  printf "Apllying up %s ...\n" "$kitty_conf"
+  if [[ "$localip" == "16" ]]; then
+    repository="$HOME/gitea/configs/kitty"
+    cp -v "$repository/$kitty_conf" "$kitty_cfg_d"
+  else
+    repository="configs/raw/branch/main/kitty"
+    curl -so "$kitty_cfg_d/$kitty_conf" "$Gitea_URL/$repository/$kitty_conf"
+  fi
   printf "%s created and configured.\n" "$kitty_conf"
 }
 
