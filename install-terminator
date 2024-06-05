@@ -7,7 +7,7 @@
 # Author       :Copyright (C) 2020 Richard B. Romig, 14 Dec 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 01 Jun 2024
+# Updated      : 0 Jun 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -77,11 +77,18 @@ install_terminator() {
 }
 
 apply_config() {
-  local repsoitory="configs/raw/branch/main/terminator"
-  local term_cfg="config"
-  echo "Appling Terminator configuration..."
+  local localip repsoitory term_cfg
+	localip=$(local_ip)
+  term_cfg="config"
   [[ -d "$term_cfg_d" ]] || mkdir -p "$term_cfg_d"
-  curl -so "$term_cfg_d/$term_cfg" "$Gitea_URL/$repsoitory/$term_cfg"
+  echo "Appling Terminator configuration..."
+  if [[ "$localip" == "16" ]]; then
+    repository="$HOME/gitea/configs/terminator"
+    cp -v "$repository$term_cfg" "$term_cfg_d/"
+  else
+    repsoitory="configs/raw/branch/main/terminator"
+    curl -so "$term_cfg_d/$term_cfg" "$Gitea_URL/$repsoitory/$term_cfg"
+  fi
   is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg_d/config"
 }
 
