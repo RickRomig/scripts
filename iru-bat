@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 03 May 2024
+# Updated      : 05 JUn 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.6.24125"
-readonly _updated="04 May 2024"
+readonly _version="5.7.24157"
+readonly _updated="05 JUn 2024"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg_d=$HOME"/.config/bat"
 
@@ -99,10 +99,17 @@ remove_bat() {
 }
 
 dl_bat_config() {
-  local repository="configs/raw/branch/main/bat"
-  [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
-  printf "Downloading configuration file...\n"
-  curl -so "$bat_cfg_d/config" "$Gitea_URL/$repository/config"
+  local cfg_file localip repository
+  localip=$(local_ip)
+  cfg_file="config"
+ [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
+	if [[ "$localip" == "16" ]]; then
+    repository="HOME/gitea/configs/bat"
+    cp -v "$repository/$cfg_file" "$bat_cfg_d/"
+  else
+    repository="configs/raw/branch/main/bat"
+    curl -so "$bat_cfg_d/$cfg_file" "$Gitea_URL/$repository/$cfg_file"
+  fi
   printf "Bat configuration applied.\n"
 }
 
@@ -153,7 +160,7 @@ while getopts "$optstr" opt; do
       echo "${lightyellow}Installing Bat version $new_ver...${normal}"
       check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
       install_bat
-      apply_config
+      dl_bat_config
     ;;
     r )
       exists bat || leave "Bat is not installed."
