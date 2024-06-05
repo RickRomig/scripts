@@ -84,12 +84,19 @@ remove_vscodium() {
 }
 
 apply_settings() {
-  local vsc_cfg_d="${HOME}/.config/VSCodium/User"
-  local repository="configs/raw/branch/main/VSCodium/User"
-  local json_file="settings.json"
+  local json_file localip repository vsc_cfg_d
+  localip=$(local_ip)
+  vsc_cfg_d="${HOME}/.config/VSCodium/User"
+  json_file="settings.json"
   [[ -d "$vsc_cfg_d" ]] || mkdir -p "$vsc_cfg_d"
   printf "Applying VSCodium settings...\n"
-  curl -so "$vsc_cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
+  if [[ "$localip" == "16" ]]; then
+    repository="HOME/gitea/configs/VSCodium/User"
+    cp -v "$repository/$json_file" "$vsc_cfg_d/"
+  else
+    repository="configs/raw/branch/main/VSCodium/User"
+    curl -so "$vsc_cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
+  fi
   printf "VSCodium settings applied.\n"
 }
 
