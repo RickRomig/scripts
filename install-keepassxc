@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Jan 2021
-# Updated      : 10 May 2024
+# Updated      : 05 Jun 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.11.24131"
-readonly _updated="10 May 2024"
+readonly _version="3.12.24157"
+readonly _updated="05 Jun 2024"
 readonly cfg_dir="$HOME/.config/keepassxc"
 
 ## Functions ##
@@ -73,10 +73,18 @@ remove_distro_keeepassxc() {
 }
 
 create_ini() {
-  local repository="configs/raw/branch/main/keepassxc"
-  local ini_file="keepassxc.ini"
+	local localip repository ini_file
+	localip=$(local_ip)
+  ini_file="keepassxc.ini"
   [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
-	wget -P "$cfg_dir" "$Gitea_URL/$repository/$ini_file"
+  printf "Appying %s ...\n" "$ini_file"
+  if [[ "$localip" == "16" ]]; then
+    repository="$HOME/gitea/configs/keepassxc"
+    cp -v "$repository/$ini_file" "$cfg_dir"
+  else
+    repository="configs/raw/branch/main/keepassxc"
+	  wget -P "$cfg_dir" "$Gitea_URL/$repository/$ini_file"
+  fi
   printf "%s created and applied.\n" "$ini_file"
 }
 
