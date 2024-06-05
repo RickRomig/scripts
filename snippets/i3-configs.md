@@ -2,22 +2,31 @@
 
 ## Basic information
 
-- **i3 Version**
+#### i3 Version
 
   ```bash
   $ i3 -v | awk '{print $3}' | sed 's/-.*//'
   $ i3 -v | cut -d' ' -f3  | sed 's/-.*//'
   ```
 
-- **Location**
+#### Location
 
   ```bash
   $ which i3
   /usr/local/bin/i3
   ```
 
-- foo bar
-
+#### Workspaces
+- Keybindings
+  super+shift+b
+    i3-msg move container to workspace back_and_forth
+  super + shift + b
+    i3-msg move workspace to output next
+  Move focused workspaces between monitors
+  super+ctrl+greater
+    i3-msg move workspace to output right
+  super+ctrl+less
+    i3-msg move workspace to output left
 
 
 ## Scratchpads & Floating Windows
@@ -37,11 +46,42 @@
 
 ## Miscellaneous
 
-- dmenu script - multipmonitor (super+x or super+z or super+shift+x)
+### dmenu scripts
 
+#### Multiple montiors
+**Toggle on/off external monitor**
+`extramonitor`
 ```bash
 #!/usr/bin/env bash
-echo -e "disconnect\nextra\nduplciate" | dmenu -i -p "Monitor configuration" | xargs -I % extramonitor "%"
+# Toggle on/off an external monitor (# 13 probook-6570b)
+
+intern="LDVS-1"
+extern="VGA-1"
+
+# xrandr outupt LVDS-1 --primary --mode 1366x768 --pos 0+0 --rotate normal --output VGA-1 --mode 1440x900 --pos 1366+0 --rotate normal
+
+case "$1" in
+    "disconnect") xrandr --output "$extern" --off --output "$intern" --auto ;;
+    "extra") xrandr --output "$extern" --mode 1440x900 && xrandr --output "$intern" --auto --output "$extern" --right-of "$intern" ;;
+    "duplicate") xrandr --output "$extern" --mode 1440x900 && xrandr --output "$intern" --auto --output "$extern" --same-as "$intern" ;;
+esac
+```
+** dmenu script to call extramonitor**
+super+x or super+z or super+shift+x
+  ~/.conffig/i3/multimonitor
+`multimonitor`
+```bash
+#!/usr/bin/env bash
+echo -e "disconnect\nextra\nduplciate" | dmenu -i -p "Monitor configuration" | xargs -I % ~/.config/i3/extramonitor "%"
+```
+**Prompt to quit i3**
+super+shift+q
+  ~/config/i3/prompt
+`prompt`
+```bash
+#/usr/bin/env sh
+if [ $(echo -e "No\nYes" | dmenu -i -p "$1") == "Yes" ]; then $2; fi
+prompt "Are you sure you would like to quit this Xsession" "i3-msg exit"
 ```
 
 - autostart.sh (LinuxTechGeek i3 autostart.sh)
