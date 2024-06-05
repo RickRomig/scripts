@@ -35,7 +35,6 @@ readonly _updated="24 May 2024"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
 readonly ff_cfg_d="$HOME/.config/fastfetch"
 readonly ff_logo_d="$HOME/.local/share/fastfetch/logos"
-localip="$(local_ip)"; readonly localip
 
 ## Functions ##
 
@@ -85,12 +84,7 @@ compare_versions() {
 }
 
 install_fastfetch(){
-  local new_pkg
-	if [[ "$new_ver" == "2.7.1" ]]; then
-		new_pkg="fastfetch-2.7.1-Linux.deb"
-	else
-		new_pkg="fastfetch-linux-amd64.deb"
-	fi
+  local new_pkg="fastfetch-linux-amd64.deb"
   printf "Downloading FastFetch %s from the fastfetch-cli GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
@@ -115,13 +109,8 @@ fastfetch_config() {
 	[[ -d "$ff_cfg_d" ]] || mkdir -p "$ff_cfg_d"
 	[[ -d "$ff_logo_d" ]] || mkdir -p "$ff_logo_d"
 	printf "Downloading configuration files...\n"
-	if [[ "$localip" == "16" ]]; then
-		cp -v "$HOME/gitea/configs/$ff_conf" "$ff_cfg_d/"
-		cp -v "$HOME/gitea/configs/$ff_logo" "$ff_logo_d/"
-	else
-		curl -so "$ff_cfg_d/$ff_conf" "$Gitea_URL/$repository/$ff_conf"
-		curl -so "$ff_logo_d/$ff_logo" "$Gitea_URL/$repository/$ff_logo"
-	fi
+	curl -so "$ff_cfg_d/$ff_conf" "$Gitea_URL/$repository/$ff_conf"
+	curl -so "$ff_logo_d/$ff_logo" "$Gitea_URL/$repository/$ff_logo"
 	printf "Fastfetch configuration applied.\n"
 }
 
