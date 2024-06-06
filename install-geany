@@ -3,11 +3,11 @@
 # Script Name  : install-geany
 # Description  : Installs the Geany editor/IDE with themes.
 # Dependencies : git
-# Arguments    : -h -i -r -t (See help function)
+# Arguments    : -h -i -r -t -v (See help function)
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 08 May 2024
+# Updated      : 06 Jun 2024
 # Comments     : Geany does not write configuration files by default.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,9 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.3.24131"
-readonly _updated="10 May 2024"
+readonly _version="2.4.24158"
+readonly _updated="06 Jun 2024"
+verbose_mode="$FALSE"
 
 ## Functions ##
 
@@ -42,6 +43,7 @@ OPTIONS:
   -i  Install Geany
   -r  Remove Geany
   -t  Install themes
+  -v  Enable verbose mode
 END_HELP
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
@@ -52,26 +54,40 @@ geany_version() {
 }
 
 clone_themes() {
-  local theme_url="https://github.com/geany/geany-themes.git"
-  local cs_dir="$HOME/.config/geany/colorschemes"
-  [[ -d "$cs_dir" ]] || mkdir -p "$cs_dir"
+  local theme_url colorscheme_d
+  theme_url="https://github.com/geany/geany-themes.git"
+  colorscheme_d="$HOME/.config/geany/colorschemes"
+  [[ -d "$colorscheme_d" ]] || mkdir -p "$colorscheme_d"
+  show_message "Cloning Geany themes..."
   git clone "$theme_url" "$tmp_dir"
-  printf "Copying Geany colorschemes into %s\n" "$cs_dir"
-  cp -v "$tmp_dir/colorschemes/*.conf" "$cs_dir/" | awk -F"/" '{print "=> " $NF}' | sed "s/'//"
+  printf "Copying Geany colorschemes into %s\n" "$colorscheme_d"
+  cp -v "$tmp_dir/colorschemes/*.conf" "$colorscheme_d/" | awk -F"/" '{print "=> " $NF}' | sed "s/'//"
   printf "Geany themes installed.\n"
 }
 
 install_geany() {
+  show_message "Installing Geany from repositories..."
   sudo apt-get install geany libvte9 -yy
   clone_themes
   printf "Geany %s installed.\n" "$(geany_version)"
 }
 
 remove_geany() {
-  local geany_cfg_dir="$HOME/.config/geany"
+  local cfg_dir cfg_bu_dir
+  cfg_dir="$HOME/.config/geany"
+  cfg_bu_dir="$HOME/.config/backup/geany"
+  show_message "Removing Geany ..."
   sudo apt remove geany -yy
-  [[ -d "$geany_cfg_dir" ]] && rm -rf "$geany_cfg_dir"
+  show_message "Removing Geany config files ..."
+  [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
+  show_message "Removing config backups..."
+  [[ -d "$cfg_bu_dir" ]] && rm -rf "$cfg_bu_dir"
   printf "Geany and configuration files removed.\n"
+}
+
+show_message() {
+	local message="$1"
+	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
@@ -83,7 +99,7 @@ cleanup() {
 ## Execution ##
 
 noOpt=1
-optstr=":hirt"
+optstr=":hirtv"
 while getopts "$optstr" opt; do
   case "$opt" in
     h )
@@ -109,6 +125,10 @@ while getopts "$optstr" opt; do
       trap cleanup EXIT
       check_package git
       clone_themes
+    ;;
+    v )
+			verbose_mode="$TRUE"
+			show_message "Verbose mode enabled."
     ;;
     ? )
       printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
