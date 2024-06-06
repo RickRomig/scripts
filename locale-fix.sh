@@ -6,15 +6,29 @@
 # Arguments    : none
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
+# Created      :
+# Updated      : 06 Jun 2024
 # Comment      :
 # License      : GNU General Public License, version 2.0
 #########################################################################
 
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.3"
-readonly _updated="30 Mar 2023"
+readonly _version="2.3.24158"
+readonly _updated="06 Jun 2024"
 
 ## Functions ##
 
@@ -43,7 +57,7 @@ purge_update() {
 
 ## Execution ##
 
-sudo_login
+sudo_login 2
 show_intro
 purge_update
 exit
