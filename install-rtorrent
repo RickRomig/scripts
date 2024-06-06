@@ -6,6 +6,8 @@
 # Arguments    : none
 # Author       : Copyright (C) 2022, Richard B. Romig, 29 Jan 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 29 Jan 2022
+# Updated      : 06 Jun 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,15 +29,15 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.6"
-readonly _updated="18 Mar 2024"
+readonly _version="1.6.24158"
 
 ## Functions ##
 
 make_dirs() {
-  local default_dir="$HOME/Downloads/torrents"
-  local session_dir="$HOME/session"
-  local watch_dir="$HOME/watch"
+  local default_dir session_dir watch_dir
+  default_dir="$HOME/Downloads/torrents"
+  session_dir="$HOME/session"
+  watch_dir="$HOME/watch"
   echo "Creating rtorrent working directories ..."
   [[ -d "$default_dir" ]] || mkdir -pv "$default_dir"
   [[ -d "$session_dir" ]] || mkdir -pv "$session_dir"
@@ -43,8 +45,9 @@ make_dirs() {
 }
 
 make_rc() {
-  local rtorrent_sed="$HOME/bin/files/rtorrentrc.sed"
-  local rtorrent_gz="/usr/share/doc/rtorrent/examples/rtorrent.rc.gz"
+  local rtorrent_gz rtorrent_sed
+  rtorrent_sed="$HOME/bin/files/rtorrentrc.sed"
+  rtorrent_gz="/usr/share/doc/rtorrent/examples/rtorrent.rc.gz"
   echo "Creating and configuring .rtorrent.rc ..."
   cp -v "$rtorrent_gz" "$HOME/"
   gunzip "$HOME/rtorrent.rc.gz"
@@ -53,16 +56,19 @@ make_rc() {
   echo ".rtorrent.rc configured."
 }
 
+install_rtorrent() {
+  sudo_login 2
+  echo "Installing rtorrent bit torrent client ..."
+  sudo apt install rtorrent -yy
+  make_dirs
+  make_rc
+}
+
 ## Execution ##
 
 clear
-echo -e "$_script v$_version ($_updated)"
+box "$_script v$_version"
 echo "Installs rtorrent ncurses BitTorrent client and configures .rtorrent.rc"
-
-sudo_login 2
-echo "Installing rtorrent bit torrent client ..."
-sudo apt install rtorrent -yy
-make_dirs
-make_rc
-rt_ver=$(dpkg -l | awk '$2 == "rtorrent" {print $3}' | sed 's/[+-].*//')
-leave "rtorrent BitTorrent client (version $rt_ver) installed and configured."
+install_rtorrent
+# rt_ver=$(dpkg -l | awk '$2 == "rtorrent" {print $3}' | sed 's/[+-].*//')
+leave "rtorrent BitTorrent client (version $(dpkg -l | awk '$2 == "rtorrent" {print $3}' | sed 's/[+-].*//')) installed and configured."
