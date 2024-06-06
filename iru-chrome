@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 July 2019
-# Updated      : 04 May 2024
+# Updated      : 06 Jun 2024
 # Comments     : Google Chrome should update through apt
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -15,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -29,27 +28,23 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.15.24125"
-readonly _updated="04 May 2024"
+readonly _version="3.16.24158"
+readonly _updated="06 Jun 2024"
 readonly chrome_list="/etc/apt/sources.list.d/google-chrome.list"
 readonly keyring_dir="/usr/share/keyrings"
 readonly trusted_key="google-chrome.gpg"
 
 ## Functions ##
 
-check_dependencies() {
-  check_package wget
-}
-
 chrome_ver() {
-  google-chrome-stable --version | awk '{print $NF}'
+  google-chrome-stable --version | cut -d' ' -f3
 }
 
 install_chrome() {
   local trusted_key_url="https://dl.google.com/linux/linux_signing_key.pub"
   local source_list="deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main"
   curl -fSsL "$trusted_key_url" | gpg --dearmor | sudo tee "$keyring_dir/$trusted_key" > /dev/null
-  echo "source_list" | sudo tee "$chrome_list" > /dev/null
+  echo "$source_list" | sudo tee "$chrome_list" > /dev/null
   sudo apt update
   if sudo apt-get install -y google-chrome-stable; then
     echo "Google Chrome $(chrome_ver) successfully installed."
@@ -59,11 +54,12 @@ install_chrome() {
 }
 
 purge_chrome() {
+  local chrome_cfg_d="$HOME/.config/google-chrome"
   sudo apt purge google-chrome-stable
   [[ -f "$keyring_dir/$trusted_key" ]] && sudo rm -v "$keyring_dir/$trusted_key"
   # sudo apt-key del D38B4796 2>/dev/null #apt-key deprecated
   [[ -f "$chrome_list" ]] && sudo rm -v "$chrome_list"
-  [[ -d "$HOME/google-chromme" ]] && rm -rf "$HOME/google-chromme"
+  [[ -d "$chrome_cfg_d" ]] && rm -rf "$chrome_cfg_d"
   echo "Google Chrome removed from this computer."
 }
 
@@ -100,7 +96,7 @@ while getopts "$optstr" opt; do
     i )
       exists google-chrome-stable && leave "Google Chrome $(chrome_ver) already installed."
       sudo_login 2
-      check_dependencies
+      check_package wget
       install_chrome
     ;;
     r )
