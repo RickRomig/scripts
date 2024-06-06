@@ -6,6 +6,8 @@
 # Arguments    : none
 # Author       : Richard B. Romig, 01 Dec 2019
 # Email        : rick.romig@gmail.com
+# Created      : 01 Dec 2019
+# Updated      : 06 Jun 2024
 # Comments     : Variables for IP range do not work, must be hard coded.
 #              : Local host will not respond to arping.
 #              : Local host will respond using arping in iputils-arping.
@@ -16,7 +18,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -30,8 +31,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.7"
-readonly _updated="18 Mar 2024"
+readonly _version="4.7.24158"
+readonly _updated="06 Jun 2024"
 
 ## Functions ##
 
@@ -46,6 +47,7 @@ arping_check() {
 }
 
 scan_static_addresses() {
+  local hname ip_addr
   for ip_addr in $localnet.{1..25}; do
     if arping_check "$ip_addr"; then
       hname=$(avahi-resolve -a "$ip_addr" 2>/dev/null | awk '{print $NF}' | sed 's/\.local$//')
@@ -88,6 +90,7 @@ scan_static_addresses() {
 }
 
 scan_dhcp_addresses() {
+  local hname ip_addr
   for ip_addr in $localnet.{100..250}; do
     if arping_check "$ip_addr"; then
       hname=$(avahi-resolve -a "$ip_addr" 2>/dev/null | awk '{print $NF}' | sed 's/\.local$//')
@@ -112,6 +115,7 @@ ${orange}OPTIONS:${normal}
   -h  Display Help
   -s  Scan static addresses
   ${orange}Note:${normal} Uses iputils-arping.
+$_script vR_version, $_updated
 EOT
   exit "$errorcode"
 }
@@ -161,5 +165,5 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-printf "\n%s active addresses discovered in %s.\n\n" "$count" "$(format_time SECONDS)"
-leave "$_script v$_version ($_updated)"
+printf "\n%d active addresses discovered in %s.\n\n" "$count" "$(format_time SECONDS)"
+leave "$_script v$_version"
