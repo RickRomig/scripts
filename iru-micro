@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 05 JUn 2024
+# Updated      : 06 JUn 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -15,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034
 
 ## Source function library ##
 
@@ -29,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.8.24157"
-readonly _updated="05 JUn 2024"
+readonly _version="5.9.24158"
+readonly _updated="06 JUn 2024"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg_d=$HOME"/.config/micro"
 
@@ -59,6 +58,7 @@ newest_version() {
 }
 
 compare_versions() {
+  local cur_ver
   cur_ver=$(micro_ver)
   if [[ "$cur_ver" == "$new_ver" ]]; then
     echo "${lightyellow}Micro $cur_ver is the current version. No update required.${normal}"
@@ -69,7 +69,7 @@ compare_versions() {
 }
 
 install_micro() {
-  new_pkg="micro-${new_ver}-amd64.deb"
+  local new_pkg="micro-${new_ver}-amd64.deb"
   printf "Downloading Micro %s from the zyedidia GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
@@ -81,10 +81,13 @@ install_micro() {
 }
 
 remove_micro() {
+  local cur_ver micro_cfg_bu_d
   cur_ver=$(micro_ver)
+  micro_cfg_bu_d="$HOME/.config/backup/micro"
   echo "Removing the Micro CLI text editor..."
   sudo dpkg --remove micro
   [[ -d "$micro_cfg_d" ]] && rm -rf "$micro_cfg_d"
+  [[ -d "$micro_cfg_bu_d" ]] && rm -rf "$micro_cfg_bu_d"
   [[ -d /root/.config/micro ]] && sudo rm -rf /root/.config/micro
   echo "Micro $cur_ver and configuration files have been removed."
 }
@@ -138,7 +141,7 @@ EOF
 
 ## Execution ##
 
-box "$_script v$_version (Updated: $_updated)"
+box "$_script v$_version"
 printf "Installs, updates, or removes the Micro CLI text editor.\n"
 
 noOpt=1
