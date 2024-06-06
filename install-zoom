@@ -4,8 +4,10 @@
 # Description  : Install/Remove Zoom (Flatpak or deb package)
 # Dependencies : gdebi wget
 # Arguments    : See help function
-# Author       : Copyright (C) 2022, Richard B. Romig, 10 Nov 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 10 Nov 2022
+# Updated      : 06 Jun 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -27,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.3"
-readonly _updated="18 Mar 2024"
+readonly _version="3.3.24158"
+readonly _updated="06 Jun 2024"
 
 ## Functions ##
 
@@ -72,8 +73,9 @@ flatpak_zoom() {
 }
 
 install_zoom_deb() {
-	local url="https://zoom.us/client/latest"
-	local pkg="zoom_amd64.deb"
+	local url pkg
+	url="https://zoom.us/client/latest"
+	pkg="zoom_amd64.deb"
 	printf "Dowloading Zoom ..."
   dots "."
 	wget -q -P "$tmp_dir" "$url/$pkg"
@@ -149,4 +151,4 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version ($_updated)"
+leave "$_script v$_version"
