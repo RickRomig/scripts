@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Last updated : 03 Jun 2024
-# Comments     :
+# Last updated : 06 Jun 2024
+# Comments     : My default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -27,17 +27,28 @@ fi
 
 ## Global variables ##
 _script=$(basename "$0"); readonly _script
-_version="1.0.24155"
+readonly _version="1.1.24158"
+
+## Functions ##
+
+configure_timeshift() {
+  local ts_dir ts_json sed_dir sed_file
+  ts_dir="/etc/timeshift"
+  ts_json="timeshift.json"
+  sed_dir="$HOME/bin/files"
+  sed_file="timeshift.sed"
+  [[ -f "$ts_dir/$ts_json" ]] || sudo cp -v "$ts_dir/default.json" "$ts_dir/$ts_json"
+  sudo sed -i -f "$sed_dir/$sed_file" "$ts_dir/$ts_json"
+  sudo sed -i 's/^"/    "/' "$ts_dir/$ts_json"
+}
 
 ## Execution ##
 
 sudo_login 2
-echo "$_script v$_version"
-# Install timeshift
+box "$_script v$_version"
+echo "Installing Timeshift..."
 sudo apt-get -y timeshift
-# configure timeshift
-[[ -f /etc/timeshift/timeshift.json ]] || sudo cp /etc/timeshift/default.json /etc/timeshift/timeshift.json
-sudo sed -i -f "$HOME/bin/files/timeshift.sed" /etc/timeshift/timeshift.json
-sudo sed -i 's/^"/    "/' /etc/timeshift/timeshift.json
-echo "Timeshift installed and configured."
+echo "Configuring Timeshift..."
+configure_timeshift
+echo "Timeshift $(timeshift --version | cut -d' ' -f2) installed and configured."
 exit
