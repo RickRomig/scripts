@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Feb 2019
-# Updated      : 31 May 2024
+# Updated      : 06 Jun 2024
 # Comments     : hp-2560p (#23) requires sudo to get ssid & signal strength
 # TODO (rick)  : Work on show_bridge()
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.7.24152"
+readonly _version="2.7.24158"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -44,6 +44,7 @@ req_sudo() {
 }
 
 show_public() {
+  local public_ipv4
   public_ipv4=$(/usr/bin/curl -s ifconfig.me)     # http://ident.me
   [[ -n "$public_ipv4" ]] && echo -e "\t${darkgray}IPv4:${normal} $public_ipv4" || echo -e "\tNo public IPv4 address found."
   # public_ipv6=$(/usr/bin/curl -s ifconfig.co)
@@ -51,6 +52,7 @@ show_public() {
 }
 
 show_wired() {
+  local eth_int eth_state eth_ip eth_mac
   for eth_int in $(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}'); do
     if [[ -n "$eth_int" ]]; then
       # interface data
@@ -83,6 +85,7 @@ show_wired() {
 }
 
 show_wireless() {
+  local wifi_int wifi_state wifi_ip wifi_mac wifi_ssid wifi_sig
   for wifi_int in $(/usr/bin/nmcli dev | awk '/wifi/ {print $1;exit}'); do
     if [[ -n "$wifi_int" ]]; then
       # interface data
@@ -126,6 +129,7 @@ show_wireless() {
 }
 
 show_bridge() {
+  local br_int br_state br_ip br_mac br_route
 	# br_int=$(/usr/bin/nmcli dev | awk '/bridge/ {print $1}')
   br_int=$(ip ad show | awk '/: vir/ {print $2;exit}' | sed 's/:$//')
 
