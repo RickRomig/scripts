@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 14 May 2024
+# Updated:     : 07 Jun 2024
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Rewrite of version 2.5.0
 #              : Will not get desktop session info from an SSH connection. Run locally.
@@ -30,7 +30,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.5.24135"
+readonly _version="3.5.24159"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -52,7 +52,7 @@ cleanup() {
 }
 
 save_info() {
-  local main_host="hp-850g2-ssf"
+  local main_host="hp-800g2-ssf"
   printf "\n"
   if default_yes "Save system information to ~/$(basename "$info_file")"; then
     printf "Writing system information to ~/%s\n" "$(basename "$info_file")"
@@ -102,9 +102,10 @@ rename_mnt_pt() {
 }
 
 ff_fix() {
+  local opt options hd_ff
   printf "Form factor not displayed in Hard Disk Information.\n" >&2
   PS3="Select form factor: " >&2
-  local options=( "2.5 inch" "3.5 inch" "less than 1.8 inch" "ignore")
+  options=( "2.5 inch" "3.5 inch" "less than 1.8 inch" "ignore")
   select opt in "${options[@]}"; do
     case "$REPLY" in
       1 )
@@ -129,7 +130,8 @@ ff_fix() {
 }
 
 mfg_info() {
-	local dmi_dir="/sys/class/dmi/id"
+  local dmi_dir mfg_version mfg_serial
+	dmi_dir="/sys/class/dmi/id"
 	mfg_version=$(cat $dmi_dir/product_version)
 	[[ -z "${mfg_version// }" ]] && mfg_version="Not specified"
 	mfg_serial=$(sudo cat $dmi_dir/product_serial)
@@ -141,7 +143,8 @@ mfg_info() {
 }
 
 os_info() {
-  local desktop="$DESKTOP_SESSION"
+  local desktop root_part created_date
+  desktop="$DESKTOP_SESSION"
   [[ "$desktop" == "bunsenlabs" ]] && desktop=$(wmctrl -m | awk '/Name/ {print $2}')
 	root_part=$(df -P / | awk '/dev/ {print $1}')
 	created_date=$(sudo /usr/sbin/tune2fs -l "$root_part" | awk '/created:/ {print $(NF-2),$(NF-3),$NF}')
@@ -152,6 +155,7 @@ os_info() {
 }
 
 cpu_info() {
+  local arch model threads
   # model=$(/usr/bin/lscpu | awk -F: '/Model name:/ {print $NF}' | awk '{$1=$1}1' | sed 's/([^)]*)//g')
   model=$(/usr/bin/lscpu | awk -F: '/Model name:/ {print $NF}' | sed 's/^  *//g;s/([^)]*)//g')
   arch=$(/usr/bin/lscpu | awk '/Architecture:/ {print $NF}')
@@ -160,6 +164,7 @@ cpu_info() {
 }
 
 memory_info() {
+  local mem_max mem_type phys_mem
 	phys_mem=$(sudo /usr/bin/lshw -class memory -short -quiet | awk '/System/ {print $(NF-2)}' | sed 's/GiB/ GB/')
 	mem_type=$(sudo dmidecode --type 17 | awk '/Type:/ {print $NF; exit}')
 	mem_max=$(sudo dmidecode --type 16 | awk -F: '/Capacity/ {print $NF; exit}' | sed 's/^ //')
@@ -171,10 +176,11 @@ graphics_info() {
 }
 
 mac_mfgr() {
-  local mac_addr="$1"
-  local oui_file="/usr/share/ieee-data/oui.txt"
-	local oui_addr
-	local mfgr
+  local mac_addr mfgr oui_addr oui_file
+  mac_addr="$1"
+  oui_file="/usr/share/ieee-data/oui.txt"
+	oui_addr
+	mfgr
 	oui_addr=$(echo "$mac_addr" | sed 's/:/-/g' | cut -d '-' -f1,2,3 | tr '[:lower:]' '[:upper:]')
 	mfgr=$(grep -m 1 -i "$oui_addr" "$oui_file" )
 	if [[ -n "$mfgr" ]]; then
@@ -185,6 +191,7 @@ mac_mfgr() {
 }
 
 wired_info() {
+  local eth_int ethernet_dev e_mac e_man
 	eth_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: e/ {print $NF}')
 	if [[ -n "$eth_int" ]]; then
 		ethernet_dev=$(/usr/bin/lspci | awk -F: '/Ethernet controller/ {print $NF}' | sed 's/^ //')
@@ -196,6 +203,7 @@ wired_info() {
 }
 
 wireless_info() {
+  local wifi_int wireless_dev w_mac w_man
 	wifi_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: w/ {print $NF}')
 	if [[ -n "$wifi_int" ]]; then
 		wireless_dev=$(/usr/bin/lspci | awk -F: '/Network controller/ {print $NF}' | sed 's/^ //')
@@ -207,6 +215,7 @@ wireless_info() {
 }
 
 ssd_hd_info() {
+  local disk hd_ff hd_rpm
 	printf "\nHard Disk Information:\n"
 	for disk in /dev/sd[a-z]; do
 		sudo hdparm -I "${disk}" 2>/dev/null | tee "$hd_data" > /dev/null
@@ -226,6 +235,7 @@ ssd_hd_info() {
 }
 
 nvme_info() {
+  local nvme_data devline
   printf "\nNVMe Information\n"
   nvme_data=$(sudo /usr/sbin/nvme list | tail -n+3)
   for devline in "${nvme_data[@]}"; do
@@ -242,6 +252,7 @@ partition_info() {
 }
 
 battery_info() {
+  local battery_name battery_path battery_data battery_serial
   printf "\nBattery Information:\n"
   battery_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
   if [[ -n "$battery_name" ]]; then
