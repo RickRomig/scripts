@@ -58,7 +58,7 @@ timeout_exit() {
 show_help() {
   cat << END_HELP
 ${orange}Usage:${normal} $_script [location]
-Exampl 1: $_script  # Uses default location
+Example 1: $_script  # Uses default location
 Example 2: $_script Cincinnati
 Example 3: $_script New+York
 Example 4: $_script "Los Angeles"
@@ -75,8 +75,11 @@ END_HELP
 }
 
 current_wx() {
-  local wx_loc="$1"
-  local url="http://wttr.in/$wx_loc?format=j1"
+  local wx_loc url json
+  local city state latitude longitude description temp_F temp_C feels_F feels_C humidity pressure wind_dir wind_spd precip uv_index sunrise sunset
+  local tcolor fcolor ucolor uvwarn
+  wx_loc="$1"
+  url="http://wttr.in/$wx_loc?format=j1"
   json=$(curl -s "$url")
   echo "$json" | grep -q 'Unknown location' && { echo "Location data not available from http://wttr.in. Try again later."; return 1; }
 
@@ -104,14 +107,10 @@ current_wx() {
   sunset=$(echo "$json"|jq -r ."weather[0]|(.astronomy[0].sunset)")
 
   # Set colors
-  tcolor="${default}"
-  temp_color
-  fcolor="${default}"
-  feels_color
-  ucolor="${default}"
-  uv_warning
-  uvwarn="Low Risk"
-  uv_warning
+  tcolor=$(temp_color)
+  fcolor=$(feels_color)
+  ucolor=$(uv_color)
+  uvwarn=$(uv_warning)
 
   # Display current conditions
   clear
@@ -135,22 +134,9 @@ current_wx() {
   fi
 }
 
-wx_forecast() {
-  local url="http://wttr.in"
-  local wx_loc="$1"
-  tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
-  clear
-  box "$_script v$_version"
-  printf "\n"
-  if curl -so "$tmp_file" "$url/$wx_loc"; then
-    sed '1 s/:.*//;/Follow/d' "$tmp_file"
-  else
-    timeout_exit "$wx_loc"
-  fi
-}
-
 temp_color() {
   # Set color for temperature
+  local tcolor
   if [[ "$temp_F" -ge 90 ]]; then
     tcolor=${red}
   elif [[ "$temp_F" -ge 75 ]]; then
@@ -162,10 +148,12 @@ temp_color() {
   else
     tcolor=${default} # Temperature is between 50 and 75 degrees Fahrenheit
   fi
+  echo "$tcolor"
 }
 
 feels_color() {
   # Set color for heat index temperature
+  local fcolor
   if [[ "$feels_F" -ge 90 ]]; then
     fcolor=${red}
   elif [[ "$feels_F" -ge 75 ]]; then
@@ -177,10 +165,12 @@ feels_color() {
   else
     fcolor=${default} # Temperature is between 50 and 75 degrees Fahrenheit
   fi
+  echo "$fcolor"
 }
 
 uv_color() {
   # Set color for UV index.
+  local ucolor
   if [[ "$uv_index" -ge 11 ]]; then
     ucolor=${red}
   elif [[ "$uv_index" -ge 8 ]]; then
@@ -192,10 +182,12 @@ uv_color() {
   else
     ucolor=${default}  # UV index is less than 3
   fi
+  echo "$ucolor"
 }
 
 uv_warning() {
   # Set color for UV index.
+  local uvwarn
   if [[ "$uv_index" -ge 11 ]]; then
     uvwarn="Extreme Risk"
   elif [[ "$uv_index" -ge 8 ]]; then
@@ -207,6 +199,22 @@ uv_warning() {
   else
     uvwarn="Low Risk"  # UV index is less than 3
   fi
+  echo "$uvwarn"
+}
+
+wx_forecast() {
+  local url="http://wttr.in"
+  local wx_loc="$1"
+  tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+  trap cleanup EXIT
+  clear
+  box "$_script v$_version"
+  printf "\n"
+  if curl -so "$tmp_file" "$url/$wx_loc"; then
+    sed '1 s/:.*//;/Follow/d' "$tmp_file"
+  else
+    timeout_exit "$wx_loc"
+  fi
 }
 
 ## Execution ##
@@ -215,7 +223,7 @@ if [[ "$#" -gt 0 ]]; then
   [[ "$1" == "-h" || "$1" == "--help" ]] && { show_help; exit; }
 fi
 
-trap cleanup EXIT
+# trap cleanup EXIT
 
 check_dependencies
 
