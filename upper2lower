@@ -6,6 +6,8 @@
 # Args         : --all, --help, filename(s) to be renamed
 # Author       : Copyright (C) 2018, Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 2018
+# Updated      : 07 Jun 2024
 # Comment      :
 # License      : GNU General Public License, version 2.0
 ##############################################################################
@@ -26,14 +28,13 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.2.2"
-readonly _updated="14 Sep 2023"
+readonly _version="3.2.24159"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  cat << EOF
+  cat << END_HELP
 Renames filenames in the current directory to all lowercase.
 ${orange}Usage:${normal} $_script [option] [filename1] [filename2] ...
 ${orange}Options:${normal}
@@ -42,7 +43,7 @@ ${orange}Options:${normal}
 One or more filenames may be entered to be renamed.
 $_script Filename	# Renames filename to lowercase
 $_script Filename1 Filename2	# Renames Filename1 and Filename2 to lowercase
-EOF
+END_HELP
   exit "$errcode"
 }
 
@@ -75,12 +76,15 @@ elif [[ $# -eq 1 ]]; then
 			help 1
 		;;
 		* )
-			printf "Renaming %s to lowercase.\n" "$1"
-			upper_lower "$1"
+			file_name="$1"
+			printf "Renaming %s to lowercase.\n" "$file_name"
+			upper_lower "$file_name"
 	esac
 else
 	printf "Renaming selected files to lowercase.\n"
-	for fname in "$@"; do upper_lower "$fname"; done
+	for file_name in "$@"; do
+		upper_lower "$file_name"
+	done
 fi
 
-leave "$_script v$_version ($_updated)"
+leave "$_script v$_version"
