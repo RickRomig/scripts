@@ -6,6 +6,8 @@
 # Arguments    : File extenstion to be changed
 # Author       : Copyright (C) 2017, Richard Romig
 # Email        : rick.romig@gmail.com
+# Created      : 2017
+# Updated      : 07 Jun 2024
 # Comment      : File extensions are not case sensitive
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -13,35 +15,35 @@
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.0.5"
-readonly _updated="05 Feb 2023"
+readonly _version="2.5.24159"
+readonly _updated="07 Jun 20243"
 
 ## Functions ##
 
-usage() {
+help() {
   local errcode="${1:-2}"
-  cat << EOF
-Usage: $SCRIPT extension
-Example: $SCRIPT JPG
+  cat << END_HELP
+Usage: $_script extension
+Example: $_script JPG
 Supported extensions: AVI, BAK, FLV, GIF, HTM, HTML, JPEG, JPG, MP3,
 MP4, MPG, MPEG, PDF, PNG, TXT, WMV
 Input file extensions are not case sensitive. Any combination of upper and
 lower case are acceptable. Changed file extensions will be lowercase.
-EOF
+$_script v$_version ($_updated)
+END_HELP
   exit "$errcode"
 }
 
 ## Execution ##
 
-echo "$_script v$_version ($_updated)"
+echo "$_script v$_version"
 echo "Bulk renames file extensions in the current diectory."
-echo -e "Copyright 2018-2022, Richard Romig\n"
 
 # Check for arguments
 
 if [[ "$#" -eq 0 ]]; then
   echo -e "\e[91mERROR:\e[0m Must provide a file extension to be renamed." <&2
-  usage 2
+  help 2
 else
   ext="$1"
 fi
@@ -91,7 +93,7 @@ case $ext in
     rename -v 's/\.WMV$/\.wmv/i' ./* ;;
   *)
     echo -e "\e[1;31mERROR:\e[0m .$ext is NOT a supported file extension."
-    usage 1 ;;
+    help 1 ;;
 esac
 shopt -u nocasematch
 
