@@ -4,8 +4,10 @@
 # Description  : Changes the system hostname
 # Dependencies : None
 # Arguments    : None
-# Author       : Copyright (C) 2019, Richard B. Romig, 06 Nov 2019
+# Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 06 Nov 2019
+# Updated      : 07 Jun 2024
 # Comments     : Changes the hostname in both /etc/hostname and /etc/hosts.
 #              : antiX/MX Linux: /etc/hosts - 127.0.0.1      hostname
 #              : Rules based on hostname(7) man page
@@ -16,7 +18,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -30,14 +31,13 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.4"
-readonly _updated="18 Mar 2024"
+readonly _version="4.4.24159"
 readonly old_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
 
 name_rules() {
-  cat << EOF
+  cat << END_RULES
 ${red}Hostname Rules${normal}
   ${orange}*${normal} 5-15 characters (for NETBIOS compatibility)
   ${orange}*${normal} a-z, 0-9, - (hyphen)
@@ -45,7 +45,7 @@ ${red}Hostname Rules${normal}
   ${orange}*${normal} no special characters
   ${orange}*${normal} first character cannot be a hyphen or a digit
   ${orange}*${normal} last character cannot be a hyphen
-EOF
+END_RULES
 }
 
 ## Execution ##
@@ -54,10 +54,10 @@ EOF
 
 while true; do
   clear
-  echo "$_script v$_version ($_updated)"
+  echo "$_script v$_version"
   echo "Renames the system hostname."
   name_rules
-  echo -e "\nCurrent hostname is $old_host\n"
+  printf "\nCurrent hostname is %s\n\n" "$old_host"
 
   read -rp "Enter new hostname: " new_host
   strlen=${#new_host}
@@ -91,6 +91,7 @@ while true; do
     * )
       echo $'\n'$"${green}New hostname is valid.$(normal)"
   esac
+
   # Compare new hostname with the old hostname
   new_host="${new_host,,}"
   if [[ "$new_host" == "$old_host" ]]; then
@@ -104,18 +105,16 @@ done
 
 # Checking for sudo privileges...
 sudo_login 2
-
 echo $'\n'$"Changing the hostname from $old_host to $new_host ..."
 # Make backup copies of the original files and replace old hostname with new hostname
 sudo sed -i.old "s/$old_host/$new_host/" /etc/hostname
 sudo sed -i.old "s/$old_host/$new_host/" /etc/hosts
 
 # Confirm changes
-
 host1=$(cat /etc/hostname)
 host2=$(awk '/127.0.1.1/ {print $2}' /etc/hosts)
 if [[ -z "$host2" ]]; then
-# Change address for hostname from 127.0.0.1 to 127.0.1.1
+  # Change address for hostname from 127.0.0.1 to 127.0.1.1
   host2=$(awk '/127.0.0.1/ {print $2}' /etc/hosts | tail -n1)
   sudo sed -i '0,/127.0.0.1/! {0,/127.0.0.1/ s/127.0.0.1/127.0.1.1/}' /etc/hosts
 fi
