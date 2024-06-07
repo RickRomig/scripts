@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018,Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Nov 2018
-# Updated      : 17 May 2024
+# Updated      : 07 Jun 2024
 # Comments     : Inspired by Joe Collins <https://www.ezeeLinux.com>
 #              : and Luke Smith <https://lukesmith.xyz>
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.9.24138"
+readonly _version="5.9.24159"
 
 ## Functions ##
 
@@ -73,9 +73,7 @@ memory_usage() {
 }
 
 cpu_usage() {
-  local cores
-  local cpu_usage
-  local cpu_use
+  local cores cpu_usage cpu_use
   # cpu_use=$(echo "$[100-$(vmstat 1 2 | tail -1 | awk '{print $15}')]")
   cores="$(grep -c "^processor" /proc/cpuinfo)"
   cpu_usage="$(ps aux | awk 'BEGIN {sum=0} {sum+=$3}; END {print sum}')"
