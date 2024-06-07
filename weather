@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 28 May 2024
+# Updated      : 07 Jun 2024
 # Comments     : Based on script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -15,7 +15,7 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034
+# shellcheck disable=SC2034 # for select loop (opt isn't used, uses $REPLY)
 
 ## Load function library ##
 
@@ -31,8 +31,8 @@ set -eu
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="6.6.24149"
-readonly _updated="28 May 2024"
+readonly _version="6.7.24159"
+readonly _updated="07 Jun 2024"
 location="${1:-Huber+Heights}"
 
 ## Functions ##
@@ -107,10 +107,10 @@ current_wx() {
   sunset=$(echo "$json"|jq -r ."weather[0]|(.astronomy[0].sunset)")
 
   # Set colors
-  tcolor=$(temp_color)
-  fcolor=$(feels_color)
-  ucolor=$(uv_color)
-  uvwarn=$(uv_warning)
+  tcolor=$(temp_color "$temp_F")
+  fcolor=$(feels_color "$feels_F")
+  ucolor=$(uv_color "$uv_index")
+  uvwarn=$(uv_warning "$uv_index")
 
   # Display current conditions
   clear
@@ -120,8 +120,8 @@ current_wx() {
     printf "%sLat/Long:%s %s, %s\n\n" "$green" "$normal" "$latitude" "$longitude"
     printf "%sCurrent conditions:%s\n" "$green" "$normal"
     printf "%15s: %s\n" "Atomosphere" "$description"
-    printf "%15s: %s%s\U2109 (%s\U2103 )%s\n" "Temperature" "$tcolor" "$temp_F" "$temp_C" "$normal"
-    printf "%15s: %s%s\U2109 (%s\U2103 )%s\n" "Feels like" "$fcolor" "$feels_F" "$feels_C" "$normal"
+    printf "%15s: %s%s\U2109 / %s\U2103 %s\n" "Temperature" "$tcolor" "$temp_F" "$temp_C" "$normal"
+    printf "%15s: %s%s\U2109 / %s\U2103 %s\n" "Feels like" "$fcolor" "$feels_F" "$feels_C" "$normal"
     printf "%15s: %s%s - %s%s\n" "UV index" "$ucolor" "$uv_index" "$uvwarn" "$normal"
     printf "%15s: %s%%\n" "Humidity" "$humidity"
     printf "%15s: %s inches\n" "Barometer" "$pressure"
@@ -136,6 +136,7 @@ current_wx() {
 
 temp_color() {
   # Set color for temperature
+  local temp_F="$1"
   local tcolor
   if [[ "$temp_F" -ge 90 ]]; then
     tcolor=${red}
@@ -153,6 +154,7 @@ temp_color() {
 
 feels_color() {
   # Set color for heat index temperature
+  local feels_F="$1"
   local fcolor
   if [[ "$feels_F" -ge 90 ]]; then
     fcolor=${red}
@@ -170,6 +172,7 @@ feels_color() {
 
 uv_color() {
   # Set color for UV index.
+  local uv_index="$1"
   local ucolor
   if [[ "$uv_index" -ge 11 ]]; then
     ucolor=${red}
@@ -187,6 +190,7 @@ uv_color() {
 
 uv_warning() {
   # Set color for UV index.
+  local uv_index="$1"
   local uvwarn
   if [[ "$uv_index" -ge 11 ]]; then
     uvwarn="Extreme Risk"
@@ -222,8 +226,6 @@ wx_forecast() {
 if [[ "$#" -gt 0 ]]; then
   [[ "$1" == "-h" || "$1" == "--help" ]] && { show_help; exit; }
 fi
-
-# trap cleanup EXIT
 
 check_dependencies
 
