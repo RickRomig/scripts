@@ -6,6 +6,8 @@
 # Arguments    : See usage function for detailed information.
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 27 Sep 2020
+# Last updated : 07 Jun 2024
 # Comments     : Can sync to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -17,7 +19,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
 
 ## Load function library ##
 
@@ -31,8 +32,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.5.12"
-readonly _updated="02 Jan 2024"
+readonly _version="5.13.24159"
+readonly _updated="07 Jun 2024"
 
 ## Functions ##
 
@@ -64,11 +65,12 @@ EOF
 
 transfer_status() {
   # Exit script if transfer fails.
-  xfr_status="$1"
+  local xfr_status="$1"
   (( xfr_status != 0 )) && die "A transfer failed! Check network status."
 }
 
 transfer() {
+  local ip_addr
   # Skip local machine:
   ip_addr="$(local_ip)"
   if [[ "$ip_addr" = "$hostip" ]]; then
@@ -104,7 +106,7 @@ sync_script() {
   transfer_status "$exit_status"
 
   case "$hostip" in
-    10|22|153 )
+    10|16|22|153 )
       printf "\n%sSyncing Gitea Repositories...%s\n" "$orange" "$normal"
       rsync -avh --delete "$HOME"/gitea/ "$localnet.$hostip":gitea/
       exit_status="$?"
@@ -243,9 +245,8 @@ check_host() {
 ## Execution ##
 
 check_package rsync
-# clear
 
-box "$_script v$_version, ($_updated)"
+box "$_script v$_version"
 
 # Check to see if you are on the correct host.
 check_host
