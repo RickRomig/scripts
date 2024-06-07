@@ -6,6 +6,8 @@
 # Arguments    : Last octet of target computer's IP address
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
+# Created      :
+# Updated      : 07 Jun 2024
 # Comments     : Assumes a /24 (Class C) network
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -27,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.4.3"
-readonly _updated="04 Apr 2023"
+readonly _version="2.5.25159"
+readonly _updated="07 Jun 2024"
 
 ## Functions ##
 
@@ -40,7 +41,7 @@ ${orange}Example:${normal} $_script 42
 Argument must be an integer in the range of 1 to 254, representing the last
 octet of the target address. Assumes a Class C (/24) network.
 END_HELP
-  printf "\U1F427 %s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -61,13 +62,14 @@ validip() {
     status=3  # Argument is a non-integer value
   fi
 
-  display_status "$status"
+  display_status "$status" "$octet"
 
   return "$status"
 }
 
 display_status() {
   local status="$1"
+  local octet="$2"
 
   case $status in
     1 )
@@ -77,7 +79,7 @@ display_status() {
     3 )
       printf "\e[91mERROR:\e[33m Invalid argument - %s.\n" "$octet" <&2 ;;
     * )
-      printf "%s.%s is a valid IP address.\n" "$localnet" "$octet" ;;
+      printf "%s.%s is a valid IP address.\n" "$localnet" "$octet"
   esac
 }
 
@@ -108,5 +110,5 @@ elif  ping -c 5 "$localnet.$hostip"; then
 else
   printf "\n%s.%s is unreachable. It might not be on the network.\n" "$localnet" "$hostip" <&2
 fi
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "%s v%s\n" "$_script" "$_version"
 exit
