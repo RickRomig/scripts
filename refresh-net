@@ -6,6 +6,8 @@
 # Args         : None
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
+# Created      : Unknown
+# Updated      : 07 Jun 2024
 # Comment      :
 # TODO (Rick)  : Find solutions for other init systems.
 #              : Look at adapting check-init script.
@@ -14,7 +16,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -28,14 +29,14 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.0.5"
-readonly _updated="18 Mar 2024"
+readonly _version="2.5.24159"
 
 ## Functions ##
 
 restart_network() {
+  local init_sys
+  check_package strings
   init_sys=$(strings /sbin/init | awk 'match($0, /(upstart|systemd|sysvinit)/) { print toupper(substr($0, RSTART, RLENGTH));exit; }')
-
   case $init_sys in
     "SYSTEMD" )
       sudo systemctl restart NetworkManager.service
@@ -55,11 +56,11 @@ restart_network() {
 
 ## Execution ##
 
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "%s v%s\n" "$_script" "$_version"
 printf "Refreshes network connection.\n"
 
 sudo_login 2
 printf "Restarting network...\n"
 restart_network
-sleep 5
+sleep 3
 exit
