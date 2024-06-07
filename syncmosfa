@@ -6,6 +6,8 @@
 # Arguments    : Last octet of target IP address, see usage()
 # Author       : Copyright (C) 2020 Richard Romig, 29 Sep 2020
 # Email        : rick.romig@gmail.com
+# Created      : 29 Sep 2020
+# Last updated : 07 Jun 2024
 # Comments     : Can sync to one or all machines on the network.
 #              : LOCALNET is declared in functionlib
 # TODO (rick)  :
@@ -14,7 +16,7 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -28,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.3.15"
-readonly _updated="23 Feb 2024"
+readonly _version="3.15.24159"
+readonly _updated="07 Jun 2024"
 
 ## Functions ##
 
@@ -61,7 +63,7 @@ EOF
 
 transfer_status() {
   # Exit script if transfer fails.
-  xfr_status="$1"
+  local xfr_status="$1"
   (( xfr_status != 0 )) && die "A transfer failed! Check network status." "$xfr_status"
 }
 
@@ -88,6 +90,7 @@ transfer() {
 
 sync_script() {
   # Synch to all.
+  local exit_status
   echo $'\n'$"${orange}Syncing aliases...${normal}"
   rsync -avh --delete "$HOME"/.bash_aliases "$localnet.$hostip":
   exit_status="$?"
@@ -146,12 +149,12 @@ if [[ "$hostip" == "16" ]]; then
     transfer_status "$exit_status"
 
     printf "\n%sSyncing Gitea Repositories...%s\n" "$orange" "$normal"
-    rsync -avh --delete --exclude '.git' "$HOME"/gitea/ "$localnet.$hostip":gitea/
+    rsync -avh --delete "$HOME"/gitea/ "$localnet.$hostip":gitea/
     exit_status="$?"
     transfer_status "$exit_status"
 
     printf "\n%sSyncing Github Repositories...%s\n" "$orange" "$normal"
-    rsync -avh --delete --exclude '.git' "$HOME"/Projects/ "$localnet.$hostip":Projects/
+    rsync -avh --delete "$HOME"/Projects/ "$localnet.$hostip":Projects/
     exit_status="$?"
     transfer_status "$exit_status"
 fi
@@ -159,6 +162,7 @@ fi
 }
 
 sync_one() {
+  local hostip
   valid_ip "$1" && hostip="$1"
 
   echo -e "Synchronizing directories with $localnet.$hostip.\n"
@@ -181,6 +185,7 @@ sync_one() {
 }
 
 sync_some() {
+  local xfr_flag hostip
   echo -e "Synchronizing directories with selected systems on the local network.\n"
   xfr_flag=0
   for hostip in "$@"; do
@@ -209,10 +214,11 @@ sync_some() {
 }
 
 sync_all() {
+  local hostip octets
   echo -e "Synchronizing directories with systems on the local network.\n"
 
-  OCTETS=(10 11 12 13 14 15 16 17 18 19 20 23)
-  for hostip in "${OCTETS[@]}"; do transfer; done
+  octets=(10 11 12 13 14 15 16 17 18 19 20 23)
+  for hostip in "${octets[@]}"; do transfer; done
   all_done
 }
 
@@ -222,9 +228,10 @@ all_done() {
 }
 
 check_host() {
-  local main_host="hp-800g2-sff"
-  local src_host="${HOSTNAME:-$(hostname)}"
-  local ip_addr
+  local main_host src_host ip_addr
+  main_host="hp-800g2-sff"
+  src_host="${HOSTNAME:-$(hostname)}"
+  ip_addr
   ip_addr="$(local_ip)"
   echo -n "Synchronizing from host: ${lightyellow}$src_host${normal} at "
   echo "IP: ${lightyellow}$localnet.$ip_addr${normal}"
@@ -241,8 +248,7 @@ check_host() {
 ## Execution ##
 
 check_package rsync
-# clear
-box "$_script v$_version, ($_updated)"
+box "$_script v$_version"
 check_host
 
 # Start timer
