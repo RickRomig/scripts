@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 April 2019
-# Updated      : 07 Jun 2024
+# Updated      : 08 Jun 2024
 # Comments     : Accepts either full URL or video id such as ph5ccfa07f0e2a6
 #              : Downloads to ~/Videos/Pornography/<category>
 # TODO (Rick)  :
@@ -16,7 +16,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -30,9 +29,9 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.5.24159"
-readonly _updated="07 Jun 2024"
-readonly porndir=$HOME"/Videos/Pornography"
+readonly _version="3.0.24160"
+readonly _updated="08 Jun 2024"
+readonly porn_dir=$HOME"/Videos/Pornography"
 
 ## Functions ##
 
@@ -42,26 +41,29 @@ display_title() {
   echo "$_script v$_version"
 }
 
-usage() {
+help() {
   local errcode="${1:-2}"
-  cat <<- EOF
+  cat <<- END_HELP
   Usage: $_script [video-url] [video-ID]
   $_script https://www.pornhub.com/view_video.php?viewkey=ph5ccfa07f0e2a6
   $_script ph5ccfa07f0e2a6
 
   --help or -h will display these instructions.
   --info or -i will display information about the script.
-EOF
+$_script v$_version ($_updated)
+END_HELP
   exit "$errcode"
 }
 
 script_info() {
-  cat <<- EOF
+  cat <<- END_INFO
   $_script uses yt-dlp to download videos from the PornHub adult site.
-  The video URL or ID is passed to the script on the command line.
+  The video URL or ID is passed to the script on the command line. The default
+  URL is https://www.pornhub.com if only the video ID is passed to the script.
 
   The script will then present a menu of categories corresponding to
   subdirectories under ~/Videos/Pornography/. Select the category (subdirectory).
+
   The the video will be downloaded to the selected sub-directory  The script is
   hard-coded to save the file as title.ext. Spaces in the title will be replaced
   by underscores. Metadata will also be added to the file.
@@ -70,12 +72,12 @@ script_info() {
   download fails, the script exits with an error code.
 
   Usage:
-    $_script [video-url]
-    $_script [video-ID]
+    $_script <video-url>
+    $_script <video-ID>
 
   Version: $_version
   Updated: $_updated
-EOF
+END_INFO
   exit
 }
 
@@ -88,38 +90,13 @@ check_dependencies() {
   fi
 }
 
-## Execution ##
-
-check_dependencies
-
-display_title
-
-# Check arguments and fetch URL
-
-if [[ $# -eq 0 ]]; then
-  echo "${lightred}Error:${normal} No argument passed." >&2
-  usage 2
-elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
-  script_info
-elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
-  usage 2
-elif [[ "$1" =~ ^https?:\/\/.* ]]; then
-  # match by regex, starts with http:// or https://
-  # \/ in regex will be seen as / in this context
-  url=$*
-else
-  # match by video ID
-  url="https://www.pornhub.com/view_video.php?viewkey=$*"
-fi
-
-# Choose the download folder
-
-echo $'\n'$"${bold}${blue}Categories:${normal}"
-COLUMNS=40
-options=("Anal" "Asian" "Bi Gay Trans" "Full movies" "Kink" \
- "Masturbation" "Miscellaneous" "Oral" "Pinay" "Straight")
-PS3="Choose category: "
-select opt in "${options[@]}"; do
+# shellcheck disable=SC2034
+choose_destination() {
+	local sub_dir opt options
+	COLUMNS=40
+  options=("Anal" "Asian" "Bi Gay Trans" "Full movies" "Kink" "Masturbation" \ "Miscellaneous" "Oral" "Pinay" "Straight" "No category")
+  PS3="Choose category: "
+  select opt in "${options[@]}"; do
   case "$REPLY" in
     1 ) subdir="Anal"; break ;;
     2 ) subdir="Asian"; break ;;
@@ -131,30 +108,61 @@ select opt in "${options[@]}"; do
     8 ) subdir="Oral"; break ;;
     9 ) subdir="Pinay"; break ;;
     10 ) subdir="Straight"; break ;;
-    * ) subdir="none"; break ;;
+    11 ) subdir="none"; break ;;
   esac
 done
+  echo "$sub_dir"
+}
+
+dl_2_video() {
+    if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/$dest_dir/%(title)s.%(ext)s" "$url"
+    then
+      leave "Download successful."
+    else
+      ec="$?"
+      die "Download failed." "$ec"
+    fi
+}
+
+dl_2_subdir() {
+	local dest_dir="$1"
+    if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/$dest_dir/%(title)s.%(ext)s" "$url"
+    then
+      leave "Download successful."
+    else
+      ec="$?"
+      die "Download failed." "$ec"
+    fi
+}
+
+## Execution ##
+
+check_dependencies
+
+display_title
+
+# Check arguments and fetch URL
+if [[ $# -eq 0 ]]; then
+  echo "${lightred}Error:${normal} No argument passed." >&2
+  help 2
+elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
+  script_info
+elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
+  help 2
+elif [[ "$1" =~ ^https?:\/\/.* ]]; then
+  # match by regex, starts with http:// or https://
+  url=$*
+else
+  # match by video ID
+  url="https://www.pornhub.com/view_video.php?viewkey=$*"
+fi
+
+# Choose the download folder
+subdir=$(choose_destination)
 
 # Download video to selected folder
-
 echo $'\n'$"${bold}${blue}Downloading from PornHub ...${normal}"
 case "$subdir" in
-  "none")
-    if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porndir/%(title)s.%(ext)s" "$url"
-    then
-      leave "Download successful."
-    else
-      ec="$?"
-      die "Download failed." "$ec"
-    fi
-    ;;
-  *)
-    if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porndir/$subdir/%(title)s.%(ext)s" "$url"
-    then
-      leave "Download successful."
-    else
-      ec="$?"
-      die "Download failed." "$ec"
-    fi
-    ;;
+  "none" ) dl_2_video;;
+  * ) dl_2_subdir "$subdir"
 esac
