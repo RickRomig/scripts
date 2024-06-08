@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 April 2019
 # Updated      : 08 Jun 2024
-# Comments     : Accept both full URLs and video id's such as AQcQgfvfF1M
+# Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to ~/Videos/sub-directory
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -16,7 +16,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -30,7 +29,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.4.24160"
+readonly _version="3.0.24160"
 readonly _updated="08 Jun 2024"
 readonly video_dir=$HOME"/Videos"
 
@@ -59,20 +58,23 @@ END_HELP
 script_info() {
   cat <<- END_INFO
   $_script uses yt-dlp to download videos from YouTube and similar sites.
-  The video URL or ID is passed to the script on the command line.
+  The video URL or ID is passed to the script on the command line. The default
+  URL is https://www.youtube.com if only the video ID is passed to the script.
 
   The script will then present a menu of categories corresponding to
-  subdirectories under ~/Videos/Pornography/. Select the category (subdirectory).
-  The the video will be downloaded to the selected sub-directory  The script is
-  hard-coded to save the file as title.ext. Spaces in the title will be replaced
-  by underscores. Metadata will also be added to the file.
+  subdirectories under ~/Videos. Select the category (subdirectory).
+  Selecting the 'no category' option downloads the video to ~/Videos.
+
+  The video will be downloaded to the selected sub-directory.  The script is
+  hard-coded to save the file as title.ext with spaces in the title replaced
+  by underscores. Metadata will be added to the file.
 
   When the download is completed, success or failure is displayed. If the
   download fails, the script exits with an error code.
 
   Usage:
-    $_script [video-url]
-    $_script [video-ID]
+    $_script <video-url>
+    $_script <video-ID>
 
   Version: $_version
   Updated: $_updated
@@ -87,6 +89,56 @@ check_dependencies() {
   else
     die "yt-dlp is not installed." 1
   fi
+}
+
+# shellcheck disable=SC2034
+choose_destination() {
+	local sub_dir opt options
+	echo $'\n'$"${bold}${blue}Available directories:${normal}"
+	COLUMNS=40
+	options=("Automotive" "Band" "Comedy" "History" "Movies" "Music" "Naturism" \
+	 "Philippines" "Religion" "Sayaw FilipinOH" "Tech-Computers" "Yoga" "No category")
+	PS3="Choose a category: "
+	select opt in "${options[@]}"; do
+	  case "$REPLY" in
+	    1 ) sub_dir="automotive"; break ;;
+	    2 ) sub_dir="Band"; break ;;
+	    3 ) sub_dir="Comedy"; break ;;
+	    4 ) sub_dir="History"; break ;;
+	    5 ) sub_dir="Movies"; break ;;
+	    6 ) sub_dir="Music"; break ;;
+	    7 ) sub_dir="Naturism"; break ;;
+	    8 ) sub_dir="Philippines"; break ;;
+	    9 ) sub_dir="Projects"; break ;;
+	    10 ) sub_dir="Religion"; break ;;
+	    11 ) sub_dir="Sayaw_FilipinOH"; break ;;
+	    12 ) sub_dir="Tech"; break ;;
+	    13 ) sub_dir="Yoga"; break ;;
+	    14 ) sub_dir="none"; break ;;
+	  esac
+	done
+	echo "$sub_dir"
+}
+
+dl_2_video() {
+	if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$video_dir/%(title)s.%(ext)s" "$url"
+	then
+		leave "Download successful."
+	else
+		ec="$?"
+		die "Download failed." "$ec"
+	fi
+}
+
+dl_2_subdir() {
+	local dest_dir="$1"
+	if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$video_dir/$dest_dir/%(title)s.%(ext)s" "$url"
+	then
+		leave "Download successful."
+	else
+		ec="$?"
+		die "Download failed." "$ec"
+	fi
 }
 
 ## Execution ##
@@ -106,7 +158,6 @@ elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
   help 0
 elif [[ "$1" =~ ^https?:\/\/.* ]]; then
   # match by regex, starts with http:// or https://
-  # \/ in regex will be seen as / in this context
   url=$*
 else
   # match by video ID
@@ -114,49 +165,11 @@ else
 fi
 
 # Choose the download folder
-
-echo $'\n'$"${bold}${blue}Available directories:${normal}"
-COLUMNS=40
-options=("Automotive" "Band" "Comedy" "History" "Movies" "Music" "Naturism" \
- "Philippines" "Religion" "Sayaw FilipinOH" "Tech-Computers" "Yoga")
-PS3="Choose a download folder: "
-select opt in "${options[@]}"; do
-  case "$REPLY" in
-    1 ) subdir="automotive"; break ;;
-    2 ) subdir="Band"; break ;;
-    3 ) subdir="Comedy"; break ;;
-    4 ) subdir="History"; break ;;
-    5 ) subdir="Movies"; break ;;
-    6 ) subdir="Music"; break ;;
-    7 ) subdir="Naturism"; break ;;
-    8 ) subdir="Philippines"; break ;;
-    9 ) subdir="Religion"; break ;;
-    10 ) subdir="Sayaw_FilipinOH"; break ;;
-    11 ) subdir="Tech"; break ;;
-    12 ) subdir="Yoga"; break ;;
-    * ) subdir="none"; break
-  esac
-done
+subdir=$(choose_destination)
 
 # Download video to selected folder
-
 echo $'\n'$"${bold}${blue}Downloading from YouTube ...${normal}"
 case "$subdir" in
-  "none" )
-    if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$video_dir/%(title)s.%(ext)s" "$url"
-    then
-      leave "Download successful."
-    else
-      ec="$?"
-      die "Download failed." "$ec"
-    fi
-    ;;
-  * )
-    if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$video_dir/$subdir/%(title)s.%(ext)s" "$url"
-    then
-      leave "Download successful."
-    else
-      ec="$?"
-      die "Download failed." "$ec"
-    fi
+  "none" ) dl_2_video;;
+  * ) dl_2_subdir "$subdir"
 esac
