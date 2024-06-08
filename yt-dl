@@ -6,7 +6,9 @@
 # Arguments    : Video URL or ID number
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments      : Accept both full URLs and video id's such as AQcQgfvfF1M
+# Created      : 05 April 2019
+# Updated      : 08 Jun 2024
+# Comments     : Accept both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to ~/Videos/sub-directory
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -14,7 +16,7 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -28,8 +30,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.3.5"
-readonly _updated="14 Feb 2024"
+readonly _version="2.4.24160"
+readonly _updated="08 Jun 2024"
 readonly video_dir=$HOME"/Videos"
 
 ## Functions ##
@@ -37,24 +39,25 @@ readonly video_dir=$HOME"/Videos"
 display_title() {
   clear
   box "YouTube Download" "="
-  echo "$_script v$_version ($_updated)"
+  echo "$_script v$_version"
 }
 
-usage() {
+help() {
   local errcode="${1:-2}"
-  cat <<- EOF
+  cat <<- END_HELP
   Usage: $_script [video-url] [video-ID]
   $_script https://www.youtube.com/watch?v=/AQcQgfvfF1M
   $_script AQcQgfvfF1M
 
   -h or --help will display these instructions.
   -i or --info will display information about the script.
-EOF
+$_script v$_version ($_updated)
+END_HELP
   exit "$errcode"
 }
 
 script_info() {
-  cat <<- EOF
+  cat <<- END_INFO
   $_script uses yt-dlp to download videos from YouTube and similar sites.
   The video URL or ID is passed to the script on the command line.
 
@@ -73,7 +76,7 @@ script_info() {
 
   Version: $_version
   Updated: $_updated
-EOF
+END_INFO
   exit
 }
 
@@ -96,11 +99,11 @@ display_title
 
 if [[ -z "$1" ]]; then
   echo "${bold}${lightred}Error:${normal} No argument passed." >&2
-  usage 2
+  help 2
 elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
   script_info
 elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
-  usage 0
+  help 0
 elif [[ "$1" =~ ^https?:\/\/.* ]]; then
   # match by regex, starts with http:// or https://
   # \/ in regex will be seen as / in this context
