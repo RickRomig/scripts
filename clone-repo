@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, created: 19 Oct 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 29 Apr 2024
+# Updated      : 10 Jun 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -19,9 +19,8 @@
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.3.24120"
-readonly _updated="26 Nov 2023"
-readonly repos=( scripts configs i3debian deb12wm-scripts deb12wm-dotfiles gitea-server openboxdebian fnloc fnloc-win homepage )
+readonly _version="3.0.24162"
+readonly _updated="10 Jun 2024"
 
 ## Functions ##
 
@@ -36,9 +35,10 @@ exist_git() {
 }
 
 clone_repo() {
-  local git_repo="$1"
-  local gitea_svr="http://192.168.0.16:3000/Nullifidian"
-  local dl_dir="$HOME/Downloads"
+  local dl_dir gitea_svr git_repo
+  git_repo="$1"
+  gitea_svr="http://192.168.0.16:3000/Nullifidian"
+  dl_dir="$HOME/Downloads"
   git clone "$gitea_svr/$git_repo.git" "$dl_dir/$git_repo"
 }
 
@@ -50,56 +50,19 @@ printf "%s v%s\n" "$_script" "$_version"
 printf "Clone a repository from the local Gitea server.\n\n"
 printf "Available repositories:\n"
 COLUMNS=40
-options=( "Bash scripts" "Configuration files" "Debian i3 WM" "Debian 12 WM scripts" "Debian 12 WM dotfiles" "Gitea Server" "Openbox Debian" "FnLoC" "FnLoC-Win" "Homepage" "Exit" )
 PS3="Choose a repository to clone: "
-select opt in "${options[@]}"; do
-  case "$REPLY" in
-    1 )
-      clone_repo "${repos[0]}"
-      break
-    ;;
-    2 )
-      clone_repo "${repos[1]}"
-      break
-    ;;
-    3 )
-      clone_repo "${repos[2]}"
-      break
-    ;;
-    4 )
-      clone_repo "${repos[3]}"
-      break
-    ;;
-    5 )
-      clone_repo "${repos[4]}"
-      break
-    ;;
-    6 )
-      clone_repo "${repos[5]}"
-      break
-    ;;
-    7 )
-      clone_repo "${repos[6]}"
-      break
-    ;;
-    8 )
-      clone_repo "${repos[7]}"
-      break
-    ;;
-    9 )
-      clone_repo "${repos[8]}"
-      break
-    ;;
-    10 )
-      clone_repo "${repos[9]}"
-      break
-    ;;
-    11 )
-      printf "Exiting. No repositories cloned.\n"
-      break
-    ;;
-    * )
-      printf "\e[91mERROR:\e[0m Invalid choice. Choose 1-%d.\n" "${#options[@]}" >&2
-  esac
+readonly repos=( scripts configs i3debian deb12wm-scripts deb12wm-dotfiles gitea-server openboxdebian fnloc fnloc-win homepage )
+select opt in "${repos[@]}" "Exit"; do
+	if (( REPLY == 1 + ${#repos[@]} )); then
+		printf "Exiting. No repository selected or cloned.\n"
+		break
+	elif (( REPLY > 0 && REPLY <= ${#repos[@]} )); then
+    index=$((( REPLY - 1 )))
+    printf "Cloning the %s repository...\n" "${repos[index]}"
+		clone_repo "${repos[index]}"
+		break
+	else
+		printf "Invalid option. Choose 1 - %d\n" "${#repos[@]}"
+	fi
 done
 exit
