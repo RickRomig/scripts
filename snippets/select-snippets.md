@@ -30,3 +30,24 @@ select opt in "Yes" "No"; do
 	esac
 done
 ```
+### if-elif-else option to case
+```bash
+# shellcheck disable=SC2034
+# Ignores Shellcheck warning because 'repo' isn't used.
+COLUMNS=40
+PS3="Choose a repository to clone: "
+readonly repos=( scripts configs i3debian deb12wm-scripts deb12wm-dotfiles gitea-server openboxdebian fnloc fnloc-win homepage )
+select repo in "${repos[@]}" "Exit"; do
+	if (( REPLY == 1 + ${#repos[@]} )); then
+		printf "Exiting. No repository selected or cloned.\n"
+		break
+	elif (( REPLY > 0 && REPLY <= ${#repos[@]} )); then
+    index=$((( REPLY - 1 )))
+    printf "Cloning the %s repository...\n" "${repos[index]}"
+		clone_repo "${repos[index]}"
+		break
+	else
+		printf "Invalid option. Choose 1 - %d\n" "${#repos[@]}"
+	fi
+done
+```
