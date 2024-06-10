@@ -1,4 +1,5 @@
-# Extract IP4 addresses from files
+# IP Address Information
+#### Extract IP4 addresses from files
 ```bash
 $ grep -E -o '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' ufw.log
 $ grep -E '([0-9]{1,3}\.){3}[0-9]{1,3}' ufw.log
@@ -10,6 +11,25 @@ $ local_net=$(echo "$ip_data" | awk '{print $3}' | cut -d'.' -f1,2,3)
 $ local_addr=$(echo "$ip_data" | awk '{print $7}')
 $ local_ip=$(echo "$ip_data" | awk '{print $7}' | cut -d'.' -f4)
 $ local_gateway=$(echo "$ip_data" | awk '{print $3}')
+```
+#### Public IP address:
+```bash
+$ /usr/bin/curl https://ifconfig.me
+208.38.225.144
+$ /usr/bin/curl http://ident.me
+208.38.225.144
+$ /usr/bin/curl ipinfo.io
+{
+  "ip": "208.38.225.144",
+  "city": "Huber Heights",
+  "region": "Ohio",
+  "country": "US",
+  "loc": "39.8439,-84.1247",
+  "org": "AS30600 Metronet",
+  "postal": "45424",
+  "timezone": "America/New_York",
+  "readme": "https://ipinfo.io/missingauth"
+}
 ```
 #### Obtain local network:
 ```bash
