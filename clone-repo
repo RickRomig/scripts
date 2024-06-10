@@ -4,7 +4,7 @@
 # Description  : Clone a git repository from local Gitea server
 # Dependencies : git
 # Arguments    : None
-# Author       : Copyright (C) 2022, Richard B. Romig, created: 19 Oct 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
 # Updated      : 10 Jun 2024
@@ -13,14 +13,10 @@
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck disable=SC2034
-
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.24162"
-readonly _updated="10 Jun 2024"
+readonly _version="3.1.24162"
 
 ## Functions ##
 
@@ -35,7 +31,7 @@ exist_git() {
 }
 
 clone_repo() {
-  local dl_dir gitea_svr git_repo
+  local dl_dir git_repo gitea_svr
   git_repo="$1"
   gitea_svr="http://192.168.0.16:3000/Nullifidian"
   dl_dir="$HOME/Downloads"
@@ -51,8 +47,9 @@ printf "Clone a repository from the local Gitea server.\n\n"
 printf "Available repositories:\n"
 COLUMNS=40
 PS3="Choose a repository to clone: "
-readonly repos=( scripts configs i3debian deb12wm-scripts deb12wm-dotfiles gitea-server openboxdebian fnloc fnloc-win homepage )
-select opt in "${repos[@]}" "Exit"; do
+declare -a -r repos=( scripts configs i3debian deb12wm-scripts deb12wm-dotfiles gitea-server openboxdebian fnloc fnloc-win homepage )
+# shellcheck disable=SC2034
+select repo in "${repos[@]}" "Exit"; do
 	if (( REPLY == 1 + ${#repos[@]} )); then
 		printf "Exiting. No repository selected or cloned.\n"
 		break
@@ -62,7 +59,7 @@ select opt in "${repos[@]}" "Exit"; do
 		clone_repo "${repos[index]}"
 		break
 	else
-		printf "Invalid option. Choose 1 - %d\n" "${#repos[@]}"
+		printf "Invalid repoion. Choose 1 - %d\n" "${#repos[@]}"
 	fi
 done
 exit
