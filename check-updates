@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 29 Apr 2024
+# Updated      : 11 Jun 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -18,7 +18,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -34,18 +33,19 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.6.24120"
+readonly _version="2.7.24163"
 readonly local_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
 
 update_apt_cache() {
-  local cache_file="/var/cache/apt/pkgcache.bin"
-  local current_time; current_time=$(date +%s)
-  local updated_time; updated_time=$(stat -c%Y "$cache_file")
-  local time_diff; time_diff=$(( current_time - updated_time ))
-  # threshold values: 86400 = 24 hours, 43200 = 12 hours, 21600 = 6 hours
-  local threshold=21600
+  local cache_file current_time updated_time time_diff threshold
+  cache_file="/var/cache/apt/pkgcache.bin"
+  current_time=$(date +%s)
+  updated_time=$(stat -c%Y "$cache_file")
+  time_diff=$(( current_time - updated_time ))
+  # threshold values: 86400 = 24 hours, 43200 = 12 hours, 21600 = 6 hours 10800 = 3 hours
+  threshold=21600
   if [[ "$time_diff" -le "$threshold" ]]; then
     printf "%sApt cache is up to date.%s\n" "$orange" "$normal"
   else
@@ -70,11 +70,11 @@ remove_orphans() {
 }
 
 purge_configs() {
-  local rcpkgs
-  local rcpkg
+  local rcpkg rcpkgs
   printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
-  rcpkgs=$(dpkg --list | awk '/^rc/ {print $1,$2}')
-  if [[ -n "$rcpkgs" ]]; then
+  # rcpkgs=$(dpkg --list | awk '/^rc/ {print $1,$2}')
+  rcpkgs=$(dpkg --list | grep -E '^rc')
+  if [[ "$rcpkgs" ]]; then
     printf "%s\n" "$rcpkgs"
     for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
       sudo apt-get remove --purge "$rcpkg" -yy
@@ -99,6 +99,7 @@ defer_updates() {
 }
 
 update_flatpak() {
+  local fp_count
   fp_count=$(flatpak list | wc -l)
   printf "\n%sFlatpak:%s\n" "$orange" "$normal"
   if [[ "$fp_count" -gt 0 ]]; then
@@ -114,7 +115,7 @@ update_flatpak() {
 
 nala_update() {
   sudo nala upgrade
-  if default_yes "Run autoremove/autopurge?"; then
+  if default_no "Run autoremove/autopurge?"; then
     printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
     sudo nala autoremove
     printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
@@ -125,8 +126,9 @@ nala_update() {
   printf "\n"
 }
 
+# shellcheck disable=SC2034
 apt_update() {
-  local nupd
+  local nupd options opt
   grep -qw debian /etc/os-release && update_apt_cache
   # Get number of packages that can be upgraded
   nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
