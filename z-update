@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Script Name  : z-update
-# Description  : Updates youtube-dl automatically using anacron
+# Description  : Updates system automatically using anacron or cron
 # Dependencies : None
 # Arguments    : None
-# Author       : Copyright (C) 2023, Richard B. Romig, 20 Jun 2023
+# Author       : Copyright (C) 2023, Richard B. Romig,
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
-# Last updated : 23 Feb 2024
+# Created      : 20 Jun 2023
+# Updated      : 11 Jun 2024
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -19,7 +20,7 @@ check_flatpak() {
   fp_count=$(flatpak list | wc -l)
   printf "\n*** Flatpak ***\n"
   if [[ "$fp_count" -gt 0 ]]; then
-    flatpak update --system --noninteractive --force-remove --assumeyes
+    flatpak update --system --noninteractive --force-remove --assumeyes 2> /dev/null
   else
     printf "No Flatpaks installed.\n\n"
   fi
@@ -29,13 +30,8 @@ exists() {
   command -v "$1" > /dev/null 2>&1 && return 0 || return 1
 }
 
-log_dir="/var/log"
-log_file="update.log"
-sed_file="/usr/share/misc/updatelog.sed"
-
-{
-  printf "Update began: %s\n" "$(date '+%a %F %T')"
-  printf "\n*** Checking for updates ***\n"
+get_updates() {
+  local nupd
   /usr/bin/apt-get update
   nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
   if [[ "$nupd" -eq 1 ]]; then
@@ -51,19 +47,34 @@ sed_file="/usr/share/misc/updatelog.sed"
   else
     printf "\nNothing to update.\n"
   fi
-  printf "\n*** Cleaning APT cache ***\n"
-  /usr/bin/apt-get autoclean
-  printf "\n*** Removing orphaned packages ***\n"
-  DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove -yy
-  printf "\n*** Purging obsolete configuration files ***\n"
-  rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}' | wc -l)
-  if [[ "$rcpkgs" -gt 0 ]]; then
+}
+
+purge_configs() {
+  local rcpkg
+  if dpkg --list | grep -q '^rc'; then
     for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
+      printf "Purging %s...\n" "$rcpkg"
       DEBIAN_FRONTEND=noninteractive apt-get remove --purge "$rcpkg" -yy
     done
   else
     printf "No packages in the 'rc' state to be purged.\n"
   fi
+}
+
+log_dir="/var/log"
+log_file="update.log"
+sed_file="/usr/share/misc/updatelog.sed"
+
+{
+  printf "Update began: %s\n" "$(date '+%a %F %T')"
+  printf "\n*** Checking for updates ***\n"
+  get_updates
+  printf "\n*** Cleaning APT cache ***\n"
+  /usr/bin/apt-get autoclean
+  printf "\n*** Removing orphaned packages ***\n"
+  DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove -yy
+  printf "\n*** Purging obsolete configuration files ***\n"
+  purge_configs
   exists flatpak && check_flatpak
   printf "\nCompleted: %s\n" "$(date '+%a %F %T')"
 } > "$log_dir/$log_file" 2>&1
