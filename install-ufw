@@ -7,7 +7,7 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 06 Jun 2024
+# Updated      : 11 Jun 2024
 # Comments     : Install & remove for Deian-based systems only.
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
@@ -29,8 +29,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.11.24158"
-readonly _updated="06 Jun 2024"
+readonly _version="1.11.24163"
+readonly _updated="11 Jun 2024"
 
 ## Functions ##
 
@@ -59,7 +59,7 @@ install_ufw() {
 
 remove_ufw() {
   printf "Removing UFW (Uncomplicated Firewall) version %s...\n" "$(ufw_version)"
-  sudo ufw disable
+  sudo ufw reset  # disable UFW and delete all active rules
   sudo  apt-get purge ufw
 }
 
