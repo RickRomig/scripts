@@ -70,13 +70,11 @@ remove_orphans() {
 }
 
 purge_configs() {
-  local rcpkg rcpkgs
+  local rcpkg
   printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
-  # rcpkgs=$(dpkg --list | awk '/^rc/ {print $1,$2}')
-  rcpkgs=$(dpkg --list | grep -E '^rc')
-  if [[ "$rcpkgs" ]]; then
-    printf "%s\n" "$rcpkgs"
+  if dpkg --list | grep -q '^rc'; then
     for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
+      printf "Purging %s...\n" "$rcpkg"
       sudo apt-get remove --purge "$rcpkg" -yy
     done
   else
@@ -106,7 +104,7 @@ update_flatpak() {
     printf "User installations...\n"
     flatpak update --user --noninteractive --force-remove --assumeyes
     printf "System-wide installations...\n"
-    sudo flatpak update --system --noninteractive --force-remove --assumeyes
+    sudo flatpak update --system --noninteractive --force-remove --assumeyes  2> /dev/null
     printf "\n"
   else
     printf "No Flatpaks installed.\n\n"
