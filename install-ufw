@@ -29,7 +29,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.11.24163"
+readonly _version="1.12.24163"
 readonly _updated="11 Jun 2024"
 
 ## Functions ##
@@ -42,9 +42,10 @@ UFW/GUFW is installed by default in Linux Mint, LMDE, and Ubuntu.
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS${normal}
   -a  Add rules for CUPS and SSH
-  -d  Disable UFW
-  -e  Enable UFW
+  -d  Delete rules
+  -e  Toggle Enable/Disable UFW
   -i  Install UFW on a Debian-based system
+  -n  Add new rules
   -r  Remove UFW from a Debian-based system
   -s  UFW status
 END_HELP
@@ -68,6 +69,28 @@ add_rules() {
   sudo sed -i '/IPV6=no/s/no/yes/' /etc/default/ufw
   sudo ufw allow 631   # CUPS 631
   sudo ufw allow SSH   # SSH 22/tcp
+}
+
+new_rules() {
+  local rule="deny foo"
+  sudo ufw status
+  printf "Add new rules in the following format:\n"
+  printf "allow <protocol> or allow <port-number>\n"
+  while [[ "$rule" != "" ]]; do
+    read -rp "Rule to be added (done to exit): " rule
+    [[ "$rule" != "" ]] && sudo ufw "$rule"
+  done
+}
+
+delete_rules() {
+  local rule="allow foo"
+  sudo ufw status
+  printf "Enter rules to be deleted in the following format:\n"
+  printf "allow <protocol> or allow <port-number>\n"
+  while [[ "$rule" != "" ]]; do
+    read -rp "Rule to be removed: " rule
+    [[ "$rule" != "" ]] && sudo ufw delete "$rule"
+  done
 }
 
 enable_ufw() {
@@ -104,7 +127,7 @@ debian_system() {
 ## Execution ##
 
 noOpt=1
-optstr=":adehirs"
+optstr=":adehinrs"
 while getopts "$optstr" opt; do
   case "$opt" in
     a )
@@ -117,14 +140,17 @@ while getopts "$optstr" opt; do
     d )
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
       sudo_login 2
-      ufw_active || leave "UFW $(ufw_version) is already disabled."
-      disable_ufw
+      delete_rules
     ;;
     e )
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
       sudo_login 2
-      ufw_active && leave "UFW $(ufw_version) is already enabled."
-      enable_ufw
+      if ufw_active; then
+        printf "UFW %s is enabled.\n" "$(ufw_version)"
+        defult_no "Disable UFW?" && disable_ufw
+      else
+        enable_ufw
+      fi
     ;;
     h )
       help 0
@@ -138,6 +164,12 @@ while getopts "$optstr" opt; do
       enable_ufw
       printf "UFW %s installed and configured.\n" "$(ufw_version)"
     ;;
+    n )
+      dpkg -l | grep -qw ufw || leave "UFW is not installed."
+      sudo_login 2
+      new_rules
+    ;;
+
     r )
       debian_system || die "Not a Debian-based system."
       dpkg -l | grep -qw ufw || leave "UFW is not installed."
