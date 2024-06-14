@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jul 2020
-# Updated      : 22 May 2024
+# Updated      : 14 Jun 2024
 # Comments     : Uses data from /sys/class/power_supply/BAT*
 #              : Battery charge based on a script by Luke Smith (https://lukesmith.xyz)
 # TODO (Rick)  :
@@ -29,32 +29,33 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="6.3.24143"
-readonly _updated="22 May 2024"
+readonly _version="6.4.24166"
+readonly _updated="14 Jun 2024"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  cat <<- EOF
-  ${green}Usage:${normal} $_script [option]
-  With no argument, displays battery health information.
-  ${orange}OPTIONS:${normal}
-  -h        # displays this help message.
-  --help    # displays this help message.
-  -v        # displays the version and information about the script.
-  --version # displays the version and information about the script.
-  $_script $_version, Upated: $_updated
+  cat << EOF
+${orange}$_script${normal} $_version, Upated: $_updated
+Shows battery charge and health information
+
+${green}Usage:${normal} $_script [-h|--help]
+       $_script [-v|--version]
+
+${orange}Options:${normal}
+  -h,--help     Show this help text
+  -v,--version  Show version and information
 EOF
   exit "$errcode"
 }
 
 version() {
-  cat <<- EOF
-  $_script $_version, Updated: $_updated
-  Displays the charge state and health of a laptop battery using data obtained
-  from files in /sys/class/power_supply/BAT*. Capacity information may be shown
-  in either Ampere-hours (Ah) or Watt-hours (Wh), depending on your system.
+  cat << EOF
+$_script $_version, Updated: $_updated
+Displays the charge state and health of a laptop battery using data obtained
+from files in /sys/class/power_supply/BAT*. Capacity information may be shown
+in either Ampere-hours (Ah) or Watt-hours (Wh), depending on your system.
 EOF
 }
 
@@ -203,7 +204,5 @@ if [[ -d /proc/acpi/button/lid/ ]]; then
 else
   printf "\nThis system is not a laptop.\n" >&2
 fi
-
 printf "\n%s v%s\n" "$_script" "$_version"
-
 exit
