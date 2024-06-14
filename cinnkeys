@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 12 May 2021
-# Updated      : 20 May 2024
+# Updated      : 14 Jun 2024
 # Comments     : Backup of Cinnamon keybindings in ~/.config
 #              : Tested with Cinnamon DE on Mint 19.x & 20.x, 21.x, LMDE 5/6, Debian 10/11/12
 # TODO (Rick)  :
@@ -29,31 +29,32 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.2.24141"
-readonly _updated="20 May 2024"
+readonly _version="2.3.24166"
+readonly _updated="14 Jun 2024"
 readonly kb_bu="keybindings-backup.dconf"
 readonly cfg_dir="$HOME/.config"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
-usage() {
+help() {
   local errcode="${1:-1}"
   cat << _END_HELP_
+${orange}$_script${normal} $_version, Upated: $_updated
 Creates a backup file of Cinnamon keybindings and restores from a backup file.
 
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
-  -d  Dump Cinnamon keybindings to a backup file in ~/.config.
-  -h  Displays help.
+
+${orange}Available options:${normal}
+  -d  Dumps Cinnamon keybindings to a backup file in ~/.config.
+  -h  Displays this help text.
   -l  Loads Cinnamon keybindings from the backup file.
   -v  Enable verbose mode
-$_script v$_version, updated: $_updated
 _END_HELP_
   exit "$errcode"
 }
 
-showme() {
+show_message() {
 	local message="$1"
 	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
@@ -66,32 +67,32 @@ if is_cinnamon; then
   while getopts "$optstr" opt; do
     case "$opt" in
       d )
-        showme "Dumping keybindings to backup file."
+        show_message "Dumping keybindings to backup file."
         dconf dump /org/cinnamon/desktop/keybindings/ > "$cfg_dir/$kb_bu"
         printf "Cinnamon Keybindings dumped to %s\n" "$cfg_dir/$kb_bu"
       ;;
       h )
-        usage 0
+        help 0
       ;;
       l )
         if [[ -f "$cfg_dir/$kb_bu" ]]; then
-          showme "loading keybindings from backup file."
+          show_message "loading keybindings from backup file."
           dconf load /org/cinnamon/desktop/keybindings/ < "$HOME/.config/$kb_bu"
           printf "Cinnamon Keybindings loaded from %s\n" "$cfg_dir/$kb_bu"
         else
           pirntf "%s does not exist. Creating it...\n" "$kb_bu" >&2
-          showme "Dumping keybindings to backup file."
+          show_message "Dumping keybindings to backup file."
           dconf dump /org/cinnamon/desktop/keybindings/ > "$cfg_dir/$kb_bu"
           printf "Cinnamon Keybindings dumped to %s\n" "$cfg_dir/$kb_bu"
         fi
       ;;
       v )
         verbose_mode="$TRUE"
-        showme "Verbose mode enabled."
+        show_message "Verbose mode enabled."
       ;;
       ? )
         printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-        usage 2
+        help 2
     esac
     noOpt=0
   done
