@@ -35,13 +35,18 @@ readonly _updated="22 May 2024"
 
 help() {
   local errcode="${1:-2}"
-  cat <<- EOF
-  ${green}Usage:${normal} $_script [option]
-  With no argument, displays battery health information.
-  ${orange}OPTIONS:${normal}
-  -h  --help    # displays this help message.
-  -v  --version # displays the version and information about the script.
-  $_script $_version, Updated: $_updated
+  cat << EOF
+${orange}$_script${normal} $_version, Upated: $_updated
+Shows battery charge and health information
+
+${green}Usage:${normal} $_script [-h|--help]
+       $_script [-v|--version]
+
+With no argument, displays battery health information.
+
+${orange}Options:${normal}
+  -h,--help     Show this help text
+  -v,--version  Show version and information
 EOF
   exit "$errcode"
 }
@@ -133,8 +138,6 @@ hidpp_battery() {
 
 ## Execution ##
 
-check_package upower
-clear
 if [[ $# -gt 0 ]]; then
   case "$1" in
     -h|--help )
@@ -150,6 +153,8 @@ if [[ $# -gt 0 ]]; then
   esac
 fi
 
+check_package upower
+clear
 printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
 if [[ -d /proc/acpi/button/lid/ ]]; then
   if /usr/bin/upower -e | grep -q 'BAT'; then
