@@ -27,4 +27,5 @@ sudo whoami
 cd /etc/sudoers.d/
 sudo visudo -f rick
 	Defaults timestamp_timeout=30
+echo "Defaults timestamp_timeout=30" | sudo tee /etc/sudoers.d/rick
 ```
