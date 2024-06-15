@@ -3,7 +3,7 @@
 # Script to clean apt cache and remove orphaned packages & obsolute config files.
 # Anacron - copy to /etc/cron.monthly/
 # Cron - copy to /usr/local/bin/ or /opt/bin/
-# Last updated: 22 Apr 2024
+# Last updated: 15 Jun 2024
 # License: GNU General Public License, version 2.0
 
 set -euo pipefail
@@ -11,7 +11,18 @@ set -euo pipefail
 log_dir="/var/log"
 log_file="clean.log"
 log_date=$(date '+%a %F %R')
- rcpkgs=$(dpkg --list | awk '/^rc/ {print $1,$2}')
+
+purge_configs() {
+  local rcpkg
+  if dpkg --list | grep -q '^rc'; then
+    for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
+      printf "Purging %s...\n" "$rcpkg"
+      DEBIAN_FRONTEND=noninteractive apt-get remove --purge "$rcpkg" -yy
+    done
+  else
+    printf "No packages in the 'rc' state to be purged.\n"
+  fi
+}
 
 {
   printf "Autoclean log: %s\n" "$log_date"
@@ -20,13 +31,7 @@ log_date=$(date '+%a %F %R')
   printf "\nRemoving orphaned packages...\n"
   DEBIAN_FRONTEND=noninteractive apt-get autoremove -yy
   printf "\nPurging obsolete configuratino files\n"
-  if [[ $rcpkgs ]]; then
-    for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
-      DEBIAN_FRONTEND=noninteractive apt-get remove --purge "$rcpkg" -yy
-    done
-  else
-    printf "No packages in the 'rc' state to be purged.\n"
-  fi
+  purge_configs
 } > "$log_dir/$log_file" 2>&1
 
 exit
