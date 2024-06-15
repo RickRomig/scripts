@@ -6,8 +6,8 @@
 # Arguments    : Shell script or C source file
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Created      : 05 June 2019
-# Updated      : 20 May 2024
+# Created      : 05 Jun 2019
+# Updated      : 15 Jun 2024
 # Comments     : Inserts the license immediately after the file's header.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -15,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -29,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.3.24141"
-readonly _updated="20 May 2024"
+readonly _version="3.3.24167"
+readonly _updated="15 Jun 2024"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 cur_yr=$(echo -e "\UA9 $(date +%Y)"); readonly cur_yr
@@ -52,26 +51,29 @@ create_conf() {
   " > "$conf_dir/$conf_file"
 }
 
-usage() {
+help() {
   local errcode="${1:-2}"
   cat << END_HELP
-${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
+${orange}$_script${normal} $_version ($_updated)
+Inserts an Open Source license into a shell script or a C/C++ source code file.
+
+${green}Usage:${normal} $_script [OPTION] [source-file]
+
+${orange}Available options:${normal}
   -c  C code
       $_script -c <c-source.c>
   -e  Edit $_script.conf
+  -h  Show this help text.
   -p  C++ code
       $_script -p <c-source.cpp>
   -s  Shell script
       $_script -s <shell-script>
-  -u  Usage instructions
   -v  Enable verbose mode
-$_script $_version ($_updated)
 END_HELP
   exit "$errcode"
 }
 
-show_me() {
+show_message() {
 	local message="$1"
 	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
@@ -88,15 +90,15 @@ cleanup() {
 box " $_script $_version"
 
 noOpt=1
-optstr=":c:ep:s:uv"
+optstr=":c:ehp:s:v"
 while getopts "$optstr" opt; do
   case "$opt" in
     c )
 			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
-      show_me "File: $code_file"
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; help 2; }
+      show_message "File: $code_file"
       code_type="C"
-      show_me "Code type: $code_type source code"
+      show_message "Code type: $code_type source code"
     ;;
     e )
       if [[ -f "$conf_dir/$conf_file" ]]; then
@@ -106,38 +108,38 @@ while getopts "$optstr" opt; do
         create_conf
       fi
     ;;
+    h )
+      help 0
+    ;;
     p )
 			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
-      show_me "File: $code_file"
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; help 2; }
+      show_message "File: $code_file"
       code_type="C++"
-      show_me "Code type: $code_type source code"
+      show_message "Code type: $code_type source code"
     ;;
     s )
 			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
-      show_me "File: $code_file"
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; help 2; }
+      show_message "File: $code_file"
       code_type="Shell"
-      show_me "Code type: $code_type script"
-    ;;
-    u )
-      usage 0
+      show_message "Code type: $code_type script"
     ;;
 		v )
 			verbose_mode="$TRUE"
-			show_me "Verbose mode enabled."
+			show_message "Verbose mode enabled."
 		;;
     : )
       printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
-      usage 2
+      help 2
     ;;
     ? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-			usage 2
+			help 2
   esac
 	noOpt=0
 done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; usage 1; }
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
 
 [[ -z "$code_file" ]] && leave "No file selected."
@@ -147,7 +149,7 @@ shift "$(( OPTIND - 1 ))"
 [[ -f "$conf_dir/$conf_file" ]] || create_conf
 source "$conf_dir/$conf_file"
 
-show_me "Creating temporary file."
+show_message "Creating temporary file."
 tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 trap cleanup EXIT
 
@@ -186,7 +188,7 @@ select opt in "${options[@]}"; do
       printf "%sInvalid option. Try again.%s\n" "$lightred" "$normal" >&2
   esac
 done
-show_me "License: $lic_type"
+show_message "License: $lic_type"
 
 # Insert the license into the source file
 
