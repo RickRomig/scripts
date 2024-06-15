@@ -31,9 +31,7 @@ err_log="HomeBank-error.log"
 # Create log and archive directories if they don't already exist
 [[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 [[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
-
-# Remove flag file from archive directory.
-rm -f "$arc_dir"/HomeBank\ Archive* > /dev/null 2>&1
+[[ -f "$arc_dir/$err_log" ]] && rm -f "$arc_dir/$err_log" >/dev/null 2>&1
 
 # Archive the .bak files for the 2nd month prior & write success/failure to log.
 {
@@ -41,10 +39,10 @@ rm -f "$arc_dir"/HomeBank\ Archive* > /dev/null 2>&1
   if zip -qmtt "$ref_date" "$arc_dir/$archive" "$hb_dir"/*.bak 2> "$arc_dir/$err_log"
   then
     printf "successful\n"
-    touch "$arc_dir/HomeBank Archive successful ($(date +%F))"
+    echo "HomeBank Archive successful ($(date +%F))" >> "$arc_dir/$err_log"
   else
     printf "had errors\n"
-    touch "$arc_dir/HomeBank Archive had errors ($(date +%F))"
+    echo "HomeBank Archive had errors ($(date +%F))" >> "$arc_dir/$err_log"
   fi
 } >> "$log_dir/$log_file"
 
@@ -61,4 +59,4 @@ find "$arc_dir" -mtime +1095 -delete
 # Sync HomeBank archive with archive copy on the main system
 rsync -aq --delete "$HOME"/Downloads/archives/homebank/ 192.168.0.10:Downloads/archives/homebank/
 
-exit 
+exit
