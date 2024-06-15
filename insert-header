@@ -63,26 +63,29 @@ create_conf() {
   " > "$conf_dir/$conf_file"
 }
 
-usage() {
+help() {
   local errcode="${1:-2}"
   cat << END_HELP
-${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
-  -c  C code
+${orange}$_script${normal} $_version ($_updated)
+Inserts a header into a shell script or a C/C++ source file.
+
+${green}Usage:${normal} $_script [OPTION] [code-file]
+
+${orange}Available options:${normal}
+  -c  C code header
       $_script -c <c-source.c>
   -e  Edit $_script.conf
-  -p  C++ code
+  -h  Show this help text.
+  -p  C++ code header
       $_script -p <c-source.cpp>
-  -s  Shell script
+  -s  Shell script header
       $_script -s <shell-script>
-  -u  Usage instructions
   -v  Enable verbose mode
-$_script $_version ($_updated)
 END_HELP
   exit "$errcode"
 }
 
-show_me() {
+show_message() {
 	local message="$1"
 	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
@@ -99,17 +102,17 @@ cleanup() {
 box "$_script $_version"
 
 noOpt=1
-optstr=":c:ep:s:uv"
+optstr=":c:ehp:s:v"
 while getopts "$optstr" opt; do
   case "$opt" in
     c )
 			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
-      show_me "File: $code_file"
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; help 2; }
+      show_message "File: $code_file"
       code_type="C"
-      show_me "Code type: $code_type header"
+      show_message "Code type: $code_type header"
       template_file="c-header.txt"
-      show_me "Template: $template_file"
+      show_message "Template: $template_file"
     ;;
     e )
       if [[ -f "$conf_dir/$conf_file" ]]; then
@@ -119,42 +122,42 @@ while getopts "$optstr" opt; do
         create_conf
       fi
     ;;
+    h )
+      help 0
+    ;;
     p )
 			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
-      show_me "File: $code_file"
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; help 2; }
+      show_message "File: $code_file"
       code_type="C++"
-      show_me "Code type: $code_type header"
+      show_message "Code type: $code_type header"
       template_file="cpp-header.txt"
-      show_me "Template: $template_file"
+      show_message "Template: $template_file"
    ;;
     s )
 			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; usage 2; }
-      show_me "File: $code_file"
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; help 2; }
+      show_message "File: $code_file"
       code_type="Shell"
-      show_me "Code type: $code_type header"
+      show_message "Code type: $code_type header"
       template_file="bash-header.txt"
-      show_me "Template: $template_file"
-    ;;
-    u )
-      usage 0
+      show_message "Template: $template_file"
     ;;
 		v )
 			verbose_mode="$TRUE"
-			show_me "Verbose mode enabled."
+			show_message "Verbose mode enabled."
 		;;
     : )
       printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
-      usage 2
+      help 2
     ;;
     ? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-			usage 2
+			help 2
   esac
 	noOpt=0
 done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; usage 1; }
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
 
 [[ -z "$code_file" ]] && leave "No file selected."
@@ -162,10 +165,10 @@ shift "$(( OPTIND - 1 ))"
 ## Source script configuration file ##
 
 [[ -f "$conf_dir/$conf_file" ]] || create_conf
-show_me "Sourcing $conf_file."
+show_message "Sourcing $conf_file."
 source "$conf_dir/$conf_file"
 
-show_me "Creating temporary file."
+show_message "Creating temporary file."
 tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 trap cleanup EXIT
 
