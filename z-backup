@@ -8,34 +8,31 @@
 # Author       : Copyright (C) 2020, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 07 Jun 2020
-# Last updated : 12 Jun 2024 - version 1.2.24164
+# Last updated : 15 Jun 2024 - version 1.2.24167
 # Comment      : Automatically limits log size to 30 entries.
 # TODO (Rick)  : Remove commented lines after successful test on 6005
 # License      : GNU General Public License, version 2.0
 #####################################################################
 
-set -euo pipefail
+set -eu
 
 log_date=$(date +"%a|%F|%R")
 log_dir="/var/log"
 log_file="backup.log"
 backup_dir="/data/backup"
-# error_log="/error.log"
+error_log="/error.log"
 
 [[ -d /data/backup ]] || mkdir -p /data/backup
-[[ -f "$backup_dir/error.log" ]] && rm -f "$backup_dir/error.log" >/dev/null 2>&1
-# rm -f /data/backup/Local\ Backup* >/dev/null 2>&1
+[[ -f "$backup_dir/error.log" ]] && rm -f "$backup_dir/$error_log" >/dev/null 2>&1
 
 {
   printf "%s|" "$log_date"
-  if rsync -aH --delete /etc /home "$backup_dir/" 2> "$backup_dir/error.log"; then
+  if rsync -aH --delete /etc /home "$backup_dir/" 2> "$backup_dir/$error_log"; then
     printf "successful\n"
-    # touch /data/backup/"Local Backup was successful: $(date +%F)"
-    echo "Local Backup was successful: $(date +%F)" >> "$backup_dir/error.log"
+    echo "Local Backup was successful: $(date +%F)" >> "$backup_dir/$error_log"
   else
     printf "had errors %d\n" "$?"
-    # touch /data/backup/"Local Backup had errors: $(date +%F)"
-    echo "Local Backup had errors: $(date +%F)" >> "$backup_dir/error.log"
+    echo "Local Backup had errors: $(date +%F)" >> "$backup_dir/$error_log"
 fi
   sync
 } >> "$log_dir/$log_file" 2>&1
