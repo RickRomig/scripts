@@ -40,6 +40,7 @@ install_matrix() {
 }
 
 remove_matrix() {
+  printf "Removing C-Matrix...\n"
   sudo apt-get remove cmatrix cmatrix-xfont -yy
   printf "C-Matrix removed.\n"
 }
@@ -47,19 +48,21 @@ remove_matrix() {
 help() {
   errcode="${1:=-2}"
   cat << END_HELP
-  Usage: $_script [OPTION]
-  OPTIONS:
+${orange}$_script${normal} $_version ($_updated)
+Installs/Removes C-Matrix
+
+${green}Usage:${normal} $_script [OPTION]
+
+${orange}Available options:${normal}
   -h  Display help
   -i  Install C-Matrix
   -r  Remove C-Matrix
 END_HELP
-  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
 ## Execution ##
 
-printf "Installs/Removes C-Matrix\n"
 noOpt=1
 optstr=":hir"
 while getopts "$optstr" opt; do
@@ -85,5 +88,5 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" == 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "%s v%s\n" "$_script" "$_version"
 exit
