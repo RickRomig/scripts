@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 05 Jun 2024
+# Updated      : 17 Jun 2024
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -15,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -29,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.8.24157"
-readonly _updated="05 Jun 2024"
+readonly _version="2.8.24169"
+readonly _updated="17 Jun 2024"
 readonly kitty_cfg_d="$HOME/.config/kitty"
 
 ## Functions ##
@@ -38,8 +37,11 @@ readonly kitty_cfg_d="$HOME/.config/kitty"
 help() {
   local errcode="${1:-2}"
   cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Installs/Removes/Configures Kitty terminal emulator
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}Options:${normal}
+${orange}Available options:${normal}
   -b  Copy Kitty keybindings list
   -c  Install Kitty configuration
   -h  Display help
@@ -47,7 +49,6 @@ ${orange}Options:${normal}
   -p  Purge Kitty from system (remove config files)
   -r  Remove Kitty from system (leave config files)
 END_HELP
-	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -95,9 +96,15 @@ kitty_config() {
 }
 
 kitty_bindings() {
-  local bindings="bindings.list"
-  local repository="configs/raw/branch/main/kitty"
-  curl -so "$kitty_cfg_d/$bindings" "$Gitea_URL/$repository/$bindings"
+  local bindings repository
+  bindings="bindings.list"
+	if [[ "$localip" == "16" ]]; then
+    repository="$HOME/gitea/configs/kitty"
+    cp -v "$repository/$bindings" "$kitty_cfg_d/$bindings"
+  else
+    repository="configs/raw/branch/main/kitty"
+    curl -so "$kitty_cfg_d/$bindings" "$Gitea_URL/$repository/$bindings"
+  fi
   printf "Kitty keybindings list copied to ~/.config/kitty\n"
   printf "Run the kkb script to display keybindings.\n"
 }
