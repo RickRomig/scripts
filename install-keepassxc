@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Jan 2021
-# Updated      : 05 Jun 2024
+# Updated      : 17 Jun 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.12.24157"
-readonly _updated="05 Jun 2024"
+readonly _version="3.12.24169"
+readonly _updated="17 Jun 2024"
 readonly cfg_dir="$HOME/.config/keepassxc"
 
 ## Functions ##
@@ -91,22 +91,23 @@ create_ini() {
 help() {
   errcode="${1:-2}"
   cat << END_HELP
-Usage: $_script [OPTIONS]
-OPTIONS:
+${orange}$_script${normal} $_version ($_updated)
+Installs/Removed KeePassXC password manager
+
+${green}Usage:${normal} $_script [OPTION]
+
+${orange}Available options:${normal}
   -c  Apply KeePassXC configuration.
   -d  Install KeePassXC from distribution repositories.
   -f  Install KeePassXC from flathub repositories.
   -h  Display help.
   -r  Remove KeePassXC from the system.
-$_script v$_version (Updated $_updated)
 END_HELP
   exit "$errcode"
 }
 
 ## Execution ##
 
-box "$_script v$_version"
-echo "Installs KeePassXC password manager"
 noOpt=1
 optstr=":cdfhr"
 while getopts "$optstr" opt; do
@@ -152,4 +153,5 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
+box "$_script v$_version"
 exit
