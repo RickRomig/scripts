@@ -4,8 +4,10 @@
 # Description  : Adds repository and installs handbrake
 # Dependencies : None
 # Arguments    : None
-# Author       : Copyright (C) 2019, Richard B. Romig, 14 February 2019
+# Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 14 Feb 2019
+# Updated      : 17 Jun 2024
 # Comment      : Handbrake rips DVD movies
 #              : Available as a flatpak via Flathub and Mint Software Manager
 #              : https://dl.flathub.org/repo/appstream/fr.handbrake.ghb.flatpakref
@@ -17,7 +19,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
 
 ## Load function library ##
 
@@ -31,8 +32,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.9"
-readonly _updated="18 Mar 2024"
+readonly _version="3.9.24169"
+readonly _updated="17 Jun 2024"
 readonly handbrake_ppa="ppa:stebbins/handbrake-releases"
 
 ## Functions ##
@@ -65,20 +66,20 @@ remove_handbrake() {
 help() {
   local errcode="${1:-2}"
   cat << END_HELP
-${green}Usage:${normal} $_script [-h] [-i] [-r]
-${orange}OPTIONS${normal}
+${orange}$_script${normal} $_version ($_updated)
+Install/Remove Handbrake video transcorder
+
+${green}Usage:${normal} $_script [OPTION]
+
+${orange}Available options:${normal}
   -h  Display help
   -i  Install Handbrake
   -r  Remove Handbrake
 END_HELP
-  echo "$_script v$_version ($_updated)"
   exit "$errcode"
 }
 
 ## Execution ##
-
-clear
-echo -e "Installs Handbrake multithreaded video transcoder.\n"
 
 noOpt=1
 optstr=":hir"
@@ -103,4 +104,4 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version ($_updated)"
+leave "$_script v$_version"
