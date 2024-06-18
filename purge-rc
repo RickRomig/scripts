@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : purge-image-rc
+# Script Name  : purge-rc
 # Description  : Purges config files from removed kernels in the 'rc' state
 # Dependencies : None
 # Arguments    : None
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Updated      : 27 May 2024
+# Updated      : 18 Jun 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -15,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
 
 ## Source function library ##
 
@@ -29,14 +28,22 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.3.24148"
+readonly _version="4.4.24170"
 
 ## Functions ##
 
+list_rc_packages() {
+  local rcpkgs
+  rcpkgs=$(dpkg --list | awk '/^rc/ {print $1,$2}')
+  printf "Packages in the 'rc' state:\n"
+  printf "%s\n" "$rcpkgs"
+}
+
 purge_rc_packages() {
+  local rcpkg
   printf "These packages are in the remove/deinstall state with only the config files.\n"
-  if yes_or_no "Are you sure you want to purge the config files for these images?"; then
-    printf "%sPurging obsolete linux kernel configuration files...%s\n" "$green" "$normal"
+  if yes_or_no "Are you sure you want to purge the config files for these packages?"; then
+    printf "%sPurging obsolete configuration files...%s\n" "$green" "$normal"
     for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
       sudo apt remove --purge "$rcpkg" -yy
     done
@@ -45,13 +52,8 @@ purge_rc_packages() {
   fi
 }
 
-list_rc_packages() {
-  printf "Packages in the 'rc' state:\n"
-  printf "%s\n" "$rcpkgs"
-}
-
 list_headers() {
-  printf "Installed linux headers and images:\n"
+  printf "\nInstalled linux headers and images:\n"
   dpkg --list | grep -Ei --color 'linux-image|linux-headers' | cut -d' ' -f1,3
 }
 
@@ -59,8 +61,7 @@ list_headers() {
 
 # clear
 box "$_script v$_version"
-rcpkgs=$(dpkg --list | awk '/^rc/ {print $1,$2}')
-if [[ -n "$rcpkgs" ]]; then
+if dpkg --list | grep -q '^rc'; then
   sudo_login 2
   list_rc_packages
   purge_rc_packages
