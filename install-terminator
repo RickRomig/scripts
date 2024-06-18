@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : install-terminator
 # Description  : Installs the Terminator terminal emulator from repos.
-# Dependencies : None
+# Dependencies : curl
 # Arguments    : -c -h -i -r (See help function)
 # Author       :Copyright (C) 2020 Richard B. Romig, 14 Dec 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 05 Jun 2024
+# Updated      : 18 Jun 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="6.10.24153"
-readonly _updated="05 Jun 2024"
+readonly _version="6.11.24170"
+readonly _updated="18 Jun 2024"
 readonly term_cfg_d=$HOME"/.config/terminator"
 
 ## Functions ##
@@ -37,18 +37,20 @@ readonly term_cfg_d=$HOME"/.config/terminator"
 help() {
   local errcode="${1:-2}"
   cat << END_HELP
-${orange}Usage:${normal} $_script [-c] [-h] [-i] [-r]
+${orange}$_script${normal} $_version ($_updated)
+Installs/Removes/Configures Terminator terminal emulator
+
+${orange}Usage:${normal} $_script [OPTION]
 ${green}OPTIONS:${normal}
-  -c  Writes custom configuration file.
-  -h  Displays help text.
-  -i  Installs Terminator & configuration files.
-  -r  Removes Terminator & configuration files.
+  -c  Apply configuration file.
+  -h  Display help text.
+  -i  Install Terminator & configuration files.
+  -r  Remove Terminator & configuration files.
 ${bold}NOTES:${normal}
   1. Script will not overwrite Terminator config for BunsenLabs installations.
-     Configuration changes should be made through the Terminator Preferences menu.
+     Configuration changes should be made through Terminator Preferences.
   2. For Debian and Debian-based distributions (Antix, MX Linux, LMDE),
      Terminator will be configured as a login shell.
-$_script v$_version ($_updated)
 END_HELP
   exit "$errcode"
 }
@@ -81,7 +83,7 @@ apply_config() {
 	localip=$(local_ip)
   term_cfg="config"
   [[ -d "$term_cfg_d" ]] || mkdir -p "$term_cfg_d"
-  echo "Appling Terminator configuration..."
+  echo "Applying Terminator configuration..."
   if [[ "$localip" == "16" ]]; then
     repository="$HOME/gitea/configs/terminator"
     cp -v "$repository$term_cfg" "$term_cfg_d/"
@@ -98,8 +100,6 @@ terminator_version() {
 
 ## Execution ##
 
-echo -e  "Installs or removes Terminator with config.\n"
-
 noOpt=1
 optstr=":chir"
 while getopts "$optstr" opt; do
@@ -108,10 +108,11 @@ while getopts "$optstr" opt; do
       exists terminator || leave "Terminator is not installed."
       if bunsenlabs; then
         echo "Terminator configuration for BunsenLabs was not overwritten."
-        leave "Configuration changes should be made through the Terminator Preferences menu."
+        echo "Configuration changes should be made through the Terminator Preferences menu."
       else
+        check_package curl
         apply_config
-        leave "Terminator configuration file written."
+        echo "Terminator configuration file written."
       fi
     ;;
     h )
@@ -120,6 +121,7 @@ while getopts "$optstr" opt; do
     i )
       exists terminator && leave "Terminator $(terminator_version) is already installed."
       sudo_login 2
+      check_package curl
       install_terminator
     ;;
     r )
