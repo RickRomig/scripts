@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Jul 2022
-# Updated      : 05 Jun 2024
+# Updated      : 18 Jun 2024
 # Comments     : NeoFetch is no longer in development. Rrecommnd Fastfetch.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.11.24157"
-readonly _updated="05 Jun 2024"
+readonly _version="1.11.24170"
+readonly _updated="18 Jun 2024"
 readonly neofetch_cfg_d="${HOME}/.config/neofetch"
 
 ## Functions ##
@@ -37,14 +37,16 @@ readonly neofetch_cfg_d="${HOME}/.config/neofetch"
 help() {
   local errcode="${1:-2}"
 	cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Installs/Configures/Removes Neofetch
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
-	-c	Apply Neofetch configuration
-	-h	Display help
-	-i	Install and configure Neofetch
-	-r	Remove Neofetch and configuration
+${orange}Available options:${normal}
+  -c  Apply Neofetch configuration
+  -h  Display help
+  -i  Install and configure Neofetch
+  -r  Remove Neofetch and configuration
 END_HELP
-	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -89,8 +91,6 @@ neofetch_version() {
 
 ## Execution ##
 
-printf "Install/Remove Neofetch or apply configuration\n"
-
 noOpt=1
 optstr=":chir"
 while getopts "$optstr" opt; do
@@ -104,7 +104,8 @@ while getopts "$optstr" opt; do
 			help 0
 		;;
 		i )
-			exists neofetch && leave " Neofetch $(neofetch_version) is already installed."
+			exists neofetch && leave "Neofetch $(neofetch_version) is already installed."
+			in_repo neofetch || leave "Neofetch is no longer in the repositories."
 			sudo_login 2
       check_package git
 			install_neofetch
