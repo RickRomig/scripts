@@ -4,16 +4,18 @@
 # Description  : Installs mint-fortune, cowsay, fortune-mod
 # Dependencies : cowsay, fortune-mod, fortunes-min
 # Arguments    : none
-# Author       : Copyright (C) 2019, Richard B. Romig, 03 May 2019
+# Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 03 May 2019
+# Updated      : 18 Jun 2024
 # Comments     : Recommended for Linux Mint Cinnamon or MATE only.
+#              : mint-forturn doesn't seem to exist in Linux Mint repos anymore.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -27,30 +29,31 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.12"
-readonly _updated="18 Mar 2024"
+readonly _version="2.12.24170"
+readonly _updated="18 Jun 2024"
 readonly homedir=$HOME
 
 ## Functions ##
 
 check_dependencies() {
-  local packages=( cowsay fortune-mod )
+  local packages=( cowsay fortune-mod  )
   check_packages "${packages[@]}"
   [[ -d /usr/share/games/fortunes ]] || sudo mkdir -p /usr/share/games/fortunes
-  check_package fortunes-min
+  check_package mint-fortune
 }
 
 is_mint() {
+  local codename
   codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
-    elsie|ulyanna|ulyssa|uma|una|vanessa|vera|victoria ) return "$TRUE" ;;
+    elsie|ulyanna|ulyssa|uma|una|vanessa|vera|victoria|virginia ) return "$TRUE" ;;
     * ) return "$FALSE"
   esac
 }
 
 ## Execution ##
 
-echo "$_script v$_version ($_updated)"
+echo "$_script v$_version "
 echo "Install fortune and mint-fortune script."
 is_mint || die "Not Linux Mint. Distro is not supported."
 sudo_login 2
