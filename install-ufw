@@ -7,7 +7,7 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 11 Jun 2024
+# Updated      : 18 Jun 2024
 # Comments     : Install & remove for Deian-based systems only.
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
@@ -29,27 +29,30 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.12.24163"
-readonly _updated="11 Jun 2024"
+readonly _version="1.12.24170"
+readonly _updated="18 Jun 2024"
 
 ## Functions ##
 
 help() {
   errcode="${1:-2}"
   cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
 Installs UFW on Debian, BunsenLabs, and MX Linux systems.
 UFW/GUFW is installed by default in Linux Mint, LMDE, and Ubuntu.
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS${normal}
+
+${orange}Available options:${normal}
   -a  Add rules for CUPS and SSH
   -d  Delete rules
   -e  Toggle Enable/Disable UFW
+  -h  Show this help text.
   -i  Install UFW on a Debian-based system
   -n  Add new rules
   -r  Remove UFW from a Debian-based system
   -s  UFW status
 END_HELP
-  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
@@ -114,6 +117,7 @@ ufw_version() {
 }
 
 debian_system() {
+  local codename
   codename=$(lsb_release --codename --short)
   case "$codename" in
     bookworm|bullseye )
