@@ -34,3 +34,9 @@ sudo chmod 440 /etc/sudoers.d/0pwfeedback
 sudo sh -c 'echo "Defaults timestamp_timeout=30"" > /etc/sudoers.d/rick'
 sudo chmod 440 /etc/sudoers.d/rick
 ```
+### Check a user's sudo access
+```bash
+sudo -l -U user_name
+```
+**NOTE**
+Always use `sudo visudo` to edit the `/etc/sudoers` file so that a syntax check is performed when you try to save the file.
