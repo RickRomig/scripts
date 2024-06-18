@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.4.24170"
+readonly _version="4.5.24170"
 
 ## Functions ##
 
@@ -54,7 +54,7 @@ purge_rc_packages() {
 
 list_headers() {
   printf "\nInstalled linux headers and images:\n"
-  dpkg --list | grep -Ei --color 'linux-image|linux-headers' | cut -d' ' -f1,3
+  dpkg --list | grep -Ei --color 'linux-image|linux-headers' | awk '{$1=$1}1' | cut -d' ' -f2,3 | column -t
 }
 
 ## Execution ##
