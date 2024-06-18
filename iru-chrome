@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 July 2019
-# Updated      : 06 Jun 2024
+# Updated      : 18 Jun 2024
 # Comments     : Google Chrome should update through apt
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.16.24158"
-readonly _updated="06 Jun 2024"
+readonly _version="3.16.24170"
+readonly _updated="18 Jun 2024"
 readonly chrome_list="/etc/apt/sources.list.d/google-chrome.list"
 readonly keyring_dir="/usr/share/keyrings"
 readonly trusted_key="google-chrome.gpg"
@@ -41,8 +41,9 @@ chrome_ver() {
 }
 
 install_chrome() {
-  local trusted_key_url="https://dl.google.com/linux/linux_signing_key.pub"
-  local source_list="deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main"
+  local trusted_key_url source_list
+  trusted_key_url="https://dl.google.com/linux/linux_signing_key.pub"
+  source_list="deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main"
   curl -fSsL "$trusted_key_url" | gpg --dearmor | sudo tee "$keyring_dir/$trusted_key" > /dev/null
   echo "$source_list" | sudo tee "$chrome_list" > /dev/null
   sudo apt update
@@ -71,13 +72,16 @@ update_chrome() {
 help() {
   local errcode="${1:-2}"
   cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Installs, updated, or removes Google Chrome.
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
-  -h = Help
-  -i = Install Google Chrome
-  -r = Remove Google Chrome
-  -u = Update Google Chrome
-$_script v$_version ($_updated)
+
+${orange}Available options:${normal}
+  -h  Help
+  -i  Install Google Chrome
+  -r  Remove Google Chrome
+  -u  Update Google Chrome
 END_HELP
   exit "$errcode"
 }
@@ -85,7 +89,6 @@ END_HELP
 ## Execution ##
 
 box "$_script v$_version"
-echo "${orange}Installs, updated, or removes Google Chrome${normal}"
 noOpt=1
 optstr=":hiru"
 while getopts "$optstr" opt; do
@@ -97,16 +100,19 @@ while getopts "$optstr" opt; do
       exists google-chrome-stable && leave "Google Chrome $(chrome_ver) already installed."
       sudo_login 2
       check_package wget
+      box "$_script v$_version"
       install_chrome
     ;;
     r )
       exists google-chrome-stable || leave "Google Chrome is not installed."
       sudo_login 2
+      box "$_script v$_version"
       purge_chrome
     ;;
     u )
       exists google-chrome-stable || leave "Google Chrome is not installed."
       sudo_login 2
+      box "$_script v$_version"
       update_chrome
     ;;
     ? )
