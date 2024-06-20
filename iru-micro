@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 06 JUn 2024
+# Updated      : 19 JUn 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.9.24158"
-readonly _updated="06 JUn 2024"
+readonly _version="5.9.24171"
+readonly _updated="19 JUn 2024"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg_d=$HOME"/.config/micro"
 
@@ -127,22 +127,23 @@ apply_bindings() {
 help() {
   local errcode="${1:-2}"
   cat << EOF
+${orange}$_script${normal} $_version ($_updated)
+Installs, configures, updates, or removes the Micro CLI text editor.
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
-  -b    Installs/updates the Micro key-bindings configuration file.
-  -h    Displays help.
-  -i    Installs the Micro CLI text editor.
-  -r    Removes the Micro CLI text editor from the system.
-  -s    Installs/updates the Micro settings configuration file.
-  -u    Updates the Micro CLI text editor to the latest version.
+
+${orange}Available options:${normal}
+  -b  Installs/updates the Micro key-bindings configuration file.
+  -h  Displays help.
+  -i  Installs the Micro CLI text editor.
+  -r  Removes the Micro CLI text editor from the system.
+  -s  Installs/updates the Micro settings configuration file.
+  -u  Updates the Micro CLI text editor to the latest version.
 EOF
   exit "$errcode"
 }
 
 ## Execution ##
-
-box "$_script v$_version"
-printf "Installs, updates, or removes the Micro CLI text editor.\n"
 
 noOpt=1
 optstr=":bhirsu"
@@ -197,4 +198,5 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
+box "$_script v$_version"
 exit
