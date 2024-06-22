@@ -4,10 +4,10 @@
 # Description  : Installs, updates, removes yt-dlp from yt-dlp GitHub repo
 # Dependencies : curl, ffmpeg, ffprobe, atomicparsley, ytdlpuplog.sed, z-ytupdate
 # Arguments    : -h -i -r -u (see help function for more information)
-# Author       : Copyright (C) 2023, Richard B. Romig, 20 Jun 2023
+# Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 06 Jun 2024
+# Updated      : 22 Jun 2024
 # Comments     : Removes distro repo version if installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.5.24157"
-readonly _updated="06 Jun 2024"
+readonly _version="1.5.24174"
+readonly _updated="22 Jun 2024"
 readonly ytdlp_prg="yt-dlp"
 readonly update_script="z-ytdlp-update"
 readonly sed_file="ytdlp-uplog.sed"
@@ -133,39 +133,40 @@ remove_logs() {
 help() {
 	local errcode="${1:-2}"
 	cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Installs, removes, updates YouTube-dlp.
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
+${orange}Available options:${normal}
 	-h 	Display help
 	-i 	Install yt-dlp
 	-r 	Remove yt-dlp
 	-u 	Update yt-dlp
 	-x	Remove yt-dlp (repo version)
 END_HELP
-	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
 install_intro() {
-  cat << EOF
+  cat << END_INTRO
 Installs yt-dlp from yt-dl.org to /usr/local/bin along with an update
 script that runs as a daily anacron job which saves the results to a log
 file at /var/log/ytdlpup.log. A sed file to cleanup and format the log file
 is installed at /usr/share/misc/ytdlpuplog.sed
 If the version from the distro's repostitory is installed, it will be removed.
-EOF
+END_INTRO
 }
 
 remove_intro() {
-  cat << EOF
+  cat << END_INTRO
 Removes yt-dlp and its configuration files, removing both the version
 installed via the distribution's repositories and the version downloaded
 from the yt-dl downloads page.
-EOF
+END_INTRO
 }
 
 ## Execution ##
 
-box "$_script v$_version"
 noOpt=1
 optstr=":hirux"
 while getopts "$optstr" opt; do
@@ -207,4 +208,5 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
+box "$_script v$_version"
 exit
