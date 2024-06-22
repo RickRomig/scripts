@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 April 2019
-# Updated      : 08 Jun 2024
+# Updated      : 22 Jun 2024
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to ~/Videos/sub-directory
 # TODO (Rick)  :
@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.24160"
-readonly _updated="08 Jun 2024"
+readonly _version="3.0.24174"
+readonly _updated="22 Jun 2024"
 readonly video_dir=$HOME"/Videos"
 
 ## Functions ##
@@ -120,6 +120,7 @@ choose_destination() {
 }
 
 dl_2_video() {
+  printf "%s...%s\n"  "$video_dir" "$normal"
 	if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$video_dir/%(title)s.%(ext)s" "$url"
 	then
 		leave "Download successful."
@@ -131,7 +132,8 @@ dl_2_video() {
 
 dl_2_subdir() {
 	local dest_dir="$1"
-	if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$video_dir/$dest_dir/%(title)s.%(ext)s" "$url"
+	printf "%s...%s\n"  "$video_dir/$dest_dir" "$normal"
+if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$video_dir/$dest_dir/%(title)s.%(ext)s" "$url"
 	then
 		leave "Download successful."
 	else
@@ -166,7 +168,7 @@ fi
 subdir=$(choose_destination)
 
 # Download video to selected folder
-echo $'\n'$"${bold}${blue}Downloading from YouTube ...${normal}"
+printf "\n%s%sDownloading from YouTube to " "$bold" "$blue"
 case "$subdir" in
   "none" ) dl_2_video;;
   * ) dl_2_subdir "$subdir"
