@@ -4,8 +4,10 @@
 # Description  : Installs, updates, removes youtube-dl from yt-dl.org
 # Dependencies : curl, ffmpeg, atomicparsley, ytdluplog.sed, z-ytupdate
 # Arguments    : -h -i -r -u (see help function for more information)
-# Author       : Copyright (C) 2022, Richard B. Romig, 02 Oct 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 02 Oct 2022
+# Updated      : 22 Jun 2024
 # Comments     : Consolidation of install-ytdl and remove-yt-dl scripts.
 #              : Removes distro repo version if installed.
 # TODO (Rick)  :
@@ -14,7 +16,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -28,8 +29,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.4"
-readonly _updated="18 Mar 2024"
+readonly _version="2.4.24174"
+readonly _updated="22 Jun 2024"
 readonly ytdl_prg="youtube-dl"
 readonly update_script="z-ytdlupdate"
 readonly sed_file="ytdluplog.sed"
@@ -128,34 +129,36 @@ remove_logs() {
 help() {
 	errcode="${1:-2}"
 	cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Install, remove, update YouTube-dlp, YouTube download utility.
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
+${orange}Available options:${normal}
 	-h 	Display help
 	-i 	Install youtube-dl
 	-r 	Remove youtube-dl
 	-u 	Update youtube-dl
 	-x	Remove youtube-dl (repo version)
 END_HELP
-	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
 install_intro() {
-  cat << EOF
+  cat << END_INTRO
 Installs youtube-dl from yt-dl.org to /usr/local/bin along with an update
 script that runs as a daily anacron job which saves the results to a log
 file at /var/log/ytdlup.log. A sed file to cleanup and format the log file
 is installed at /usr/share/misc/ytdluplog.sed
 If the version from the distro's repostitory is installed, it will be removed.
-EOF
+END_INTRO
 }
 
 remove_intro() {
-  cat << EOF
+  cat << RM_INTRO
 Removes youtube-dl and its configuration files, removing both the version
 installed via the distribution's repositories and the version downloaded
 from the yt-dl downloads page.
-EOF
+RM_INTRO
 }
 
 ## Execution ##
@@ -202,4 +205,4 @@ done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version (Updated: $_updated)"
+leave "$_script v$_version"
