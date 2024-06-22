@@ -43,14 +43,17 @@ display_title() {
 
 help() {
   local errcode="${1:-2}"
-  cat <<- END_HELP
-  Usage: $_script [video-url] [video-ID]
+  cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Downloads YouTube videos.
+
+${green}Usage:${normal} $_script [YouTube_URL] [video_ID]
   $_script https://www.youtube.com/watch?v=/AQcQgfvfF1M
   $_script AQcQgfvfF1M
 
-  -h or --help will display these instructions.
-  -i or --info will display information about the script.
-$_script v$_version ($_updated)
+${orange}Available options:${normal}
+  -h | --help  displays these instructions.
+  -i | --info  displays information about the script.
 END_HELP
   exit "$errcode"
 }
@@ -144,10 +147,6 @@ if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]
 
 ## Execution ##
 
-check_dependencies
-
-display_title
-
 # Check arguments and fetch URL
 if [[ -z "$1" ]]; then
   echo "${bold}${lightred}Error:${normal} No argument passed." >&2
@@ -164,11 +163,15 @@ else
   url="https://www.youtube.com/watch?v=$*"
 fi
 
+check_dependencies
+
+display_title
+
 # Choose the download folder
 subdir=$(choose_destination)
 
 # Download video to selected folder
-printf "\n%s%sDownloading from YouTube to " "$bold" "$blue"
+printf "\n%s%sDownloading video to " "$bold" "$blue"
 case "$subdir" in
   "none" ) dl_2_video;;
   * ) dl_2_subdir "$subdir"
