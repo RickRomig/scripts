@@ -4,10 +4,10 @@
 # Description  : Settings to close laptop lid without suspend
 # Dependencies : ~.bin/files/laptoplid.sed
 # Arguments    : None
-# Author       : Copyright (C) 2020, Richard B. Romig, 22 Oct 2020
+# Author       : Copyright (C) 2020, Richard B. Romig, LudditeGee@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Oct 2020
-# Updated      : 27 May 2024
+# Updated      : 22 Jun 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,15 +29,15 @@ fi
 
 _script=$(basename "$0"); readonly _script
 readonly _version="3.3.24158"
+readonly lhost="${HOSTNAME:=-$(hostname)}"
 readonly logind_conf="/etc/systemd/logind.conf"
 readonly sed_file="$HOME/bin/files/laptoplid.sed"
 
 ## Execution ##
 
-clear
 printf "%s v%s" "$_script" "$_version"
 printf "Allows a laptop lid to be closed without going into suspend mode.\n\n"
-is_laptop || leave "This system is not a laptop. $logind_conf was not modified."
+is_laptop || leave "This system ($lhost) is not a laptop. $logind_conf was not modified."
 [[ -f "$sed_file" ]] || die "A required file ($(basename "$sed_file")) was not found." 1
 sudo_login 2
 sudo sed -i.bak -f "$sed_file" "$logind_conf"
