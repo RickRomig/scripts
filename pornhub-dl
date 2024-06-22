@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 April 2019
-# Updated      : 08 Jun 2024
+# Updated      : 22 Jun 2024
 # Comments     : Accepts either full URL or video id such as ph5ccfa07f0e2a6
 #              : Downloads to ~/Videos/Pornography/<category>
 # TODO (Rick)  :
@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.0.24160"
-readonly _updated="08 Jun 2024"
+readonly _version="3.1.24174"
+readonly _updated="22 Jun 2024"
 readonly porn_dir=$HOME"/Videos/Pornography"
 
 ## Functions ##
@@ -43,14 +43,17 @@ display_title() {
 
 help() {
   local errcode="${1:-2}"
-  cat <<- END_HELP
-  Usage: $_script [video-url] [video-ID]
+  cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Dowload videos from Pornhub.com.
+
+${green}Usage:${normal} $_script [video_URL] [video_ID]
   $_script https://www.pornhub.com/view_video.php?viewkey=ph5ccfa07f0e2a6
   $_script ph5ccfa07f0e2a6
 
-  --help or -h will display these instructions.
-  --info or -i will display information about the script.
-$_script v$_version ($_updated)
+${orange}Available options:${normal}
+  -h | --help  displays these instructions.
+  -i | --info  displays information about the script.
 END_HELP
   exit "$errcode"
 }
@@ -115,31 +118,27 @@ done
 }
 
 dl_2_video() {
-    if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/$dest_dir/%(title)s.%(ext)s" "$url"
-    then
-      leave "Download successful."
-    else
-      ec="$?"
-      die "Download failed." "$ec"
-    fi
+  printf "%s...%s\n"  "$porn_dir" "$normal"
+  if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"; then
+    leave "Download successful."
+  else
+    ec="$?"
+    die "Download failed." "$ec"
+  fi
 }
 
 dl_2_subdir() {
 	local dest_dir="$1"
-    if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/$dest_dir/%(title)s.%(ext)s" "$url"
-    then
-      leave "Download successful."
-    else
-      ec="$?"
-      die "Download failed." "$ec"
-    fi
+	printf "%s...%s\n"  "$porn_dir/$dest_dir" "$normal"
+  if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/$dest_dir/%(title)s.%(ext)s" "$url"; then
+    leave "Download successful."
+  else
+    ec="$?"
+    die "Download failed." "$ec"
+  fi
 }
 
 ## Execution ##
-
-check_dependencies
-
-display_title
 
 # Check arguments and fetch URL
 if [[ $# -eq 0 ]]; then
@@ -157,11 +156,16 @@ else
   url="https://www.pornhub.com/view_video.php?viewkey=$*"
 fi
 
+check_dependencies
+
+display_title
+
 # Choose the download folder
 subdir=$(choose_destination)
 
 # Download video to selected folder
-echo $'\n'$"${bold}${blue}Downloading from PornHub ...${normal}"
+echo $'\n'$"${bold}${blue}Downloading from PornHub to...${normal}"
+printf "\n%s%sDownloading video from PornHub to " "$bold" "$blue"
 case "$subdir" in
   "none" ) dl_2_video ;;
   * ) dl_2_subdir "$subdir"
