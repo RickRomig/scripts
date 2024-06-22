@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 06 Jun 2024
+# Updated      : 22 Jun 2024
 # Comments     : Based on a script by Joe Collins at EzeeLinux.com
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,9 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.7.24158"
-readonly _updated="06 Jun 2024"
+readonly _version="5.7.24174"
+readonly _updated="22 Jun 2024"
+readonly lhost="${HOSTNAME:=-$(hostname)}"
 
 ## Funtions ##
 
@@ -45,25 +46,22 @@ END_INTRO
 
 help() {
   local errcode="${1:-2}"
-  intro
+  # intro
   cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Installs laptop-specific utlities.
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
+
+${orange}Available options:${normal}
   -h  Display help.
   -i  Install laptop utilities.
   -l  Display installed utilities.
   -s  Start TLP service
-END_HELP
-  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-  exit "$errcode"
-}
 
-main() {
-  install_thermald
-  install_acpi
-  install_tlp
-  install_touchpad_indicator
-  util_status
+END_HELP
+  intro
+  exit "$errcode"
 }
 
 installed() {
@@ -152,9 +150,16 @@ util_status() {
   installed touchpad-indicator && printf "%22s\n" "Touchpad Indicator"
 }
 
+main() {
+  install_thermald
+  install_acpi
+  install_tlp
+  install_touchpad_indicator
+  util_status
+}
+
 ## Execution ##
 
-is_laptop || die "System is not a laptop." 1
 noOpt=1
 optstr=":hils"
 while getopts "$optstr" opt; do
@@ -163,14 +168,17 @@ while getopts "$optstr" opt; do
       help 0
     ;;
     i )
+      is_laptop || die "$lhost is not a laptop." 1
       sudo_login 2
       intro
       main
     ;;
     l )
+      is_laptop || die "$lhost is not a laptop." 1
       util_status
     ;;
     s )
+      is_laptop || die "$lhost is not a laptop." 1
       sudo_login 2
       start_tlp
     ;;
@@ -182,4 +190,4 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version (Updated: $_updated)"
+leave "$_script v$_version"
