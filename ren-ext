@@ -7,40 +7,50 @@
 # Author       : Copyright (C) 2017, Richard Romig
 # Email        : rick.romig@gmail.com
 # Created      : 2017
-# Updated      : 07 Jun 2024
+# Updated      : 23 Jun 2024
 # Comment      : File extensions are not case sensitive
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.5.24159"
-readonly _updated="07 Jun 20243"
+readonly _version="2.6.24175"
+readonly _updated="23 Jun 20243"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
   cat << END_HELP
-Usage: $_script extension
-Example: $_script JPG
-Supported extensions: AVI, BAK, FLV, GIF, HTM, HTML, JPEG, JPG, MP3,
-MP4, MPG, MPEG, PDF, PNG, TXT, WMV
-Input file extensions are not case sensitive. Any combination of upper and
-lower case are acceptable. Changed file extensions will be lowercase.
-$_script v$_version ($_updated)
+${orange}$_script${normal} $_version ($_updated)
+Bulk renames file extensions in the current diectory.
+
+${green}Usage:${normal} $_script <file-extension>
+
+${orange}Example:${normal} $_script JPG
+* Supported extensions: AVI, BAK, FLV, GIF, HTM, HTML, JPEG, JPG, MP3, MP4, MPG, MPEG, PDF, PNG, TXT, WMV
+* Input file extensions are not case sensitive.
+* Any combination of upper and lower case are acceptable. Changed file extensions will be lowercase.
 END_HELP
   exit "$errcode"
 }
 
 ## Execution ##
 
-echo "$_script v$_version"
-echo "Bulk renames file extensions in the current diectory."
-
 # Check for arguments
-
 if [[ "$#" -eq 0 ]]; then
   echo -e "\e[91mERROR:\e[0m Must provide a file extension to be renamed." <&2
   help 2
@@ -48,8 +58,10 @@ else
   ext="$1"
 fi
 
-# Rename file extensions based on the passed argument
+echo "$_script v$_version"
+echo "Bulk renames file extensions in the current diectory."
 
+# Rename file extensions based on the passed argument
 shopt -s nocasematch
 case $ext in
   avi)
@@ -93,7 +105,7 @@ case $ext in
     rename -v 's/\.WMV$/\.wmv/i' ./* ;;
   *)
     echo -e "\e[1;31mERROR:\e[0m .$ext is NOT a supported file extension."
-    help 1 ;;
+    help 1
 esac
 shopt -u nocasematch
 
