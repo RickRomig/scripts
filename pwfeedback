@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com
 # Created      : 27 Sep 2020
-# Updated      : 07 Jun 2024
+# Updated      : 23 Jun 2024
 # Comments     : Preferred (default) method is /etc/sudoers.d/0pwfeedback.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.5.24159"
-readonly _updated="07 Jun 2024"
+readonly _version="4.5.24175"
+readonly _updated="23 Jun 2024"
 readonly sudoers_file="/etc/sudoers"
 readonly pwfb_dir="/etc/sudoers.d"
 readonly pwfb_file="0pwfeedback"
@@ -81,20 +81,21 @@ disable_pwfeedback() {
 help() {
   local errcode="${1:-2}"
   cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Enable/Disable password feedback in the terminal.
+
 ${green}Usage:${normal} $_script [OPTIONS]
-${orange}OPTIONS:${normal}
-  -e    Enable password feedback
-  -d    Disable password feedback
-  -h    Help
-  -s    Status of password feedback
+
+${orange}Available options:${normal}
+  -e  Enable password feedback
+  -d  Disable password feedback
+  -h  Help
+  -s  Status of password feedback
 END_HELP
-  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
 ## Execution ##
-
-printf "Enable/Disable password feedback in the terminal.\n"
 
 noOpt=1
 optstr=":edhs"
