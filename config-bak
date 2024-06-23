@@ -7,7 +7,7 @@
 # Author       : Cepyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2019
-# Updated      : 09 Jun 2024
+# Updated      : 23 Jun 2024
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.15.24161"
+readonly _version="5.16.24175"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="${HOME}/.config/backup"
 readonly cfg_dir="${HOME}/.config"
@@ -187,6 +187,9 @@ printf "Backing up configuration files...\n"
 [[ -f "$cfg_dir/picom/picom.conf" ]] && bu_config_cfg "picom" "picom.conf"
 [[ -f "$cfg_dir/picom.conf" ]] && bu_misc_cfg ".config" "picom.conf"
 [[ -f "$cfg_dir/compton.conf" ]] && bu_misc_cfg ".config" "compton.conf"
+[[ -f "$HOME/.ssh/id_rsa" ]] && bu_misc_cfg ".ssh" "id_rsa"
+[[ -f "$HOME/.ssh/id_rsa.pub" ]] && bu_misc_cfg ".ssh" "id_rsa.pub"
+[[ -f "$HOME/.ssh/config" ]] && bu_misc_cfg ".ssh" "config"
 
 # Completion status
 
