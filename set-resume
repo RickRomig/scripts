@@ -4,8 +4,10 @@
 # Description  : Set the RESUME environment variable after update-initramfs error
 # Dependencies : None
 # Arguments    : None
-# Author       : Copyright (C) 2019, Richard B. Romig, 12 Nov 2019
+# Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 12 Nov 2019
+# Updated      : 23 Jun 2024
 # Comments     : Extracts swap partition UUID from output of /sbin/blkid
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -27,22 +28,21 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.4"
-readonly _updated="18 Mar 2024"
+readonly _version="5.4.24175"
 
 ## Functions ##
 
 print_message() {
-  cat << EOF
+  cat << END_MESSAGE
   Set RESUME environment variable after an update-initramfs error message.
   The error message wil be similar to:
   I: The initramfs will attempt to resume from /dev/sda2
   I: (UUID=09e25397-4a2c-4fb0-a605-a7013eecb59c)
   I: Set the RESUME variable to override this.
-EOF
+END_MESSAGE
 }
 
-get_uuid() {
+get_swap_uuid() {
   if antix_mx; then
     swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $4}')
   else
@@ -53,8 +53,9 @@ get_uuid() {
 }
 
 set_resume() {
-  local uuid="$1"
-  local resume_path="/etc/initramfs-tools/conf.d/resume"
+  local uuid resume_path
+  uuid="$1"
+  resume_path="/etc/initramfs-tools/conf.d/resume"
   printf "\nSWAP UUID: %s\n" "$uuid"
   printf "\nSetting the RESUME environment variable...\n"
   printf "RESUME=UUID=%s\n" "$uuid" | sudo tee "$resume_path" > /dev/null
@@ -69,11 +70,11 @@ update_initramfs() {
 
 sudo_login 2
 
-printf "%s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
+box "$_script v$_version" "*"
 print_message
 printf "\nExtracting the swap partition UUID using /sbin/blkid ...\n"
-swap_uuid=$(get_uuid)
-[[ -z "$swap_uuid" ]] && die "No UUID for swap found." 1
+swap_uuid=$(get_swap_uuid)
+[[ "$swap_uuid" ]] || die "No UUID for swap found." 1
 set_resume "$swap_uuid"
 update_initramfs
 leave "Reboot the system for the change to take affect."
