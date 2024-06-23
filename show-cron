@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, 6 March 2018
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Mar 2018
-# Updated      : 02 Jun 2024
+# Updated      : 23 Jun 2024
 # Comments     : Requires sudo privileges
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -59,33 +59,33 @@ show_monthly_jobs() {
 }
 
 show_user_cron() {
-  local passwd_file="/etc/passwd"
-  local num_users
-  local max
+  local index max norm_user num_users passwd_file
+  passwd_file="/etc/passwd"
   num_users=$(awk -F: '$3 >= 1000 && !($1 == "nobody" && $3 == 65534) {SUM+=1} END {print SUM}' "$passwd_file")
-  i=1000
-  max=$(( num_users + i ))
+  index=1000  # starting point for regular users
+  max=$(( num_users + index ))
 
-  while [[ "$i" -le "$max" ]]; do
-    norm_user="$(awk -v pat="$i" -F: '$0~pat{print $1}' "$passwd_file")"
+  while [[ "$index" -le "$max" ]]; do
+    norm_user="$(awk -v pat="$index" -F: '$0~pat{print $1}' "$passwd_file")"
     if [[ "$norm_user" ]]; then
       printf "\n%sCron jobs for %s:%s\n" "$orange" "${norm_user^}"  "$normal"
       sudo crontab -l -u "$norm_user" | grep -v '^#' | sed 's/>\/dev\/null 2>&1//' | awk -F'/' '{print "  "$1"\t"$NF}'
     fi
-    (( i++ ))
+    (( index++ ))
   done
 }
 
 show_root_cron() {
   printf "\n%sCron jobs for root:%s\n" "$orange" "$normal"
-  sudo crontab -l | grep -v '^#' | sed 's/>\/dev\/null 2>&1//' | awk -F"/" '{print "  "$1"\t"$NF}'
+  sudo crontab -l | grep -v '^#' | sed 's/>\/dev\/null 2>&1//' | awk -F'/' '{print "  "$1"\t"$NF}'
   printf "\n"
 }
 
 main() {
-  local _script; _script=$(basename "$0")
-  local _version="5.4.24154"
-  local lhost="${HOSTNAME:-$(hostname)}"
+  local _script _version lhost
+  _script=$(basename "$0")
+  _version="5.4.24175"
+  lhost="${HOSTNAME:-$(hostname)}"
 
   sudo_login 0
   clear
