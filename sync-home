@@ -4,16 +4,17 @@
 # Description  : Synchronize ~/Documents/homepage with ~/Dropbox/homepage
 # Dependencies : rsync
 # Arguments    : none
-# Author       : Copyright © 2023 Richard B. Romig, 24 Sep 2019
+# Author       : Copyright © 2019 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : Creates a zipped archive of the folder's contents.
+# Created      : 24 Sep 2019
+# Updated      : 23 Jun 2024
+# Comments     : Creates a compressed tar archive of the folder's contents.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2088
 
 ## Load function library ##
 
@@ -26,47 +27,61 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="0.6.2"
-readonly _updated="11 Dec 2023"
-readonly homepage_dir=$HOME"/gitea/homepage"
-readonly dropbox_dir="$HOME/Dropbox/homepage"
-readonly archive_dir="$HOME/Downloads/archives/homepage"
+SECONDS=0
 
 ## Functions ##
 
 check_host() {
-	local local_host="${HOSTNAME:-$(hostname)}"
-	local main_host="hp-800g2-sff"
+	local local_host main_host
+	local_host="${HOSTNAME:-$(hostname)}"
+	main_host="hp-800g2-sff"
 	[[ "$local_host" != "$main_host" ]] && die "$_script must be run from $main_host." 2
 }
 
 remove_bu_files() {
+	local homepage_d="$1"
   printf "\nRemoving backup files (if any)...\n"
-  find "$homepage_dir"/ -name "*~" -delete
-  find "$homepage_dir"/ -maxdepth 2 -type f -name "*.bak" -exec rm{} \;
+  find "$homepage_d"/ -name "*~" -delete
+  find "$homepage_d"/ -maxdepth 2 -type f -name "*.bak" -exec rm{} \;
 }
 
 backup_homepage() {
-	local archive
+	local archive archive_d homepage_d
+	homepage_d="$1"
+	archive_d="$2"
 	archive="homepage-$(date +%y%m%d).tar.gz"
-	[[ -d "$archive_dir" ]] || mkdir -p "$archive_dir"
-	printf "Backing up %s...\n" "$homepage_dir"
-	tar -czvf "$archive_dir/$archive" -C "$HOME/gitea" homepage
+	[[ -d "$archive_d" ]] || mkdir -p "$archive_d"
+	printf "Backing up %s...\n" "$homepage_d"
+	tar -czvf "$archive_d/$archive" -C "$HOME/gitea" homepage
 }
 
 sync_dropbox() {
-  printf "\nSynchronizing ~/Documents/homepage with ~/Dropbox/homepage...\n"
-  rsync -av --delete --exclude '.git' "$homepage_dir"/ "$archive_dir"/ "$dropbox_dir"
+	local archive_d dropbox_d homepage_d
+	archive_d="$1"
+	homepage_d="$2"
+	dropbox_d="$HOME/Dropbox/homepage"
+	if [[ -d "$dropbox_d" ]]; then
+		printf "\nSynchronizing ~/Documents/homepage with ~/Dropbox/homepage...\n"
+		rsync -av --delete --exclude '.git' "$homepage_d"/ "$archive_d"/ "$dropbox_d"
+	fi
+}
+
+main() {
+	local _script _version homepage_dir archive_dir
+	_script=$(basename "$0")
+	_version="6.4.24175"
+	homepage_dir=$HOME"/gitea/homepage"
+	archive_dir="$HOME/Downloads/archives/homepage"
+
+	box "$_script v$_version" "*"
+	check_host
+	remove_bu_files "$homepage_dir"
+	backup_homepage "$homepage_dir" "$archive_dir"
+	sync_dropbox "$homepage_dir" "$archive_dir"
 }
 
 ## Execution ##
 
-SECONDS=0
-printf "%s v%s (Updated: %s)\n" "$_script" "$_version" "$_updated"
-check_host
-remove_bu_files
-backup_homepage
-[[ -d "$dropbox_dir" ]] && sync_dropbox
+main
 printf "\nScript completed in %s\n" "$(format_time $SECONDS)"
-exit
+leave ""
