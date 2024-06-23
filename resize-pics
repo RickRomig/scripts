@@ -4,16 +4,17 @@
 # Description  : Resizes and changes the compression of images/
 # Dependencies : imagemagick
 # Arguments    : none
-# Author       : Copyright Richard B. Romig, 22 Jun 2022
+# Author       : Copyright (c) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com
-# Comments     :
+# Created      : 22 Jun 2022
+# Updated      : 23 Jun 2024
+# Comments     : Must be run from the working directory.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -27,26 +28,29 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.1"
-readonly _updated="04 Apr 2023"
+readonly _version="1.2.24175"
 
 ## Functions ##
 
-check_dependencies() {
-  check_package imagemagick
+resize_pics() {
+  local img
+  [[ -d ./modpics ]] || mkdir -p ./modpics
+  for img in *.jpg; do
+    convert "$img" -resize 800x800 modpics/"${img%}"
+  done
+  convert 'modpics/*.jpg[800x>]' -quality 90 -set filename:base "%[basename]" "modpics/%[filename:base].jpg"
 }
 
-resize_pics() {
-  [[ -d modpics ]] || mkdir -p modpics
-  for f in *.jpg; do convert "$f" -resize 800x800 modpics/"${f%}"; done
-  convert 'modpics/*.jpg[800x>]' -quality 90 -set filename:base "%[basename]" "modpics/%[filename:base].jpg"
+find_images() {
+  local images
+  images=$(find . -maxdepth 1 -type f -iname "*.jpg")
+  [[ "$images" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ## Execution ##
 
-# echo -e "$_script v$_version ($_updated)"
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-
+find_images || die "No JPEG images in current directory to process." 1
+check_package imagemagick
+printf "%s v%s\n" "$_script" "$_version"
 resize_pics
-
 exit
