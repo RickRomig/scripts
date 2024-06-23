@@ -2,19 +2,20 @@
 ###############################################################################
 # Script Name  : sftpin
 # Description  : Connects to host computer via sftp
-# Dependencies : sftp
+# Dependencies : sftp (openssh-client)
 # arguments    : Last octet of target host's IP address
-# Author       : Richard Romig
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : unknown
+# Updated      : 23 Jun 2024
 # Comments     : Based on script by Joe Collins, EzeeLinux.com
-#              : localnet and valid_ip are declared in functionlib
+#              : localnet and valid_ip() are declared in functionlib
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -28,35 +29,36 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.1.0"
-readonly _updated="08 Sep 2023"
+readonly _version="2.2.24175"
+readonly _updated="23 Jun 2024"
 
 ## Functions ##
 
-usage() {
+help() {
   local errcode="${1:-2}"
   cat << END_HELP
-${orange}Usage:${normal} $_script <last octet>
-Example: $_script 15
+${orange}$_script${normal} $_version ($_updated)
+Log in to a remote server using Secure File Transfer Protocol (SFTP).
+
+${green}Usage:${normal} $_script <last_octet>
+
+${orange}Example:${normal} $_script 15
 Argument is the last octet of the remote server's IP address.
+Assumes a /24 network.
 END_HELP
   exit "$errcode"
 }
 
 ## Execution ##
 
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-printf "Log in to a remote server using Secure File Transfer Protocol (SFTP).\n"
-
 if [[ $# -eq 0 ]]; then
   printf "%s No argument passed.\nEnter last octet of remote server's IP address.\n" "$red_error" >&2
-  usage 2
+  help 2
 elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  printf "%s%s help%s\n" "$green" "$_script" "$normal"
-  usage 0
+  help 0
 else
+  printf "%s v%s\n" "$_script" "$_version"
   valid_ip "$1" && hostip="$1"
   /usr/bin/sftp "$localnet.$hostip"
 fi
-
 exit
