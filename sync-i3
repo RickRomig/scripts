@@ -4,8 +4,10 @@
 # Description  : Synchronizes key config files with main system.
 # Dependencies : rsync
 # Arguments    : None
-# Author       : Copyright (C) 2022, Richard B. Romig, 01 Oct 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 01 Oct 2022
+# Updated      : 24 Jun 2024
 # Comments     :
 # TODO (Rick)  : Reconsider purpose. Do I want to sync i3 configs to config repo?
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -27,10 +28,9 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.4"
-readonly _updated="06 Jul 2023"
-readonly fhost="hp-850-g3"
+readonly _version="1.5.24176"
 readonly lhost="${HOSTNAME:-$(hostname)}"
+readonly fhost="hp-850-g3"
 readonly mhost="hp-800g2-sff"
 readonly mhostip=10
 localip=$(local_ip); readonly localip
@@ -58,16 +58,17 @@ sync_rofi() {
   rsync -avh --delete "$cfg_dir/" "$localnet.$mhostip:$remote_destination/"
 }
 
-sync_bumblebee() {
-  local cfg_dir="$HOME/.config/bumblebee-status"
-  local remote_destination="gitea/configs/bumblebee-status"
-  printf "\nSynchronizing bumblebee themes...\n"
-  rsync -avh --delete "$cfg_dir" "$localnet.$mhostip:$remote_destination/"
+sync_polybar() {
+  local cfg_dir remote_destination
+  cfg_dir="$HOME/.config/polybar"
+  remote_destination="gitea/configs/polybar"
+  printf "\nSynchronizing polybar configuratinon files...\n"
+  rsync -avh --delete "$cfg_dir/" "$localnet.$mhostip:$remote_destination/"
 }
 
 main() {
   sync_i3
-  sync_bumblebee
+  sync_polybar
   sync_kitty
   sync_rofi
 }
@@ -78,5 +79,5 @@ printf "%-12s %s at %s.%s\n" "Local Host:" "$lhost" "$localnet" "$localip"
 printf "Remote Host: %s at %s.%s\n" "$mhost" "$localnet" "$mhostip"
 [[ "$lhost" != "$fhost" ]] && die "$_script must be run from $fhost."
 main
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "%s v%s\n" "$_script" "$_version"
 exit
