@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022,Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com
 # Created      : 08 Feb 2022
-# Updated      : 05 May 2024
+# Updated      : 25 Jun 2024
 # Comments     : Run frmo KVM/QEMU VM on 192.168.122.0 network
 #              : Copy script to ~/.local/bin on virtual machine.
 # TODO (Rick)  :
@@ -26,22 +26,22 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.6.24126"
-readonly gateway_ip="$localnet.1"
-# readonly gateway_ip="${$localnet.1:-192.168.122.1}"
+readonly _version="1.7.24177"
 
 ## Functions ##
 
 transfer_status() {
+  local xfr_status="$1"
   # Exit script if transfer fails.
-  xfr_status="$1"
   (( xfr_status != 0 )) && die "A transfer failed! Check network status."
 }
 
 sync_script() {
+  local exit_status gateway_ip
+  gateway_ip="${localnet.1:-192.168.122.1}"
 	printf "\n%sSyncing .bash_aliases ...%s\n" "$orange" "$normal"
 	rsync -avh --delete rick@"$gateway_ip":.bash_aliases "$HOME/"
 	exit_status="$?"
@@ -56,16 +56,12 @@ sync_script() {
   transfer_status "$exit_status"
 }
 
-all_done() {
-  box "All directories synced!" "-"
-  leave "Script completed in $(format_time $SECONDS)"
-}
-
 ## Execution ##
 
-[[ "$localnet" != "192.168.122" ]] && die "Must be run from a KVM/QEMU virtual machine."
+[[ "$localnet" != "192.168.122" ]] && die "Must be run from a KVM/QEMU virtual machine." 1
 check_package rsync
 SECONDS=0
 box "$_script v$_version"
 sync_script
-all_done
+box "All directories synced!" "-"
+leave "Script completed in $(format_time $SECONDS)"
