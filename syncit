@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Script Name  : SyncIt
-# Description  :  A script to sync to local machines on SSH enabled network
-# Dependencies : rsync,ip
+# Description  : A script to sync to local machines on SSH enabled network
+# Dependencies : rsync
 # Arguments    : Last octet of the local network address
 # Author       : Richard Romig, Joe Collins
 # Email        : rick.romig@gmail.com
+# Created      : unknown
+# Last updated : 25 Jun 2024
 # Comments     : Based on script by Joe Collins at EzeeLinux.com
 #              : LOCALNET is declared in functionlib
 # TODO (rick)  :
@@ -14,7 +16,6 @@
 
 # Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -28,19 +29,20 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.6.7"
-readonly _updated="06 Jul 2023"
+readonly _version="2.7.24177"
+readonly _updated="25 Jun 2024"
 
 ## Functions ##
 
 transfer_status() {
+  local xfr_status="$1"
   # Exit script if transfer fails.
-  xfr_status="$1"
   (( xfr_status != 0 )) && die "A transfer failed! Check network status."
 }
 
 sync_script() {
-  # Start syncing folders
+  local exit_status hostip
+  hostip="$1"
 
   echo $'\n'$"${orange}Syncing aliases...${normal}"
   rsync -avh --delete /home/"$USER"/.bash_aliases "$localnet.$hostip":
@@ -128,20 +130,21 @@ all_done() {
 # Start timer
 SECONDS=0
 
-# Assign IP address to HOSTIP
-valid_ip "$1" && hostip="$1"
+# Assign IP address to hostip
+valid_ip "$1" && host_ip="$1"
 
 echo "${bold}${orange}$_script: Synchronizing directories to $localnet.$hostip${normal}"
-echo "Version $_version ($_updated)"
+echo "Version $_version"
 
 case $hostip in
   1|2|4|5|6|7|8|9 )
-    echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted address."
+    echo -n "${orange}Warning!${normal} $localnet.$host_ip is a restricted address."
     echo -e " Access denied.\n"
-    exit ;;
+    exit
+  ;;
   * )
-    sync_script
-    all_done ;;
+    sync_script "$host_ip"
+    all_done
 esac
 
 exit
