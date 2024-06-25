@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018,Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Nov 2018
-# Updated      : 07 Jun 2024
+# Updated      : 25 Jun 2024
 # Comments     : Inspired by Joe Collins <https://www.ezeeLinux.com>
 #              : and Luke Smith <https://lukesmith.xyz>
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.9.24159"
+readonly _version="6.0.24177"
 
 ## Functions ##
 
@@ -45,13 +45,27 @@ check_dependencies() {
 }
 
 nvme_temperature() {
-  echo "$json" | grep -q 'nvme-pci-0300' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "NVME temperature:" "$normal" "$(echo "$json" | jq -r '."nvme-pci-0300"."Composite"."temp1_input"')"
+	local drive drv_name
+	for drive in /dev/nvme0n[0-9]; do
+		drv_name=$(echo -n "$drive" | awk -F/ '{print $NF}')
+		if echo "$json" | grep -q 'nvme-pci-0300'; then
+			printf "%s%s %-13s%s%2.1f\U2103 \n" "$orange" "$drv_name" "temperature:" "$normal" "$(echo "$json" | jq -r '."nvme-pci-0300"."Composite"."temp1_input"')"
+		fi
+	done
 }
 
 sata_temperature() {
-	echo "$json" | grep -q 'drivetemp-scsi-0-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-0-0"."temp1"."temp1_input"')"
-	echo "$json" | grep -q 'drivetemp-scsi-1-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-1-0"."temp1"."temp1_input"')"
-	echo "$json" | grep -q 'drivetemp-scsi-2-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-2-0"."temp1"."temp1_input"')"
+	local drive drv_name
+	for drive in /dev/sd[a-z]; do
+		drv_name=$(echo -n "$drive" | awk -F/ '{print $NF}')
+		if echo "$json" | grep -q 'drivetemp-scsi-0-0'; then
+			printf "%s%s %-17s%s%2.1f\U2103 \n" "$orange" "$drv_name" "temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-0-0"."temp1"."temp1_input"')"
+		elif echo "$json" | grep -q 'drivetemp-scsi-1-0'; then
+			printf "%s%s %-17s%s%2.1f\U2103 \n" "$orange" "$drv_name" "temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-1-0"."temp1"."temp1_input"')"
+		elif echo "$json" | grep -q 'drivetemp-scsi-2-0'; then
+			printf "%s%s %-17s%s%2.1f\U2103 \n" "$orange" "$drv_name" "temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-2-0"."temp1"."temp1_input"')"
+		fi
+	done
 }
 
 cpu_temperature(){
@@ -69,7 +83,7 @@ cpu_temperature(){
 memory_usage() {
 	printf "\n%sMemory usage:%s %s\n" "$orange" "$normal" "$(/usr/bin/free -h | awk '/^Mem:/ {print $3 "/" $2}')"
   printf "Process\t\tPercentage\n"
-  ps axch -o cmd:15,%mem --sort=-%mem | head -n 10
+	ps axch -o cmd:15,%mem --sort=-%mem | head -n 10
 }
 
 cpu_usage() {
@@ -85,7 +99,8 @@ cpu_usage() {
 
 disk_usage() {
 	printf "\n%sDisk usage:%s\n" "$orange" "$normal"
-  df -hT -x fuse.portal | sed -n '1p;/^\//p'  # '-x fuse.portal' to eliminate 'df: /run/user/1000/doc: Operation not permitted' error
+  df -hT -x fuse.portal | sed -n '1p;/^\//p'
+  # '-x fuse.portal' to eliminate 'df: /run/user/1000/doc: Operation not permitted' error
 }
 
 main() {
