@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 07 Jun 2024
+# Updated:     : 25 Jun 2024
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Rewrite of version 2.5.0
 #              : Will not get desktop session info from an SSH connection. Run locally.
@@ -17,7 +17,7 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034 # for select loops, opt is not referenced, using $REPLY instead.
+# shellcheck disable=SC2034 # for select loops, opt is not referenced, but using $REPLY instead.
 
 ## Source function library ##
 if [[ -x "$HOME/bin/functionlib" ]]; then
@@ -30,7 +30,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.5.24159"
+readonly _version="3.5.24177"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -70,7 +70,8 @@ send_to_main() {
 }
 
 rename_mnt_pt() {
-  local ts_path="/run/timeshift/backup"
+  local ts_path ts_drv opt
+  ts_path="/run/timeshift/backup"
   ts_drv=$(mount | awk '/timeshift/ {print $3}' | cut -d' ' -f1)
   printf "\nRename the mountpoint for %s to:\n" "$ts_drv"
   PS3="Select the appropriate mountpoint: "
