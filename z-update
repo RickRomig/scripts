@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 15 Jun 2024
+# Updated      : 26 Jun 2024
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -52,9 +52,9 @@ get_updates() {
 purge_configs() {
   local rcpkg
   if dpkg --list | grep -q '^rc'; then
-    for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
+    for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
       printf "Purging %s...\n" "$rcpkg"
-      DEBIAN_FRONTEND=noninteractive apt-get remove --purge "$rcpkg" -yy
+      DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get remove --purge "$rcpkg" -yy
     done
   else
     printf "No packages in the 'rc' state to be purged.\n"
