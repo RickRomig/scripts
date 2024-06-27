@@ -1,5 +1,4 @@
 # Shellcheck Directives and Tips
-q
 1. Use `shellcheck -x` to check scripts that source other files.
 2. Shellcheck directives (`# shellcheck disable SCxxxx`)
 	- A disable directive after the shebang, before any commands, will ignore the entire file.
@@ -8,7 +7,7 @@ q
 3. **SC1091 Not following: (error message)**
 	- Include `# shellcheck source=/home/rick/bin/functionlib` when sourcing the `functionlib` script.
 	- Don't need to disable with `# shellcheck disable SC1091` if using `shellcheck -x` to check script.
-4. **SC2034 (warnding): variable appears uunused**
+4. **SC2034 (warning): variable appears uunused**
 	- If intentional or a throwaway variable:
 		- Use `_` as a dummy variable or prefix the variable with `_`, for example `_discard`.
 	- In select loops where `$REPLY` is used in the case structure instead of `$opt`:
@@ -17,4 +16,4 @@ q
 	- ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 		- `# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function`
 		- `# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.`
-	- Since unreachable commands may come in clusters, it's useful to use ShellCheck's filewide or functionwide ignore directives.
+	- Since unreachable commands may come in clusters, it's useful to use ShellCheck's file-wide or function-wide ignore directives.
