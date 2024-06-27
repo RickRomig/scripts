@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 07 Jun 2024
+# Updated      : 27 Jun 2024
 # Comments     : Based on script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -31,8 +31,8 @@ set -eu
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="6.7.24159"
-readonly _updated="07 Jun 2024"
+readonly _version="6.8.24179"
+readonly _updated="27 Jun 2024"
 location="${1:-Huber+Heights}"
 
 ## Functions ##
@@ -56,21 +56,30 @@ timeout_exit() {
 }
 
 show_help() {
+  clear
   cat << END_HELP
-${orange}Usage:${normal} $_script [location]
-Example 1: $_script  # Uses default location
-Example 2: $_script Cincinnati
-Example 3: $_script New+York
-Example 4: $_script "Los Angeles"
-* Locations with spaces must have a '+' in place of the space
-  or be enclosed in double quotes.
+${orange}$_script${normal} $_version, Upated: $_updated
+Displays current weather and 3-day forecast for a location.
+
+${green}Usage:${normal} $_script [location]
+
+${orange}Available options:${normal}
+  -h | --help  Display this help text.
+
+${orange}Examples:${normal}
+$_script  # Uses default location
+$_script Cincinnati
+$_script New+York
+$_script "Los Angeles"
+
+* Locations with spaces must have a '+' in place of the space or be enclosed in double quotes.
 * A US state can be indicated with a comma after the city name.
   Kettering,OH or Kettering, OH
 * If no location is passed, the default location will be used.
 * 3-digit airport codes can be used as a location (LAX, ATL, DAY).
 * Menu options include current conditions, 3-day forecast, change locations, and help.
 * For help: $_script -h or $_script --help or Choice 4 in the menu.
-$_script v$_version, $_updated
+
 END_HELP
 }
 
