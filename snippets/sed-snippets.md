@@ -63,3 +63,8 @@ find . -maxdepth 1 -type f | grep " " >/dev/null && rename -v 's/ /_/g' ./* || e
 ```bash
 cp /etc/nanorc .config/nano/nanorc; sed -i -f bin/files/nano.sed .config/nano/nanorc
 ```
+### Remove leading or trailing whitespace
+```bash
+sed -e 's/^[ \t]*//g' filename		# remove leading whitespace
+sed -e 's/\ *//g' filename				# remove trailing whitespace
+```
