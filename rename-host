@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Nov 2019
-# Updated      : 07 Jun 2024
+# Updated      : 27 Jun 2024
 # Comments     : Changes the hostname in both /etc/hostname and /etc/hosts.
 #              : antiX/MX Linux: /etc/hosts - 127.0.0.1      hostname
 #              : Rules based on hostname(7) man page
@@ -31,14 +31,15 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.4.24159"
+readonly _version="4.5.24179"
 readonly old_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
 
 name_rules() {
   cat << END_RULES
-${red}Hostname Rules${normal}
+
+${lightblue}Hostname Rules${normal}
   ${orange}*${normal} 5-15 characters (for NETBIOS compatibility)
   ${orange}*${normal} a-z, 0-9, - (hyphen)
   ${orange}*${normal} lowercase (uppercase will be converted)
@@ -50,60 +51,57 @@ END_RULES
 
 ## Execution ##
 
-# Enter new hostname and check rules
+clear
+echo "$_script v$_version"
+echo "Renames the system hostname."
+name_rules
 
 while true; do
-  clear
-  echo "$_script v$_version"
-  echo "Renames the system hostname."
-  name_rules
   printf "\nCurrent hostname is %s\n\n" "$old_host"
 
   read -rp "Enter new hostname: " new_host
   strlen=${#new_host}
   if [[ "$strlen" -lt 5 || "$strlen" -gt 15 ]]; then
-    echo $'\n'$"${lightred}Invalid length${normal}" >&2
+    echo $'\n'$"${lightred}Hostname must be between 5 and 15 characters.${normal}" >&2
     name_rules
     continue
   fi
   # Check new hostname against the rules
   case "$new_host" in
     -* )
-      echo $'\n'$"${lightred}Cannot start with a hypen${normal}" >&2
+      echo $'\n'$"${lightred}}Hostname cannot begin with a hypen.${normal}" >&2
       name_rules
       continue
     ;;
     *- )
-      echo $'\n'$"${lightred}Cannot end with a hyphen${normal}" >&2
+      echo $'\n'$"${lightred}Hostname cannot end with a hyphen.${normal}" >&2
       name_rules
       continue
     ;;
     [0-9]* )
-      echo $'\n'$"${lightred}Cannot start with a digit${normal}" >&2
+      echo $'\n'$"${lightred}Hostname cannot begin with a digit.${normal}" >&2
       name_rules
       continue
     ;;
     *[^a-zA-Z0-9-]* )
-      echo $'\n'$"${lightred}Cannot contain special characters${normal}" >&2
+      echo $'\n'$"${lightred}Hostname cannot contain any special characters.${normal}" >&2
       name_rules
       continue
     ;;
-    * )
-      echo $'\n'$"${green}New hostname is valid.$(normal)"
   esac
 
   # Compare new hostname with the old hostname
   new_host="${new_host,,}"
-  if [[ "$new_host" == "$old_host" ]]; then
+  if [[ "$new_host" == "${old_host,,}" ]]; then
     echo "${lightred}Hostnames are the same.${normal}" >&2
     name_rules
     continue
   else
+    echo $'\n'$"${green}New hostname is a valid hostname.${normal}"
     break
   fi
 done
 
-# Checking for sudo privileges...
 sudo_login 2
 echo $'\n'$"Changing the hostname from $old_host to $new_host ..."
 # Make backup copies of the original files and replace old hostname with new hostname
