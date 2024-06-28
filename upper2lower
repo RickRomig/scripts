@@ -4,17 +4,16 @@
 # Description  : Renames uppercase in filenames to lowercase
 # Dependencies : rename
 # Args         : --all, --help, filename(s) to be renamed
-# Author       : Copyright (C) 2018, Richard Romig
+# Author       : Copyright © 2018, Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2018
-# Updated      : 07 Jun 2024
+# Updated      : 28 Jun 2024
 # Comment      :
 # License      : GNU General Public License, version 2.0
 ##############################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -28,15 +27,18 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.2.24159"
+readonly _version="3.2.24180"
+readonly _updated="28 Jun 2024"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
   cat << END_HELP
+${orange}$_script${normal} $_version, Upated: $_updated
 Renames filenames in the current directory to all lowercase.
-${orange}Usage:${normal} $_script [option] [filename1] [filename2] ...
+
+${green}Usage:${normal} $_script [option] [filename1] [filename2] ...
 ${orange}Options:${normal}
   --all    change all files in the current directory.
   --help   display this help message.
@@ -47,7 +49,7 @@ END_HELP
   exit "$errcode"
 }
 
-upper_lower() {
+upper_to_lower() {
 	local filename="$1"
 	if [[ -f "$filename" ]]; then
 		rename -v 'y/A-Z/a-z/' "$filename"
@@ -68,7 +70,6 @@ elif [[ $# -eq 1 ]]; then
 			find . -maxdepth 1 -type f -exec rename -v 'y/A-Z/a-z/' {} + | sed 's/\.\///g'
 		;;
 		"--help" )
-			printf "%s help...\n" "$_script"
 			help 0
 		;;
 		--* )
@@ -78,12 +79,12 @@ elif [[ $# -eq 1 ]]; then
 		* )
 			file_name="$1"
 			printf "Renaming %s to lowercase.\n" "$file_name"
-			upper_lower "$file_name"
+			upper_to_lower "$file_name"
 	esac
 else
 	printf "Renaming selected files to lowercase.\n"
 	for file_name in "$@"; do
-		upper_lower "$file_name"
+		upper_to_lower "$file_name"
 	done
 fi
 
