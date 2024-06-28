@@ -4,8 +4,10 @@
 # Description  : Download mp3 audio from YouTube.com to current directory
 # Dependencies : yt-dlp
 # Arguments    : Video URL or ID number
-# Author       : Copyright © 2019, Richard B. Romig, 14 Nov 2019
+# Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 14 Nov 2019
+# Updated      : 28 Jun 2024
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to current working directory
 # TODO (Rick)  :
@@ -14,7 +16,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -28,18 +29,29 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.1"
-readonly _updated="09 Sep 2023"
+readonly _version="2.1.24180"
+readonly _updated="28 Jun 2024"
 
 ## Functions
 
-usage() {
+help() {
   local errcode="${1:-2}"
-  echo "Usage: $_script [video-url] [video-ID]"
-  echo "$_script https://www.youtube.com/watch?v=8hLlU0EML4U"
-  echo "$_script 8hLlU0EML4U"
+  cat << END_HELP
+${orange}$_script${normal} $_version, Updated: $_updated
+Downloads mp3 audio from YouTube videos to current working diretory.
+
+${green}Usage:${normal} $_script [OPTION] [video-url] [video-ID]
+
+${orange}Available options:${normal}
+  -h | --help  Show this help text.
+
+$_script https://www.youtube.com/watch?v=8hLlU0EML4U
+$_script 8hLlU0EML4U
+
+END_HELP
   exit "$errcode"
 }
+
 
 check_dependencies() {
   if [ -x /usr/local/bin/yt-dlp ]; then
@@ -55,14 +67,13 @@ check_dependencies() {
 check_dependencies
 
 # Check arguments
-if [[ -z "$1" ]]; then
+if [[ "$#" = 0 ]]; then
   echo "${lightred}Error:${normal} No argument passed." >&2
-  usage 2
+  help 2
 elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
-  usage 0
+  help 0
 elif [[ "$1" =~ ^https?:\/\/.* ]]; then
   # match by regex, starts with http:// or https://
-  # \/ in regex will be seen as / in this context
   url=$*
 else
   # match by video ID
@@ -72,13 +83,12 @@ fi
 # Execution
 
 clear
-box "YouTube Audio Download"
-echo "$_script v$_version"
-echo "($_updated)"
-echo $'\n'$"${bold}${blue}Downloading mp3 audio for $URL${normal}"
+box "$_script v$_version" "*"
+under_line "* YouTube Audio Download *" "*"
+echo $'\n'$"Downloading mp3 audio for $url"
+echo "Destination: $PWD"
 if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" "$url"; then
   leave "Download successful."
 else
-  ec="$?"
-  die "Download failed." "$ec"
+  die "Download failed." "$?"
 fi
