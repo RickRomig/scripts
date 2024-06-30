@@ -48,15 +48,15 @@ END_HELP
 }
 
 main() {
-  local catmax filesize textfile
+  local catmax filelines textfile
   textfile="$1"
-    # Get 87% of screennumber of lines in the file
+    # Get 87% of screen
   catmax=$(( $(tput lines)*87/100 ))
   # Find the number of lines in the file
-  filesize=$(wc -l "$textfile" | cut -d' ' -f1)
+  filelines=$(wc -l "$textfile" | cut -d' ' -f1)
   # View the file
   box "File: $textfile" "*"
-  if (( filesize <= catmax )); then
+  if (( filelines <= catmax )); then
 	  cat "$textfile"
 	  over_line "$_script $_version" "*"
   else
