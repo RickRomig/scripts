@@ -6,8 +6,8 @@
 # Arguments    : None
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Created      : 17 August 2019
-# Last updated : 08 April 2024
+# Created      : 17 Aug 2019
+# Last updated : 30 Jun 2024
 # Comments     : For entertainiment purposes only.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -15,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -25,17 +24,17 @@ else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
-
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.1.24098"
+readonly _version="5.1.24182"
 bs_level=$(shuf -i 0-100 -n 1)
 proc_time=$(shuf -i 1-20 -n 1)
 
 ## Functions ##
 
 print_header() {
+  local space_42
   space_42=$(for i in {1..42};do echo -n " ";done)
   echo $'\n'$"${space_42}${bold}${green}Bullshit Meter${normal}"
   scale_numbers
@@ -43,7 +42,8 @@ print_header() {
 }
 
 scale_numbers() {
-  local index=0
+  local i j index
+  index=0
   printf "%s" "$index"
   for i in {1..10}; do
     for j in {1..8}; do
@@ -55,7 +55,9 @@ scale_numbers() {
   printf "\n"
 }
 
+# shellcheck disable=SC2034 # SC2034 (warning): j appears unused. Verify use (or export if used externally).
 scale_marks() {
+  local i j
   printf "|"
   for i in {1..10}; do
     for j in {1..9}; do
@@ -121,7 +123,7 @@ _EOF_
 
 clear
 print_disclaimer
-read -rp "Statement to be analyzed: " statement
+read -rp "Statement to be analyzed: " _statement
 printf "\nAnalyzing your statement "
 dots "."
 sleep "$proc_time"
