@@ -1,12 +1,12 @@
 # Shellcheck Directives and Tips
 1. Use `shellcheck -x` to check scripts that source other files.
-2. Shellcheck directives (`# shellcheck disable SCxxxx`)
+2. Shellcheck directives (`# shellcheck disable=SCxxxx`)
 	- A disable directive after the shebang, before any commands, will ignore the entire file.
 	- A disable directive before a function ignores the entire function.
 	- A disable directive just before a command ignores that instance.
 3. **SC1091 Not following: (error message)**
 	- Include `# shellcheck source=/home/rick/bin/functionlib` when sourcing the `functionlib` script.
-	- Don't need to disable with `# shellcheck disable SC1091` if using `shellcheck -x` to check script.
+	- Don't need to disable with `# shellcheck disable=SC1091` if using `shellcheck -x` to check script.
 4. **SC2034 (warning): variable appears uunused**
 	- If intentional or a throwaway variable:
 		- Use `_` as a dummy variable or prefix the variable with `_`, for example `_discard`.
