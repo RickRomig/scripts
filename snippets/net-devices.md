@@ -44,10 +44,10 @@ $ /usr/bin/nmcli dev show <interface> | awk '/GENERAL.CONNECTION/ {print $NF}'	#
 #### DNS nameservers:
 ```bash
 $ resolvectl status | grep -1 'DNS Server'
-    DNSSEC supported: no            
+    DNSSEC supported: no
   Current DNS Server: 208.67.222.222
-         DNS Servers: 84.200.69.80  
-                      84.200.70.40  
+         DNS Servers: 84.200.69.80
+                      84.200.70.40
 
 $ /usr/bin/nmcli dev show | awk '/IP4.DNS/ {print $NF}' | sort -u
 ```
@@ -57,5 +57,10 @@ $ nmcli -f SSID,SECURITY,SIGNAL,BARS dev wifi | sed '/SSID/d;/^--/d'
 ```
 #### Connect to a wireless network from the command line:
 ```bash
-$ sudo nmcli d wifi connect "$ssid_name" password "$passphrase" ifname "$wifi_dev" 
+$ sudo nmcli d wifi connect "$ssid_name" password "$passphrase" ifname "$wifi_dev"
+```
+#### Bring up a netwokr interface
+```bash
+sudo ip link set interface-name up
+sudo ip link set interface-name down
 ```
