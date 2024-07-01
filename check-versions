@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 10 May 2024
+# Last updated : 01 Jul 2024
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 # TODO (Rick)  :
@@ -36,33 +36,33 @@ cleanup() {
 }
 
 github_versions() {
-  local github_url="https://github.com"
-  local new_ver="Not found"
-  local packages=( bat codium fastfetch marktext micro )
-  local cur_ver
+  local cur_ver github_url new_ver package packages release_path
+  github_url="https://github.com"
+  new_ver="Not found"
+  packages=( bat codium fastfetch marktext micro )
 
   printf "%-16s%-16s%s\n" "GitHub Package" "Latest version" "Installed version"
   for package in "${packages[@]}"; do
     # Set URL of GitHub repoository and currently installed version of package.
     case "$package" in
       "bat" )
-        local release_path="sharkdp/bat/releases"
+        release_path="sharkdp/bat/releases"
         cur_ver=$(dpkg -l | awk '$2 == "bat" {print $3}' | sed 's/[+-].*//')
       ;;
       "micro" )
-        local release_path="zyedidia/micro/releases"
+        release_path="zyedidia/micro/releases"
         cur_ver=$(dpkg -l | awk '$2 == "micro" {print $3}' | sed 's/[+-].*//')
       ;;
       "marktext" )
-        local release_path="marktext/marktext/releases"
+        release_path="marktext/marktext/releases"
         cur_ver=$(dpkg -l | awk '$2 == "marktext" {print $3}' | sed 's/[+-].*//')
       ;;
 		  "codium" )
-			  local release_path="VSCodium/vscodium/releases"
+			  release_path="VSCodium/vscodium/releases"
 			  cur_ver=$(dpkg -l | awk '$2 == "codium" {print $3}' | sed 's/[+-].*//')
       ;;
       "fastfetch" )
-        local release_path="fastfetch-cli/fastfetch/releases"
+        release_path="fastfetch-cli/fastfetch/releases"
 			  cur_ver=$(dpkg -l | awk '$2 == "fastfetch" {print $3}' | sed 's/[+-].*//')
       ;;
       * )
@@ -94,7 +94,8 @@ github_versions() {
 }
 
 apt_tools() {
-	local packages=( bluefish featherpad geany gedit git glow nano shellcheck xed )
+	local packages pkg
+  packages=( bluefish featherpad geany gedit git glow nano shellcheck xed )
 	printf "%-15s%s\n" "Package" "Version"
 	for pkg in "${packages[@]}"; do
 		if exists "$pkg"; then
@@ -136,7 +137,8 @@ apt_tools() {
 }
 
 terminals() {
-	local packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
+	local packages pkg
+  packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
 	printf "%-15s%s\n" "Terminal" "Version"
 	for pkg in "${packages[@]}"; do
 		if exists "$pkg"; then
@@ -169,7 +171,8 @@ terminals() {
 }
 
 browsers() {
-	local packages=( brave-browser chromium firefox google-chrome )
+	local packages pkg
+  packages=( brave-browser chromium firefox google-chrome )
 	printf "%-15s%s\n" "Browser" "Version"
 	for pkg in "${packages[@]}"; do
 		if exists "$pkg"; then
@@ -196,8 +199,9 @@ browsers() {
 }
 
 main() {
-  local _script; _script=$(basename "$0")
-  local _version="11.8.24131"
+  local _script _version
+  _script; _script=$(basename "$0")
+  _version="11.8.24183"
   clear
   printf "%s v%s\n" "$_script" "$_version"
   printf "Newest & installed versions of select programs.\n\n"
