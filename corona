@@ -6,6 +6,8 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 Mar 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 21 Mar 2020
+# Updated      : 01 Jul 2024
 # Comments     : Code: https://github.com/sagarkarira/coronavirus-tracker-cli
 #              : Twitter: https://twitter.com/ekrysi
 # TODO (Rick)  : Create a version for public dissemination.
@@ -14,7 +16,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
 
 ## Load function library ##
 
@@ -28,8 +29,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.9"
-readonly _updated="20 Dec 2023"
+readonly _version="3.9.24183"
 readonly url="https://corona-stats.online/?minimal=true"
 today=$(date '+%d %b %Y'); readonly today
 now=$(date '+%R %Z'); readonly now
@@ -44,7 +44,8 @@ cleanup() {
 }
 
 corona_data() {
-  local tfile="$1"
+  local cfile tfile
+  tfile="$1"
   cfile=$HOME/"Documents/corona-world-$(date '+%F').txt"
   cp "$tfile" "$cfile"
   chmod 664 "$cfile"
@@ -80,4 +81,4 @@ print_line "-" 140
 echo -e "Data downloaded $today, $now\n"
 default_no "Save today's Corona data?" && corona_data "$tmp_file" || echo "Corona data not copied."
 echo $'\n'$"${orange}Stay safe. Wear a mask! Wash your hands! Practice physical distancing.${normal}"
-leave "$_script v$_version ($_updated)"
+leave "$_script v$_version"
