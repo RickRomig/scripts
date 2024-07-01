@@ -7,7 +7,7 @@
 # Author       : Cepyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2019
-# Updated      : 23 Jun 2024
+# Updated      : 01 Ju1 2024
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.16.24175"
+readonly _version="5.16.24183"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="${HOME}/.config/backup"
 readonly cfg_dir="${HOME}/.config"
@@ -50,8 +50,9 @@ bu_home_cfg(){
 }
 
 bu_config_cfg() {
-	local folder="$1"
-	local file="$2"
+	local file folder
+	folder="$1"
+	file="$2"
 	if [[ -f "$cfg_dir/$folder/$file" && -f "$bu_dir/$folder/$file" ]]; then
 		if [[ "$bu_dir/$folder/$file" -ot "$cfg_dir/$folder/$file" ]]; then
 			printf "==> "
@@ -67,8 +68,9 @@ bu_config_cfg() {
 }
 
 bu_misc_cfg() {
-	local folder="$1"
-	local file="$2"
+	local file folder
+	folder="$1"
+	file="$2"
 	if [[ -f "$HOME/$folder/$file" && -f "$bu_dir/$folder/$file" ]]; then
 	  if [[ "$bu_dir/$folder/$file" -ot "$HOME/$folder/$file" ]]; then
 			printf "==> "
@@ -84,8 +86,9 @@ bu_misc_cfg() {
 }
 
 bu_etc_cfg() {
-	local folder="$1"
-	local file="$2"
+	local file folder
+	folder="$1"
+	file="$2"
 	if [[ -f "$folder/$file" && -f "$bu_dir/$file" ]]; then
 		if [[ "$bu_dir/$file" -ot "$folder/$file" ]]; then
 			printf "==> "
