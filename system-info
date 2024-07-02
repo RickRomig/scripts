@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 25 Jun 2024
+# Updated:     : 02 Jul 2024
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Rewrite of version 2.5.0
 #              : Will not get desktop session info from an SSH connection. Run locally.
@@ -30,7 +30,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.5.24177"
+readonly _version="3.6.24184"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -146,7 +146,7 @@ mfg_info() {
 os_info() {
   local desktop root_part created_date
   desktop="$DESKTOP_SESSION"
-  [[ "$desktop" == "bunsenlabs" ]] && desktop=$(wmctrl -m | awk '/Name/ {print $2}')
+  [[ "$desktop" == "bunsenlabs" || "$desktop" == "lightdm-xsession" ]] && desktop=$(wmctrl -m | awk '/Name/ {print $2}')
 	root_part=$(df -P / | awk '/dev/ {print $1}')
 	created_date=$(sudo /usr/sbin/tune2fs -l "$root_part" | awk '/created:/ {print $(NF-2),$(NF-3),$NF}')
 	printf "\n%-19s %s\n" "Operating System:" "$(uname -o)"
@@ -180,8 +180,6 @@ mac_mfgr() {
   local mac_addr mfgr oui_addr oui_file
   mac_addr="$1"
   oui_file="/usr/share/ieee-data/oui.txt"
-	oui_addr
-	mfgr
 	oui_addr=$(echo "$mac_addr" | sed 's/:/-/g' | cut -d '-' -f1,2,3 | tr '[:lower:]' '[:upper:]')
 	mfgr=$(grep -m 1 -i "$oui_addr" "$oui_file" )
 	if [[ -n "$mfgr" ]]; then
