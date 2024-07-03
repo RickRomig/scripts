@@ -128,6 +128,7 @@ ff_fix() {
         printf "%s Invalid choice! Choose 1, 2, 3, or 4\n" >&2 "$red_error"
     esac
   done
+  echo "$hd_ff"
 }
 
 mfg_info() {
@@ -223,7 +224,7 @@ ssd_hd_info() {
     printf "   %-15s%s\n" "Serial Number:" "$(awk -F: '/Serial N/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
     printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | tr -d '()')" # sed 's/[)(]//g')"
     hd_ff=$(awk -F: '/Form Factor/ {print $NF}' "$hd_data" | sed 's/^ //')
-    [[ -z "$hd_ff" ]] && ff_fix
+    [[ -z "$hd_ff" ]] && hd_ff=$(ff_fix)
     printf "   %-15s%s" "Form Factor:" "$hd_ff"
     hd_rpm=$(awk -F: '/Rotation/ {print $NF}' "$hd_data" | sed 's/^ //')
     case "$hd_rpm" in
