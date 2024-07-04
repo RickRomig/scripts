@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 11 Jun 2024
+# Updated      : 04 Jul 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -33,7 +33,7 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.7.24163"
+readonly _version="2.7.24186"
 readonly local_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -70,9 +70,11 @@ remove_orphans() {
 }
 
 purge_configs() {
-  local rcpkg
+  local rcpkg rcn
   printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
-  if dpkg --list | grep -q '^rc'; then
+  # if dpkg --list | grep -q '^rc'; then
+  rcn=$(dpkg -l | grep -c '^rc')
+  if (( rcn > 0 )); then
     for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
       printf "Purging %s...\n" "$rcpkg"
       sudo apt-get remove --purge "$rcpkg" -yy
