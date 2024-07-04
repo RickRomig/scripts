@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 21 May 2024
+# Last updated : 03 Jul 2024
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -85,8 +85,9 @@ DEFAULT=$(echo -en "\e[49m")
 #   $2 -> Exit status (optional, default is 1)
 ###############################################################################
 die() {
-  local errmsg="${1:-Undefined error}"
-  local errcode="${2:-1}"
+  local errmsg errcode
+  errmsg="${1:-Undefined error}"
+  errcode="${2:-1}"
   printf "\e[91mERROR:\e[0m %s\n" "$errmsg" >&2
   exit "$errcode"
 }
@@ -187,6 +188,7 @@ exists() {
 # Arguments: none
 ###############################################################################
 get_distribution() {
+  local distro
   if [[ -f /etc/lsb-release ]]; then
     distro=$(awk -F= '/DISTRIB_DESCRIPTION/ {print $NF}' /etc/lsb-release | sed 's/"//g')
   else
@@ -206,7 +208,7 @@ is_debian() {
   local codename
   codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
-    bookworm|bullseye|elsie|faye )
+    bookworm|bullseye|elsie|faye|boron )
       return "$TRUE"
     ;;
     * )
@@ -254,6 +256,7 @@ is_jammy() {
 # Returns: True or False
 ###############################################################################
 support_ppa() {
+  local codename
   codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
     focal|jammy|uma|una|vanessa|vera|victoria )
@@ -271,6 +274,7 @@ support_ppa() {
 # Returns: True or False
 ###############################################################################
 antix_mx() {
+  local dist_id
   dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2> /dev/null)
   [[ "$dist_id" == "antiX" || "$dist_id" == "MX" ]] && return "$TRUE" || return "$FALSE"
 }
@@ -377,6 +381,7 @@ leapyear() {
 # See ~/bin/snippets/ip-addresses.md for other methods
 ###############################################################################
 local_ip() {
+  local octet
   octet=$(ip route get 1.2.3.4 | awk '{print $7}' | cut -d'.' -f4)
   [[ -z "$octet" ]] && die "No IP address found. Check network status." 1
   printf "%s" "$octet"
@@ -397,8 +402,9 @@ local_ip() {
 # Exits with exit code of 5 if the argument is not an integer value.
 ###############################################################################
 valid_ip() {
-  local octet="$1"
-  local status=0
+  local octet status localip
+  octet="$1"
+  status=0
   localip="$(local_ip)"
   if [[ -z "$octet" ]]; then
     status=1    # No argument passed.
@@ -450,7 +456,8 @@ valid_ip() {
 #   $1 -> file to be edited or reviewed.
 ###############################################################################
 edit_view_quit() {
-  local filename="$1"
+  local filename opt
+  filename="$1"
   printf "\nYou may edit or view %s at this time.\n\n" "$filename"
   PS3="Choose an option: "
   select opt in Edit View Quit; do
@@ -489,10 +496,11 @@ edit_view_quit() {
 #   $1 -> file to be viewed
 ###############################################################################
 viewtext() {
-  local file="$1"
+  local catmax file filelines
+  file="$1"
   catmax=$(( $(tput lines)*87/100 ))
-  filesize=$(wc -l "$file" | cut -d " " -f1)
-  if [[ "$filesize" -gt "$catmax" ]]; then less "$file"; else cat "$file"; fi
+  filelines=$(wc -l "$file" | cut -d " " -f1)
+  if [[ "$filelines" -gt "$catmax" ]]; then less "$file"; else cat "$file"; fi
 }
 
 ###############################################################################
@@ -501,6 +509,7 @@ viewtext() {
 # Arguments: none
 ###############################################################################
 remove_tilde() {
+  local nbu
   nbu=$(find ./ -maxdepth 1 -type f -regex '\./.*~$' | wc -l)
   (( nbu > 0 )) && find . -maxdepth 1 -type f -regex '\./.*~$' -exec rm {} \;
 }
@@ -525,10 +534,11 @@ anykey() {
 # Length argument, if present, must follow a character argument.
 ###############################################################################
 print_line() {
-  local char="${1:-=}"
-  width=$(tput cols); local width
+  local char width len
+  char="${1:-=}"
+  width=$(tput cols)
   if [[ "$#" -gt 1 ]]; then char="$1"; width="$2"; fi
-  local len=${#char}
+  len=${#char}
   (( len > 1 )) && char=${char::1}
   printf "%${width}s\n" | sed "s/ /$char/g"
 }
@@ -544,10 +554,11 @@ print_line() {
 # Character argument, if present, is limited to the first character entered.
 ###############################################################################
 box() {
-  local char="${2:-*}"
-  local len=${#char}
+  local char width len edge title
+  char="${2:-*}"
+  len=${#char}
   (( len > 1 )) && char=${char::1}
-  local title="$char $1 $char"
+  title="$char $1 $char"
   edge=$(echo "$title" | sed "s/./$char/g")
   echo "$edge"
   echo "$title"
@@ -565,9 +576,10 @@ box() {
 # Character argument, if present, is limited to the first character entered.
 ###############################################################################
 under_line() {
-  local title="$1"
-  local char="${2:--}"
-  local len=${#char}
+  local char width len edge title
+  title="$1"
+  char="${2:--}"
+  len=${#char}
   (( len > 1 )) && char=${char::1}
   line=$(echo "$title" | sed "s/./$char/g")
   echo "$title"
@@ -585,9 +597,10 @@ under_line() {
 # Character argument, if present, is limited to the first character entered.
 ###############################################################################
 over_line() {
-  local title="$1"
-  local char="${2:--}"
-  local len=${#char}
+  local char width len edge title
+  title="$1"
+  char="${2:--}"
+  len=${#char}
   (( len > 1 )) && char=${char::1}
   line=$(echo "$title" | sed "s/./$char/g")
   echo "$line"
@@ -602,8 +615,9 @@ over_line() {
 #   $1 -> Exit message (Optional)
 ###############################################################################
 leave() {
-  local message="$1"
-  local msg_file="$HOME/.local/share/doc/leave.txt"
+  local message msg_file
+  message="$1"
+  msg_file="$HOME/.local/share/doc/leave.txt"
   [[ -z "$message" ]] && message=$(shuf -n 1 "$msg_file")
   printf "%s\n" "$message"
   exit 0
@@ -618,7 +632,8 @@ leave() {
 # SECONDS and ((...)) are undefined in POSIX.
 ###############################################################################
 format_time() {
-  local ET="$1"
+  local ET h m s
+  ET="$1"
   ((h=ET/3600))
   ((m=(ET%3600)/60))
   ((s=ET%60))
@@ -654,7 +669,8 @@ check_package() {
 # Note: if set -o pipefail is used in script, function will try to install package even if already installed.
 ###############################################################################
 check_packages() {
-	local pkgs=("$@")
+	local pkg pkgs
+  pkgs=("$@")
 	for pkg in "${pkgs[@]}"; do
 		if dpkg -l | grep -qw "$pkg"; then
 			printf "%s - OK\n" "$pkg"
@@ -676,7 +692,8 @@ check_packages() {
 # Returns: True or False
 ###############################################################################
 in_repos() {
-  local package="$1"
+  local in_repo package
+  package="$1"
   in_repo=$(apt-cache show "$package" 2>/dev/null)
   [[ -n "$in_repo" ]] && return "$TRUE" || return "$FALSE"
 }
@@ -688,7 +705,8 @@ in_repos() {
 # Arguments: none
 ###############################################################################
 mount_server() {
-  local server_ip="11"
+  local server_ip share mounted
+  server_ip="11"
   local share="HP-6005"
   ping -c3 "$localnet.$server_ip" > /dev/null 2>&1 || die "$share at $localnet.$server_ip is not online."
   if [[ -d "$HOME/mnt/$share/" ]]; then
@@ -715,7 +733,8 @@ mount_server() {
 # Arguments: none
 ###############################################################################
 unmount_server() {
-  local share="HP-6005"
+  local mounted share
+  share="HP-6005"
   mounted=$(mount | grep "$share")
   if [[ -n "$mounted" ]]; then
     fusermount -u "$HOME/mnt/$share"
@@ -734,8 +753,9 @@ unmount_server() {
 # Arguments: none
 ###############################################################################
 mount_nas() {
-  local server_ip="4"
-  local share="NASD97167"
+  local server_ip share mounted
+  server_ip="4"
+  share="NASD97167"
   ping -c3 "$localnet.$server_ip" > /dev/null 2>&1 || die "$share at $localnet.$server_ip is not online."
   if [[ -d "$HOME/mnt/$share/" ]]; then
     mounted=$(mount | grep "$share")
@@ -760,7 +780,8 @@ mount_nas() {
 # Arguments: none
 ###############################################################################
 unmount_nas() {
-  local share="NASD97167"
+  local mounted share
+  share="NASD97167"
   mounted=$(mount | grep "$share"); local mounted
   if [[ -n "$mounted" ]]; then
     fusermount -u "$HOME/mnt/$share"
@@ -793,8 +814,9 @@ clone_repo() {
 # Refer to ~/bin/functions/dots-spin.md for usage instructions.
 ###############################################################################
 dots() {
-  local char="${1:-.}"
-  local len="${#char}"
+  local char len len
+  char="${1:-.}"
+  len="${#char}"
   (( len > 1 )) && char=${char::1}
   tput civis
   while true; do echo -n "."; sleep 0.2; done &
@@ -807,7 +829,8 @@ dots() {
 # Refer to ~/bin/functions/dots-spin.md for ussage instructions.
 ###############################################################################
 spin() {
-  local spinner=( '|' '/' '-' '\' )
+  local i spinner
+  spinner=( '|' '/' '-' '\' )
   while true; do for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.2; done; done &
 }
 
@@ -820,6 +843,7 @@ spin() {
 # Example: y_or_n "Question" && do_something || do_something_else
 ###############################################################################
 y_or_n() {
+  local yn
   while true; do
     read -rp "$1 [y/n]: " yn
     case "$yn" in
@@ -847,6 +871,7 @@ y_or_n() {
 # Example: yes_or_no "Question" && do_something || do_something_else
 ###############################################################################
 yes_or_no() {
+  local yesno
   while true; do
     read -rp "$1 [yes/no]: " yesno
     case "${yesno,,}" in
@@ -874,6 +899,7 @@ yes_or_no() {
 # Example: default_yes "Question" && do_something || do_something_else
 ###############################################################################
 default_yes() {
+  local yn
   while true; do
     read -rp "$1 [Y/n]: " yn
     case "$yn" in
@@ -898,6 +924,7 @@ default_yes() {
 # Example: default_no "Question" && do_something || do_something_else
 ###############################################################################
 default_no() {
+  local yn
   while true; do
     read -rp "$1 [y/N]: " yn
     case "$yn" in
