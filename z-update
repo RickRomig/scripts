@@ -49,10 +49,9 @@ get_updates() {
   fi
 }
 
-purge_configs() {
-  local rcpkg rcn
-  rcn=$(dpkg -l | grep -c '^rc')
-  if [[ "$rcn" -gt 0 ]]; then
+purge_rc_packages() {
+  local rcpkg
+  if dpkg -l | grep -c '^rc'; then
     for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
       printf "Purging %s...\n" "$rcpkg"
       DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get remove --purge "$rcpkg" -yy
@@ -75,7 +74,7 @@ sed_file="/usr/share/misc/updatelog.sed"
   printf "\n*** Removing orphaned packages ***\n"
   DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove -yy
   printf "\n*** Purging obsolete configuration files ***\n"
-  purge_configs
+  purge_rc_packages
   exists flatpak && check_flatpak
   printf "\nCompleted: %s\n" "$(date '+%a %F %T')"
 } > "$log_dir/$log_file" 2>&1
