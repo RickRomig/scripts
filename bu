@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 14 Jun 2024
+# Last updated : 05 Jul 2024
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins. (https://www.ezeelinux.com)
 #              : Joe's code at: https://github.com/EzeeLinux/bu-usb_backup_tool
 # TODO (Rick)  :
@@ -34,8 +34,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.3.24166"
-readonly _updated="14 Jun 2024"
+readonly _version="4.3.24187"
+readonly _updated="05 Jul 2024"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -102,7 +102,7 @@ sync_drives() {
 }
 
 unmount_usb_drive() {
-	if y_or_n "Unmount BU_Drive?"; then
+	if default_yes "Unmount BU_Drive?"; then
 		sudo umount "$mount_point" && printf "BU_Drive unmounted.\n"
 		[[ -d "$mount_point" ]] && sudo rmdir "$mount_point"
 		printf "It is now safe to remove the USB drive.\n"
