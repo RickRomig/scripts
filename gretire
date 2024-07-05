@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : gretire
+# Description  : remove a file from a git repo and archive it.
+# Dependencies : git zip
+# Arguments    : file to be removed
+# Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 04 Jul 2024
+# Last updated : 04 Jul 2024
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+set -eu
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="1.0.24186"
+readonly archive="$HOME//Downloads/archives/retired-scripts.zip"
+readonly current_d="$PWD"
+
+## Functions ##
+
+check_dependencies() {
+  local packages=( git zip )
+  check_packages "${packages[@]}"
+}
+
+## Execution ##
+
+[[ -d "$current_d/.git" ]] || die "You are not in a git repositiory." 1
+check_dependencies
+
+filename="$1"
+retired="${filename}.$(date +'%y%j')"
+git mv "$filename" "$retired"
+git commit -m "$filename renamed to $retired to be retired and archived." --no-verify && git push
+zip -u "$archive" "$retired"
+git rm "$retired"
+git commit -m "$retired was retired and archived." --no-verify && git push
+
+leave "$_script $_version"
