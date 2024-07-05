@@ -7,13 +7,13 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 04 Jul 2024
+# Updated      : 05 Jul 2024
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
-set -euo pipefail
+set -eu
 
 check_flatpak() {
   local fp_count
@@ -51,10 +51,9 @@ get_updates() {
 
 purge_configs() {
   local rcpkg rcn
-  # if dpkg --list | grep -q '^rc'; then
   rcn=$(dpkg -l | grep -c '^rc')
-  if (( rcn > 0 )); then
-    for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
+  if [[ "$rcn" -gt 0 ]]; then
+    for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
       printf "Purging %s...\n" "$rcpkg"
       DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get remove --purge "$rcpkg" -yy
     done
