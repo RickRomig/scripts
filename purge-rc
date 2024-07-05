@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Updated      : 18 Jun 2024
+# Updated      : 05 Jul 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.5.24170"
+readonly _version="4.6.24187"
 
 ## Functions ##
 
@@ -41,14 +41,15 @@ list_rc_packages() {
 
 purge_rc_packages() {
   local rcpkg
-  printf "These packages are in the remove/deinstall state with only the config files.\n"
+  printf "\nThese packages are in the remove/deinstall state with only the config files.\n"
   if yes_or_no "Are you sure you want to purge the config files for these packages?"; then
-    printf "%sPurging obsolete configuration files...%s\n" "$green" "$normal"
+    sudo_login 2
+    printf "\n%sPurging obsolete configuration files...%s\n" "$green" "$normal"
     for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
       sudo apt remove --purge "$rcpkg" -yy
     done
   else
-    printf "No action taken. No packages were purged.\n"
+    printf "\nNo action taken. No packages were purged.\n"
   fi
 }
 
@@ -62,7 +63,6 @@ list_headers() {
 # clear
 box "$_script v$_version"
 if dpkg --list | grep -q '^rc'; then
-  sudo_login 2
   list_rc_packages
   purge_rc_packages
 else
