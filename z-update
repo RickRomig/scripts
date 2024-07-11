@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 05 Jul 2024
+# Updated      : 11 Jul 2024
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -51,7 +51,7 @@ get_updates() {
 
 purge_rc_packages() {
   local rcpkg
-  if dpkg -l | grep -c '^rc'; then
+  if dpkg -l | grep -c '^rc' > /dev/null; then
     for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
       printf "Purging %s...\n" "$rcpkg"
       DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get remove --purge "$rcpkg" -yy
