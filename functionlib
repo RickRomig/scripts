@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 06 Jul 2024
+# Last updated : 14 Jul 2024
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -259,7 +259,7 @@ support_ppa() {
   local codename
   codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
-    focal|jammy|uma|una|vanessa|vera|victoria )
+    focal|jammy|uma|una|vanessa|vera|victoria|virginia )
       return "$TRUE"
     ;;
     * )
@@ -383,7 +383,7 @@ leapyear() {
 local_ip() {
   local octet
   octet=$(ip route get 1.2.3.4 | awk '{print $7}' | cut -d'.' -f4)
-  [[ -z "$octet" ]] && die "No IP address found. Check network status." 1
+  [[ "$octet" ]] || die "No IP address found. Check network status." 1
   printf "%s" "$octet"
 }
 
@@ -618,7 +618,7 @@ leave() {
   local message msg_file
   message="$1"
   msg_file="$HOME/.local/share/doc/leave.txt"
-  [[ -z "$message" ]] && message=$(shuf -n 1 "$msg_file")
+  [[ "$message" ]] || message=$(shuf -n 1 "$msg_file")
   printf "%s\n" "$message"
   exit 0
 }
@@ -662,7 +662,7 @@ check_package() {
 
 ###############################################################################
 # check_packages
-# Purpose: Check if a group of packages are installed, and install if not.
+# Purpose: Check if several packages are installed, and install if not.
 # Argurment:
 #   $@ -> array of packages to check and install
 # Example: packages=( pkg1 pkg2 ... ); check_packages "${packages[@]}"
@@ -695,7 +695,7 @@ in_repos() {
   local in_repo package
   package="$1"
   in_repo=$(apt-cache show "$package" 2>/dev/null)
-  [[ -n "$in_repo" ]] && return "$TRUE" || return "$FALSE"
+  [[ "$in_repo" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
