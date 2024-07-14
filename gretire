@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 05 Jul 2024
+# Last updated : 14 Jul 2024
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
 # TODO (Rick)  :
@@ -31,9 +31,7 @@ set -eu
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.0.24187"
-readonly archive="retired-scripts.zip"
-readonly archive_d="$HOME//Downloads/archives"
+readonly _version="1.1.24196"
 readonly current_d="$PWD"
 
 ## Functions ##
@@ -43,22 +41,29 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
+retire_script() {
+  local filename retired archive archive_d
+  filename="$1"
+  retired="${filename}.$(date +'%y%j')"
+  archive="retired-scripts.zip"
+  archive_d="$HOME//Downloads/archives"
+  git mv "$filename" "$retired"
+  git commit -m "$filename renamed to $retired to be retired and archived." --no-verify && git push
+  zip -u "$archive_d/$archive" "$retired"
+  git rm "$retired"
+  git commit -m "$retired was retired and archived." --no-verify && git push
+}
+
 ## Execution ##
 
 if [[ ! -d "$current_d/.git" ]]; then
-  die "You are not in a git repositiory." 1
+  die "You are not in the main directory of a git repositiory." 1
 elif [[ "$#" -eq "0" ]]; then
   die "No argument passed." 1
 elif [[ ! -f "$1" ]]; then
   die "$1 not found." 1
 else
   check_dependencies
-  filename="$1"
-  retired="${filename}.$(date +'%y%j')"
-  git mv "$filename" "$retired"
-  git commit -m "$filename renamed to $retired to be retired and archived." --no-verify && git push
-  zip -u "$archive_d/$archive" "$retired"
-  git rm "$retired"
-  git commit -m "$retired was retired and archived." --no-verify && git push
+  retire_script "$1"
   leave "$_script $_version"
 fi
