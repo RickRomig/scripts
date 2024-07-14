@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : grevert
-# Description  : Revert commit to the previous version after it's been pushed to repo
+# Description  : Revert most recent commit to the previous version after it's been pushed to repo
 # Dependencies : git
 # Arguments    : none
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 May 2024
-# Last updated : 19 May 2024
+# Last updated : 14 Jul 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -16,8 +16,9 @@
 set -eu
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.0.24140"
+readonly _version="1.1.24196"
 
+printf "Reverting the most recent commit to the previous version.\n"
 head=$(git log --oneline | head -n 1 | cut -d' ' -f1)
 git revert "$head" --no-edit
 git log --oneline | head -n 2
