@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 02 Jul 2024
+# Updated:     : 18 Jul 2024
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Rewrite of version 2.5.0
 #              : Will not get desktop session info from an SSH connection. Run locally.
@@ -30,7 +30,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.6.24184"
+readonly _version="3.6.24200"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -135,9 +135,9 @@ mfg_info() {
   local dmi_dir mfg_version mfg_serial
 	dmi_dir="/sys/class/dmi/id"
 	mfg_version=$(cat $dmi_dir/product_version)
-	[[ -z "${mfg_version// }" ]] && mfg_version="Not specified"
+	[[ "${mfg_version// }" ]] || mfg_version="Not specified"
 	mfg_serial=$(sudo cat $dmi_dir/product_serial)
-	[[ -z "${mfg_serial// }" ]] && mfg_serial="Not specified"
+	[[ "${mfg_serial// }" ]] || mfg_serial="Not specified"
 	printf "%-14s %s\n" "Manufacturer:" "$(cat $dmi_dir/sys_vendor)"
 	printf "%-14s %s\n" "Product name:" "$(cat $dmi_dir/product_name)"
 	printf "%-14s %s\n" "Version:" "$mfg_version"
@@ -224,7 +224,7 @@ ssd_hd_info() {
     printf "   %-15s%s\n" "Serial Number:" "$(awk -F: '/Serial N/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
     printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | tr -d '()')" # sed 's/[)(]//g')"
     hd_ff=$(awk -F: '/Form Factor/ {print $NF}' "$hd_data" | sed 's/^ //')
-    [[ -z "$hd_ff" ]] && hd_ff=$(ff_fix)
+    [[ "$hd_ff" ]] || hd_ff=$(ff_fix)
     printf "   %-15s%s" "Form Factor:" "$hd_ff"
     hd_rpm=$(awk -F: '/Rotation/ {print $NF}' "$hd_data" | sed 's/^ //')
     case "$hd_rpm" in
