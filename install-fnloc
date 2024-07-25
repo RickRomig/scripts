@@ -6,6 +6,8 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 09 Feb 2021
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 09 Feb 2021
+# Updated      : 24 Jul 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
 
 ## Load function library ##
 
@@ -27,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.2"
-readonly _updated="18 Mar 2024"
+readonly _version="2.3.24206"
+readonly _updated="24 jul 2024"
 readonly package="fnloc_2.3.1_amd64.deb"
 readonly package_name="FnLoC"
 readonly package_version="2.3.1"
@@ -39,23 +40,26 @@ readonly package_dir="$HOME/Downloads/fnloc"
 about_fnloc() {
   cat << EOF
 FnLoC (Funtion Lines of Code) is a program that counts lines of code in C source
-code files, breaking out functions and the number of lines of code with them. The
-program will also count lines of code in associated header files. A wrapper script
-is included. View the README file for detailed information.
+code files, breaking out functions and the number of lines of code with them.
+The program will also count lines of code in associated header files. A wrapper
+script is included. View the README file for detailed information.
 EOF
 }
 
 help() {
   errcode="${1:-2}"
 	cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Installes the Function Lines of Code (FnLoC) package.
+
 ${green}Usage:${normal} $_script [OPTION]
+
 ${orange}OPTIONS:${normal}
 	-a  About FnLoC
   -d  Download & install FnLoC .deb package
   -h	Display help
 	-i	Clone FnLoC repo & install .deb package
 	-r	Remove FnLoC
-$_script $_version (Updated $_updated)
 END_HELP
   exit "$errcode"
 }
@@ -115,5 +119,5 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "\e[91mERROR:\e[0m No argument passed.\n" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "%s v%s\n" "$_script" "$_version"
 exit
