@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 29 Aug 2019
-# Updated      : 12 Jun 2024
+# Updated      : 26 Jul 2024
 # Comments     : sudo access required to view Timeshift snapshots
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,7 +29,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="9.3.24164"
+readonly _version="9.4.24208"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -45,8 +45,9 @@ sysinfo() {
 }
 
 updates() {
-  local log_dir="/var/log"
-  local log_file="update.log"
+  local log_dir log_file
+  log_dir="/var/log"
+  log_file="update.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
     printf "%s%s - Most recent unattended system update:%s\n\n" "$lightgreen" "$lhost" "$normal"
@@ -80,8 +81,9 @@ timeshift_snapshots() {
 }
 
 defrag_log() {
-  local log_dir="/var/log"
-  local log_file="defrag.log"
+  local log_dir log_file
+  log_dir="/var/log"
+  log_file="defrag.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
     printf "%s%s - Defragmentation report:%s\n\n" "$lightgreen" "$lhost" "$normal"
@@ -98,8 +100,9 @@ defrag_log() {
 }
 
 ytdlpupdate_log() {
-  local log_dir="/var/log"
-  local log_file="ytdlpup.log"
+  local log_dir log_file entries
+  log_dir="/var/log"
+  log_file="ytdlpup.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
     printf "%s%s - yt-dlp Update Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
@@ -119,8 +122,9 @@ ytdlpupdate_log() {
 }
 
 local_backup_log() {
-  local log_dir="/var/log"
-  local log_file="backup.log"
+  local log_dir log_file entries
+  log_dir="/var/log"
+  log_file="backup.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
     printf "%s%s - Local Backup Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
@@ -140,8 +144,9 @@ local_backup_log() {
 }
 
 script_archive_log() {
-  local log_dir="$HOME/.local/share/logs"
-	local log_file="script-archive.log"
+  local log_dir log_file entries
+  log_dir="$HOME/.local/share/logs"
+	log_file="script-archive.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
     printf "%s%s - Bash Script Archive Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
@@ -161,8 +166,9 @@ script_archive_log() {
 }
 
 password_log() {
-  local log_dir="$HOME/.local/share/logs"
-  local log_file="password-db.log"
+  local log_dir log_file entries
+  log_dir="$HOME/.local/share/logs"
+  log_file="password-db.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
     printf "%s%s - Password Database Change Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
@@ -182,8 +188,9 @@ password_log() {
 }
 
 homebank_log() {
-  local log_dir="$HOME/.local/share/logs"
-	local log_file="HomeBank-archive.log"
+  local log_dir log_file entries
+  log_dir="$HOME/.local/share/logs"
+	log_file="HomeBank-archive.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
     printf "%s%s- HomeBank Archive Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
@@ -203,6 +210,7 @@ homebank_log() {
 }
 
 trash_log() {
+  local log_dir log_file
   local log_dir="$HOME/.local/share/logs"
   local log_file="trash.log"
   if [[ -f "$log_dir/$log_file" ]]; then
@@ -240,9 +248,10 @@ gitea_snapshots() {
 }
 
 incremental_backups() {
-  local bu_name="$1"
-  local sub_dir="$2"
-  local arc_dir="$HOME/Downloads/archives"
+  local bu_name sub_dir arc_dir
+  bu_name="$1"
+  sub_dir="$2"
+  arc_dir="$HOME/Downloads/archives"
   if [[ -d "$arc_dir/$sub_dir" ]]; then
     clear
     printf "%s%s - %s Incremental Backup (last 7):%s\n\n" "$lightgreen" "$lhost" "$bu_name" "$normal"
