@@ -250,6 +250,16 @@ is_jammy() {
 }
 
 ###############################################################################
+# is_noble
+# Purpose: Returns true if distribution is based on Ubuntu 24.04 (i.e., Mint 22.x)
+# Arguments: none
+# Returns: True or False
+###############################################################################
+is_jammy() {
+  [[ $(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release) == "noble" ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
 # support_ppa
 # Purpose: Returns true if the distribution supports Ubuntu PPA.
 # Arguments: none
