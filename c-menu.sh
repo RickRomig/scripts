@@ -7,13 +7,15 @@
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Comment      : Run from current working directory
+# Created      :
+# Updated      : 04 Aug 2024
 # TODO (rick)  :
 # License      : GNU General Public License, version 2
 #####################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -27,8 +29,8 @@ fi
 # Variables
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.2"
-readonly _updated="12 Mar 2023"
+readonly _version=".2.3.24217"
+readonly _updated="04 Aug 2024"
 
 ## Functions ##
 
@@ -107,8 +109,8 @@ while true; do
       6 )
         read -rp "Enter source code file to view: " fname
         if [[ -f "$fname" ]]; then
-          if exists bat; then
-            /usr/bin/bat "$fname"
+          if exists batcat; then
+            /usr/bin/batcat "$fname"
           else
             viewtext "$fname"
           fi
