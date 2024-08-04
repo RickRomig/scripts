@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Last updated : 03 Aug 2024
+# Last updated : 04 Aug 2024
 # Comments     : the executable and its manpage will be renamed from ‘bat’ to  ‘batcat’
 #              : because of a file name clash with another Debian package.
 # TODO (Rick)  :
@@ -31,8 +31,8 @@ set -eu
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.0.24216"
-readonly _updated="03 Aug 2024"
+readonly _version="1.1.24217"
+readonly _updated="04 Aug 2024"
 readonly bat_cfg_d=$HOME"/.config/bat"
 
 ## Functions ##
@@ -67,7 +67,8 @@ END_HELP
 }
 
 bat_version() {
-	batcat --version | cut -d' ' -f2
+	# batcat --version | cut -d' ' -f2
+	dpkg -l bat 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//'
 }
 
 install_bat() {
@@ -92,7 +93,7 @@ dl_bat_config() {
   [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
   printf "Applying Bat configuration...\n"
 	if [[ "$localip" == "16" ]]; then
-    repository="HOME/gitea/configs/bat"
+    repository="$HOME/gitea/configs/bat"
     cp -v "$repository/$cfg_file" "$bat_cfg_d/"
   else
     repository="configs/raw/branch/main/bat"
