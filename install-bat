@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-bat
+# Description  : install/remove/configure bat/batcat
+# Dependencies : curl
+# Arguments    : see help()
+# Author       : Copyright © 2024 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 03 Aug 2024
+# Last updated : 03 Aug 2024
+# Comments     : the executable and its manpage will be renamed from ‘bat’ to  ‘batcat’
+#              : because of a file name clash with another Debian package.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+set -eu
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="1.0.24216"
+readonly _updated="03 Aug 2024"
+readonly bat_cfg_d=$HOME"/.config/bat"
+
+## Functions ##
+
+check_dependencies() {
+  local packages=( gdebi wget )
+  check_packages "${packages[@]}"
+}
+
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+cleanup() {
+	[[ -f "$tmp_file" ]] && rm "$tmp_file"
+	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+}
+
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+${orange}$_script${normal} $_version, Upated: $_updated
+Installs/removes/configures bat/batcat
+
+${green}Usage:${normal} $_script [OPTION]
+
+${orange}Available options:${normal}
+	-h	Show help
+	-i	Install bat from Debian/Ubuntu repositories
+	-r	Remove bat and configuration file
+	-s	Install bat configuration file
+END_HELP
+  exit "$errcode"
+}
+
+bat_version() {
+	batcat --version | cut -d' ' -f2
+}
+
+install_bat() {
+	sudo apt-get install -yy bat
+	dl_bat_config
+	printf "bat (batcat) version %s installed.\n" "$(bat_version)"
+}
+
+remove_bat() {
+  local bat_cfg_bu_d="$HOME/.config/backup/bat"
+  printf "Removing Bat %s...\n" "$(bat_ver)"
+	sudo apt-get remove --purge bat
+  [[ -d "$bat_cfg_d" ]] && rm -rf "$bat_cfg_d"
+  [[ -d "$bat_cfg_bu_d" ]] && rm -rf "$bat_cfg_bu_d"
+  printf "Bat and its configuration files have been removed.\n"
+}
+
+dl_bat_config() {
+  local cfg_file localip repository
+  localip=$(local_ip)
+  cfg_file="config"
+  [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
+  printf "Applying Bat configuration...\n"
+	if [[ "$localip" == "16" ]]; then
+    repository="HOME/gitea/configs/bat"
+    cp -v "$repository/$cfg_file" "$bat_cfg_d/"
+  else
+    repository="configs/raw/branch/main/bat"
+    curl -so "$bat_cfg_d/$cfg_file" "$Gitea_URL/$repository/$cfg_file"
+  fi
+  printf "Bat configuration applied.\n"
+}
+
+## Execution ##
+
+check_package curl
+noOpt=1
+optstr=":hirs"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		h )
+			help 0
+		;;
+		i )
+			exists bat && leave "Bat $(bat_version) is already installed."
+			sudo_login 2
+			install_bat
+		;;
+		r )
+			exists bat || leave "Bat is not installed."
+			sudo_login 2
+			remove_bat
+		;;
+		s )
+			exists bat || leave "Bat is not installed."
+			dl_bat_config
+		;;
+		? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			help 2
+	esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
+leave "$_script $_version"
