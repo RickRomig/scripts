@@ -99,12 +99,13 @@ github_versions() {
 
 apt_tools() {
 	local cur_ver packages package
-  packages=( bluefish featherpad geany gedit git glow nala nano shellcheck xed )
+  packages=( batcat bluefish featherpad geany gedit git glow nala nano shellcheck xed )
 
 	printf "%-15s%s\n" "Package" "Version"
 	for package in "${packages[@]}"; do
 		if exists "$package"; then
 		  printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
+      [[ "$package" == "batcat" ]] && package="bat"
       cur_ver=$(installed_version "$package")
       printf "%s\n" "$cur_ver"
 		fi
@@ -146,7 +147,7 @@ browsers() {
 main() {
   local _script _version
   _script=$(basename "$0")
-  _version="13.1.24216"
+  _version="13.2.24216"
   clear
   printf "%s v%s\n" "$_script" "$_version"
   printf "Newest & installed versions of select programs.\n\n"
