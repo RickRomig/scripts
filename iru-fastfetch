@@ -122,12 +122,11 @@ fastfetch_config() {
 		cp -v "$repository/$ff_logo" "$ff_logo_d/"
 	else
 		repository="configs/raw/branch/main/fastfetch"
-		# curl -so "$ff_cfg_d/$ff_conf" "$Gitea_URL/$repository/$ff_conf"
-		# curl -so "$ff_logo_d/$ff_logo" "$Gitea_URL/$repository/$ff_logo"
 		wget -q -P "$ff_cfg_d" "$Gitea_URL/$repository/$ff_conf"
 		wget -q -P  "$ff_logo_d" "$Gitea_URL/$repository/$ff_logo"
 	fi
 	# Comment out Neofetch & add Fastfetch to .bashrc
+	printf "Addng Festfetch to .bashrc...\n"
 	sed -i '/neofetch/s/^\[/# \[/' "$HOME/.bashrc"
 	grep -qw 'fastfetch' "$HOME/.bashrc" || echo '[[ -x /usr/bin/fastfetch ]] && /usr/bin/fastfetch' | tee -a "$HOME/.bashrc"
 	printf "Fastfetch configuration applied.\n"
