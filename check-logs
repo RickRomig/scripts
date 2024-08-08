@@ -29,10 +29,17 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="9.4.24221"
+readonly _version="10.0.24221"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
+
+show_header() {
+  clear
+  printf "%sI solemnly swear that I'm up to no good.%s\n" "$orange" "$normal"
+  printf "Displays the contents of selected log files.\n"
+  printf "Not all logs will be available on all systems.\n\n"
+}
 
 sysinfo() {
   if [[ -f "$HOME/$lhost.info" ]]; then
@@ -44,7 +51,7 @@ sysinfo() {
   fi
 }
 
-updates() {
+update_log() {
   local log_dir log_file
   log_dir="/var/log"
   log_file="update.log"
@@ -248,7 +255,7 @@ gitea_snapshots() {
 }
 
 incremental_backups() {
-  local bu_name sub_dir arc_dir
+  local arc_dir bu_name job_name sub_dir
   bu_name="$1"
   sub_dir="$2"
   arc_dir="$HOME/Downloads/archives"
@@ -261,11 +268,14 @@ incremental_backups() {
     printf "%s%s incremental backups do not exist on %s.%s\n" "$orange" "$bu_name" "$lhost" "$normal"
     case "$bu_name" in
       "Finance" )
-        job_name="fin-backup.sh" ;;
+        job_name="fin-backup.sh"
+      ;;
       "Gitea" )
-        job_name="gitea-bu.sh" ;;
+        job_name="gitea-bu.sh"
+      ;;
       "GitHub" )
-        job_name="github-bu.sh" ;;
+        job_name="github-bu.sh"
+      ;;
       "Journals" )
         job_name="journal-bu.sh"
     esac
@@ -278,72 +288,179 @@ incremental_backups() {
   fi
 }
 
+main_menu() {
+	local opt options
+	options=( "System logs" "Local logs" "Archive Logs" "Quit")
+	while true; do
+		show_header
+		COLUMNS=20
+		box "$lhost Main Menu" "*"
+		PS3="Select a category: "
+		select opt in "${options[@]}"; do
+			case "$REPLY" in
+				1 )
+					system_logs
+					break
+				;;
+				2 )
+					local_logs
+					break
+				;;
+				3 )
+					archive_logs
+					break
+				;;
+				4 )
+					printf "\n%sMischief managed!%s\n" "$orange" "${normal}"
+					box "$_script v$_version" "*"
+					exit
+				;;
+				* )
+					printf "%sInvalid choice.%s Choose 1-%d.\n" "$lightred" "$normal" "${#options[@]}" >&2
+			esac
+		done
+	done
+}
+
+system_logs() {
+	local opt options
+	options=( "System Information" "System Updates" "Timeshift Snapshots" "Defrag Report" "Yt-dlp Updates" "Main Menu" )
+	while true; do
+		show_header
+		COLUMNS=40
+		under_line "$lhost System Logs" "="
+		PS3="Select a log to view: "
+		select opt in "${options[@]}"; do
+			case "$REPLY" in
+				1 )
+					sysinfo
+					anykey
+					break
+				;;
+				2 )
+					update_log
+					anykey
+					break
+				;;
+				3 )
+					timeshift_snapshots
+					anykey
+					break
+				;;
+				4 )
+					defrag_log
+					anykey
+					break
+				;;
+				5 )
+					ytdlpupdate_log
+					anykey
+					break
+				;;
+				6 )
+					main_menu
+					break
+				;;
+				* )
+					printf "%sInvalid choice.%s Choose 1-%d.\n" "$lightred" "$normal" "${#options[@]}" >&2
+				;;
+			esac
+		done
+	done
+}
+
+local_logs() {
+	local opt options
+	options=( "Password Databases" "Local Trash" "Local Backup" "Main Menu" )
+	while true; do
+		show_header
+		COLUMNS=40
+		under_line "$lhost Local Logs" "="
+		PS3="Select a log to view: "
+		select opt in "${options[@]}"; do
+			case "$REPLY" in
+				1 )
+					password_log
+					anykey
+					break
+				;;
+				2 )
+					trash_log
+					anykey
+					break
+				;;
+				3 )
+					local_backup_log
+					anykey
+					break
+				;;
+				4 )
+					main_menu
+					break
+				;;
+				* )
+					printf "%sInvalid choice.%s Choose 1-%d.\n" "$lightred" "$normal" "${#options[@]}" >&2
+			esac
+		done
+	done
+}
+
+archive_logs() {
+	local opt options
+	options=( "Script archive" "Finance Incremental" "HomeBank Archive" "Gitea Snapshots" "Gitea Incremental" "GitHub Incremental" "Journal Incremental" "Main Menu" )
+	while true; do
+		show_header
+		COLUMNS=40
+		under_line "$lhost Archive Logs" "="
+		PS3="Select a log to view: "
+		select opt in "${options[@]}"; do
+			case "$REPLY" in
+				1 )
+					script_archive_log
+					anykey
+					break
+				;;
+				2 )
+					incremental_backups "Finance" "finance"
+					anykey
+					break
+				;;
+				3 )
+					homebank_log
+					anykey
+					break
+				;;
+				4 )
+					gitea_snapshots
+					anykey
+					break
+				;;
+				5 )
+					incremental_backups "Gitea" "gitea-repo"
+					anykey
+					break
+				;;
+				6 )
+					incremental_backups "GitHub" "projects-repo"
+					anykey
+					break
+				;;
+				7 )
+					incremental_backups "Journals" "journals"
+					anykey
+					break
+				;;
+				8 )
+					main_menu
+					break
+				;;
+				* )
+					printf "%sInvalid choice.%s Choose 1-%d.\n" "$lightred" "$normal" "${#options[@]}" >&2
+			esac
+		done
+	done
+}
+
 ## Execution ##
 
-while true; do
-  clear
-  printf "%sI solemnly swear that I'm up to no good.%s\n" "$orange" "$normal"
-  box "$_script v$_version" "*"
-  printf "Displays the contents of selected log files.\n"
-  printf "Not all logs will be available on all systems.\n"
-  printf "\n%s%s log files:%s\n" "$lightgreen" "$lhost" "$normal"
-
-  COLUMNS=40
-  options=(
-    "System Information"
-    "System Updates"
-    "Timeshift Snapshots"
-    "Defrag Report"
-    "Yt-dlp Updates"
-    "Script archive"
-    "Password Databases"
-    "Local Backup"
-    "Local Trash"
-    "Finance Incremental"
-    "HomeBank Archive"
-    "Git Snapshots"
-    "Gitea Incremental"
-    "GitHub Incremental"
-    "Journal Incremental"
-    "Exit the script"
-  )
-  PS3="Select a log to view: "
-  select opt in "${options[@]}"; do
-    case $REPLY in
-      1 )
-        sysinfo; anykey; break ;;
-      2 )
-        updates; anykey; break ;;
-      3 )
-        timeshift_snapshots; anykey; break ;;
-      4 )
-        defrag_log; anykey; break ;;
-      5 )
-        ytdlpupdate_log; anykey; break ;;
-      6 )
-        script_archive_log; anykey; break ;;
-      7 )
-        password_log; anykey; break ;;
-      8 )
-        local_backup_log; anykey; break ;;
-      9 )
-        trash_log; anykey; break ;;
-      10 )
-        incremental_backups "Finance" "finance"; anykey; break ;;
-      11 )
-        homebank_log; anykey; break ;;
-      12 )
-        gitea_snapshots; anykey; break ;;
-      13 )
-        incremental_backups "Gitea" "gitea-repo"; anykey; break ;;
-      14 )
-        incremental_backups "GitHub" "projects-repo"; anykey; break ;;
-      15 )
-        incremental_backups "Journals" "journals"; anykey; break ;;
-      16 )
-        leave "${orange}Mischief managed.${normal}" ;;
-      * )
-        printf "%sInvalid choice.%s Choose 1-%d.\n" "$lightred" "$normal" "${#options[@]}" >&2
-    esac
-  done
-done
+main_menu
