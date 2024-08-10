@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 April 2019
-# Updated      : 22 Jun 2024
+# Updated      : 10 Aug 2024
 # Comments     : Accepts either full URL or video id such as 5431551
 #              : Downloads to ~/Videos/Pornography/<category>
 # TODO (Rick)  :
@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.1.24174"
-readonly _updated="22 Jun 2024"
+readonly _version="3.2.24223"
+readonly _updated="10 Aug 2024"
 readonly porn_dir=$HOME"/Videos/Pornography"
 
 ## Functions ##
@@ -102,17 +102,17 @@ choose_destination() {
   PS3="Choose category: "
   select opt in "${options[@]}"; do
   case "$REPLY" in
-    1 ) subdir="Anal"; break ;;
-    2 ) subdir="Asian"; break ;;
-    3 ) subdir="Bi-gay-trans"; break ;;
-    4 ) subdir="Full-movies"; break ;;
-    5 ) subdir="Kink"; break ;;
-    6 ) subdir="Masturbation"; break ;;
-    7 ) subdir="Misc"; break ;;
-    8 ) subdir="Oral"; break ;;
-    9 ) subdir="Pinay"; break ;;
-    10 ) subdir="Straight"; break ;;
-    11 ) subdir="none"; break ;;
+    1 ) sub_dir="Anal"; break ;;
+    2 ) sub_dir="Asian"; break ;;
+    3 ) sub_dir="Bi-gay-trans"; break ;;
+    4 ) sub_dir="Full-movies"; break ;;
+    5 ) sub_dir="Kink"; break ;;
+    6 ) sub_dir="Masturbation"; break ;;
+    7 ) sub_dir="Misc"; break ;;
+    8 ) sub_dir="Oral"; break ;;
+    9 ) sub_dir="Pinay"; break ;;
+    10 ) sub_dir="Straight"; break ;;
+    11 ) sub_dir="none"; break ;;
   esac
 done
   echo "$sub_dir"
@@ -124,18 +124,19 @@ dl_2_video() {
     leave "Download successful."
   else
     ec="$?"
-    die "Download failed." "$ec"
+    die "Download failed. Error: $ec" "$ec"
   fi
 }
 
 dl_2_subdir() {
 	local dest_dir="$1"
+  [[ -d "$porn_dir/$dest_dir" ]] || mkdir -p "$porn_dir/$dest_dir"
 	printf "%s...%s\n"  "$porn_dir/$dest_dir" "$normal"
   if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/$dest_dir/%(title)s.%(ext)s" "$url"; then
     leave "Download successful."
   else
     ec="$?"
-    die "Download failed." "$ec"
+    die "Download failed. Error: $ec" "$ec"
   fi
 }
 
@@ -158,7 +159,6 @@ else
 fi
 
 check_dependencies
-mkdir -p Pornography/{Anal,Asian,Bi-gay-trans,Full-movies,Kink,Masturbation,Misc,Oral,Pinay,Straight}
 display_title
 
 # Choose the download folder
