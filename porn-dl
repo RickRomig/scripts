@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 April 2019
-# Updated      : 22 Jun 2024
+# Updated      : 10 Aug 2024
 # Comments     : match by regex, starts with http:// or https:// or by ID number
 #              : Downloads videos to ~/Videos/Pornography/<category>
 # TODO (Rick)  :
@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.1.241174"
-readonly _updated="22 Jun 2024"
+readonly _version="2.2.24223"
+readonly _updated="10 Aug 2024"
 readonly porn_dir=$HOME"/Videos/Pornography"
 
 ## Functions ##
@@ -98,12 +98,12 @@ check_dependencies() {
 }
 
 extract_domain() {
-  local domain fullurl sitename
+  local domain fullurl # sitename
   fullurl="$1"
-  domain=$(echo "$fullurl" | sed -e 's|^[^/]*//||' -e 's|^www\.||' -e 's|/.*$||')
-  domain=${domain%%.*}
-  sitename="${domain^}"
-  echo "$sitename"
+  domain=$(echo "$fullurl" | sed 's|^[^/]*//||;s|^www\.||;s|/.*$||;s|\..*$||')
+  # domain=${domain%%.*}
+  # sitename="${domain^}"
+  echo "$domain"
 }
 
 # shellcheck disable=SC2034
@@ -139,12 +139,13 @@ dl_2_video() {
     leave "Download successful."
   else
     ec="$?"
-    die "Download failed." "$ec"
+    die "Download failed. Error: $ec" "$ec"
   fi
 }
 
 dl_2_subdir() {
 	local dest_dir="$1"
+  [[ -d "$porn_dir/$dest_dir" ]] || mkdir -p "$porn_dir/$dest_dir"
 	printf "%s...%s\n"  "$porn_dir/$dest_dir" "$normal"
   # if /usr/local/bin/yt-dlp -f "bv*+ba/b" --add-metadata -ic --restrict-filename -o "$porn_dir/$subdir/%(title)s.%(ext)s" "$url"
   if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/$dest_dir/%(title)s.%(ext)s" "$url"
@@ -152,7 +153,7 @@ dl_2_subdir() {
     leave "Download successful."
   else
     ec="$?"
-    die "Download failed." "$ec"
+    die "Download failed. Error: $ec" "$ec"
   fi
 }
 
@@ -170,14 +171,13 @@ elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
 elif [[ "$1" =~ ^https?:\/\/.* ]]; then
   # match by regex, starts with http:// or https://
   url=$*
-  # Extract domain without www and .com. Capitalize site name
+  # Extract domain without www and .com
   site=$(extract_domain "$url")
 else
   die "Invalid argument. Enter full URL." 1 >&2
 fi
 
 check_dependencies
-mkdir -p Pornography/{Anal,Asian,Bi-gay-trans,Full-movies,Kink,Masturbation,Misc,Oral,Pinay,Straight}
 display_title
 
 # Choose the download folder
