@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 09 Aug 2024
+# Updated      : 10 Aug 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -28,12 +28,12 @@ else
   exit 1
 fi
 
-set -euo pipefail
+set -eu
 
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.9.24221"
+readonly _version="2.10.24223"
 readonly local_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -207,7 +207,9 @@ printf "Distro: %s\n" "$(get_distribution)"
 printf "Kernel: %s\n\n" "$(uname -sr)"
 printf "Checking for updates...%s\n\n" "$normal"
 
-if [[ "$1" == "apt" ]]; then
+# [[ "$#" -eq 0 ]] && arg="nala" || arg="$1"
+arg="${1:-nala}"
+if [[ "$arg" == "apt" ]]; then
   apt_update
 elif exists nala; then
   nala_update
