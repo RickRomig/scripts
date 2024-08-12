@@ -39,7 +39,7 @@ configure_timeshift() {
   sed_file="timeshift.sed"
   [[ -f "$ts_dir/$ts_json" ]] || sudo cp -v "$ts_dir/default.json" "$ts_dir/$ts_json"
   sudo sed -i -f "$sed_dir/$sed_file" "$ts_dir/$ts_json"
-  sudo sed -i 's/^"/    "/' "$ts_dir/$ts_json"
+  sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/$ts_json"
 }
 
 ## Execution ##
@@ -50,5 +50,5 @@ echo "Installing Timeshift..."
 sudo apt-get -y timeshift
 echo "Configuring Timeshift..."
 configure_timeshift
-echo "Timeshift $(timeshift --version | cut -d' ' -f2) installed and configured."
+echo "$(timeshift --version) installed and configured."
 exit
