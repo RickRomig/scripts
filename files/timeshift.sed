@@ -5,8 +5,7 @@
 /snapshot_count/ {
 a "date_format" : "%Y-%m-%d %H:%M:%S",
 }
-/date_format/s/^/  /
 /"exclude"/ {
-a "/home/rick/**"
+a "/home/rick/**",
 a "/root/**"
 }
