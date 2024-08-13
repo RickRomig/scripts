@@ -6,9 +6,9 @@
 # Arguments    : none
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
-# Comment      : Run from current working directory
 # Created      :
-# Updated      : 04 Aug 2024
+# Updated      : 13 Aug 2024
+# Comments     : Run from current working directory
 # TODO (rick)  :
 # License      : GNU General Public License, version 2
 #####################################################################
@@ -29,8 +29,8 @@ fi
 # Variables
 
 _script=$(basename "$0"); readonly _script
-readonly _version=".2.3.24217"
-readonly _updated="04 Aug 2024"
+readonly _version="2.4.24226"
+readonly _updated="13 Aug 2024"
 
 ## Functions ##
 
@@ -109,8 +109,8 @@ while true; do
       6 )
         read -rp "Enter source code file to view: " fname
         if [[ -f "$fname" ]]; then
-          if exists batcat; then
-            /usr/bin/batcat "$fname"
+          if exists bat; then
+            "$HOME"/.local/bin/bat "$fname"
           else
             viewtext "$fname"
           fi
