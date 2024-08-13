@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : install-bat
+# Script Name  : install-batcat
 # Description  : install/remove/configure bat/batcat
 # Dependencies : curl
 # Arguments    : see help()
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Last updated : 04 Aug 2024
+# Last updated : 13 Aug 2024
 # Comments     : the executable and its manpage will be renamed from ‘bat’ to  ‘batcat’
 #              : because of a file name clash with another Debian package.
 # TODO (Rick)  :
@@ -31,8 +31,8 @@ set -eu
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.1.24217"
-readonly _updated="04 Aug 2024"
+readonly _version="1.2.24226"
+readonly _updated="13 Aug 2024"
 readonly bat_cfg_d=$HOME"/.config/bat"
 
 ## Functions ##
@@ -67,22 +67,26 @@ END_HELP
 }
 
 bat_version() {
-	# batcat --version | cut -d' ' -f2
 	dpkg -l bat 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//'
 }
 
 install_bat() {
+	local local_bin="$HOME/.local/bin"
 	sudo apt-get install -yy bat
 	dl_bat_config
+	[[ -L "$local_bin/bat" ]] || ln -s /usr/bin/batcat "$local_bin/bat"
 	printf "bat (batcat) version %s installed.\n" "$(bat_version)"
 }
 
 remove_bat() {
-  local bat_cfg_bu_d="$HOME/.config/backup/bat"
+  local bat_cfg_bu_d local_bin
+	bat_cfg_bu_d="$HOME/.config/backup/bat"
+	local_bin="$HOME/.local/bin"
   printf "Removing Bat %s...\n" "$(bat_ver)"
 	sudo apt-get remove --purge bat
   [[ -d "$bat_cfg_d" ]] && rm -rf "$bat_cfg_d"
   [[ -d "$bat_cfg_bu_d" ]] && rm -rf "$bat_cfg_bu_d"
+	[[ -L "$local_bin.bat" ]] && unlink "$local_bin.bat"
   printf "Bat and its configuration files have been removed.\n"
 }
 
