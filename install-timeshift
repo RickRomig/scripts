@@ -34,18 +34,18 @@ readonly _version="2.1.24226"
 ## Functions ##
 
 configure_timeshift() {
-  local ts_dir ts_json sed_dir sed_file
+  local ts_dir ts_json sed_dir ts_sed
   ts_dir="/etc/timeshift"
   ts_json="timeshift.json"
   sed_dir="$HOME/bin/files"
-  sed_file="timeshift.sed"
-  if [[ ! -f "$sed_dir/$sed_file" ]]; then
+  ts_sed="timeshift.sed"
+  if [[ ! -f "$sed_dir/$ts_sed" ]]; then
     echo "Configuring Timeshift..."
     sudo cp -v "$ts_dir/default.json" "$ts_dir/$ts_json"
-    sudo sed -i -f "$sed_dir/$sed_file" "$ts_dir/$ts_json"
+    sudo sed -i -f "$sed_dir/$ts_sed" "$ts_dir/$ts_json"
     sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/$ts_json"
   else
-    echo "The $sed_file configuration script was not found. Configure using the GUI application."
+    echo "The $ts_sed configuration script was not found. Configure using the GUI application."
   fi
 }
 
