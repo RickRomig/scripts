@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 18 JUn 2024
+# Updated      : 13 Aug 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,10 +29,10 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.9.24170"
-readonly _updated="18 JUn 2024"
+readonly _version="5.10.24226"
+readonly _updated="13 Aug 2024"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
-readonly bat_cfg_d=$HOME"/.config/bat"
+readonly cfg_d=$HOME"/.config/bat"
 
 ## Functions ##
 
@@ -52,7 +52,7 @@ check_distro() {
   local codename
   codename=$(lsb_release -c -s)
   case "$codename" in
-    bookworm|bullseye|boron|elsie|faye|jammy|noble|vanessa|vera|victoria|virginia|wilma ) return "$TRUE" ;;
+    bookworm|bullseye|boron|faye|jammy|noble|virginia|wilma ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
 }
@@ -93,11 +93,11 @@ install_bat() {
 }
 
 remove_bat() {
-  local bat_cfg_bu_d="$HOME/.config/backup/bat"
+  local cfg_bu_d="$HOME/.config/backup/bat"
   printf "Removing Bat %s...\n" "$(bat_ver)"
   sudo dpkg --remove bat
-  [[ -d "$bat_cfg_d" ]] && rm -rf "$bat_cfg_d"
-  [[ -d "$bat_cfg_bu_d" ]] && rm -rf "$bat_cfg_bu_d"
+  [[ -d "$cfg_d" ]] && rm -rf "$cfg_d"
+  [[ -d "$cfg_bu_d" ]] && rm -rf "$cfg_bu_d"
   printf "Bat and its configuration files have been removed.\n"
 }
 
@@ -105,21 +105,21 @@ dl_bat_config() {
   local cfg_file localip repository
   localip=$(local_ip)
   cfg_file="config"
-  [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
+  [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
   printf "Applying Bat configuration...\n"
 	if [[ "$localip" == "16" ]]; then
     repository="HOME/gitea/configs/bat"
-    cp -v "$repository/$cfg_file" "$bat_cfg_d/"
+    cp -v "$repository/$cfg_file" "$cfg_d/"
   else
     repository="configs/raw/branch/main/bat"
-    curl -so "$bat_cfg_d/$cfg_file" "$Gitea_URL/$repository/$cfg_file"
+    curl -so "$cfg_d/$cfg_file" "$Gitea_URL/$repository/$cfg_file"
   fi
   printf "Bat configuration applied.\n"
 }
 
 help() {
   local errcode="${1:-2}"
-  cat << EOF
+  cat << END_HELP
 ${orange}$_script${normal} $_version ($_updated)
 Installs, updates, or removes the Bat utililty.
 
@@ -130,7 +130,7 @@ ${orange}Available options:${normal}
   -i  Installs the Bat utility.
   -r  Removes the Bat utility from the system.
   -u  Updates the Bat utility to the latest version.
-EOF
+END_HELP
   exit "$errcode"
 }
 
