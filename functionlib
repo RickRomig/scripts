@@ -482,7 +482,9 @@ edit_view_quit() {
         break
       ;;
       2 )
-        if exists batcat; then
+        if [[ -L "$HOME/.local/bin/bat" ]]; then
+          "$HOME"/.local/bin/bat "$filename"
+        elif exists bat; then
           /usr/bin/batcat "$filename"
         else
           viewtext "$filename"
