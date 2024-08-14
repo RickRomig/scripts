@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard Romig, 29 Sep 2020
 # Email        : rick.romig@gmail.com
 # Created      : 29 Sep 2020
-# Last updated : 12 Jun 2024
+# Last updated : 14 Aug 2024
 # Comments     : Can sync to one or all machines on the network.
 #              : LOCALNET is declared in functionlib
 # TODO (rick)  :
@@ -30,14 +30,14 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.15.24164"
-readonly _updated="07 Jun 2024"
+readonly _version="3.16.24227"
+readonly _updated="14 Aug 2024"
 
 ## Functions ##
 
 usage() {
   local errcode="${1:-2}"
-	cat << EOF
+	cat << END_HELP
   $_script help
   ${orange}Usage:${normal} $_script [OPTION]
   OPTION   ACTION
@@ -57,7 +57,7 @@ usage() {
       - Multiple IP addresses can be entered.
       - This script is limited to the range of static IP addresses (1 - 25).
       - Certain addresses within that range have been marked as restricted and are not accessible.
-EOF
+END_HELP
   exit "$errcode"
 }
 
@@ -170,7 +170,7 @@ sync_one() {
   if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
     # Restricted IP addresses on local network
     case $hostip in
-      1|2|3|4|5|6|7|8|9|21|22|24|25|153|227 )
+      1|2|3|4|5|6|7|8|9|21|22|24|25|153 )
         echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted address."
         echo -e " Access denied.\n"; exit ;;
       * )
@@ -192,7 +192,7 @@ sync_some() {
     if [[ "$hostip" -eq "$hostip" ]] 2>/dev/null; then
       if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
         case "$hostip" in
-          1|2|3|4|5|6|7|8|9|21|22|24|25|153|227 )
+          1|2|3|4|5|6|7|8|9|21|22|24|25|153 )
             echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted"
             echo -e " address. Access denied.\n"
           ;;
