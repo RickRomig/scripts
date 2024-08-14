@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Last updated : 24 Jun 2024
+# Last updated : 14 Aug 2024
 # Comments     : Can sync to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -32,8 +32,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="6.0.24176"
-readonly _updated="24 Jun 2024"
+readonly _version="6.0.24227"
+readonly _updated="14 Aug 2024"
 
 ## Functions ##
 
@@ -52,12 +52,12 @@ ${orange}Available options${normal}
   1-255       Last octet of the IP address(es) of the machine(s) to synchronize.
 
 ${orange}Examples:${normal}
-      $_script -h       # Displays help instructions.
-      $_script --help   # Displays help instructions.
-      $_script -a       # Synchronizes with all designated systems.
-      $_script --all    # Synchronizes with all designated systems.
-      $_script 13       # Synchronizes with the system with a last octet of 13.
-      $_script 12 13 14 # Synchronizes with systems whose last octets are 12, 13, 14.
+  $_script -h       # Displays help instructions.
+  $_script --help   # Displays help instructions.
+  $_script -a       # Synchronizes with all designated systems.
+  $_script --all    # Synchronizes with all designated systems.
+  $_script 13       # Synchronizes with the system with a last octet of 13.
+  $_script 12 13 14 # Synchronizes with systems whose last octets are 12, 13, 14.
 ${orange}Notes:${normal}
   1. Multiple IP addresses can be entered.
   2. This script is limited to the range of static IP addresses (1 - 25).
@@ -179,7 +179,7 @@ sync_one() {
         transfer "$hostip"
         all_done
     esac
-  elif [[ "$hostip" -eq 153 || "$hostip" -eq 227 ]]; then
+  elif [[ "$hostip" -eq 153 ]]; then
     echo -e "Synchronizing bin and template directories with $localnet.$hostip:"
     transfer "$hostip"
     all_done
@@ -205,7 +205,7 @@ sync_some() {
             transfer "$hostip"
             (( xfr_flag++ ))
         esac
-      elif [[ "$hostip" -eq 153 || "$hostip" -eq 227 ]]; then
+      elif [[ "$hostip" -eq 153 ]]; then
         echo -e "Synchronizing bin and template directories with $localnet.$hostip:"
         transfer "$hostip"
         (( xfr_flag++ ))
@@ -224,7 +224,7 @@ sync_some() {
 sync_all() {
   local octets hostip
   echo -e "Synchronizing bin and template directories with all systems on the local network.\n"
-  octets=(10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 227)
+  octets=(10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)
   for hostip in "${octets[@]}"; do
     transfer "$hostip"
   done
