@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 04 Aug 2024
+# Last updated : 15 Aug 2024
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -482,10 +482,10 @@ edit_view_quit() {
         break
       ;;
       2 )
-        if [[ -L "$HOME/.local/bin/bat" ]]; then
+        if exists batcat; then
           "$HOME"/.local/bin/bat "$filename"
         elif exists bat; then
-          /usr/bin/batcat "$filename"
+          /usr/bin/bat "$filename"
         else
           viewtext "$filename"
         fi
@@ -719,7 +719,7 @@ in_repos() {
 mount_server() {
   local server_ip share mounted
   server_ip="11"
-  local share="HP-6005"
+  share="HP-6005"
   ping -c3 "$localnet.$server_ip" > /dev/null 2>&1 || die "$share at $localnet.$server_ip is not online."
   if [[ -d "$HOME/mnt/$share/" ]]; then
     mounted=$(mount | grep "$share")
@@ -855,7 +855,8 @@ spin() {
 # Example: y_or_n "Question" && do_something || do_something_else
 ###############################################################################
 y_or_n() {
-  local yn
+  local yn yn_prompt
+  yn_prompt="$1"
   while true; do
     read -rp "$1 [y/n] " yn
     case "$yn" in
@@ -883,7 +884,8 @@ y_or_n() {
 # Example: yes_or_no "Question" && do_something || do_something_else
 ###############################################################################
 yes_or_no() {
-  local yesno
+  local yesno yn_prompt
+  yn_prompt="$1"
   while true; do
     read -rp "$1 [yes/no] " yesno
     case "${yesno,,}" in
@@ -911,7 +913,8 @@ yes_or_no() {
 # Example: default_yes "Question" && do_something || do_something_else
 ###############################################################################
 default_yes() {
-  local yn
+  local yn yn_prompt
+  yn_prompt="$1"
   while true; do
     read -rp "$1 [Y/n] " yn
     case "$yn" in
@@ -936,7 +939,8 @@ default_yes() {
 # Example: default_no "Question" && do_something || do_something_else
 ###############################################################################
 default_no() {
-  local yn
+  local yn yn_prompt
+  yn_prompt="$1"
   while true; do
     read -rp "$1 [y/N] " yn
     case "$yn" in
