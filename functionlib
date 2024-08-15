@@ -99,6 +99,7 @@ die() {
 # Example: diehard "File not found." "Check directory."
 ###############################################################################
 diehard() {
+  local line
 	printf "\e[91mERROR:\e[0m "
 	exec 2>&1; for line; do printf "%s\n" "$line"; done; exit 1
 }
@@ -113,8 +114,11 @@ diehard() {
 # Do not use in scripts with functions that return non-error integers.
 ###############################################################################
 error_handler() {
-  printf "\e[91mERROR:\e[0m (%s) occurred on line %s\n" "$1" "$2" >&2
-  exit "$1"
+  local err_code line_nr
+  err_code="$1"
+  line_nr="$2"
+  printf "\e[91mERROR:\e[0m (%s) occurred on line %s\n" "$err_code" "$line_nr" >&2
+  exit "$err_code"
 }
 
 ###############################################################################
@@ -179,7 +183,8 @@ bin_in_path() {
 # Returns: True or False
 ###############################################################################
 exists() {
-  command -v "$1" > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
+  local cmd
+  command -v "$cmd" > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -826,7 +831,7 @@ clone_repo() {
 # Refer to ~/bin/functions/dots-spin.md for usage instructions.
 ###############################################################################
 dots() {
-  local char len len
+  local char len
   char="${1:-.}"
   len="${#char}"
   (( len > 1 )) && char=${char::1}
@@ -884,10 +889,10 @@ y_or_n() {
 # Example: yes_or_no "Question" && do_something || do_something_else
 ###############################################################################
 yes_or_no() {
-  local yesno yn_prompt
+  local yn yn_prompt
   yn_prompt="$1"
   while true; do
-    read -rp "$1 [yes/no] " yesno
+    read -rp "$1 [yes/no] " yn
     case "${yesno,,}" in
       yes )
         return "$TRUE"
