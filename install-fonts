@@ -4,8 +4,10 @@
 # Description  : Installs various Microsoft fonts
 # Dependencies : cabextract, curl, wget
 # Arguments    : None
-# Author       : Richard B. Romig, 13 August 2019
+# Author       : Richard B. Romig,
 # Email        : rick.romig@gmail.com
+# Created      : 13 Aug 2019
+# Updated      : 18 Aug2024
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,19 +29,17 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.9"
-readonly _updated="20 Dec 2023"
-
+readonly _version="4.0.24231"
 font_flag=0  # 0 = no fonts installed. 1 = at least one font installed.
 
 ## Functions ##
 
 cascadia_code() {
-  local font_url="https://github.com/microsoft/cascadia-code/releases/download/v2111.01"
-  local font_zip="CascadiaCode-2111.01.zip"
-  local ccf_dir="/usr/share/fonts/truetype/cascadia-code" 
-  local user_ccf="$HOME/.local/share/fonts"
-  check_package wget
+  local font_url font_zip ccf_dir user_ccf
+  font_url="https://github.com/microsoft/cascadia-code/releases/download/v2111.01"
+  font_zip="CascadiaCode-2111.01.zip"
+  ccf_dir="/usr/share/fonts/truetype/cascadia-code"
+  user_ccf="$HOME/.local/share/fonts"
   # Remove older versions of Caascadia Code fonts.
   if dpkg -l | grep -qw fonts-cascadia-code; then
     sudo apt-get remove fonts-cascadia-code -yy   # if installed from distro repo
@@ -54,6 +54,7 @@ cascadia_code() {
     [[ -d "$ccf_dir" ]] || sudo mkdir -p "$ccf_dir"
   fi
   echo "Installing Cascadia Code fonts..."
+  check_package wget
   wget -q -P "$tmp_dir/" "$font_url/$font_zip"
   [[ -d "$ccf_dir" ]] || sudo mkdir -p "$ccf_dir"
   sudo unzip "$tmp_dir/$font_zip" -d "$ccf_dir"
@@ -62,10 +63,12 @@ cascadia_code() {
 }
 
 nerd_fonts() {
-  local font_dir="/usr/share/fonts"
-  local font_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2"
+  local font fonts font_dir font_dir
+  font_dir="/usr/share/fonts"
+  font_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2"
   [[ -d "$font_dir" ]] || sudo mkdir -p "$font_dir"
-  local fonts=( "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
+  fonts=( "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
+  check_package wget
   printf "Installing Nerd fonts...\n"
   for font in "${fonts[@]}"; do
 	  wget -P "$nerd_dir" "$font_url/$font.zip"
@@ -107,12 +110,13 @@ ms_core_fonts() {
 
 vista_fonts() {
   # Windows vista fonts: Calibri, Cambria, Candara, Consolas, Constantia, Corbel
-  local dl_host="sourceforge.net"
-  local dl_path="projects/mscorefonts2/files/cabs"
-  local archive="PowerPointViewer.exe"
-  local url="https://$dl_host/$dl_path/$archive"
-  local fonts_dir="/usr/share/fonts/truetype/vista"
-  local start_dir="$PWD"
+  local archive dl_host dl_path fonts_dir start_dir url
+  dl_host="sourceforge.net"
+  dl_path="projects/mscorefonts2/files/cabs"
+  archive="PowerPointViewer.exe"
+  url="https://$dl_host/$dl_path/$archive"
+  fonts_dir="/usr/share/fonts/truetype/vista"
+  start_dir="$PWD"
 
   if [[ -d /usr/share/fonts/truetype/vista ]]; then
     printf "Vista fonts are already installed.\n"
@@ -169,12 +173,12 @@ cleanup() {
 trap cleanup EXIT INT QUIT TERM
 
 while true; do
-  echo "$_script v$_version ($_updated)"
+  echo "$_script v$_version"
   echo "Install extra fonts"
   COLUMNS=40
   options=("Cascadia Code" "Nerd Fonts" "MS TTF Core Fonts" "Carlito and Caladea Fonts" "Vista Fonts" "Quit and Exit")
   PS3="Choose a font to install: "
-  select opt in "${options[@]}"
+  select _opt in "${options[@]}"
   do
     case $REPLY in
       1 )
