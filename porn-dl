@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 April 2019
-# Updated      : 10 Aug 2024
+# Updated      : 18 Aug 2024
 # Comments     : match by regex, starts with http:// or https:// or by ID number
 #              : Downloads videos to ~/Videos/Pornography/<category>
 # TODO (Rick)  :
@@ -29,8 +29,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.2.24223"
-readonly _updated="10 Aug 2024"
+readonly _version="2.2.24231"
+readonly _updated="18 Aug 2024"
 readonly porn_dir=$HOME"/Videos/Pornography"
 
 ## Functions ##
@@ -106,14 +106,13 @@ extract_domain() {
   echo "$domain"
 }
 
-# shellcheck disable=SC2034
 choose_destination() {
-	local sub_dir opt options
+	local sub_dir _opt options
 	COLUMNS=40
   options=("Anal" "Asian" "Bi Gay Trans" "Full movies" "Kink" \
   "Masturbation" "Miscellaneous" "Oral" "Pinay" "Straight" "No category")
   PS3="Choose category: "
-  select opt in "${options[@]}"; do
+  select _opt in "${options[@]}"; do
     case "$REPLY" in
       1 ) sub_dir="Anal"; break ;;
       2 ) sub_dir="Asian"; break ;;
