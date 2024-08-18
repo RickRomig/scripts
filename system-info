@@ -17,7 +17,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034 # for select loops, opt is not referenced, but using $REPLY instead.
 
 ## Source function library ##
 if [[ -x "$HOME/bin/functionlib" ]]; then
@@ -70,8 +69,7 @@ send_to_main() {
 }
 
 rename_mnt_pt() {
-  local ts_path ts_drv _opt
-  ts_path="/run/timeshift/backup"
+  local ts_drv _opt
   ts_drv=$(mount | awk '/timeshift/ {print $3}' | cut -d' ' -f1)
   printf "\nRename the mountpoint for %s to:\n" "$ts_drv"
   PS3="Select the appropriate mountpoint: "
