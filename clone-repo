@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 90 Ju1 2024
+# Updated      : 18 Aug 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -16,7 +16,7 @@
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.2.24191"
+readonly _version="3.2.24231"
 
 ## Functions ##
 
@@ -38,14 +38,13 @@ clone_repo() {
   git clone "$gitea_svr/$git_repo.git" "$dl_dir/$git_repo"
 }
 
-# shellcheck disable=SC2034
 main() {
-  local index repo
+  local index _repo
   printf "Available repositories:\n"
   COLUMNS=40
   PS3="Choose a repository to clone: "
   declare -a -r repos=( scripts configs i3debian deb12wm-scripts deb12wm-dotfiles gitea-server openboxdebian fnloc fnloc-win homepage )
-  select repo in "${repos[@]}" "Exit"; do
+  select _repo in "${repos[@]}" "Exit"; do
 	  if (( REPLY == 1 + ${#repos[@]} )); then
 		  printf "Exiting. No repository selected or cloned.\n"
 		  break
