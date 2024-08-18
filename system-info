@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 18 Jul 2024
+# Updated:     : 18 Aug 2024
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Rewrite of version 2.5.0
 #              : Will not get desktop session info from an SSH connection. Run locally.
@@ -30,7 +30,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.6.24200"
+readonly _version="3.7.24231"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -70,12 +70,12 @@ send_to_main() {
 }
 
 rename_mnt_pt() {
-  local ts_path ts_drv opt
+  local ts_path ts_drv _opt
   ts_path="/run/timeshift/backup"
   ts_drv=$(mount | awk '/timeshift/ {print $3}' | cut -d' ' -f1)
   printf "\nRename the mountpoint for %s to:\n" "$ts_drv"
   PS3="Select the appropriate mountpoint: "
-  select opt in "/home" "/data" "/ (root)" "/run/timeshift/backup"; do
+  select _opt in "/home" "/data" "/ (root)" "/run/timeshift/backup"; do
     case $REPLY in
       1 )
         sed -i '/timeshift/s/run\/timeshift\/backup/home/' "$tmp_file"
@@ -103,11 +103,11 @@ rename_mnt_pt() {
 }
 
 ff_fix() {
-  local opt options hd_ff
+  local _opt options hd_ff
   printf "Form factor not displayed in Hard Disk Information.\n" >&2
   PS3="Select form factor: " >&2
   options=( "2.5 inch" "3.5 inch" "less than 1.8 inch" "ignore")
-  select opt in "${options[@]}"; do
+  select _opt in "${options[@]}"; do
     case "$REPLY" in
       1 )
         hd_ff="2.5 inch"
