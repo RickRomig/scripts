@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 14 Aug 2024
+# Updated      : 18 Aug 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -34,7 +34,7 @@ set -eu
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.12.24227"
+readonly _version="2.13.24231"
 readonly local_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -130,9 +130,8 @@ nala_update() {
   printf "\n"
 }
 
-# shellcheck disable=SC2034
 apt_update() {
-  local nupd options opt
+  local nupd options _opt
   grep -qw debian /etc/os-release && update_apt_cache
   # Get number of packages that can be upgraded
   nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
@@ -154,7 +153,7 @@ apt_update() {
       "Install updates, clean cache, & remove orphaned packages."
       "Defer updates until later."
     )
-    select opt in "${options[@]}"; do
+    select _opt in "${options[@]}"; do
       case $REPLY in
         1 )
           install_updates
@@ -208,7 +207,6 @@ printf "Distro: %s\n" "$(get_distribution)"
 printf "Kernel: %s\n\n" "$(uname -sr)"
 printf "Checking for updates...%s\n\n" "$normal"
 
-# [[ "$#" -eq 0 ]] && arg="nala" || arg="$1"
 action="${1:-nala}"
 if [[ "$action" == "apt" ]]; then
   apt_update
