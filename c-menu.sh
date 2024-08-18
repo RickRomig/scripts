@@ -15,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -52,7 +51,7 @@ while true; do
   options=("Open a file with nano" "Compile code to a.out" "Compile code with -o option" "Display Lines of Code" \
     "Print LOC to a file" "View code" "Clean up extraneous files" "Quit")
   PS3="Choose an option: "
-  select opt in "${options[@]}"; do
+  select _opt in "${options[@]}"; do
 	  case $REPLY in
 	    1 )
 	      read -rp "Enter filename to edit: " fname
