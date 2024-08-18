@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 June 2019
-# Updated      : 05 May 2024
+# Updated      : 18 Aug 2024
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -15,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034,SC2119
 
 ## Load function library ##
 
@@ -29,7 +28,7 @@ fi
 ##  Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.5.24126"
+readonly _version="3.6.24231"
 readonly tmp_pics=$HOME"/tmp/journal"
 
 ## Functions ##
@@ -94,7 +93,7 @@ while true; do
     "Reject the selected image and exit." \
     "Delete the selected image and select another image." )
   PS3="Chose an option: "
-  select opt in "${options[@]}"; do
+  select _opt in "${options[@]}"; do
     case $REPLY in
       1 )
         echo $'\n'$"${blue}Accepted image:${normal} $sel_dir/$pic_file"
@@ -106,7 +105,7 @@ while true; do
       2 )
         echo -e "\n${blue}Accepted image:${normal} $sel_dir/$pic_file\n"
         kill $pic_pid
-        leave
+        leave ""
       ;;
       3 )
         echo $'\n'$"${blue}Rejected image:${normal} $sel_dir/$pic_file"
@@ -120,7 +119,7 @@ while true; do
         echo -e "\n${blue}Rejected image:${normal} $sel_dir/$pic_file\n"
         kill $pic_pid
         rm "$tmp_pics/$pic_file"
-        leave
+        leave ""
       ;;
       5 )
         echo -e $'\n'$"${blue}Image deleted:${normal} $sel_dir/$pic_file"
