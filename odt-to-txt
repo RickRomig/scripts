@@ -13,7 +13,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
 
 ## Load function library ##
 
@@ -27,23 +26,24 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.1.3"
-readonly _updated="07 Sep 2023"
+readonly _version="1.4.24231"
 
 ## Functions ##
 
 convert2txt() {
-  local odt_file=$1
-  local txt_file="${odt_file%%.*}.txt"
+  local odt_file txt_file
+  odt_file=$1
+  txt_file="${odt_file%%.*}.txt"
   /usr/bin/odt2txt "$odt_file" > "$txt_file"
   echo "$odt_file -> $txt_file"
 }
 
 convert2md() {
-  local odt_file=$1
-  local txt_file="${odt_file%%.*}.md"
-  /usr/bin/odt2txt "$odt_file" > "$txt_file"
-  echo "$odt_file -> $txt_file"
+  local odt_file md_file
+  odt_file=$1
+  md_file="${odt_file%%.*}.md"
+  /usr/bin/odt2txt "$odt_file" > "$md_file"
+  echo "$odt_file -> $md_file"
 }
 
 ls_odt_files() {
@@ -61,7 +61,7 @@ trap '' 2
 
 while true; do
   clear
-  echo "$_script v$_version ($_updated)"
+  echo "$_script v$_version"
   under_line "Converts *.odt files to *.txt or *.md" "*"
   ls_odt_files
   echo
@@ -71,7 +71,7 @@ while true; do
   options=("Convert a single .odt file to .txt" "Convert a single .odt file to .md" \
     "Convert all .odt files to .txt" "Convert all .odt files to .md" "Quit and exit")
   PS3="Choose an option: "
-  select opt in "${options[@]}"; do
+  select _opt in "${options[@]}"; do
     case $REPLY in
       1 )
         read -rp "File to convert: " ofile
