@@ -3,11 +3,11 @@
 # Script Name  : syncmosfa
 # Description  : Syncs directories with machines on the network via SSH
 # Dependencies : rsync
-# Arguments    : Last octet of target IP address, see usage()
+# Arguments    : Last octet of target IP address, see help()
 # Author       : Copyright (C) 2020 Richard Romig, 29 Sep 2020
 # Email        : rick.romig@gmail.com
 # Created      : 29 Sep 2020
-# Last updated : 14 Aug 2024
+# Last updated : 18 Aug 2024
 # Comments     : Can sync to one or all machines on the network.
 #              : LOCALNET is declared in functionlib
 # TODO (rick)  :
@@ -16,7 +16,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -30,29 +29,27 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.16.24227"
-readonly _updated="14 Aug 2024"
+readonly _version="3.17.24231"
+readonly _updated="18 Aug 2024"
 
 ## Functions ##
 
-usage() {
+help() {
   local errcode="${1:-2}"
 	cat << END_HELP
   $_script help
   ${orange}Usage:${normal} $_script [OPTION]
   OPTION   ACTION
-  -h       Displays usage instructions.
-  --help   Displays usage instructions.
-  -a       Synchronizes all designated machines on the network.
-  --all    Synchronizes all designated machines on the network.
-  1-255    Last octet of the IP address(es) of the machine(s) to synchronize.
+  -h | --help  Displays usage instructions.
+  -a | --all   Synchronizes all designated machines on the network.
+  1-255        Last octet of the IP address(es) of the machine(s) to synchronize.
   ${orange}Examples:${normal}
-      $_script -h         # Displays usage instructions.
-      $_script --help     # Displays usage instructions.
-      $_script -a         # Synchronizes with all designated systems.
-      $_script --all      # Synchronizes with all designated systems.
-      $_script 13         # Synchronizes with the system with a last octet of 13.
-      $_script 12 13 14   # Synchronizes with systems whose last octets are 12, 13, 14.
+      $_script -h        # Displays usage instructions.
+      $_script --help    # Displays usage instructions.
+      $_script -a        # Synchronizes with all designated systems.
+      $_script --all     # Synchronizes with all designated systems.
+      $_script 13        # Synchronizes with the system with a last octet of 13.
+      $_script 12 13 14  # Synchronizes with systems whose last octets are 12, 13, 14.
   ${orange}Notes:${normal}
       - Multiple IP addresses can be entered.
       - This script is limited to the range of static IP addresses (1 - 25).
@@ -170,7 +167,7 @@ sync_one() {
   if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
     # Restricted IP addresses on local network
     case $hostip in
-      1|2|3|4|5|6|7|8|9|21|22|24|25|153 )
+      1|2|3|4|5|6|7|8|9|21|22|24|153 )
         echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted address."
         echo -e " Access denied.\n"; exit ;;
       * )
@@ -254,9 +251,9 @@ check_host
 SECONDS=0
 
 if [[ "$#" -eq 0 ]]; then
-  usage 2
+  help 2
 elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-  usage 0
+  help 0
 elif [[ "$1" = "-a" || "$1" = "--all" ]]; then
   sync_all
 elif [[ "$#" -gt 1 ]]; then
