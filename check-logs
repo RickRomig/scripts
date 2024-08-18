@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 29 Aug 2019
-# Updated      : 08 Aug 2024
+# Updated      : 18 Aug 2024
 # Comments     : sudo access required to view Timeshift snapshots
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -15,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -29,7 +28,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="10.0.24221"
+readonly _version="10.1.24231"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -289,14 +288,14 @@ incremental_backups() {
 }
 
 main_menu() {
-	local opt options
+	local _opt options
 	options=( "System logs" "Local logs" "Archive Logs" "Quit")
 	while true; do
 		show_header
 		COLUMNS=20
 		box "$lhost Main Menu" "*"
 		PS3="Select a category: "
-		select opt in "${options[@]}"; do
+		select _opt in "${options[@]}"; do
 			case "$REPLY" in
 				1 )
 					system_logs
@@ -323,14 +322,14 @@ main_menu() {
 }
 
 system_logs() {
-	local opt options
+	local _opt options
 	options=( "System Information" "System Updates" "Timeshift Snapshots" "Defrag Report" "Yt-dlp Updates" "Main Menu" )
 	while true; do
 		show_header
 		COLUMNS=40
 		under_line "$lhost System Logs" "="
 		PS3="Select a log to view: "
-		select opt in "${options[@]}"; do
+		select _opt in "${options[@]}"; do
 			case "$REPLY" in
 				1 )
 					sysinfo
@@ -370,14 +369,14 @@ system_logs() {
 }
 
 local_logs() {
-	local opt options
+	local _opt options
 	options=( "Password Databases" "Local Trash" "Local Backup" "Main Menu" )
 	while true; do
 		show_header
 		COLUMNS=40
 		under_line "$lhost Local Logs" "="
 		PS3="Select a log to view: "
-		select opt in "${options[@]}"; do
+		select _opt in "${options[@]}"; do
 			case "$REPLY" in
 				1 )
 					password_log
@@ -406,14 +405,14 @@ local_logs() {
 }
 
 archive_logs() {
-	local opt options
+	local _opt options
 	options=( "Script archive" "Finance Incremental" "HomeBank Archive" "Gitea Snapshots" "Gitea Incremental" "GitHub Incremental" "Journal Incremental" "Main Menu" )
 	while true; do
 		show_header
 		COLUMNS=40
 		under_line "$lhost Archive Logs" "="
 		PS3="Select a log to view: "
-		select opt in "${options[@]}"; do
+		select _opt in "${options[@]}"; do
 			case "$REPLY" in
 				1 )
 					script_archive_log
