@@ -2,18 +2,16 @@
 ###############################################################################
 # Script Name  : hb-archive.sh
 # Description  : Create HomeBank archive of *.bak files as a monthly cron job.
-# Dependencies : none
+# Dependencies : zip
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Version      : 1.3.5
-# Last updated : 27 Nov 2023
+# Version      : 3.6.24232
+# Last updated : 19 Aug 2024
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
 ###############################################################################
-# shellcheck disable=SC2038
-# SC2038 (warning): Use -print0/-0 or -exec + to allow for non-alphanumeric filenames. (find command)
 
 set -euo pipefail
 
@@ -28,10 +26,11 @@ archive="$arc_date-backup.zip"
 log_file="HomeBank-archive.log"
 err_log="HomeBank-error.log"
 
+# Execution
+
 # Create log and archive directories if they don't already exist
 [[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 [[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
-[[ -f "$arc_dir/$err_log" ]] && rm -f "$arc_dir/$err_log" >/dev/null 2>&1
 
 # Archive the .bak files for the 2nd month prior & write success/failure to log.
 {
@@ -39,22 +38,19 @@ err_log="HomeBank-error.log"
   if zip -qmtt "$ref_date" "$arc_dir/$archive" "$hb_dir"/*.bak 2> "$arc_dir/$err_log"
   then
     printf "successful\n"
-    echo "HomeBank Archive successful ($(date +%F))" >> "$arc_dir/$err_log"
+    echo "$(date +%F) - HomeBank Archive successful." > "$arc_dir/$err_log"
   else
     printf "had errors\n"
-    echo "HomeBank Archive had errors ($(date +%F))" >> "$arc_dir/$err_log"
+    echo "$(date +%F) - HomeBank Archive had errors." >> "$arc_dir/$err_log"
   fi
 } >> "$log_dir/$log_file"
 
 # Trim top entry from the log file when the length exceeds 36 entries.
 log_len=$(wc -l "$log_dir/$log_file" | cut -d " " -f1)
-[ "$log_len" -gt 36 ] && sed -i '1d' "$log_dir/$log_file"
+[[ "$log_len" -gt 36 ]] && sed -i '1d' "$log_dir/$log_file"
 
 # Delete archive files older than 3 years
-find "$arc_dir" -mtime +1095 -delete
-
-# Remove error log if it's empty
-[[ -s "$arc_dir/$err_log" ]] || rm -f "$arc_dir/$err_log"
+find "$arc_dir" -mtime +1095 -exec rm {} +
 
 # Sync HomeBank archive with archive copy on the main system
 rsync -aq --delete "$HOME"/Downloads/archives/homebank/ 192.168.0.10:Downloads/archives/homebank/
