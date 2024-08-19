@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 18 Aug 2024
+# Updated:     : 19 Aug 2024
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Rewrite of version 2.5.0
 #              : Will not get desktop session info from an SSH connection. Run locally.
@@ -29,7 +29,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.7.24231"
+readonly _version="3.8.24232"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -64,8 +64,10 @@ save_info() {
 }
 
 send_to_main() {
-  local main_ip="10"
-  scp -p "$info_file" rick@"$localnet.$main_ip":Documents/mosfanet/Computers/info/
+  local main_ip ip_addr
+  ip_addr=$(local_ip)
+  main_ip="10"
+  [[ "$ip_addr" != "$main_ip" ]] && scp -p "$info_file" rick@"$localnet.$main_ip":Documents/mosfanet/Computers/info/
 }
 
 rename_mnt_pt() {
