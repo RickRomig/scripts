@@ -41,6 +41,7 @@ blink=$(echo -en "\e[5m")
 reverse=$(echo -en "\e[7m")
 hidden=$(echo -en "\e[8m")
 strikethrough=$(echo -en "\e[9m")
+
 # Foreground (text) colors
 black=$(echo -en "\e[30m")
 red=$(echo -en "\e[31m")
@@ -442,7 +443,7 @@ valid_ip() {
         printf "%s %s.%s is valid IP address but is unreachable.\nCheck to see if it is on the network.\n" "$red_error" "$localnet" "$octet" >&2
       fi
     else
-      status=4  # invalid address - out of range
+      status=4
       printf "%s %s.%s is not a valid IP address.\nEnter the last octet of the target IP address (1 - 254).\n" "$red_error" "$localnet" "$octet" >&2
     fi
   else
@@ -490,7 +491,7 @@ edit_view_quit() {
         break
       ;;
       * )
-        printf "\e{33mInvalid choice. Try again.\e[0m\n" >&2
+        printf "%sInvalid choice. Try again.%s\n" "$orange" "$normal" >&2
     esac
   done
 }
