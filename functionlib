@@ -161,12 +161,8 @@ sudo_login() {
     if ! sudo -vn 2>/dev/null; then
       sudo ls > /dev/null 2>&1
       [[ "$delay" -gt 0 ]] && { sleep "$delay"; printf '\e[A\e[K'; }
-      # if [[ "$delay" -gt 0 ]]; then
-      #   sleep "$delay"
-      #   printf '\e[A\e[K'
-      # fi
     fi
-  else
+ else
     diehard "$USER is not a member of the sudo group. Access denied." "This incident will be reported to Big Brother."
   fi
 }
@@ -265,7 +261,7 @@ is_jammy() {
 # Arguments: none
 # Returns: True or False
 ###############################################################################
-is_jammy() {
+is_noble() {
   [[ $(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release) == "noble" ]] && return "$TRUE" || return "$FALSE"
 }
 
@@ -295,6 +291,7 @@ support_ppa() {
 ###############################################################################
 antix_mx() {
   local dist_id
+	[[ -f /etc/lsb-release ]] || return "$FALSE"
   dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2> /dev/null)
   [[ "$dist_id" == "antiX" || "$dist_id" == "MX" ]] && return "$TRUE" || return "$FALSE"
 }
