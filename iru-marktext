@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 18 JUn 2024
+# Updated      : 24 Aug 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,10 +28,10 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.7.24170"
-readonly _updated="18 JUn 2024"
+readonly _version="4.5.24237"
+readonly _updated="24 Aug  2024"
 readonly gh_url="https://github.com/marktext/marktext/releases"
-readonly mt_cfg_dir="$HOME/.config/marktext"
+readonly cfg_dir="$HOME/.config/marktext"
 
 ## Functions ##
 
@@ -48,8 +48,7 @@ check_dependencies() {
 }
 
 marktext_version() {
-  # dpkg -l | awk '$2 == "marktext" {print $3}' | sed 's/[+-].*//'
-  marktext --version | awk '/MarkText/ {print $2}' | sed 's/^v//'
+  dpkg -l marktext | awk '/ii/ {print $3}'
 }
 
 newest_version() {
@@ -82,11 +81,11 @@ install_marktext() {
 }
 
 remove_marktext() {
-  local mt_cfg_bu_d="$HOME/.config/backup/marktext"
+  local cfg_bu_dir="$HOME/.config/backup/marktext"
   echo "Removing the Mark Text markdown editor..."
   sudo apt-get remove --purge marktext -yy
-  [[ -d "$mt_cfg_dir" ]] && rm -rf "$mt_cfg_dir"
-  [[ -d "$mt_cfg_bu_d" ]] && rm -rf "$mt_cfg_bu_d"
+  [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
+  [[ -d "$cfg_bu_dir" ]] && rm -rf "$cfg_bu_dir"
   echo "Mark Text markdown editor has been removed."
 }
 
@@ -94,21 +93,21 @@ dl_preferences() {
   local json_file localip repository
   localip=$(local_ip)
   json_file="preferences.json"
-  [[ -d "$mt_cfg_dir" ]] && mkdir -p "$mt_cfg_dir"
+  [[ -d "$cfg_dir" ]] && mkdir -p "$cfg_dir"
   printf "Applying MarkText preferences...\n"
   if [[ "$localip" == "16" ]]; then
     repository="HOME/gitea/configs/marktext"
-    cp -v "$repository/$json_file" "$mt_cfg_dir/"
+    cp -v "$repository/$json_file" "$cfg_dir/"
   else
     repository="configs/raw/branch/main/marktext"
-    curl -so "$mt_cfg_dir/$json_file" "$Gitea_URL/$repository/$json_file"
+    curl -so "$cfg_dir/$json_file" "$Gitea_URL/$repository/$json_file"
   fi
   printf "MarkText %s applied.\n" "$json_file"
 }
 
 help() {
   local errcode="${1:-2}"
-  cat << EOF
+  cat << END_HELP
 ${orange}$_script${normal} $_version ($_updated)
 Installs, configures, updates, removes the Mark Text markdown editor.
 
@@ -120,7 +119,7 @@ ${orange}Available options:${normal}
   -i  Installs the Marktext markdown editor.
   -r  Removes the Marktext markdown editor from the system.
   -u  Updates the Marktext markdown editor to the latest version.
-EOF
+END_HELP
   exit "$errcode"
 }
 
@@ -146,7 +145,6 @@ while getopts "$optstr" opt; do
       check_dependencies
       new_ver="$(newest_version)"
       echo "${lightyellow}Installing MarkText version $new_ver...${normal}"
-      sudo_login 2
       install_marktext
     ;;
     r )
@@ -162,11 +160,11 @@ while getopts "$optstr" opt; do
       sudo_login 2
       check_dependencies
       new_ver="$(newest_version)"
-      [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
+      [[ "$new_ver" ]] || die "No download available. Try again later." 1
       compare_versions
     ;;
     ? )
-      echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+      echo "$red_error Invalid option -${OPTARG}" >&2
       help 2
   esac
 	noOpt=0
