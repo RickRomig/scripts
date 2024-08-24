@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 23 JUn 2024
+# Updated      : 24 Aug 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,10 +28,10 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.9.24175"
-readonly _updated="23 JUn 2024"
+readonly _version="5.10.24237"
+readonly _updated="24 Aug 2024"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
-readonly micro_cfg_d=$HOME"/.config/micro"
+readonly cfg_d=$HOME"/.config/micro"
 
 ## Functions ##
 
@@ -47,8 +47,9 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
-micro_ver() {
-  micro --version | awk '/Version/ {print $NF}'
+micro_version() {
+  # micro --version | awk '/Version/ {print $NF}'
+  dpkg -l micro | awk '/ii/ {print $3}'
 }
 
 newest_version() {
@@ -59,7 +60,7 @@ newest_version() {
 
 compare_versions() {
   local cur_ver
-  cur_ver=$(micro_ver)
+  cur_ver=$(micro_version)
   if [[ "$cur_ver" == "$new_ver" ]]; then
     echo "${lightyellow}Micro $cur_ver is the current version. No update required.${normal}"
   else
@@ -77,17 +78,17 @@ install_micro() {
   printf "Installing Micro %s...\n" "$new_ver"
   sudo gdebi -n "$tmp_dir/$new_pkg"
   check_package xclip
-  printf "Micro %s installed.\n" "$(micro_ver)"
+  printf "Micro %s installed.\n" "$(micro_version)"
 }
 
 remove_micro() {
-  local cur_ver micro_cfg_bu_d
-  cur_ver=$(micro_ver)
-  micro_cfg_bu_d="$HOME/.config/backup/micro"
+  local cur_ver cfg_bu_d
+  cur_ver=$(micro_version)
+  cfg_bu_d="$HOME/.config/backup/micro"
   echo "Removing the Micro CLI text editor..."
-  sudo dpkg --remove micro
-  [[ -d "$micro_cfg_d" ]] && rm -rf "$micro_cfg_d"
-  [[ -d "$micro_cfg_bu_d" ]] && rm -rf "$micro_cfg_bu_d"
+  sudo dpkg --remove -y micro
+  [[ -d "$cfg_d" ]] && rm -rf "$cfg_d"
+  [[ -d "$cfg_bu_d" ]] && rm -rf "$cfg_bu_d"
   [[ -d /root/.config/micro ]] && sudo rm -rf /root/.config/micro
   echo "Micro $cur_ver and configuration files have been removed."
 }
@@ -96,14 +97,14 @@ apply_settings() {
   local json_file localip repository
   localip=$(local_ip)
   json_file="settings.json"
-  [[ -d "$micro_cfg_d" ]] || mkdir -p "$micro_cfg_d"
+  [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
   echo "Applying Micro settings..."
   if [[ "$localip" == "16" ]]; then
     repository="HOME/gitea/configs/micro"
-    cp -v "$repository/$json_file" "$micro_cfg_d/"
+    cp -v "$repository/$json_file" "$cfg_d/"
   else
     repository="configs/raw/branch/main/micro"
-  curl -so "$micro_cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
+  curl -so "$cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
   fi
   echo "Micro setttings applied."
 }
@@ -112,14 +113,14 @@ apply_bindings() {
   local json_file localip repository
   localip=$(local_ip)
   json_file="bindings.json"
-  [[ -d "$micro_cfg_d" ]] || mkdir -p "$micro_cfg_d"
+  [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
   echo "Applying Micro keybindings..."
   if [[ "$localip" == "16" ]]; then
     repository="HOME/gitea/configs/micro"
-    cp -v "$repository/$json_file" "$micro_cfg_d/"
+    cp -v "$repository/$json_file" "$cfg_d/"
   else
     repository="configs/raw/branch/main/micro"
-    curl -so "$micro_cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
+    curl -so "$cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
   fi
   echo "Micro keybindings applied."
 }
@@ -133,11 +134,11 @@ Installs, configures, updates, or removes the Micro CLI text editor.
 ${green}Usage:${normal} $_script [OPTION]
 
 ${orange}Available options:${normal}
-  -b  Installs/updates the Micro key-bindings configuration file.
+  -b  Installs/updates the Micro key-bindings json file.
   -h  Displays help.
   -i  Installs the Micro CLI text editor.
   -r  Removes the Micro CLI text editor from the system.
-  -s  Installs/updates the Micro settings configuration file.
+  -s  Installs/updates the Micro settings json file.
   -u  Updates the Micro CLI text editor to the latest version.
 END_HELP
   exit "$errcode"
@@ -150,14 +151,14 @@ optstr=":bhirsu"
 while getopts "$optstr" opt; do
   case "$opt" in
     b )
-      exists micro || leave "Micro is not installed. Run '$_script -i' to install."
+      exists micro || leave "Micro is not installed."
       apply_bindings
     ;;
     h )
       help 0
     ;;
     i )
-      exists micro && leave "Micro $(micro_ver) is already installed."
+      exists micro && leave "Micro $(micro_version) is already installed."
       tmp_file=$(mktemp) || die "Failed to create temporary file." 1
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
       trap cleanup EXIT
@@ -165,33 +166,32 @@ while getopts "$optstr" opt; do
       check_dependencies
       new_ver="$(newest_version)"
       echo "${lightyellow}Installing Micro version $new_ver...${normal}"
-      sudo_login 2
       install_micro
       apply_settings
       apply_bindings
     ;;
     r )
-      exists micro || leave "Micro is not installed. Run '$_script -i' to install."
+      exists micro || leave "Micro is not installed."
       sudo_login 2
       remove_micro
     ;;
     s )
-      exists micro || leave "Micro is not installed. Run '$_script -i' to install."
+      exists micro || leave "Micro is not installed."
       apply_settings
     ;;
     u )
-      exists micro || leave "Micro is not installed. Run '$_script -i' to install."
+      exists micro || leave "Micro is not installed."
       tmp_file=$(mktemp) || die "Failed to create temporary file." 1
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
       trap cleanup EXIT
       sudo_login 2
       check_dependencies
       new_ver="$(newest_version)"
-      [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
+      [[ "$new_ver" ]] || die "No download available. Try again later." 1
       compare_versions
     ;;
     ? )
-      echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+      echo "$red_error Invalid option -${OPTARG}" >&2
       help 2
   esac
   noOpt=0
