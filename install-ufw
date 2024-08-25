@@ -7,7 +7,7 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 18 Jun 2024
+# Updated      : 24 Aug 2024
 # Comments     : Install & remove for Deian-based systems only.
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
@@ -29,8 +29,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.12.24170"
-readonly _updated="18 Jun 2024"
+readonly _version="1.13.24237"
+readonly _updated="24 Aug 2024"
 
 ## Functions ##
 
@@ -78,7 +78,7 @@ new_rules() {
   local rule="deny foo"
   sudo ufw status
   printf "Add new rules in the following format:\n"
-  printf "allow <protocol> or allow <port-number>\n"
+  printf "allow/deny <protocol> or allow/deny <port-number>\n"
   while [[ "$rule" != "" ]]; do
     read -rp "Rule to be added (done to exit): " rule
     [[ "$rule" != "" ]] && sudo ufw "$rule"
@@ -87,11 +87,9 @@ new_rules() {
 
 delete_rules() {
   local rule="allow foo"
-  sudo ufw status
-  printf "Enter rules to be deleted in the following format:\n"
-  printf "allow <protocol> or allow <port-number>\n"
+  sudo ufw status numbered
   while [[ "$rule" != "" ]]; do
-    read -rp "Rule to be removed: " rule
+    read -rp "Rule to be removed (by number): " rule
     [[ "$rule" != "" ]] && sudo ufw delete "$rule"
   done
 }
