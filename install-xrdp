@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-xrdp
+# Description  : Installs xrdp to Debian-based systems
+# Dependencies : none
+# Arguments    : none
+# Author       : Copyright © 2024 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 24 Aug 2024
+# Last updated : 24 Aug 2024
+# Comments     : On i3, only working if XFCE installed. Not working with Cinnamon.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+set -eu
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.1.24238"
+readonly _updated="25 Aug 2024"
+readonly xsessions_d="/usr/share/xsessions"
+
+## Functions ##
+
+cinn_xsessionrc() {
+	cat << END_FILE  > "$HOME"/.xsessionrc
+if [ $DISPLAY != ":0" ]
+then
+  export XAUTHORITY=${HOME}/.Xauthority
+fi
+END_FILE
+}
+## Execution ##
+
+sudo_login 2
+
+printf "Installing xrdp...\n"
+sudo apt-get install -y xrdp xorgxrdp
+
+printf "Adding xrdp user to the SSL-Cert group...\n"
+sudo adduser xrdp ssl-cert
+
+printf "Enabling and starting xrdp sevice...\n"
+sudo systemctl enable --now xrdp
+
+printf "Allowing xrdp port on UFW...\n"
+sudo ufw allow 3389
+
+if [[ -f "$xsessions_d/i3.desktop" ]]; then
+	printf "Setting up i3 session...\n"
+	echo "exec i3 >>~/.local/share/logs/i3log 2>&1" | tee "$HOME/.xsessionrc"
+elif [[ -f "$xsessions_d/cinnamon.desktop" ]]; then
+	printf "Setting up Cinnamon session...\n"
+	# echo "exec cinnamon2d >>~/.local/share/logs/i3log 2>&1" | tee "$HOME/.xsession"
+	echo env -u SESSION_MANAGER -u DBUS_SESSION_BUS_ADDRESS cinnamon-session>~/.xsession
+	cinn_xsessionrc
+elif [[ -f "$xsessions_d/xfce.desktop" ]]; then
+	printf "Setting up Xfce session...\n"
+	echo "xfce4-session" | tee "$HOME/.xsession"
+fi
+
+printf "XRDP installed. Please reboot the system.\n"
+leave "$_script $_version"
