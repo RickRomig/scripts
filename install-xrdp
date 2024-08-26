@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2024
-# Last updated : 24 Aug 2024
-# Comments     : On i3, only working if XFCE installed. Not working with Cinnamon.
+# Last updated : 26 Aug 2024
+# Comments     : Working with i3, not working with Cinnamon yet.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -30,11 +30,15 @@ set -eu
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.24238"
-readonly _updated="25 Aug 2024"
+readonly _version="0.1.24239"
 readonly xsessions_d="/usr/share/xsessions"
 
 ## Functions ##
+
+add_to_sslcert() {
+	getent group ssl-cert || sudo groupadd ssl-cert > /dev/null 2>&1
+	[[ $(awk '/ssl-cert:/ && /xrdp/' /etc/group) ]] || sudo adduser xrdp ssl-cert
+}
 
 cinn_xsessionrc() {
 	cat << END_FILE  > "$HOME"/.xsessionrc
@@ -44,6 +48,7 @@ then
 fi
 END_FILE
 }
+
 ## Execution ##
 
 sudo_login 2
@@ -52,7 +57,7 @@ printf "Installing xrdp...\n"
 sudo apt-get install -y xrdp xorgxrdp
 
 printf "Adding xrdp user to the SSL-Cert group...\n"
-sudo adduser xrdp ssl-cert
+add_to_sslcert
 
 printf "Enabling and starting xrdp sevice...\n"
 sudo systemctl enable --now xrdp
