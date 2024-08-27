@@ -25,8 +25,6 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
@@ -68,14 +66,14 @@ sudo ufw allow 3389
 if [[ -f "$xsessions_d/i3.desktop" ]]; then
 	printf "Setting up i3 session...\n"
 	echo "exec i3 >>~/.local/share/logs/i3log 2>&1" | tee "$HOME/.xsessionrc"
-elif [[ -f "$xsessions_d/cinnamon.desktop" ]]; then
-	printf "Setting up Cinnamon session...\n"
-	# echo "exec cinnamon2d >>~/.local/share/logs/i3log 2>&1" | tee "$HOME/.xsession"
-	echo env -u SESSION_MANAGER -u DBUS_SESSION_BUS_ADDRESS cinnamon-session>~/.xsession
-	cinn_xsessionrc
 elif [[ -f "$xsessions_d/xfce.desktop" ]]; then
 	printf "Setting up Xfce session...\n"
 	echo "xfce4-session" | tee "$HOME/.xsession"
+elif [[ -f "$xsessions_d/cinnamon.desktop" ]]; then
+	printf "Setting up Cinnamon session...\n"
+	echo "env -u SESSION_MANAGER -u DBUS_SESSION_BUS_ADDRESS cinnamon-session" | tee "$HOME/.xsession"
+	cinn_xsessionrc
+	# echo "exec cinnamon2d >>~/.local/share/logs/cinnamon.log 2>&1" | tee "$HOME/.xsession"
 fi
 
 printf "XRDP installed. Please reboot the system.\n"
