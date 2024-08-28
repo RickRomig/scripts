@@ -7,10 +7,10 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Last updated : 28 Aug 2024 Version 2.0.24241
+# Last updated : 28 Aug 2024 Version 2.1.24241
 # Comments     : Run as a user cron job.
 #              : Trash directory does not exist until a file is moved to the trash.
-#              : Tested with Debian 11/12, LMDE 6, Mint 21.x, MX Linux 23.1, BunsenLabs 11.
+#              : Tested with Debian 11/12, LMDE 6, Mint 21.x, Mint 22, MX Linux 23.1, BunsenLabs 11.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -26,10 +26,8 @@ check_gio() {
 empty_trash() {
 	if [[ $(find "$trash_dir/files" -type f | wc -l) -gt 0 ]]; then
 		printf "\nTrash contents:\n---------------\n"
-		# find "$trash_dir/files" -type f -exec basename {} \;
 		gio trash --list 2>/dev/null || gio list -h "$trash_dir"/files
-		gio trash --empty
-		printf "\nTrash emptied.\n"
+		gio trash --empty && printf "\nTrash emptied.\n" || printf "Trash left behind.\n"
 	else
 		printf "\nNo trash to empty.\n"
 	fi
