@@ -8,9 +8,10 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 13 Aug 2024
+# Last updated : 29 Aug 2024
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
+#              : With Micro 2.0.14, no deb package released, thus no new_ver available.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -38,7 +39,11 @@ cleanup() {
 installed_version() {
   local ver pkg
   pkg="$1"
-  ver=$(dpkg -l "$pkg" 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//')
+  if [[ "$pkg" == "micro" ]]; then
+    ver=$(micro -version | awk '/Version:/ {print $NF}')
+  else
+    ver=$(dpkg -l "$pkg" 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//')
+  fi
   echo "$ver"
 }
 
@@ -46,7 +51,7 @@ github_versions() {
   local cur_ver github_url new_ver package packages release_path
   github_url="https://github.com"
   new_ver="Not found"
-  packages=( bat codium fastfetch marktext micro )
+  packages=( bat codium fastfetch marktext )
 
   printf "%-16s%-16s%s\n" "GitHub Package" "Latest version" "Installed version"
   for package in "${packages[@]}"; do
@@ -99,7 +104,7 @@ github_versions() {
 
 apt_tools() {
 	local cur_ver packages package
-  packages=( batcat bluefish featherpad geany gedit git glow keepassxc nala nano shellcheck xed )
+  packages=( batcat bluefish featherpad geany gedit git glow keepassxc micro nala nano shellcheck xed )
 
 	printf "%-15s%s\n" "Package" "Version"
 	for package in "${packages[@]}"; do
@@ -147,10 +152,12 @@ browsers() {
 main() {
   local _script _version
   _script=$(basename "$0")
-  _version="13.3.24226"
+  _version="13.4.24246"
   clear
-  printf "%s v%s\n" "$_script" "$_version"
-  printf "Newest & installed versions of select programs.\n\n"
+  # printf "%s v%s\n" "$_script" "$_version"
+  box "$_script v$_version"
+  printf "\n"
+  # printf "Newest & installed versions of select programs.\n\n"
   github_versions
   apt_tools
   browsers
