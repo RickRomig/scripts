@@ -2,7 +2,7 @@
 ###############################################################################
 # Script Name  : empty-trash.sh
 # Description  : Empty the local trash directory
-# Dependencies : gio (libglib2.0-bin)
+# Dependencies : trash-cli tree 'sudo apt install trash-cli tree'
 # Arguments    : none
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
