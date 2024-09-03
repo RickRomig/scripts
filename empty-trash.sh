@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Last updated : 02 Sep 2024 Version 2.5.24246
+# Last updated : 03 Sep 2024 Version 2.6.24247
 # Comments     : Run as a user cron job.
 #              : Trash directory does not exist until a file is moved to the trash.
 #              : Tested with Debian 11/12, LMDE 6, Mint 21.x, Mint 22, MX Linux 23.1, BunsenLabs 11.
@@ -28,8 +28,8 @@ empty_trash() {
 		else
 			find "$trash_dir"/files -mindepth 1 -type f,d -exec rm -rf {} +
 			rm -f "$trash_dir"/info/*
-			printf "\nTrash emptied.\n"
 		fi
+		printf "\nTrash emptied.\n\n"
 		tree -a "$trash_dir"
 	else
 		printf "\nNo trash to empty.\n"
@@ -43,7 +43,7 @@ empty_trash() {
 	if [[ -d "$trash_dir" ]]; then
 		empty_trash
 	else
-		printf "\nTrash directory does not exist.\n"
+		printf "\nTrash directory does not exist.\nWill be created when a file is moved to the trash.\n"
 	fi
 } > "$log_dir/$log_file" 2>&1
 exit
