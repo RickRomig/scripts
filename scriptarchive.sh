@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jan 2020
-# Updated      : 15 Jun 20244 (version 3.0.24167)
+# Updated      : 04 Sep 2024 (version 3.0.24248)
 # Comments     : Includes all subdirectories
 #              : Schedule with user's crontab from ~/.local/bin
 # TODO (Rick)  :
@@ -36,7 +36,7 @@ err_log="error.log"
   printf "%s|" "$(date '+%a|%F|%R')"
   if /usr/bin/tar --exclude='.git' -hcpzf "$arc_dir/$archive" -C "$HOME" bin 2> "$arc_dir/$err_log"; then
     printf "successful\n"
-    echo "/Script Archive successful - $(date +%F)" >> "$arc_dir/$err_log"
+    echo "Script Archive successful - $(date +%F)" >> "$arc_dir/$err_log"
   else
     printf "had errors\n"
     echo "Script Archive had errors - $(date +%F)" >> "$arc_dir/$err_log"
