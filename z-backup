@@ -8,9 +8,9 @@
 # Author       : Copyright (C) 2020, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 07 Jun 2020
-# Last updated : 15 Jun 2024 - version 1.2.24167
+# Last updated : 03 Sep 2024 - version 1.3.24248
 # Comment      : Automatically limits log size to 30 entries.
-# TODO (Rick)  : Remove commented lines after successful test on 6005
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #####################################################################
 
@@ -22,14 +22,14 @@ log_file="backup.log"
 backup_dir="/data/backup"
 error_log="/error.log"
 
-[[ -d /data/backup ]] || mkdir -p /data/backup
-[[ -f "$backup_dir/error.log" ]] && rm -f "$backup_dir/$error_log" >/dev/null 2>&1
+[[ -d "$backup_dir" ]] || mkdir -p "$backup_dir"
+[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 
 {
   printf "%s|" "$log_date"
   if rsync -aH --delete /etc /home "$backup_dir/" 2> "$backup_dir/$error_log"; then
     printf "successful\n"
-    echo "Local Backup was successful: $(date +%F)" >> "$backup_dir/$error_log"
+    echo "Local Backup was successful: $(date +%F)" > "$backup_dir/$error_log"
   else
     printf "had errors %d\n" "$?"
     echo "Local Backup had errors: $(date +%F)" >> "$backup_dir/$error_log"
