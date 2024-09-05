@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 29 Aug 2024
+# Last updated : 2059 Sep 2024
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 #              : With Micro 2.0.14, no deb package released, thus no new_ver available.
@@ -51,7 +51,7 @@ github_versions() {
   local cur_ver github_url new_ver package packages release_path
   github_url="https://github.com"
   new_ver="Not found"
-  packages=( bat codium fastfetch marktext )
+  packages=( bat codium fastfetch marktext micro )
 
   printf "%-16s%-16s%s\n" "GitHub Package" "Latest version" "Installed version"
   for package in "${packages[@]}"; do
@@ -81,7 +81,12 @@ github_versions() {
     # Download package's GitHub release page to a temporary file.
     curl -s -o "$tmp_file" "$github_url/$release_path"
     # Extract newest version number, ignoring beta and release candidate releases.
-    new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
+    case "$package" in
+      micro )
+        new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /linux/ {print $7;exit}' | sed 's/^v//') ;;
+      * )
+        new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//') ;;
+    esac
     # Print capitalized package name
     printf "%s%-16s" "${darkgray}" "${package^}"
     # Print newest version
@@ -104,7 +109,7 @@ github_versions() {
 
 apt_tools() {
 	local cur_ver packages package
-  packages=( batcat bluefish featherpad geany gedit git glow keepassxc micro nala nano shellcheck xed )
+  packages=( batcat bluefish featherpad geany gedit git glow keepassxc nala nano shellcheck xed )
 
 	printf "%-15s%s\n" "Package" "Version"
 	for package in "${packages[@]}"; do
@@ -152,7 +157,7 @@ browsers() {
 main() {
   local _script _version
   _script=$(basename "$0")
-  _version="13.4.24246"
+  _version="13.5.24249"
   clear
   # printf "%s v%s\n" "$_script" "$_version"
   box "$_script v$_version"
