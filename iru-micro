@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 24 Aug 2024
+# Updated      : 05 Sep 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.10.24237"
-readonly _updated="24 Aug 2024"
+readonly _version="6.0.24249"
+readonly _updated="05 Sep 2024"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 readonly cfg_d=$HOME"/.config/micro"
 
@@ -47,15 +47,27 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
+check_distro() {
+  local codename
+  codename=$(lsb_release -c -s)
+  case "$codename" in
+    bullseye ) return "$FALSE" ;;
+    * ) return "$TRUE"
+  esac
+}
+
 micro_version() {
-  # micro --version | awk '/Version/ {print $NF}'
-  dpkg -l micro | awk '/ii/ {print $3}'
+  micro -version | awk '/Version/ {print $NF}'
 }
 
 newest_version() {
   wget -qO "$tmp_file" "$gh_url"
-  new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
-  echo "$new_ver"
+  if check_distro; then
+    new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /linux/ {print $7;exit}' | sed 's/^v//')
+  else
+    new_ver="2.0.13"
+  fi
+echo "$new_ver"
 }
 
 compare_versions() {
@@ -63,20 +75,24 @@ compare_versions() {
   cur_ver=$(micro_version)
   if [[ "$cur_ver" == "$new_ver" ]]; then
     echo "${lightyellow}Micro $cur_ver is the current version. No update required.${normal}"
-  else
+    check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
+else
     echo "${lightyellow}Installed version of Micro is $cur_ver, updating to $new_ver...${normal}"
+    check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
     install_micro
   fi
 }
 
 install_micro() {
-  local new_pkg="micro-${new_ver}-amd64.deb"
+  local new_pkg="micro-${new_ver}-linux64.tar.gz"
   printf "Downloading Micro %s from the zyedidia GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
   kill "$!";printf "done\n";tput cnorm
   printf "Installing Micro %s...\n" "$new_ver"
-  sudo gdebi -n "$tmp_dir/$new_pkg"
+  tar -xzf "$tmp_dir/$new_pkg"
+  sudo cp -v "$tmp_dir/micro-$new_ver"/micro /usr/bin/
+  sudo cp -v "$tmp_dir/micro-$new_ver"/micro.1 /usr/share/man/man1/
   check_package xclip
   printf "Micro %s installed.\n" "$(micro_version)"
 }
