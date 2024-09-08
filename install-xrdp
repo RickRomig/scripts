@@ -2,13 +2,13 @@
 ##########################################################################
 # Script Name  : install-xrdp
 # Description  : Installs xrdp to Debian-based systems
-# Dependencies : none
+# Dependencies : ufw
 # Arguments    : none
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2024
-# Last updated : 06 Sep 2024
-# Comments     : Working with i3, sort of working with Cinnamon.
+# Last updated : 08 Sep 2024
+# Comments     : Working with i3 & Xfce4, no desktop background on Cinnamon.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.0.24250"
+readonly _version="1.1.24252"
 readonly xsessions_d="/usr/share/xsessions"
 
 ## Functions ##
@@ -50,6 +50,8 @@ END_FILE
 
 sudo_login 2
 
+check_package ufw
+
 printf "Installing xrdp...\n"
 sudo apt-get install -y xrdp xorgxrdp
 
@@ -59,8 +61,8 @@ add_to_sslcert
 printf "Enabling and starting xrdp sevice...\n"
 sudo systemctl enable --now xrdp
 
-printf "Allowing xrdp port on UFW...\n"
-sudo ufw allow 3389
+printf "Allowing xrdp port (3389/tcp) on UFW...\n"
+sudo ufw allow 3389/tcp
 
 if [[ -f "$xsessions_d/i3.desktop" ]]; then
 	printf "Setting up i3 session...\n"
@@ -75,5 +77,5 @@ elif [[ -f "$xsessions_d/cinnamon.desktop" ]]; then
 	# echo "exec cinnamon2d >>~/.local/share/logs/cinnamon.log 2>&1" | tee "$HOME/.xsession"
 fi
 
-printf "XRDP installed. Please reboot the system.\n"
+printf "XRDP server installed. Please reboot the system.\n"
 leave "$_script $_version"
