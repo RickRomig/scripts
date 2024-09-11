@@ -23,7 +23,7 @@ empty_trash() {
 	if [[ $(/usr/bin/trash-list | wc -l) -gt 0 ]]; then
 		printf "\nTrash contents:\n"
 		/usr/bin/trash-list
-		if [[ $(find "$trash_dir"/info -type f,d -mtime +7 | wc -l) -gt 0 ]]; then
+		if [[ $(find "$trash_dir"/info -type f -daystart -mtime +7 | wc -l) -gt 0 ]]; then
 			printf "\nRemoving trash older than %s...\n" "$last_week"
 			/usr/bin/trash-empty 7
 			if [[ $(/usr/bin/trash-list | wc -l) -gt 0 ]]; then
