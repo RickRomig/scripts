@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 05 Sep 2024
+# Last updated : 12 Sep 2024
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 #              : With Micro 2.0.14, no deb package released, thus no new_ver available.
@@ -42,6 +42,8 @@ installed_version() {
   case "$pkg" in
     micro )
       ver=$(micro -version | awk '/Version:/ {print $NF}') ;;
+    gitea )
+      ver=$(gitea --version | cut -d' ' -f3) ;;
     * )
       ver=$(dpkg -l "$pkg" 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//') ;;
   esac
@@ -110,7 +112,7 @@ github_versions() {
 
 apt_tools() {
 	local cur_ver packages package
-  packages=( batcat bluefish featherpad geany gedit git glow keepassxc nala nano shellcheck xed )
+  packages=( batcat bluefish featherpad geany gedit git gitea glow keepassxc nala nano shellcheck xed )
 
 	printf "%-15s%s\n" "Package" "Version"
 	for package in "${packages[@]}"; do
@@ -158,12 +160,10 @@ browsers() {
 main() {
   local _script _version
   _script=$(basename "$0")
-  _version="13.5.24249"
+  _version="13.5.24256"
   clear
-  # printf "%s v%s\n" "$_script" "$_version"
   box "$_script v$_version"
   printf "\n"
-  # printf "Newest & installed versions of select programs.\n\n"
   github_versions
   apt_tools
   browsers
