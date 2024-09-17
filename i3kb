@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Apr 2023
-# Updated      : 11 Sep 2024
+# Updated      : 17 Sep 2024
 # Comments     : Install with bindings.list in ~/.config/i3/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.6.241255"
+readonly _version="1.7.24261"
 readonly i3_dir=$HOME"/.config/i3"
 readonly bindings="bindings.list"
 
@@ -42,6 +42,7 @@ copy_bindings() {
 
 show_bindings() {
 	[[ -f "$i3_dir/$bindings" ]] || copy_bindings
+	printf "i3wm keybindings:\n"
 	(printf "Binding|Action|Binding|Action\n"; less "$i3_dir/$bindings") | column -ts "|"
 }
 
@@ -49,6 +50,5 @@ show_bindings() {
 
 exists i3 || leave "i3wm is not installed."
 clear
-printf "%s v%s\n" "$_script" "$_version"
 show_bindings
-exit
+leave "$_script v$_version"
