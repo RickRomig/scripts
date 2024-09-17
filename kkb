@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Apr 2023
-# Last updated : 15 May 2024
+# Last updated : 17 Sep 2024
 # Comments     : Install with kitty-bindings.list in ~/.config/kitty/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.5.24136"
+readonly _version="1.6.24261"
 readonly kitty_dir=$HOME/".config/kitty"
 readonly bindings="bindings.list"
 
@@ -36,19 +36,20 @@ readonly bindings="bindings.list"
 
 copy_bindings() {
 	local repository="configs/raw/branch/main/"
+	check_package curl
 	curl -so "$kitty_dir/$bindings" "$Gitea_URL/$repository/$bindings"
 }
 
 show_bindings() {
 	[[ -f "$kitty_dir/$bindings" ]] || copy_bindings
+	printf "Kitty keybindings:\n"
 	(printf "Binding|Action|Binding|Action\n"; less "$kitty_dir/$bindings") | column -ts "|"
 }
 
 ## Execution ##
 
-exists kitty || leave "Kitty terminal emumator is not installed."
+# exists kitty || leave "Kitty terminal emumator is not installed."
+[[ "$TERM" != "xterm-kitty" ]] && die "Terminal emulater is not Kitty." 1
 clear
-check_package curl
-printf "%s v%s\n" "$_script" "$_version"
 show_bindings
-exit
+leave "$_script v$_version"
