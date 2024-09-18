@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Jul 2022
-# Updated      : 18 Jun 2024
+# Updated      : 18 Sep 2024
 # Comments     : NeoFetch is no longer in development. Rrecommnd Fastfetch.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.11.24170"
-readonly _updated="18 Jun 2024"
+readonly _version="1.12.24262"
+readonly _updated="18 Sep 2024"
 readonly neofetch_cfg_d="${HOME}/.config/neofetch"
 
 ## Functions ##
@@ -62,6 +62,7 @@ install_neofetch() {
 
 apply_config() {
 	local localip repository cfg_conf
+	localip=$(local_ip)
 	cfg_conf="config.conf"
 	[[ -d "$neofetch_cfg_d" ]] || mkdir -p "$neofetch_cfg_d"
   printf "Appying %s ...\n" "$cfg_conf"
@@ -86,7 +87,8 @@ remove_neofetch() {
 }
 
 neofetch_version() {
-	neofetch --version | cut -d' ' -f2
+	/usr/bin/neofetch --version | cut -d' ' -f2
+	# dpkg -l neofetch | awk '/ii/ {print $3}' | sed 's/[~+-].*//'
 }
 
 ## Execution ##
