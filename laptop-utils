@@ -3,11 +3,11 @@
 # Script Name  : laptop-utils
 # Description  : Installs laptop-specific utilities
 # Dependencies : None
-# Args         : None
+# Args         : See help()
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 20 Sep 2024
+# Updated      : 21 Sep 2024
 # Comments     : Based on a script by Joe Collins at EzeeLinux.com
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="6.0.24264"
-readonly _updated="20 Sep 2024"
+readonly _version="6.1.24265"
+readonly _updated="21 Sep 2024"
 readonly lhost="${HOSTNAME:=-$(hostname)}"
 
 ## Funtions ##
@@ -115,13 +115,14 @@ install_tlp() {
 }
 
 tlp_status() {
-  local status=0
+  local status=1
+  installed tlp || leave "TLP is not installed."
   if is_systemd; then
-    systemctl status tlp | grep -qw active || status=1
+    systemctl status tlp | grep -qw active && status=0
   elif is_sysv; then
-    tlp-stat -s | grep -qw enabled || status=1
+    tlp-stat -s | grep -qw enabled && status=0
   fi
-  if (( status = 1 )); then
+  if [[ "$status" -eq 1 ]]; then
     printf "Starting TLP service\n"
     start_tlp_service
   else
@@ -132,13 +133,13 @@ tlp_status() {
 start_tlp_service() {
   if is_systemd; then
     sudo_login 2
-    sudo systemctl enable tlp.service
-    sudo systemctl start tlp.service
-    sudo systemctl mask systemd-rfkill.service
-    sudo systemctl mask systemd-rfkill.socket
+    sudo systemctl enable tlp.service > /dev/null 2>&1
+    sudo systemctl start tlp.service > /dev/null 2>&1
+    sudo systemctl mask systemd-rfkill.service > /dev/null 2>&1
+    sudo systemctl mask systemd-rfkill.socket > /dev/null 2>&1
     printf "The tlp service is enabled and started.\n"
   elif is_sysv; then
-    sudo tlp start
+    sudo tlp start > /dev/null 2>&1
     printf "The tlp service is started.\n"
   else
     printf "Init system is not Systemd or SysV.\n"
