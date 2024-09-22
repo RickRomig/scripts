@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 20 May 2024
+# Updated      : 22 Sep 2024
 # Comments     : Mount points are at ~/mnt/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,15 +28,16 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.3.24141"
-readonly _updated="20 May 2024"
+readonly _version="4.4.24266"
+readonly _updated="22 Sep 2024"
 readonly local_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
 
 mount_share() {
-  local octet="$1"
-  local share="$2"
+	local octet share
+	octet="$1"
+  share="$2"
   ping -c3 "$localnet.$octet" > /dev/null 2>&1 || die "$share at $localnet.$octet is not online."
 	[[ -d "$HOME/mnt/$share/" ]] || mkdir -p "$HOME/mnt/$share"
 	printf "Mounting %s...\n" "$share"
@@ -67,8 +68,9 @@ mounted() {
 }
 
 handle_mount() {
-	local octet="$1"
-  local share="$2"
+	local octet share
+	octet="$1"
+  share="$2"
   if mounted "$share"; then
 		if default_yes "Unmount $share"; then
 			unmount_share "$share"
@@ -93,10 +95,14 @@ fail_msg() {
 }
 
 help() {
-	errcode="${1:-2}"
+	local errcode="${1:-2}"
 	cat << END_HELP
+${orange}$_script${normal} $_version, Updated $_updated
+Mounts/Unmounts an SSHFS share.
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
+
+${orange}Availabel options:${normal}
   -e  toggle mount/umount HP EliteBook 850 G3 (laptop)
   -f  toggle mount/umount HP ProBook 6570b (Finance)
   -g  toggle mount/umount HP Compaq Elite 8300 USDT (Gitea Server)
@@ -105,7 +111,6 @@ ${orange}OPTIONS:${normal}
   -m  toggle mount/umount HP 800 G2 (Main system)
   -n  toggle mount/umount QNAP NAS (network attached storage)
   -s  toggle mount/umount HP Compaq 6005 Pro SSF (file server)
-$_script v$_version (Updated: $_updated)
 END_HELP
 	exit "$errcode"
 }
