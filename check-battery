@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 30 Jul 2020
-# Updated      : 14 Jun 2024
+# Updated      : 23 Sep 2024
 # Comments     : Obtains battery data from upower utility.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,35 +28,35 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.4.24166"
-readonly _updated="14 Jun 2024"
+readonly _version="4.5.24267"
+readonly _updated="23 Sep 2024"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  cat << EOF
+  _updated="23 Sep 2024"
+  cat << END_HELP
 ${orange}$_script${normal} $_version, Upated: $_updated
 Shows battery charge and health information
 
-${green}Usage:${normal} $_script [-h|--help]
-       $_script [-v|--version]
-
+${green}Usage:${normal} $_script [OPTION]
 With no argument, displays battery health information.
 
 ${orange}Options:${normal}
   -h,--help     Show this help text
   -v,--version  Show version and information
-EOF
+  With no argument, displays battery health information.
+END_HELP
   exit "$errcode"
 }
 
 version() {
-  cat <<- EOF
+  cat << VER_INFO
   $_script $_version, Upated: $_updated
-  Displays the charge state and health of a laptop battery using data obtained
-  from the upower utilty.
-EOF
+Displays the charge state and health of a laptop battery using data obtained
+from the upower utilty.
+VER_INFO
 }
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
@@ -148,7 +148,7 @@ if [[ $# -gt 0 ]]; then
       exit
     ;;
     * )
-    printf "%sInvalid argument:%s %s\n" "$lightred" "$normal" "$1" >&2
+      printf "%s Invalid argument - %s\n" "$red_error" "$1" >&2
     help 2
   esac
 fi
