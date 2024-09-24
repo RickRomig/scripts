@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 13 Sep 2024
+# Last updated : 24 Sep 2024
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins. (https://www.ezeelinux.com)
 #              : Joe's code at: https://github.com/EzeeLinux/bu-usb_backup_tool
 # TODO (Rick)  :
@@ -29,8 +29,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.4.24257"
-readonly _updated="13 Sep 2024"
+readonly _version="4.4.24268"
+readonly _updated="24 Sep 2024"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -54,14 +54,16 @@ check_usb() {
 }
 
 bu_drive_label() {
+	local bu_label
 	bu_label="$(lsblk -o label | grep -w BU_Drive)"
 	[[ -n "$bu_label" ]] && return "$TRUE" || return "$FALSE"
 }
 
 check_uuid() {
-  local uuid=( "5d3290de-3fa7-4e3c-94b8-aca062c427ef" "5d1a8caa-36cf-4a36-8457-1a2bb2f85fd3" "89740987-ca0a-4b33-bb56-9055bb9e1daa" )
-  local hname=( "hp-800g2-sff" "hp-850-g3" "hp-probook-6570" )
-	local uuid_path="/dev/disk/by-uuid"
+	local hname uuid uuid_path
+  uuid=( "5d3290de-3fa7-4e3c-94b8-aca062c427ef" "5d1a8caa-36cf-4a36-8457-1a2bb2f85fd3" "89740987-ca0a-4b33-bb56-9055bb9e1daa" )
+  hname=( "hp-800g2-sff" "hp-850-g3" "hp-probook-6570" )
+	uuid_path="/dev/disk/by-uuid"
 
 	if [[ -L "$uuid_path/${uuid[0]}" ]]; then
 		[[ "$host" == "${hname[0]}" ]] && return "$TRUE" || return "$FALSE"
