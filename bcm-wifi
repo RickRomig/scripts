@@ -4,8 +4,10 @@
 # Description  : downloads and installs Broadcom WiFi driver
 # Dependencies : wget
 # Arguments    : None
-# Author       : Copyright (C) 2019, Richard Romig, 09 January 2019
+# Author       : Copyright (C) 2019, Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 09 Jan 2019
+# Updated      : 24 Sep 2024
 # Comment      : Linux kernel 4.15 update may break Braoadcom driver
 #              : on Linux Mint 18.3 (Ubuntu 16.04)
 #              : 2560p = BCM43224, Mini-110 = BCM4313, 6570b = BCM43228
@@ -15,7 +17,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -29,27 +30,25 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.1.7"
-readonly _updated="24 Aug 2023"
-
+readonly _version="1.7.24268"
 readonly bcm_dir="$HOME/Downloads/Drivers/Wifi/Broadcom"
 readonly bcm_drvr="bcmwl-kernel-source_6.30.223.271%2Bbdcom-0ubuntu7~20.04.2_amd64.deb"
-# readonly bcm_drvr="bcmwl-kernel-source_6.30.223.271%2Bbdcom-0ubuntu8_amd64.deb"
 
 # Older drivers
-# bcm_drvr="bcmwl-kernel-source_6.30.223.271+bdcom-0ubuntu5_amd64.deb"
-# bcm_drvr="bcmwl-kernel-source_6.30.223.271+bdcom-0ubuntu4_amd64.deb"
-# bcm_drvr="bcmwl-kernel-source_6.30.223.271%2Bbdcom-0ubuntu5~18.04.1_amd64.deb"
+# readonly bcm_drvr="bcmwl-kernel-source_6.30.223.271%2Bbdcom-0ubuntu8_amd64.deb"
+# readonly bcm_drvr="bcmwl-kernel-source_6.30.223.271+bdcom-0ubuntu5_amd64.deb"
+# readonly bcm_drvr="bcmwl-kernel-source_6.30.223.271+bdcom-0ubuntu4_amd64.deb"
+# readonly bcm_drvr="bcmwl-kernel-source_6.30.223.271%2Bbdcom-0ubuntu5~18.04.1_amd64.deb"
 
 ## Functions ##
 
 intro() {
-  cat <<- EOF
+  cat <<- END_INTRO
   Broadcom Wireless devices may break after a Kernel upgrade.
   Check http://mirrors.kernel.org/ubuntu/pool/restricted/b/bcmwl/ for the latest version.
   Download the latest version to ~/Downloads/Drivers/Wifi/Broadcom
   and update this script.
-EOF
+END_INTRO
 }
 
 download_driver() {
@@ -66,18 +65,17 @@ install_driver() {
   if sudo dpkg -i "$bcm_dir/$bcm_drvr"; then
     leave "Broadcom WiFi driver installed."
   else
-    die "Broadcom WiFi driver installation failed."
+    die "Broadcom WiFi driver installation failed." 1
   fi
 }
 
 ## Execution ##
 
-# Install wget if not already installed
 check_package wget
 
-box "$_script v$_version ($_updated)"
+box "$_script v$_version"
 intro
-if lspci | grep -q "Network controller: Broadcom"; then
+if lspci | grep -iqw Broadcom; then
   if default_no "Download and install Broadcom WiFi driver?"; then
     download_driver
     install_driver
