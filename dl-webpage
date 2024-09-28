@@ -6,6 +6,8 @@
 # Arguments    : URL of page to be downloaded
 # Author       : Copyright (C) 2019, Richard B. Romig, 02 Nov 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 02 Nov 2019
+# Updated      : 28 Sep 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -26,48 +27,72 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="0.1.9"
-readonly _updated="04 Feb 2023"
+script=$(basename "$0"); readonly script
+readonly version="2.0.24272"
 
 ## Functions ##
 
-usage() {
-  local errcode="${1:-2}"
-  echo "Usage: $_script <URL>"
-  echo "Example: $_script https://example.com/index.html"
+help() {
+  local errcode updated
+  errcode="${1:-2}"
+  updated="28 Sep 2024"
+  cat << END_HELP
+${orange}$script${normal} $version, Updated: $updated
+Downloads a web page to the current directory.
+
+${green}Usage:  ${normal} $script [URL] [OPTOON]
+${green}Example:${normal} $script https://example.com/index.html
+
+${orange}Available options:${normal}
+  -h | --help  Show help
+
+  Example: $script https://example.com/index.html
+END_HELP
   exit "$errcode"
+}
+
+download_page() {
+  local domain url
+  domain="$1"
+  url="$2"
+  if wget --quiet --recursive --no-clobber --page-requisites --html-extension \
+    --convert-links --restrict-file-names=windows --domains "$domain" \
+    --no-parent "$url"
+  then
+    return 0
+  else
+    status="$?"
+    return "$status"
+  fi
+}
+
+main() {
+  local cur_d domain ec url
+  cur_d="$PWD"
+  if [[ "$#" -eq 0 ]]; then
+    printf "%s No argument passed.\n" "$red_error" >&2
+    help 1
+  elif [[ "$1" = "--help" || "$1" = "-h" ]]; then
+    help 0
+  elif [[ "$1" =~ ^https?:\/\/.* ]]; then
+    url="$*"
+    domain=$(echo "$url" | sed -e 's|^[^/]*//||' -e 's|^www\.||' -e 's|/.*$||')
+  else
+    printf "%s Invalid parameter - %s\n" "$red_error" "$1" >&2
+    help 2
+  fi
+
+  printf "Downloading %s to %s\n" "$url" "$cur_d"
+  download_page "$domain" "$url"; ec="$?"
+  if [[ "$ec" -eq 0 ]]; then
+    leave "$url successfully downloaded."
+  else
+    die "Download failed with exit status $ec." "$ec"
+  fi
+  printf "%s v%s\n" "$script" "$version"
 }
 
 ## Execution ##
 
-# Install wget if not already installed
-echo "Checking dependencies..."
 check_package wget
-
-# Check for argument
-
-if [[ $# -eq 0 ]]; then
-  echo "${lightred}\Error:${normal} No argument passed." >&2
-  usage 2
-elif [[ "$1" = "--help" || "$1" = "-h" ]]; then
-  usage 0
-else
-  url="$1"
-  domain=$(echo "$url" | sed -e 's|^[^/]*//||' -e 's|^www\.||' -e 's|/.*$||')
-fi
-
-echo "$_script v$_version ($_updated)"
-echo "Downloads a web page to the current directory."
-echo $'\n'$"Downloading $url..."
-
-# Download the requested web page to the current directory
-
-if wget --recursive --no-clobber --page-requisites --html-extension \
-    --convert-links --restrict-file-names=windows --domains "$domain" \
-    --no-parent "$url"; then
-  leave "$url successfully downloaded."
-else
-  status="$?"
-  die "Download failed." "$status"
-fi
+main "$@"
