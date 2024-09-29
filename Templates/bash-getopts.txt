@@ -4,11 +4,11 @@
 # Script Name  : <FILE>
 # Description  :
 # Dependencies :
-# Arguments    :
+# Arguments    : See help() function for available options.
 # Author       : Copyright <YEAR> <AUTHOR>, <ORG>
 # Email        : <EMAIL> | <EMAIL1>
 # Created      : <TODAY>
-# Last updated : <TODAY>
+# Updated      : <TODAY>
 # Comments     :
 # TODO (<CODER>)  :
 # License      : <LICENSE>
@@ -31,10 +31,11 @@ set -eu
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="<VERSION>"
-readonly _updated="<TODAY>"
+script=$(basename "$0"); readonly script
+readonly version="<VERSION>"
 verbose_mode="$FALSE"
+tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." 1
 
 ## Functions ##
 
@@ -50,13 +51,20 @@ cleanup() {
 	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
 }
 
+app_version() {
+	# application --version
+	dpkg -l application | awk '/ii/ {print $3} | sed 's/[~+-].*//'
+}
+
 help() {
+	local errcode updated
 	errcode="${1:-2}"
+	updated="<TODAY>"
 	cat << END_HELP
-${orange}$_script${normal} $_version, Upated: $_updated
+${orange}$script${normal} $version, Upated: $updated
 Short description
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
 	-h	Show help
@@ -69,64 +77,65 @@ END_HELP
   exit "$errcode"
 }
 
-app_version() {
-	application --version
-}
-
 show_message() {
 	local message="$1"
 	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
 
+main() {
+	# clear
+	noOpt=1
+	optstr=":hirsuv"
+	# optstr=":h:i:r:s:u:v"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			h )
+				help 0
+			;;
+			i )
+				# argI="$OPTARG"
+				exists application && leave "Application $(appversion) is already installed."
+				install_application
+				apply_settings	# optional custom configuration
+			;;
+			r )
+				# argR="$OPTARG"
+				exists application || leave "Application is not installed."
+				remove_application
+			;;
+			s )
+				apply_settings
+			;;
+			u )
+				exists application || leave "Application is not installed."
+				update_application
+			;;
+			v )
+				verbose_mode="$TRUE"
+				show_message "Verbose mode enabled."
+			;;
+			: )
+				# echo "${lightred}ERROR:${normal} Must supply an argument to -${OPTARG}." >&2
+				printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
+				help 2
+	  	;;
+			? )
+				# echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+				printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	# [[ "$noOpt" = 1 ]] && { echo "${lightred}ERROR:${normal} No argument passed." >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	# echo "$script v$version"
+	# printf "%s v%s\n" "$script" "$version"
+	# exit
+	leave "$script $version"
+}
+
 ## Execution ##
 
-# clear
-noOpt=1
-optstr=":hirsuv"
-# optstr=":h:i:r:s:u:v"
-while getopts "$optstr" opt; do
-	case "$opt" in
-		h )
-			help 0
-		;;
-		i )
-			# argI="$OPTARG"
-			exists application && leave "Application $(app_version) is already installed."
-			install_application
-			apply_settings	# optional custom configuration
-		;;
-		r )
-			# argR="$OPTARG"
-			exists application || leave "Application is not installed."
-			remove_application
-		;;
-		s )
-			apply_settings
-		;;
-		u )
-			exists application || leave "Application is not installed."
-			update_application
-		;;
-		v )
-			verbose_mode="$TRUE"
-			show_message "Verbose mode enabled."
-		;;
-		: )
-			# echo "${lightred}ERROR:${normal} Must supply an argument to -${OPTARG}." >&2
-			printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
-			help 2
-	  ;;
-		? )
-			# echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
-			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-			help 2
-	esac
-	noOpt=0
-done
-# [[ "$noOpt" = 1 ]] && { echo "${lightred}ERROR:${normal} No argument passed." >&2; help 1; }
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-# echo "$_script v$_version"
-# printf "%s v%s\n" "$_script" "$_version"
-# exit
-leave "$_script $_version"
+trap cleanup EXIT	# for temp files and directories
+main "$@"
