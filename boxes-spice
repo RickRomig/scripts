@@ -5,6 +5,8 @@
 # Dependencies : none
 # Arguments    : none
 # Author       : Copyright (C) 2021, Richard B. Romig, 16 Sep 2021
+# Created      : 16 Sep 2021
+# Updated      : 29 Sep 2024
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Supports Arch and Debian-based operating systems.
 # TODO (Rick)  :
@@ -13,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -24,23 +25,29 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="0.1.4"
-readonly _updated="15 May 2023"
+## Functions ##
+
+main() {
+  local script version
+  script=$(basename "$0")
+  version="1.5.24273"
+  sudo_login 2
+  box "$script v$version"
+  printf "Installs Spice Tools Guest Additions to a Gnome Boxes VM\n"
+  if is_arch; then
+    sudo pacman -Sy
+    sudo pacman -S spice-vdagent spice-webdavd
+  elif debian_based; then
+    sudo apt-get update
+    sudo apt-get install -y spice-vdagent spice-webdavd
+  else
+    die "Unsupported operating system." 1
+  fi
+  leave "Spice Tools Guest Additions installed."
+}
 
 ## Execution ##
 
-clear
-box "$_script v$_version ($_updated)"
-if [[ -d /etc/pacman.d ]]; then
-  sudo pacman -Sy
-  sudo pacman -S spice-vdagent spice-webdavd
-elif [[ -d /etc/apt ]]; then
-  sudo apt install -yy spice-vdagent spice-webdavd
-else
-  die "Unsupported Operating System." 1
-fi
-
-exit
+main
