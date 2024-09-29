@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Script Name  : cal-todo
-# Description  : Example script to display command output and file side by side.
-# Dependencies : none
-# Arguments    : none
+# Description  : Display calendar and ToDo list side by side.
+# Dependencies : micro or nano
+# Arguments    : see help() function for available options
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Dec 2022
-# Updated      : 27 Apr 2024
+# Updated      : 29 Sep 2024
 # Comments     : base script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
 #              : Limit to-do list to 7 items to maintain proper formating.
-#              : If no argument is passed, defaults to current month and todo list.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -27,12 +26,11 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.10.24118"
-readonly _updated="27 Apr 2024"
-readonly docdir="$HOME/.local/share/doc"
+script=$(basename "$0"); readonly script
+readonly version="3.0.24273"
+readonly doc_dir="$HOME/.local/share/doc"
 readonly todolist="todo.lst"
 calendar=$(mktemp -q) || die "Failed to create temporary file." 1
 
@@ -45,70 +43,80 @@ cleanup() {
 }
 
 help() {
-	local errcode="${1:-2}"
+	local errcode updated
+	errcode="${1:-2}"
+	updated="29 Sep 2024"
 	cat << END_HELP
-Usage: $_script [OPTION]
-OPTIONS:
+${orange}$script${normal} $version, Updated: $updated
+Creates/displays/edits a simple to-do list with a calendar.
+
+${green}Usage:${normal} $script [OPTION]
+
+Usage: $script [OPTION]
+
+${orange}Available options:${normal}
 	-c  display current month calendar and to-do list.
 	-d  display 3 month calendar and to-do list.
 	-e  edit/create to-do list.
 	-h  display help
-	NOTE: To-do list should be limited to 7 short items.
+	NOTE: To-do list should be limited to 7 short items to maintain format.
 END_HELP
-	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 	exit "$errcode"
 }
 
 edit_todo() {
 	if exists micro; then
-		/usr/bin/micro "$docdir/$todolist"
-	else0 Dec 202
-		/usr/bin/nano "$docdir/$todolist"
+		/usr/bin/micro "$doc_dir/$todolist"
+	else
+		/usr/bin/nano "$doc_dir/$todolist"
 	fi
 }
 
 create_todo() {
 	local templates="$HOME/bin/Templates"
 	printf "Creating todo list...\n"
-	[[ -d "$docdir" ]] || mkdir -p "$docdir"
-	cp "$templates/$todolist" "$docdir/"
+	[[ -d "$doc_dir" ]] || mkdir -p "$doc_dir"
+	cp "$templates/$todolist" "$doc_dir/"
 	edit_todo
+}
+
+main() {
+	noOpt=1
+	optstr=":cdeh"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			c )
+				[[ -f "$doc_dir/$todolist" ]] || create_todo
+				cal > "$calendar"
+				paste "$calendar" "$doc_dir/$todolist"
+			;;
+			d )
+				[[ -f "$doc_dir/$todolist" ]] || create_todo
+				cal -3 > "$calendar"
+				paste "$calendar" "$doc_dir/$todolist"
+			;;
+			e )
+				if [[ -f "$doc_dir/$todolist" ]]; then
+					edit_todo
+				else
+					create_todo
+				fi
+			;;
+			h )
+				help 0
+			;;
+			? )
+				printf "%s Invalid option: -%s\n" >&2 "$red_error" "$OPTARG"
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	leave "$script v$version"
 }
 
 ## Execution ##
 
 trap cleanup EXIT
-
-noOpt=1
-optstr=":cdeh"
-while getopts "$optstr" opt; do
-	case "$opt" in
-		c )
-			[[ -f "$docdir/$todolist" ]] || create_todo
-			cal > "$calendar"
-			paste "$calendar" "$docdir/$todolist"
-		;;
-		d )
-			[[ -f "$docdir/$todolist" ]] || create_todo
-			cal -3 | sed '1d' > "$calendar"
-			paste "$calendar" "$docdir/$todolist"
-		;;
-		e )
-			if [[ -f "$docdir/$todolist" ]]; then
-				edit_todo
-			else
-				create_todo
-			fi
-		;;
-		h )
-			help 0
-		;;
-		? )
-			printf "%s Invalid option: -%s\n" >&2 "$red_error" "$OPTARG"
-			help 2
-	esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version"
+main "$@"
