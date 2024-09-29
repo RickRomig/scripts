@@ -4,7 +4,7 @@
 # Script Name  : <FILE>
 # Description  :
 # Dependencies :
-# Arguments    :
+# Arguments    : See help() function for available options.
 # Author       : Copyright <YEAR> <AUTHOR>, <ORG>
 # Email        : <EMAIL> | <EMAIL1>
 # Created      : <TODAY>
@@ -31,19 +31,39 @@ set -eu
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="<VERSION>"
-readonly _updated="<TODAY>"
+script=$(basename "$0"); readonly script
+readonly version="<VERSION>"
+tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." 1
 
 ## Functions ##
 
+check_dependencies() {
+  local packages=( gdebi wget )
+  check_packages "${packages[@]}"
+}
+
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+cleanup() {
+	[[ -f "$tmp_file" ]] && rm "$tmp_file"
+	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+}
+
+app_version() {
+	# application --version
+	dpkg -l application | awk '/ii/ {print $3} | sed 's/[~+-].*//'
+}
+
 help() {
-  local errcode="${1:-2}"
+	local errcode updated
+	errcode="${1:-2}"
+	updated="<TODAY>"
   cat << END_HELP
-${orange}$_script${normal} $_version, Updated: $_updated
+${orange}$script${normal} $version, Updated: $updated
 Short description
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -h  Show help
@@ -52,17 +72,30 @@ END_HELP
   exit "$errcode"
 }
 
-check_dependencies() {
-  local packages=( gdebi wget )
-  check_packages "${packages[@]}"
+main() {
+  # Check arguments
+  if [[ "$#" -eq 0 ]]; then
+    printf "%s No argument passed.\n" "$red_error" >&2
+    help 1
+  elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    help 0
+  elif [[ -f "$1" ]]; then
+    printf "%s %s already exists." "$red_error" "$1" >&2
+    help 2
+  elif [[ ! -f "$1" ]]; then
+    printf "%s %s not found." "$red_error" "$1" >&2
+  else
+    filename="$1"
+  fi
+
+  # echo "$script v$version"
+  # printf "%s v%s\n" "$script" "$version"
+  # exit
+  leave "$script $version"
+
 }
 
 ## Execution ##
 
-# clear
-
-
-# echo "$_script v$_version"
-# printf "%s v%s\n" "$_script" "$_version"
-# exit
-leave "$_script $_version"
+trap cleanup EXIT	# for temp files and directories
+main "$@"
