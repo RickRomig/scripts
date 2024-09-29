@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 14 Sep 2024
+# Last updated : 29 Sep 2024
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -726,7 +726,7 @@ check_packages() {
 in_repos() {
   local in_repo package
   package="$1"
-  in_repo=$(apt-cache show "$package" 2>/dev/null)
+  in_repo=$(apt-cache show "$package" 2>/dev/null | awk '/Package:/ {print $NF}')
   [[ "$in_repo" ]] && return "$TRUE" || return "$FALSE"
 }
 
