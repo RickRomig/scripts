@@ -10,31 +10,52 @@
 # License      : GNU General Public License, version 2.0
 #####################################################################
 
-# Variables
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
 
-_script=$(basename "$0"); readonly _script
-readonly _version="0.1.6"
-readonly _updated="12 Mar 2023"
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+check_tools() {
+	local package packages
+	packages=( binutils build-essential gcc mingw )
+	for package in "${packages[@]}"; do
+		printf "%s is " "$package"
+		if dpkg -l "$package" > /dev/null 2>&1; then
+			printf "installed.\n"
+		else
+			printf "not installed.\n"
+		fi
+	done
+}
+
+check_glibc() {
+	printf "The GNU C standard library (glibc) is "
+	if exists ldd; then
+		printf "installed.\n"
+	else
+		printf "not installed.\n"
+	fi
+}
+
+main() {
+	local _script _version _updated
+	_script=$(basename "$0")
+	_version="2.0.24274"
+	_updated="30 Sep 2024"
+	box "$_script v$_version ($_updated)"
+	printf "Checking for deveolopment tools...\n"
+	check_tools
+	check_glibc
+	exit
+}
 
 # Execution
 
-clear
-box "$_script v$_version ($_updated)"
-echo -e "C development tools status: \n"
-
-gcc -v > /dev/null 2>&1 && echo -e "\tGCC installed." || \
- echo -e "\tGCC is not installed!"
-
-ld -v > /dev/null 2>&1 && echo -e "\tbinutils installed." || \
- echo -e "\tbinutils is not installed!"
-
-locate glibc > /dev/null 2>&1 && echo -e "\tGNU C standard library installed." || \
- echo -e "\tGNU C standard library not installed."
-
-[[ -d "/usr/include/" ]] && echo -e "\tbuild-essential installed.\n" || \
- echo -e "\tbuild-essential is not installed.\n"
-
-dpkg -l | grep -qw mingw && echo -e "\tminGW installed." || \
- echo -e  "\tminGW not installed."
-
-exit
+main "$@"
