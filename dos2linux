@@ -4,58 +4,77 @@
 # Description  : converts DOS text files to Linux format
 # Dependencies : none
 # Arguments    : file to be converted
-# Author       : Copyright (C) 2019, Richard Romig, 24 January 2019
+# Author       : Copyright (C) 2019, Richard Romig, 24 Jan 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 24 Jan 2019
+# Updated      : 30 Sep 2024
 # TODO (Rick)  :
 # Comment      : removes DOS carriage return ('\r') characters
 # License      : GNU General Public License, version 2.0
 #####################################################################
 
-# Copyright (C) 2019  Richard Romig
-# Email: rick.romig@gmail.com
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program. If not, see <https://www.gnu.org/licenses/>.
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
 
-usage() {
-  local errcode="${1:-2}"
-  echo "Usage: $_script <file>"
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+script=$(basename "$0"); readonly script
+readonly version="1.2.24274"
+
+## Functions ##
+
+help() {
+	local errcode updated
+	errcode="${1:-2}"
+	updated="30 Sep 2024"
+  cat << _HELP_
+${orange}$script${normal} $version, Updated: $updated
+Utility to convert DOS text files to Linux format by removing carriage returns.
+
+${green}Usage:${normal} $script [OPTION]
+
+${orange}Available options:${normal}
+  -h | --help  Show help
+NOTE: Converts files in the current working directory.
+_HELP_
   exit "$errcode"
 }
 
-_script=$(basename "$0"); readonly _script
-readonly _version="1.0.11"
-readonly _updated="12 Mar 2023"
+convert_file() {
+  local filename="$1"
+  printf "Removing the carriage return characters from %s\n" "$filename"
+  printf "and creating a backup (%s.bak) of the orginal file."  "$filename"
+  sed -i.bak 's/\r//g' "$filename"
+}
 
-# check arguments
+main() {
+  local filename
 
-if [[ $# -eq 0 ]]; then
-  echo -e "\e[91mError:\e[0m No arguments passed." >&2
-  usage 2
-elif [[ -f "$1" ]]; then
-  filename="$1"
-else
-  echo -e "\e[91mError:\e[0m $1 not found." >&2
-  usage 2
-fi
+  if [[ "$#" -eq 0 ]]; then
+    printf "%s No argument passed.\n" "$RED_ERROR" >&2
+    help 1
+  elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    help 0
+  elif [[ ! -f "$1" ]]; then
+    printf "%s %s not found.\n" "$RED_ERROR" "$1" >&2
+    help 2
+  else
+    filename="$1"
+    convert_file "$filename"
+  fi
+  over_line "$script $version"
+  exit
+}
 
-echo "$_script v$_version ($_updated)"
-echo "Converts DOS text files to Linux format by removing carriage return characters."
+## Execution ##
 
-# convert the file
-
-echo "Removing the carriage return characters from $filename while creating a backup"
-echo "of the orginal file."
-sed -i.bak -e 's/\r//g' "$filename"
-
-exit
+main "$@"
