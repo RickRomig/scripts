@@ -13,11 +13,6 @@
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
-## Global Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="3.2.24231"
-
 ## Functions ##
 
 exist_git() {
@@ -33,17 +28,21 @@ exist_git() {
 clone_repo() {
   local dl_dir git_repo gitea_svr
   git_repo="$1"
-  gitea_svr="http://192.168.0.16:3000/Nullifidian"
   dl_dir="$HOME/Downloads"
+  gitea_svr="http://192.168.0.16:3000/Nullifidian"
   git clone "$gitea_svr/$git_repo.git" "$dl_dir/$git_repo"
 }
 
 main() {
-  local index _repo
+  local index _repo repos script version
+  script=$(basename "$0")
+  version="3.3.24274"
+
+  printf "Clone a repository from the local Gitea server.\n\n"
   printf "Available repositories:\n"
   COLUMNS=40
   PS3="Choose a repository to clone: "
-  declare -a -r repos=( scripts configs i3debian deb12wm-scripts deb12wm-dotfiles gitea-server openboxdebian fnloc fnloc-win homepage )
+  repos=( scripts configs i3debian deb12wm-scripts deb12wm-dotfiles gitea-server openboxdebian fnloc fnloc-win homepage )
   select _repo in "${repos[@]}" "Exit"; do
 	  if (( REPLY == 1 + ${#repos[@]} )); then
 		  printf "Exiting. No repository selected or cloned.\n"
@@ -57,13 +56,11 @@ main() {
 		  printf "Invalid option. Choose 1 - %d\n" "${#repos[@]}"
 	  fi
   done
+  printf "%s v%s\n" "$script" "$version"
+  exit
 }
 
 ## Execution ##
 
 exist_git
-
-printf "%s v%s\n" "$_script" "$_version"
-printf "Clone a repository from the local Gitea server.\n\n"
-main
-exit
+main "$@"
