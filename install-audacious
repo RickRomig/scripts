@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2020
-# Updated      : 16 Jun 2024
+# Updated      : 30 Sep 2024
 # Comments     : Does not support installation from Ubuntu PPAs or flatpak.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,27 +25,29 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.1.24168"
-readonly _updated="16 Jun 2024"
+script=$(basename "$0"); readonly script
+readonly version="2.2.24274"
 
 ## Functions ##
 
 help() {
+  local errcode updated
 	errcode="${1:-2}"
-	cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  updated="30 Sep 2024"
+
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Install or remove Audacious audio player
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -h  Display help
   -i  Install Audacious audio player
   -r  Remove Audacious audio player
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
@@ -68,29 +70,34 @@ remove_audacious() {
   printf "Audacious audio player removed.\n"
 }
 
+main() {
+  local noOpt opt optstr
+  noOpt=1
+  optstr=":hir"
+  while getopts "$optstr" opt; do
+	  case "$opt" in
+		  h )
+			  help 0
+		  ;;
+      i )
+        exists audacious && leave "Audacious audio player is already installed."
+        install_audacious
+      ;;
+      r )
+        exists audacious || leave "Audacious audio player is not installed."
+        remove_audacious
+      ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+    noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  leave "$script v$version"
+}
+
 ## Execution ##
 
-noOpt=1
-optstr=":hir"
-while getopts "$optstr" opt; do
-	case "$opt" in
-		h )
-			help 0
-		;;
-    i )
-      exists audacious && leave "Audacious audio player is already installed."
-      install_audacious
-    ;;
-    r )
-      exists audacious || leave "Audacious audio player is not installed."
-      remove_audacious
-    ;;
-    ? )
-      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-      help 2
-  esac
-  noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version"
+main "$@"
