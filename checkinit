@@ -6,10 +6,9 @@
 # Arguments    : None
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Crated       : 07 Sep 2022
-# Updated      : 30 Apr 2024
+# Created      : 07 Sep 2022
+# Updated      : 30 Sep 2024
 # Comments     : partially based on code by Jake@Linux <https://gitlab.com/jped>
-#              : The else in find_init() will detect runit.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -26,11 +25,6 @@ else
   exit 1
 fi
 
-## Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="1.4.24121"
-
 ## Functions ##
 
 find_init() {
@@ -41,6 +35,7 @@ find_init() {
 	elif [[ -f /sbin/openrc ]]; then
 		printf "OpenRC"
 	else
+		# will detect runit
 		file='/proc/1/comm'
 		if [[ -r "$file" ]]; then
 			read -r data < "$file"
@@ -51,8 +46,15 @@ find_init() {
   fi
 }
 
+main() {
+	local script version
+	script=$(basename "$0")
+	version="1.5.24274"
+	printf "Init System: %s \n" "$(find_init)"
+	printf "%s v%s\n" "$script" "$version"
+	exit
+}
+
 ## Execution ##
 
-printf "%s v%s\n" "$_script" "$_version"
-printf "Init System: %s \n" "$(find_init)"
-exit
+main "$@"
