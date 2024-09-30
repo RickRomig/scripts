@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Aug 2019
-# Last updated : 30 Jun 2024
+# Last updated : 30 Sep 2024
 # Comments     : For entertainiment purposes only.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -24,11 +24,8 @@ else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
-## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="5.1.24182"
-bs_level=$(shuf -i 0-100 -n 1)
+## Global Variables ##
 
 ## Functions ##
 
@@ -69,11 +66,11 @@ scale_marks() {
 
 print_indicator() {
   local level="$1"
-  echo -n "${bold}${orange} "
+  printf "%s%s" "$bold" "$orange"
   for (( i=0; i <= "$level"; i++ )); do
-    echo -n "*"
+    printf "*"
   done
-  echo -e "${normal}\n"
+  printf "%s\n" "$normal"
 }
 
 print_analysis() {
@@ -118,19 +115,28 @@ This program is for entertainment purposes only and its accuracy cannot be guara
 _EOF_
 }
 
+main() {
+  local bs_level script version
+  script=$(basename "$0")
+  version="5.2.24274"
+  bs_level=$(shuf -i 0-100 -n 1)
+
+  clear
+  print_disclaimer
+  read -rp "Statement to be analyzed: " _statement
+  printf "\nAnalyzing your statement "
+  dots "."
+  sleep "$(shuf -i 1-20 -n 1)"
+  kill "$!"
+  printf "\n"
+  tput cnorm
+  print_header
+  print_indicator "$bs_level"
+  print_analysis "$bs_level"
+  printf "\n%s v%s\n" "$script" "$version"
+  exit
+}
+
 ## Execution ##
 
-clear
-print_disclaimer
-read -rp "Statement to be analyzed: " _statement
-printf "\nAnalyzing your statement "
-dots "."
-sleep "$(shuf -i 1-20 -n 1)"
-kill "$!"
-printf "\n"
-tput cnorm
-print_header
-print_indicator "$bs_level"
-print_analysis "$bs_level"
-printf "\n%s v%s\n" "$_script" "$_version"
-exit
+main "$@"
