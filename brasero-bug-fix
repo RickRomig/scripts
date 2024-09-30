@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 #####################################################################
-# Script Name  : Brasero-bug-fix
+# Script Name  : brasero-bug-fix
 # Description  : Ubuntu 18.04/Linux Mint 19.x bug fix
 # Dependencies : None
 # Arguments    : None
-# Author       : Copyright (C) 2019, Richard B. Romig, 12 February 2019
+# Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 12 Feb 2019
+# Updated      : 30 Sep 2024
 # Comments     : Bug in Brasero where you can't burn CDs
 #              : When a blank CD or DVD is inserted but pop-up screen, but
 #              : gives no application to select or options are greyed out:
@@ -14,20 +16,18 @@
 # License      : GNU General Public License, version 2
 #####################################################################
 
-## Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="0.2.2"
-readonly _updated="10 Nov 2023"
+## Global Variables ##
 
 ## Functions ##
 
 intro () {
-  cat <<- EOF
+  cat << _INTRO_
   There is a bug in Brasero in Ubuntu 18.04 and in distributions derived from it
   (Linux Mint 19.x) that prevents the user from writng an audio CD. This script
   will set the permissions on the files necessary to enable this functionality.
-EOF
+  Thanks to Joe Collins and Matt Hartley for the information.
+
+_INTRO_
 }
 
 set_permissions() {
@@ -38,25 +38,33 @@ set_permissions() {
 }
 
 mimeapps_list_add() {
-  local mimeapps_list=".local/share/applications/mimeapps.list"
+  local mimeapps_list="$HOME/.local/share/applications/mimeapps.list"
   if [[ -f "$HOME/$mimeapps_list" ]]; then
     if grep -qw 'brasero' "$HOME/$mimeapps_list"; then
+      echo "Updating mimeapps.iist..."
       {
         echo "x-content/blank-cd=brasero.desktop;"
         echo "x-content/blank-dvd=brasero.desktop;"
-      } >> "$HOME/$mimeapps_list"
+      } >> "$mimeapps_list"
     fi
   fi
 }
 
+main() {
+  local script version
+  script=$(basename "$0")
+  version="3.0.24274"
+  echo "$script v$version"
+  if command -v brasero > /dev/null 2>&1; then
+    intro
+    set_permissions
+    mimeapps_list_add
+  else
+    printf "Brasero is not installed.\nNothing to do.\n"
+  fi
+  exit
+}
+
 ## Execution ##
 
-echo "$_script v$_version ($_updated)"
-intro
-
-if exists brasero; then
-  set_permissions
-  mimeapps_list_add
-fi
-
-exit
+main "$@"
