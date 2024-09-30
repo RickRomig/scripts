@@ -25,11 +25,6 @@ else
   exit 1
 fi
 
-## Global Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="v1.3.24168"
-
 ## Functions ##
 
 install_from_repo() {
@@ -55,18 +50,21 @@ list_installed_apps() {
   done
 }
 
+main() {
+  local script version
+  script=$(basename "$0")
+  version="v1.3.24168"
+
+  sudo_login 2
+  sudo apt update -qq
+  printf "Installs audio applications on Debian/Ubuntu-based systems.\n"
+  install_from_repo
+  install_mp3gain
+  list_installed_apps
+  leave "$script $version"
+}
+
 ## Execution ##
 
 sudo_login 2
-
-# Update apt cache
-sudo apt update -qq
-
-# clear
-printf "%s v%s\n" "$_script" "$_version"
-printf "Installs audio applications on Debian/Ubuntu-based systems.\n"
-
-install_from_repo
-install_mp3gain
-list_installed_apps
-leave "Audio applications and utilities installed."
+main "$@"
