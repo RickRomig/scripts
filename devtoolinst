@@ -6,52 +6,49 @@
 # Arguments    : none
 # Author       : Copyright (C), Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Updated      : 30 Sep 2024
 # Comment      :
 # License      : GNU General Public License, version 2.0
 #####################################################################
 
-# Variables
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
 
-_script=$(basename "$0"); readonly _script
-readonly _version="0.1.4"
-readonly _updated="12 Mar 2023"
+## Source function library ##
 
-clear
-box "$_script v$_version ($_updated)"
-echo -e "Checking and installing C devlopment tools...\n"
-
-if gcc -v > /dev/null 2>&1; then
-  echo "GCC is already installed."
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
 else
-  echo "GCC is not installed!"
-  echo "Installing GCC..."
-  sudo apt install gcc -yy
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
 fi
 
-if ld -v > /dev/null 2>&1; then
-  echo "binutils is already installed."
-else
-  echo "binutils not installed."
-  echo "Installing binutils..."
-  sudo apt install binutils -yy
-fi
+## Functions ##
 
-if [[ -d "/usr/include/" ]]; then
-  echo "build-essential already installed."
-else
-  echo "build-essential not installed."
-  echo "Installing build-essential..."
-  sudo apt install build-essential -yy
-fi
+check_tools() {
+  local package packages
+  packages=( binutils build-essential gcc )
+	for package in "${packages[@]}"; do
+		if dpkg -l "$package" > /dev/null 2>&1; then
+			printf "%s installed.\n" "$package"
+		else
+			printf "Installing %s.\n" "$package"
+      sudo apt-get install -y "$package"
+		fi
+	done
+}
 
-if dpkg -l | grep -gw mingw; then
-  echo "minGW installed."
-else
-  echo "minGW not installed."
-  echo "Installing minGW..."
-  sudo apt install mingw -yy
-fi
+main() {
+  local script version updated
+	script=$(basename "$0")
+	version="2.0.24274"
+	updated="30 Sep 2024"
+	box "$script v$version ($updated)"
+  printf "Checking and installing C devlopment tools...\n"
+  check_tools
+  exit
+}
 
-echo $'\n'$"C development installs complete."
+## Execution ##
 
-exit
+main "$@"
