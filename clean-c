@@ -4,8 +4,10 @@
 # Description  : Cleans up C programing in the current working directory
 # Dependencies : none
 # Arguments    : none
-# Author       : Copyright (C) 2019, Richard Romig, 8 February 2019
+# Author       : Copyright (C) 2019, Richard Romig,
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 08 Feb 2019
+# Updated      : 30 Sep 2024
 # Comment      : removes *~, *.o, and a.out in the current working directory
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -13,17 +15,15 @@
 
 # Variables
 
-_script=$(basename "$0"); readonly _script
-readonly _version="0.1.2"
-readonly _updated="18 Mar 2024"
+script=$(basename "$0"); readonly script
+readonly version="1.2.24274"
 
 work_dir=$(dirname "$(readlink -f "$0")"); readonly work_dir
 
 # Clean up current working directory, removing a.out, *.o *~ files
 
 clear
-box "$_script v$_version ($_updated)"
+box "$script v$version"
 echo $'\n'$"Cleaning up $work_dir..."
 find . -maxdepth 1 -type f \( -name "a.out" -o -iname "*.o" -o -iname "*~" \) -print -exec rm {} \;
-
 exit
