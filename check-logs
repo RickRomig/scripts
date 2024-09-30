@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 29 Aug 2019
-# Updated      : 18 Aug 2024
+# Updated      : 30 Sep 2024
 # Comments     : sudo access required to view Timeshift snapshots
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,17 +27,18 @@ fi
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="10.1.24231"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
 
 show_header() {
   clear
-  printf "%sI solemnly swear that I'm up to no good.%s\n" "$orange" "$normal"
-  printf "Displays the contents of selected log files.\n"
-  printf "Not all logs will be available on all systems.\n\n"
+  cat << _HEADER_
+${orange}I solemnly swear that I'm up to no good.${normal}
+Displays the contents of selected log files.
+Not all logs will be available on all systems.
+_HEADER_
+  printf "\n"
 }
 
 sysinfo() {
@@ -287,40 +288,6 @@ incremental_backups() {
   fi
 }
 
-main_menu() {
-	local _opt options
-	options=( "System logs" "Local logs" "Archive Logs" "Quit")
-	while true; do
-		show_header
-		COLUMNS=20
-		box "$lhost Main Menu" "*"
-		PS3="Select a category: "
-		select _opt in "${options[@]}"; do
-			case "$REPLY" in
-				1 )
-					system_logs
-					break
-				;;
-				2 )
-					local_logs
-					break
-				;;
-				3 )
-					archive_logs
-					break
-				;;
-				4 )
-					printf "\n%sMischief managed!%s\n" "$orange" "${normal}"
-					box "$_script v$_version" "*"
-					exit
-				;;
-				* )
-					printf "%sInvalid choice.%s Choose 1-%d.\n" "$lightred" "$normal" "${#options[@]}" >&2
-			esac
-		done
-	done
-}
-
 system_logs() {
 	local _opt options
 	options=( "System Information" "System Updates" "Timeshift Snapshots" "Defrag Report" "Yt-dlp Updates" "Main Menu" )
@@ -357,7 +324,7 @@ system_logs() {
 					break
 				;;
 				6 )
-					main_menu
+					main
 					break
 				;;
 				* )
@@ -394,7 +361,7 @@ local_logs() {
 					break
 				;;
 				4 )
-					main_menu
+					main
 					break
 				;;
 				* )
@@ -450,8 +417,44 @@ archive_logs() {
 					break
 				;;
 				8 )
-					main_menu
+					main
 					break
+				;;
+				* )
+					printf "%sInvalid choice.%s Choose 1-%d.\n" "$lightred" "$normal" "${#options[@]}" >&2
+			esac
+		done
+	done
+}
+
+main() {
+	local _opt options script version
+  script=$(basename "$0")
+  version="10.2.24274"
+	options=( "System logs" "Local logs" "Archive Logs" "Quit")
+	while true; do
+		show_header
+		COLUMNS=20
+		box "$lhost Main Menu" "*"
+		PS3="Select a category: "
+		select _opt in "${options[@]}"; do
+			case "$REPLY" in
+				1 )
+					system_logs
+					break
+				;;
+				2 )
+					local_logs
+					break
+				;;
+				3 )
+					archive_logs
+					break
+				;;
+				4 )
+					printf "\n%sMischief managed!%s\n" "$orange" "$normal"
+					box "$script v$version" "*"
+					exit
 				;;
 				* )
 					printf "%sInvalid choice.%s Choose 1-%d.\n" "$lightred" "$normal" "${#options[@]}" >&2
@@ -462,4 +465,4 @@ archive_logs() {
 
 ## Execution ##
 
-main_menu
+main "$@"
