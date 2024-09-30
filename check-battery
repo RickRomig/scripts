@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 30 Jul 2020
-# Updated      : 23 Sep 2024
+# Updated      : 30 Sep 2024
 # Comments     : Obtains battery data from upower utility.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,15 +28,15 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.5.24267"
-readonly _updated="23 Sep 2024"
+readonly _version="4.6.24274"
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-  _updated="23 Sep 2024"
-  cat << END_HELP
+  local errcode _updated
+  errcode="${1:-2}"
+  _updated="30 Sep 2024"
+  cat << _HELP_
 ${orange}$_script${normal} $_version, Upated: $_updated
 Shows battery charge and health information
 
@@ -47,16 +47,16 @@ ${orange}Options:${normal}
   -h,--help     Show this help text
   -v,--version  Show version and information
   With no argument, displays battery health information.
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
 version() {
-  cat << VER_INFO
+  cat << _VER_INFO_
   $_script $_version, Upated: $_updated
 Displays the charge state and health of a laptop battery using data obtained
 from the upower utilty.
-VER_INFO
+_VER_INFO_
 }
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
@@ -136,43 +136,50 @@ hidpp_battery() {
   printf "%s\n" "$(echo "$hidpp_data" | awk '/percentage/ {print $NF}')"
 }
 
+main() {
+  if [[ $# -gt 0 ]]; then
+    case "$1" in
+      -h|--help )
+        help 0
+      ;;
+      -v|--version )
+        version
+        exit
+      ;;
+      * )
+        printf "%s Invalid argument - %s\n" "$red_error" "$1" >&2
+      help 2
+    esac
+  fi
+  check_package upower
+  battery_check
+}
+
+battery_check() {
+  printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
+  if [[ -d /proc/acpi/button/lid/ ]]; then
+    if /usr/bin/upower -e | grep -q 'BAT'; then
+      battery_data=$(mktemp) || die "Failed to create temporary file." 1
+      trap cleanup EXIT
+      /usr/bin/upower -i "$(/usr/bin/upower -e | grep BAT)" > "$battery_data"
+      printf "\n%sBatter:%s %s\n" "$orange" "$normal" "$(awk '/native-path:/ {print $NF}' "$battery_data")"
+      battery_status
+      battery_capacity
+      battery_condition
+      battery_specs
+    else
+      printf "\n%sNo battery detected.%s\n" "$lightred" "$normal" >&2
+    fi
+    ac_status
+    /usr/bin/upower -e | grep -q mouse_hidpp_battery && hidpp_battery
+  else
+    printf "\nThis system is not a laptop.\n" >&2
+  fi
+  printf "\n%s v%s\n" "$_script" "$_version"
+  exit
+}
+
 ## Execution ##
 
-if [[ $# -gt 0 ]]; then
-  case "$1" in
-    -h|--help )
-      help 0
-    ;;
-    -v|--version )
-      version
-      exit
-    ;;
-    * )
-      printf "%s Invalid argument - %s\n" "$red_error" "$1" >&2
-    help 2
-  esac
-fi
-
-check_package upower
 clear
-printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
-if [[ -d /proc/acpi/button/lid/ ]]; then
-  if /usr/bin/upower -e | grep -q 'BAT'; then
-    battery_data=$(mktemp) || die "Failed to create temporary file." 1
-    trap cleanup EXIT
-    /usr/bin/upower -i "$(/usr/bin/upower -e | grep BAT)" > "$battery_data"
-    printf "\n%sBatter:%s %s\n" "$orange" "$normal" "$(awk '/native-path:/ {print $NF}' "$battery_data")"
-    battery_status
-    battery_capacity
-    battery_condition
-    battery_specs
-  else
-    printf "\n%sNo battery detected.%s\n" "$lightred" "$normal" >&2
-  fi
-  ac_status
-  /usr/bin/upower -e | grep -q mouse_hidpp_battery && hidpp_battery
-else
-  printf "\nThis system is not a laptop.\n" >&2
-fi
-printf "\n%s v%s\n" "$_script" "$_version"
-exit
+main "$@"
