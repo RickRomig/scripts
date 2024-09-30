@@ -7,7 +7,7 @@
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Created      :
-# Updated      : 13 Aug 2024
+# Updated      : 30 Sep 2024
 # Comments     : Run from current working directory
 # TODO (rick)  :
 # License      : GNU General Public License, version 2
@@ -27,16 +27,16 @@ fi
 
 # Variables
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.4.24226"
-readonly _updated="13 Aug 2024"
+script=$(basename "$0"); readonly script
+readonly version="2.4.24274"
+readonly updated="30 Sep 2024"
 
 ## Functions ##
 
 check_dependencies() {
 	local packages=( binutils gcc )
 	check_packages "${packages[@]}"
-	if locate glibc > /dev/null 2>&1; then printf "glibc - OK\n"; else sudo apt-get install glibc-source -yy2; fi
+	if locate glibc > /dev/null 2>&1; then printf "glibc - OK\n"; else sudo apt-get install glibc-source -yyq; fi
 	if [[ -d "/usr/include" ]]; then printf "build-essential - OK\n"; else sudo apt-get install build-essential -yyq; fi
 	if exists fnloc; then printf "fnloc - OK\n"; else printf "Install fnloc from repository.\n"; fi
 }
@@ -46,7 +46,7 @@ check_dependencies() {
 check_dependencies
 while true; do
   clear
-	printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+	printf "\n%s v%s (%s)\n" "$script" "$version" "$updated"
   printf "Menu for working with C source code.\n\n"
   options=("Open a file with nano" "Compile code to a.out" "Compile code with -o option" "Display Lines of Code" \
     "Print LOC to a file" "View code" "Clean up extraneous files" "Quit")
