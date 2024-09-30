@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 24 Sep 2024
+# Last updated : 30 Sep 2024
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins. (https://www.ezeelinux.com)
 #              : Joe's code at: https://github.com/EzeeLinux/bu-usb_backup_tool
 # TODO (Rick)  :
@@ -28,9 +28,8 @@ fi
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="4.4.24268"
-readonly _updated="24 Sep 2024"
+script=$(basename "$0"); readonly script
+readonly version="4.5.24274"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -175,11 +174,12 @@ restore() {
 }
 
 help() {
-cat << END_HELP
-${orange}$_script${normal} $_version, Upated: $_updated
+	local updated="30 Sep 2024"
+	cat << _HELP_
+${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -b  Fully backs up the host /etc and /home directories.
@@ -189,7 +189,7 @@ ${orange}Available options:${normal}
   -r  Restore the host /home directory.
   -s  Instructions for setting up the BU_Drive.
 
-END_HELP
+_HELP_
 }
 
 show_description() {
@@ -223,14 +223,15 @@ drive_setup() {
 	cat << _SETUP_
  BU_Drive Setup:
 
- You need to prepare a BU Drive with a tool like Gparted or Gnome Disks.
- This can be any USB storage device. The dedicated USB drive MUST contain a
- partition formatted with a Linux native file system such as Ext4 or XFS. The
- partition MUST be labeled "BU_Drive" so BU can find it and use it for backups.
- The partition needs to have enough free capacity to store all data in /home on
- all of the machines you want to use the drive for. Note: The script will only
- allow media formatted with Ext4 or XFS. Non-native file systems like FAT32 or
- NTFS will cause the script to exit with an error.
+ - You need to prepare a BU Drive with a tool like Gparted or Gnome Disks.
+ - This can be any USB storage device.
+ - The dedicated USB drive MUST contain a partition formatted with a Linux native
+ file system such as Ext4 or XFS.
+ - The partition MUST be labeled "BU_Drive" so BU can find it and use it for backups.
+ - The partition needs to have enough free capacity to store all data in /home on
+ all of the machines you want to use the drive for.
+ Note: The script will only allow media formatted with Ext4 or XFS. Non-native file
+ systems like FAT32 or NTFS will cause the script to exit with an error.
 
 _SETUP_
 }
@@ -253,61 +254,66 @@ show_disclaimer() {
 _DISCLAIMER_
 }
 
+main() {
+	local noOpt optstr opt
+	# Start timer
+	SECONDS=0
+	box "${script^^} -- USB Backup Tool (Version $version)"
+	printf "Copyright \UA9 2023, Rick Romig\n\n"
+
+	noOpt=1
+	optstr=":bdhirs"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			b )
+				sudo_login 2
+				drive_test
+				check_package rsync
+				backup
+				sync_drives
+				unmount_usb_drive
+			;;
+			d )
+				show_disclaimer
+				mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
+			;;
+			h )
+				help
+				mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
+			;;
+			i )
+				show_description
+				mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
+			;;
+			r )
+				sudo_login 2
+				drive_test
+				check_package rsync
+				restore
+				sync_drives
+				unmount_usb_drive
+			;;
+			s )
+				drive_setup
+				mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
+			;;
+			? )
+				printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+				help
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help; }
+	shift "$(( OPTIND - 1 ))"
+	printf "Script completed in %s\n" "$(format_time $SECONDS)"
+	if [[ "$exit_status" -eq 0 ]]; then
+		leave ""
+	else
+		printf "%sThere were errors!%s\n" "$lightred" "$normal" >&2
+		exit "$exit_status"
+	fi
+}
+
 ## Execution ##
 
-# Start timer
-SECONDS=0
-box "BU -- USB Backup Tool (Version $_version)"
-printf "Copyright \UA9 2023, Rick Romig\n\n"
-
-noOpt=1
-optstr=":bdhirs"
-while getopts "$optstr" opt; do
-	case "$opt" in
-		b )
-			sudo_login 2
-			drive_test
-			check_package rsync
-			backup
-			sync_drives
-			unmount_usb_drive
-		;;
-		d )
-			show_disclaimer
-			mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
-		;;
-		h )
-			help
-			mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
-		;;
-		i )
-			show_description
-			mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
-		;;
-		r )
-			sudo_login 2
-			drive_test
-			check_package rsync
-			restore
-	    sync_drives
-			unmount_usb_drive
-		;;
-		s )
-			drive_setup
-			mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
-		;;
-		? )
-			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-			help
-	esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help; }
-shift "$(( OPTIND - 1 ))"
-printf "Script completed in %s\n" "$(format_time $SECONDS)"
-if [[ "$exit_status" -eq 0 ]]; then
-	leave ""
-else
-	printf "%sThere were errors!%s\n" "$lightred" "$normal" >&2
-	exit "$exit_status"
-fi
+main "$@"
