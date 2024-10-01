@@ -2,14 +2,14 @@
 ##########################################################################
 # Script Name  : install-fnloc
 # Description  : Installs fnloc/lloc - apps to count lines of code.
-# Dependencies : none
+# Dependencies : gdebi git
 # Arguments    : none
-# Author       : Copyright (C) 2020, Richard B. Romig, 09 Feb 2021
+# Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Feb 2021
-# Updated      : 24 Jul 2024
+# Updated      : 01 Oct 2024
 # Comments     :
-# TODO (Rick)  :
+# TODO (Rick)  : clone from either repo
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -27,40 +27,41 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.3.24206"
-readonly _updated="24 jul 2024"
+script=$(basename "$0"); readonly script
+readonly version="2.4.24275"
 readonly package="fnloc_2.3.1_amd64.deb"
 readonly package_name="FnLoC"
-readonly package_version="2.3.1"
+readonly packageversion="2.3.1"
 readonly package_dir="$HOME/Downloads/fnloc"
 
 ## Functions ##
 
 about_fnloc() {
-  cat << EOF
+  cat << _ABOUT_
 FnLoC (Funtion Lines of Code) is a program that counts lines of code in C source
 code files, breaking out functions and the number of lines of code with them.
 The program will also count lines of code in associated header files. A wrapper
 script is included. View the README file for detailed information.
-EOF
+_ABOUT_
 }
 
 help() {
-  errcode="${1:-2}"
-	cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+	errcode="${1:-2}"
+	updated="01 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Installes the Function Lines of Code (FnLoC) package.
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}OPTIONS:${normal}
 	-a  About FnLoC
+	-c	Clone FnLoC repo & install .deb package
   -d  Download & install FnLoC .deb package
   -h	Display help
-	-i	Clone FnLoC repo & install .deb package
 	-r	Remove FnLoC
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
@@ -77,47 +78,58 @@ dl_deb_pkg() {
 
 install_fnloc() {
   sudo_login 2
-  dpkg -l | grep -qw fnloc && { printf "%s %s already installed." "$package_name" "$package_version"; exit; }
+  dpkg -l | grep -qw fnloc && { printf "%s %s already installed." "$package_name" "$packageversion"; exit; }
   sudo dpkg -i "$package_dir/$package"
-  printf "%s %s installed.\n" "$package_name" "$package_version"
+  printf "%s %s installed.\n" "$package_name" "$packageversion"
+}
+
+show_header() {
+  cat << _HEADER_
+$script installs FnLoC (Function Lines of Code) either from the douwnload .deb package
+or from the cloned repository (GitHub or my local Giteas repository). The script can
+also remove the program from the system.
+
+_HEADER_
+}
+
+main() {
+  local noOpt opt optstr
+  noOpt=1
+  optstr=":acdhr"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      a )
+        about_fnloc
+      ;;
+      c )
+        clone_fnloc_repo
+        install_fnloc
+      ;;
+      d )
+        dl_deb_pkg
+        install_fnloc
+      ;;
+      h )
+        help 0
+      ;;
+      r )
+        sudo_login 2
+        dpkg -l fnloc > /dev/null 2>&1 || leave "FnLoC is not installed."
+        sudo dpkg -r fnloc
+        printf "%s %s removed.\n" "$package_name" "$packageversion"
+      ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+    noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  printf "%s v%s\n" "$script" "$version"
+  exit
 }
 
 ## Execution ##
 
-printf "Installs %s %s\n" "$package_name" "$package_version"
-
-noOpt=1
-optstr=":adhir"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    a )
-      about_fnloc
-    ;;
-    d )
-      dl_deb_pkg
-      install_fnloc
-    ;;
-    h )
-      help 0
-    ;;
-    i )
-      clone_fnloc_repo
-      install_fnloc
-    ;;
-    r )
-      sudo_login 2
-      clone_fnloc_repo
-      dpkg -l | grep -qw fnloc || { printf "%s is not installed." "$package_name"; exit; }
-      sudo dpkg -r fnloc
-      printf "%s %s removed.\n" "$package_name" "$package_version"
-    ;;
-    ? )
-      printf "\e[91mERROR:\e[0m Invalid option -%s\n" "$OPTARG" >&2
-      help 2
-  esac
-  noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "\e[91mERROR:\e[0m No argument passed.\n" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-printf "%s v%s\n" "$_script" "$_version"
-exit
+main "$@"
