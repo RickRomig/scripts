@@ -2,13 +2,13 @@
 ##########################################################################
 # Script Name  : install-dsh
 # Description  : Installs & configures DSH
-# Dependencies : git
+# Dependencies : git curl
 # Arguments    : none
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Apr 2024
-# Last updated : 07 Jul 2024
-# Comments     :
+# Last updated : 01 Oct 2024
+# Comments     : Intended for main system
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -29,10 +29,8 @@ set -eu
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="1.1.24189"
 readonly dsh_path="/etc/dsh"
-localip=$(local_ip)
+localip=$(local_ip); readonly localip
 
 ## Functions ##
 
@@ -55,34 +53,44 @@ copy_group_list() {
   printf "%s installed to %s/group/\n" "$file" "$dsh_path"
 }
 
-copy_conf_machines() {
+copy_machine_list() {
     local file repository
-  file="$1"
-  printf "Copying s to %s...\n" "$file" "$dsh_path"
+  file="machines.list"
+  printf "Copying %s to %s...\n" "$file" "$dsh_path"
   if [[ "$localip" == "16" ]]; then
     repository="$HOME/gitea/configs/dsh"
-    sudo cp "$repository/$file" "$dsh_path/group/"
+    sudo cp "$repository/$file" "$dsh_path/"
   else
     repository="configs/raw/branch/main/dsh"
     sudo curl -so "$dsh_path/$file" "$Gitea_URL/$repository/$file"
   fi
-  printf "%s installed to %s/\n" "$file" "$dsh_path"
+  printf "%s copied to %s/\n" "$file" "$dsh_path"
+  printf "Creating symbolic link from %s to %s/group/all.\n" "$file"  "$dsh_path"
+  sudo ln -s /etc/dsh/machines.list /etc/dsh/group/all
 }
 
 install_dsh() {
+  local group groups
+  groups=( desktops i3wm laptops )
   sudo apt-get -yy install dsh
+  printf "Changing remote shell to ssh.\n"
   sudo sed -i '/remoteshell/s/rsh/ssh/' "$dsh_path/dsh.conf"
-  # copy_conf_machines "dsh.conf"
-  copy_conf_machines "machines.list"
-  copy_group_list "desktops"
-  copy_group_list "i3wm"
-  copy_group_list "laptops"
-  sudo ln -s /etc/dsh/machines.list /etc/dsh/group/all
+  copy_machine_list
+  for group in "${groups[@]}"; do
+    copy_group_list "$group"
+  done
+}
+
+main() {
+  local script version
+  script=$(basename "$0")
+  version="1.2.24275"
+  sudo_login 2
+  check_dependencies
+  install_dsh
+  leave "$script $version"
 }
 
 ## Execution ##
 
-sudo_login 2
-check_dependencies
-install_dsh
-leave "$_script $_version"
+main "$@"
