@@ -7,9 +7,9 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Updated      : 22 Aug 2024
+# Updated      : 01 Oct 2024
 # Comments     : For Debian/Ubuntu=based systems with ESR, Flatpak, or Snap versions of Firefox installed.
-# TODO (Rick)  :
+# TODO (Rick)  : getopts with uninstall Mozilla deb package (pref and list files)
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -27,24 +27,24 @@ fi
 
 set -eu
 
-## Global Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="3.5.24235"
-
 ## Functions ##
 
+firefox_version() {
+	dpkg -l firefox | awk '/ii/ {print $3}' | sed 's/[~+-].*//'
+}
+
 is_mint_firefox() {
-	dpkg -l firefox | grep -qw linuxmint1 && return "$TRUE" || return "$FALSE"
+	dpkg -l firefox | grep -q 'linuxmint' && return "$TRUE" || return "$FALSE"
 }
 
 # Remove Mint version of Firefox and English locale
 rm_mint_firefox() {
-	printf "Firefox version installed: %s\n" "$(firefox --version | cut -d' ' -f3)"
+	printf "Firefox version installed: %s\n" "$(firefox_version)"
 	if yes_or_no "Remove the Linux Mint Firefox?"; then
 		sudo apt-get remove -y firefox
-		dpkg -l firefox-locale-en 2>/dev/null && sudo apt remove -y firefox-locale-en
-		printf "Firefox browser has been removed.\n"
+		dpkg -l firefox-locale-en >/dev/null 2>&1 && sudo apt remove -y firefox-locale-en
+		dpkg -l firefox-l10n-en >/dev/null 2>&1 && sudo apt remove -y firefox-l10n-en
+		printf "The Linux Mint version of the Firefox browser has been removed.\n"
 	else
 		printf "Operation canceled. No action taken.\n"
 	fi
@@ -52,7 +52,7 @@ rm_mint_firefox() {
 
 # Remove Firefox-ESR (Debian, MX, BunsenLabs)
 rm_firefox_esr() {
-	printf "Firefox version installed: %s\n" "$(firefox --version | cut -d' ' -f3)"
+	printf "Firefox version installed: %s\n" "$(firefox_version)"
 	if yes_or_no "Remove Firefox ESR?"; then
 		sudo apt-get remove firefox-esr -yy
 		printf "Firefox ESR browser has been removed.\n"
@@ -91,7 +91,7 @@ rm_firefox_snap() {
 	fi
 }
 
-mk_preference_file() {
+make_preference_file() {
 	# Preference file to prioritize packages from Mozilla repository
 	echo '
 Package: *
@@ -129,7 +129,8 @@ mozilla_deb_install() {
 	wget -q "$key_url" -O- | sudo tee "$keyrings_d/$asc_file" > /dev/null
 
 	# verify_keys
-	mk_preference_file
+
+	make_preference_file
 
 	# Add Mozilla APT repository to sources list
 	printf "Adding Mozilla APT repository to sources list...\n"
@@ -137,32 +138,40 @@ mozilla_deb_install() {
 
 	# Update package list and install Firefox .deb package
 	sudo apt-get update && sudo apt-get install -y firefox
-	printf "%s installed.\n" "$(firefox --version)"
+	printf "%s installed.\n" "$(firefox_version)"
+}
+
+main() {
+  local script version
+  script=$(basename "$0")
+  version="3.6.24275"
+
+	sudo_login 2
+	check_package wget
+
+	# Check if the Mozilla package is already installed
+	dpkg -l firefox | grep -q 'build' && leave "Mozilla Firefox DEB package ($(firefox_version)) is already installed."
+	clear
+
+	# Remove other versions of Firefox
+	if exists firefox-esr; then
+		rm_firefox_esr
+	elif is_mint_firefox; then
+		rm_mint_firefox
+	fi
+	exists flatpak && rm_firefox_flatpak
+	exists snap && rm_firefox_snap
+
+	# Install Mozilla DEB package
+	if yes_or_no "Install Mozilla Firefox DEB package?"; then
+		mozilla_deb_install
+	else
+		printf "Operation canceled. No action taken.\n"
+	fi
+
+	leave "$script $version"
 }
 
 ## Execution ##
 
-sudo_login 2
-check_package wget
-
-# Check if the Mozilla package is already installed
-dpkg -l firefox | grep -qw build1 && leave "Mozilla Firefox DEB package is already installed."
-clear
-
-# Remove other versions of Firefox
-if exists firefox-esr; then
-	rm_firefox_esr
-elif is_mint_firefox; then
-	rm_mint_firefox
-fi
-exists flatpak && rm_firefox_flatpak
-exists snap && rm_firefox_snap
-
-# Install Mozilla DEB package
-if yes_or_no "Install Mozilla Firefox DEB package?"; then
-	mozilla_deb_install
-else
-	printf "Operation canceled. No action taken.\n"
-fi
-
-leave "$_script $_version"
+main "$@"
