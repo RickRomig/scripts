@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : install-dsh
 # Description  : Installs & configures DSH
-# Dependencies : git curl
+# Dependencies : curl
 # Arguments    : none
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -33,11 +33,6 @@ readonly dsh_path="/etc/dsh"
 localip=$(local_ip); readonly localip
 
 ## Functions ##
-
-check_dependencies() {
-  local packages=( curl git)
-  check_packages "${packages[@]}"
-}
 
 copy_group_list() {
   local file repository
@@ -86,7 +81,7 @@ main() {
   script=$(basename "$0")
   version="1.2.24275"
   sudo_login 2
-  check_dependencies
+  check_package curl
   install_dsh
   leave "$script $version"
 }
