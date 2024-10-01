@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 10 April 2024
+# Updated      : 01 Oct 2024
 # Comments     : Based on instructions from Joe Collins @ Ezeelinux.com
 # TODO (Rick)  : Test this. Test for Intel/AMD CPU.
 # License      : GNU General Public License, version 2.0
@@ -25,28 +25,17 @@ else
   exit 1
 fi
 
-## Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="1.10.24101"
-
 ## Functions ##
 
-check_cpu() {
+check_bios() {
   # Check if virtualization is enabled in BIOS (is flag set?)
   local vcpu
   vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo)  # egrep -c '(vmx|svm)'
   printf "Virtualization is "
   if [[ "$vcpu" -gt 0 ]]; then
     printf "enabled in the BIOS. (%s threads)\n" "$vcpu"
-    case $vcpu in
-      vmx )
-        sudo sh -c 'echo "options kvm_intel nested=1" >> /etc/modprobe.d/qemu-system-x86.conf' ;;
-      svm )
-        sudo sh -c 'echo "options kvm_amd nested=1" >> /etc/modprobe.d/qemu-system-x86.conf' ;;
-      * )
-        echo "CPU does not support virtualization." ;;
-    esac
+    grep -w -m 1 vmx /proc/cpuinfo && sudo sh -c 'echo "options kvm_intel nested=1" >> /etc/modprobe.d/qemu-system-x86.conf'
+    grep -w -m 1 svm /proc/cpuinfo > /dev/null && sudo sh -c 'echo "options kvm_amd nested=1" >> /etc/modprobe.d/qemu-system-x86.conf'
     sudo sh -c 'echo "group=kvm" >> /etc/modprobe.d/qemu-system-x86.conf'
   else
     printf "not enabled in the BIOS.\n"
@@ -56,40 +45,48 @@ check_cpu() {
 }
 
 enable_libvirtd() {
-  sudo systemctl start libvirt
-  sudo systemctl restart libvirtd
-  # sudo systemctl enable libvirtd.service
-  # sudo systemctl start libvirtd.service
+  sudo systemctl enable libvirtd.service
+  sudo systemctl start libvirtd.service
+  # sudo systemctl start libvirt
+  # sudo systemctl restart libvirtd
   printf "libvirtd started.\n"
 }
 
 add_to_kvm_group() {
-  printf "\nAdding %s to the kvm group.\n" "$USER"
-  sudo usermod -a -G kvm "$USER"
-  printf "%s added to the kvm group.\n" "$USER"
+  local qemu_conf user
+  qemu_conf="/etc/libvirt/qemu.conf"
+  user="$USER"
+  printf "\nAdding %s to the kvm group.\n" "$user"
+  sudo usermod -a -G kvm "$user"
+  printf "%s added to the kvm group.\n" "$user"
   if [[ -f "/etc/libvirt/qemu.conf" ]]; then
     printf "Allow users in the kvm group to start VMs.\n"
-    sudo sed -i.bak 's/\#group\ =\ "root"/group\ =\ "kvm"/' /etc/libvirt/qemu.conf
+    sudo sed -i.bak 's/\#group\ =\ "root"/group\ =\ "kvm"/' "$qemu_conf"
     enable_libvirtd
   else
-    die "/etc/libvirt/qemu.conf not found!" 2
+    printf "%s not found!\n" "$qemu_conf" >&2
   fi
+}
+
+install_boxes() {
+  printf "\nInstalling GNOME Boxes ...\n"
+  sudo apt update -qq
+  sudo apt install -yy gnome-boxes qemu-kvm libvirt-bin
+}
+
+main() {
+  local script version
+  script=$(basename "$0")
+  version="1.11.24275"
+  sudo_login 2
+  printf "Installs GNOME Boxes.\n"
+  check_bios
+  install_boxes
+  add_to_kvm_group
+  printf "Gnome boxes installed and configured.\n"
+  leave "$script $version"
 }
 
 ## Execution ##
 
-sudo_login 2
-
-printf "%s v%s\n" "$_script" "$_version"
-printf "Installs GNOME Boxes.\n"
-
-check_cpu
-
-## Install Gnome Boxes ##
-
-printf "\nInstalling GNOME Boxes ...\n"
-sudo apt update -qq
-sudo apt install -yy gnome-boxes qemu-kvm libvirt-bin
-add_to_kvm_group
-
-leave "Gnome boxes installed and configured."
+main "$@"
