@@ -38,7 +38,7 @@ verbose_mode="$FALSE"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-updated="01 Oct 2024"
+	updated="01 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Install/Removes VSCodium & applies settings
@@ -56,7 +56,7 @@ _HELP_
   exit "$errcode"
 }
 
-codiumversion() {
+codium_version() {
 	# codium --version | head -n 1
 	dpkg -l codium | awk '/ii/ {print $3}'
 }
@@ -100,7 +100,7 @@ install_vscodium() {
 	sudo apt-get update
 	sudo apt-get install codium
 	apply_settings
-	printf "VSCodium %s successfully installed.\n" "$(codiumversion)"
+	printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 }
 
 remove_vscodium() {
@@ -150,7 +150,7 @@ main() {
 				help 0
 			;;
 			i )
-				exists codium && leave "VSCodium $(codiumversion) is already installed."
+				exists codium && leave "VSCodium $(codium_version) is already installed."
 				show_title
 				sudo_login 2
 				show_message "Checking dependencies..."
