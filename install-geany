@@ -27,20 +27,21 @@ fi
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.4.24168"
-readonly _updated="16 Jun 2024"
+script=$(basename "$0"); readonly script
+readonly version="2.4.24168"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
-  errcode="${1:-2}"
+  local errcode updated
+	errcode="${1:-2}"
+	updated="01 Oct 2024"
   cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+${orange}$script${normal} $version ($updated)
 Installs/Removes Geany text editor and themes
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -h  Display help
@@ -70,8 +71,7 @@ clone_themes() {
 
 install_geany() {
   show_message "Installing Geany from repositories..."
-  sudo apt-get install geany libvte9 -yy
-  clone_themes
+  sudo apt-get install -y geany libvte9
   printf "Geany %s installed.\n" "$(geany_version)"
 }
 
@@ -79,9 +79,9 @@ remove_geany() {
   local cfg_dir cfg_bu_dir
   cfg_dir="$HOME/.config/geany"
   cfg_bu_dir="$HOME/.config/backup/geany"
-  show_message "Removing Geany ..."
-  sudo apt remove geany -yy
-  show_message "Removing Geany config files ..."
+  show_message "Removing Geany $(geany_version)..."
+  sudo apt remove -y geany
+  show_message "Removing Geany configuration files ..."
   [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
   show_message "Removing config backups..."
   [[ -d "$cfg_bu_dir" ]] && rm -rf "$cfg_bu_dir"
@@ -99,46 +99,52 @@ cleanup() {
   [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
 }
 
+main() {
+  local noOpt opt optstr
+  noOpt=1
+  optstr=":hirtv"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      h )
+        printf "%s help:\n" "$script"
+        help 0
+      ;;
+      i )
+        exists geany && leave "Geany $(geany_version) is already installed."
+        # tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
+        # trap cleanup EXIT
+        sudo_login 2
+        check_package git
+        install_geany
+        # clone_themes
+      ;;
+      r )
+        exists geany || leave "Geany is not installed."
+        sudo_login 2
+        remove_geany
+    ;;
+      t )
+        exists geany || leave "Geany is not installed."
+        tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
+        trap cleanup EXIT
+        check_package git
+        clone_themes
+      ;;
+      v )
+        verbose_mode="$TRUE"
+			  show_message "Verbose mode enabled."
+      ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+    noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  leave "$script v$version"
+}
+
 ## Execution ##
 
-noOpt=1
-optstr=":hirtv"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    h )
-      printf "%s help:\n" "$_script"
-      help 0
-    ;;
-    i )
-      exists geany && leave "Geany $(geany_version) is already installed."
-      tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
-      trap cleanup EXIT
-      sudo_login 2
-      check_package git
-      install_geany
-    ;;
-    r )
-      exists geany || leave "Geany is not installed."
-      sudo_login 2
-      remove_geany
-    ;;
-    t )
-      exists geany || leave "Geany is not installed."
-      tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
-      trap cleanup EXIT
-      check_package git
-      clone_themes
-    ;;
-    v )
-			verbose_mode="$TRUE"
-			show_message "Verbose mode enabled."
-    ;;
-    ? )
-      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-      help 2
-  esac
-  noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version"
+main "$@"
