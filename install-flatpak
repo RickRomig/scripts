@@ -25,10 +25,7 @@ else
   exit 1
 fi
 
-## Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="2.2.24138"
+set -eu
 
 ## Functions ##
 
@@ -41,7 +38,7 @@ install_flatpak() {
       bookworm|bullseye )
         echo "Installing Flatpak on ${ver_code^}..."
         sudo apt update -qq
-        sudo apt install flatpak -yy
+        sudo apt install -y flatpak
       ;;
       * )
         die "Flatpak can't be installed on ${ver_code^} using this script." 1
@@ -51,8 +48,8 @@ install_flatpak() {
 
 install_gnome_plugin() {
   # Install only if using Gnome Desktop or Gnome Software Store
-  echo "Installing the Gnome software plugin for Flatpak .."
-  sudo apt install gnome-software-plugin-flatpak -yy
+  echo "Installing the Gnome software plugin for Flatpak ..."
+  sudo apt install -y gnome-software-plugin-flatpak
 }
 
 install_flathub() {
@@ -60,12 +57,18 @@ install_flathub() {
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 }
 
+main() {
+  local script version
+  clear
+  echo "$script v$version"
+  echo "Installs Flatpak & Flathub repository."
+  sudo_login 2
+  install_flatpak
+  exists gnome-software && install_gnome_plugin
+  install_flathub
+  leave "Flatpak and Flathub installed."
+}
+
 ## Execution ##
 
-clear
-echo "$_script v$_version"
-echo "Installs Flatpak & Flathub repository."
-install_flatpak
-exists gnome-software && install_gnome_plugin
-install_flathub
-leave "Flatpak and Flathub installed."
+main "$@"
