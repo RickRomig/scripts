@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Jan 2021
-# Updated      : 07 Aug 2024
+# Updated      : 02 Oct 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,9 +27,8 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="3.13.24220"
-readonly _updated="07 Aug 2024"
+script=$(basename "$0"); readonly script
+readonly version="3.14.24276"
 readonly cfg_dir="$HOME/.config/keepassxc"
 
 ## Functions ##
@@ -89,12 +88,14 @@ create_ini() {
 }
 
 help() {
-  errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+	errcode="${1:-2}"
+	updated="02 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Installs/Removed KeePassXC password manager
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -c  Apply KeePassXC configuration.
@@ -102,56 +103,61 @@ ${orange}Available options:${normal}
   -f  Install KeePassXC from flathub repositories.
   -h  Display help.
   -r  Remove KeePassXC from the system.
-END_HELP
+_HELP_
   exit "$errcode"
+}
+
+main() {
+  local noOpt opt optstr
+  noOpt=1
+  optstr=":cdfhr"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      c )
+        create_ini
+      ;;
+      d )
+        if exists keepassxc; then
+          printf "KeePassXC version %s is already installed from distro.\n" "$(kpxc_ver)"
+        elif  flatpak list | grep -qw KeePassXC; then
+          printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_ver)"
+        else
+          distro_keepassxc
+        fi
+      ;;
+      f )
+        if exists keepassxc; then
+          printf "KeePassXC version %s is already installed from distro.\n" "$(kpxc_ver)"
+        elif  flatpak list | grep -qw KeePassXC; then
+          printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_ver)"
+        else
+          flathub_keepassxc
+        fi
+      ;;
+      h )
+        help 0
+      ;;
+      r )
+        if flatpak list | grep -qw KeePassXC; then
+          remove_flatpak_keepassxc
+        elif exists keepassxc; then
+          remove_distro_keeepassxc
+        else
+          leave "KeePassXC is not installed."
+        fi
+      ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+	  noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  box "$script v$version"
+  exit
 }
 
 ## Execution ##
 
-noOpt=1
-optstr=":cdfhr"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    c )
-      create_ini
-    ;;
-    d )
-      if exists keepassxc; then
-        printf "KeePassXC version %s is already installed from distro.\n" "$(kpxc_ver)"
-      elif  flatpak list | grep -qw KeePassXC; then
-        printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_ver)"
-      else
-        distro_keepassxc
-      fi
-    ;;
-    f )
-      if exists keepassxc; then
-        printf "KeePassXC version %s is already installed from distro.\n" "$(kpxc_ver)"
-      elif  flatpak list | grep -qw KeePassXC; then
-        printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_ver)"
-      else
-        flathub_keepassxc
-      fi
-    ;;
-    h )
-      help 0
-    ;;
-    r )
-      if flatpak list | grep -qw KeePassXC; then
-        remove_flatpak_keepassxc
-      elif exists keepassxc; then
-        remove_distro_keeepassxc
-      else
-        leave "KeePassXC is not installed."
-      fi
-    ;;
-    ? )
-      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-      help 2
-  esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-box "$_script v$_version"
-exit
+main "$@"
