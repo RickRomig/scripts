@@ -6,8 +6,8 @@
 # Arguments    : -h -i -r -u (See help function)
 # Author       : Copyright (C) 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Created      : 18 July 2019
-# Updated      : 18 Jun 2024
+# Created      : 18 Jul 2019
+# Updated      : 02 Oct 2024
 # Comments     : Google Chrome should update through apt
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,16 +27,15 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="3.16.24170"
-readonly _updated="18 Jun 2024"
+script=$(basename "$0"); readonly script
+readonly version="3.16.24170"
 readonly chrome_list="/etc/apt/sources.list.d/google-chrome.list"
 readonly keyring_dir="/usr/share/keyrings"
 readonly trusted_key="google-chrome.gpg"
 
 ## Functions ##
 
-chrome_ver() {
+chrome_version() {
   google-chrome-stable --version | cut -d' ' -f3
 }
 
@@ -48,7 +47,7 @@ install_chrome() {
   echo "$source_list" | sudo tee "$chrome_list" > /dev/null
   sudo apt update
   if sudo apt-get install -y google-chrome-stable; then
-    echo "Google Chrome $(chrome_ver) successfully installed."
+    echo "Google Chrome $(chrome_version) successfully installed."
   else
     echo "Google Chrome installation failed." >&2
   fi
@@ -66,61 +65,65 @@ purge_chrome() {
 
 update_chrome() {
   sudo apt install google-chrome-stable
-  echo "Google Chrome updated to $(chrome_ver)."
+  echo "Google Chrome updated to $(chrome_version)."
 }
 
 help() {
-  local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+	errcode="${1:-2}"
+	updated="02 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Installs, updated, or removes Google Chrome.
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -h  Help
   -i  Install Google Chrome
   -r  Remove Google Chrome
   -u  Update Google Chrome
-END_HELP
+_HELP_
   exit "$errcode"
+}
+
+main() {
+  local noOpt opt optstr
+  noOpt=1
+  optstr=":hiru"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      h )
+        help 0
+      ;;
+      i )
+        exists google-chrome-stable && leave "Google Chrome $(chrome_version) already installed."
+        sudo_login 2
+        check_package wget
+        install_chrome
+      ;;
+      r )
+        exists google-chrome-stable || leave "Google Chrome is not installed."
+        sudo_login 2
+        purge_chrome
+      ;;
+      u )
+        exists google-chrome-stable || leave "Google Chrome is not installed."
+        sudo_login 2
+        update_chrome
+      ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+      help 2
+    esac
+	  noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  box "$script v$version"
+  exit
 }
 
 ## Execution ##
 
-box "$_script v$_version"
-noOpt=1
-optstr=":hiru"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    h )
-      help 0
-    ;;
-    i )
-      exists google-chrome-stable && leave "Google Chrome $(chrome_ver) already installed."
-      sudo_login 2
-      check_package wget
-      box "$_script v$_version"
-      install_chrome
-    ;;
-    r )
-      exists google-chrome-stable || leave "Google Chrome is not installed."
-      sudo_login 2
-      box "$_script v$_version"
-      purge_chrome
-    ;;
-    u )
-      exists google-chrome-stable || leave "Google Chrome is not installed."
-      sudo_login 2
-      box "$_script v$_version"
-      update_chrome
-    ;;
-    ? )
-      echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}." >&2
-    help 2
-  esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-exit
+main "$@"
