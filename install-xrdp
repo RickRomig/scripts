@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2024
-# Last updated : 08 Sep 2024
+# Last updated : 02 Oct 2024
 # Comments     : Working with i3 & Xfce4, no desktop background on Cinnamon.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,57 +25,64 @@ else
   exit 1
 fi
 
-## Global Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="1.1.24252"
-readonly xsessions_d="/usr/share/xsessions"
+set -eu
 
 ## Functions ##
 
 add_to_sslcert() {
+	printf "Adding xrdp user to the SSL-Cert group...\n"
 	getent group ssl-cert || sudo groupadd ssl-cert > /dev/null 2>&1
 	[[ $(awk '/ssl-cert:/ && /xrdp/' /etc/group) ]] || sudo adduser xrdp ssl-cert
 }
 
 cinn_xsessionrc() {
-	cat << END_FILE  > "$HOME"/.xsessionrc
+	cat << _CINNX_  > "$HOME"/.xsessionrc
 if [ $DISPLAY != ":0" ]; then
   export XAUTHORITY=${HOME}/.Xauthority
 fi
-END_FILE
+_CINNX_
+}
+
+install_xdrp() {
+	printf "Installing xrdp...\n"
+	sudo apt-get install -y xrdp xorgxrdp
+	add_to_sslcert
+	printf "Enabling and starting xrdp sevice...\n"
+	sudo systemctl enable --now xrdp
+	printf "Allowing xrdp port (3389/tcp) on UFW...\n"
+	sudo ufw allow 3389/tcp
+}
+
+setup_xsession() {
+	local xsessions_d="/usr/share/xsessions"
+
+	if [[ -f "$xsessions_d/i3.desktop" ]]; then
+		printf "Setting up i3 session...\n"
+		echo "exec i3 >>~/.local/share/logs/i3log 2>&1" | tee "$HOME/.xsessionrc"
+	elif [[ -f "$xsessions_d/xfce.desktop" ]]; then
+		printf "Setting up Xfce session...\n"
+		echo "xfce4-session" | tee "$HOME/.xsession"
+	elif [[ -f "$xsessions_d/cinnamon.desktop" ]]; then
+		printf "Setting up Cinnamon session...\n"
+		echo "env -u SESSION_MANAGER -u DBUS_SESSION_BUS_ADDRESS cinnamon-session" | tee "$HOME/.xsession"
+		cinn_xsessionrc
+		# echo "exec cinnamon2d >>~/.local/share/logs/cinnamon.log 2>&1" | tee "$HOME/.xsession"
+	fi
+}
+
+main() {
+  local script version
+  script=$(basename "$0")
+  version="2.0.24276"
+
+	sudo_login 2
+	check_package ufw
+	install_xdrp
+	setup_xsession
+	printf "XRDP server installed. Please reboot the system.\n"
+	leave "$script v$version"
 }
 
 ## Execution ##
 
-sudo_login 2
-
-check_package ufw
-
-printf "Installing xrdp...\n"
-sudo apt-get install -y xrdp xorgxrdp
-
-printf "Adding xrdp user to the SSL-Cert group...\n"
-add_to_sslcert
-
-printf "Enabling and starting xrdp sevice...\n"
-sudo systemctl enable --now xrdp
-
-printf "Allowing xrdp port (3389/tcp) on UFW...\n"
-sudo ufw allow 3389/tcp
-
-if [[ -f "$xsessions_d/i3.desktop" ]]; then
-	printf "Setting up i3 session...\n"
-	echo "exec i3 >>~/.local/share/logs/i3log 2>&1" | tee "$HOME/.xsessionrc"
-elif [[ -f "$xsessions_d/xfce.desktop" ]]; then
-	printf "Setting up Xfce session...\n"
-	echo "xfce4-session" | tee "$HOME/.xsession"
-elif [[ -f "$xsessions_d/cinnamon.desktop" ]]; then
-	printf "Setting up Cinnamon session...\n"
-	echo "env -u SESSION_MANAGER -u DBUS_SESSION_BUS_ADDRESS cinnamon-session" | tee "$HOME/.xsession"
-	cinn_xsessionrc
-	# echo "exec cinnamon2d >>~/.local/share/logs/cinnamon.log 2>&1" | tee "$HOME/.xsession"
-fi
-
-printf "XRDP server installed. Please reboot the system.\n"
-leave "$_script $_version"
+main "$@"
