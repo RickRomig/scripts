@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Last updated : 13 Aug 2024
+# Last updated : 02 Sep 2024
 # Comments     : My default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,42 +27,44 @@ fi
 
 set -eu
 
-## Global variables ##
-_script=$(basename "$0"); readonly _script
-readonly _version="2.1.24226"
-
 ## Functions ##
 
 configure_timeshift() {
-  local ts_dir ts_json sed_dir ts_sed
+  local ts_dir ts_json ts_sed
   ts_dir="/etc/timeshift"
   ts_json="timeshift.json"
-  sed_dir="$HOME/bin/files"
-  ts_sed="timeshift.sed"
-  if [[ ! -f "$sed_dir/$ts_sed" ]]; then
-    echo "Configuring Timeshift..."
-    sudo cp -v "$ts_dir/default.json" "$ts_dir/$ts_json"
-    sudo sed -i -f "$sed_dir/$ts_sed" "$ts_dir/$ts_json"
-    sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/$ts_json"
+  ts_sed="$HOME/bin/files/timeshift.sed"
+  if [[ -f "$ts_sed" ]]; then
+    printf "Configuring Timeshift...\n"
+    sudo cp -v "$ts_dir/default.json" "$ts_dir/$ts_json"  # copy default json file
+    sudo sed -i -f "$ts_sed" "$ts_dir/$ts_json" # apply settings
+    sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/$ts_json"  # to get leading spaces right in json file
   else
-    echo "The $ts_sed configuration script was not found. Configure using the GUI application."
+    printf "The %s configuration script was not found. Configure using the GUI application.\n" "$ts_sed"
   fi
 }
 
 install_timeshift() {
-  echo "Installing Timeshift..."
-  sudo_login 2
+  printf "Installing Timeshift...\n"
   sudo apt-get install -y timeshift
   configure_timeshift
-  echo "$(timeshift --version) installed and configured."
+  printf "%s installed and configured.\n" "$(timeshift --version)"
+}
+
+main() {
+  local script version
+  script=$(basename "$0")
+  version="2.3.24276"
+  if exists timeeshift; then
+    printf "%s is already installed.\n" "$(timeshift --version)"
+  else
+    in_repo timeshift || leave "Timeshift is not availabe in $(get_distribution) repositories."
+    sudo_login 2
+    install_timeshift
+  fi
+  leave "$script v$version"
 }
 
 ## Execution ##
 
-in_repo timeshift || leave "Timeshift is not availabe in $(get_distribution) repositories."
-if exists timeeshift; then
-  echo "Timeshift is already installed."
-else
-  install_timeshift
-fi
-leave "$_script v$_version"
+main "$@"
