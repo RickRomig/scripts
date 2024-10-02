@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 17 Jun 2024
+# Updated      : 02 Oct 2024
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,20 +27,21 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.8.24169"
-readonly _updated="17 Jun 2024"
+script=$(basename "$0"); readonly script
+readonly version="2.9.24276"
 readonly kitty_cfg_d="$HOME/.config/kitty"
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+	errcode="${1:-2}"
+	updated="02 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Kitty terminal emulator
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 ${orange}Available options:${normal}
   -b  Copy Kitty keybindings list
   -c  Install Kitty configuration
@@ -48,7 +49,7 @@ ${orange}Available options:${normal}
   -i  Install Kitty from distro repositories
   -p  Purge Kitty from system (remove config files)
   -r  Remove Kitty from system (leave config files)
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
@@ -109,50 +110,55 @@ kitty_bindings() {
   printf "Run the kkb script to display keybindings.\n"
 }
 
+main() {
+  local noOpt opt optstr
+  noOpt=1
+  optstr=":bchipr"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      b )
+        exists kitty || leave "Kitty is not installed."
+        check_package git
+        printf "Copying Kitty keybindings...\n"
+        kitty_bindings
+      ;;
+      c )
+        exists kitty || leave "Kitty is not installed."
+        check_package git
+        printf "Configuring Kitty %s...\n" "$(kitty_version)"
+        kitty_config
+      ;;
+      h )
+        help 0
+      ;;
+      i )
+        exists kitty && leave "Kitty terminal emulator $(kitty_version) already installed."
+        sudo_login 2
+        check_package git
+        install_kitty
+      ;;
+      p )
+        exists kitty || leave "Kitty is not installed."
+        sudo_login 2
+        purge_kitty
+      ;;
+      r )
+        exists kitty || leave "Kitty is not installed."
+        sudo_login 2
+        remove_kitty
+      ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+	  noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  printf "%s v%s\n" "$script" "$version"
+  exit
+}
+
 ## Execution ##
 
-noOpt=1
-optstr=":bchipr"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    b )
-      exists kitty || leave "Kitty is not installed."
-      check_package git
-      printf "Copying Kitty keybindings...\n"
-      kitty_bindings
-    ;;
-    c )
-      exists kitty || leave "Kitty is not installed."
-      check_package git
-      printf "Configuring Kitty %s...\n" "$(kitty_version)"
-      kitty_config
-    ;;
-    h )
-      help 0
-    ;;
-    i )
-      exists kitty && leave "Kitty terminal emulator $(kitty_version) already installed."
-      sudo_login 2
-      check_package git
-      install_kitty
-    ;;
-    p )
-      exists kitty || leave "Kitty is not installed."
-      sudo_login 2
-      purge_kitty
-    ;;
-    r )
-      exists kitty || leave "Kitty is not installed."
-      sudo_login 2
-      remove_kitty
-    ;;
-    ? )
-      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-      help 2
-  esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-printf "%s v%s\n" "$_script" "$_version"
-exit
+main "$@"
