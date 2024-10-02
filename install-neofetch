@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : install-neofetch
 # Description  : Installs and configures neofetch
-# Dependencies : git
+# Dependencies : none
 # Arguments    : -c -h -i -r (See the help function for details.)
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Jul 2022
-# Updated      : 18 Sep 2024
+# Updated      : 02 Oct 2024
 # Comments     : NeoFetch is no longer in development. Rrecommnd Fastfetch.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,32 +27,38 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="1.12.24262"
-readonly _updated="18 Sep 2024"
+script=$(basename "$0"); readonly script
+readonly version="1.13.24276"
 readonly neofetch_cfg_d="${HOME}/.config/neofetch"
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-	cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+	errcode="${1:-2}"
+	updated="02 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Installs/Configures/Removes Neofetch
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 ${orange}Available options:${normal}
   -c  Apply Neofetch configuration
   -h  Display help
   -i  Install and configure Neofetch
   -r  Remove Neofetch and configuration
-END_HELP
+_HELP_
   exit "$errcode"
+}
+
+neofetch_version() {
+	/usr/bin/neofetch --version | cut -d' ' -f2
+	# dpkg -l neofetch | awk '/ii/ {print $3}' | sed 's/[~+-].*//'
 }
 
 install_neofetch() {
 	local thumbnail_dir="${HOME}/.cache/thumbnails/neofetch"
-	printf "%s Neofetch is no longer in developemnt as of 26 April 2024.\n" "$red_warning"
+	printf "%s Neofetch is no longer in developemnt as of 26 April 2024.\n" "$RED_WARNING"
 	sudo apt-get updates >/dev/null
 	sudo apt-get install -yy neofetch
 	apply_config
@@ -86,43 +92,41 @@ remove_neofetch() {
 	sed -i '/neofetch/Id' "$HOME/.bashrc"
 }
 
-neofetch_version() {
-	/usr/bin/neofetch --version | cut -d' ' -f2
-	# dpkg -l neofetch | awk '/ii/ {print $3}' | sed 's/[~+-].*//'
+main() {
+  local noOpt opt optstr
+	noOpt=1
+	optstr=":chir"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			c )
+				exists neofetch || leave "Neofetch is not installed."
+				apply_config
+			;;
+			h )
+				help 0
+			;;
+			i )
+				exists neofetch && leave "Neofetch $(neofetch_version) is already installed."
+				in_repo neofetch || leave "Neofetch is no longer in the repositories."
+				sudo_login 2
+				install_neofetch
+			;;
+			r )
+				exists neofetch || leave "Neofetch is not installed."
+				sudo_login 2
+				remove_neofetch
+			;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	leave "$script v$version"
 }
 
 ## Execution ##
 
-noOpt=1
-optstr=":chir"
-while getopts "$optstr" opt; do
-	case "$opt" in
-		c )
-			exists neofetch || leave "Neofetch is not installed."
-      check_package git
-			apply_config
-		;;
-		h )
-			help 0
-		;;
-		i )
-			exists neofetch && leave "Neofetch $(neofetch_version) is already installed."
-			in_repo neofetch || leave "Neofetch is no longer in the repositories."
-			sudo_login 2
-      check_package git
-			install_neofetch
-		;;
-		r )
-			exists neofetch || leave "Neofetch is not installed."
-			sudo_login 2
-			remove_neofetch
-		;;
-		? )
-			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-			help 2
-	esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version"
+main "$@"
