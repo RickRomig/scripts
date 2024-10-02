@@ -7,11 +7,11 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Nov 2018
-# Updated      : 17 Jun 2024
+# Updated      : 02 Oct 2024
 # Comments     : Available as a flatpak (preferred method)
 #              : https://flathub.org/apps/details/fr.free.Homebank
 #              : Linux Mint Sofware Manager
-# TODO (rick)  : Add Flatpak installation & removal.
+# TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -27,16 +27,19 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="4.3.24169"
-readonly _updated="17 Jun 2024"
+script=$(basename "$0"); readonly script
+readonly version="5.0.24276"
 
 ## Functions ##
 
-homebank_ver() {
+homebank_version() {
   homebank --version | cut -d' ' -f2
+}
+
+flatpak_version() {
+  flatpak list | awk '/HomeBank/ {print $3}'
 }
 
 flatpak_homebank() {
@@ -44,12 +47,22 @@ flatpak_homebank() {
   flatpak list | grep -qw HomeBank && return "$TRUE" || return "$FALSE"
 }
 
-flatpak_version() {
-  flatpak list | awk '/HomeBank/ {print $3}'
+install_flatpak_hombank() {
+  printf "Install the HomeBank flatpak...\n"
+  sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  flatpak install --user flathub fr.free.Homebank
+  printf "HomeBank flatpak (%s) installed.\n" "$(flatpak_version)"
+}
+
+remove_flatpak_homebank() {
+  printf "Removing HomeBank flatpak (%s)...\n" "$(flatpak_version)"
+  flatpak uninstall --oninteractive --assumeyes fr.free.Homebank
+  remove_configs
+  printf "HomeBank has been removed.\n"
 }
 
 add_ppa() {
-  printf "Adding repository and installing HomeBank...\n"
+  printf "Adding PPA repository...\n"
   sudo add-apt-repository ppa:mdoyen/homebank
 }
 
@@ -61,75 +74,106 @@ install_homebank() {
   sudo_login 2
   support_ppa && add_ppa
   sudo apt-get install homebank -yyq
-  printf "HomeBank %s installed.\n" "$(homebank_ver)"
+  printf "HomeBank %s installed.\n" "$(homebank_version)"
 }
 
 remove_homebank() {
-  printf "Removing HomeBank %s...\n" "$(homebank_ver)"
+  printf "Removing HomeBank %s...\n" "$(homebank_version)"
   sudo_login 2
   support_ppa && remove_ppa
   sudo apt-get remove homebank -yy > /dev/null 2>&1
+  remove_configs
   printf "HomeBank has been removed.\n"
 }
 
 purge_homebank() {
-  printf "Removing HomeBank %s and purging configuration files.\n" "$(homebank_ver)"
+  printf "Removing HomeBank %s and purging configuration files.\n" "$(homebank_version)"
   sudo_login 2
   support_ppa && remove_ppa
   sudo apt-get purge homebank -yy > /dev/null 2>&1
+  remove_configs
   printf "HomeBank and its configuration files have been removed.\n"
 }
 
+remove_configs() {
+  local cfg_d="$HOME/.config/homebank"
+  if default_no "Remove user configuration files?"; then
+    printf "Removing user configuration files...\n"
+    [[ -d "$cfg_d" ]] && rm -rf "$cfg_d"
+    printf "User configuration files removed.\n"
+  else
+    printf "User configuations files left intact.\n"
+  fi
+}
+
 help() {
-  local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+	errcode="${1:-2}"
+	updated="02 Oct 2024"
+  cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Installs/Removes HomeBank Personal Finance Software.
 
-${green}Usage:${normal} $_script [option]
+${green}Usage:${normal} $script [option]
 
 ${orange}Available options:${normal}
+  -f  install HomeBank from Flathub
   -h  Display help
   -i  Install HomeBank from PPA or repository
   -p  Remove HomeBank and purge configuration files (PPA or repository)
   -r  Remove HomeBank (PPA or repository)
 HomeBank is also available as a Flatpak (Flathub or Mint Software Manager)
-END_HELP
+_HELP_
   exit "$errcode"
+}
+
+main() {
+  local noOpt opt optstr
+  noOpt=1
+  optstr=":fhipr"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      f )
+        exists homebank && leave "HomeBank $(homebank_version) is already installed."
+        flatpak_homebank && leave "HomeBank $(flatpak_version) (flatpak) is installed."
+        install_flatpak_hombank
+      ;;
+      h )
+        help 0
+      ;;
+      i )
+        exists homebank && leave "HomeBank $(homebank_version) is already installed."
+        flatpak_homebank && leave "HomeBank $(flatpak_version) (flatpak) is installed."
+        sudo_login 2
+        install_homebank
+      ;;
+      p )
+        exists hombank || leave "HomeBank (.deb) is not installed."
+        sudo_login 2
+        purge_homebank
+      ;;
+      r )
+        if flatpak_homebank; then
+          remove_flatpak_homebank
+        elif exists hombank; then
+          sudo_login 2
+          remove_homebank
+        else
+          leave "HomeBank is not installed.\n"
+        fi
+      ;;
+      ? )
+        printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+	  noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  printf "%s v%s\n" "$script" "$version"
+  exit
 }
 
 ## Execution ##
 
-# clear
-echo "Installs HomeBank Personal Finance Software."
-
-noOpt=1
-optstr=":hipr"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    h )
-      help 0
-    ;;
-    i )
-      exists homebank && leave "HomeBank $(homebank_ver) is already installed."
-      flatpak_homebank && leave "HomeBank $(flatpak_version) (flatpak) is installed."
-      install_homebank
-    ;;
-    p )
-      exists hombank || leave "HomeBank (.deb) is not installed."
-      purge_homebank
-    ;;
-    r )
-      exists hombank || leave "HomeBank (.deb) is not installed."
-      remove_homebank
-    ;;
-    ? )
-      printf "%s Invalid option: -%s\n" "$red_error" "$OPTARG" >&2
-      help 2
-  esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-exit
+main "$@"
