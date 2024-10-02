@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2011, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Feb 2021
-# Updated      : 06 Jun 2024
+# Updated      : 02 Oct 2024
 # Comments     : Based on Chris Titus video for installing virt-manager:
 #              : https://www.youtube.com/watch?v=ozYKkaVK0_A
 # TODO (Rick)  : Set up default image pool in home directory.
@@ -26,10 +26,7 @@ else
   exit 1
 fi
 
-## Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="2.4.24158"
+set -eu
 
 ## Functions ##
 
@@ -144,23 +141,28 @@ install_packages() {
   sudo modprobe vhost_net
 }
 
+main() {
+  local script version
+  script=$(basename "$0")
+  version="2.5.24276"
+  box "$script v$version"
+  printf "Installs Virt-Manager and KVM/QEMU...\n\n"
+
+  is_systemd || die "Systemd is required to run background services." 1
+  check_cpu
+  sudo_login 2
+  install_packages
+  # Start Default Network for Networking
+  start_networking
+  printf "Adding %s to libvirt, libvirt-qemu, and kvm groups...\n" "$USER"
+  add_to_libvirt
+  add_to_libvirtqemu
+  add_to_kvm
+  printf "Starting and enabling the libvirt daemon"
+  enable_libvirtd
+  leave "Virt-Manager installed. $USER added to libvirt, libvirt-qemu, and kvm groups."
+}
+
 ## Execution ##
 
-clear
-printf "%s v%s\n" "$_script" "$_version"
-printf "Installs Virt-Manager and KVM/QEMU...\n\n"
-
-is_systemd || die "Systemd is required to run background services." 1
-check_cpu
-sudo_login 2
-install_packages
-# Start Default Network for Networking
-start_networking
-printf "Adding %s to libvirt, libvirt-qemu, and kvm groups...\n" "$USER"
-add_to_libvirt
-add_to_libvirtqemu
-add_to_kvm
-printf "Starting and enabling the libvirt daemon"
-enable_libvirtd
-
-leave "Virt-Manager installed. $USER added to libvirt, libvirt-qemu, and kvm groups."
+main "$@"
