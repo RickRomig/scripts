@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : iru-micro
 # Description  : Installs, updates, and removes the Micro CLI text editor.
-# Dependencies : gdebi, wget
+# Dependencies : curl gdebi wget
 # Arguments    : [-b] [-h] [-i] [-r] [-s] [-u] (See help function)
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 05 Sep 2024
+# Updated      : 02 Oct 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,11 +25,12 @@ else
   exit 1
 fi
 
-## Variables ##
+set -eu
 
-_script=$(basename "$0"); readonly _script
-readonly _version="6.0.24249"
-readonly _updated="05 Sep 2024"
+## Global Variables ##
+
+script=$(basename "$0"); readonly script
+readonly version="6.1.24276"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 readonly cfg_d=$HOME"/.config/micro"
 
@@ -43,7 +44,7 @@ cleanup() {
 }
 
 check_dependencies() {
-  local packages=( gdebi wget )
+  local packages=( curl gdebi wget )
   check_packages "${packages[@]}"
 }
 
@@ -142,12 +143,14 @@ apply_bindings() {
 }
 
 help() {
-  local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+	errcode="${1:-2}"
+	updated="02 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -b  Installs/updates the Micro key-bindings json file.
@@ -156,63 +159,67 @@ ${orange}Available options:${normal}
   -r  Removes the Micro CLI text editor from the system.
   -s  Installs/updates the Micro settings json file.
   -u  Updates the Micro CLI text editor to the latest version.
-END_HELP
+_HELP_
   exit "$errcode"
+}
+
+main() {
+  local noOpt opt optstr
+  check_dependencies
+  noOpt=1
+  optstr=":bhirsu"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      b )
+        exists micro || leave "Micro is not installed."
+        apply_bindings
+      ;;
+      h )
+        help 0
+      ;;
+      i )
+        exists micro && leave "Micro $(micro_version) is already installed."
+        tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+        tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+        trap cleanup EXIT
+        sudo_login 2
+        new_ver="$(newest_version)"
+        echo "${lightyellow}Installing Micro version $new_ver...${normal}"
+        install_micro
+        apply_settings
+        apply_bindings
+      ;;
+      r )
+        exists micro || leave "Micro is not installed."
+        sudo_login 2
+        remove_micro
+      ;;
+      s )
+        exists micro || leave "Micro is not installed."
+        apply_settings
+      ;;
+      u )
+        exists micro || leave "Micro is not installed."
+        tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+        tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+        trap cleanup EXIT
+        sudo_login 2
+        new_ver="$(newest_version)"
+        [[ "$new_ver" ]] || die "No download available. Try again later." 1
+        compare_versions
+      ;;
+      ? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+    noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  box "$script v$version"
+  exit
 }
 
 ## Execution ##
 
-noOpt=1
-optstr=":bhirsu"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    b )
-      exists micro || leave "Micro is not installed."
-      apply_bindings
-    ;;
-    h )
-      help 0
-    ;;
-    i )
-      exists micro && leave "Micro $(micro_version) is already installed."
-      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-      trap cleanup EXIT
-      sudo_login 2
-      check_dependencies
-      new_ver="$(newest_version)"
-      echo "${lightyellow}Installing Micro version $new_ver...${normal}"
-      install_micro
-      apply_settings
-      apply_bindings
-    ;;
-    r )
-      exists micro || leave "Micro is not installed."
-      sudo_login 2
-      remove_micro
-    ;;
-    s )
-      exists micro || leave "Micro is not installed."
-      apply_settings
-    ;;
-    u )
-      exists micro || leave "Micro is not installed."
-      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-      trap cleanup EXIT
-      sudo_login 2
-      check_dependencies
-      new_ver="$(newest_version)"
-      [[ "$new_ver" ]] || die "No download available. Try again later." 1
-      compare_versions
-    ;;
-    ? )
-      echo "$red_error Invalid option -${OPTARG}" >&2
-      help 2
-  esac
-  noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-box "$_script v$_version"
-exit
+main "$@"
