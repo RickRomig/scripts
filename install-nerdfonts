@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Sep 2023
-# Last updated : 16 May 2024
+# Last updated : 02 Oct 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,11 +25,7 @@ else
   exit 1
 fi
 
-## Global Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="1.3.24170"
-readonly font_dir="/usr/share/fonts"
+set -eu
 
 ## Functions ##
 
@@ -45,7 +41,9 @@ cleanup() {
 }
 
 install_nerd_fonts() {
-  local font fonts font_repo
+  local font font_dir fonts font_repo
+  font_dir="/usr/share/fonts"
+  [[ -d "$font_dir" ]] || sudo mkdir -p "$font_dir"
   fonts=( "CascadiaCode" "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
   font_repo="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1"
   for font in "${fonts[@]}"; do
@@ -56,14 +54,18 @@ install_nerd_fonts() {
   printf "Nerd fonts installed.\n"
 }
 
+main() {
+  local script version
+  script=$(basename "$0")
+  version="1.3.24276"
+  sudo_login 2
+  check_dependencies
+  tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+  trap cleanup EXIT
+  install_nerd_fonts
+  leave "$script v$version"
+}
+
 ## Execution ##
 
-sudo_login 2
-check_dependencies
-
-[[ -d "$font_dir" ]] || sudo mkdir -p "$font_dir"
-tmp_dir=$(mktemp -d) || { printf "%s Failed to create temporary directory.\n" "$red_error" >&2; exit 1; }
-
-trap cleanup EXIT
-install_nerd_fonts
-leave "$_script v$_version"
+main "$@"
