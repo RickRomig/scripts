@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 23 Aug 2024
+# Updated      : 01 Oct 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,11 +25,12 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="4.19.24236"
-readonly _updated="23 Aug 2024"
+script=$(basename "$0"); readonly script
+readonly version="4.19.24236"
 readonly charm_url="https://repo.charm.sh/apt"
 readonly src_list_d="/etc/apt/sources.list.d"
 readonly keyring_d="/etc/apt/keyrings"
@@ -53,19 +54,19 @@ install_glow() {
   printf "Installing the Glow markdown reader...\n"
   add_gpg
   add_src_list
-  sudo apt update && sudo apt install glow -yy
-  printf "glow %s successfully installed.\n" "$(glow_ver)"
+  sudo apt update && sudo apt install -y glow
+  printf "glow %s successfully installed.\n" "$(glow_version)"
 }
 
 remove_glow() {
   printf "Removing the Glow markdown reader...\n"
-  sudo apt-get remove glow -y
+  sudo apt-get -y remove glow -y
   [[ -f "$src_list_d/charm.list" ]] && sudo rm -v "$src_list_d/charm.list"
   [[ -f "$keyring_d/charm.gpg" ]] && sudo rm -v "$keyring_d/charm.gpg"
   printf "Glow markdown reader has been removed.\n"
 }
 
-glow_ver() {
+glow_version() {
   # glow --version | cut -d' ' -f3
   dpkg -l glow | awk '/ii/ {print $3}'
 }
@@ -76,54 +77,60 @@ check_dependencies() {
 }
 
 help() {
-  local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+  errcode="${1:-2}"
+  updated="201 Oct 2024"
+  cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Installs/Removed Glow Markdown reader
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 ${orange}Available options:${normal}
   -h  Displays help.
   -i  Installs the glow markdown reader.
   -r  Removes the glow markdown reader from the system.
   -s  Apply charm.list and gpg key.
-END_HELP
+_HELP_
   exit "$errcode"
+}
+
+main() {
+  local noOpt opt optstr
+  check_dependencies
+	noOpt=1
+  optstr=":hirs"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      h )
+        help 0
+      ;;
+      i )
+        exists glow && leave "Glow $(glow_version) is already installed."
+        sudo_login 2
+        install_glow
+      ;;
+      r )
+        exists glow || leave "Glow is not installed."
+        sudo_login 2
+        remove_glow
+      ;;
+      s )
+        exists glow || leave "Glow is not installed."
+        sudo_login 2
+        add_gpg
+        add_src_list
+      ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+	  noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  leave "$script v$version"
 }
 
 ## Execution ##
 
-noOpt=1
-optstr=":hirs"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    h )
-      help 0
-    ;;
-    i )
-      exists glow && leave "Glow $(glow_ver) is already installed."
-      sudo_login 2
-      check_dependencies
-      install_glow
-    ;;
-    r )
-      exists glow || leave "Glow is not installed."
-      sudo_login 2
-      remove_glow
-    ;;
-    s )
-      exists glow || leave "Glow is not installed."
-      sudo_login 2
-      check_dependencies
-      add_gpg
-      add_src_list
-    ;;
-    ? )
-      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-      help 2
-  esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version"
+main "$@"
