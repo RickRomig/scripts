@@ -7,7 +7,7 @@
 # Author       :Copyright (C) 2020 Richard B. Romig, 14 Dec 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 18 Jun 2024
+# Updated      : 02 Sep 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,22 +25,25 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="6.11.24170"
-readonly _updated="18 Jun 2024"
+script=$(basename "$0"); readonly script
+readonly version="6.12.24276"
 readonly term_cfg_d=$HOME"/.config/terminator"
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+	errcode="${1:-2}"
+	updated="02 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Terminator terminal emulator
 
-${orange}Usage:${normal} $_script [OPTION]
+${orange}Usage:${normal} $script [OPTION]
 ${green}OPTIONS:${normal}
   -c  Apply configuration file.
   -h  Display help text.
@@ -51,39 +54,21 @@ ${bold}NOTES:${normal}
      Configuration changes should be made through Terminator Preferences.
   2. For Debian and Debian-based distributions (Antix, MX Linux, LMDE),
      Terminator will be configured as a login shell.
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
-remove_terminator() {
-  local term_cfg_d_bu="{$HOME}/backup/terminator"
-  echo "Removing terminator $(terminator_version) ancd configuration files..."
-  sudo apt-get purge terminator
-  find "$HOME/.config/" -maxdepth 2 -type d -name "terminator" -exec rm -rf {} \;
-  [[ -d "$term_cfg_d" ]] && rm -rf "$term_cfg_d"
-  [[ -d "$term_cfg_d_bu" ]] && rm -rf "$term_cfg_d_bu"
-  echo "Terminator and its configuration files have been removed."
-}
-
-install_terminator() {
-  echo "Installing terminator..."
-  sudo apt-get update -yyq
-  sudo apt-get install terminator -yy
-  if bunsenlabs; then
-    echo "Terminator $(terminator_version) installed."
-    echo "BunsenLabs uses its own profiles based on the version of the distribution."
-  else
-    apply_config
-    echo "terminator $(terminator_version) installed with configuration file."
-  fi
+terminator_version() {
+  dpkg -l terminator | awk '/ii/ {print $3}' | sed 's/-.*//'
 }
 
 apply_config() {
   local localip repsoitory term_cfg
 	localip=$(local_ip)
   term_cfg="config"
+  check_package curl
   [[ -d "$term_cfg_d" ]] || mkdir -p "$term_cfg_d"
-  echo "Applying Terminator configuration..."
+  printf "Applying Terminator configuration...\n"
   if [[ "$localip" == "16" ]]; then
     repository="$HOME/gitea/configs/terminator"
     cp -v "$repository$term_cfg" "$term_cfg_d/"
@@ -92,49 +77,71 @@ apply_config() {
     curl -so "$term_cfg_d/$term_cfg" "$Gitea_URL/$repsoitory/$term_cfg"
   fi
   is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg_d/config"
+  printf "Terminator configuration file applied.\n"
 }
 
-terminator_version() {
-  dpkg -l | awk '$2 == "terminator" {print $3}' | sed 's/[+-].*//'
+install_terminator() {
+  printf "Installing terminator...\m"
+  sudo apt-get -yq update
+  sudo apt-get install =y terminator
+  if bunsenlabs; then
+    printf "Terminator %s installed.\n" "$(terminator_version)"
+    printf "BunsenLabs uses its own profiles based on the version of the distribution.\n"
+  else
+    apply_config
+    printf "terminator %s installed with configuration file.\n" "$(terminator_version)"
+  fi
+}
+
+remove_terminator() {
+  local term_cfg_d_bu="{$HOME}/backup/terminator"
+  printf "Removing terminator %s and configuration files...\n" "$(terminator_version)"
+  sudo apt-get purge terminator
+  find "$HOME/.config/" -maxdepth 2 -type d -name "terminator" -exec rm -rf {} \;
+  [[ -d "$term_cfg_d" ]] && rm -rf "$term_cfg_d"
+  [[ -d "$term_cfg_d_bu" ]] && rm -rf "$term_cfg_d_bu"
+  printf "Terminator and its configuration files have been removed.\n"
+}
+
+main() {
+  local noOpt opt optstr
+  noOpt=1
+  optstr=":chir"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      c )
+        exists terminator || leave "Terminator is not installed."
+        if bunsenlabs; then
+          printf "Terminator configuration for BunsenLabs was not overwritten.\n"
+          printf "Configuration changes should be made through the Terminator Preferences menu.\n"
+        else
+          apply_config
+        fi
+      ;;
+      h )
+        help 0
+      ;;
+      i )
+        exists terminator && leave "Terminator $(terminator_version) is already installed."
+        sudo_login 2
+        install_terminator
+      ;;
+      r )
+        exists terminator || leave "Terminator is not installed."
+        sudo_login 2
+        remove_terminator
+      ;;
+      ? )
+      printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+      help 2
+      esac
+      noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  leave "$script v$version"
 }
 
 ## Execution ##
 
-noOpt=1
-optstr=":chir"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    c )
-      exists terminator || leave "Terminator is not installed."
-      if bunsenlabs; then
-        echo "Terminator configuration for BunsenLabs was not overwritten."
-        echo "Configuration changes should be made through the Terminator Preferences menu."
-      else
-        check_package curl
-        apply_config
-        echo "Terminator configuration file written."
-      fi
-    ;;
-    h )
-      help 0
-    ;;
-    i )
-      exists terminator && leave "Terminator $(terminator_version) is already installed."
-      sudo_login 2
-      check_package curl
-      install_terminator
-    ;;
-    r )
-      exists terminator || leave "Terminator is not installed."
-      sudo_login 2
-      remove_terminator
-    ;;
-    ? )
-      echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
-      help 2
-    esac
-  	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version"
+main "$@"
