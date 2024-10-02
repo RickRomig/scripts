@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Nov 2023
-# Updated      : 05 Jun 2024
+# Updated      : 02 Oct 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,12 +25,10 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.2.24157"
-readonly _updated="05 Jun 2024"
-readonly i3_dir="$HOME/.config/i3"
 readonly polybar_d="$HOME/.config/polybar"
 readonly repository="configs/raw/branch/main/"
 readonly local_repo="$HOME/gitea/configs/polybar"
@@ -87,18 +85,25 @@ configure_polybar() {
 	fi
 }
 
+main() {
+  local i3_dir script version
+  script=$(basename "$0")
+  version="2.3.24276"
+	i3_dir="$HOME/.config/i3"
+	check_package curl
+	printf "Installs Polybar on Debian with i3wm.\n"
+	exists polybar && leave "Polybar is already installed."
+
+	sudo apt-get install -y polybar
+	copy_polybar_config
+	copy_polybar_launcher
+	sed -i '/policykit/a ~/.local/bin/polybar-i3 &' "$i3_dir/autostart.sh"
+	sed -i '/bar/s/^/# /' "$i3_dir/config"
+	configure_polybar
+
+	leave "$script $version"
+}
+
 ## Execution ##
 
-# clear
-check_package curl
-printf "Installs Polybar on Debian with i3wm.\n"
-exists polybar && leave "Polybar is already installed."
-
-sudo apt-get install -y polybar
-copy_polybar_config
-copy_polybar_launcher
-sed -i '/policykit/a ~/.local/bin/polybar-i3 &' "$i3_dir/autostart.sh"
-sed -i '/bar/s/^/# /' "$i3_dir/config"
-configure_polybar
-
-leave "$_script $_version"
+main "$@"
