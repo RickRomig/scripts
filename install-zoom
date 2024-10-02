@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Nov 2022
-# Updated      : 18 Jun 2024
+# Updated      : 02 Sep 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,9 +27,8 @@ fi
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="3.3.24170"
-readonly _updated="18 Jun 2024"
+script=$(basename "$0"); readonly script
+readonly version="3.4.24276"
 
 ## Functions ##
 
@@ -45,24 +44,26 @@ cleanup() {
 }
 
 help() {
-	local errcode="${1:-2}"
-	cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+	errcode="${1:-2}"
+	updated="02 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Installs or removes the Zoom video conferencing software.
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -d  Install Zoom (deb package)
   -f  Install Zoom (Flatpak from Flathub)
   -h  Display help
   -r  Remove Zoom
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
 zoom_deb_ver() {
-	dpkg -l | awk '$2 == "zoom" {print $3}'
+	dpkg -l zoom | awk '/ii/ {print $3}'
 }
 
 zoom_flat_ver() {
@@ -111,46 +112,51 @@ webcam_info() {
 	fi
 }
 
+main() {
+  local noOpt opt optstr
+	noOpt=1
+	optstr=":dfhr"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			d )
+				flatpak_zoom && leave "Zoom $(zoom_flat_ver) is installed, Installatiion canceled."
+				exists zoom && printf "Zoom %s is installed. Updating package.\n" "$(zoom_deb_ver)"
+				webcam_info
+				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+				trap cleanup EXIT
+				sudo_login 2
+				check_dependencies
+				install_zoom_deb
+			;;
+			f )
+				exists flatpak || leave "Flatpak is not isntalled. Installatiion canceled."
+				flatpak_zoom && leave "Zoom $(zoom_flat_ver) is already installed."
+				exists zoom && remove_zoom
+				webcam_info
+				install_zoom_flatpak
+			;;
+			h )
+				help 0
+			;;
+			r )
+				if exists zoom || flatpak_zoom; then
+					sudo_login 2
+					remove_zoom
+				else
+					printf "Zoom is not installed.\n"
+				fi
+			;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	leave "$script v$version"
+}
+
 ## Execution ##
 
-noOpt=1
-optstr=":dfhr"
-while getopts "$optstr" opt; do
-	case "$opt" in
-		d )
-			flatpak_zoom && leave "Zoom $(zoom_flat_ver) is installed, Installatiion canceled."
-			exists zoom && printf "Zoom %s is installed. Updating package.\n" "$(zoom_deb_ver)"
-			webcam_info
-			tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-			trap cleanup EXIT
-			sudo_login 2
-			check_dependencies
-			install_zoom_deb
-		;;
-		f )
-			exists flatpak || leave "Flatpak is not isntalled. Installatiion canceled."
-			flatpak_zoom && leave "Zoom $(zoom_flat_ver) is already installed."
-			exists zoom && remove_zoom
-			webcam_info
-			install_zoom_flatpak
-		;;
-		h )
-			help 0
-		;;
-		r )
-			if exists zoom || flatpak_zoom; then
-				sudo_login 2
-				remove_zoom
-			else
-				printf "Zoom is not installed.\n"
-			fi
-		;;
-		? )
-			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-			help 2
-	esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version"
+main "$@"
