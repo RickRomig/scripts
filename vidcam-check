@@ -7,7 +7,7 @@
 # Author       : Copyright © 2021 Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2021
-# Updated      : 07 Jun 2024
+# Updated      : 03 Oct 2024
 # Comment      :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,25 +25,27 @@ else
   exit 1
 fi
 
-## Global Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="2.1.24159"
-
 ## Functions ##
 
 vid_cam() {
   /usr/bin/lsusb | grep -iqsw Webcam && return "$TRUE" || return "$FALSE"
 }
 
+main() {
+  local script version
+  script=$(basename "$0")
+  version="2.2.24277"
+  printf "Checks to see if a web cam is available.\n"
+  if vid_cam; then
+    printf "Available Webcams:\n"
+    /usr/bin/lsusb | grep -iw Webcam | cut -d' ' -f7-
+  else
+    printf "No attached webcam found.\n"
+  fi
+  over_line "$script v$version" "-"
+  exit
+}
+
 ## Execution ##
 
-printf "%s v%s\n" "$_script" "$_version"
-printf "Checks to see if a web cam is available.\n"
-if vid_cam; then
-  printf "Available Webcams:\n"
-  /usr/bin/lsusb | grep -iw Webcam | cut -d' ' -f7-
-else
-  printf "No attached webcam found.\n"
-fi
-exit
+main "$@"
