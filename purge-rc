@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Updated      : 05 Jul 2024
+# Updated      : 03 Oct 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,10 +25,7 @@ else
   exit 1
 fi
 
-## Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="4.6.24187"
+set -eu
 
 ## Functions ##
 
@@ -58,15 +55,21 @@ list_headers() {
   dpkg --list | grep -Ei --color 'linux-image|linux-headers' | awk '{$1=$1}1' | cut -d' ' -f2,3 | column -t
 }
 
+main() {
+  local script version
+  script=$(basename "$0")
+  version="4.7.24277"
+  box "$script v$version"
+  if dpkg --list | grep -q '^rc'; then
+    list_rc_packages
+    purge_rc_packages
+  else
+    printf "No packages in the 'rc' state to be purged.\n"
+  fi
+  list_headers
+  exit
+}
+
 ## Execution ##
 
-# clear
-box "$_script v$_version"
-if dpkg --list | grep -q '^rc'; then
-  list_rc_packages
-  purge_rc_packages
-else
-  printf "No packages in the 'rc' state to be purged.\n"
-fi
-list_headers
-exit
+main "$@"
