@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Sep 2019
-# Updated      : 23 Jun 2024
+# Updated      : 03 Oct 2024
 # Comments     : Creates a compressed tar archive of the folder's contents.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,17 +25,18 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 SECONDS=0
 
 ## Functions ##
 
 check_host() {
-	local local_host main_host
+	local local_host main_host script
 	local_host="${HOSTNAME:-$(hostname)}"
 	main_host="hp-800g2-sff"
-	[[ "$local_host" != "$main_host" ]] && die "$_script must be run from $main_host." 2
+	script="$1"
+	[[ "$local_host" != "$main_host" ]] && die "$script must be run from $main_host." 2
 }
 
 remove_bu_files() {
@@ -67,21 +68,22 @@ sync_dropbox() {
 }
 
 main() {
-	local _script _version homepage_dir archive_dir
-	_script=$(basename "$0")
-	_version="6.4.24175"
+	local script version homepage_dir archive_dir
+	script=$(basename "$0")
+	version="6.4.24177"
 	homepage_dir=$HOME"/gitea/homepage"
 	archive_dir="$HOME/Downloads/archives/homepage"
 
-	box "$_script v$_version" "*"
-	check_host
+	box "$script v$version" "*"
+	check_host "$script"
 	remove_bu_files "$homepage_dir"
 	backup_homepage "$homepage_dir" "$archive_dir"
 	sync_dropbox "$homepage_dir" "$archive_dir"
+	printf "\nScript completed in %s\n" "$(format_time $SECONDS)"
+	leave ""
+
 }
 
 ## Execution ##
 
-main
-printf "\nScript completed in %s\n" "$(format_time $SECONDS)"
-leave ""
+main "$@"
