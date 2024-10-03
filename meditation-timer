@@ -7,9 +7,9 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, ludditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jul 2021
-# Updated      : 06 Jun 2024
+# Updated      : 02 Oct 2024
 # Comments     : Original script found on Reddit r/dharmmawheel, posted by u/Jhanna4
-# TODO (Rick)  : get_volume() and set_volume()
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -27,29 +27,29 @@ fi
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="4.2.24158"
-readonly med_time="${1:-20}"
 readonly sound_dir="$HOME/bin/files"
-readonly sound_one="Tibetan_bowl.wav"
-# readonly sound_two="Low-Wood-Block.wav"
+readonly tibet_bowl="Tibetan_bowl.wav"
+# readonly wood_block="Low-Wood-Block.wav"
 
 ## Functions ##
 
 input_value() {
-  printf "%s Invalid argument\n" "$red_error" >&2
+  printf "%s Invalid argument\n" "$RED_ERROR" >&2
   printf "Please supply a value for minutes, only minutes, and only whole numbers greater than 0.\n" >&2
   exit 2
 }
 
 get_volume() {
-  local mixer
-  mixer=$(amixer get Master | grep 'Mono:')
-  echo "$mixer" | awk '{print $3}'
+  # Get the cuurent volume setting
+  local vol
+  vol=$(amixer get Master | awk '/Mono:/ {print $3}')
+  echo "$vol"
 }
 
 set_volume() {
-  amixer cset iface=MIXER,name="Master Playback Volume" "$1" >/dev/null
+  # Set the volume for sounds played or reset to original volume
+  local vol="$1"
+  amixer cset iface=MIXER,name="Master Playback Volume" "$vol" >/dev/null
 }
 
 play_sound() {
@@ -78,7 +78,7 @@ countdown() {
   for i in {10..1}; do printf "\t%02d\r" "$i"; sleep 1; done
 }
 
-main_timer() {
+meditation_timer() {
   local hours interval min minutes seconds sec_rem
   min="$1"
   sec_rem=$(( 60 * min ))
@@ -95,29 +95,38 @@ main_timer() {
     # interval=$(( interval - hours ))
     # weeks=$(( interval / 604800 ))
     printf "\t%02d:%02d:%02d\r" "$hours" "$minutes" "$seconds"
-    # [[ $(( sec_rem % 300 )) -eq 0 && "$sec_rem" -gt 0 ]] && play_sound "$sound_dir/$sound_two"
+    # [[ $(( sec_rem % 300 )) -eq 0 && "$sec_rem" -gt 0 ]] && play_sound "$sound_dir/$wood_block"
     sleep 1
   done
 }
 
+main() {
+  local meditation_time ovol vol script version
+  script=$(basename "$0")
+  version="2.0.24276"
+  meditation_time="${1:-20}"
+  vol="${2:-50}"
+  [[ -n "${meditation_time//[0-9]/}" || "$meditation_time" -eq 0 ]] && input_value
+  # trap 'screensaver_on' SIGINT
+  clear
+  # Capture original volume setting
+  ovol=$(get_volume)
+  # Set playback volume
+  set_volume "$vol"
+  printf "\n\t\U2638 Meditation Timer \U2638 \n\n"
+  screensaver_off
+  countdown
+  play_sound "$sound_dir/$tibet_bowl"
+  meditation_timer "$meditation_time"
+  play_sound "$sound_dir/$tibet_bowl"
+  sleep 30
+  screensaver_on
+  set_volume "$ovol"
+  printf "\n\n\U2638 %s v%s\n" "$script" "$version"
+  printf "\UA9 2021-2024 Richard B. Romig\n"
+  exit
+}
+
 ## Execution ##
 
-[[ -n ${med_time//[0-9]/} || "$med_time" -eq 0 ]] && input_value
-# trap 'screensaver_on' SIGINT
-clear
-# Capture original volume setting
-# ovol=$(get_volume)
-# Set playback volume
-# vol=50; set_volume "$vol"
-printf "\n\t\U2638 Meditation Timer \U2638 \n\n"
-screensaver_off
-countdown
-play_sound "$sound_dir/$sound_one"
-main_timer "$med_time"
-play_sound "$sound_dir/$sound_one"
-sleep 30
-screensaver_on
-# set_volume "$ovol"
-printf "\n\n\U2638 %s v%s\n" "$_script" "$_version"
-printf "\UA9 2021-2024 Richard B. Romig\n"
-exit
+main "$@"
