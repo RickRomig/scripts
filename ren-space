@@ -3,26 +3,29 @@
 # Script Name  : ren-space
 # Description  : replaces spaces with underscores in filenames in the current
 #                directory
-# Dependencies : rename, egrep
+# Dependencies : None
 # Args         : None
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Created      : Unknown
-# Updated      : 07 Jun 2024
+# Updated      : 03 Oct 2024
 # Comment      :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
-## Variables ##
+set -eu
 
-_script=$(basename "$0"); readonly _script
-readonly _version="1.4.24159"
+main() {
+  local script version
+  script=$(basename "$0")
+	version="1.5.24277"
+	echo "$script v$version  - renames filenames containing spaces."
+	# check for filenames containing spaces in the current directory
+	find . -maxdepth 1 -type f | grep -q " " && rename -v 's/ /_/g' ./* || echo "No filenames containing spaces found."
+	printf "%s v%s\n" "$script" "$version"
+	exit
+}
 
 ## Execution ##
 
-echo "$_script v$_version  - renames filenames containing spaces."
-
-# check for filenames containing spaces
-find . -maxdepth 1 -type f | grep -q " " && rename -v 's/ /_/g' ./* || echo "No filenames containing spaces found."
-
-exit
+main "$@"
