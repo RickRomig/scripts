@@ -7,7 +7,7 @@
 # Author       : Richard B. Romig, 01 Dec 2019
 # Email        : rick.romig@gmail.com
 # Created      : 01 Dec 2019
-# Updated      : 06 Jun 2024
+# Updated      : 02 Oct 2024
 # Comments     : Variables for IP range do not work, must be hard coded.
 #              : Local host will not respond to arping.
 #              : Local host will respond using arping in iputils-arping.
@@ -28,11 +28,12 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="4.7.24158"
-readonly _updated="06 Jun 2024"
+script=$(basename "$0"); readonly script
+readonly version="4.8.24276"
+SECONDS=0
+COUNT=0
 
 ## Functions ##
 
@@ -84,7 +85,7 @@ scan_static_addresses() {
           * ) printf "\tUnknown host\n"
         esac
       fi
-      (( count++ ))
+      (( COUNT++ ))
     fi
   done
 }
@@ -100,70 +101,77 @@ scan_dhcp_addresses() {
       else
         printf "\tUnknown host\n"
       fi
-      (( count++ ))
+      (( COUNT++ ))
     fi
   done
 }
 
 help() {
-  local errorcode="${1:-2}"
-  cat << EOT
-${green}Usage:${normal} $_script [-a] [-d] [-h] [-s]
-${orange}OPTIONS:${normal}
+  local errcode updated
+	errcode="${1:-2}"
+	updated="02 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
+Scans local network to see which addresses are active.
+
+${green}Usage:${normal} $script [OPTION]
+
+${orange}Available options:${normal}
   -a  Scan entire network
   -d  Scan DHCP assigned addresses
   -h  Display Help
   -s  Scan static addresses
   ${orange}Note:${normal} Uses iputils-arping.
-$_script vR_version, $_updated
-EOT
-  exit "$errorcode"
+_HELP_
+  exit "$errcode"
+}
+
+main() {
+  local noOpt opt optstr
+  noOpt=1
+  optstr=":adhs"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      a )
+        check_dependencies
+        tput civis
+        echo $'\n'$"Scanning  the network ..."
+        echo -e "${underline}${green}IP Address\tHostname${normal}"
+        scan_static_addresses
+        scan_dhcp_addresses
+        tput cnorm
+      ;;
+      d )
+        check_dependencies
+        tput civis
+        echo $'\n'$"Scanning DHCP addresses on the network ..."
+        echo -e "${underline}${green}IP Address\tHostname${normal}"
+        scan_dhcp_addresses
+        tput cnorm
+      ;;
+      h )
+        help 0
+      ;;
+      s )
+        check_dependencies
+        tput civis
+        echo $'\n'$"Scanning static IP addresses on the network ..."
+        echo -e "${underline}${green}IP Address\tHostname${normal}"
+        scan_static_addresses
+        tput cnorm
+      ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+	  noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  printf "\n%d active addresses discovered in %s.\n\n" "$COUNT" "$(format_time SECONDS)"
+  leave "$script v$version"
 }
 
 ## Execution ##
 
-SECONDS=0
-count=0
-
-noOpt=1
-optstr=":adhs"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    a )
-      check_dependencies
-      tput civis
-      echo $'\n'$"Scanning  the network ..."
-      echo -e "${underline}${green}IP Address\tHostname${normal}"
-      scan_static_addresses
-      scan_dhcp_addresses
-      tput cnorm
-    ;;
-    d )
-      check_dependencies
-      tput civis
-      echo $'\n'$"Scanning DHCP addresses on the network ..."
-      echo -e "${underline}${green}IP Address\tHostname${normal}"
-      scan_dhcp_addresses
-      tput cnorm
-    ;;
-    h )
-      help 0
-    ;;
-    s )
-      check_dependencies
-      tput civis
-      echo $'\n'$"Scanning static IP addresses on the network ..."
-      echo -e "${underline}${green}IP Address\tHostname${normal}"
-      scan_static_addresses
-      tput cnorm
-    ;;
-    ? )
-      echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
-      help 2
-  esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-printf "\n%d active addresses discovered in %s.\n\n" "$count" "$(format_time SECONDS)"
-leave "$_script v$_version"
+main "$@"
