@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 22 Sep 2024
+# Updated      : 02 Oct 2024
 # Comments     : Mount points are at ~/mnt/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,11 +25,12 @@ else
   exit 1
 fi
 
-## Variables ##
+set -eu
 
-_script=$(basename "$0"); readonly _script
-readonly _version="4.4.24266"
-readonly _updated="22 Sep 2024"
+## Glonal Variables ##
+
+script=$(basename "$0"); readonly script
+readonly version="4.5.24276"
 readonly local_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -57,7 +58,7 @@ unmount_share() {
     if fusermount -u "$HOME/mnt/$share/"; then
       printf "%s has been unmounted.\n" "$share"
     else
-      printf "%s %s has not been unmounted." >&2 "$red_error" "$share"
+      printf "%s %s has not been unmounted." >&2 "$RED_ERROR" "$share"
       fail_msg
     fi
 }
@@ -83,7 +84,7 @@ handle_mount() {
 }
 
 cd_fail() {
-  printf "%s The cd shell builtin failed.\n" "$red_error" >&2
+  printf "%s The cd shell builtin failed.\n" "$RED_ERROR" >&2
   printf "The SSHFS share has not been unmounted.\n" >&2
   fail_msg
 }
@@ -95,12 +96,14 @@ fail_msg() {
 }
 
 help() {
-	local errcode="${1:-2}"
-	cat << END_HELP
-${orange}$_script${normal} $_version, Updated $_updated
+  local errcode updated
+	errcode="${1:-2}"
+	updated="02 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version, Updated $updated
 Mounts/Unmounts an SSHFS share.
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Availabel options:${normal}
   -e  toggle mount/umount HP EliteBook 850 G3 (laptop)
@@ -111,93 +114,95 @@ ${orange}Availabel options:${normal}
   -m  toggle mount/umount HP 800 G2 (Main system)
   -n  toggle mount/umount QNAP NAS (network attached storage)
   -s  toggle mount/umount HP Compaq 6005 Pro SSF (file server)
-END_HELP
+_HELP_
 	exit "$errcode"
+}
+
+main() {
+  local noOpt opt optstr
+	check_package sshfs
+	printf "Mount or unmount an SSHFS share.\n"
+	noOpt=1
+	optstr=":efghlmns"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			e )
+				share_name="EliteBook-850"
+				ip_address=22
+				if [[ "$local_host" == "hp-850-g3" ]]; then
+					diehard "Cannot mount/unmount local system." "$script v$version"
+				else
+					handle_mount "$ip_address" "$share_name"
+				fi
+			;;
+			f )
+				share_name="HP-ProBook-6570b"
+				ip_address=21
+				if [[ "$local_host" == "hp-probook-6570" ]]; then
+					diehard "Cannot mount/unmount local system." "$script v$version"
+				else
+					handle_mount "$ip_address" "$share_name"
+				fi
+			;;
+			g )
+				share_name="Gitea-Server"
+				ip_address=16
+				if [[ "$local_host" == "hp-8300-usdt" ]]; then
+					diehard "Cannot mount/unmount local system." "$script v$version"
+				else
+					handle_mount "$ip_address" "$share_name"
+				fi
+			;;
+			h )
+				help 0
+			;;
+			l )
+				share_name="Lenovo-M91p"
+				ip_address=15
+				if [[ "$local_host" == "lenovo-m91p" ]]; then
+					diehard "Cannot mount/unmount local system." "$script v$version"
+				else
+					handle_mount "$ip_address" "$share_name"
+				fi
+			;;
+			m )
+				share_name="HP-800-G2"
+				ip_address=10
+				if [[ "$local_host" == "hp-800g2-sff" ]]; then
+					diehard "Cannot mount/unmount local system." "$script v$version"
+				else
+					handle_mount "$ip_address" "$share_name"
+				fi
+			;;
+			n )
+				share_name="NASD97167"
+				ip_address=4
+				if [[ "$local_host" == "NASD97167" ]]; then
+					diehard "Cannot mount/unmount local system." "$script v$version"
+				else
+					handle_mount "$ip_address" "$share_name"
+				fi
+			;;
+			s )
+				share_name="HP-6005"
+				ip_address=11
+				if [[ "$local_host" == "hp-6005" ]]; then
+					diehard "Cannot mount/unmount local system." "$script v$version"
+				else
+					handle_mount "$ip_address" "$share_name"
+				fi
+			;;
+			?)
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	leave "$script v$version"
 }
 
 ## Execution ##
 
-check_package sshfs
-
-printf "Mount or unmount an SSHFS share.\n"
-
-noOpt=1
-optstr=":efghlmns"
-while getopts "$optstr" opt
-do
-	case "$opt" in
-		e )
-			share_name="EliteBook-850"
-			ip_address=22
-			if [[ "$local_host" == "hp-850-g3" ]]; then
-				diehard "Cannot mount/unmount local system." "$_script v$_version"
-			else
-				handle_mount "$ip_address" "$share_name"
-			fi
-		;;
-		f )
-			share_name="HP-ProBook-6570b"
-			ip_address=21
-			if [[ "$local_host" == "hp-probook-6570" ]]; then
-				diehard "Cannot mount/unmount local system." "$_script v$_version"
-			else
-				handle_mount "$ip_address" "$share_name"
-			fi
-		;;
-		g )
-			share_name="Gitea-Server"
-			ip_address=16
-			if [[ "$local_host" == "hp-8300-usdt" ]]; then
-				diehard "Cannot mount/unmount local system." "$_script v$_version"
-			else
-				handle_mount "$ip_address" "$share_name"
-			fi
-		;;
-		h )
-			help 0
-		;;
-		l )
-			share_name="Lenovo-M91p"
-			ip_address=15
-			if [[ "$local_host" == "lenovo-m91p" ]]; then
-				diehard "Cannot mount/unmount local system." "$_script v$_version"
-			else
-				handle_mount "$ip_address" "$share_name"
-			fi
-		;;
-		m )
-			share_name="HP-800-G2"
-			ip_address=10
-			if [[ "$local_host" == "hp-800g2-sff" ]]; then
-				diehard "Cannot mount/unmount local system." "$_script v$_version"
-			else
-				handle_mount "$ip_address" "$share_name"
-			fi
-		;;
-		n )
-			share_name="NASD97167"
-			ip_address=4
-			if [[ "$local_host" == "NASD97167" ]]; then
-				diehard "Cannot mount/unmount local system." "$_script v$_version"
-			else
-				handle_mount "$ip_address" "$share_name"
-			fi
-		;;
-		s )
-			share_name="HP-6005"
-			ip_address=11
-			if [[ "$local_host" == "hp-6005" ]]; then
-				diehard "Cannot mount/unmount local system." "$_script v$_version"
-			else
-				handle_mount "$ip_address" "$share_name"
-			fi
-		;;
-		?)
-			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-			help 2
-	esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version"
+main "$@"
