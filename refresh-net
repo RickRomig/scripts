@@ -7,7 +7,7 @@
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Created      : Unknown
-# Updated      : 07 Jun 2024
+# Updated      : 03 Oct 2024
 # Comment      :
 # TODO (Rick)  : Find solutions for other init systems.
 #              : Look at adapting check-init script.
@@ -25,11 +25,6 @@ else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
-
-## Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="2.5.24159"
 
 ## Functions ##
 
@@ -54,13 +49,20 @@ restart_network() {
   esac
 }
 
+main() {
+  local script version
+  script=$(basename "$0")
+  version="2.6.24277"
+  printf "%s v%s\n" "$script" "$version"
+  printf "Refreshes network connection.\n"
+
+  sudo_login 2
+  printf "Restarting network...\n"
+  restart_network
+  sleep 3
+  exit
+}
+
 ## Execution ##
 
-printf "%s v%s\n" "$_script" "$_version"
-printf "Refreshes network connection.\n"
-
-sudo_login 2
-printf "Restarting network...\n"
-restart_network
-sleep 3
-exit
+main "$@"
