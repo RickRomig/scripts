@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 30 Jun 2020
-# Updated      : 30 Apr 2024
+# Updated      : 03 Oct 2024
 # Comments     : See EZNix snapkill script
 #              : /home/rick/Downloads/Utilities/snapkill.d/snapkill
 # TODO (Rick)  : Figure out what remove_snaps() does.
@@ -28,9 +28,8 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="3.2.24121"
-readonly _updated="30 Apr 2024"
+script=$(basename "$0"); readonly script
+readonly version="3..24277"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
 
 ## Functions ##
@@ -109,54 +108,61 @@ NO_SNAPS
 }
 
 help() {
-  local errcode="${1:=2}"
-  cat << END_HELP
-${green}Usage:${normal} $_script [OPTION]
+  local errcode updated
+	errcode="${1:-2}"
+	updated="03 Oct 2024"
+	cat << _HELP_
+${green}Usage:${normal} $script [OPTION]
 ${orange}OPTIONS:${normal}
   -e    Enable the installation of snapd and snap packages
   -d    Disable the installation of snapd and snap packages
   -h    Help
   -r		Remove snapd and all snap packages.
   -s    Status of snapd and snap package installation
-$_script v$_version, updated $_updated
-END_HELP
+$script v$version, updated $updated
+_HELP_
   exit "$errcode"
+}
+
+main() {
+  local noOpt opt optstr
+  printf "Enables or disables the installation of Snapd and Snap packages.\n"
+  check_snap_installed
+
+  noOpt=1
+  optstr=":dehs"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      d )
+        sudo_login 2
+        snap_status && disable_snaps
+      ;;
+      e )
+        sudo_login 2
+        snap_status || enable_snaps
+      ;;
+      h )
+        help 0
+      ;;
+      r )
+        sudo_login 2
+        remove_snaps
+      ;;
+      s )
+        printf "\nStatus of snapd and snap packages: "
+        snap_status && printf "Snaps are enabled.\n" || printf "Snaps are disabled.\n"
+      ;;
+      ? )
+        printf "\n%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+	  noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  leave "$script v$version"
 }
 
 ## Execution ##
 
-printf "Enables or disables the installation of Snapd and Snap packages.\n"
-check_snap_installed
-
-noOpt=1
-optstr=":dehs"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    d )
-      sudo_login 2
-      snap_status && disable_snaps
-    ;;
-     e )
-      sudo_login 2
-      snap_status || enable_snaps
-    ;;
-    h )
-      help 0
-    ;;
-    r )
-      sudo_login 2
-      remove_snaps
-    ;;
-    s )
-      printf "\nStatus of snapd and snap packages: "
-      snap_status && printf "Snaps are enabled.\n" || printf "Snaps are disabled.\n"
-    ;;
-    ? )
-      printf "\n%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-      help 2
-  esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version"
+main "$@"
