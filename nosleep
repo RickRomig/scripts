@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2023
-# Last updated : 06 Jun 2024
+# Last updated : 03 Oct 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,21 +25,22 @@ else
   exit 1
 fi
 
-## Global Variables ##
+main() {
+  local script sed_file sleep_file version
+  script=$(basename "$0");  script
+  version="1.2.24277"
+  sleep_file="/etc/systemd/sleep.conf"
+  sed_file="$HOME/bin/files/nosleep.sed"
 
-_script=$(basename "$0"); readonly _script
-readonly _version="1.1.24158"
-readonly _updated="18 Mar 2024"
-readonly sleep_file="/etc/systemd/sleep.conf"
-readonly sed_file="$HOME/bin/files/nosleep.sed"
+  printf "%s v%s\n" "$script" "$version"
+  printf "Disables sleep and hiberation on Debian-based systems.\n"
+
+  [[ -f "$sed_file" ]] || die "A required files ($(basename "$sed_file")) was not found." 1
+  sudo_login 2
+  sudo sed -i.bak -f "$sed_file" "$sleep_file"
+  leave "$sleep_file modified. Backup (${sleep_file}.bak) created."
+}
 
 ## Execution ##
 
-printf "%s v%s\n" "$_script" "$_version"
-printf "Disables sleep and hiberation on Debian-based systems.\n"
-
-[[ -f "$sed_file" ]] || die "A required files ($(basename "$sed_file")) was not found." 1
-sudo_login 2
-sudo sed -i.bak -f "$sed_file" "$sleep_file"
-leave "$sleep_file modified. Backup (${sleep_file}.bak) created."
-exit
+main "$@"
