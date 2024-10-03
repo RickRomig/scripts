@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, 04 Jul 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2022
-# Updated      : 22 Sep 2024
+# Updated      : 02 Oct 2024
 # Comments     : For use with BU backup script.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,9 +27,8 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.14.24266"
-readonly _updated="22 Sep 2024"
+script=$(basename "$0"); readonly script
+readonly version="2.15.24276"
 readonly mount_point="/media/$USER/BU_Drive"
 
 ## Functions ##
@@ -65,56 +64,65 @@ bu_status() {
 }
 
 help() {
-  local errcode="${1:=2}"
-  cat << END_HELP
-  ${orange}$_script${normal} $_version, Updated $_updated
+  local errcode updated
+	errcode="${1:-2}"
+	updated="02 Oct 2024"
+	cat << _HELP_
+  ${orange}$script${normal} $version, Updated $updated
   Mounts/Unmounts USB backup drive for the BU script.
 
-  ${green}Usage:${normal} $_script [OPTION]
+  ${green}Usage:${normal} $script [OPTION]
 
   ${orange}Availabel options:${normal}
     -h    Help
     -m    Mount USB Backup Drive (BU_Drive)
     -s    Status, is USB Backup Drive (BU_Drive) mounted?
     -u    Unmount USB Backup Drive (BU_Drive)
-  ${green}NOTE:${normal} When prompted, enter only the drive, i.e., sdb1
-END_HELP
+  ${green}NOTEs:${normal}
+  - When prompted, enter only the drive, i.e., sdb1
+  - If no argument is passed, displays status of the BU drive.
+_HELP_
   exit "$errcode"
+}
+
+main() {
+  local noOpt opt optstr
+  [[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || die "BU_Drive not attached."
+  noOpt=1
+  optstr=":hmsu"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      h )
+        help 0
+      ;;
+      m )
+        if bu_status; then
+          printf "No further action necessary.\n"
+        else
+          mount_bu
+        fi
+      ;;
+      s )
+        bu_status
+      ;;
+      u )
+        if bu_status; then
+          umount_bu
+        else
+          printf "No further action necessary.\n"
+        fi
+      ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+	  noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && bu_status
+  shift "$(( OPTIND - 1 ))"
+  leave "$script v$version"
 }
 
 ## Execution ##
 
-[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || die "BU_Drive not attached."
-noOpt=1
-optstr=":hmsu"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    h )
-      help 0
-    ;;
-    m )
-      if bu_status; then
-        printf "No further action necessary.\n"
-      else
-        mount_bu
-      fi
-    ;;
-    s )
-      bu_status
-    ;;
-    u )
-      if bu_status; then
-        umount_bu
-      else
-        printf "No further action necessary.\n"
-      fi
-    ;;
-    ? )
-      printf "\e[91mERROR:\e[0m Invalid option -%s\n" "$OPTARG" >&2
-      help 2
-  esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && bu_status
-shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version"
+main "$@"
