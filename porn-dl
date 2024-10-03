@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 April 2019
-# Updated      : 18 Aug 2024
+# Updated      : 03 Oct 2024
 # Comments     : match by regex, starts with http:// or https:// or by ID number
 #              : Downloads videos to ~/Videos/Pornography/<category>
 # TODO (Rick)  :
@@ -25,12 +25,12 @@ else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
   exit 1
 fi
+ set -eu
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.2.24231"
-readonly _updated="18 Aug 2024"
+script=$(basename "$0"); readonly script
+readonly version="2.3.24277"
 readonly porn_dir=$HOME"/Videos/Pornography"
 
 ## Functions ##
@@ -38,33 +38,35 @@ readonly porn_dir=$HOME"/Videos/Pornography"
 display_title() {
   clear
   box "Porn Site Download" "="
-  echo "$_script v$_version"
+  echo "$script v$version"
 }
 
 help() {
-  local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+	errcode="${1:-2}"
+	updated="03 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Dowload videos from adult sites.
 
-${green}Usage:${normal} $_script [video_URL] [video_ID]
+${green}Usage:${normal} $script [video_URL] [video_ID]
   ${darkgray}PornHub${normal}
-  $_script https://www.pornhub.com/view_video.php?viewkey=ph5ccfa07f0e2a6
+  $script https://www.pornhub.com/view_video.php?viewkey=ph5ccfa07f0e2a6
   ${darkgray}RedTube${normal}
-  $_script https://redtube.com/5431551
+  $script https://redtube.com/5431551
   ${darkgray}SparkBang${normal}
-  $_script https://spankbang.com/35tlo/video/luana+lani+comp
+  $script https://spankbang.com/35tlo/video/luana+lani+comp
 
 ${orange}Available options:${normal}
   -h | --help  displays these instructions.
   -i | --info  displays information about the script.
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
 script_info() {
-  cat <<- END_INFO
-  $_script uses yt-dlp to download videos from adult sites such as PornHub
+  cat <<- _INFO_
+  $script uses yt-dlp to download videos from adult sites such as PornHub
   and RedTube. The video URL is passed to the script on the command line.
   The script will extract the name of the site for later use.
 
@@ -79,12 +81,12 @@ script_info() {
   download fails, the script exits with an error code.
 
   Usage:
-    $_script [video-url]
-    $_script [video-ID]
+    $script [video-url]
+    $script [video-ID]
 
-  Version: $_version
-  Updated: $_updated
-END_INFO
+  Version: $version
+  Updated: $updated
+_INFO_
   exit
 }
 
@@ -131,6 +133,7 @@ choose_destination() {
 }
 
 dl_2_video() {
+  local url="$1"
   printf "%s...%s\n"  "$porn_dir" "$normal"
   # if /usr/local/bin/yt-dlp -f "bv*+ba/b" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"
   if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"
@@ -143,7 +146,9 @@ dl_2_video() {
 }
 
 dl_2_subdir() {
-	local dest_dir="$1"
+	local url dest_dir
+  url="$1"
+  dest_dir="$2"
   [[ -d "$porn_dir/$dest_dir" ]] || mkdir -p "$porn_dir/$dest_dir"
 	printf "%s...%s\n"  "$porn_dir/$dest_dir" "$normal"
   # if /usr/local/bin/yt-dlp -f "bv*+ba/b" --add-metadata -ic --restrict-filename -o "$porn_dir/$subdir/%(title)s.%(ext)s" "$url"
@@ -156,35 +161,42 @@ dl_2_subdir() {
   fi
 }
 
+download_video() {
+  local site url subdir
+  url="$1"
+  site="$2"
+  display_title
+  # Choose the download folder
+  subdir=$(choose_destination)
+  # Download video to selected folder
+  printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "${site^}"
+  case "$subdir" in
+    "none" ) dl_2_video "$url" ;;
+    * ) dl_2_subdir "$url" "$subdir"
+  esac
+}
+
+main() {
+  # Check arguments, fetch URL and extract site name
+  if [[ $# -eq 0 ]]; then
+    echo "$RED_ERROR No argument passed." >&2
+    help 2
+  elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
+    script_info
+  elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    help 2
+  elif [[ "$1" =~ ^https?:\/\/.* ]]; then
+    # match by regex, starts with http:// or https://
+    url=$*
+    # Extract domain without www and .com
+    site=$(extract_domain "$url")
+    check_dependencies
+    download_video "$url" "$site"
+  else
+    die "Invalid argument. Enter full URL." 1
+  fi
+}
+
 ## Execution ##
 
-# Check arguments, fetch URL and extract site name
-
-if [[ $# -eq 0 ]]; then
-  echo "${lightred}Error:${normal} No argument passed." >&2
-  help 2
-elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
-  script_info
-elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
-  help 2
-elif [[ "$1" =~ ^https?:\/\/.* ]]; then
-  # match by regex, starts with http:// or https://
-  url=$*
-  # Extract domain without www and .com
-  site=$(extract_domain "$url")
-else
-  die "Invalid argument. Enter full URL." 1 >&2
-fi
-
-check_dependencies
-display_title
-
-# Choose the download folder
-subdir=$(choose_destination)
-
-# Download video to selected folder
-printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "${site^}"
-case "$subdir" in
-  "none" ) dl_2_video;;
-  * ) dl_2_subdir "$subdir"
-esac
+main "$@"
