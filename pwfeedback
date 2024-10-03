@@ -25,7 +25,7 @@ else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
   exit 1
 fi
-
+set -e
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
@@ -38,7 +38,8 @@ readonly pwfb_file="0pwfeedback"
 
 pwfeedback_status() {
   local pwfb
-  pwfb=$(sudo grep -w pwfeedback "$sudoers_file")
+  # pwfb=$(sudo grep -w pwfeedback "$sudoers_file")
+  pwfb=$(sudo grep -w pwfeedback /etc/sudoers)
   if [[ -n "$pwfb" || -f "$pwfb_dir/$pwfb_file" ]]; then
     printf "Password feedback is enabled by "
     [[ "$pwfb" ]] && printf "sudoers.\n" || printf "%s.\n" "$pwfb_file"
