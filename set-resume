@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Nov 2019
-# Updated      : 23 Jun 2024
+# Updated      : 03 Oct 2024
 # Comments     : Extracts swap partition UUID from output of /sbin/blkid
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,24 +25,22 @@ else
   exit 1
 fi
 
-## Global Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="5.4.24175"
-
 ## Functions ##
 
 print_message() {
-  cat << END_MESSAGE
+  cat << _MESSAGE_
   Set RESUME environment variable after an update-initramfs error message.
   The error message wil be similar to:
   I: The initramfs will attempt to resume from /dev/sda2
   I: (UUID=09e25397-4a2c-4fb0-a605-a7013eecb59c)
   I: Set the RESUME variable to override this.
-END_MESSAGE
+
+_MESSAGE_
 }
 
 get_swap_uuid() {
+  local swap_uuid
+  printf "\nExtracting the swap partition UUID using /sbin/blkid ...\n"
   if antix_mx; then
     swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $4}')
   else
@@ -66,15 +64,20 @@ update_initramfs() {
   sudo update-initramfs -u -k all
 }
 
+main() {
+  local script version swap_uuid
+  script=$(basename "$0")
+  version="5.5.24277"
+  sudo_login 2
+  box "$script v$version" "*"
+  print_message
+  swap_uuid=$(get_swap_uuid)
+  [[ "$swap_uuid" ]] || die "No UUID for swap found." 1
+  set_resume "$swap_uuid"
+  update_initramfs
+  leave "Reboot the system for the change to take affect."
+}
+
 ## Execution ##
 
-sudo_login 2
-
-box "$_script v$_version" "*"
-print_message
-printf "\nExtracting the swap partition UUID using /sbin/blkid ...\n"
-swap_uuid=$(get_swap_uuid)
-[[ "$swap_uuid" ]] || die "No UUID for swap found." 1
-set_resume "$swap_uuid"
-update_initramfs
-leave "Reboot the system for the change to take affect."
+main "$@"
