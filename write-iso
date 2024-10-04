@@ -30,38 +30,39 @@ fi
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="6.2.24237"
-readonly _updated="24 Aug 2024"
-readonly iso_d="$HOME/Downloads/ISO/"
+script=$(basename "$0"); readonly script
+readonly version="6.3.24277"
 user=$(whoami)
 dryrun="$FALSE"
 
 ## Functions ##
 
 help() {
+  local errcode updated
 	errcode="${1:-2}"
-	cat << END_HELP
-${orange}$_script${normal} $_version, Upated: $_updated
+	updated="03 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -d  Enable Dry Run simulation (with -w)
   -h  Display help
   -w  Write ISO to USB device (-dw for a dry run)
 
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
 check_usb_drive() {
-	[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$_script v$_version"
+	[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$script v$version"
 }
 
 select_iso() {
-	local isofile
+	local isofile iso_d
+	iso_d="$HOME/Downloads/ISO/"
 	isofile=$(find "$iso_d" -maxdepth 3 -type f -iname "*.iso" -print | sort -d | fzf --height 40% --reverse --prompt "Select the ISO file to write: ")
 	echo "$isofile"
 }
@@ -117,7 +118,7 @@ write_dd() {
     printf "\nContents of /dev/%s\n\n" "$usb"
     ls "/media/$user/$mount_name"
 else
-    diehard "$iso write to /dev/$usb failed.\n" "$_script v$_version"
+    diehard "$iso write to /dev/$usb failed.\n" "$script v$version"
   fi
 }
 
@@ -155,34 +156,39 @@ write_iso() {
 	fi
 }
 
+main() {
+  local noOpt opt optstr
+	noOpt=1
+	optstr=":dhw"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			d )
+				dryrun="$TRUE"
+				printf "%sPerforming a dryrun. The ISO will NOT be written to USB drive.%s\n\n" "$orange" "$normal"
+			;;
+			h )
+				help 0
+			;;
+			w )
+				box "$script v$version"
+				printf "Writes ISO to a USB drive.\n\n"
+				check_package fzf
+				check_usb_drive
+				iso_file=$(select_iso)
+				usb_device=$(select_usb)
+				write_iso "$iso_file" "$usb_device"
+			;;
+			? )
+				printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	exit
+}
+
 ## Execution ##
 
-noOpt=1
-optstr=":dhw"
-while getopts "$optstr" opt; do
-	case "$opt" in
-		d )
-			dryrun="$TRUE"
-			printf "%sPerforming a dryrun. The ISO will NOT be written to USB drive.%s\n\n" "$orange" "$normal"
-		;;
-		h )
-			help 0
-		;;
-		w )
-			box "$_script v$_version"
-			printf "Writes ISO to a USB drive.\n\n"
-			check_package fzf
-			check_usb_drive
-			iso_file=$(select_iso)
-			usb_device=$(select_usb)
-			write_iso "$iso_file" "$usb_device"
-		;;
-		? )
-			printf "%s Invalid option: -%s\n" "$red_error" "$OPTARG" >&2
-			help 2
-	esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-exit
+main "$@"
