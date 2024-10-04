@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard Romig, 29 Sep 2020
 # Email        : rick.romig@gmail.com
 # Created      : 29 Sep 2020
-# Last updated : 18 Aug 2024
+# Last updated : 04 Oct 2024
 # Comments     : Can sync to one or all machines on the network.
 #              : LOCALNET is declared in functionlib
 # TODO (rick)  :
@@ -26,35 +26,37 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="3.17.24231"
-readonly _updated="18 Aug 2024"
+script=$(basename "$0"); readonly script
+readonly version="3.18.24277"
+SECONDS=0
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-	cat << END_HELP
-  $_script help
-  ${orange}Usage:${normal} $_script [OPTION]
-  OPTION   ACTION
+  local errcode updated
+	errcode="${1:-2}"
+	updated="04 Oct 2024"
+	cat << _HELP_
+  $script help
+  ${orange}Usage:${normal} $script [OPTION] Updated $updated
+  OPTION       ACTION
   -h | --help  Displays usage instructions.
   -a | --all   Synchronizes all designated machines on the network.
   1-255        Last octet of the IP address(es) of the machine(s) to synchronize.
   ${orange}Examples:${normal}
-      $_script -h        # Displays usage instructions.
-      $_script --help    # Displays usage instructions.
-      $_script -a        # Synchronizes with all designated systems.
-      $_script --all     # Synchronizes with all designated systems.
-      $_script 13        # Synchronizes with the system with a last octet of 13.
-      $_script 12 13 14  # Synchronizes with systems whose last octets are 12, 13, 14.
+      $script -h        # Displays usage instructions.
+      $script --help    # Displays usage instructions.
+      $script -a        # Synchronizes with all designated systems.
+      $script --all     # Synchronizes with all designated systems.
+      $script 13        # Synchronizes with the system with a last octet of 13.
+      $script 12 13 14  # Synchronizes with systems whose last octets are 12, 13, 14.
   ${orange}Notes:${normal}
       - Multiple IP addresses can be entered.
       - This script is limited to the range of static IP addresses (1 - 25).
       - Certain addresses within that range have been marked as restricted and are not accessible.
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
@@ -66,9 +68,10 @@ transfer_status() {
 
 transfer() {
   # Skip local machine:
-  local ip_addr
+  local ip_addr hostip
+  hostip="$1"
   ip_addr="$(local_ip)"
-  if [ "$ip_addr" = "$hostip" ]; then
+  if [[ "$ip_addr" == "$hostip" ]]; then
     echo -e "${green}...Syncing from $hostip${normal}\n"
     return
   fi
@@ -78,16 +81,17 @@ transfer() {
   if  ping -c 3 "$localnet.$hostip" >/dev/null 2>&1
   then
     echo "...Syncing to Machine $hostip"
-    sync_script
+    syncscript "$hostip"
     echo -e "...Machine $hostip Synced!\n"
   else
     echo -e "...Skipping $hostip! Not on network.\n"
   fi
 }
 
-sync_script() {
+syncscript() {
   # Synch to all.
-  local exit_status
+  local exit_status hostip
+  hostip="$1"
   echo $'\n'$"${orange}Syncing aliases...${normal}"
   rsync -avh --delete "$HOME"/.bash_aliases "$localnet.$hostip":
   exit_status="$?"
@@ -172,7 +176,7 @@ sync_one() {
         echo -e " Access denied.\n"; exit ;;
       * )
         echo "Synchronizing directories with $localnet.$hostip:"
-        sync_script
+        transfer "$hostip"
         all_done
     esac
   else
@@ -194,7 +198,7 @@ sync_some() {
             echo -e " address. Access denied.\n"
           ;;
           * )
-            transfer
+            transfer "$hostip"
             (( xfr_flag++ ))
         esac
       elif [[ "$hostip" -gt 25 && "$hostip" -lt 255 ]]; then
@@ -215,7 +219,7 @@ sync_all() {
   echo -e "Synchronizing directories with systems on the local network.\n"
 
   octets=(10 11 12 13 14 15 16 17 18 19 20 23)
-  for hostip in "${octets[@]}"; do transfer; done
+  for hostip in "${octets[@]}"; do transfer "$hostip"; done
   all_done
 }
 
@@ -242,22 +246,24 @@ check_host() {
 }
 
 ## Execution ##
+main() {
+  check_package rsync
+  box "$script v$version"
+  check_host
+  if [[ "$#" -eq 0 ]]; then
+    printf "%s No arguments passed.\n" "$RED_ERROR" >&2
+    help 1
+  elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+    help 0
+  elif [[ "$1" = "-a" || "$1" = "--all" ]]; then
+    sync_all
+  elif [[ "$#" -gt 1 ]]; then
+    sync_some "$@"
+  else
+    sync_one "$1"
+  fi
+}
 
-check_package rsync
-box "$_script v$_version"
-check_host
+## Execution ##
 
-# Start timer
-SECONDS=0
-
-if [[ "$#" -eq 0 ]]; then
-  help 2
-elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-  help 0
-elif [[ "$1" = "-a" || "$1" = "--all" ]]; then
-  sync_all
-elif [[ "$#" -gt 1 ]]; then
-  sync_some "$@"
-else
-  sync_one "$1"
-fi
+main "$@"
