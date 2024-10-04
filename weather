@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 18 Aug 2024
+# Updated      : 03 Oct 2024
 # Comments     : Based on script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -29,10 +29,9 @@ set -eu
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="6.8.24231"
-readonly _updated="27 Jun 2024"
-location="${1:-Huber+Heights}"
+script=$(basename "$0"); readonly script
+readonly version="6.9.24277"
+# location="${1:-Huber+Heights}"
 
 ## Functions ##
 
@@ -54,22 +53,20 @@ timeout_exit() {
   printf "Try again later.\n\n"
 }
 
-show_help() {
-  clear
-  cat << END_HELP
-${orange}$_script${normal} $_version, Upated: $_updated
+help() {
+  local updated
+	updated="03 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version, Upated: $updated
 Displays current weather and 3-day forecast for a location.
 
-${green}Usage:${normal} $_script [location]
-
-${orange}Available options:${normal}
-  -h | --help  Display this help text.
+${green}Usage:${normal} $script [location]
 
 ${orange}Examples:${normal}
-$_script  # Uses default location
-$_script Cincinnati
-$_script New+York
-$_script "Los Angeles"
+$script  # Uses default location
+$script Cincinnati
+$script New+York
+$script "Los Angeles"
 
 * Locations with spaces must have a '+' in place of the space or be enclosed in double quotes.
 * A US state can be indicated with a comma after the city name.
@@ -77,9 +74,9 @@ $_script "Los Angeles"
 * If no location is passed, the default location will be used.
 * 3-digit airport codes can be used as a location (LAX, ATL, DAY).
 * Menu options include current conditions, 3-day forecast, change locations, and help.
-* For help: $_script -h or $_script --help or Choice 4 in the menu.
+* For help: $script -h or $script --help or Choice 4 in the menu.
 
-END_HELP
+_HELP_
 }
 
 current_wx() {
@@ -122,7 +119,7 @@ current_wx() {
 
   # Display current conditions
   clear
-  box "$_script v$_version"
+  box "$script v$version"
   if [[ "$json" ]]; then
     printf "\n%sLocation:%s %s, %s\n" "$green" "$normal" "$city" "$state"
     printf "%sLat/Long:%s %s, %s\n\n" "$green" "$normal" "$latitude" "$longitude"
@@ -220,7 +217,7 @@ wx_forecast() {
   tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
   trap cleanup EXIT
   clear
-  box "$_script v$_version"
+  box "$script v$version"
   printf "\n"
   if curl -so "$tmp_file" "$url/$wx_loc"; then
     sed '1 s/:.*//;/Follow/d' "$tmp_file"
@@ -229,59 +226,64 @@ wx_forecast() {
   fi
 }
 
+menu() {
+  local location="$1"
+  while true; do
+    clear
+    box "$script v$version"
+    under_line "${location//[+_]/ }"
+    COLUMNS="40"
+    options=(
+      "Current conditions"
+      "3-day forecast"
+      "Change location"
+      "Usage/Help"
+      "Quit"
+    )
+    PS3="Choice: "
+    select _opt in "${options[@]}"; do
+      case $REPLY in
+        1 )
+          # current_wx "$(echo "$location" | sed 's/ /+/g')"
+          current_wx "${location// /+}"
+          anykey
+          break
+        ;;
+        2 )
+          # wx_forecast "$(echo "$location" | sed 's/ /+/g')"
+          wx_forecast "${location// /+}"
+          anykey
+          break
+        ;;
+        3 )
+          printf "\nChange location.\n"
+          printf "Replace any spaces with + or _\n"
+          printf "Just pressing ENTER will use location based on public IP.\n"
+          read -rp "New location: " location
+          break
+        ;;
+        4 )
+          help
+          anykey
+          break
+        ;;
+        5 )
+          printf "%sMOTD:%s " "$darkgray" "$normal"
+          leave ""
+        ;;
+        * )
+          printf "%s Invalid choice. Choose 1, 2, 3, 4, or 5\n" "$RED_ERROR" >&2
+      esac
+    done
+  done
+}
+
+main() {
+  local location="${1:-Huber+Heights}"
+  check_dependencies
+  menu "$location"
+}
+
 ## Execution ##
 
-if [[ "$#" -gt 0 ]]; then
-  [[ "$1" == "-h" || "$1" == "--help" ]] && { show_help; exit; }
-fi
-
-check_dependencies
-
-while true; do
-  clear
-  box "$_script v$_version"
-  under_line "${location//[+_]/ }"
-  COLUMNS="40"
-  options=(
-    "Current conditions"
-    "3-day forecast"
-    "Change location"
-    "Usage/Help"
-    "Quit"
-  )
-  PS3="Choice: "
-  select _opt in "${options[@]}"; do
-    case $REPLY in
-      1 )
-        # current_wx "$(echo "$location" | sed 's/ /+/g')"
-        current_wx "${location// /+}"
-        anykey
-        break
-      ;;
-      2 )
-        # wx_forecast "$(echo "$location" | sed 's/ /+/g')"
-        wx_forecast "${location// /+}"
-        anykey
-        break
-      ;;
-     3 )
-        printf "\nChange location.\n"
-        printf "Replace any spaces with + or _\n"
-        printf "Just pressing ENTER will use location based on public IP.\n"
-        read -rp "New location: " location
-        break
-      ;;
-      4 )
-        show_help
-        anykey
-        break
-      ;;
-      5 )
-        printf "%sMOTD:%s " "$darkgray" "$normal"
-        leave ""
-      ;;
-      * )
-        printf "%s Invalid choice. Choose 1, 2, 3, 4, or 5\n" "$red_error" >&2
-    esac
-  done
-done
+main "$@"
