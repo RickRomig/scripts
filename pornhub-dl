@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 April 2019
-# Updated      : 18 Aug 2024
+# Updated      : 04 Oct 2024
 # Comments     : Accepts either full URL or video id such as ph5ccfa07f0e2a6
 #              : Downloads to ~/Videos/Pornography/<category>
 # TODO (Rick)  :
@@ -26,11 +26,11 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="3.2.24231"
-readonly _updated="18 Aug 2024"
+script=$(basename "$0"); readonly script
+readonly version="3.3.24278"
+readonly updated="04 Oct 2024"
 readonly porn_dir=$HOME"/Videos/Pornography"
 
 ## Functions ##
@@ -38,29 +38,30 @@ readonly porn_dir=$HOME"/Videos/Pornography"
 display_title() {
   clear
   box "PornHub Download" "="
-  echo "$_script v$_version"
+  echo "$script v$version"
 }
 
 help() {
+  local errcode
   local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Dowload videos from Pornhub.com.
 
-${green}Usage:${normal} $_script [video_URL] [video_ID]
-  $_script https://www.pornhub.com/view_video.php?viewkey=ph5ccfa07f0e2a6
-  $_script ph5ccfa07f0e2a6
+${green}Usage:${normal} $script [video_URL] [video_ID]
+  $script https://www.pornhub.com/view_video.php?viewkey=ph5ccfa07f0e2a6
+  $script ph5ccfa07f0e2a6
 
 ${orange}Available options:${normal}
   -h | --help  displays these instructions.
   -i | --info  displays information about the script.
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
 script_info() {
-  cat <<- END_INFO
-  $_script uses yt-dlp to download videos from the PornHub adult site.
+  cat << _INFO_
+  $script uses yt-dlp to download videos from the PornHub adult site.
   The video URL or ID is passed to the script on the command line. The default
   URL is https://www.pornhub.com if only the video ID is passed to the script.
 
@@ -75,12 +76,12 @@ script_info() {
   download fails, the script exits with an error code.
 
   Usage:
-    $_script <video-url>
-    $_script <video-ID>
+    $script <video-url>
+    $script <video-ID>
 
-  Version: $_version
-  Updated: $_updated
-END_INFO
+  Version: $version
+  Updated: $updated
+_INFO_
   exit
 }
 
@@ -93,7 +94,6 @@ check_dependencies() {
   fi
 }
 
-# shellcheck disable=SC2034
 choose_destination() {
 	local sub_dir _opt options
 	COLUMNS=40
@@ -118,8 +118,10 @@ echo "$sub_dir"
 }
 
 dl_2_video() {
+  local url="$1"
   printf "%s...%s\n"  "$porn_dir" "$normal"
-  if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"; then
+  if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"
+  then
     leave "Download successful."
   else
     ec="$?"
@@ -128,10 +130,13 @@ dl_2_video() {
 }
 
 dl_2_subdir() {
-	local dest_dir="$1"
+	local url dest_dir
+  url="$1"
+  dest_dir="$2"
   [[ -d "$porn_dir/$dest_dir" ]] || mkdir -p "$porn_dir/$dest_dir"
 	printf "%s...%s\n"  "$porn_dir/$dest_dir" "$normal"
-  if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/$dest_dir/%(title)s.%(ext)s" "$url"; then
+  if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/$dest_dir/%(title)s.%(ext)s" "$url"
+  then
     leave "Download successful."
   else
     ec="$?"
@@ -139,34 +144,43 @@ dl_2_subdir() {
   fi
 }
 
+download_video() {
+  local site url subdir
+  url="$1"
+  site="Pornhub"
+  display_title
+  # Choose the download folder
+  subdir=$(choose_destination)
+  # Download video to selected folder
+  printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "$site"
+  case "$subdir" in
+    "none" ) dl_2_video "$url" ;;
+    * ) dl_2_subdir "$url" "$subdir"
+  esac
+}
+
 ## Execution ##
 
-# Check arguments and fetch URL
-if [[ $# -eq 0 ]]; then
-  echo "${lightred}Error:${normal} No argument passed." >&2
-  help 2
-elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
-  script_info
-elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
-  help 2
-elif [[ "$1" =~ ^https?:\/\/.* ]]; then
-  # match by regex, starts with http:// or https://
-  url=$*
-else
-  # match by video ID
-  url="https://www.pornhub.com/view_video.php?viewkey=$*"
-fi
+main() {
+  # Check arguments and fetch URL
+  if [[ $# -eq 0 ]]; then
+    echo "$RED_ERROR No argument passed." >&2
+    help 2
+  elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
+    script_info
+  elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    help 2
+  elif [[ "$1" =~ ^https?:\/\/.* ]]; then
+    # match by regex, starts with http:// or https://
+    url=$*
+  else
+    # match by video ID
+    url="https://www.pornhub.com/view_video.php?viewkey=$*"
+  fi
+  check_dependencies
+  download_video "$url"
+}
 
-check_dependencies
-display_title
+## Execution ##
 
-# Choose the download folder
-subdir=$(choose_destination)
-
-# Download video to selected folder
-echo $'\n'$"${bold}${blue}Downloading from PornHub to...${normal}"
-printf "\n%s%sDownloading video from PornHub to " "$bold" "$blue"
-case "$subdir" in
-  "none" ) dl_2_video ;;
-  * ) dl_2_subdir "$subdir"
-esac
+main "$@"
