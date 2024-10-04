@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 18 Aug  2024
+# Updated      : 04 Oct  2024
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to ~/Videos/sub-directory
 # TODO (Rick)  :
@@ -28,9 +28,9 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="3.1.24231"
-readonly _updated="318 Aug  2024"
+script=$(basename "$0"); readonly script
+readonly version="3.3.24278"
+readonly updated="04 Oct  2024"
 readonly video_dir=$HOME"/Videos"
 
 ## Functions ##
@@ -38,29 +38,29 @@ readonly video_dir=$HOME"/Videos"
 display_title() {
   clear
   box "YouTube Download" "="
-  echo "$_script v$_version"
+  echo "$script v$version"
 }
 
 help() {
   local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Downloads YouTube videos.
 
-${green}Usage:${normal} $_script [YouTube_URL] [video_ID]
-  $_script https://www.youtube.com/watch?v=/AQcQgfvfF1M
-  $_script AQcQgfvfF1M
+${green}Usage:${normal} $script [YouTube_URL] [video_ID]
+  $script https://www.youtube.com/watch?v=/AQcQgfvfF1M
+  $script AQcQgfvfF1M
 
 ${orange}Available options:${normal}
   -h | --help  displays these instructions.
   -i | --info  displays information about the script.
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
 script_info() {
-  cat <<- END_INFO
-  $_script uses yt-dlp to download videos from YouTube and similar sites.
+  cat <<- _INFO_
+  $script uses yt-dlp to download videos from YouTube and similar sites.
   The video URL or ID is passed to the script on the command line. The default
   URL is https://www.youtube.com if only the video ID is passed to the script.
 
@@ -76,12 +76,12 @@ script_info() {
   download fails, the script exits with an error code.
 
   Usage:
-    $_script <video-url>
-    $_script <video-ID>
+    $script <video-url>
+    $script <video-ID>
 
-  Version: $_version
-  Updated: $_updated
-END_INFO
+  Version: $version
+  Updated: $updated
+_INFO_
   exit
 }
 
@@ -122,6 +122,7 @@ choose_destination() {
 }
 
 dl_2_video() {
+  local url="$1"
   printf "%s...%s\n"  "$video_dir" "$normal"
 	if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$video_dir/%(title)s.%(ext)s" "$url"
 	then
@@ -133,7 +134,9 @@ dl_2_video() {
 }
 
 dl_2_subdir() {
-	local dest_dir="$1"
+	local url dest_dir
+  url="$1"
+  dest_dir="$2"
 	printf "%s...%s\n"  "$video_dir/$dest_dir" "$normal"
 if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$video_dir/$dest_dir/%(title)s.%(ext)s" "$url"
 	then
@@ -144,34 +147,43 @@ if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]
 	fi
 }
 
+download_video() {
+  local site url subdir
+  url="$1"
+  site="YouTube"
+  display_title
+  # Choose the download folder
+  subdir=$(choose_destination)
+  # Download video to selected folder
+  printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "$site"
+  case "$subdir" in
+    "none" ) dl_2_video "$url" ;;
+    * ) dl_2_subdir "$url" "$subdir"
+  esac
+}
+
 ## Execution ##
 
-# Check arguments and fetch URL
-if [[ -z "$1" ]]; then
-  echo "${bold}${lightred}Error:${normal} No argument passed." >&2
-  help 2
-elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
-  script_info
-elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
-  help 0
-elif [[ "$1" =~ ^https?:\/\/.* ]]; then
-  # match by regex, starts with http:// or https://
-  url=$*
-else
-  # match by video ID
-  url="https://www.youtube.com/watch?v=$*"
-fi
+main() {
+  local url
+  # Check arguments and fetch URL
+  if [[ -z "$1" ]]; then
+    echo "$RED_ERROR No argument passed." >&2
+    help 2
+  elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
+    script_info
+  elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    help 0
+  elif [[ "$1" =~ ^https?:\/\/.* ]]; then
+    # match by regex, starts with http:// or https://
+    url=$*
+  else
+    # match by video ID
+    url="https://www.youtube.com/watch?v=$*"
+  fi
+  check_dependencies
+}
 
-check_dependencies
+## Execution ##
 
-display_title
-
-# Choose the download folder
-subdir=$(choose_destination)
-
-# Download video to selected folder
-printf "\n%s%sDownloading video to " "$bold" "$blue"
-case "$subdir" in
-  "none" ) dl_2_video;;
-  * ) dl_2_subdir "$subdir"
-esac
+main "$@"
