@@ -7,7 +7,7 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 02 Sep 2024
+# Updated      : 04 Oct 2024
 # Comments     : Install & remove for Deian-based systems only.
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
@@ -29,14 +29,14 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="1.14.24276"
+readonly version="1.14.24278"
 
 ## Functions ##
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="02 Oct 2024"
+	updated="04 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs UFW on Debian, BunsenLabs, and MX Linux systems.
@@ -144,12 +144,12 @@ main() {
         add_rules
         ufw_active || enable_ufw
         printf "Rules for CUPS and SSH added.\n"
-    ;;
+      ;;
       d )
         dpkg -l | grep -qw ufw || leave "UFW is not installed."
         sudo_login 2
         delete_rules
-    ;;
+      ;;
       e )
         dpkg -l | grep -qw ufw || leave "UFW is not installed."
         sudo_login 2
