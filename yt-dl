@@ -30,7 +30,7 @@ fi
 
 script=$(basename "$0"); readonly script
 readonly version="3.3.24278"
-readonly updated="04 Oct  2024"
+readonly updated="04 Oct 2024"
 readonly video_dir=$HOME"/Videos"
 
 ## Functions ##
@@ -59,7 +59,7 @@ _HELP_
 }
 
 script_info() {
-  cat <<- _INFO_
+  cat << _INFO_
   $script uses yt-dlp to download videos from YouTube and similar sites.
   The video URL or ID is passed to the script on the command line. The default
   URL is https://www.youtube.com if only the video ID is passed to the script.
@@ -165,6 +165,7 @@ download_video() {
 ## Execution ##
 
 main() {
+  check_dependencies
   local url
   # Check arguments and fetch URL
   if [[ -z "$1" ]]; then
@@ -181,7 +182,6 @@ main() {
     # match by video ID
     url="https://www.youtube.com/watch?v=$*"
   fi
-  check_dependencies
   download_video "$url"
 }
 
