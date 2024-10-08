@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 03 Oct 2024
+# Updated      : 08 Oct 2024
 # Comments     : Based on script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -27,11 +27,10 @@ fi
 
 set -eu
 
-## Variables ##
+## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.9.24277"
-# location="${1:-Huber+Heights}"
+readonly version="6.9.24282"
 
 ## Functions ##
 
@@ -53,9 +52,16 @@ timeout_exit() {
   printf "Try again later.\n\n"
 }
 
+is_url_accessible() {
+  local url result
+  url="$1"
+  result=$(curl --head --connect-timeout 8 --max-time 14 --silent --output /dev/null --write-out '%{http_code}' "$url")
+  [[ "$result" -eq 200 ]] && return "$TRUE" || return "$FALSE"
+}
+
 help() {
   local updated
-	updated="03 Oct 2024"
+	updated="08 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Displays current weather and 3-day forecast for a location.
@@ -79,12 +85,29 @@ $script "Los Angeles"
 _HELP_
 }
 
+wx_forecast() {
+  local url wx_loc
+  url="$1"
+  wx_loc="$2"
+  tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+  trap cleanup EXIT
+  clear
+  box "$script v$version"
+  printf "\n"
+  if curl -so "$tmp_file" "$url/$wx_loc"; then
+    sed '1 s/:.*//;/Follow/d' "$tmp_file"
+  else
+    timeout_exit "$wx_loc"
+  fi
+}
+
 current_wx() {
   local wx_loc url json
   local city state latitude longitude description temp_F temp_C feels_F feels_C humidity pressure wind_dir wind_spd precip uv_index sunrise sunset
   local tcolor fcolor ucolor uvwarn
-  wx_loc="$1"
-  url="http://wttr.in/$wx_loc?format=j1"
+  url="$1"
+  wx_loc="$2"
+  url="$url/$wx_loc?format=j1"
   json=$(curl -s "$url")
   echo "$json" | grep -q 'Unknown location' && { echo "Location data not available from http://wttr.in. Try again later."; return 1; }
 
@@ -131,7 +154,7 @@ current_wx() {
     printf "%15s: %s%%\n" "Humidity" "$humidity"
     printf "%15s: %s inches\n" "Barometer" "$pressure"
     printf "%15s: %s inches\n" "Precipitation" "$precip"
-    printf "%15s: %s at %s mph\n" "Wind" "$wind_dir" "$wind_spd"
+    printf "%15s: %s at %s mph\n" "Wind" "$wind_dir"local "$wind_spd"
     printf "%15s: %s\n" "Sunrise" "$sunrise"
     printf "%15s: %s\n\n" "Sunset" "$sunset"
   else
@@ -211,23 +234,10 @@ uv_warning() {
   echo "$uvwarn"
 }
 
-wx_forecast() {
-  local url="http://wttr.in"
-  local wx_loc="$1"
-  tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
-  trap cleanup EXIT
-  clear
-  box "$script v$version"
-  printf "\n"
-  if curl -so "$tmp_file" "$url/$wx_loc"; then
-    sed '1 s/:.*//;/Follow/d' "$tmp_file"
-  else
-    timeout_exit "$wx_loc"
-  fi
-}
-
 menu() {
-  local location="$1"
+  local url location
+  url="$1"
+  location="$2"
   while true; do
     clear
     box "$script v$version"
@@ -245,13 +255,13 @@ menu() {
       case $REPLY in
         1 )
           # current_wx "$(echo "$location" | sed 's/ /+/g')"
-          current_wx "${location// /+}"
+          current_wx "$url" "${location// /+}"
           anykey
           break
         ;;
         2 )
           # wx_forecast "$(echo "$location" | sed 's/ /+/g')"
-          wx_forecast "${location// /+}"
+          wx_forecast "$url" "${location// /+}"
           anykey
           break
         ;;
@@ -279,9 +289,12 @@ menu() {
 }
 
 main() {
-  local location="${1:-Huber+Heights}"
+  local location wx_url
+  location="${1:-Huber+Heights}"
+  wx_url="http://wttr.in"
   check_dependencies
-  menu "$location"
+  is_url_accessible "$wx_url" || diehard "http://wttr.in is not accessible." "Try again later."
+  menu "$wx_url" "$location"
 }
 
 ## Execution ##
