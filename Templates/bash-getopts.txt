@@ -60,7 +60,7 @@ help() {
 	local errcode updated
 	errcode="${1:-2}"
 	updated="<TODAY>"
-	cat << END_HELP
+	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Short description
 
@@ -73,7 +73,7 @@ ${orange}Available options:${normal}
 	-s	Apply settings
 	-u	Update application
 	-v	Enable verbose mode
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
@@ -115,21 +115,17 @@ main() {
 				show_message "Verbose mode enabled."
 			;;
 			: )
-				# echo "${lightred}ERROR:${normal} Must supply an argument to -${OPTARG}." >&2
-				printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
+				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
 	  	;;
 			? )
-				# echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
-				printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
 		esac
 		noOpt=0
 	done
-	# [[ "$noOpt" = 1 ]] && { echo "${lightred}ERROR:${normal} No argument passed." >&2; help 1; }
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-	# echo "$script v$version"
 	# printf "%s v%s\n" "$script" "$version"
 	# exit
 	leave "$script $version"
