@@ -23,6 +23,7 @@
 declare -r TRUE=0
 declare -r FALSE=1
 declare -r Gitea_URL="http://192.168.0.16:3000/Nullifidian"
+declare -r GITEA_URL="http://192.168.0.16:3000/Nullifidian"
 red_error=$(printf "\e[91mERROR:\e[0m"); readonly red_error
 RED_ERROR=$(printf "\e[91mERROR:\e[0m"); readonly RED_ERROR
 red_warning=$(printf "\e[91mWARNING!\e[0m"); readonly red_warning
@@ -30,6 +31,7 @@ RED_WARNING=$(printf "\e[91mWARNING!\e[0m"); readonly RED_WARNING
 
 # Get the local network from the first three octets of the default gateway address. Assumes a /24 (class C) private network.
 localnet=$(ip route get 1.2.3.4 | awk '{print $3}' | cut -d '.' -f1,2,3); readonly localnet
+LOCALNET=$(ip route get 1.2.3.4 | awk '{print $3}' | cut -d '.' -f1,2,3); readonly LOCALNET
 # localnet=$(ip route | awk '/default via/ {print $3}' | sort -u | cut -d'.' -f1,2,3)
 
 ## Colors ##
@@ -458,17 +460,17 @@ valid_ip() {
       # Valid address - test if reachable or local machine
       if [[ "$localip" -eq "$octet" ]]; then
         status=2
-        printf "%s %s.%s is the local client computer.\n" "$RED_ERROR" "$localnet" "$octet" >&2
-      elif ping -c 1 "$localnet.$octet" > /dev/null 2>&1; then
+        printf "%s %s.%s is the local client computer.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+      elif ping -c 1 "$LOCALNET.$octet" > /dev/null 2>&1; then
         status=0
-        printf "%s.%s is a valid and reachable IP address.\n" "$localnet" "$octet"
+        printf "%s.%s is a valid and reachable IP address.\n" "$LOCALNET" "$octet"
       else
         status=3
-        printf "%s %s.%s is valid IP address but is unreachable.\nCheck to see if it is on the network.\n" "$RED_ERROR" "$localnet" "$octet" >&2
+        printf "%s %s.%s is valid IP address but is unreachable.\nCheck to see if it is on the network.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
       fi
     else
       status=4
-      printf "%s %s.%s is not a valid IP address.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$localnet" "$octet" >&2
+      printf "%s %s.%s is not a valid IP address.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
     fi
   else
     status=5
@@ -742,11 +744,11 @@ mount_server() {
   local server_ip share mounted
   server_ip="11"
   share="HP-6005"
-  ping -c3 "$localnet.$server_ip" > /dev/null 2>&1 || die "$share at $localnet.$server_ip is not online."
+  ping -c3 "$LOCALNET.$server_ip" > /dev/null 2>&1 || die "$share at $LOCALNET.$server_ip is not online."
   if [[ -d "$HOME/mnt/$share/" ]]; then
     mounted=$(mount | grep "$share")
     if [[ -z "$mounted" ]]; then
-      sshfs -o follow_symlinks rick@"$localnet.$server_ip:/home/rick" "$HOME/mnt/$share/"
+      sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:/home/rick" "$HOME/mnt/$share/"
       echo "$share has been mounted."
     else
       echo "$share is already mounted"
@@ -754,7 +756,7 @@ mount_server() {
   else
     # Create the mount point.
     mkdir -p "$HOME/mnt/$share/"
-    sshfs -o follow_symlinks rick@"$localnet.$server_ip:/home/rick" "$HOME/mnt/$share/"
+    sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:/home/rick" "$HOME/mnt/$share/"
     echo "$share has been created and mounted."
   fi
 }
@@ -791,18 +793,18 @@ mount_nas() {
   local server_ip share mounted
   server_ip="4"
   share="NASD97167"
-  ping -c3 "$localnet.$server_ip" > /dev/null 2>&1 || die "$share at $localnet.$server_ip is not online."
+  ping -c3 "$LOCALNET.$server_ip" > /dev/null 2>&1 || die "$share at $LOCALNET.$server_ip is not online."
   if [[ -d "$HOME/mnt/$share/" ]]; then
     mounted=$(mount | grep "$share")
     if [[ -z "$mounted" ]]; then
-      sshfs -o follow_symlinks rick@"$localnet.$server_ip:" "$HOME/mnt/$share/"
+      sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:" "$HOME/mnt/$share/"
       echo "$share has been mounted."
     else
       echo "$share is already mounted"
     fi
   else
     mkdir -p "%HOME/mnt/$share/"    # Create the mount point.
-    sshfs -o follow_symlinks rick@"$localnet.$server_ip:" "$HOME/mnt/$share/"
+    sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:" "$HOME/mnt/$share/"
     echo "$share has been created and mounted."
   fi
 }
@@ -837,7 +839,7 @@ unmount_nas() {
 ###############################################################################
 clone_repo() {
   local git_repo="${1}.git"
-  git clone "$Gitea_URL/$git_repo" "$HOME/Downloads"
+  git clone "$GITEA_URL/$git_repo" "$HOME/Downloads"
 }
 
 ###############################################################################
