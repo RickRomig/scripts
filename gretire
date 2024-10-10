@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 06 Aug 2024
+# Last updated : 10 Oct 2024
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
 # TODO (Rick)  :
@@ -27,12 +27,6 @@ else
 fi
 
 set -eu
-
-## Global Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="1.2.24219"
-readonly current_d="$PWD"
 
 ## Functions ##
 
@@ -55,16 +49,30 @@ retire_script() {
   git push
 }
 
+main() {
+  local current_d filename script version
+  current_d="$PWD"
+  script=$(basename "$0")
+  version="2.0.24284"
+
+  [[ -d "$current_d/.git" ]] || die "You are not in the main directory of a git repositiory." 1
+
+  if [[ "$#" -eq "0" ]]; then
+    read -rp "Enter the name of the script to be retired: " filename
+  else
+    filename="$1"
+  fi
+
+  if [[ -f "$1" ]]; then
+    check_dependencies
+    retire_script "$filename"
+  else
+    die "$1 not found." 1
+  fi
+
+  leave "$script $version"
+}
+
 ## Execution ##
 
-if [[ ! -d "$current_d/.git" ]]; then
-  die "You are not in the main directory of a git repositiory." 1
-elif [[ "$#" -eq "0" ]]; then
-  die "No argument passed." 1
-elif [[ ! -f "$1" ]]; then
-  die "$1 not found." 1
-else
-  check_dependencies
-  retire_script "$1"
-  leave "$_script $_version"
-fi
+main "$@"
