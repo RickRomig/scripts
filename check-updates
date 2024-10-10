@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 30 Sep 2024
+# Updated      : 10 Oct 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -30,8 +30,6 @@ else
 fi
 
 set -eu
-
-## Global Variables ##
 
 ## Functions ##
 
@@ -191,12 +189,12 @@ apt_update() {
 }
 
 show_header() {
-  local _script _version local_host
-  _script=$(basename "$0")
-  _version="2.14.24274"
+  local script version local_host
+  script=$(basename "$0")
+  version="2.15.24284"
   local_host="${HOSTNAME:-$(hostname)}"
   clear
-  printf "%s%s%s v%s\n" "$bold" "$orange" "$_script" "$_version"
+  printf "%s%s%s v%s\n" "$bold" "$orange" "$script" "$version"
   printf "System: %s (# %s)\n" "$local_host" "$(local_ip)"
   printf "Distro: %s\n" "$(get_distribution)"
   printf "Kernel: %s\n\n" "$(uname -sr)"
@@ -206,6 +204,7 @@ show_header() {
 main() {
   local action="${1:-nala}"
   SECONDS=0
+  sudo_login 0
   show_header
   if [[ "$action" == "apt" ]] || ! exists nala; then
     apt_update
@@ -219,6 +218,4 @@ main() {
 
 ## Execution ##
 
-sudo_login 0
-clear
 main "$@"
