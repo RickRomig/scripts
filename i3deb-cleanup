@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Mar 2023
-# Updated      : 07 May 2024
+# Updated      : 10 Oct 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,28 +25,35 @@ else
   exit 1
 fi
 
-## Global Variables ##
+## Functions ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="1.1.24128"
+clean_i3debian_clone() {
+	printf "Removing ~/i3debian\n"
+	rm -rf "$HOME"/i3debian/
+}
 
+clean_scripts_clone() {
+	printf "Removing ~/Downloads/scripts\n"
+	rm -rf "$HOME"/Downloads/scripts/
+}
+
+clean_configs_clone() {
+	printf "Removing ~/Downloads/configs\n"
+	rm -rf "$HOME"/Downloads/configs/
+}
+
+main() {
+	local script version
+	script=$(basename "$0")
+	version="2.0.24184"
+	printf "Cleaning up after installing i3-gaps on minimal Debian.\n\n"
+	[[ -d "$HOME"/i3debian/ ]] && clean_i3debian_clone
+	[[ -d "$HOME"/Downloads/scripts/ ]] && clean_scripts_clone
+	[[ -d "$HOME"/Downloads/configs/ ]] && clean_configs_clone
+	printf "\nCloned installation directories removed.\n"
+	leave "$script v$version"
+}
 
 ## Execution ##
 
-# clear
-printf "Cleaning up after installing i3-gaps on minimal Debian.\n\n"
-if [[ -d "$HOME"/i3debian/ ]]; then
-	printf "Removing ~/i3debian\n"
-	rm -rf "$HOME"/i3debian/
-fi
-if [[ -d "$HOME"/Downloads/scripts/ ]]; then
-	printf "Removing ~/Downloads/scripts\n"
-	rm -rf "$HOME"/Downloads/scripts/
-fi
-if [[ -d "$HOME"/Downloads/configs/ ]]; then
-	printf "Removing ~/Downloads/configs\n"
-	rm -rf "$HOME"/Downloads/configs/
-fi
-printf "\nCloned installation directories removed.\n"
-printf "%s v%s\n" "$_script" "$_version"
-exit
+main "$@"
