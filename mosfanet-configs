@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Aug 2019
-# updated      : 18 Aug 2024
+# updated      : 10 Oct 2024
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,11 +25,10 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="1.2.24231"
-readonly _updated="18 Aug 2024"
+script=$(basename "$0"); readonly script
+readonly version="1.3.24284"
 readonly cfg_bu_dir="$HOME/.config/backup"
 readonly repo_path="configs/raw/branch/main/"
 count=0
@@ -38,21 +37,21 @@ count=0
 
 dl_bashrc() {
   cp -pv "$HOME/.bashrc" "$cfg_bu_dir/.bashrc" | awk '{print "==> "$NF}'
-  curl -so "$HOME/.bashrc" "$Gitea_URL/$repo_path/.bashrc"
+  curl -so "$HOME/.bashrc" "$GITEA_URL/$repo_path/.bashrc"
   printf "Custom .bashrc installed in the home directory.\n"
   (( count++ ))
 }
 
 dl_aliases() {
   [[ -f "$HOME/.bash_aliases" ]] && cp -pv "$HOME/.bash_aliases" "$cfg_bu_dir/.bash_aliases" | awk '{print "==> "$NF}'
-  curl -so "$HOME/.bash_aliases" "$Gitea_URL/$repo_path/.bash_aliases"
+  curl -so "$HOME/.bash_aliases" "$GITEA_URL/$repo_path/.bash_aliases"
   printf "Custom .bash_aliases added to the home directory.\n"
   (( count++ ))
 }
 
 dl_profile() {
   [[ -f "$HOME/.profile" ]] && cp -pv "$HOME/.profile" "$cfg_bu_dir/.profile" | awk '{print "==> "$NF}'
-  curl -so "$HOME/.profile" "$Gitea_URL/$repo_path/.profile"
+  curl -so "$HOME/.profile" "$GITEA_URL/$repo_path/.profile"
   printf "Custom .profile installed in the home directory.\n"
   (( count++ ))
 }
@@ -63,7 +62,7 @@ dl_nanorc() {
   [[ -d "$HOME/.config/nano" ]] || mkdir -p "$HOME/.config/nano"
   [[ -f "$HOME/.nanorc" ]] && cp -pv "$HOME/.nanorc" "$cfg_bu_dir/nano/nanorc" | awk '{print "==> "$NF}'
   [[ -f "$HOME/.config/nano/nanorc" ]] && cp -pv "$HOME/.config/nano/nanorc" "$cfg_bu_dir/nano/nanorc" | awk '{print "==> "$NF}'
-  curl -so "$HOME/.config/nano/nanorc" "$Gitea_URL/$repo_path/nano/nanorc"
+  curl -so "$HOME/.config/nano/nanorc" "$GITEA_URL/$repo_path/nano/nanorc"
   [[ -f "$HOME/.nanorc" ]] && rm "$HOME/.nanorc"
   [[ -f "$cfg_bu_dir/.nanorc" ]] && rm "$cfg_bu_dir/.nanorc"
   printf "Custom nanorc installed.\n"
@@ -73,7 +72,7 @@ dl_nanorc() {
 nanorc_cfg() {
   local cfg_dir sed_file
   cfg_dir="$HOME/.config/nano"
-  sed_file="$HOM#/bin/files/nano.sed"
+  sed_file="$HOME/bin/files/nano.sed"
   [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
   cp -v /etc/nanorc "$cfg_dir/nanorc" | awk '{print "==> "$NF}'
   sed -i -f "$sed_file" "$cfg_dir/nanorc"
@@ -84,14 +83,14 @@ nanorc_cfg() {
 
 dl_face() {
   [[ -f "$HOME/.face" ]] && cp -pv "$HOME/.face" "$cfg_bu_dir/.face" | awk '{print "==> "$NF}'
-  curl -so "$HOME/.face" "$Gitea_URL/$repo_path/.face"
+  curl -so "$HOME/.face" "$GITEA_URL/$repo_path/.face"
   printf ".face added to the home directory.\n"
   (( count++ ))
 }
 
 dl_inputrc() {
   [[ -f "$HOME/.inputrc" ]] && cp -pv "$HOME/.inputrc" "$cfg_bu_dir/.inputrc" | awk '{print "==> "$NF}'
-  curl -so "$HOME/.inputrc" "$Gitea_URL/$repo_path/.inputrc"
+  curl -so "$HOME/.inputrc" "$GITEA_URL/$repo_path/.inputrc"
   printf ".inputrc added to the home directory.\n"
   (( count++ ))
 }
@@ -99,7 +98,7 @@ dl_inputrc() {
 dl_cinnamon_keybindings() {
   if is_cinnamon; then
     local cinnamon_keybindings="keybindings-backup.dconf"
-    curl -so "$HOME/.config/$cinnamon_keybindings" "$Gitea_URL/$repo_path/$cinnamon_keybindings"
+    curl -so "$HOME/.config/$cinnamon_keybindings" "$GITEA_URL/$repo_path/$cinnamon_keybindings"
     dconf load /org/cinnamon/desktop/keybindings/ < "$HOME/.config/$cinnamon_keybindings"
     printf "Cinnamon Keybindings installed.\n"
     (( count++ ))
@@ -109,12 +108,16 @@ dl_cinnamon_keybindings() {
 }
 
 help() {
+  local errcode updated
   errcode="${1:-2}"
-  cat << _END_HELP_
+  updated="10 Oct 2024"
+  cat << _HELP_
+  ${orange}$script${normal} $version, Updated $updated
 Installs customized configurations files for new Linux installations.
 Configurations are downloand from the Mosfanet Gitea server.
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
+
 ${orange}OPTIONS:${normal}
   -a  .bash_aliases
   -b  .bashrc
@@ -125,55 +128,59 @@ ${orange}OPTIONS:${normal}
   -n  nanorc
   -p  .profile
   Multiple options can be entered.
-$_script v$_version, updated: $_updated
-_END_HELP_
+_HELP_
   exit "$errcode"
+}
+
+main() {
+  local noOpt optstr opt
+  check_package curl
+  [[ -d "$cfg_bu_dir" ]] || mkdir -p "$cfg_bu_dir"
+  noOpt=1
+  optstr=":abcfhinp"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      a )
+        dl_aliases
+      ;;
+      b )
+        dl_bashrc
+      ;;
+      c )
+        dl_cinnamon_keybindings
+      ;;
+      f )
+        dl_face
+      ;;
+      h )
+        help 0
+      ;;
+      i )
+        dl_inputrc
+      ;;
+      n )
+        # dl_nanorc
+        nanorc_cfg
+      ;;
+      p )
+        dl_profile
+      ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+    noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  if (( count == 0 )); then
+    printf "No custom configuration files installed.\n"
+  else
+    printf "Custom configurations installed.\n"
+  fi
+  leave "$script v$version"
 }
 
 ## Execution ##
 
-check_package curl
-[[ -d "$cfg_bu_dir" ]] || mkdir -p "$cfg_bu_dir"
-noOpt=1
-optstr=":abcfhinp"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    a )
-      dl_aliases
-    ;;
-    b )
-      dl_bashrc
-    ;;
-    c )
-      dl_cinnamon_keybindings
-    ;;
-    f )
-      dl_face
-    ;;
-    h )
-      help 0
-    ;;
-    i )
-      dl_inputrc
-    ;;
-    n )
-      # dl_nanorc
-      nanorc_cfg
-    ;;
-    p )
-      dl_profile
-    ;;
-    ? )
-      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-      help 2
-  esac
-  noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-if (( count == 0 )); then
-  printf "No custom configuration files installed.\n"
-else
-  printf "Custom configurations installed.\n"
-fi
-leave "$_script v$_version"
+main "$@"
