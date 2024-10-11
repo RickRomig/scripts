@@ -32,13 +32,13 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="5.0.24284"
+readonly version="5.1.24285"
 readonly old_host="${HOSTNAME:-$(hostname)}"
 new_host="foo-bar"
 
 ## Functions ##
 
-hosthostname_rules() {
+hostname_rules() {
   cat << _RULES_
 
 ${lightblue}Hostname Rules${normal}
@@ -52,36 +52,38 @@ _RULES_
 }
 
 get_new_hostname() {
-  local strlen
+  local strlen maxlen minlen
+  minlen=5
+  maxlen=15
   while true; do
     printf "\nCurrent hostname is %s\n\n" "$old_host"
 
     read -rp "Enter new hostname: " new_host
     strlen=${#new_host}
-    if [[ "$strlen" -lt 5 || "$strlen" -gt 15 ]]; then
-      printf "\n%sHostname must be between 5 and 15 characters.\n" "$lightred" "$normal" >&2
+    if (( strlen < minlen || strlen > maxlen )); then
+      printf "\n%sHostname must be between %d and %d characters.%s\n" "$orange" "$minlen" "$maxlen" "$normal" >&2
       hostname_rules
       continue
     fi
     # Check new hostname against the rules
     case "$new_host" in
       -* )
-        printf "\n%sHostname cannot begin with a hypen.%s\n" "$lightred" "$normal" >&2
+        printf "\n%sHostname cannot begin with a hypen.%s\n" "$orange" "$normal" >&2
         hostname_rules
         continue
       ;;
       *- )
-        printf "\n%sHostname cannot end with a hyphen.%s\n" "$lightred" "$normal" >&2
+        printf "\n%sHostname cannot end with a hyphen.%s\n" "$orange" "$normal" >&2
         hostname_rules
         continue
       ;;
       [0-9]* )
-        printf "%s\nHostname cannot begin with a digit.%s\n" "$lightred" "$normal" >&2
+        printf "%s\nHostname cannot begin with a digit.%s\n" "$orange" "$normal" >&2
         hostname_rules
         continue
       ;;
       *[^a-zA-Z0-9-]* )
-        printf "\n%sHostname cannot contain any special characters.%s\n" "$lightred" "$normal" >&2
+        printf "\n%sHostname cannot contain any special characters.%s\n" "$orange" "$normal" >&2
         hostname_rules
         continue
       ;;
@@ -90,7 +92,7 @@ get_new_hostname() {
     # Compare new hostname with the old hostname
     new_host="${new_host,,}"
     if [[ "$new_host" == "${old_host,,}" ]]; then
-      printf "%sHostnames are the same.%s\n" "$lightred" "$normal" >&2
+      printf "%sHostnames are the same.%s\n" "$orange" "$normal" >&2
       hostname_rules
       continue
     else
