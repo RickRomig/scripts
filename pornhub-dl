@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 April 2019
-# Updated      : 04 Oct 2024
+# Updated      : 10 Oct 2024
 # Comments     : Accepts either full URL or video id such as ph5ccfa07f0e2a6
 #              : Downloads to ~/Videos/Pornography/<category>
 # TODO (Rick)  :
@@ -29,15 +29,16 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.3.24278"
-readonly updated="04 Oct 2024"
+readonly version="3.4.24284"
+readonly updated="10 Oct 2024"
+readonly site="Redtube"
 readonly porn_dir=$HOME"/Videos/Pornography"
 
 ## Functions ##
 
 display_title() {
   clear
-  box "PornHub Download" "="
+  box "$site Download" "="
   echo "$script v$version"
 }
 
@@ -147,15 +148,17 @@ dl_2_subdir() {
 download_video() {
   local site url subdir
   url="$1"
-  site="Pornhub"
   display_title
   # Choose the download folder
   subdir=$(choose_destination)
   # Download video to selected folder
   printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "$site"
   case "$subdir" in
-    "none" ) dl_2_video "$url" ;;
-    * ) dl_2_subdir "$url" "$subdir"
+    "none" )
+      dl_2_video "$url"
+    ;;
+    * )
+      dl_2_subdir "$url" "$subdir"
   esac
 }
 
@@ -165,7 +168,7 @@ main() {
   local url
   # Check arguments and fetch URL
   if [[ $# -eq 0 ]]; then
-    echo "$RED_ERROR No argument passed." >&2
+    printf "%s No argument passed.\n" "$RED_ERROR" >&2
     help 2
   elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
     script_info
