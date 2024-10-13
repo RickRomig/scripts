@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 10 Oct 2024
+# Last updated : 13 Oct 2024
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
 # TODO (Rick)  :
@@ -46,14 +46,14 @@ retire_script() {
   zip -u "$archive_d/$archive" "$retired"
   git rm "$retired"
   git commit -m "$retired was retired and archived." --no-verify # && git push
-  git push
+  # git push
 }
 
 main() {
   local current_d filename script version
   current_d="$PWD"
   script=$(basename "$0")
-  version="2.0.24284"
+  version="2.1.24287"
 
   [[ -d "$current_d/.git" ]] || die "You are not in the main directory of a git repositiory." 1
 
@@ -63,14 +63,11 @@ main() {
     filename="$1"
   fi
 
-  if [[ -f "$1" ]]; then
-    check_dependencies
-    retire_script "$filename"
-  else
-    die "$1 not found." 1
-  fi
-
-  leave "$script $version"
+  [[ -f "$filename" ]] || die "$filename not found." 1
+  check_dependencies
+  retire_script "$filename"
+  over_line "$script $version"
+  exit
 }
 
 ## Execution ##
