@@ -7,23 +7,43 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 22 Nov 2023
-# Last updated : 22 Nov 2023, version 0.1.0
+# Last updated : 13 Oct 2024
 # Comments     : Kris Occipinti, https://filmsbykris.com/v7/
 #              : https://gitlab.com/metalx1000/MyBin/-/blob/master/linux/shell/apt-search
-# TODO (Rick)  : 
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
-command -v fzf > /dev/null 2>&1 || { echo "fzf is not installed." >&2; exit 1; }
+check_fzf() {
+	command -v fzf > /dev/null 2>&1 && return 0 || return 1
+}
 
-if [[ "$1" ]]; then
-	query="$1"
-else
-	read -rp "Enter search query: " query
-fi
-[[ "$query" ]] || exit
+leave() {
+	local script version
+	script=$(basename "$0")
+	version="2.0.24287"
+	printf "%s v%s\n" "$script" "$version"
+	exit
+}
 
-pkg="$(aptitude search "$query" | fzf --prompt "Select packages: " -m | awk '{print $2}' | tr "\n" " ")"
-[[ "$pkg" ]] || exit
-sudo apt install "$pkg"
-exit
+run_query() {
+	local pkg
+	pkg="$(aptitude search "$query" | fzf --prompt "Select packages: " -m | awk '{print $2}' | tr "\n" " ")"
+	[[ "$pkg" ]] || leave
+	sudo apt install "$pkg"
+}
+
+main() {
+	local query
+	check_fzf || { echo "fzf is not installed." >&2; leave; }
+	if [[ "$1" ]]; then
+		query="$1"
+	else
+		read -rp "Enter search query: " query
+	fi
+	[[ "$query" ]] || leave
+	run_query
+	leave
+}
+
+main "$@"
