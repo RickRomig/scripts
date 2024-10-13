@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, 02 Nov 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Nov 2019
-# Updated      : 28 Sep 2024
+# Updated      : 13 Oct 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,15 +28,15 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.0.24272"
+readonly version="2.0.24287"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="28 Sep 2024"
-  cat << END_HELP
+  updated="13 Oct 2024"
+  cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Downloads a web page to the current directory.
 
@@ -47,7 +47,7 @@ ${orange}Available options:${normal}
   -h | --help  Show help
 
   Example: $script https://example.com/index.html
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
@@ -69,8 +69,9 @@ download_page() {
 main() {
   local cur_d domain ec url
   cur_d="$PWD"
+  check_package wget
   if [[ "$#" -eq 0 ]]; then
-    printf "%s No argument passed.\n" "$red_error" >&2
+    printf "%s No argument passed.\n" "$RED_ERROR" >&2
     help 1
   elif [[ "$1" = "--help" || "$1" = "-h" ]]; then
     help 0
@@ -78,7 +79,7 @@ main() {
     url="$*"
     domain=$(echo "$url" | sed -e 's|^[^/]*//||' -e 's|^www\.||' -e 's|/.*$||')
   else
-    printf "%s Invalid parameter - %s\n" "$red_error" "$1" >&2
+    printf "%s Invalid parameter - %s\n" "$RED_ERROR" "$1" >&2
     help 2
   fi
 
@@ -94,5 +95,4 @@ main() {
 
 ## Execution ##
 
-check_package wget
 main "$@"
