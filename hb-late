@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Use only if hb-archive.sh fails to run on 1st of the month.
 # Created      : 02 Sep 2019
-# Updatd       : 19 Aug 2024
+# Updatd       : 13 Oct 2024
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -25,44 +25,65 @@ else
   exit 1
 fi
 
-## Variables ##
+## Functions ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.3.24232"
-readonly _updated="28 Feb 2024"
-readonly lhost="${HOSTNAME:-$(hostname)}"
-readonly fhost="hp-probook-6570b"
-readonly hb_dir=$HOME"/Documents/HomeBank"
-readonly arc_dir=$HOME"/Downloads/archive/homebank"
+update_log_file() {
+  local arc_date status log_dir log_file log_date
+  status="$1"
+  arc_date="$2"
+  arc_dir=$HOME"/Downloads/archive/homebank"
+  log_dir=$HOME"/.local/share/logs"
+  log_file="HomeBank-archive.log"
+  err_log="HomeBank-error.log"
+  log_date=$(date '+%a|%F|%R')
+  {
+    printf "%s|%s|" "$log_date" "$arc_date"
+    if (( status > 0 )); then
+      printf "successful\n"
+      echo "$(date +%F) - HomeBank Archive successful." > "$arc_dir/$err_log"
+    else
+      printf "had errors\n"
+      echo "$(date +%F) - HomeBank Archive had errors. ($status)" >> "$arc_dir/$err_log"
+    fi
+  } >> "$log_dir/$log_file"
+ }
 
-# Previous month (2 calendar months)
-prev_month=$(date -d "$(date +%Y-%m-01) - 2 months" +"%B %Y"); readonly prev_month
+monthly_archive() {
+  local ref_date arc_date arc_dir hb_archive hb_dir status
+  arc_dir=$HOME"/Downloads/archive/homebank"
+  err_log="HomeBank-error.log"
+  hb_dir=$HOME"/Documents/HomeBank"
+  hb_archive=$(date -d "$(date +%Y-%m-01) - 2 months" +%Y-%m)-backup.zip
+  arc_date=$(date -d "$(date +%Y-%m-01) - 2 months" +"%B %Y")  # 2 calendar months previous
+  ref_date=$(date -d "$(date +%Y-%m-01) - 1 month" +%m%d%Y) # first day of the previous month
 
-# Set reference date to the first day of the previous month
-ref_date=$(date -d "$(date +%Y-%m-01) - 1 month" +%m%d%Y); readonly ref_date
+  zip -qmtt "$ref_date" "$arc_dir/$hb_archive" "$hb_dir/*.bak" 2> "$arc_dir/$err_log"
+  status="$?"
+  if [[ "$status" -eq 0 ]]; then
+    echo "${orange}HomeBank backup files for $arc_date archived.${normal}"
+    echo "$(date +%F) - HomeBank Archive successful." > "$arc_dir/$err_log"
+  else
+    echo "$(date +%F) - HomeBank Archive had errors." >> "$arc_dir/$err_log"
+    echo "Zip Error Code: $status" >&2
+  fi
+  update_log_file "$status" "$arc_date"
+}
 
-# Create filename for the archive file
-hb_archive=$(date -d "$(date +%Y-%m-01) - 2 months" +%Y-%m)-backup.zip; readonly hb_archive
+main() {
+  local fhost lhost script version
+  script=$(basename "$0")
+  version="3.0.24287"
+  lhost="${HOSTNAME:-$(hostname)}"
+  fhost="hp-probook-6570b"
+
+  [[ "$lhost" != "$fhost" ]] && die "$script must be run from the $fhost."
+  check_package zip
+  printf "Archives .bak files if hb-archive.sh doesn't run on the 1st of the month.\n"
+  monthly_archive
+  over_line "$script v$version "
+  exit
+}
 
 ## Execution ##
 
-# Is the script running from the correct host?
-[[ "$lhost" != "$fhost" ]] && die "$_script must be run from the $fhost."
-
-check_package zip
-
-box "$_script v$_version ($_updated)"
-echo "Archive HomeBank backup files if hb-archive.sh fails to run on 1st of the month."
-
-zip -qmtt "$ref_date" "$arc_dir/$hb_archive" "$hb_dir/*.bak" 2>/dev/null
-status="$?"
-if [[ "$status" -eq 0 ]]; then
-  echo "${orange}HomeBank backup files for $prev_month archived.${normal}"
-  echo "HomeBank Archives:"
-  ls -1 "$arc_dir"
-else
-  echo "No backup files for $prev_month available to be archived."
-  echo "Zip Error Code: $status" >&2
-fi
-
-exit
+main "$@"
