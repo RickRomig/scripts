@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Dec 2022
-# Updated      : 29 Sep 2024
+# Updated      : 13 Oct 2024
 # Comments     : base script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
 #              : Limit to-do list to 7 items to maintain proper formating.
 # TODO (Rick)  :
@@ -29,7 +29,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.0.24273"
+readonly version="3.1.24287"
 readonly doc_dir="$HOME/.local/share/doc"
 readonly todolist="todo.lst"
 calendar=$(mktemp -q) || die "Failed to create temporary file." 1
@@ -45,7 +45,7 @@ cleanup() {
 help() {
 	local errcode updated
 	errcode="${1:-2}"
-	updated="29 Sep 2024"
+	updated="13 Oct 2024"
 	cat << END_HELP
 ${orange}$script${normal} $version, Updated: $updated
 Creates/displays/edits a simple to-do list with a calendar.
@@ -81,6 +81,7 @@ create_todo() {
 }
 
 main() {
+	local noOpt optstr opt
 	noOpt=1
 	optstr=":cdeh"
 	while getopts "$optstr" opt; do
@@ -106,12 +107,12 @@ main() {
 				help 0
 			;;
 			? )
-				printf "%s Invalid option: -%s\n" >&2 "$red_error" "$OPTARG"
+				printf "%s Invalid option: -%s\n" >&2 "$RED_ERROR" "$OPTARG"
 				help 2
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
 	leave "$script v$version"
 }
