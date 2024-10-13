@@ -7,7 +7,7 @@
 # Author       : Copyright ©  2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 30 Sep 2024
+# Updated      : 13 Oct 2024
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,15 +30,15 @@ set -eu
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.7.24274"
+readonly version="4.8.24287"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="30 Sep 2024"
-  cat << END_HELP
+  updated="13 Oct 2024"
+  cat << _HELP_
 ${orange}$script${normal} v$version (updated $updated)
 Displays a text file using either cat or less depending the number of lines in
 the file and the number of rows in the current terminal window. Less is used when
@@ -46,7 +46,7 @@ the number of lines is greater than the 87% of the rows, otherwise cat is used.
 
  ${green}Usage:${normal} $script filename [-h] [--help]
 
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
@@ -70,21 +70,21 @@ view_file() {
 
 main() {
   if [[ $# -eq 0 ]]; then
-    printf "%s No argument passed.\n" "$red_error" >&2
+    printf "%s No argument passed.\n" "$RED_ERROR" >&2
     help 1
   elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
     help 0
   elif [[ ! -f "$1" ]]; then
-    printf "%s %s not found.\n" "$red_error" "$1" >&2
+    printf "%s %s not found.\n" "$RED_ERROR" "$1" >&2
     help 2
   elif [[ ! -s "$1" ]]; then
-    printf "%s %s is an empty file.\n" "$red_error" "$1" >&2
+    printf "%s %s is an empty file.\n" "$RED_ERROR" "$1" >&2
     exit 1
   elif file -bL "$1" | grep -qEi "text|json"; then
     view_file "$1"
     exit 0
   else
-    printf "%s %s is not a text file.\n" "$red_error" "$1" >&2
+    printf "%s %s is not a text file.\n" "$RED_ERROR" "$1" >&2
     help 1
   fi
 }
