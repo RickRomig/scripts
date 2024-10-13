@@ -6,8 +6,8 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Version      : 3.6.24232
-# Last updated : 19 Aug 2024
+# Version      : 3.7.24287
+# Last updated : 13 Oct 2024
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
@@ -40,8 +40,9 @@ err_log="HomeBank-error.log"
     printf "successful\n"
     echo "$(date +%F) - HomeBank Archive successful." > "$arc_dir/$err_log"
   else
+    status="$?"
     printf "had errors\n"
-    echo "$(date +%F) - HomeBank Archive had errors." >> "$arc_dir/$err_log"
+    echo "$(date +%F) - HomeBank Archive had errors. ($status)" >> "$arc_dir/$err_log"
   fi
 } >> "$log_dir/$log_file"
 
