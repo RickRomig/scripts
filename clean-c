@@ -1,29 +1,32 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Script Name  : clean-c
-# Description  : Cleans up C programing in the current working directory
+# Description  : Cleans up current working directory, removing a.out, *.o *~ files
 # Dependencies : none
 # Arguments    : none
 # Author       : Copyright (C) 2019, Richard Romig,
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Feb 2019
-# Updated      : 30 Sep 2024
+# Updated      : 13 Oct 2024
 # Comment      : removes *~, *.o, and a.out in the current working directory
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
-# Variables
+# Cleans up current working directory, removing a.out, *.o *~ files
 
-script=$(basename "$0"); readonly script
-readonly version="1.2.24274"
+clean_work() {
+	local work_dir
+	work_dir=$(dirname "$(readlink -f "$0")")
+	printf "\nCleaning up %s ...\n" "$work_dir"
+	find . -maxdepth 1 -type f \( -name "a.out" -o -iname "*.o" -o -iname "*~" \) -print -exec rm {} \;
+}
 
-work_dir=$(dirname "$(readlink -f "$0")"); readonly work_dir
-
-# Clean up current working directory, removing a.out, *.o *~ files
-
-clear
-box "$script v$version"
-echo $'\n'$"Cleaning up $work_dir..."
-find . -maxdepth 1 -type f \( -name "a.out" -o -iname "*.o" -o -iname "*~" \) -print -exec rm {} \;
-exit
+main() {
+	local script version
+	script=$(basename "$0")
+	version="2.0.24287"
+	clean_work
+	printf "%s v%s\n" "$script" "$version"
+	exit
+}
