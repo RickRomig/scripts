@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : install-zoom
-# Description  : Install/Remove Zoom (Flatpak or deb package)
+# Description  : Install/Remove/Update Zoom (Flatpak or deb package)
 # Dependencies : gdebi wget
 # Arguments    : See help function
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Nov 2022
-# Updated      : 02 Sep 2024
+# Updated      : 13 Oct 2024
 # Comments     :
-# TODO (Rick)  :
+# TODO (Rick)  : needs to be tested.
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.4.24276"
+readonly version="4.0.24287"
 
 ## Functions ##
 
@@ -46,7 +46,7 @@ cleanup() {
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="02 Oct 2024"
+	updated="13 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs or removes the Zoom video conferencing software.
@@ -57,28 +57,38 @@ ${orange}Available options:${normal}
   -d  Install Zoom (deb package)
   -f  Install Zoom (Flatpak from Flathub)
   -h  Display help
-  -r  Remove Zoom
+  -r  Remove Zoom (deb or flatpak)
+  -u  Update Zoom (deb package)
 _HELP_
   exit "$errcode"
 }
 
-zoom_deb_ver() {
-	dpkg -l zoom | awk '/ii/ {print $3}'
+zoom_version() {
+	if exist zoom; then
+		zoom_ver=$(dpkg -l zoom | awk '/ii/ {print $3}') # $(cat /opt/zoom/version.txt)
+	elif flatpak list | grep -qw Zoom; then
+		zoom_ver=$(flatpak list | awk '/Zoom/ {print $(NF-2)}')
+	fi
+	printf "%s" "$zoom_ver"
 }
 
-zoom_flat_ver() {
-	flatpak list | awk '/Zoom/ {print $3}'
-}
+# zoom_deb_ver() {
+# 	dpkg -l zoom | awk '/ii/ {print $3}'
+# }
 
-flatpak_zoom() {
+# zoom_flat_ver() {
+# 	flatpak list | awk '/Zoom/ {print $(NF-2)}'
+# }
+
+is_zoom_flatpak() {
   exists flatpak || return "$FALSE"
   flatpak list | grep -qw Zoom && return "$TRUE" || return "$FALSE"
 }
 
 install_zoom_deb() {
 	local url pkg
-	url="https://zoom.us/client/latest"
-	pkg="zoom_amd64.deb"
+	url="$1"
+	pkg="$2"
 	printf "Dowloading Zoom ..."
   dots "."
 	wget -q -P "$tmp_dir" "$url/$pkg"
@@ -87,19 +97,36 @@ install_zoom_deb() {
 	tput cnorm
 	sudo gdebi -n "$tmp_dir/$pkg"
 	sudo apt-get install -f
-	printf "Zoom %s is installed.\n" "$(zoom_deb_ver)"
+	printf "Zoom %s is installed.\n" "$(zoom_version)"
 }
 
 install_zoom_flatpak() {
 	sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 	flatpak install flathub us.zoom.Zoom
-	printf "Zoom %s installed from Flathub.\n" "$(zoom_flat_ver)"
+	printf "Zoom %s installed from Flathub.\n" "$(zoom_version)"
+}
+
+update_zoom_deb() {
+	local url pkg cur_ver new_ver
+	url="$1"
+	pkg="$2"
+	cur_ver=$(cat /opt/zoom/version.txt)	# $(zoom_version)
+	printf "Installed: %s\n" "$cur_ver"
+	# new_ver=$(wget --spider https://zoom.us/client/latest/zoom_amd64.deb 2>&1 | grep Location | sed -e 's/.*prod\/\(.*\)\/.*/\1/')
+	new_ver=$(wget --spider "$url/$pkg" 2>&1 | grep Location | sed -e 's/.*prod\/\(.*\)\/.*/\1/')
+	if [[ "$cur_ver" != "$new_ver" ]]; then
+		wget -q -P "$tmp_dir" "$url/$pkg"
+		sudo gdebi -n "$tmp_dir/$pkg"
+		printf "Zoom upgraded to version %s.\n" "$(cat /opt/zoom/version.txt)"	# "$(zoom_version)"
+	else
+		printf "Zoom %s is the current version. No update required.\n" "$cur_ver"
+	fi
 }
 
 remove_zoom() {
 	printf "Removing Zoom ...\n"
 	exists zoom	&& sudo apt-get remove --purge zoom -yy
-	flatpak_zoom && flatpak uninstall --noninteractive --assumeyes  us.zoom.Zoom
+	is_zoom_flatpak && flatpak uninstall --noninteractive --assumeyes  us.zoom.Zoom
 	printf "Zoom has been removed.\n"
 }
 
@@ -113,24 +140,27 @@ webcam_info() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr package zoom_url
+	package="zoom_amd64.deb"
+	zoom_url="https://zoom.us/client/latest"
 	noOpt=1
-	optstr=":dfhr"
+	optstr=":dfhru"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			d )
-				flatpak_zoom && leave "Zoom $(zoom_flat_ver) is installed, Installatiion canceled."
-				exists zoom && printf "Zoom %s is installed. Updating package.\n" "$(zoom_deb_ver)"
+				is_zoom_flatpak && leave "Zoom $(zoom_version) is installed, Installatiion canceled."
+				exists zoom && printf "Zoom %s is installed. Updating package.\n" "$(zoom_version)"
 				webcam_info
 				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 				trap cleanup EXIT
 				sudo_login 2
 				check_dependencies
-				install_zoom_deb
+				webcam_info
+				install_zoom_deb "$zoom_url" "$package"
 			;;
 			f )
-				exists flatpak || leave "Flatpak is not isntalled. Installatiion canceled."
-				flatpak_zoom && leave "Zoom $(zoom_flat_ver) is already installed."
+				exists flatpak || leave "Flatpak is not installed. Installatiion canceled."
+				is_zoom_flatpak && leave "Zoom $(zoom_version) is already installed."
 				exists zoom && remove_zoom
 				webcam_info
 				install_zoom_flatpak
@@ -139,12 +169,17 @@ main() {
 				help 0
 			;;
 			r )
-				if exists zoom || flatpak_zoom; then
+				if exists zoom || is_zoom_flatpak; then
 					sudo_login 2
 					remove_zoom
 				else
 					printf "Zoom is not installed.\n"
 				fi
+			;;
+			u )
+				is_zoom_flatpak && leave "Flatpak version of Zoom is installed."
+				exists zoom || leave "Zoom is not installed."
+				update_zoom_deb "$zoom_url" "$package"
 			;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
@@ -154,7 +189,8 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-	leave "$script v$version"
+	over_line "$script v$version"
+	exit
 }
 
 ## Execution ##
