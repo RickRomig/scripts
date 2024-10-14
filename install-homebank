@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Nov 2018
-# Updated      : 02 Oct 2024
+# Updated      : 13 Oct 2024
 # Comments     : Available as a flatpak (preferred method)
 #              : https://flathub.org/apps/details/fr.free.Homebank
 #              : Linux Mint Sofware Manager
@@ -30,17 +30,23 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="5.0.24276"
+readonly version="5.1.24287"
 
 ## Functions ##
 
 homebank_version() {
-  homebank --version | cut -d' ' -f2
+  local hb_ver
+  if exists homebank; then
+    hb_ver=$(homebank --version | cut -d' ' -f2)
+  elif flatpak list | grep -q 'Homebank';then
+    hb_ver=$(flatpak list | awk '/Homebank/ {print $(NF-2)}')
+  fi
+  print "%s" "$hb_ver"
 }
 
-flatpak_version() {
-  flatpak list | awk '/HomeBank/ {print $3}'
-}
+# flatpak_version() {
+#   flatpak list | awk '/HomeBank/ {print $3}'
+# }
 
 flatpak_homebank() {
   exists flatpak || return "$FALSE"
@@ -51,11 +57,11 @@ install_flatpak_hombank() {
   printf "Install the HomeBank flatpak...\n"
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   flatpak install --user flathub fr.free.Homebank
-  printf "HomeBank flatpak (%s) installed.\n" "$(flatpak_version)"
+  printf "HomeBank flatpak (%s) installed.\n" "$(homebank_version)"
 }
 
 remove_flatpak_homebank() {
-  printf "Removing HomeBank flatpak (%s)...\n" "$(flatpak_version)"
+  printf "Removing HomeBank flatpak (%s)...\n" "$(homebank_version)"
   flatpak uninstall --oninteractive --assumeyes fr.free.Homebank
   remove_configs
   printf "HomeBank has been removed.\n"
@@ -109,7 +115,7 @@ remove_configs() {
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="02 Oct 2024"
+	updated="13 Oct 2024"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes HomeBank Personal Finance Software.
@@ -135,7 +141,7 @@ main() {
     case "$opt" in
       f )
         exists homebank && leave "HomeBank $(homebank_version) is already installed."
-        flatpak_homebank && leave "HomeBank $(flatpak_version) (flatpak) is installed."
+        flatpak_homebank && leave "HomeBank $(homebank_version) (flatpak) is installed."
         install_flatpak_hombank
       ;;
       h )
@@ -143,7 +149,7 @@ main() {
       ;;
       i )
         exists homebank && leave "HomeBank $(homebank_version) is already installed."
-        flatpak_homebank && leave "HomeBank $(flatpak_version) (flatpak) is installed."
+        flatpak_homebank && leave "HomeBank $(homebank_version) (flatpak) is installed."
         sudo_login 2
         install_homebank
       ;;
