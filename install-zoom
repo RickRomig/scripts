@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Nov 2022
-# Updated      : 13 Oct 2024
+# Updated      : 14 Oct 2024
 # Comments     :
 # TODO (Rick)  : needs to be tested.
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.0.24287"
+readonly version="4.1.24288"
 
 ## Functions ##
 
@@ -46,7 +46,7 @@ cleanup() {
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="13 Oct 2024"
+	updated="14 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs or removes the Zoom video conferencing software.
@@ -64,6 +64,7 @@ _HELP_
 }
 
 zoom_version() {
+	local zoom_ver
 	if exist zoom; then
 		zoom_ver=$(dpkg -l zoom | awk '/ii/ {print $3}') # $(cat /opt/zoom/version.txt)
 	elif flatpak list | grep -qw Zoom; then
