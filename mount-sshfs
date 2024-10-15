@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 02 Oct 2024
+# Updated      : 15 Oct 2024
 # Comments     : Mount points are at ~/mnt/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,36 +30,50 @@ set -eu
 ## Glonal Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.5.24276"
+readonly version="4.6.24289"
 readonly local_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
+
+cd_fail() {
+	local share="$1"
+  printf "%s The cd shell builtin failed.\n" "$RED_ERROR" >&2
+  printf "The SSHFS share has not been unmounted.\n" >&2
+  fail_msg "$share"
+}
+
+fail_msg() {
+	local share="$1"
+  printf "Make sure you are not in the mountpoint and run the following command:\n" >&2
+  printf "\t%sfusermount -u \$HOME/mnt/%s/%s\n" "$orange" "$share" "$normal"  >&2
+  exit 1
+}
 
 mount_share() {
 	local octet share
 	octet="$1"
   share="$2"
-  ping -c3 "$localnet.$octet" > /dev/null 2>&1 || die "$share at $localnet.$octet is not online."
+  ping -c3 "$LOCALNET.$octet" > /dev/null 2>&1 || die "$share at $LOCALNET.$octet is not online."
 	[[ -d "$HOME/mnt/$share/" ]] || mkdir -p "$HOME/mnt/$share"
 	printf "Mounting %s...\n" "$share"
 	if [[ "$share" == "NASD97167" ]]; then
-  	sshfs -o follow_symlinks rick@"$localnet.$octet:" "$HOME/mnt/$share/"
+		sshfs -o follow_symlinks rick@"$LOCALNET.$octet:" "$HOME/mnt/$share/"
 	else
-		sshfs -o follow_symlinks rick@"$localnet.$octet:/home/rick" "$HOME/mnt/$share/"
+		sshfs -o follow_symlinks rick@"$LOCALNET.$octet:/home/rick" "$HOME/mnt/$share/"
 	fi
 	printf "Home directory at %s:\n" "$share"
 	ls "$HOME/mnt/$share/"
-	printf "%s at %s.%s has been mounted.\n" "$share" "$localnet" "$octet"
+	printf "%s at %s.%s has been mounted.\n" "$share" "$LOCALNET" "$octet"
 }
 
 unmount_share() {
   local share="$1"
-    cd "$HOME" || cd_fail
+    cd "$HOME" || cd_fail "$share"
     if fusermount -u "$HOME/mnt/$share/"; then
       printf "%s has been unmounted.\n" "$share"
     else
       printf "%s %s has not been unmounted." >&2 "$RED_ERROR" "$share"
-      fail_msg
+      fail_msg "$share"
     fi
 }
 
@@ -83,22 +97,10 @@ handle_mount() {
 	fi
 }
 
-cd_fail() {
-  printf "%s The cd shell builtin failed.\n" "$RED_ERROR" >&2
-  printf "The SSHFS share has not been unmounted.\n" >&2
-  fail_msg
-}
-
-fail_msg() {
-  printf "Make sure you are not in the mountpoint and run the following command:\n" >&2
-  printf "\t%sfusermount -u \$HOME/mnt/%s/%s\n" "$orange" "$share" "$normal"  >&2
-  exit 1
-}
-
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="02 Oct 2024"
+	updated="15 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated $updated
 Mounts/Unmounts an SSHFS share.
@@ -200,7 +202,8 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-	leave "$script v$version"
+	over_line "$script v$version"
+	exit
 }
 
 ## Execution ##
