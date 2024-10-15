@@ -2,12 +2,12 @@
 ###############################################################################
 # Script Name  : pornhub-dl
 # Description  : Download videos from PornHub.com with best quality
-# Dependencies : yt-dlp
+# Dependencies : yt-dlp fzf
 # Arguments    : Video URL or ID number
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Created      : 05 April 2019
-# Updated      : 10 Oct 2024
+# Created      : 05 Apr 2019
+# Updated      : 15 Oct 2024
 # Comments     : Accepts either full URL or video id such as ph5ccfa07f0e2a6
 #              : Downloads to ~/Videos/Pornography/<category>
 # TODO (Rick)  :
@@ -29,21 +29,20 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.4.24284"
-readonly updated="10 Oct 2024"
-readonly site="Redtube"
+readonly version="4.0.24289"
+readonly updated="15 Oct 2024"
 readonly porn_dir=$HOME"/Videos/Pornography"
 
 ## Functions ##
 
 display_title() {
+  local site="$1"
   clear
-  box "$site Download" "="
+  box "${site^} Download" "="
   echo "$script v$version"
 }
 
 help() {
-  local errcode
   local errcode="${1:-2}"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
@@ -90,82 +89,55 @@ check_dependencies() {
   if [[ -x /usr/local/bin/yt-dlp ]]; then
     printf "yt-dlp [OK]\n"
     sleep 2
+    check_package fzf
   else
     die "yt-dlp is not installed." 1
   fi
 }
 
-choose_destination() {
-	local sub_dir _opt options
-	COLUMNS=40
-  options=("Anal" "Asian" "Bi Gay Trans" "Full movies" "Kink" "Masturbation" "Miscellaneous" "Oral" "Pinay" "Straight" "No category")
-  PS3="Choose category: "
-  select _opt in "${options[@]}"; do
-  case "$REPLY" in
-    1 ) sub_dir="Anal"; break ;;
-    2 ) sub_dir="Asian"; break ;;
-    3 ) sub_dir="Bi-gay-trans"; break ;;
-    4 ) sub_dir="Full-movies"; break ;;
-    5 ) sub_dir="Kink"; break ;;
-    6 ) sub_dir="Masturbation"; break ;;
-    7 ) sub_dir="Misc"; break ;;
-    8 ) sub_dir="Oral"; break ;;
-    9 ) sub_dir="Pinay"; break ;;
-    10 ) sub_dir="Straight"; break ;;
-    11 ) sub_dir="none"; break ;;
-  esac
-done
-echo "$sub_dir"
+extract_domain() {
+  local domain fullurl
+  fullurl="$1"
+  domain=$(echo "$fullurl" | sed 's|^[^/]*//||;s|^www\.||;s|/.*$||;s|\..*$||')
+  echo "$domain"
 }
 
-dl_2_video() {
-  local url="$1"
-  printf "%s...%s\n"  "$porn_dir" "$normal"
-  if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/%(title)s.%(ext)s" "$url"
-  then
-    leave "Download successful."
-  else
-    ec="$?"
-    die "Download failed. Error: $ec" "$ec"
-  fi
-}
-
-dl_2_subdir() {
-	local url dest_dir
-  url="$1"
-  dest_dir="$2"
-  [[ -d "$porn_dir/$dest_dir" ]] || mkdir -p "$porn_dir/$dest_dir"
-	printf "%s...%s\n"  "$porn_dir/$dest_dir" "$normal"
-  if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$porn_dir/$dest_dir/%(title)s.%(ext)s" "$url"
-  then
-    leave "Download successful."
-  else
-    ec="$?"
-    die "Download failed. Error: $ec" "$ec"
-  fi
+select_directory() {
+	local directory porn_dir
+	porn_dir=$HOME"/Videos/Pornography"
+	directory=$(find "$porn_dir" -type d | sort -d | fzf --height 60% --reverse --prompt "Select destination directory: ")
+	printf "%s" "$directory"
 }
 
 download_video() {
-  local site url subdir
+  local site url destination
   url="$1"
-  display_title
-  # Choose the download folder
-  subdir=$(choose_destination)
-  # Download video to selected folder
-  printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "$site"
-  case "$subdir" in
-    "none" )
-      dl_2_video "$url"
-    ;;
-    * )
-      dl_2_subdir "$url" "$subdir"
-  esac
+  site="$2"
+  display_title "$site"
+	destination=$(select_directory)
+  printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "${site^}"
+	printf "%s...%s\n" "$destination" "$normal"
+	dl_2_video "$url" "$destination"
+}
+
+dl_2_video() {
+  local url dest_dir
+  url="$1"
+  dest_dir="$2"
+  printf "%s...%s\n"  "$porn_dir" "$normal"
+  if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$dest_dir/%(title)s.%(ext)s" "$url"
+  then
+    leave "Download successful."
+  else
+    ec="$?"
+    die "Download failed. Error: $ec" "$ec"
+  fi
 }
 
 ## Execution ##
 
 main() {
-  local url
+  local site url
   # Check arguments and fetch URL
   if [[ $# -eq 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
@@ -182,7 +154,8 @@ main() {
     url="https://www.pornhub.com/view_video.php?viewkey=$*"
   fi
   check_dependencies
-  download_video "$url"
+  site=$(extract_domain "$url")
+  download_video "$url" "$site"
 }
 
 ## Execution ##
