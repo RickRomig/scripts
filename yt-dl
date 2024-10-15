@@ -2,14 +2,14 @@
 ###############################################################################
 # Script Name  : yt-dl
 # Description  : Download videos from YouTube.com with best quality
-# Dependencies : yt-dlp
+# Dependencies : yt-dlp fzf
 # Arguments    : Video URL or ID number
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 04 Oct  2024
+# Updated      : 15 Oct  2024
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
-#              : Downloads to ~/Videos/sub-directory
+#              : Downloads to ~/Videos/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -26,18 +26,18 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.3.24278"
-readonly updated="04 Oct 2024"
-readonly video_dir=$HOME"/Videos"
+readonly version="6.0.24289"
+readonly updated="15 Oct 2024"
 
 ## Functions ##
 
 display_title() {
+  local site="$1"
   clear
-  box "YouTube Download" "="
+  box "${site^} Download" "="
   echo "$script v$version"
 }
 
@@ -89,83 +89,54 @@ check_dependencies() {
   if [[ -x /usr/local/bin/yt-dlp ]]; then
     printf "yt-dlp [OK]\n"
     sleep 2
+    check_package fzf
   else
     die "yt-dlp is not installed." 1
   fi
 }
 
-choose_destination() {
-	local sub_dir _opt options
-	COLUMNS=40
-	options=("Automotive" "Band" "Comedy" "History" "Movies" "Music" "Naturism" "Philippines" \
-	 "Projects" "Religion" "Sayaw FilipinOH" "Tech-Computers" "Yoga" "No category")
-	PS3="Choose a category: "
-	select _opt in "${options[@]}"; do
-	  case "$REPLY" in
-	    1 ) sub_dir="automotive"; break ;;
-	    2 ) sub_dir="Band"; break ;;
-	    3 ) sub_dir="Comedy"; break ;;
-	    4 ) sub_dir="History"; break ;;
-	    5 ) sub_dir="Movies"; break ;;
-	    6 ) sub_dir="Music"; break ;;
-	    7 ) sub_dir="Naturism"; break ;;
-	    8 ) sub_dir="Philippines"; break ;;
-	    9 ) sub_dir="Projects"; break ;;
-	    10 ) sub_dir="Religion"; break ;;
-	    11 ) sub_dir="Sayaw_FilipinOH"; break ;;
-	    12 ) sub_dir="Tech"; break ;;
-	    13 ) sub_dir="Yoga"; break ;;
-	    14 ) sub_dir="none"; break ;;
-	  esac
-	done
-	echo "$sub_dir"
+extract_domain() {
+  local domain fullurl
+  fullurl="$1"
+  domain=$(echo "$fullurl" | sed 's|^[^/]*//||;s|^www\.||;s|/.*$||;s|\..*$||')
+  echo "$domain"
 }
 
-dl_2_video() {
-  local url="$1"
-  printf "%s...%s\n"  "$video_dir" "$normal"
-	if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$video_dir/%(title)s.%(ext)s" "$url"
-	then
-		leave "Download successful."
-	else
-		ec="$?"
-		die "Download failed." "$ec"
-	fi
-}
-
-dl_2_subdir() {
-	local url dest_dir
-  url="$1"
-  dest_dir="$2"
-	printf "%s...%s\n"  "$video_dir/$dest_dir" "$normal"
-if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$video_dir/$dest_dir/%(title)s.%(ext)s" "$url"
-	then
-		leave "Download successful."
-	else
-		ec="$?"
-		die "Download failed." "$ec"
-	fi
+select_directory() {
+	local directory video_dir
+	video_dir=$HOME"/Videos"
+	directory=$(find "$video_dir" -path "/home/rick/Videos/Pornography" -prune -o -type d | sort -d | fzf --height 60% --reverse --prompt "Select destination directory: ")
+	printf "%s" "$directory"
 }
 
 download_video() {
-  local site url subdir
+  local site url destination
   url="$1"
-  site="YouTube"
-  display_title
-  # Choose the download folder
-  subdir=$(choose_destination)
-  # Download video to selected folder
-  printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "$site"
-  case "$subdir" in
-    "none" ) dl_2_video "$url" ;;
-    * ) dl_2_subdir "$url" "$subdir"
-  esac
+  site="$2"
+  display_title "$site"
+	destination=$(select_directory)
+  printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "${site^}"
+	printf "%s...%s\n" "$destination" "$normal"
+	dl_2_video "$url" "$destination"
+}
+
+dl_2_video() {
+  local url dest_dir
+  url="$1"
+  dest_dir="$2"
+  printf "%s...%s\n"  "$video_dir" "$normal"
+  if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$dest_dir/%(title)s.%(ext)s" "$url"
+  then
+    leave "Download successful."
+  else
+    ec="$?"
+    die "Download failed. Error: $ec" "$ec"
+  fi
 }
 
 ## Execution ##
 
 main() {
-  check_dependencies
   local url
   # Check arguments and fetch URL
   if [[ -z "$1" ]]; then
@@ -182,7 +153,9 @@ main() {
     # match by video ID
     url="https://www.youtube.com/watch?v=$*"
   fi
-  download_video "$url"
+  check_dependencies
+  site=$(extract_domain "$url")
+  download_video "$url" "$site"
 }
 
 ## Execution ##
