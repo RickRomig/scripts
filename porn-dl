@@ -32,7 +32,6 @@ fi
 script=$(basename "$0"); readonly script
 readonly version="3.0.24289"
 readonly updated="15 Oct 2024"
-readonly porn_dir=$HOME"/Videos/Pornography"
 
 ## Functions ##
 
@@ -107,9 +106,9 @@ extract_domain() {
 }
 
 select_directory() {
-	local directory porn_dir
-	porn_dir=$HOME"/Videos/Pornography"
-	directory=$(find "$porn_dir" -type d | sort -d | fzf --height 60% --reverse --prompt "Select destination directory: ")
+	local directory video_dir
+	video_dir=$HOME"/Videos/Pornography"
+	directory=$(find "$video_dir" -type d | sort -d | fzf --height 60% --reverse --prompt "Select destination directory: ")
 	printf "%s" "$directory"
 }
 
@@ -128,7 +127,6 @@ dl_2_video() {
   local url dest_dir
   url="$1"
   dest_dir="$2"
-  printf "%s...%s\n"  "$porn_dir" "$normal"
   if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$dest_dir/%(title)s.%(ext)s" "$url"
   then
     leave "Download successful."
