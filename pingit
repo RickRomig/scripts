@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      :
-# Updated      : 03 Oct 2024
+# Updated      : 15 Oct 2024
 # Comments     : Assumes a /24 (Class C) network
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,14 +28,14 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.1.24277"
+readonly version="3.2.24289"
 
 ## Functions ##
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="03 Oct 2024"
+	updated="15 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Pings an IP address on the local network.
@@ -66,10 +66,10 @@ valid_ip() {
     # Argument is an integer value
     if [[ "$octet" -gt 0 && "$octet" -lt 255 ]]; then
       status=0
-      printf "%s.%s is a valid IP address.\n" "$localnet" "$octet"
+      printf "%s.%s is a valid IP address.\n" "$LOCALNET" "$octet"
     else
       status=2
-      printf "%s %s.%s is not a valid IP address.\n" "$RED_ERROR" "$localnet" "$octet" <&2
+      printf "%s %s.%s is not a valid IP address.\n" "$RED_ERROR" "$LOCALNET" "$octet" <&2
     fi
   else
     status=3
@@ -85,13 +85,13 @@ ping_ip() {
   # Attempt to ping the target IP address
   if [[ "$localip" == "$hostip" ]]; then
     printf "\n"
-    under_line "$localnet.$hostip is the computer you're pinging from." >&2
-  elif ping -c 10 "$localnet.$hostip"; then
+    under_line "$LOCALNET.$hostip is the computer you're pinging from." >&2
+  elif ping -c 10 "$LOCALNET.$hostip"; then
     printf "\n"
-    under_line "$localnet.$hostip successfully pinged."
+    under_line "$LOCALNET.$hostip successfully pinged."
   else
     printf "\n"
-    under_line "$localnet.$hostip is unreachable, check if it's on the network." <&2
+    under_line "$LOCALNET.$hostip is unreachable, check if it's on the network." <&2
   fi
 }
 
@@ -111,7 +111,8 @@ main() {
   else
     help 2
   fi
-  leave "$script v$version"
+  over_line "$script v$version"
+  exit
 }
 
 ## Execution ##
