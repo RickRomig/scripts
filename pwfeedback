@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com
 # Created      : 27 Sep 2020
-# Updated      : 10 Oct 2024
+# Updated      : 15 Oct 2024
 # Comments     : Preferred (default) method is /etc/sudoers.d/0pwfeedback.
 #              : 'set -e' halts script with unknown error when assigning pwfb variable.
 # TODO (Rick)  :
@@ -82,7 +82,7 @@ disable_pwfeedback() {
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="10 Oct 2024"
+	updated="15 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Enable/Disable password feedback in the terminal.
@@ -127,7 +127,8 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  leave "$script v$version"
+  over_line "$script v$version"
+  exit
 }
 
 ## Execution ##
