@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 08 Oct 2024
+# Updated      : 15 Oct 2024
 # Comments     : Based on script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.9.24282"
+readonly version="6.10.24289"
 
 ## Functions ##
 
@@ -61,7 +61,7 @@ is_url_accessible() {
 
 help() {
   local updated
-	updated="08 Oct 2024"
+	updated="15 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Displays current weather and 3-day forecast for a location.
@@ -293,7 +293,7 @@ main() {
   location="${1:-Huber+Heights}"
   wx_url="http://wttr.in"
   check_dependencies
-  is_url_accessible "$wx_url" || diehard "http://wttr.in is not accessible." "Try again later."
+  is_url_accessible "$wx_url" || diehard "$wx_url is not accessible." "Try again later."
   menu "$wx_url" "$location"
 }
 
