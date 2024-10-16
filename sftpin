@@ -7,9 +7,9 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : unknown
-# Updated      : 23 Jun 2024
+# Updated      : 16 Oct 2024
 # Comments     : Based on script by Joe Collins.
-#              : localnet and valid_ip() are declared in functionlib
+#              : LOCALNET and valid_ip() are declared in functionlib
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -26,39 +26,45 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.2.24175"
-readonly _updated="23 Jun 2024"
+script=$(basename "$0"); readonly script
+readonly version="2.3.24290"
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+  errcode="${1:-2}"
+  updated="16 Oct 2024"
+  cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Log in to a remote server using Secure File Transfer Protocol (SFTP).
 
-${green}Usage:${normal} $_script <last_octet>
+${green}Usage:${normal} $script <last_octet>
 
-${orange}Example:${normal} $_script 15
+${orange}Example:${normal} $script 15
 Argument is the last octet of the remote server's IP address.
 Assumes a /24 network.
-END_HELP
+_HELP_
   exit "$errcode"
+}
+
+main() {
+local hostip
+  if [[ $# -eq 0 ]]; then
+    printf "%s No argument passed.\nEnter last octet of remote server's IP address.\n" "$RED_ERROR" >&2
+    help 2
+  elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    help 0
+  else
+    valid_ip "$1" && hostip="$1"
+    /usr/bin/sftp "$LOCALNET.$hostip"
+  fi
+  over_line "$script v$version"
+  exit
 }
 
 ## Execution ##
 
-if [[ $# -eq 0 ]]; then
-  printf "%s No argument passed.\nEnter last octet of remote server's IP address.\n" "$red_error" >&2
-  help 2
-elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  help 0
-else
-  printf "%s v%s\n" "$_script" "$_version"
-  valid_ip "$1" && hostip="$1"
-  /usr/bin/sftp "$localnet.$hostip"
-fi
-exit
+main "$@"
