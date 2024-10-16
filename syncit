@@ -7,7 +7,7 @@
 # Author       : Richard Romig, Joe Collins
 # Email        : rick.romig@gmail.com
 # Created      : unknown
-# Last updated : 25 Jun 2024
+# Last updated : 15 Oct 2024
 # Comments     : Based on script by Joe Collins.
 #              : LOCALNET is declared in functionlib
 # TODO (rick)  :
@@ -26,11 +26,9 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.7.24177"
-readonly _updated="25 Jun 2024"
+SECONDS=0
 
 ## Functions ##
 
@@ -45,77 +43,77 @@ sync_script() {
   hostip="$1"
 
   echo $'\n'$"${orange}Syncing aliases...${normal}"
-  rsync -avh --delete /home/"$USER"/.bash_aliases "$localnet.$hostip":
+  rsync -avh --delete /home/"$USER"/.bash_aliases "$LOCALNET.$hostip":
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing bin...${normal}"
-  rsync -avh --delete /home/"$USER"/bin/ "$localnet.$hostip":bin/
+  rsync -avh --delete /home/"$USER"/bin/ "$LOCALNET.$hostip":bin/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing debpkgs...${normal}"
-  rsync -avh --delete /home/"$USER"/debpkgs/ "$localnet.$hostip":debpkgs/
+  rsync -avh --delete /home/"$USER"/debpkgs/ "$LOCALNET.$hostip":debpkgs/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Projects...${normal}"
-  rsync -avh --delete /home/"$USER"/Projects/ "$localnet.$hostip":Projects/
+  rsync -avh --delete /home/"$USER"/Projects/ "$LOCALNET.$hostip":Projects/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing homepage...${normal}"
-  rsync -avh --delete /home/"$USER"/homepage/ "$localnet.$hostip":homepage/
+  rsync -avh --delete /home/"$USER"/homepage/ "$LOCALNET.$hostip":homepage/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing MOSFANET...${normal}"
-  rsync -avh --delete /home/"$USER"/Documents/mosfanet/ "$localnet.$hostip":Documents/mosfanet/
+  rsync -avh --delete /home/"$USER"/Documents/mosfanet/ "$LOCALNET.$hostip":Documents/mosfanet/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Blogs...${normal}"
-  rsync -avh --delete /home/"$USER"/Documents/Blogs/ "$localnet.$hostip":Documents/Blogs/
+  rsync -avh --delete /home/"$USER"/Documents/Blogs/ "$LOCALNET.$hostip":Documents/Blogs/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Dreams...${normal}"
-  rsync -avh --delete /home/"$USER"/Documents/Dreams/ "$localnet.$hostip":Documents/Dreams/
+  rsync -avh --delete /home/"$USER"/Documents/Dreams/ "$LOCALNET.$hostip":Documents/Dreams/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Finance...${normal}"
-  rsync -avh --delete /home/"$USER"/Documents/Finance/ "$localnet.$hostip":Documents/Finance/
+  rsync -avh --delete /home/"$USER"/Documents/Finance/ "$LOCALNET.$hostip":Documents/Finance/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing HomeBank...${normal}"
-  rsync -avh --delete /home/"$USER"/Documents/HomeBank/ "$localnet.$hostip":Documents/HomeBank/
+  rsync -avh --delete /home/"$USER"/Documents/HomeBank/ "$LOCALNET.$hostip":Documents/HomeBank/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing HomeBank archives...${normal}"
-  rsync -avh --delete /home/"$USER"/Downloads/archives/homebank/ "$localnet.$hostip":Downloads/archives/homebank/
+  rsync -avh --delete /home/"$USER"/Downloads/archives/homebank/ "$LOCALNET.$hostip":Downloads/archives/homebank/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Journals...${normal}"
-  rsync -avh --delete /home/"$USER"/Documents/Journals/ "$localnet.$hostip":Documents/Journals/
+  rsync -avh --delete /home/"$USER"/Documents/Journals/ "$LOCALNET.$hostip":Documents/Journals/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Work...${normal}"
-  rsync -avh --delete /home/"$USER"/Work/ "$localnet.$hostip":Work/
+  rsync -avh --delete /home/"$USER"/Work/ "$LOCALNET.$hostip":Work/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Templates...${normal}"
-  rsync -avh --delete /home/"$USER"/Templates/ "$localnet.$hostip":Templates/
+  rsync -avh --delete /home/"$USER"/Templates/ "$LOCALNET.$hostip":Templates/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Pictures/wallpaper...${normal}"
-  rsync -avh --delete /home/"$USER"/Pictures/wallpaper/ "$localnet.$hostip":Pictures/wallpaper/
+  rsync -avh --delete /home/"$USER"/Pictures/wallpaper/ "$LOCALNET.$hostip":Pictures/wallpaper/
   exit_status="$?"
   transfer_status "$exit_status"
 }
@@ -127,24 +125,26 @@ all_done() {
 
 ## Execution ##
 
-# Start timer
-SECONDS=0
+main() {
+  local host_ip script version
+  script=$(basename "$0")
+  version="2.8.24289"
 
-# Assign IP address to hostip
-valid_ip "$1" && host_ip="$1"
+  echo "${bold}${orange}Synchronizing directories to $LOCALNET.$host_ip${normal}"
+  valid_ip "$1" && host_ip="$1"
+  case $hostip in
+    1|2|4|5|6|7|8|9 )
+      printf "%s %s.%s is a restricted address. Access denied.\n" "$RED_WARNING" "$LOCALNET" "$host_ip"
+      exit 1
+    ;;
+    * )
+      sync_script "$host_ip"
+      all_done
+  esac
+  over_line "$script v$version"
+  exit
+}
 
-echo "${bold}${orange}$_script: Synchronizing directories to $localnet.$hostip${normal}"
-echo "Version $_version"
+## Execution ##
 
-case $hostip in
-  1|2|4|5|6|7|8|9 )
-    echo -n "${orange}Warning!${normal} $localnet.$host_ip is a restricted address."
-    echo -e " Access denied.\n"
-    exit
-  ;;
-  * )
-    sync_script "$host_ip"
-    all_done
-esac
-
-exit
+main "$@"
