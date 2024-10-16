@@ -7,12 +7,12 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Last updated : 14 Aug 2024
+# Last updated : 15 Oct 2024
 # Comments     : Can sync to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
 #              : Restricted IP addresses are excluded.
-#              : localnet variable is defined & declared in functionlib.
+#              : LOCALNET variable is defined & declared in functionlib.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -29,21 +29,22 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="6.1.24227"
-readonly _updated="14 Aug 2024"
+script=$(basename "$0"); readonly script
+readonly version="6.2.24289"
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-  cat <<- END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+  errcode="${1:-2}"
+  updated="15 Oct 2024"
+  cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Synchrnizes ~/bin with remote hosts.
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options${normal}
   OPTION   ACTION
@@ -52,17 +53,17 @@ ${orange}Available options${normal}
   1-255       Last octet of the IP address(es) of the machine(s) to synchronize.
 
 ${orange}Examples:${normal}
-  $_script -h       # Displays help instructions.
-  $_script --help   # Displays help instructions.
-  $_script -a       # Synchronizes with all designated systems.
-  $_script --all    # Synchronizes with all designated systems.
-  $_script 13       # Synchronizes with the system with a last octet of 13.
-  $_script 12 13 14 # Synchronizes with systems whose last octets are 12, 13, 14.
+  $script -h       # Displays help instructions.
+  $script --help   # Displays help instructions.
+  $script -a       # Synchronizes with all designated systems.
+  $script --all    # Synchronizes with all designated systems.
+  $script 13       # Synchronizes with the system with a last octet of 13.
+  $script 12 13 14 # Synchronizes with systems whose last octets are 12, 13, 14.
 ${orange}Notes:${normal}
   1. Multiple IP addresses can be entered.
   2. This script is limited to the range of static IP addresses (1 - 25).
   3. Certain addresses within that range have been marked as restricted and are not accessible.
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
@@ -84,79 +85,79 @@ transfer() {
 
   # Check for machines and sync if on-line:
   echo "${green}Checking for $host_ip...${normal}"
-  if ping -c 3 "$localnet.$host_ip" >/dev/null 2>&1; then
+  if ping -c 3 "$LOCALNET.$host_ip" >/dev/null 2>&1; then
     echo "...Syncing to Machine $host_ip"
-    sync_script "$host_ip"
+    syncscript "$host_ip"
     echo -e "\n...Machine $host_ip Synced!\n"
   else
     echo -e "\n...Skipping $host_ip! Not on network.\n"
   fi
 }
 
-sync_script() {
+syncscript() {
   local exit_status hostip
   hostip="$1"
   echo $'\n'$"${orange}Syncing aliases...${normal}"
-  rsync -avh --delete "$HOME"/.bash_aliases "$localnet.$hostip":
+  rsync -avh --delete "$HOME"/.bash_aliases "$LOCALNET.$hostip":
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing script configuration files...${normal}"
-  rsync -avh --delete "$HOME"/.config/scripts/ "$localnet.$hostip":.config/scripts/
+  rsync -avh --delete "$HOME"/.config/scripts/ "$LOCALNET.$hostip":.config/scripts/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Templates...${normal}"
-  rsync -avh --delete "$HOME"/Templates/ "$localnet.$hostip":Templates/
+  rsync -avh --delete "$HOME"/Templates/ "$LOCALNET.$hostip":Templates/
   exit_status="$?"
   transfer_status "$exit_status"
 
   case "$hostip" in
     10|16|22|153 )
       printf "\n%sSyncing Gitea Repositories...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/gitea/ "$localnet.$hostip":gitea/
+      rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
       exit_status="$?"
       transfer_status "$exit_status"
 
       printf "\n%sSyncing Github Repositories...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/Projects/ "$localnet.$hostip":Projects/
+      rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
       exit_status="$?"
       transfer_status "$exit_status"
     ;;
     24|25|227 )
       echo $'\n'$"${orange}Syncing Homepage...${normal}"
-      rsync -avh --delete --exclude '.git' "$HOME"/Documents/homepage/ "$localnet.$hostip":Documents/homepage/
+      rsync -avh --delete --exclude '.git' "$HOME"/Documents/homepage/ "$LOCALNET.$hostip":Documents/homepage/
       exit_status="$?"
       transfer_status "$exit_status"
 
       echo $'\n'$"${orange}Syncing Todo list...${normal}"
-      rsync -avh --delete "$HOME"/.local/share/doc/ "$localnet.$hostip":.local/share/doc/
+      rsync -avh --delete "$HOME"/.local/share/doc/ "$LOCALNET.$hostip":.local/share/doc/
       exit_status="$?"
       transfer_status "$exit_status"
 
       echo $'\n'$"${orange}Syncing wallpaper directory...${normal}"
-      rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$localnet.$hostip":Pictures/wallpaper/
+      rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$hostip":Pictures/wallpaper/
       exit_status="$?"
       transfer_status "$exit_status"
 
       echo $'\n'$"${orange}Syncing bin...${normal}"
-      rsync -avh --delete --exclude '.git' "$HOME"/bin/ "$localnet.$hostip":bin/
+      rsync -avh --delete --exclude '.git' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
       exit_status="$?"
       transfer_status "$exit_status"
 
       echo $'\n'$"${orange}Syncing script configuration files...${normal}"
-      rsync -avh --delete "$HOME"/.config/scripts/ "$localnet.$hostip":.config/scripts/
+      rsync -avh --delete "$HOME"/.config/scripts/ "$LOCALNET.$hostip":.config/scripts/
       exit_status="$?"
       transfer_status "$exit_status"
 
       echo $'\n'$"${orange}Syncing Password Databases...${normal}"
-      rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$localnet.$hostip":Documents/
+      rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$LOCALNET.$hostip":Documents/
       exit_status="$?"
       transfer_status "$exit_status"
     ;;
    * )
       echo $'\n'$"${orange}Syncing bin...${normal}"
-      rsync -avh --delete --exclude '.git' "$HOME"/bin/ "$localnet.$hostip":bin/
+      rsync -avh --delete --exclude '.git' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
       exit_status="$?"
       transfer_status "$exit_status"
   esac
@@ -170,21 +171,21 @@ sync_one() {
   if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
     case $hostip in
       1|2|3|4|5|6|7|8|9 )
-        echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted address."
+        echo -n "${orange}Warning!${normal} $LOCALNET.$hostip is a restricted address."
         echo -e " Access denied.\n"
         exit
       ;;
       * )
-        echo -e "Synchronizing bin and template directories with $localnet.$hostip:"
+        echo -e "Synchronizing bin and template directories with $LOCALNET.$hostip:"
         transfer "$hostip"
         all_done
     esac
   elif [[ "$hostip" -eq 153 ]]; then
-    echo -e "Synchronizing bin and template directories with $localnet.$hostip:"
+    echo -e "Synchronizing bin and template directories with $LOCALNET.$hostip:"
     transfer "$hostip"
     all_done
   else
-    echo -e "${orange}Warning!${normal} $localnet.$hostip is outside the range of static addresses.\n"
+    echo -e "${orange}Warning!${normal} $LOCALNET.$hostip is outside the range of static addresses.\n"
   fi
 }
 
@@ -198,7 +199,7 @@ sync_some() {
       if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
         case "$hostip" in
           1|2|3|4|5|6|7|8|9 )
-            echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted"
+            echo -n "${orange}Warning!${normal} $LOCALNET.$hostip is a restricted"
             echo -e " address. Access denied.\n"
           ;;
           * )
@@ -206,11 +207,11 @@ sync_some() {
             (( xfr_flag++ ))
         esac
       elif [[ "$hostip" -eq 153 ]]; then
-        echo -e "Synchronizing bin and template directories with $localnet.$hostip:"
+        echo -e "Synchronizing bin and template directories with $LOCALNET.$hostip:"
         transfer "$hostip"
         (( xfr_flag++ ))
       elif [[ "$hostip" -gt 25 && "$hostip" -lt 255 ]]; then
-        echo -e "${orange}Warning!${normal} $localnet.$hostip is outside the range of static addresses.\n"
+        echo -e "${orange}Warning!${normal} $LOCALNET.$hostip is outside the range of static addresses.\n"
       else
         echo -e "${lightred}ERROR!${normal} Invalid argument: $hostip\n" >&2
       fi
@@ -242,7 +243,7 @@ check_host() {
   chost="${HOSTNAME:-$(hostname)}"
   cur_ip="$(local_ip)"
   echo -n "Synchronizing from host: ${lightyellow}$chost${normal} at "
-  echo "IP: ${lightyellow}$localnet.$cur_ip${normal}"
+  echo "IP: ${lightyellow}$LOCALNET.$cur_ip${normal}"
   if [[ "$lhost" != "$chost" ]]; then
     if yes_or_no "Do you wish to continue?"; then
       printf "/nContinuing with the script...\n"
@@ -254,27 +255,25 @@ check_host() {
 }
 
 main() {
-  # Start timer
-  SECONDS=0
-  box "$_script v$_version"
+  box "$script v$version"
   check_host
   check_package rsync
+  # Start timer
+  SECONDS=0
+  # Check arguments
+  if [[ "$#" -eq 0 ]]; then
+    help 2
+  elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+    help 0
+  elif [[ "$1" = "-a" || "$1" = "--all" ]]; then
+    sync_all
+  elif [[ "$#" -gt 1 ]]; then
+    sync_some "$@"
+  else
+    sync_one "$1"
+  fi
 }
 
 ## Execution ##
 
-# Check arguments
-if [[ "$#" -eq 0 ]]; then
-  help 2
-elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-  help 0
-elif [[ "$1" = "-a" || "$1" = "--all" ]]; then
-  main
-  sync_all
-elif [[ "$#" -gt 1 ]]; then
-  main
-  sync_some "$@"
-else
-  main
-  sync_one "$1"
-fi
+main "$@"
