@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com
 # Created      : 11 Mar 2022
-# Updated      : 05 May 2024
-# Comments     : Uses a configuration file to store hostnames & IP addresses.
+# Updated      : 16 Oct 2024
+# Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -25,31 +25,11 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-readonly local_host="${HOSTNAME:-$(hostname)}"
-_script=$(basename "$0"); readonly _script
-readonly _version="2.23.24126"
-readonly conf_dir="$HOME/.config/scripts"
-readonly conf_file="$_script.conf"
+SECONDS=0
 
 ## Functions ##
-
-create_conf() {
-  [[ -d "$conf_dir" ]] || mkdir -p "$conf_dir"
-  echo "Complete all fields"
-  read -rp "Main hostname: " main_host
-  read -rp "Main IP (last octect): " main_ip
-  read -rp "Finance hostname: " fin_host
-  read -rp "Finance IP (last octet): " fin_ip
-
-  echo "
-  main_host='$main_host'
-  main_ip='$main_ip'
-  fin_host='$fin_host'
-  fin_ip='$fin_ip'
-  " > "$conf_dir/$conf_file"
-}
 
 transfer_status() {
   # Exit script if transfer fails.
@@ -57,99 +37,117 @@ transfer_status() {
   (( xfr_status != 0 )) && die "A transfer failed! Check network status." "$xfr_status"
 }
 
-transfer() {
-  # Check remote host and sync if on line:
-  if [[ "$local_host" == "$main_host" ]]; then
-    if ping -c 3 "$localnet.$fin_ip" >/dev/null 2>&1; then
-      echo "Syncing $main_host to $fin_host ..."
-      sync_to_fin
-      echo $'\n'$"$fin_host synced with $main_host."
-    else
-      echo $'\n'$"... $fin_host is not on the network."
-    fi
-  else
-    if ping -c 3 "$localnet.$main_ip" >/dev/null 2>&1; then
-      echo "Syncing $fin_host to $main_host ..."
-      sync_to_main
-      echo $'\n'$"$main_host synced with $fin_host."
-    else
-      echo $'\n'$"... $main_host is not on the network."
-    fi
+transfer_to_fin() {
+  local main_host fin_host fin_ip
+  main_host="$1"
+  fin_host="$2"
+  fin_ip="21"
+  if ping -c 3 "$LOCALNET.$fin_ip" >/dev/null 2>&1; then
+    printf "Syncing %s to %s...\n" "$main_host" "$fin_host"
+    sync_to_fin "$fin_ip"
+    printf "\n%s synced with %s.\n" "$fin_host" "$main_host"
+else
+    printf "\n%s %s is not on the network.\n" "$RED_ERROR" "$fin_host"
   fi
 }
 
+transfer_to_main() {
+  local main_host fin_host main_ip
+  main_host="$1"
+  fin_host="$2"
+  main_ip="10"
+  if ping -c 3 "$LOCALNET.$main_ip" >/dev/null 2>&1; then
+      printf "Syncing %s to %s...\n" "$fin_host" "$main_host"
+      sync_to_main "$main_ip"
+      printf "\n%s synced with %s.\n" "$main_host" "$fin_host"
+    else
+      printf "\n%s %s is not on the network.\n" "$RED_ERROR" "$main_host"
+    fi
+
+}
+
 sync_to_main() {
+  local exit_status main_ip
+  main_ip="$1"
   echo  $'\n'$"${orange}Syncing Finance directory...${normal}"
-  rsync -avh --delete "$HOME"/Documents/Finance/ "$localnet.$main_ip":Documents/Finance/
+  rsync -avh --delete "$HOME"/Documents/Finance/ "$LOCALNET.$main_ip":Documents/Finance/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo  $'\n'$"${orange}Syncing HomeBank directory...${normal}"
-  rsync -avh --delete "$HOME"/Documents/HomeBank/ "$localnet.$main_ip":Documents/HomeBank/
+  rsync -avh --delete "$HOME"/Documents/HomeBank/ "$LOCALNET.$main_ip":Documents/HomeBank/
   exit_status="$?"
   transfer_status "$exit_status"
 }
 
 sync_to_fin() {
+  local exit_status fin_ip
+  fin_ip="$1"
   echo $'\n'$"${orange}Syncing bash aliases...${normal}"
-  rsync -avh --delete "$HOME"/.bash_aliases "$localnet.$fin_ip":
+  rsync -avh --delete "$HOME"/.bash_aliases "$LOCALNET.$fin_ip":
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing bin directory...${normal}"
-  rsync -avh --delete --exclude '.git' "$HOME"/bin/ "$localnet.$fin_ip":bin/
+  rsync -avh --delete --exclude '.git' "$HOME"/bin/ "$LOCALNET.$fin_ip":bin/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing script configuration files...${normal}"
-  rsync -avh --delete "$HOME"/.config/scripts/ "$localnet.$fin_ip":.config/scripts/
+  rsync -avh --delete "$HOME"/.config/scripts/ "$LOCALNET.$fin_ip":.config/scripts/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing homepage directory...${normal}"
-  rsync -avh --delete --exclude '.git' "$HOME"/Documents/homepage/ "$localnet.$fin_ip":Documents/homepage/
+  rsync -avh --delete --exclude '.git' "$HOME"/Documents/homepage/ "$LOCALNET.$fin_ip":Documents/homepage/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Password Databases...${normal}"
-  rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$localnet.$fin_ip":Documents/
+  rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$LOCALNET.$fin_ip":Documents/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Templates directory...${normal}"
-  rsync -avh --delete "$HOME"/Templates/ "$localnet.$fin_ip":Templates/
+  rsync -avh --delete "$HOME"/Templates/ "$LOCALNET.$fin_ip":Templates/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing wallpaper directory...${normal}"
-  rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$localnet.$fin_ip":Pictures/wallpaper/
+  rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$fin_ip":Pictures/wallpaper/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing .local/share/doc...${normal}"
-  rsync -avh --delete "$HOME"/.local/share/doc/ "$localnet.$fin_ip":.local/share/doc/
+  rsync -avh --delete "$HOME"/.local/share/doc/ "$LOCALNET.$fin_ip":.local/share/doc/
   exit_status="$?"
   transfer_status "$exit_status"
 }
 
+main() {
+  local script version local_host main_host fin_host
+  script=$(basename "$0")
+  version="3.0.24290"
+  local_host="${HOSTNAME:-$(hostname)}"
+  main_host="hp-800g2-sff"
+  fin_host="hp-probook-6570"
+
+  box "$script v$version" "*"
+  printf "Synchronizes files between %s and %s.\n" "$main_host" "$fin_host"
+
+  # Check host
+  if [[ "$local_host" == "$main_host" ]]; then
+    transfer_to_fin "$main_host" "$fin_host"
+  elif [[ "$local_host" == "$fin_host" ]]; then
+    transfer_to_main "$main_host" "$fin_host"
+  else
+    die "Invalid client. $script must be run from either $main_host or $fin_host." 1
+  fi
+
+  box "$script completed in $(format_time $SECONDS)" "*"
+  exit
+}
+
 ## Execution ##
 
-check_package rsync
-
-SECONDS=0
-
-box "$_script v$_version" "*"
-
-[[ -f "$conf_dir/$conf_file" ]] || create_conf
-source "$conf_dir/$conf_file"
-
-# Check host
-if [[ "$local_host" == "$main_host" || "$local_host" == "$fin_host" ]]; then
-	transfer
-else
-	die "Invalid client. $_script must be run from $main_host or $fin_host."
-fi
-
-box "$_script completed in $(format_time $SECONDS)"
-
-exit
+main "$@"
