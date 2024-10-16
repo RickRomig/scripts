@@ -7,9 +7,9 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : unknown
-# Updated      : 23 Jun 2024
+# Updated      : 16 Oct 2024
 # Comments     : Based on a script by Joe Collins.
-#              : localnet and valid_ip() are declared in functionlib
+#              : LOCALNET and valid_ip() are declared in functionlib
 #              : X11 forwarding should be enabled in /etc/ssh/sshd_config
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,52 +29,67 @@ fi
 
 # Variables
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.2.24175"
-readonly _updated="23 Jun 2024"
+script=$(basename "$0"); readonly script
+readonly version="2.3.2490"
+readonly updated="16 Oct 2024"
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+  errcode="${1:-2}"
+  updated="16 Oct 2024"
+  cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Log in to a remote server using Secure Shell (SSH).
 
-${green}Usage:${normal} $_script <last-octet> [X]
-${orange}Example:${normal} $_script 15
-${orange}Example:${normal} $_script 11 X
+${green}Usage:${normal} $script <last-octet> [X]
+${orange}Example:${normal} $script 15
+${orange}Example:${normal} $script 11 X
 First argument is the last octet of the remote server's IP address.
 Second argment X|x enables X11 forwarding. Any other argument will allow SSH access without X11 forwarding.
 Assumes a /24 network.
-END_HELP
+_HELP_
   exit "$errcode"
+}
+
+one_char() {
+  local char len
+  char="$1"
+  len=${#char}
+  (( len > 1 )) && char=${char::1}
+  printf "%s" "$char"
+}
+
+main() {
+  local hostip x_opt
+  if [[ $# -eq 0 ]]; then
+    printf "%s No argument passed.\nEnter last octet of remote server's IP address.\n" "$RED_ERROR" >&2
+    help 2
+  elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    help 0
+  elif [[ $# -gt 1 ]]; then
+    valid_ip "$1" && hostip="$1"
+    x_opt="$2"
+    x_opt="$(one_char "$x_opt")"
+    case "$x_opt" in
+      X|x )
+        printf "Connecting with X11 forwarding enabled.\n"
+        /usr/bin/ssh -X "$LOCALNET.$hostip"
+      ;;
+      * )
+        printf "%s Invalid option: %s\n" "$RED_ERROR" "$x_opt" >&2
+        printf "Continuing without X11 forwarding enabled.\n"
+        /usr/bin/ssh "$LOCALNET.$hostip"
+    esac
+  else
+    valid_ip "$1" && hostip="$1"
+    /usr/bin/ssh "$LOCALNET.$hostip"
+  fi
+  over_line "$script v$version"
+  exit
 }
 
 # Execution
 
-if [[ $# -eq 0 ]]; then
-  printf "%s No argument passed.\nEnter last octet of remote server's IP address.\n" "$red_error" >&2
-  help 2
-elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  printf "%s%s help%s\n" "$green" "$_script" "$normal"
-  help 0
-elif [[ $# -gt 1 ]]; then
-  valid_ip "$1" && hostip="$1"
-  x_opt="$2"
-  case "$x_opt" in
-    X|x )
-      /usr/bin/ssh -X "$localnet.$hostip"
-    ;;
-    * )
-      printf "%s Invalid option: %s\n" "$red_error" "$x_opt" >&2
-      printf "Continuing without X11 forwarding enabled.\n"
-      /usr/bin/ssh "$localnet.$hostip"
-  esac
-else
-  printf "%s v%s\n" "$_script" "$_version"
-  valid_ip "$1" && hostip="$1"
-  /usr/bin/ssh "$localnet.$hostip"
-fi
-
-exit
+main "$@"
