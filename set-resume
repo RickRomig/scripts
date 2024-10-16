@@ -47,7 +47,7 @@ get_swap_uuid() {
     swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $2}')
     [[ "$swap_uuid" == "LABEL=swap" ]] && swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $3}')
   fi
-  printf "%s\n" "$swap_uuid"
+  printf "%s" "$swap_uuid"
 }
 
 set_resume() {
@@ -67,7 +67,7 @@ update_initramfs() {
 main() {
   local script version swap_uuid
   script=$(basename "$0")
-  version="5.5.24277"
+  version="5.5.24289"
   sudo_login 2
   box "$script v$version" "*"
   print_message
