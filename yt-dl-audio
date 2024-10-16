@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Nov 2019
-# Updated      : 28 Jun 2024
+# Updated      : 15 Oct 2024
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to current working directory
 # TODO (Rick)  :
@@ -26,29 +26,30 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.1.24180"
-readonly _updated="28 Jun 2024"
+script=$(basename "$0"); readonly script
+readonly version="3.0.24180"
 
 ## Functions
 
 help() {
-  local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version, Updated: $_updated
+  local errcode updated
+  errcode="${1:-2}"
+  updated="15 Oct 2024"
+  cat << _HELP_
+${orange}$script${normal} $version, Updated: $updated
 Downloads mp3 audio from YouTube videos to current working diretory.
 
-${green}Usage:${normal} $_script [OPTION] [video-url] [video-ID]
+${green}Usage:${normal} $script [OPTION | video-url | video-ID]
 
 ${orange}Available options:${normal}
   -h | --help  Show this help text.
 
-$_script https://www.youtube.com/watch?v=8hLlU0EML4U
-$_script 8hLlU0EML4U
+$script https://www.youtube.com/watch?v=8hLlU0EML4U
+$script 8hLlU0EML4U
 
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
@@ -62,33 +63,38 @@ check_dependencies() {
   fi
 }
 
-## Execution ##
+download_audio() {
+  local ec url
+  url="$1"
+  box "$script v$version" "*"
+  under_line "* YouTube Audio Download *" "*"
+  printf "\nDownloading mp3 audio from %s to %s...\n" "$url" "$PWD"
+  if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" "$url"; then
+    leave "Download successful."
+  else
+    ec="$?"
+    die "Download failed. Error: $ec" "$ec"
+  fi
+}
 
-check_dependencies
-
-# Check arguments
-if [[ "$#" = 0 ]]; then
-  echo "${lightred}Error:${normal} No argument passed." >&2
-  help 2
-elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
-  help 0
-elif [[ "$1" =~ ^https?:\/\/.* ]]; then
-  # match by regex, starts with http:// or https://
-  url=$*
-else
-  # match by video ID
-  url="https://www.youtube.com/watch?v=$*"
-fi
+main() {
+  local url
+  if [[ "$#" = 0 ]]; then
+    printf "%s No argument passed.\n" "$RED_ERROR" >&2
+    help 2
+  elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    help 0
+  elif [[ "$1" =~ ^https?:\/\/.* ]]; then
+    # match by regex, starts with http:// or https://
+    audio_url=$*
+  else
+    # match by video ID
+    audio_url="https://www.youtube.com/watch?v=$*"
+  fi
+  check_dependencies
+  download_audio "$audio_url"
+}
 
 # Execution
 
-clear
-box "$_script v$_version" "*"
-under_line "* YouTube Audio Download *" "*"
-echo $'\n'$"Downloading mp3 audio for $url"
-echo "Destination: $PWD"
-if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" "$url"; then
-  leave "Download successful."
-else
-  die "Download failed." "$?"
-fi
+main "$@"
