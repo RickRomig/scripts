@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 June 2019
-# Updated      : 18 Aug 2024
+# Updated      : 16 Oct 2024
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,8 @@ fi
 
 ##  Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="3.6.24231"
+script=$(basename "$0"); readonly script
+readonly version="3.7.24290"
 readonly tmp_pics=$HOME"/tmp/journal"
 
 ## Functions ##
@@ -59,6 +59,12 @@ valid_image() {
   esac
 }
 
+all_done() {
+  printf "\nFinished selecting images.\n"
+  over_line "$script v$version"
+  leave ""
+}
+
 ## Execution ##
 
 # Create temporary picture directory if it doesn't already exist
@@ -79,13 +85,13 @@ while true; do
 
   # Accept or reject selected file
   clear
-  box "Random Image Selector ($_script v$_version)"
-  echo -e "Selects a random image from ~/Pictures\n"
-  echo "${blue}Selected image: ${orange}$sel_dir/$pic_file${normal}"
+  box "Random Image Selector ($script v$version)"
+  printf "Selects a random image from ~/Pictures\n"
+  printf "%sSelected image: %s%s/%s%s\n" "$blue" "$orange" "$sel_dir" "$pic_file" "$normal"
   cp -p "$pic_dir/$pic_file" "$tmp_pics"
   /usr/bin/display -geometry +600+20 "$tmp_pics/$pic_file" &
   pic_pid="$!"
-  echo $'\n'$"${blue}Options:${normal}"
+  printf "\n%sOptions:%s\n" "$blue" "$normal"
   COLUMNS=12
   options=( "Accept the selected image and select another image." \
     "Accept the selected image and exit." \
@@ -96,42 +102,42 @@ while true; do
   select _opt in "${options[@]}"; do
     case $REPLY in
       1 )
-        echo $'\n'$"${blue}Accepted image:${normal} $sel_dir/$pic_file"
-        echo $'\n'$"Selecting another random image..."
+        printf "\n%sAccepted image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
+        printf "\nSelecting another random image...\n"
         kill $pic_pid
         sleep 2
         break
       ;;
       2 )
-        echo -e "\n${blue}Accepted image:${normal} $sel_dir/$pic_file\n"
+        printf "\n%sAccepted image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
         kill $pic_pid
-        leave ""
+        all_done
       ;;
       3 )
-        echo $'\n'$"${blue}Rejected image:${normal} $sel_dir/$pic_file"
+        printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
+        printf "\nSelecting another random image...\n"
         kill $pic_pid
-        echo $'\n'$"Selecting another random image..."
         rm "$tmp_pics/$pic_file"
         sleep 2
         break
       ;;
       4 )
-        echo -e "\n${blue}Rejected image:${normal} $sel_dir/$pic_file\n"
+        printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
         kill $pic_pid
         rm "$tmp_pics/$pic_file"
-        leave ""
+        all_done
       ;;
       5 )
-        echo -e $'\n'$"${blue}Image deleted:${normal} $sel_dir/$pic_file"
+        printf "\n%sImage deleted:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
+        printf "\nSelecting another random image...\n"
         kill $pic_pid
-        echo $'\n'$"Selecting another random image..."
         rm "$tmp_pics/$pic_file"
         rm "$pic_dir/$pic_file"
         sleep 2
         break
       ;;
       * )
-        echo $'\n'$"${lightred}Invalid option. Try again.${normal}"
+        printf "\n%sInvalid option. Try again.%s\n" "$lightred" "$normal"
     esac
   done
 done
