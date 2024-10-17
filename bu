@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 12 Oct 2024
+# Last updated : 17 Oct 2024
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.5.24286"
+readonly version="4.5.24291"
 readonly user=$USER
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -138,7 +138,7 @@ backup() {
 restore() {
   # Restore host's /home directory.
   if [[ -d "$mount_point"/BU_Backups/"$host"/ ]]; then
-	  printf "%s\n" "$red_warning"
+	  printf "%s\n" "$RED_WARNING"
 		printf "Any new files created in /home since last backup WILL BE DELETED!\n"
 		if y_or_n "Are you sure you want to restore now? [y/n]"; then
 			printf "Close any running applications and press any key to continue.\n"
@@ -152,7 +152,7 @@ restore() {
 				else
 				# If rsync fails, clear any accidental input during restore:
 				read -rt 1 -n 10000 _discard
-				printf "%s rsync exited with errors!\n" "$red_error" >&2
+				printf "%s rsync exited with errors!\n" "$RED_ERROR" >&2
 				printf "DO NOT DO ANYTHING UNTIL YOU:\n" >&2
 				printf "* Make sure BU_Drive USB is still plugged in.\n" >&2
 				printf "* Remount BU_Drive USB by unplugging it and plugging it back in.\n" >&2
@@ -164,7 +164,7 @@ restore() {
 			printf "%Restoration canceled.%s\n" "$orange" "$normal"
 	  fi
 	else
-		printf "%s Cannot find valid backup directory for %s!\n" "$red_error" "$host" >&2
+		printf "%s Cannot find valid backup directory for %s!\n" "$RED_ERROR" "$host" >&2
     printf "* This drive may not have been used to backup this machine.\n" >&2
     printf "* BU_Backups/%s directory may have been moved or deleted.\n" "$host" >&2
     printf "* Hostname or username may have changed since last backup.\n" >&2
@@ -173,7 +173,7 @@ restore() {
 }
 
 help() {
-	local updated="12 Oct 2024"
+	local updated="17 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -297,14 +297,15 @@ main() {
 				mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
 			;;
 			? )
-				printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help; }
 	shift "$(( OPTIND - 1 ))"
-	printf "Script completed in %s\n" "$(format_time $SECONDS)"
+	# printf "Script completed in %s\n" "$(format_time $SECONDS)"
+	under_line "Script completed in $(format_time $SECONDS)" "-"
 	if [[ "$exit_status" -eq 0 ]]; then
 		leave ""
 	else
