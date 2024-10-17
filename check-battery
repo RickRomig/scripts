@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 30 Jul 2020
-# Updated      : 30 Sep 2024
+# Updated      : 17 Oct 2024
 # Comments     : Obtains battery data from upower utility.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,20 +27,20 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="4.6.24274"
+script=$(basename "$0"); readonly script
+readonly version="4.6.24291"
 
 ## Functions ##
 
 help() {
-  local errcode _updated
+  local errcode updated
   errcode="${1:-2}"
-  _updated="30 Sep 2024"
+  updated="17 Oct 2024"
   cat << _HELP_
-${orange}$_script${normal} $_version, Upated: $_updated
+${orange}$script${normal} $version, Upated: $updated
 Shows battery charge and health information
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 With no argument, displays battery health information.
 
 ${orange}Options:${normal}
@@ -53,7 +53,7 @@ _HELP_
 
 version() {
   cat << _VER_INFO_
-  $_script $_version, Upated: $_updated
+  $script $version, Upated: $updated
 Displays the charge state and health of a laptop battery using data obtained
 from the upower utilty.
 _VER_INFO_
@@ -136,25 +136,6 @@ hidpp_battery() {
   printf "%s\n" "$(echo "$hidpp_data" | awk '/percentage/ {print $NF}')"
 }
 
-main() {
-  if [[ $# -gt 0 ]]; then
-    case "$1" in
-      -h|--help )
-        help 0
-      ;;
-      -v|--version )
-        version
-        exit
-      ;;
-      * )
-        printf "%s Invalid argument - %s\n" "$red_error" "$1" >&2
-      help 2
-    esac
-  fi
-  check_package upower
-  battery_check
-}
-
 battery_check() {
   printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
   if [[ -d /proc/acpi/button/lid/ ]]; then
@@ -175,7 +156,26 @@ battery_check() {
   else
     printf "\nThis system is not a laptop.\n" >&2
   fi
-  printf "\n%s v%s\n" "$_script" "$_version"
+}
+
+main() {
+  if [[ $# -gt 0 ]]; then
+    case "$1" in
+      -h|--help )
+        help 0
+      ;;
+      -v|--version )
+        version
+        exit
+      ;;
+      * )
+        printf "%s Invalid argument - %s\n" "$RED_ERROR" "$1" >&2
+      help 2
+    esac
+  fi
+  check_package upower
+  battery_check
+  over_line "$script v$version"
   exit
 }
 
