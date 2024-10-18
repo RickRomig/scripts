@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 10 Oct 2024
+# Updated      : 18 Oct 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -190,14 +190,9 @@ apt_update() {
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="2.15.24284"
+  version="2.16.24292"
   local_host="${HOSTNAME:-$(hostname)}"
   clear
-  # printf "%s%s%s v%s\n" "$bold" "$orange" "$script" "$version"
-  # printf "System: %s (# %s)\n" "$local_host" "$(local_ip)"
-  # printf "Distro: %s\n" "$(get_distribution)"
-  # printf "Kernel: %s\n\n" "$(uname -sr)"
-  # printf "Checking for updates...%s\n\n" "$normal"
   cat << _HEADER_
 ${bold}${orange}$script $version
 System: $local_host $(local_ip)
@@ -221,7 +216,7 @@ main() {
   fi
   exists cinnamon-spice-updater && update_spices
   exists flatpak && update_flatpak
-  leave "Script completed in $(format_time $SECONDS)"
+  leave "Update completed in $(format_time $SECONDS)"
 }
 
 ## Execution ##
