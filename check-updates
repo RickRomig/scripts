@@ -119,15 +119,14 @@ nala_update() {
     printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
     sudo nala autopurge --config
   else
-    printf "Nala autoremove and autopurge deferred.\n"
+    printf "Autoremove and autopurge deferred.\n"
   fi
   printf "\n"
 }
 
 apt_update() {
   local nupd options _opt
-  grep -qw debian /etc/os-release && update_apt_cache
-  # Get number of packages that can be upgraded
+  update_apt_cache
   nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
   # If there are packages to be upgraded
   if (( nupd > 0 )); then
@@ -194,11 +193,20 @@ show_header() {
   version="2.15.24284"
   local_host="${HOSTNAME:-$(hostname)}"
   clear
-  printf "%s%s%s v%s\n" "$bold" "$orange" "$script" "$version"
-  printf "System: %s (# %s)\n" "$local_host" "$(local_ip)"
-  printf "Distro: %s\n" "$(get_distribution)"
-  printf "Kernel: %s\n\n" "$(uname -sr)"
-  printf "Checking for updates...%s\n\n" "$normal"
+  # printf "%s%s%s v%s\n" "$bold" "$orange" "$script" "$version"
+  # printf "System: %s (# %s)\n" "$local_host" "$(local_ip)"
+  # printf "Distro: %s\n" "$(get_distribution)"
+  # printf "Kernel: %s\n\n" "$(uname -sr)"
+  # printf "Checking for updates...%s\n\n" "$normal"
+  cat << _HEADER_
+${bold}${orange}$script $version
+System: $local_host $(local_ip)
+Distro: $(get_distribution)
+Kernel: $(uname -sr)
+
+Checking for updates...${normal}
+
+_HEADER_
 }
 
 main() {
