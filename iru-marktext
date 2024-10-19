@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 02 Oct 2024
+# Updated      : 19 Oct 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.6.24276"
+readonly version="4.7.24293"
 readonly gh_url="https://github.com/marktext/marktext/releases"
 readonly cfg_dir="$HOME/.config/marktext"
 
@@ -51,28 +51,33 @@ marktext_version() {
 }
 
 newest_version() {
+  local new_ver
   wget -qO "$tmp_file" "$gh_url"
   new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
   echo "$new_ver"
 }
 
 compare_versions() {
-  local cur_ver
+  local cur_ver new_ver
+  new_ver="$1"
   cur_ver=$(marktext_version)
   if [[ "$cur_ver" == "$new_ver" ]]; then
     echo "${lightyellow}Marktext $cur_ver is the current version. No update required.${normal}"
   else
     echo "${lightyellow}Installed version of MarkText is $cur_ver, updating to $new_ver...${normal}"
-    install_marktext
+    install_marktext "$new_ver"
   fi
 }
 
 install_marktext() {
-  local new_pkg="marktext-amd64.deb"
+  local new_ver new_pkg
+  new_ver="$1"
+  new_pkg="marktext-amd64.deb"
   printf "Downloading Mark Text markdown editor (v %s) from the marktext GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
   kill "$!";printf "done\n";tput cnorm
+  sudo_login 2
   printf "Installing Mark Text %s...\n" "$new_ver"
   sudo gdebi -n "$tmp_dir/$new_pkg"
   dl_preferences
@@ -81,6 +86,7 @@ install_marktext() {
 
 remove_marktext() {
   local cfg_bu_dir="$HOME/.config/backup/marktext"
+  sudo_login 2
   echo "Removing the Mark Text markdown editor..."
   sudo apt-get remove --purge marktext -yy
   [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
@@ -107,7 +113,7 @@ dl_preferences() {
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="02 Oct 2024"
+	updated="19 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, removes the Mark Text markdown editor.
@@ -125,7 +131,7 @@ _HELP_
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr new_ver
   noOpt=1
   optstr=":chiru"
   while getopts "$optstr" opt; do
@@ -142,15 +148,13 @@ main() {
         tmp_file=$(mktemp) || die "Failed to create temporary file." 1
         tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
         trap cleanup EXIT
-        sudo_login 2
         check_dependencies
         new_ver="$(newest_version)"
         echo "${lightyellow}Installing MarkText version $new_ver...${normal}"
-        install_marktext
+        install_marktext "$new_ver"
       ;;
       r )
         exists marktext || leave "Marktext is not installed."
-        sudo_login 2
         remove_marktext
       ;;
       u )
@@ -158,11 +162,10 @@ main() {
         tmp_file=$(mktemp) || die "Failed to create temporary file." 1
         tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
         trap cleanup EXIT
-        sudo_login 2
         check_dependencies
         new_ver="$(newest_version)"
         [[ "$new_ver" ]] || die "No download available. Try again later." 1
-        compare_versions
+        compare_versions "$new_ver"
       ;;
       ? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
@@ -172,7 +175,7 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  box "$script v$version"
+  over_line "$script v$version"
   exit
 }
 
