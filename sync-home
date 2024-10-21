@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Sep 2019
-# Updated      : 11 Oct 2024
+# Updated      : 21 Oct 2024
 # Comments     : Creates a compressed tar archive of the folder's contents.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,27 +33,29 @@ SECONDS=0
 
 check_host() {
 	local local_host main_host script
+	script="$1"
 	local_host="${HOSTNAME:-$(hostname)}"
 	main_host="hp-800g2-sff"
-	script="$1"
 	[[ "$local_host" != "$main_host" ]] && die "$script must be run from $main_host." 2
 }
 
-remove_bu_files() {
+cleanup_files() {
 	local homepage_d="$1"
   printf "\nRemoving backup files (if any)...\n"
   find "$homepage_d"/ -name "*~" -delete
   find "$homepage_d"/ -maxdepth 2 -type f -name "*.bak" -exec rm{} \;
 }
 
-backup_homepage() {
+archive_homepage() {
 	local archive archive_d homepage_d
 	homepage_d="$1"
 	archive_d="$2"
 	archive="homepage-$(date +%y%m%d).tar.gz"
 	[[ -d "$archive_d" ]] || mkdir -p "$archive_d"
 	printf "Backing up %s...\n" "$homepage_d"
-	tar -czvf "$archive_d/$archive" -C "$HOME/gitea" homepage
+	tar -czf "$archive_d/$archive" -C "$HOME/gitea" homepage
+	printf "Removing archives more than six months old...\n"
+	find "$archive_d" -mtime +180 -delete
 }
 
 sync_dropbox() {
@@ -70,17 +72,17 @@ sync_dropbox() {
 main() {
 	local script version homepage_dir archive_dir
 	script=$(basename "$0")
-	version="6.4.24285"
-	homepage_dir=$HOME"/gitea/homepage"
+	version="6.5.24295"
+	homepage_dir="$HOME/gitea/homepage"
 	archive_dir="$HOME/Downloads/archives/homepage"
 
-	box "$script v$version" "*"
+	printf "Archiving homepage...\n"
 	check_host "$script"
-	remove_bu_files "$homepage_dir"
-	backup_homepage "$homepage_dir" "$archive_dir"
+	cleanup_files "$homepage_dir"
+	archive_homepage "$homepage_dir" "$archive_dir"
 	sync_dropbox "$homepage_dir" "$archive_dir"
 	printf "\nScript completed in %s\n" "$(format_time $SECONDS)"
-	leave ""
+	over_line "$script v$version" "-"
 }
 
 ## Execution ##
