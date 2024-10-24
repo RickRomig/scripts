@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019,Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Apr 2019
-# Updated      : 19 Aug 2024
+# Updated      : 24 Oct 2024
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.8.24231"
+readonly _version="5.9.24298"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="$HOME/.config/backup"
 readonly cfg_dir="$HOME/.config"
@@ -288,7 +288,7 @@ i3_cfgs() {
   local _opt options
 	while true; do
 		local options=("i3 config" "sxhkdrc" "bindings.list" "i3status.conf" "polybar" "bar.conf" \
-    "workspaces.conf" "autostart.sh" "logout" "rofi config" "rofi themes" "Main Menu")
+    "workspaces.conf" "autostart.sh" "logout" "rofi config" "rofi themes" "dunstrc" "Main Menu")
 		clear
 		COLUMNS=40
     printf "%s %s\n" "$_script" "$_version"
@@ -349,7 +349,11 @@ i3_cfgs() {
           res_config_cfg "rofi" "arc_dark_transparent_colors.rasi"
           break
         ;;
-				12 )
+        12 )
+          res_config_cfg "dunst" "dunstrc"
+          break
+        ;;
+				14 )
           main_menu
           break
         ;;
@@ -469,4 +473,4 @@ misc_cfgs() {
 
 ## Execution ##
 
-main_menu
+main_menu "$@"
