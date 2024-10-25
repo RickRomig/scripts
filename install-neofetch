@@ -2,13 +2,13 @@
 ##########################################################################
 # Script Name  : install-neofetch
 # Description  : Installs and configures neofetch
-# Dependencies : none
+# Dependencies : git
 # Arguments    : -c -h -i -r (See the help function for details.)
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Jul 2022
-# Updated      : 02 Oct 2024
-# Comments     : NeoFetch is no longer in development. Rrecommnd Fastfetch.
+# Updated      : 25 Oct 2024
+# Comments     : NeoFetch is no longer in development. Rrecommnd using Fastfetch instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="1.13.24276"
+readonly version="2.0.24299"
 readonly neofetch_cfg_d="${HOME}/.config/neofetch"
 
 ## Functions ##
@@ -36,7 +36,7 @@ readonly neofetch_cfg_d="${HOME}/.config/neofetch"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="02 Oct 2024"
+	updated="25 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Configures/Removes Neofetch
@@ -51,9 +51,28 @@ _HELP_
   exit "$errcode"
 }
 
+assign_repo() {
+	local localip repo
+	localip=$(local_ip)
+	case "$localip" in
+		10|16|22 )
+			repo="$HOME/gitea/configs"
+		;;
+		* )
+			if [[ -d "$HOME/Download/configs" ]]; then
+				pushd "$HOME/Download/configs" || die "pushd failed"
+				git pull --quiet origin main
+				popd || die "popd failed"
+			else
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Download/configs"
+			fi
+			repo="$HOME/Download/configs"
+	esac
+	printf "%s" "$repo"
+}
+
 neofetch_version() {
 	/usr/bin/neofetch --version | cut -d' ' -f2
-	# dpkg -l neofetch | awk '/ii/ {print $3}' | sed 's/[~+-].*//'
 }
 
 install_neofetch() {
@@ -61,24 +80,17 @@ install_neofetch() {
 	printf "%s Neofetch is no longer in developemnt as of 26 April 2024.\n" "$RED_WARNING"
 	sudo apt-get updates >/dev/null
 	sudo apt-get install -yy neofetch
-	apply_config
 	[[ -d "$thumbnail_dir" ]] || mkdir -p "$thumbnail_dir"
 	printf "Neofetch %s installed.\n" "$(neofetch_version)"
 }
 
 apply_config() {
-	local localip repository cfg_conf
-	localip=$(local_ip)
+	local repository cfg_conf
+	repository="$1"
 	cfg_conf="config.conf"
 	[[ -d "$neofetch_cfg_d" ]] || mkdir -p "$neofetch_cfg_d"
   printf "Appying %s ...\n" "$cfg_conf"
-	if [[ "$localip" == "16" ]]; then
-    repository="$HOME/gitea/configs/neofetch"
-    cp -v "$repository/$cfg_conf" "$neofetch_cfg_d/"
-  else
-		respository="configs/raw/branch/main/neofetch"
-		curl -so "$neofetch_cfg_d/$cfg_conf" "$Gitea_URL/$respository/$cfg_conf"
-	fi
+	cp -v "$repository/neofetch/$cfg_conf" "$neofetch_cfg_d/"
 	printf "Neofetch configuration applied.\n"
 }
 
@@ -93,14 +105,16 @@ remove_neofetch() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr repository
+	check_package git
+	repository=$(assign_repo)
 	noOpt=1
 	optstr=":chir"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c )
 				exists neofetch || leave "Neofetch is not installed."
-				apply_config
+				apply_config "$repository"
 			;;
 			h )
 				help 0
@@ -110,6 +124,7 @@ main() {
 				in_repo neofetch || leave "Neofetch is no longer in the repositories."
 				sudo_login 2
 				install_neofetch
+				apply_config "$repository"
 			;;
 			r )
 				exists neofetch || leave "Neofetch is not installed."
