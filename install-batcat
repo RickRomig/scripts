@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Last updated : 30 Sep 2024
+# Last updated : 25 Oct 2024
 # Comments     : the executable and its manpage will be renamed from ‘bat’ to ‘batcat’
 #              : because of a file name clash with another Debian package.
 # TODO (Rick)  :
@@ -31,7 +31,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="1.5.24274"
+readonly version="1.5.24299"
 readonly cfg_d=$HOME"/.config/bat"
 
 ## Functions ##
@@ -39,7 +39,7 @@ readonly cfg_d=$HOME"/.config/bat"
 help() {
 	local errcode updated
 	errcode="${1:-2}"
-	updated="30 Sep 2024"
+	updated="25 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/removes/configures bat/batcat
@@ -55,13 +55,32 @@ _HELP_
   exit "$errcode"
 }
 
+assign_repo() {
+	local localip repo
+	localip=$(local_ip)
+	case "$localip" in
+		10|16| 22 )
+			repo="$HOME/gitea/configs"
+		;;
+		* )
+			if [[ -d "$HOME/Download/configs" ]]; then
+				pushd "$HOME/Download/configs" || die "pushd failed"
+				git pull --quiet origin main
+				popd || die "popd failed"
+			else
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Download/configs"
+			fi
+			repo="$HOME/Download/configs"
+	esac
+	printf "%s" "$repo"
+}
+
 bat_version() {
 	dpkg -l bat 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//'
 }
 
 install_bat() {
 	sudo apt-get install -yy bat
-	bat_config
 	[[ -L "$HOME"/.local/bin/bat ]] || ln -s /usr/bin/batcat "$HOME"/.local/bin/bat
 	printf "bat (batcat) version %s installed.\n" "$(bat_version)"
 }
@@ -75,18 +94,12 @@ remove_bat() {
 }
 
 bat_config() {
-  local cfg_file localip repository
-  localip=$(local_ip)
+  local cfg_file repository
+	repository="$1"
   cfg_file="config"
   [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
   printf "Applying Bat configuration...\n"
-	if [[ "$localip" == "16" ]]; then
-    repository="$HOME/gitea/configs/bat"
-    cp -v "$repository/$cfg_file" "$cfg_d/"
-  else
-    repository="configs/raw/branch/main/bat"
-    curl -so "$cfg_d/$cfg_file" "$Gitea_URL/$repository/$cfg_file"
-  fi
+  cp -v "$repository/$cfg_file" "$cfg_d/"
   printf "Bat configuration applied.\n"
 }
 
@@ -102,14 +115,15 @@ purge_config() {
 }
 
 main() {
-	local noOpt opt optstr
+	local noOpt opt optstr repository
+	repository=$(assign_repo)
 	noOpt=1
 	optstr=":chir"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c )
 				exists bat || leave "Bat is not installed."
-				bat_config
+				bat_config "$repository"
 			;;
 			h )
 				help 0
@@ -119,6 +133,7 @@ main() {
 				sudo_login 2
 				check_package curl
 				install_bat
+				bat_config "$repository"
 			;;
 			r )
 				exists bat || leave "Bat is not installed."
