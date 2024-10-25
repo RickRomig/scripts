@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Oct 2024
-# Last updated : 23 Oct 2024
+# Last updated : 25 Oct 2024
 # Comments     : Not needed if a power manager is already installed, i.e., xfce4-power-manager
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,11 +30,11 @@ set -eu
 ## Global Variables ##
 
 	script=$(basename "$0"); readonly script
-	readonly version="1.2.24297"
+	readonly version="1.3.24299"
 
 ## Functions ##
 
-get_scripts() {
+install_scripts() {
 	local batt batt_array dest_dir source_dir repo
 	repo="$1"
 	dest_dir="HOME/.local/bin"
@@ -46,7 +46,7 @@ get_scripts() {
 	done
 }
 
-get_icons() {
+install_icons() {
 	local icon icon_dir icon_array source_dir repo
 	repo="$1"
 	icon_dir="$HOME/.local/share/icons/dunst"
@@ -66,7 +66,7 @@ remove_icons() {
 	rm -rf "$icon_dir"
 }
 
-get_power_rules() {
+apply_power_rules() {
 	local dest_dir repo rules_file
 	repo="$1"
 	rules_file="60-power.rules"
@@ -117,9 +117,9 @@ assign_repository() {
 install_notifier_scripts() {
 	local repository="$1"
 	sudo_login 2
-	get_scripts "$repository"
-	get_icons "$repository"
-	get_power_rules "$repository"
+	install_scripts "$repository"
+	install_icons "$repository"
+	apply_power_rules "$repository"
 	printf "Reboot for the changes to take effect.\n"
 	cron_notice
 	# [[ -d "$HOME/Downloads/i3debian" ]] && rm -rf "$HOME/Downloads/i3debian"
