@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : install-batcat
 # Description  : install/remove/configure bat/batcat
-# Dependencies : curl
+# Dependencies : git
 # Arguments    : see help()
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -59,7 +59,7 @@ assign_repo() {
 	local localip repo
 	localip=$(local_ip)
 	case "$localip" in
-		10|16| 22 )
+		10|16|22 )
 			repo="$HOME/gitea/configs"
 		;;
 		* )
@@ -131,7 +131,7 @@ main() {
 			i )
 				exists bat && leave "Bat $(bat_version) is already installed."
 				sudo_login 2
-				check_package curl
+				check_package git
 				install_bat
 				bat_config "$repository"
 			;;
