@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : install-codium
 # Description  : installs vscodium from a repo using apt-get
-# Dependencies : wget
+# Dependencies : git wget
 # Arguments    : see help function for options
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -54,6 +54,11 @@ ${orange}Available options:${normal}
   -v  Enable verbose mode
 _HELP_
   exit "$errcode"
+}
+
+check_dependencies() {
+	packages=( git wget )
+	check_packages "${packages[@]}"
 }
 
 assign_repo() {
@@ -167,7 +172,7 @@ main() {
 				show_title
 				sudo_login 2
 				show_message "Checking dependencies..."
-				check_package wget
+				check_dependencies
 				install_vscodium
 				apply_settings "$repository"
 
@@ -183,7 +188,6 @@ main() {
 				show_title
 				sudo_login 2
 				show_message "Checking dependencies..."
-				check_package wget
 				apply_settings "$repository"
 
 			;;
