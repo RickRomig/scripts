@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : install-polybar
 # Description  : Installs polybar on Debian i3wm systems.
-# Dependencies : curl
+# Dependencies : git
 # Arguments    : None
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -30,31 +30,41 @@ set -eu
 ## Global Variables ##
 
 readonly polybar_d="$HOME/.config/polybar"
-readonly repository="configs/raw/branch/main/"
-readonly local_repo="$HOME/gitea/configs/polybar"
-localip="$(local_ip)"; readonly localip
 
 ## Functions ##
 
+assign_repo() {
+	local localip repo
+	localip=$(local_ip)
+	case "$localip" in
+		10|16|22 )
+			repo="$HOME/gitea/configs"
+		;;
+		* )
+			if [[ -d "$HOME/Download/configs" ]]; then
+				pushd "$HOME/Download/configs" || die "pushd failed"
+				git pull --quiet origin main
+				popd || die "popd failed"
+			else
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Download/configs"
+			fi
+			repo="$HOME/Download/configs"
+	esac
+	printf "%s" "$repo"
+}
+
 copy_polybar_config() {
+  local repository="$1"
 	[[ -d "$polybar_d" ]] || mkdir -p "$polybar_d"
 	printf "Copying the Polybar configuration file from the Gitea server...\n"
-	if [[ "$localip" == "16" ]]; then
-		cp -v "$local_repo/config" "$polybar_d/"
-	else
-		curl -so "$polybar_d/config.ini" "$Gitea_URL/$repository/config.ini"
-	fi
+	cp -v "$repository/polybar/config.ini" "$polybar_d/"
 	printf "Polybar configuration file copied from the Gitea server.\n"
 }
 
 copy_polybar_launcher() {
 	local launcher="polybar-i3"
 	printf "Installing the %s launcher...\n" "$launcher"
-	if [[ "$localip" == "16" ]]; then
-		cp -p "$local_repo/$launcher" "$polybar_d/"
-	else
-		curl -so "$polybar_d/$launcher" "$Gitea_URL/$repository/$launcher"
-	fi
+	cp -v "$repository/polybar/$launcher" "$polybar_d/"
 	[[ -x "$polybar_d/$launcher" ]] || chmod +x "$polybar_d/$launcher"
 	printf "%s installed.\n" "$launcher"
 }
@@ -62,7 +72,7 @@ copy_polybar_launcher() {
 configure_polybar() {
 	local cfg_file b_name e_name w_name
 	cfg_file="config.ini"
-	[[ "$localip" == "16" ]] && cfg_file="config"
+	# [[ "$localip" == "16" ]] && cfg_file="config"
 	# Get device names from system.
 	e_name=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
 	w_name=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
@@ -86,22 +96,23 @@ configure_polybar() {
 }
 
 main() {
-  local i3_dir script version
+  check_package git
+  local i3_dir script version repository
   script=$(basename "$0")
   version="2.3.24276"
 	i3_dir="$HOME/.config/i3"
-	check_package curl
+	repository=$(assign_repo)
 	printf "Installs Polybar on Debian with i3wm.\n"
 	exists polybar && leave "Polybar is already installed."
-
 	sudo apt-get install -y polybar
-	copy_polybar_config
-	copy_polybar_launcher
+	copy_polybar_config "$repository"
+	copy_polybar_launcher "$repository"
+	# Add polybar launcher to i3wm autostart script.
 	sed -i '/policykit/a ~/.local/bin/polybar-i3 &' "$i3_dir/autostart.sh"
+	# Comment out i3 status bar or Bumblebee status bar.
 	sed -i '/bar/s/^/# /' "$i3_dir/config"
 	configure_polybar
-
-	leave "$script $version"
+	over_line "$script $version"
 }
 
 ## Execution ##
