@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : install-dsh
 # Description  : Installs & configures DSH
-# Dependencies : curl
+# Dependencies : git
 # Arguments    : none
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Apr 2024
-# Last updated : 01 Oct 2024
+# Last updated : 25 Oct 2024
 # Comments     : Intended for main system
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,63 +27,69 @@ fi
 
 set -eu
 
-## Global Variables ##
-
-readonly dsh_path="/etc/dsh"
-localip=$(local_ip); readonly localip
-
 ## Functions ##
+
+assign_repo() {
+	local localip repo
+	localip=$(local_ip)
+	case "$localip" in
+		10|16|22 )
+			repo="$HOME/gitea/configs"
+		;;
+		* )
+			if [[ -d "$HOME/Download/configs" ]]; then
+				pushd "$HOME/Download/configs" || die "pushd failed"
+				git pull --quiet origin main
+				popd || die "popd failed"
+			else
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Download/configs"
+			fi
+			repo="$HOME/Download/configs"
+	esac
+	printf "%s" "$repo"
+}
 
 copy_group_list() {
   local file repository
-  file="$1"
-  printf "Copying DSH machines list to the %s group...\n" "$file"
-  if [[ "$localip" == "16" ]]; then
-    repository="$HOME/gitea/configs/dsh/group"
-    sudo cp "$repository/$file" "$dsh_path/group"
-  else
-    repository="configs/raw/branch/main/dsh/group"
-    sudo curl -so "$dsh_path/group/$file" "$Gitea_URL/$repository/$file"
-  fi
-  printf "%s installed to %s/group/\n" "$file" "$dsh_path"
+	repository="$1"
+  file="$2"
+  printf "Copying %s list to /etc/dsh/group ...\n" "$file"
+  sudo cp "$repository/dsh/group/$file" /etc/dsh/group/
+  printf "%s list added to /etc/dsh/group\n" "$file"
 }
 
-copy_machine_list() {
-    local file repository
+copy_machines_list() {
+  local file repository
+	repository="$1"
   file="machines.list"
-  printf "Copying %s to %s...\n" "$file" "$dsh_path"
-  if [[ "$localip" == "16" ]]; then
-    repository="$HOME/gitea/configs/dsh"
-    sudo cp "$repository/$file" "$dsh_path/"
-  else
-    repository="configs/raw/branch/main/dsh"
-    sudo curl -so "$dsh_path/$file" "$Gitea_URL/$repository/$file"
-  fi
-  printf "%s copied to %s/\n" "$file" "$dsh_path"
-  printf "Creating symbolic link from %s to %s/group/all.\n" "$file"  "$dsh_path"
+  printf "Copying %s to /etc/dsh/ ...\n" "$file"
+  sudo cp "$repository/dsh/$file" /etc/dsh/
+  printf "%s copied to /etc/dsh/\n" "$file"
+  printf "Creating symbolic link from %s to /etc/dsh/group/all.\n" "$file"
   sudo ln -s /etc/dsh/machines.list /etc/dsh/group/all
 }
 
 install_dsh() {
-  local group groups
+  local group groups repository
+	repository=$(assign_repo)
   groups=( desktops i3wm laptops )
-  sudo apt-get -yy install dsh
+  sudo apt-get -y install dsh
   printf "Changing remote shell to ssh.\n"
-  sudo sed -i '/remoteshell/s/rsh/ssh/' "$dsh_path/dsh.conf"
-  copy_machine_list
+  sudo sed -i '/remoteshell/s/rsh/ssh/' /etc/dsh/dsh.conf
+  copy_machines_list "$repository"
   for group in "${groups[@]}"; do
-    copy_group_list "$group"
+    copy_group_list "$repository" "$group"
   done
 }
 
 main() {
   local script version
   script=$(basename "$0")
-  version="1.2.24275"
+  version="2.0.24299"
   sudo_login 2
-  check_package curl
+  check_package git
   install_dsh
-  leave "$script $version"
+  over_line "$script $version"
 }
 
 ## Execution ##
