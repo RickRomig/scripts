@@ -57,7 +57,7 @@ _HELP_
 }
 
 check_dependencies() {
-	packages=( git wget )
+	local packages=( git wget )
 	check_packages "${packages[@]}"
 }
 
@@ -65,7 +65,7 @@ assign_repo() {
 	local localip repo
 	localip=$(local_ip)
 	case "$localip" in
-		10|16| 22 )
+		10|16|22 )
 			repo="$HOME/gitea/configs"
 		;;
 		* )
@@ -148,6 +148,7 @@ show_title() {
 }
 
 main() {
+	check_dependencies
   local noOpt opt optstr repository
 	repository=$(assign_repo)
 	noOpt=1
@@ -159,7 +160,6 @@ main() {
 				show_title
 				sudo_login 2
 				show_message "Checking dependencies..."
-				check_package wget
 				show_message "Setting the GPG key and creating the source list file."
 				set_key
 				set_src
@@ -172,7 +172,6 @@ main() {
 				show_title
 				sudo_login 2
 				show_message "Checking dependencies..."
-				check_dependencies
 				install_vscodium
 				apply_settings "$repository"
 
