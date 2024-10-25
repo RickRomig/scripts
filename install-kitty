@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 02 Oct 2024
+# Updated      : 25 Oct 2024
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.9.24276"
+readonly version="2.10.24299"
 readonly kitty_cfg_d="$HOME/.config/kitty"
 
 ## Functions ##
@@ -36,7 +36,7 @@ readonly kitty_cfg_d="$HOME/.config/kitty"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="02 Oct 2024"
+	updated="25 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Kitty terminal emulator
@@ -53,16 +53,35 @@ _HELP_
   exit "$errcode"
 }
 
+assign_repo() {
+	local localip repo
+	localip=$(local_ip)
+  check_package git
+	case "$localip" in
+		10|16|22 )
+			repo="$HOME/gitea/configs"
+		;;
+		* )
+			if [[ -d "$HOME/Download/configs" ]]; then
+				pushd "$HOME/Download/configs" || die "pushd failed"
+				git pull --quiet origin main
+				popd || die "popd failed"
+			else
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Download/configs"
+			fi
+			repo="$HOME/Download/configs"
+	esac
+	printf "%s" "$repo"
+}
+
 kitty_version() {
   kitty --version | cut -d' ' -f2
 }
 
 install_kitty() {
   printf "Installing the kitty terminal emulator.\n"
-  sudo apt-get install kitty imagemagick -yy
-  kitty_config
-  kitty_bindings
-  printf "Kitty %s installed and configured.\n" "$(kitty_version)"
+  sudo apt-get install -y kitty imagemagick
+  printf "Kitty %s installed.\n" "$(kitty_version)"
 }
 
 remove_kitty() {
@@ -81,52 +100,37 @@ purge_kitty() {
 }
 
 kitty_config() {
-  local localip kitty_conf repository
-	localip=$(local_ip)
-  kitty_conf="kitty.conf"
+  local repository="$1"
   [[ -d "$kitty_cfg_d" ]] || mkdir -p "$kitty_cfg_d"
-  printf "Apllying up %s ...\n" "$kitty_conf"
-  if [[ "$localip" == "16" ]]; then
-    repository="$HOME/gitea/configs/kitty"
-    cp -v "$repository/$kitty_conf" "$kitty_cfg_d"
-  else
-    repository="configs/raw/branch/main/kitty"
-    curl -so "$kitty_cfg_d/$kitty_conf" "$Gitea_URL/$repository/$kitty_conf"
-  fi
-  printf "%s created and configured.\n" "$kitty_conf"
+  printf "Apllying up %s ...\n" "kitty.conf"
+  cp -v "$repository/kitty/kitty.conf" "$kitty_cfg_d/"
+  printf "kitty.conf created and configured.\n"
 }
 
 kitty_bindings() {
-  local bindings repository
-  bindings="bindings.list"
-	if [[ "$localip" == "16" ]]; then
-    repository="$HOME/gitea/configs/kitty"
-    cp -v "$repository/$bindings" "$kitty_cfg_d/$bindings"
-  else
-    repository="configs/raw/branch/main/kitty"
-    curl -so "$kitty_cfg_d/$bindings" "$Gitea_URL/$repository/$bindings"
-  fi
+  local repository="$1"
+  cp -v "$repository/kitty/bindings.list" "$kitty_cfg_d/"
   printf "Kitty keybindings list copied to ~/.config/kitty\n"
   printf "Run the kkb script to display keybindings.\n"
 }
 
 main() {
-  local noOpt opt optstr
+  check_package git
+  local noOpt opt optstr repository
+	repository=$(assign_repo)
   noOpt=1
   optstr=":bchipr"
   while getopts "$optstr" opt; do
     case "$opt" in
       b )
         exists kitty || leave "Kitty is not installed."
-        check_package git
         printf "Copying Kitty keybindings...\n"
-        kitty_bindings
+        kitty_bindings "$repository"
       ;;
       c )
         exists kitty || leave "Kitty is not installed."
-        check_package git
         printf "Configuring Kitty %s...\n" "$(kitty_version)"
-        kitty_config
+        kitty_config "$repository"
       ;;
       h )
         help 0
@@ -134,8 +138,10 @@ main() {
       i )
         exists kitty && leave "Kitty terminal emulator $(kitty_version) already installed."
         sudo_login 2
-        check_package git
         install_kitty
+        kitty_config "$repository"
+        kitty_bindings "$repository"
+
       ;;
       p )
         exists kitty || leave "Kitty is not installed."
