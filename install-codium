@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 01 Oct 2024
+# Updated      : 25 Oct 2024
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="1.15.24275"
+readonly version="2.0.24299"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
@@ -38,7 +38,7 @@ verbose_mode="$FALSE"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="01 Oct 2024"
+	updated="25 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Install/Removes VSCodium & applies settings
@@ -56,27 +56,40 @@ _HELP_
   exit "$errcode"
 }
 
+assign_repo() {
+	local localip repo
+	localip=$(local_ip)
+	case "$localip" in
+		10|16| 22 )
+			repo="$HOME/gitea/configs"
+		;;
+		* )
+			if [[ -d "$HOME/Download/configs" ]]; then
+				pushd "$HOME/Download/configs" || die "pushd failed"
+				git pull --quiet origin main
+				popd || die "popd failed"
+			else
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Download/configs"
+			fi
+			repo="$HOME/Download/configs"
+	esac
+	printf "%s" "$repo"
+}
+
 codium_version() {
 	# codium --version | head -n 1
 	dpkg -l codium | awk '/ii/ {print $3}'
 }
 
 apply_settings() {
-	local localip repository cfg_dir json_file
-	localip=$(local_ip)
+	local repository cfg_dir json_file
+	repository="$1"
   cfg_dir="${HOME}/.config/VSCodium/User"
   json_file="settings.json"
   [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
   show_message "Applying VSCodium settings..."
-	if [[ "$localip" == "16" ]]; then
-		show_message "Copying $json_file from local repository..."
-		repository="$HOME/gitea/configs/VSCodium/User"
-		cp -v "$repository/$json_file" "$cfg_dir/"
-	else
-		show_message "Downloading $json_file from Gitea server..."
-		repository="configs/raw/branch/main/VSCodium/User"
-		wget -P "$cfg_dir" "$Gitea_URL/$repository/$json_file"
-	fi
+	show_message "Copying $json_file from $repository..."
+	cp -v "$repository/$json_file" "$cfg_dir"
   show_message "VSCodium settings applied."
 }
 
@@ -99,7 +112,6 @@ install_vscodium() {
 	set_src
 	sudo apt-get update
 	sudo apt-get install codium
-	apply_settings
 	printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 }
 
@@ -131,7 +143,8 @@ show_title() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr repository
+	repository=$(assign_repo)
 	noOpt=1
 	optstr=":ahirsv"
 	while getopts "$optstr" opt; do
@@ -156,6 +169,8 @@ main() {
 				show_message "Checking dependencies..."
 				check_package wget
 				install_vscodium
+				apply_settings "$repository"
+
 			;;
 			r )
 				exists codium || leave "VSCodium is not installed."
@@ -169,7 +184,8 @@ main() {
 				sudo_login 2
 				show_message "Checking dependencies..."
 				check_package wget
-				apply_settings
+				apply_settings "$repository"
+
 			;;
 			v )
 				verbose_mode="$TRUE"
