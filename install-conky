@@ -2,7 +2,7 @@
 ################################################################################
 # Script Name  : install-conky
 # Description  : Install and configure Conky
-# Dependencies : curl network-manager wget
+# Dependencies : git network-manager wget
 # Arguments    : None
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -101,7 +101,7 @@ show_message() {
 
 check_dependencies() {
   # wget is called in conky.conf to get public IP address
-  local packages=( curl network-manager wget )
+  local packages=( git network-manager wget )
   check_packages "${packages[@]}"
 }
 
@@ -251,6 +251,7 @@ main() {
   local noOpt opt optstr repository
   bl_antix_mx_i3
 	repository=$(assign_repo)
+  check_dependencies
   noOpt=1
   optstr=":cdehirv"
   while getopts "$optstr" opt; do
@@ -274,7 +275,6 @@ main() {
 		  i )
         exists conky && leave "Conky $(conky_version) is already installed."
         sudo_login 2
-        check_dependencies
         install_conky
         configure_conky
         conky_desktop "$repository"
