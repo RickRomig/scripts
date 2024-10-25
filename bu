@@ -59,8 +59,8 @@ bu_drive_label() {
 
 check_uuid() {
 	local hname uuid uuid_path
-  uuid=( "5d3290de-3fa7-4e3c-94b8-aca062c427ef" "5d1a8caa-36cf-4a36-8457-1a2bb2f85fd3" "89740987-ca0a-4b33-bb56-9055bb9e1daa" )
-  hname=( "hp-800g2-sff" "hp-850-g3" "hp-probook-6570" )
+  uuid=( "5d3290de-3fa7-4e3c-94b8-aca062c427ef" "5d1a8caa-36cf-4a36-8457-1a2bb2f85fd3" "89740987-ca0a-4b33-bb56-9055bb9e1daa" "772dcef3-6f46-4e58-b6d1-00ca9292c062" )
+  hname=( "hp-800g2-sff" "hp-850-g3" "hp-probook-6570" "lenovo-m91p" )
 	uuid_path="/dev/disk/by-uuid"
 
 	if [[ -L "$uuid_path/${uuid[0]}" ]]; then
@@ -69,6 +69,8 @@ check_uuid() {
 		[[ "$host" == "${hname[1]}" ]] && return "$TRUE" || return "$FALSE"
 	elif [[ -L "$uuid_path/${uuid[2]}" ]]; then
 		[[ "$host" == "${hname[2]}" ]] && return "$TRUE" || return "$FALSE"
+	elif [[ -L "$uuid_path/${uuid[3]}" ]]; then
+		[[ "$host" == "${hname[3]}" ]] && return "$TRUE" || return "$FALSE"
   else
 	  return "$TRUE"
 	fi
