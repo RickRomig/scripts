@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Dec 2018
-# Updated      : 01 Oct 2024
+# Updated      : 25 Oct 2024
 # Comment      : copies .conkyrc to conkyrc-hostname for archiving purposes.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2
@@ -28,8 +28,8 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.4.24275"
-readonly repository="configs/raw/branch/main/"
+readonly version="6.5.24299"
+# readonly repository="configs/raw/branch/main/"
 readonly localbin_d="$HOME/.local/bin"
 readonly autostart_d="$HOME/.config/autostart"
 readonly conf_d="$HOME/.config/conky"
@@ -40,7 +40,7 @@ verbose_mode="$FALSE"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-  updated="01 Oct 2024"
+  updated="25 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs and configures Conky
@@ -74,6 +74,26 @@ bl_antix_mx_i3() {
   fi
 }
 
+assign_repo() {
+	local localip repo
+	localip=$(local_ip)
+	case "$localip" in
+		10|16| 22 )
+			repo="$HOME/gitea/configs"
+		;;
+		* )
+			if [[ -d "$HOME/Download/configs" ]]; then
+				pushd "$HOME/Download/configs" || die "pushd failed"
+				git pull --quiet origin main
+				popd || die "popd failed"
+			else
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Download/configs"
+			fi
+			repo="$HOME/Download/configs"
+	esac
+	printf "%s" "$repo"
+}
+
 show_message() {
   local message="$1"
   [[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
@@ -100,22 +120,24 @@ install_conky() {
 }
 
 conky_desktop() {
+  local repository="$1"
   [[ -d "$autostart_d" ]] || mkdir -p "$autostart_d"
   if [[ -f "$autostart_d/Conky.desktop" || -f "$autostart_d/conky.desktop" ]]; then
     echo "conky.desktop aleady exists."
     [[ -f "$autostart_d/Conky.desktop" ]] && mv "$autostart_d/Conky.desktop" "$autostart_d/conky.desktop"
   else
     show_message "Downloading conky.desktop from the Gitea server to .config/autostart"
-    curl -so "$autostart_d/conky.desktop" "$Gitea_URL/$repository/autostart/conky.desktop"
+    cp -v  "$repository/conky.desktop" "$autostart_d/"
     echo "conky.desktop configured."
   fi
 }
 
-startscript() {
+start_script() {
+  local repository="$1"
   [[ -d "$localbin_d" ]] || mkdir -p "$localbin_d"
   if [[ ! -f "$localbin_d/start-conky.sh" ]]; then
     show_message "Downloading start-conky.sh from the Gitea server to .local/bin"
-    curl -so "$localbin_d/start-conky.sh" "$Gitea_URL/$repository/local/bin/start-conky.sh"
+    cp -v "$repository/local/bin/start-conky.sh" "$localbin_d"
     printf "start-conky.sh installed.\n"
   fi
 }
@@ -226,9 +248,9 @@ configure_conky() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr repository
   bl_antix_mx_i3
-
+	repository=$(assign_repo)
   noOpt=1
   optstr=":cdehirv"
   while getopts "$optstr" opt; do
@@ -240,8 +262,8 @@ main() {
       ;;
       d )
         exists conky || leave "Conky is not installed."
-        conky_desktop
-        startscript
+        conky_desktop "$repository"
+        start_script
       ;;
       e )
         "$EDITOR" "$conf_d/conky.conf"
@@ -255,8 +277,8 @@ main() {
         check_dependencies
         install_conky
         configure_conky
-        conky_desktop
-        startscript
+        conky_desktop "$repository"
+        start_script "$repository"
         edit_view_quit "$conf_d/conky.conf"
 		  ;;
 		  r )
