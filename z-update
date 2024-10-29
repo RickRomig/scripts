@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 11 Jul 2024
+# Updated      : 29 Oct 2024
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -15,37 +15,50 @@
 
 set -eu
 
-check_flatpak() {
-  local fp_count
-  fp_count=$(flatpak list | wc -l)
-  printf "\n*** Flatpak ***\n"
-  if [[ "$fp_count" -gt 0 ]]; then
-    flatpak update --system --noninteractive --force-remove --assumeyes 2> /dev/null
-  else
-    printf "No Flatpaks installed.\n\n"
-  fi
+log_dir="/var/log"
+log_file="update.log"
+updated_package_list="up to date"
+updated_flatpaks="nothing to update"
+full_upgrade_done="no updates"
+removed_unnecessary="not run"
+purged_configs="no rc packages"
+cache_cleaned="not run"
+SECONDS=0
+
+format_time() {
+  local ET h m s
+  ET="$1"
+  ((h=ET/3600))
+  ((m=(ET%3600)/60))
+  ((s=ET%60))
+  printf "%02d:%02d:%02d\n" $h $m $s
 }
 
 exists() {
   command -v "$1" > /dev/null 2>&1 && return 0 || return 1
 }
 
+check_disk_space() {
+  df -h / | awk 'NR==2 {print $5}' | sed 's/%//'
+}
+
+check_flatpak() {
+  local fp_count
+  fp_count=$(flatpak list | wc -l)
+  if [[ "$fp_count" -gt 0 ]]; then
+    flatpak update --system --noninteractive --force-remove --assumeyes >/dev/null 2>&1
+    updated_flatpaks="accomplished"
+  fi
+}
+
 get_updates() {
   local nupd
-  /usr/bin/apt-get update
+  /usr/bin/apt-get update >/dev/null 2>&1
   nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
-  if [[ "$nupd" -eq 1 ]]; then
-    printf "%d package can be upgraded.\n" "$nupd"
-  elif [[ "$nupd" -gt 1 ]]; then
-    printf "%d packages can be upgraded.\n" "$nupd"
-  else
-    printf "All packages are up to date.\n"
-  fi
   if [[ "$nupd" -gt 0 ]]; then
-    printf "\n*** Installing updates ***\n"
-    DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get dist-upgrade -yy
-  else
-    printf "\nNothing to update.\n"
+    updated_package_list="accomplished"
+    DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get dist-upgrade  --assume-yes  >/dev/null 2>&1
+    full_upgrade_done="accomplished"
   fi
 }
 
@@ -53,31 +66,38 @@ purge_rc_packages() {
   local rcpkg
   if dpkg -l | grep -c '^rc' > /dev/null; then
     for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
-      printf "Purging %s...\n" "$rcpkg"
-      DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get remove --purge "$rcpkg" -yy
+      DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get remove --purge "$rcpkg" --assume-yes >/dev/null 2>&1
     done
-  else
-    printf "No packages in the 'rc' state to be purged.\n"
+    purged_configs="accomplished"
   fi
 }
 
-log_dir="/var/log"
-log_file="update.log"
-sed_file="/usr/share/misc/updatelog.sed"
+print_summary() {
+	{
+		initial_space=$(check_disk_space)
+    printf "Date: %s\n" "$(date '+%Y-%m-%d %H:%M:%S')"
+		printf "Initial diskspace used in root: %s%%\n" "$initial_space"
+		printf "Package list updated: %s\n" "$updated_package_list"
+		printf "Full upgrade performed: %s\n" "$full_upgrade_done"
+		printf "Cache cleaned: %s\n" "$cache_cleaned"
+		printf "Unnecessary packages removed: %s\n" "$removed_unnecessary"
+		printf "Obsolete configurations purged: %s\n" "$purged_configs"
+    printf "Flatpaks updated: %s\n" "$updated_flatpaks"
+		printf "Disk space freed: %s%%\n" "$((initial_space - $(check_disk_space)))"
+    printf "Update completed in %s\n" "$(format_time $SECONDS)"
+    [[ -f var/run/reboot-required ]] && printf "Reboot required.\n"
+	} > "$log_dir/$log_file" 2>&1
+}
 
-{
-  printf "Update began: %s\n" "$(date '+%a %F %T')"
-  printf "\n*** Checking for updates ***\n"
+main() {
   get_updates
-  printf "\n*** Cleaning APT cache ***\n"
-  /usr/bin/apt-get autoclean
-  printf "\n*** Removing orphaned packages ***\n"
-  DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove -yy
-  printf "\n*** Purging obsolete configuration files ***\n"
+  /usr/bin/apt-get --assume-yes autoclean >/dev/null 2>&1
+  cache_cleaned="accomplished"
+  DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove --assume-yes >/dev/null 2>&1
+  removed_unnecessary="accomplished"
   purge_rc_packages
   exists flatpak && check_flatpak
-  printf "\nCompleted: %s\n" "$(date '+%a %F %T')"
-} > "$log_dir/$log_file" 2>&1
+  print_summary
+}
 
-# Clean up log file.
-sed -i -f "$sed_file" "$log_dir/$log_file"
+main "$@"
