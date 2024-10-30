@@ -40,7 +40,12 @@ exists() {
 }
 
 check_disk_space() {
-  df -h / | awk 'NR==2 {print $5}' | sed 's/%//'
+	df_stats=$(df -h / | awk 'NR==2 {print $2,$3,$4,$5}')
+	r_size=$(echo "$df_stats" | cut -d ' ' -f1)
+	r_used=$(echo "$df_stats" | cut -d ' ' -f2)
+	r_perc=$(echo "$df_stats" | cut -d ' ' -f4)
+	r_avail=$(echo "$df_stats" | cut -d ' ' -f3)
+	echo "Disk space used (root): $r_used/$r_size $r_perc used, $r_avail available."
 }
 
 check_flatpak() {
@@ -77,9 +82,8 @@ purge_rc_packages() {
 
 print_summary() {
 	{
-		initial_space=$(check_disk_space)
     printf "Date: %s\n" "$(date '+%Y-%m-%d %H:%M:%S')"
-		printf "Initial diskspace used in root: %s%%\n" "$initial_space"
+		check_disk_space
 		printf "Package list updated: %s\n" "$updated_package_list"
 		printf "Full upgrade performed: %s\n" "$full_upgrade_done"
     printf "Packages updated: %s\n" "$packages_updated"
@@ -87,7 +91,7 @@ print_summary() {
 		printf "Unnecessary packages removed: %s\n" "$removed_unnecessary"
 		printf "Obsolete configurations purged: %s\n" "$purged_configs"
     printf "Flatpaks updated: %s\n" "$updated_flatpaks"
-		printf "Disk space freed: %s%%\n" "$((initial_space - $(check_disk_space)))"
+		check_disk_space
     printf "Update completed in %s\n" "$(format_time $SECONDS)"
     [[ -f var/run/reboot-required ]] && printf "Reboot required.\n"
     printf "------------------------\n"
