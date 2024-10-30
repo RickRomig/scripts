@@ -141,7 +141,8 @@ nala_update() {
 apt_update() {
   local nupd options _opt
   update_apt_cache
-  nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
+  # nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
+  nupd=$(aptitude search '~U' | wc -l)
   # If there are packages to be upgraded
   if (( nupd > 0 )); then
     printf "%s%d " "$orange" "$nupd"
