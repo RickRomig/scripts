@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 29 Oct 2024
+# Updated      : 30 Oct 2024
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -20,6 +20,7 @@ log_file="update.log"
 updated_package_list="up to date"
 updated_flatpaks="nothing to update"
 full_upgrade_done="no updates"
+packages_updated=0
 removed_unnecessary="not run"
 purged_configs="no rc packages"
 cache_cleaned="not run"
@@ -54,11 +55,13 @@ check_flatpak() {
 get_updates() {
   local nupd
   /usr/bin/apt-get update >/dev/null 2>&1
-  nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
+  # nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
+  nupd=$(aptitude search '~U' | wc -l)
   if [[ "$nupd" -gt 0 ]]; then
     updated_package_list="accomplished"
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get dist-upgrade  --assume-yes  >/dev/null 2>&1
     full_upgrade_done="accomplished"
+    packages_updated="$nupd"
   fi
 }
 
@@ -79,6 +82,7 @@ print_summary() {
 		printf "Initial diskspace used in root: %s%%\n" "$initial_space"
 		printf "Package list updated: %s\n" "$updated_package_list"
 		printf "Full upgrade performed: %s\n" "$full_upgrade_done"
+    printf "Packages updated: %s\n" "$packages_updated"
 		printf "Cache cleaned: %s\n" "$cache_cleaned"
 		printf "Unnecessary packages removed: %s\n" "$removed_unnecessary"
 		printf "Obsolete configurations purged: %s\n" "$purged_configs"
@@ -86,6 +90,7 @@ print_summary() {
 		printf "Disk space freed: %s%%\n" "$((initial_space - $(check_disk_space)))"
     printf "Update completed in %s\n" "$(format_time $SECONDS)"
     [[ -f var/run/reboot-required ]] && printf "Reboot required.\n"
+    printf "------------------------\n"
 	} > "$log_dir/$log_file" 2>&1
 }
 
