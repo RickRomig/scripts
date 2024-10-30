@@ -34,7 +34,13 @@ set -eu
 ## Functions ##
 
 check_disk_space() {
-  df -h / | awk 'NR==2 {print $5}' | sed 's/%//'
+	local df_stats r_size r_used r_perc r_avail
+	df_stats=$(df -h / | awk 'NR==2 {print $2,$3,$4,$5}')
+	r_size=$(echo "$df_stats" | cut -d ' ' -f1)
+	r_used=$(echo "$df_stats" | cut -d ' ' -f2)
+	r_perc=$(echo "$df_stats" | cut -d ' ' -f4)
+	r_avail=$(echo "$df_stats" | cut -d ' ' -f3)
+	echo "Disk space used (root): $r_used/$r_size $r_perc used, $r_avail available."
 }
 
 check_reboot_required() {
@@ -42,7 +48,7 @@ check_reboot_required() {
     if default_no "Do you want to reboot now?"; then
       sudo reboot
     else
-      printf "Please remember to reboot your system as soon as possible.\n"
+      printf "\n%s Please remember to reboot your system as soon as possible.\n" "$RED_WARNING"
     fi
   fi
 }
@@ -220,13 +226,12 @@ _HEADER_
 }
 
 main() {
-  local action initial_space
+  local action
   action="${1:-nala}"
-  initial_space=$(check_disk_space)
   SECONDS=0
   sudo_login 0
   show_header
-  printf "Intial disk space used: %s%%\n" "$initial_space"
+  check_disk_space
   if [[ "$action" == "apt" ]] || ! exists nala; then
     apt_update
   else
@@ -234,8 +239,8 @@ main() {
   fi
   exists cinnamon-spice-updater && update_spices
   exists flatpak && update_flatpak
-  printf "Disk space freed: %s%%\n" "$((initial_space - $(check_disk_space)))"
-  printf "Update completed in %s\n" "$(format_time $SECONDS)"
+  check_disk_space
+  over_line "Update completed in $(format_time $SECONDS)"
   if [[ "$action" == "apt" ]] || ! exists nala; then
     check_reboot_required
   fi
