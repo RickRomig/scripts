@@ -21,6 +21,7 @@ updated_package_list="up to date"
 updated_flatpaks="nothing to update"
 full_upgrade_done="no updates"
 packages_updated=0
+new_packages=0
 removed_unnecessary="not run"
 purged_configs="no rc packages"
 cache_cleaned="not run"
@@ -60,13 +61,14 @@ check_flatpak() {
 get_updates() {
   local nupd
   /usr/bin/apt-get update >/dev/null 2>&1
-  # nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
+  new_pkgs=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f3)
   nupd=$(aptitude search '~U' | wc -l)
   if [[ "$nupd" -gt 0 ]]; then
     updated_package_list="accomplished"
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get dist-upgrade  --assume-yes  >/dev/null 2>&1
     full_upgrade_done="accomplished"
     packages_updated="$nupd"
+    new_packages="$new_pkgs"
   fi
 }
 
@@ -87,6 +89,7 @@ print_summary() {
 		printf "Package list updated: %s\n" "$updated_package_list"
 		printf "Full upgrade performed: %s\n" "$full_upgrade_done"
     printf "Packages updated: %s\n" "$packages_updated"
+    printf "New packages installed: %s\n" "$new_packages"
 		printf "Cache cleaned: %s\n" "$cache_cleaned"
 		printf "Unnecessary packages removed: %s\n" "$removed_unnecessary"
 		printf "Obsolete configurations purged: %s\n" "$purged_configs"
