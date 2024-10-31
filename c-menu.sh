@@ -7,7 +7,7 @@
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Created      :
-# Updated      : 30 Sep 2024
+# Updated      : 31 Oct 2024
 # Comments     : Run from current working directory
 # TODO (rick)  :
 # License      : GNU General Public License, version 2
@@ -28,7 +28,7 @@ fi
 # Variables
 
 script=$(basename "$0"); readonly script
-readonly version="2.4.24274"
+readonly version="2.4.24305"
 readonly updated="30 Sep 2024"
 
 ## Functions ##
@@ -64,7 +64,7 @@ while true; do
 	          /usr/bin/nano "$fname"
           fi
         else
-          printf "%s %s not found.\n" "$red_error" "$fname" >&2
+          printf "%s %s not found.\n" "$RED_ERROR" "$fname" >&2
         fi
 	      break ;;
 	    2 )
@@ -72,7 +72,7 @@ while true; do
 	      if [[ -f "$fname" ]]; then
           printf "Compiling %s to a.out\n" "$fname"
 	      else
-          printf "%s %s not found.\n" "$red_error" "$fname" >&2
+          printf "%s %s not found.\n" "$RED_ERROR" "$fname" >&2
 	      fi
 	      break ;;
 	    3 )
@@ -83,7 +83,7 @@ while true; do
           printf "Compiling %s.c to %s\n" "$fname" "$fname"
 	        /usr/bin/gcc -o "$fname"
 	      else
-          printf "%s %s not found.\n" "$red_error" "$fname" >&2
+          printf "%s %s not found.\n" "$RED_ERROR" "$fname" >&2
 	      fi
 	      break ;;
 	    4 )
@@ -92,7 +92,7 @@ while true; do
           /usr/local/bin/fnloc "$fname"
 	        anykey
 	      else
-          printf "%s %s not found.\n" "$red_error" "$fname" >&2
+          printf "%s %s not found.\n" "$RED_ERROR" "$fname" >&2
 	      fi
 	      break ;;
 	    5 )
@@ -102,7 +102,7 @@ while true; do
 	        locfile+=".loc"
 	        /usr/local/bin/fnloc $"$fname" > "$locfile"
 	      else
-          printf "%s %s not found.\n" "$red_error" "$fname" >&2
+          printf "%s %s not found.\n" "$RED_ERROR" "$fname" >&2
 	      fi
 	      break ;;
       6 )
@@ -114,7 +114,7 @@ while true; do
             viewtext "$fname"
           fi
         else
-          printf "%s %s not found.\n" "$red_error" "$fname" >&2
+          printf "%s %s not found.\n" "$RED_ERROR" "$fname" >&2
         fi
         break ;;
       7 )
@@ -124,7 +124,7 @@ while true; do
 	    8 )
 	      leave "" ;;
 	    *)
-	      printf "%s Not a valid option. Please try again.\n" "$red_error" >&2 ;;
+	      printf "%s Not a valid option. Please try again.\n" "$RED_ERROR" >&2 ;;
   	esac
   done
 done
