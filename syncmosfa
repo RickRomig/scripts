@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard Romig, 29 Sep 2020
 # Email        : rick.romig@gmail.com
 # Created      : 29 Sep 2020
-# Last updated : 04 Oct 2024
+# Last updated : 31 Oct 2024
 # Comments     : Can sync to one or all machines on the network.
 #              : LOCALNET is declared in functionlib
 # TODO (rick)  :
@@ -29,7 +29,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.18.24277"
+readonly version="3.18.24305"
 SECONDS=0
 
 ## Functions ##
@@ -37,7 +37,7 @@ SECONDS=0
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="04 Oct 2024"
+	updated="31 Oct 2024"
 	cat << _HELP_
   $script help
   ${orange}Usage:${normal} $script [OPTION] Updated $updated
@@ -78,7 +78,7 @@ transfer() {
 
   # Check for machines and sync if on-line:
   echo "${green}Checking for $hostip...${normal}"
-  if  ping -c 3 "$localnet.$hostip" >/dev/null 2>&1
+  if  ping -c 3 "$LOCALNET.$hostip" >/dev/null 2>&1
   then
     echo "...Syncing to Machine $hostip"
     syncscript "$hostip"
@@ -93,69 +93,69 @@ syncscript() {
   local exit_status hostip
   hostip="$1"
   echo $'\n'$"${orange}Syncing aliases...${normal}"
-  rsync -avh --delete "$HOME"/.bash_aliases "$localnet.$hostip":
+  rsync -avh --delete "$HOME"/.bash_aliases "$LOCALNET.$hostip":
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing bin...${normal}"
-  rsync -avh --delete --exclude '.git' "$HOME"/bin/ "$localnet.$hostip":bin/
+  rsync -avh --delete --exclude '.git' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing script configuration files...${normal}"
-  rsync -avh --delete "$HOME"/.config/scripts/ "$localnet.$hostip":.config/scripts/
+  rsync -avh --delete "$HOME"/.config/scripts/ "$LOCALNET.$hostip":.config/scripts/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Password Databases...${normal}"
-  rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$localnet.$hostip":Documents/
+  rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$LOCALNET.$hostip":Documents/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing homepage...${normal}"
-  rsync -avh --delete --exclude '.git' "$HOME"/Documents/homepage/ "$localnet.$hostip":Documents/homepage/
+  rsync -avh --delete --exclude '.git' "$HOME"/Documents/homepage/ "$LOCALNET.$hostip":Documents/homepage/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing .local/share/doc...${normal}"
-  rsync -avh --delete "$HOME"/.local/share/doc/ "$localnet.$hostip":.local/share/doc/
+  rsync -avh --delete "$HOME"/.local/share/doc/ "$LOCALNET.$hostip":.local/share/doc/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing MOSFANET...${normal}"
-  rsync -avh --delete "$HOME"/Documents/mosfanet/ "$localnet.$hostip":Documents/mosfanet/
+  rsync -avh --delete "$HOME"/Documents/mosfanet/ "$LOCALNET.$hostip":Documents/mosfanet/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Work..${normal}"
-  rsync -avh --delete "$HOME"/Work/ "$localnet.$hostip":Work/
+  rsync -avh --delete "$HOME"/Work/ "$LOCALNET.$hostip":Work/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Templates...${normal}"
-  rsync -avh --delete "$HOME"/Templates/ "$localnet.$hostip":Templates/
+  rsync -avh --delete "$HOME"/Templates/ "$LOCALNET.$hostip":Templates/
   exit_status="$?"
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing Pictures/wallpaper...${normal}"
-  rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$localnet.$hostip":Pictures/wallpaper/
+  rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$hostip":Pictures/wallpaper/
   exit_status="$?"
   transfer_status "$exit_status"
 
 if [[ "$hostip" == "16" ]]; then
     # Sync Deb packages and Git repositories
     printf "\n%sSyncing Deb Packages...%s\n" "$orange" "$normal"
-    rsync -avh --delete "$HOME"/debpkgs/  "$localnet.$hostip":debpkgs/
+    rsync -avh --delete "$HOME"/debpkgs/  "$LOCALNET.$hostip":debpkgs/
     exit_status="$?"
     transfer_status "$exit_status"
 
     printf "\n%sSyncing Gitea Repositories...%s\n" "$orange" "$normal"
-    rsync -avh --delete "$HOME"/gitea/ "$localnet.$hostip":gitea/
+    rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
     exit_status="$?"
     transfer_status "$exit_status"
 
     printf "\n%sSyncing Github Repositories...%s\n" "$orange" "$normal"
-    rsync -avh --delete "$HOME"/Projects/ "$localnet.$hostip":Projects/
+    rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
     exit_status="$?"
     transfer_status "$exit_status"
 fi
@@ -166,21 +166,21 @@ sync_one() {
   local hostip
   valid_ip "$1" && hostip="$1"
 
-  echo -e "Synchronizing directories with $localnet.$hostip.\n"
+  echo -e "Synchronizing directories with $LOCALNET.$hostip.\n"
 
   if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
     # Restricted IP addresses on local network
     case $hostip in
       1|2|3|4|5|6|7|8|9|21|22|24|153 )
-        echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted address."
+        echo -n "${orange}Warning!${normal} $LOCALNET.$hostip is a restricted address."
         echo -e " Access denied.\n"; exit ;;
       * )
-        echo "Synchronizing directories with $localnet.$hostip:"
+        echo "Synchronizing directories with $LOCALNET.$hostip:"
         transfer "$hostip"
         all_done
     esac
   else
-    echo -n "${orange}Warning!${normal} $localnet.$hostip is outside the range"
+    echo -n "${orange}Warning!${normal} $LOCALNET.$hostip is outside the range"
     echo -e " of static addresses.\n"
   fi
 }
@@ -194,7 +194,7 @@ sync_some() {
       if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
         case "$hostip" in
           1|2|3|4|5|6|7|8|9|21|22|24|25|153 )
-            echo -n "${orange}Warning!${normal} $localnet.$hostip is a restricted"
+            echo -n "${orange}Warning!${normal} $LOCALNET.$hostip is a restricted"
             echo -e " address. Access denied.\n"
           ;;
           * )
@@ -202,7 +202,7 @@ sync_some() {
             (( xfr_flag++ ))
         esac
       elif [[ "$hostip" -gt 25 && "$hostip" -lt 255 ]]; then
-        echo -n "${orange}Warning!${normal} $localnet.$hostip is outside the range"
+        echo -n "${orange}Warning!${normal} $LOCALNET.$hostip is outside the range"
         echo -e " of static addresses.\n"
       else
         echo -e "${lightred}ERROR!${normal} Invalid argument: $hostip\n" >&2
@@ -234,7 +234,7 @@ check_host() {
   src_host="${HOSTNAME:-$(hostname)}"
   ip_addr="$(local_ip)"
   echo -n "Synchronizing from host: ${lightyellow}$src_host${normal} at "
-  echo "IP: ${lightyellow}$localnet.$ip_addr${normal}"
+  echo "IP: ${lightyellow}$LOCALNET.$ip_addr${normal}"
   if [[ "$src_host" != "$main_host" ]]; then
     if yes_or_no "Do you wish to continue?"; then
       printf "\nContinuing with the synchronization operation...\n"
