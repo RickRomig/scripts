@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2022
-# Updated      : 02 Oct 2024
+# Updated      : 31 Oct 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.1.24276"
+readonly version="2.1.24305"
 readonly gh_url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -102,7 +102,7 @@ apply_settings() {
     cp -v "$repository/$json_file" "$vsc_cfg_d/"
   else
     repository="configs/raw/branch/main/VSCodium/User"
-    curl -so "$vsc_cfg_d/$json_file" "$Gitea_URL/$repository/$json_file"
+    curl -so "$vsc_cfg_d/$json_file" "$GITEA_URL/$repository/$json_file"
   fi
   printf "VSCodium settings applied.\n"
 }
@@ -110,7 +110,7 @@ apply_settings() {
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="02 Oct 2024"
+	updated="31 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates,  removes the VSCodium editor.
