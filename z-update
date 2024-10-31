@@ -83,6 +83,7 @@ purge_rc_packages() {
 }
 
 print_summary() {
+  local dashes="------------------------"
 	{
     printf "Date: %s\n" "$(date '+%Y-%m-%d %H:%M:%S')"
 		check_disk_space
@@ -97,7 +98,7 @@ print_summary() {
 		check_disk_space
     printf "Update completed in %s\n" "$(format_time $SECONDS)"
     [[ -f var/run/reboot-required ]] && printf "Reboot required.\n"
-    echo "------------------------"
+    printf "%s\n" "$dashes"
 	} > "$log_dir/$log_file" 2>&1
 }
 
