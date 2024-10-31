@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 15 Jun 2024
+# Updated      : 31 Oct 2024
 # Comments     : Inserts the license immediately after the file's header.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,8 +28,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.3.24167"
-readonly _updated="15 Jun 2024"
+readonly _version="3.3.24305"
+readonly _updated="131 Oct 2024"
 readonly conf_dir="$HOME/.config/scripts"
 readonly conf_file="$_script.conf"
 cur_yr=$(echo -e "\UA9 $(date +%Y)"); readonly cur_yr
@@ -53,7 +53,7 @@ create_conf() {
 
 help() {
   local errcode="${1:-2}"
-  cat << END_HELP
+  cat << _HELP_
 ${orange}$_script${normal} $_version ($_updated)
 Inserts an Open Source license into a shell script or a C/C++ source code file.
 
@@ -69,7 +69,7 @@ ${orange}Available options:${normal}
   -s  Shell script
       $_script -s <shell-script>
   -v  Enable verbose mode
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
@@ -94,7 +94,7 @@ while getopts "$optstr" opt; do
   case "$opt" in
     c )
 			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; help 2; }
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
       show_message "File: $code_file"
       code_type="C"
       show_message "Code type: $code_type source code"
@@ -112,14 +112,14 @@ while getopts "$optstr" opt; do
     ;;
     p )
 			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; help 2; }
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
       show_message "File: $code_file"
       code_type="C++"
       show_message "Code type: $code_type source code"
     ;;
     s )
 			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$red_error" "$code_file" >&2; help 2; }
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
       show_message "File: $code_file"
       code_type="Shell"
       show_message "Code type: $code_type script"
@@ -129,16 +129,16 @@ while getopts "$optstr" opt; do
 			show_message "Verbose mode enabled."
 		;;
     : )
-      printf "%s Must supply an argument to -%s.\n" "$red_error" "$OPTARG" >&2
+      printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
       help 2
     ;;
     ? )
-			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 			help 2
   esac
 	noOpt=0
 done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
 
 [[ -z "$code_file" ]] && leave "No file selected."
