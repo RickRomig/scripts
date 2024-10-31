@@ -7,7 +7,7 @@
 # Author       : Richard B. Romig, 01 Dec 2019
 # Email        : rick.romig@gmail.com
 # Created      : 01 Dec 2019
-# Updated      : 02 Oct 2024
+# Updated      : 31 Oct 2024
 # Comments     : Variables for IP range do not work, must be hard coded.
 #              : Local host will not respond to arping.
 #              : Local host will respond using arping in iputils-arping.
@@ -31,7 +31,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.8.24276"
+readonly version="4.8.24305"
 SECONDS=0
 COUNT=0
 
@@ -49,7 +49,7 @@ arping_check() {
 
 scan_static_addresses() {
   local hname ip_addr
-  for ip_addr in $localnet.{1..25}; do
+  for ip_addr in $LOCALNET.{1..25}; do
     if arping_check "$ip_addr"; then
       hname=$(avahi-resolve -a "$ip_addr" 2>/dev/null | awk '{print $NF}' | sed 's/\.local$//')
       printf "%s" "$ip_addr"
@@ -92,7 +92,7 @@ scan_static_addresses() {
 
 scan_dhcp_addresses() {
   local hname ip_addr
-  for ip_addr in $localnet.{100..250}; do
+  for ip_addr in $LOCALNET.{100..250}; do
     if arping_check "$ip_addr"; then
       hname=$(avahi-resolve -a "$ip_addr" 2>/dev/null | awk '{print $NF}' | sed 's/\.local$//')
       printf "%s" "$ip_addr"
@@ -109,7 +109,7 @@ scan_dhcp_addresses() {
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="02 Oct 2024"
+	updated="31 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Scans local network to see which addresses are active.
