@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Feb 2021
-# Updated      : 01 Oct 2024
+# Updated      : 31 Oct 2024
 # Comments     :
 # TODO (Rick)  : clone from either repo
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.4.24275"
+readonly version="2.4.24305"
 readonly package="fnloc_2.3.1_amd64.deb"
 readonly package_name="FnLoC"
 readonly packageversion="2.3.1"
@@ -48,7 +48,7 @@ _ABOUT_
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="01 Oct 2024"
+	updated="31 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installes the Function Lines of Code (FnLoC) package.
@@ -67,13 +67,13 @@ _HELP_
 
 clone_fnloc_repo() {
   local repo_path="fnloc.git"
-  git clone "$Gitea_URL/$repo_path" "$package_dir"
+  git clone "$GITEA_URL/$repo_path" "$package_dir"
 }
 
 dl_deb_pkg() {
   local repo_path="fnloc/raw/branch/main"
   [[ -d "$package_dir" ]] || mkdir -p "$package_dir"
-  curl -so "$package_dir/$package" "$Gitea_URL/$repo_path/$package"
+  curl -so "$package_dir/$package" "$GITEA_URL/$repo_path/$package"
 }
 
 install_fnloc() {
