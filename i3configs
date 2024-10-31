@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Apr 2023
-# Updated      : 10 Oct 2024
+# Updated      : 31 Oct 2024
 # Comments     : Assumes i3wm, polybar, rofi, dunst have been previously installed
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.3.24284"
+readonly version="3.3.24305"
 readonly repository="configs/raw/branch/main/"
 readonly local_repo="$HOME/gitea/configs"
 readonly config_dir="$HOME/.config"
@@ -80,9 +80,9 @@ copy_i3_config() {
 		fi
 	else
 		if [[ "$file" == "sxhkdrc" ]]; then
-			curl -so "$config_dir/i3/sxhkd/$file" "$Gitea_URL/$repository/i3/sxhkd/$file"
+			curl -so "$config_dir/i3/sxhkd/$file" "$GITEA_URL/$repository/i3/sxhkd/$file"
 		else
-			curl -so "$config_dir/i3/$file" "$Gitea_URL/$repository/i3/$file"
+			curl -so "$config_dir/i3/$file" "$GITEA_URL/$repository/i3/$file"
 		fi
 	fi
 	printf "%s copied from the Gitea Server.\n" "$file"
@@ -102,7 +102,7 @@ copy_polybar_config() {
 		cp "$local_repo/polybar/$file" "$config_dir/polybar/"
 	else
 		local file="config.ini"
-		curl -so "$config_dir/polybar/$file" "$Gitea_URL/$repository/polybar/$file"
+		curl -so "$config_dir/polybar/$file" "$GITEA_URL/$repository/polybar/$file"
 	fi
 	configure_polybar
 	printf "%s copied from the Gitea Server.\n" "$file"
@@ -138,7 +138,7 @@ copy_polybar_launch() {
 	if [[ "$localip" == "16" ]]; then
 		cp "$local_repo/polybar/$file" "$config_dir/polybar/"
 	else
-		curl -so "$config_dir/polybar/$file" "$Gitea_URL/$repository/$file"
+		curl -so "$config_dir/polybar/$file" "$GITEA_URL/$repository/$file"
 	fi
 	printf "%s copied from the Gitea Server.\n" "$file"
 }
@@ -149,7 +149,7 @@ copy_rofi_configs() {
 	if [[ "$localip" == "16" ]]; then
 		for file in "${files[@]}"; do cp "$local_repo/rofi/$file" "$config_dir/rofi/"; done
 	else
-		for file in "${files[@]}"; do curl -so "$config_dir/rofi/$file" "$Gitea_URL/$repository/rofi/$file"; done
+		for file in "${files[@]}"; do curl -so "$config_dir/rofi/$file" "$GITEA_URL/$repository/rofi/$file"; done
 	fi
 	printf "%s copied from the Gitea Server.\n" "${files[@]}"
 }
@@ -160,7 +160,7 @@ copy_dunst_config() {
 	if [[ "$localip" == "16" ]]; then
 		cp "$local_repo/dunst/$file" "$config_dir/dunst/"
 	else
-		curl -so "$config_dir/dunst/$file" "$Gitea_URL/$repository/dunst$file"
+		curl -so "$config_dir/dunst/$file" "$GITEA_URL/$repository/dunst$file"
 	fi
 	printf "%s copied from the Gietea Server.\n" "$file"
 }
@@ -170,7 +170,7 @@ copy_dmconf() {
 	if [[ "$localip" == "16" ]]; then
 		cp -p "$local_repo/i3/$file" "$config_dir/i3/"
 	else
-		curl -so "$config_dir/i3/$file" "$Gitea_URL/$repository/i3/$file"
+		curl -so "$config_dir/i3/$file" "$GITEA_URL/$repository/i3/$file"
 	fi
 	printf "%s copied from the Gitea Server.\n" "$file"
 }
