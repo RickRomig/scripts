@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jul 2022
-# Updated      : 03 Oct 2024
+# Updated      : 31 Oct 2024
 # Comments     : Adapted from a script by Dave McKay at howtogeek.com
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,14 +28,14 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.0.24277"
+readonly version="3.0.24305"
 
 ## Functions ##
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="03 Oct 2024"
+	updated="31 Oct 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Scans a range of IP addresses to determine if they are online.
@@ -65,10 +65,10 @@ scan_range() {
 	ip1="$1"
 	ip2="$2"
 	for (( ip=ip1; ip<=ip2; ip++ )); do
-		if arping -c 1 "$localnet.$ip" | grep -E "0 response|0 packets received" > /dev/null; then
-			printf "%s.%s didn't respond.\n" "$localnet" "$ip"
+		if arping -c 1 "$LOCALNET.$ip" | grep -E "0 response|0 packets received" > /dev/null; then
+			printf "%s.%s didn't respond.\n" "$LOCALNET" "$ip"
 		else
-			printf "%s.%s responded.\n" "$localnet" "$ip"
+			printf "%s.%s responded.\n" "$LOCALNET" "$ip"
 		fi
 	done
 }
