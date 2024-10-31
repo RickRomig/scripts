@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jul 2020
-# Updated      : 30 Sep 2024
+# Updated      : 31 Oct 2024
 # Comments     : Uses data from /sys/class/power_supply/BAT*
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -28,15 +28,15 @@ fi
 ## Global Variables ##
 
   script=$(basename "$0"); readonly script
-  readonly version="6.6.24274"
+  readonly version="6.6.24305"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="30 Sep 2024"
-  cat << END_HELP
+  updated="31 Oct 2024"
+  cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Shows battery charge and health information
 
@@ -46,17 +46,17 @@ ${orange}Available options:${normal}
   -h,--help     Show this help text
   -v,--version  Show version and information
   With no argument, displays battery health information.
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
 version() {
-  cat << VER_INFO
+  cat << _VERSION_
 $script $version, Updated: $updated
 Displays the charge state and health of a laptop battery using data obtained
 from files in /sys/class/power_supply/BAT*. Capacity information may be shown
 in either Ampere-hours (Ah) or Watt-hours (Wh), depending on your system.
-VER_INFO
+_VERSION_
 }
 
 battery_status() {
@@ -202,7 +202,7 @@ main() {
         exit
       ;;
       * )
-        printf "%s Invalid argument - %s\n" "$red_error" "$1" >&2
+        printf "%s Invalid argument - %s\n" "$RED_ERROR" "$1" >&2
         help 2
     esac
   fi
