@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 03 Oct 2024
+# Updated:     : 31 Oct 2024
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Rewrite of version 2.5.0
 #              : Will not get desktop session info from an SSH connection. Run locally.
@@ -59,7 +59,7 @@ send_to_main() {
   local main_ip ip_addr
   ip_addr=$(local_ip)
   main_ip="10"
-  [[ "$ip_addr" != "$main_ip" ]] && scp -p "$info_file" rick@"$localnet.$main_ip":Documents/mosfanet/Computers/info/
+  [[ "$ip_addr" != "$main_ip" ]] && scp -p "$info_file" rick@"$LOCALNET.$main_ip":Documents/mosfanet/Computers/info/
 }
 
 rename_mnt_pt() {
@@ -89,7 +89,7 @@ rename_mnt_pt() {
         break
       ;;
       * )
-        printf "%s Invalid choice! Select 1, 2, 3, or 4\n" >&2 "$red_error"
+        printf "%s Invalid choice! Select 1, 2, 3, or 4\n" >&2 "$RED_ERROR"
     esac
   done
 }
@@ -117,7 +117,7 @@ ff_fix() {
         break
       ;;
       * )
-        printf "%s Invalid choice! Choose 1, 2, 3, or 4\n" >&2 "$red_error"
+        printf "%s Invalid choice! Choose 1, 2, 3, or 4\n" >&2 "$RED_ERROR"
     esac
   done
   echo "$hd_ff"
@@ -265,7 +265,7 @@ battery_info() {
 main() {
   local script version lhost info_file today
   script=$(basename "$0")
-  version="3.9.24277"
+  version="3.9.24305"
   lhost="${HOSTNAME:-$(hostname)}"
   info_file="$HOME/$lhost.info"
   today=$(date +'%d %B %Y')
