@@ -20,7 +20,8 @@ export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/1000/bus"
 DAYTIME_FILE=/tmp/daytime
 NIGHTIME_FILE=/tmp/nighttime
 
-brightness=$(xrandr --verbose | awk '/Brightness/ {print $2;exit}')
+# brightness=$(xrandr --verbose | awk '/Brightness/ {print $2;exit}')
+brightness=$(xrandr --verbose | grep -w Brightness -m1 | cut -d' ' -f2 )
 
 if [[ "$brightness" == "1.0" && -f "$NIGHTIME_FILE" ]]; then
 	rm "$NIGHTIME_FILE"
