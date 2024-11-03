@@ -90,7 +90,7 @@ show_wired() {
 
 show_wireless() {
   local wifi_int wifi_state wifi_ip wifi_mac wifi_ssid wifi_sig
-  for wifi_int in $(/usr/bin/nmcli dev | awk '/wifi/ {print $1;exit}'); do
+  for wifi_int in $(/usr/bin/nmcli dev | awk '/wifi / {print $1}'); do
     if [[ -n "$wifi_int" ]]; then
       # interface data
       wifi_state=$(cat "/sys/class/net/$wifi_int/operstate")
@@ -134,8 +134,8 @@ show_wireless() {
 
 show_bridge() {
   local br_int br_state br_ip br_mac br_route
-	# br_int=$(/usr/bin/nmcli dev | awk '/bridge/ {print $1}')
-  br_int=$(ip ad show | awk '/: vir/ {print $2;exit}' | sed 's/:$//')
+	br_int=$(/usr/bin/nmcli dev | awk '/bridge / {print $1}')
+  # br_int=$(ip ad show | awk '/: vir/ {print $2;exit}' | sed 's/:$//')
 
 	if [[ -n "$br_int" ]]; then
     # interface data
