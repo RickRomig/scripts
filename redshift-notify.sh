@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Oct 2024
-# Last updated : 28 Oct 2024 version 1.0.24302
+# Last updated : 03 Nov 2024 version 1.1.24308
 # Comments     : Script doesn't do anything if there is no display (on a KVM or headless)
 #              : Run as cron job: */10 * * * * /home/username/.local/bin/redshift-notify.sh
 # TODO (Rick)  :
