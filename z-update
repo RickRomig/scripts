@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 01 Nov 2024
+# Updated      : 04 Nov 2024
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -27,7 +27,7 @@ check_disk_space() {
 	r_used=$(echo "$df_stats" | cut -d ' ' -f2)
 	r_perc=$(echo "$df_stats" | cut -d ' ' -f4)
 	r_avail=$(echo "$df_stats" | cut -d ' ' -f3)
-	echo "Disk space used (root): $r_used/$r_size $r_perc used, $r_avail available."
+  printf "\nDisk space used (root): %s/%s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
 }
 
 format_time() {
@@ -73,6 +73,17 @@ get_updates() {
   fi
 }
 
+autoremove_packages() {
+  local npkgs
+  npkgs=$(apt-get autoremove -s | awk 'NR==8 {print $6}')
+  # nupd=$(apt-get autoremove -s | awk '/upgraded/ {print $6}')
+  if [[ "$npkgs" -gt 0 ]]; then
+    DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove -yy
+  else
+    printf "No packages to be removed.\n"
+  fi
+}
+
 purge_rc_packages() {
   local rcpkg
   if dpkg -l | grep -c '^rc' > /dev/null; then
@@ -81,7 +92,7 @@ purge_rc_packages() {
       DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get remove --purge "$rcpkg" -yy
     done
   else
-    printf "No packages in the 'rc' state to be purged.\n"
+    printf "No packages in the 'rc' state.\n"
   fi
 }
 
@@ -93,7 +104,7 @@ purge_rc_packages() {
   printf "\n*** Cleaning APT cache ***\n"
   /usr/bin/apt-get autoclean
   printf "\n*** Removing orphaned packages ***\n"
-  DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove -yy
+  autoremove_packages
   printf "\n*** Purging obsolete configuration files ***\n"
   purge_rc_packages
   exists flatpak && check_flatpak
