@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 30 Oct 2024
+# Updated      : 04 Nov 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -40,7 +40,8 @@ check_disk_space() {
 	r_used=$(echo "$df_stats" | cut -d ' ' -f2)
 	r_perc=$(echo "$df_stats" | cut -d ' ' -f4)
 	r_avail=$(echo "$df_stats" | cut -d ' ' -f3)
-	echo "Disk space used (root): $r_used/$r_size $r_perc used, $r_avail available."
+	# echo "Disk space used (root): $r_used/$r_size $r_perc used, $r_avail available."
+  printf "\nDisk space used (root): %s/%s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
 }
 
 check_reboot_required() {
@@ -80,8 +81,14 @@ clean_apt_cache() {
 }
 
 remove_orphans() {
+  local npkgs
+  npkgs=$(apt-get autoremove -s | awk 'NR==8 {print $6}')
   printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
-  sudo apt-get autoremove -yy
+  if [[ "$npkgs" -gt 0 ]]; then
+    sudo apt-get autoremove -yy
+  else
+    printf "No packages to be removed.\n"
+  fi
 }
 
 purge_rc_packages() {
@@ -120,9 +127,9 @@ update_flatpak() {
     flatpak update --user --noninteractive --force-remove --assumeyes
     printf "System-wide installations...\n"
     sudo flatpak update --system --noninteractive --force-remove --assumeyes  2> /dev/null
-    printf "\n"
+    # printf "\n"
   else
-    printf "No Flatpaks installed.\n\n"
+    printf "No Flatpaks installed.\n"
   fi
 }
 
@@ -211,7 +218,7 @@ apt_update() {
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="2.18.24304"
+  version="3.0.24309"
   local_host="${HOSTNAME:-$(hostname)}"
   clear
   cat << _HEADER_
@@ -221,7 +228,6 @@ Distro: $(get_distribution)
 Kernel: $(uname -sr)
 
 Checking for updates...${normal}
-
 _HEADER_
 }
 
