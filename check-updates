@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 04 Nov 2024
+# Updated      : 05 Nov 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -41,7 +41,7 @@ check_disk_space() {
 	r_perc=$(echo "$df_stats" | cut -d ' ' -f4)
 	r_avail=$(echo "$df_stats" | cut -d ' ' -f3)
 	# echo "Disk space used (root): $r_used/$r_size $r_perc used, $r_avail available."
-  printf "\nDisk space used (root): %s/%s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
+  printf "\nDisk space used (root): %s / %s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
 }
 
 check_reboot_required() {
@@ -100,7 +100,7 @@ purge_rc_packages() {
       sudo apt-get remove --purge "$rcpkg" -yy
     done
   else
-    printf "No packages in the 'rc' state to be purged.\n"
+    printf "No packages in the 'rc' state.\n"
   fi
 }
 
@@ -218,7 +218,7 @@ apt_update() {
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="3.0.24309"
+  version="3.1.24310"
   local_host="${HOSTNAME:-$(hostname)}"
   clear
   cat << _HEADER_
