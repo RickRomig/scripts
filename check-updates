@@ -148,6 +148,15 @@ update_summary() {
 	printf "\n%s to upgrade, %s new packages, %s to remove, %s deferred.\n\n" "$nupd" "$nnew" "$nrem" "$ndef"
 }
 
+count_updates() {
+  local nupdates fields field1 field2
+  fields=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3)
+  field1=$(echo "$fields" | cut -d' ' -f1)
+  field2=$(echo "$fields" | cut -d' ' -f2)
+  nupdates=$((field1 + field2))
+  printf "%s" "$nupdates"
+}
+
 nala_update() {
   sudo nala upgrade
   if default_no "Run autoremove/autopurge?"; then
@@ -162,12 +171,9 @@ nala_update() {
 }
 
 apt_update() {
-  local nupd options _opt summary tmp1 tmp2
+  local nupd options _opt
   update_apt_cache
-  summary=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3)
-  tmp1=$(echo "$summary" | cut -d' ' -f1)
-  tmp2=$(echo "$summary" | cut -d' ' -f2)
-  nupd=$((tmp1 + tmp2))
+  nupd=$(count_updates)
   update_summary
   # If there are packages to be upgraded
   if (( nupd > 0 )); then
@@ -229,7 +235,7 @@ apt_update() {
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="3.3.24311"
+  version="3.4.24311"
   local_host="${HOSTNAME:-$(hostname)}"
   clear
   cat << _HEADER_
