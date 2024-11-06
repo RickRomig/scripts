@@ -56,18 +56,21 @@ exists() {
 
 update_summary() {
 	local summary nupd nnew nrem ndef
-	summary=$(apt-get dist-upgrade -s | awk '/upgraded/ {print $1,$3,$6,$(NF-2)}')
+	summary=$(apt-get dist-upgrade -s | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3,6,10)
 	nupd=$(echo "$summary" | cut -d' ' -f1)
 	nnew=$(echo "$summary" | cut -d' ' -f2)
 	nrem=$(echo "$summary" | cut -d' ' -f3)
 	ndef=$(echo "$summary" | cut -d' ' -f4)
-	printf "\n%s to upgrade, %s new packages, %s to remove, %s deferred.\n" "$nupd" "$nnew" "$nrem" "$ndef"
+	printf "\n%s to upgrade, %s new packages, %s to remove, %s deferred.\n\n" "$nupd" "$nnew" "$nrem" "$ndef"
 }
 
 get_updates() {
-  local nupd
+  local nupd summary tmp1 tmp2
   /usr/bin/apt-get update
-  nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
+  summary=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3)
+  tmp1=$(echo "$summary" | cut -d' ' -f1)
+  tmp2=$(echo "$summary" | cut -d' ' -f2)
+  nupd=$((tmp1 + tmp2))
   update_summary
   if [[ "$nupd" -gt 0 ]]; then
     printf "\n*** Installing updates ***\n"
