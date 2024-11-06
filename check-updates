@@ -140,12 +140,12 @@ update_spices() {
 
 update_summary() {
 	local summary nupd nnew nrem ndef
-	summary=$(apt-get dist-upgrade -s | awk '/upgraded/ {print $1,$3,$6,$(NF-2)}')
+	summary=$(apt-get dist-upgrade -s | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3,6,10)
 	nupd=$(echo "$summary" | cut -d' ' -f1)
 	nnew=$(echo "$summary" | cut -d' ' -f2)
 	nrem=$(echo "$summary" | cut -d' ' -f3)
 	ndef=$(echo "$summary" | cut -d' ' -f4)
-	printf "\n%s to upgrade, %s new packages, %s to remove, %s deferred.\n" "$nupd" "$nnew" "$nrem" "$ndef"
+	printf "\n%s to upgrade, %s new packages, %s to remove, %s deferred.\n\n" "$nupd" "$nnew" "$nrem" "$ndef"
 }
 
 nala_update() {
@@ -162,18 +162,20 @@ nala_update() {
 }
 
 apt_update() {
-  local nupd options _opt
+  local nupd options _opt summary tmp1 tmp2
   update_apt_cache
-  # nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
-  nupd=$(aptitude search '~U' | wc -l)
+  summary=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3)
+  tmp1=$(echo "$summary" | cut -d' ' -f1)
+  tmp2=$(echo "$summary" | cut -d' ' -f2)
+  nupd=$((tmp1 + tmp2))
   update_summary
   # If there are packages to be upgraded
   if (( nupd > 0 )); then
-    # printf "%s%d " "$orange" "$nupd"
-    # (( nupd > 1 )) && printf "packages" || printf "package"
-    # printf " can be upgraded%s.\n" "$normal"
   # List upgradeable packages
-    apt list --upgradable
+    printf "Files to be upgraded:\n"
+    apt list --upgradable 2>/dev/null | sed '1d' | cut -d'/' -f1
+    # nupd=$(aptitude search '~U' | cut -d' ' -f3)
+
     # Options menu
     COLUMNS=40
     printf "\n%s%sUpdate options:%s\n" "$underline" "$green" "$normal"
@@ -221,15 +223,13 @@ apt_update() {
           printf "%sInvalid option!%s Select 1..%d\n" "$lightred" "$normal" "${#options[@]}" >&2
       esac
     done
-  # else
-    # printf "\n%sAll packages are up to date.%s\n" "$orange" "$normal"
   fi
 }
 
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="3.2.24311"
+  version="3.3.24311"
   local_host="${HOSTNAME:-$(hostname)}"
   clear
   cat << _HEADER_
