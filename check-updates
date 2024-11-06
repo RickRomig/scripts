@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 05 Nov 2024
+# Updated      : 06 Nov 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -138,6 +138,16 @@ update_spices() {
   cinnamon-spice-updater --update-all
 }
 
+update_summary() {
+	local summary nupd nnew nrem ndef
+	summary=$(apt-get dist-upgrade -s | awk '/upgraded/ {print $1,$3,$6,$(NF-2)}')
+	nupd=$(echo "$summary" | cut -d' ' -f1)
+	nnew=$(echo "$summary" | cut -d' ' -f2)
+	nrem=$(echo "$summary" | cut -d' ' -f3)
+	ndef=$(echo "$summary" | cut -d' ' -f4)
+	printf "\n%s to upgrade, %s new packages, %s to remove, %s deferred.\n" "$nupd" "$nnew" "$nrem" "$ndef"
+}
+
 nala_update() {
   sudo nala upgrade
   if default_no "Run autoremove/autopurge?"; then
@@ -156,12 +166,13 @@ apt_update() {
   update_apt_cache
   # nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
   nupd=$(aptitude search '~U' | wc -l)
+  update_summary
   # If there are packages to be upgraded
   if (( nupd > 0 )); then
-    printf "%s%d " "$orange" "$nupd"
-    (( nupd > 1 )) && printf "packages" || printf "package"
-    printf " can be upgraded%s.\n" "$normal"
-    # List upgradeable packages
+    # printf "%s%d " "$orange" "$nupd"
+    # (( nupd > 1 )) && printf "packages" || printf "package"
+    # printf " can be upgraded%s.\n" "$normal"
+  # List upgradeable packages
     apt list --upgradable
     # Options menu
     COLUMNS=40
@@ -210,15 +221,15 @@ apt_update() {
           printf "%sInvalid option!%s Select 1..%d\n" "$lightred" "$normal" "${#options[@]}" >&2
       esac
     done
-  else
-    printf "\n%sAll packages are up to date.%s\n" "$orange" "$normal"
+  # else
+    # printf "\n%sAll packages are up to date.%s\n" "$orange" "$normal"
   fi
 }
 
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="3.1.24310"
+  version="3.2.24311"
   local_host="${HOSTNAME:-$(hostname)}"
   clear
   cat << _HEADER_
