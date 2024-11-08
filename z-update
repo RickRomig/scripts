@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 06 Nov 2024
+# Updated      : 08 Nov 2024
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -54,16 +54,6 @@ exists() {
   command -v "$1" > /dev/null 2>&1 && return 0 || return 1
 }
 
-update_summary() {
-	local summary nupd nnew nrem ndef
-	summary=$(apt-get dist-upgrade -s | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3,6,10)
-	nupd=$(echo "$summary" | cut -d' ' -f1)
-	nnew=$(echo "$summary" | cut -d' ' -f2)
-	nrem=$(echo "$summary" | cut -d' ' -f3)
-	ndef=$(echo "$summary" | cut -d' ' -f4)
-	printf "\n%s to upgrade, %s new packages, %s to remove, %s deferred.\n\n" "$nupd" "$nnew" "$nrem" "$ndef"
-}
-
 get_updates() {
   local nupd summary tmp1 tmp2
   /usr/bin/apt-get update
@@ -71,17 +61,18 @@ get_updates() {
   tmp1=$(echo "$summary" | cut -d' ' -f1)
   tmp2=$(echo "$summary" | cut -d' ' -f2)
   nupd=$((tmp1 + tmp2))
-  update_summary
   if [[ "$nupd" -gt 0 ]]; then
     printf "\n*** Installing updates ***\n"
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get dist-upgrade -yy
+  else
+    printf "\n*** Packages are up to date ***\n"
   fi
 }
 
 autoremove_packages() {
   local npkgs
   # npkgs=$(apt-get autoremove -s | awk 'NR==8 {print $6}')
-  nupd=$(apt-get autoremove -s | awk '/upgraded/ {print $6}')
+  npkgs=$(apt-get autoremove -s | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f6)
   if [[ "$npkgs" -gt 0 ]]; then
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove -yy
   else
@@ -104,6 +95,7 @@ purge_rc_packages() {
 {
   printf "Date: %s\n" "$(date '+%F %R')"
 	check_disk_space
+  # update_summary
   printf "\n*** Checking for updates ***\n"
   get_updates
   printf "\n*** Cleaning APT cache ***\n"
