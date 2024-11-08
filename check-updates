@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 06 Nov 2024
+# Updated      : 08 Nov 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -82,7 +82,7 @@ clean_apt_cache() {
 
 remove_orphans() {
   local npkgs
-  npkgs=$(apt-get autoremove -s | awk 'NR==8 {print $6}')
+  npkgs=$(apt-get autoremove -s | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f6)
   printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
   if [[ "$npkgs" -gt 0 ]]; then
     sudo apt-get autoremove -yy
@@ -234,7 +234,7 @@ apt_update() {
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="3.4.24311"
+  version="3.5.24313"
   local_host="${HOSTNAME:-$(hostname)}"
   clear
   cat << _HEADER_
