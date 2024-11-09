@@ -12,3 +12,5 @@ d
 }
 # Deleting warnings if nala installed.
 /W: Target/d
+# Deleting warnings for possible missing amdgpu firmeare
+/W:\|for module amdgpu$/d
