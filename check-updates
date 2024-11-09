@@ -82,7 +82,8 @@ clean_apt_cache() {
 
 remove_orphans() {
   local npkgs
-  npkgs=$(apt-get autoremove -s | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f6)
+  # npkgs=$(apt-get autoremove -s | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f6)
+  npkgs=$(apt-get autoremove -s | awk '$2 == "upgraded," {print $6}')
   printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
   if [[ "$npkgs" -gt 0 ]]; then
     sudo apt-get autoremove -yy
@@ -140,7 +141,7 @@ update_spices() {
 
 update_summary() {
 	local summary nupd nnew nrem ndef
-	summary=$(apt-get dist-upgrade -s | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3,6,10)
+	summary=$(apt-get dist-upgrade -s |  awk '$2 == "upgraded," {print $1,$3,$6,$(NF-2)}')
 	nupd=$(echo "$summary" | cut -d' ' -f1)
 	nnew=$(echo "$summary" | cut -d' ' -f2)
 	nrem=$(echo "$summary" | cut -d' ' -f3)
@@ -150,7 +151,8 @@ update_summary() {
 
 count_updates() {
   local nupdates fields field1 field2
-  fields=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3)
+  # fields=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3)
+  fields=$(apt-get -s dist-upgrade | awk '$2 == "upgraded," {print $1,$3}')
   field1=$(echo "$fields" | cut -d' ' -f1)
   field2=$(echo "$fields" | cut -d' ' -f2)
   nupdates=$((field1 + field2))
@@ -178,7 +180,7 @@ apt_update() {
   # If there are packages to be upgraded
   if (( nupd > 0 )); then
   # List upgradeable packages
-    printf "Packages to be upgraded:\n"
+    printf "%sPackages to be upgraded:%s\n" "$underline" "$normal"
     apt list --upgradable 2>/dev/null | sed '1d' | cut -d'/' -f1
 
     # Options menu
