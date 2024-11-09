@@ -7,9 +7,8 @@
 # Author       : Copyright (C) 2018,Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Nov 2018
-# Updated      : 08 Nov 2024
-# Comments     : Inspired by Joe Collins.
-#              : and Luke Smith <https://lukesmith.xyz>
+# Updated      : 09 Nov 2024
+# Comments     : Inspired by Joe Collins and Luke Smith <https://lukesmith.xyz>
 # License      : GNU General Public License, version 2.0
 #####################################################################
 
@@ -42,14 +41,13 @@ check_dependencies() {
 }
 
 memory_usage() {
-	printf "\n%sMemory usage:%s %s\n" "$orange" "$normal" "$(/usr/bin/free -h | awk '/^Mem:/ {print $3 "/" $2}')"
+	printf "\n%sMemory usage:%s %s\n" "$orange" "$normal" "$(/usr/bin/free -h | awk '/^Mem:/ {print $3 " / " $2}' | sed 's/i//g')"
   printf "%sProcess%s\t\t%sPercentage%s\n" "$underline" "$normal" "$underline" "$normal"
 	ps axch -o cmd:15,%mem --sort=-%mem | head -n 5
 }
 
 cpu_usage() {
   local cores cpu_usage cpu_use
-  # cpu_use=$(echo "$[100-$(vmstat 1 2 | tail -1 | awk '{print $15}')]")
   cores="$(grep -c "^processor" /proc/cpuinfo)"
   cpu_usage="$(ps aux | awk 'BEGIN {sum=0} {sum+=$3}; END {print sum}')"
   cpu_use="$((${cpu_usage/\.*} / ${cores:-1}))"
@@ -143,7 +141,7 @@ main() {
   check_dependencies
   local sensor_json script version
   script=$(basename "$0")
-  version="6.5.24313"
+  version="6.6.24314"
   sensor_json="$(sensors -j)"
   clear
   show_header
