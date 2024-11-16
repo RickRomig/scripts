@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
 ###############################################################################
-# Script Name  : z-clean-tmp v1.2
+# Script Name  : z-clean-tmp v1.3
 # Description  : Removes files from /tmp accessed more than 2 days prior
 # Dependencies : find
 # Arguments    : None
-# Author       : Copyright (C) 2019, Richard B. Romig, 31 July 2019
+# Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com
 # Comments     : Only deletes files in /tmp that are not owned by root.
-# Last updated : 19 Nov 2023
+# Created      : 31 July 2019
+# Last updated : 16 Nov 2024
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
-set -euo pipefail
+set -eu
 
-/usr/bin/find /tmp -type f \( ! -user root \) -atime +2 -delete
+/usr/bin/find /tmp -type f \( ! -user root \) -atime +2 -delete 2>/dev/null
 
 exit
