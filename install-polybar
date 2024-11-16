@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Nov 2023
-# Updated      : 02 Oct 2024
+# Updated      : 15 Nov 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,14 +41,14 @@ assign_repo() {
 			repo="$HOME/gitea/configs"
 		;;
 		* )
-			if [[ -d "$HOME/Download/configs" ]]; then
-				pushd "$HOME/Download/configs" || die "pushd failed"
+			if [[ -d "$HOME/Downloads/configs" ]]; then
+				pushd "$HOME/Downloads/configs" || die "pushd failed"
 				git pull --quiet origin main
 				popd || die "popd failed"
 			else
-				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Download/configs"
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
 			fi
-			repo="$HOME/Download/configs"
+			repo="$HOME/Downloads/configs"
 	esac
 	printf "%s" "$repo"
 }
@@ -62,10 +62,12 @@ copy_polybar_config() {
 }
 
 copy_polybar_launcher() {
-	local launcher="polybar-i3"
+	local i3_dir launcher
+	i3_dir="$HOME/,config/i3"
+	launcher="polybar-i3"
 	printf "Installing the %s launcher...\n" "$launcher"
-	cp -v "$repository/polybar/$launcher" "$polybar_d/"
-	[[ -x "$polybar_d/$launcher" ]] || chmod +x "$polybar_d/$launcher"
+	cp -v "$repository/i3/$launcher" "$i3_dir/"
+	[[ -x "$i3_dir/$launcher" ]] || chmod +x "$i3_dir/$launcher"
 	printf "%s installed.\n" "$launcher"
 }
 
@@ -99,7 +101,7 @@ main() {
   check_package git
   local i3_dir script version repository
   script=$(basename "$0")
-  version="2.3.24276"
+  version="2.4.24320"
 	i3_dir="$HOME/.config/i3"
 	repository=$(assign_repo)
 	printf "Installs Polybar on Debian with i3wm.\n"
