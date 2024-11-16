@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 25 Oct 2024
+# Updated      : 15 Nov 2024
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.0.24299"
+readonly version="2.1.24320"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
@@ -69,14 +69,14 @@ assign_repo() {
 			repo="$HOME/gitea/configs"
 		;;
 		* )
-			if [[ -d "$HOME/Download/configs" ]]; then
-				pushd "$HOME/Download/configs" || die "pushd failed"
+			if [[ -d "$HOME/Downloads/configs" ]]; then
+				pushd "$HOME/Downloads/configs" || die "pushd failed"
 				git pull --quiet origin main
 				popd || die "popd failed"
 			else
-				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Download/configs"
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
 			fi
-			repo="$HOME/Download/configs"
+			repo="$HOME/Downloads/configs"
 	esac
 	printf "%s" "$repo"
 }
@@ -94,7 +94,7 @@ apply_settings() {
   [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
   show_message "Applying VSCodium settings..."
 	show_message "Copying $json_file from $repository..."
-	cp -v "$repository/$json_file" "$cfg_dir"
+	cp -v "$repository/VSCodium/User/$json_file" "$cfg_dir"
   show_message "VSCodium settings applied."
 }
 
