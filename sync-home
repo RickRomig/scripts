@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Sep 2019
-# Updated      : 21 Oct 2024
+# Updated      : 16 Nov 2024
 # Comments     : Creates a compressed tar archive of the folder's contents.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -42,8 +42,8 @@ check_host() {
 cleanup_files() {
 	local homepage_d="$1"
   printf "\nRemoving backup files (if any)...\n"
-  find "$homepage_d"/ -name "*~" -delete
-  find "$homepage_d"/ -maxdepth 2 -type f -name "*.bak" -exec rm{} \;
+  find "$homepage_d"/ -name "*~" -print -delete
+  find "$homepage_d"/ -maxdepth 2 -type f -name "*.bak" -exec rm -v {} \;
 }
 
 archive_homepage() {
@@ -53,9 +53,9 @@ archive_homepage() {
 	archive="homepage-$(date +%y%m%d).tar.gz"
 	[[ -d "$archive_d" ]] || mkdir -p "$archive_d"
 	printf "Backing up %s...\n" "$homepage_d"
-	tar -czf "$archive_d/$archive" -C "$HOME/gitea" homepage
+	tar -czvf "$archive_d/$archive" -C "$HOME/gitea" homepage
 	printf "Removing archives more than six months old...\n"
-	find "$archive_d" -mtime +180 -delete
+	find "$archive_d" -mtime +180 -print -delete
 }
 
 sync_dropbox() {
@@ -72,7 +72,7 @@ sync_dropbox() {
 main() {
 	local script version homepage_dir archive_dir
 	script=$(basename "$0")
-	version="6.5.24295"
+	version="6.6.24321"
 	homepage_dir="$HOME/gitea/homepage"
 	archive_dir="$HOME/Downloads/archives/homepage"
 
