@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 25 Oct 2024
+# Updated      : 15 Nov 2024
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.10.24299"
+readonly version="2.110.24320"
 readonly kitty_cfg_d="$HOME/.config/kitty"
 
 ## Functions ##
@@ -36,7 +36,7 @@ readonly kitty_cfg_d="$HOME/.config/kitty"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="25 Oct 2024"
+	updated="215 Nov 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Kitty terminal emulator
@@ -61,14 +61,14 @@ assign_repo() {
 			repo="$HOME/gitea/configs"
 		;;
 		* )
-			if [[ -d "$HOME/Download/configs" ]]; then
-				pushd "$HOME/Download/configs" || die "pushd failed"
+			if [[ -d "$HOME/Downloads/configs" ]]; then
+				pushd "$HOME/Downloads/configs" || die "pushd failed"
 				git pull --quiet origin main
 				popd || die "popd failed"
 			else
-				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Download/configs"
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
 			fi
-			repo="$HOME/Download/configs"
+			repo="$HOME/Downloads/configs"
 	esac
 	printf "%s" "$repo"
 }
