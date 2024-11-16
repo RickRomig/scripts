@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Dec 2018
-# Updated      : 25 Oct 2024
+# Updated      : 15 Nov 2024
 # Comment      : copies .conkyrc to conkyrc-hostname for archiving purposes.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.5.24299"
+readonly version="6.5.24320"
 # readonly repository="configs/raw/branch/main/"
 readonly localbin_d="$HOME/.local/bin"
 readonly autostart_d="$HOME/.config/autostart"
@@ -40,7 +40,7 @@ verbose_mode="$FALSE"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-  updated="25 Oct 2024"
+  updated="15 Nov 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs and configures Conky
@@ -82,14 +82,14 @@ assign_repo() {
 			repo="$HOME/gitea/configs"
 		;;
 		* )
-			if [[ -d "$HOME/Download/configs" ]]; then
-				pushd "$HOME/Download/configs" || die "pushd failed"
+			if [[ -d "$HOME/Downloads/configs" ]]; then
+				pushd "$HOME/Downloads/configs" || die "pushd failed"
 				git pull --quiet origin main
 				popd || die "popd failed"
 			else
-				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Download/configs"
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
 			fi
-			repo="$HOME/Download/configs"
+			repo="$HOME/Downloads/configs"
 	esac
 	printf "%s" "$repo"
 }
@@ -127,7 +127,7 @@ conky_desktop() {
     [[ -f "$autostart_d/Conky.desktop" ]] && mv "$autostart_d/Conky.desktop" "$autostart_d/conky.desktop"
   else
     show_message "Downloading conky.desktop from the Gitea server to .config/autostart"
-    cp -v  "$repository/conky.desktop" "$autostart_d/"
+    cp -v  "$repository/conky/conky.desktop" "$autostart_d/"
     echo "conky.desktop configured."
   fi
 }
