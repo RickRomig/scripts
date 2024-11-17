@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-# Script to clean apt cache and remove orphaned packages & obsolute config files.
+# Script to clean apt cache and remove orphaned packages & obsolete config files.
 # Anacron - copy to /etc/cron.monthly/
 # Cron - copy to /usr/local/bin/ or /opt/bin/
-# Last updated: 15 Jun 2024
+# Last updated: 17 Nov 2024
 # License: GNU General Public License, version 2.0
 
-set -euo pipefail
+set -eu
 
 log_dir="/var/log"
 log_file="clean.log"
@@ -24,13 +24,23 @@ purge_configs() {
   fi
 }
 
+autoremove_packages() {
+  local npkgs
+  npkgs=$(apt-get autoremove -s | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f6)
+  if [[ "$npkgs" -gt 0 ]]; then
+    DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove -yy
+  else
+    printf "No packages to be removed.\n"
+  fi
+}
+
 {
   printf "Autoclean log: %s\n" "$log_date"
   printf "\nCleaning APT cache...\n"
   DEBIAN_FRONTEND=noninteractive apt-get autoclean
   printf "\nRemoving orphaned packages...\n"
-  DEBIAN_FRONTEND=noninteractive apt-get autoremove -yy
-  printf "\nPurging obsolete configuratino files\n"
+  autoremove_packages
+  printf "\nPurging obsolete configuration files\n"
   purge_configs
 } > "$log_dir/$log_file" 2>&1
 
