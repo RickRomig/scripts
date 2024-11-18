@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 17 Nov 2024
+# Updated      : 18 Nov 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,14 +36,14 @@ clone_repo() {
 main() {
   local index _repo repos script version
   script=$(basename "$0")
-  version="3.4.24322"
+  version="3.4.24323"
 
   exist_git
   printf "Clone a repository from the local Gitea server.\n\n"
   printf "Available repositories:\n"
   COLUMNS=40
   PS3="Choose a repository to clone: "
-  repos=( scripts configs i3debian deb12wm-scripts deb12wm-dotfiles debian-i3 gitea-server openboxdebian fnloc fnloc-win homepage )
+  repos=( scripts configs debian-i3 i3debian deb12wm-scripts deb12wm-dotfiles gitea-server openboxdebian fnloc fnloc-win homepage )
   select _repo in "${repos[@]}" "Exit"; do
 	  if (( REPLY == 1 + ${#repos[@]} )); then
 		  printf "Exiting. No repository selected or cloned.\n"
@@ -57,7 +57,7 @@ main() {
 		  printf "Invalid option. Choose 1 - %d\n" "${#repos[@]}"
 	  fi
   done
-  printf "%s v%s\n" "$script" "$version"
+  over_line "$script $version"
   exit
 }
 
