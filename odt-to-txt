@@ -2,11 +2,14 @@
 ###############################################################################
 # Script Name  : odt-to-txt
 # Description  : Convert .odt files to .txt or .md files
-# Dependencies : odt2txt
+# Dependencies : odt2txt fzf
 # Arguments    : None
-# Author       : Copyright (C) 2019, Richard B. Romig, 10 May 2019
+# Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : Run from adirectory containing files to be converted.
+# Created      : 10 May 2019
+# Updated      : 18 Nov 2024
+# Comments     : Run from a directory containing .odt files to be converted.
+#              : Leaves orginial .odt files intact.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -25,10 +28,15 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="1.4.24231"
+script=$(basename "$0"); readonly script
+readonly version="2.0.24323"
 
 ## Functions ##
+
+check_dependencies() {
+  local packages=(fzf odt2txt)
+  check_packages "${packages[@]}"
+}
 
 convert2txt() {
   local odt_file txt_file
@@ -46,70 +54,70 @@ convert2md() {
   echo "$odt_file -> $md_file"
 }
 
-ls_odt_files() {
-  ls ./*.odt > /dev/null 2>&1 || diehard "No .odt files found." "Change to a directory containing .odt files."
-  echo -e "Available .odt filse in $PWD:\n"
-  find ./ -maxdepth 1 -type f -name "*.odt" | sed 's/\.\///' | sort
+find_odt_files() {
+  local num_files
+  num_files=$(find . -maxdepth 1 -type f -iname "*.odt" | wc -l)
+  if (( num_files > 0 )); then
+    printf ".odt filse in %s:\n\n" "$PWD"
+    find ./ -maxdepth 1 -type f -name "*.odt" | sed 's/\.\///' | sort
+  else
+    die "No .odt files found."
+  fi
+}
+
+select_odt_file() {
+  local odt_file
+  odt_file=$(find . -maxdepth 3 -type f -name "*.odt" | sed 's/\.\///' | sort -d | fzf --height 40% --reverse --prompt "Select the file to convert: ")
+  echo "$odt_file"
 }
 
 ## Execution ##
 
-check_package odt2txt
+check_dependencies
 
 # Disable Crtl+C
 trap '' 2
 
 while true; do
   clear
-  echo "$_script v$_version"
-  under_line "Converts *.odt files to *.txt or *.md" "*"
-  ls_odt_files
-  echo
-  under_line "Use with care. May overwrite existing .txt or .md files." "*"
+  printf "Converts *.odt files to *.txt or *.md\n"
+  under_line "${lightyellow}Use with care. May overwrite existing .txt or .md files.${normal}" "*"
   COLUMNS=12
-  echo $'\n'$"Available operations:"
+  printf "\nAvailable operations:\n"
   options=("Convert a single .odt file to .txt" "Convert a single .odt file to .md" \
     "Convert all .odt files to .txt" "Convert all .odt files to .md" "Quit and exit")
   PS3="Choose an option: "
   select _opt in "${options[@]}"; do
     case $REPLY in
       1 )
-        read -rp "File to convert: " ofile
-        if [[ -f "$ofile" ]]; then
-          echo "Converting *.odt to *.txt"
-          convert2txt "$ofile"
-        else
-          echo "${lightred}Error:${normal} $ofile not found." >&2
-        fi
+        ofile=$(select_odt_file)
+        printf "Converting %s to text.\n" "$ofile"
+        convert2txt "$ofile"
         anykey; break
       ;;
       2 )
-        read -rp "File to convert: " ofile
-        if [[ -f "$ofile" ]]; then
-          echo "Converting *.odt to *.md"
-          convert2md "$ofile"
-        else
-          echo "${lightred}Error:${normal} $ofile not found." >&2
-        fi
+        ofile=$(select_odt_file)
+        printf "Converting %s to markdown.\n" "$ofile"
+        convert2md "$ofile"
         anykey; break
       ;;
       3 )
-        echo "Converting *.odt to *.txt"
-        for ofile in *.odt; do
-          convert2txt "$ofile"
-        done
+        find_odt_files
+        printf "Converting .odt files in %s to text...\n\n" "$PWD"
+        for ofile in *.odt; do convert2txt "$ofile"; done
         anykey; break
       ;;
       4 )
-        echo "Converting *.odt to *.md"
-        for ofile in *.odt; do
-          convert2md "$ofile"
-        done
+        find_odt_files
+        printf "Converting .odt files in %s to markdown...\n\n" "$PWD"
+        for ofile in *.odt; do convert2md "$ofile"; done
         anykey; break
       ;;
       5 )
         trap 2
-        leave "All done! Exiting the script."
+        printf "All done! Exiting the script.\n"
+        over_line "$script v$version"
+        exit
       ;;
       * )
         echo "${lightred}Invalid Option!${normal} Choose 1 - 5" >&2
