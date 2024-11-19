@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 31 Oct 2024
+# Updated      : 19 Nov 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.7.24305"
+readonly version="4.8.24324"
 readonly gh_url="https://github.com/marktext/marktext/releases"
 readonly cfg_dir="$HOME/.config/marktext"
 
@@ -42,8 +42,28 @@ cleanup() {
 }
 
 check_dependencies() {
-  local packages=( gdebi wget )
+  local packages=( gdebi git wget )
   check_packages "${packages[@]}"
+}
+
+assign_repo() {
+	local localip repo
+	localip=$(local_ip)
+	case "$localip" in
+		10|16|22 )
+			repo="$HOME/gitea/configs"
+		;;
+		* )
+			if [[ -d "$HOME/Downloads/configs" ]]; then
+				pushd "$HOME/Downloads/configs" || die "pushd failed"
+				git pull --quiet origin main
+				popd || die "popd failed"
+			else
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
+			fi
+			repo="$HOME/Downloads/configs"
+	esac
+	printf "%s" "$repo"
 }
 
 marktext_version() {
@@ -80,7 +100,6 @@ install_marktext() {
   sudo_login 2
   printf "Installing Mark Text %s...\n" "$new_ver"
   sudo gdebi -n "$tmp_dir/$new_pkg"
-  dl_preferences
   printf "Mark Text %s installed.\n" "$(marktext_version)"
 }
 
@@ -95,25 +114,19 @@ remove_marktext() {
 }
 
 dl_preferences() {
-  local json_file localip repository
-  localip=$(local_ip)
+  local json_file repository
+  repository="$1"
   json_file="preferences.json"
   [[ -d "$cfg_dir" ]] && mkdir -p "$cfg_dir"
   printf "Applying MarkText preferences...\n"
-  if [[ "$localip" == "16" ]]; then
-    repository="HOME/gitea/configs/marktext"
-    cp -v "$repository/$json_file" "$cfg_dir/"
-  else
-    repository="configs/raw/branch/main/marktext"
-    curl -so "$cfg_dir/$json_file" "$GITEA_URL/$repository/$json_file"
-  fi
+  cp -v "$repository/marktext/$json_file" "$cfg_dir/"
   printf "MarkText %s applied.\n" "$json_file"
 }
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="31 Oct 2024"
+	updated="19 Nov 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, removes the Mark Text markdown editor.
@@ -131,14 +144,16 @@ _HELP_
 }
 
 main() {
-  local noOpt opt optstr new_ver
+  local noOpt opt optstr new_ver repository
+  check_dependencies
+	repository=$(assign_repo)
   noOpt=1
   optstr=":chiru"
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
         exists marktext || leave "Marktext is not installed."
-        dl_preferences
+        dl_preferences "$repository"
       ;;
       h )
         help 0
@@ -148,10 +163,10 @@ main() {
         tmp_file=$(mktemp) || die "Failed to create temporary file." 1
         tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
         trap cleanup EXIT
-        check_dependencies
         new_ver="$(newest_version)"
         echo "${lightyellow}Installing MarkText version $new_ver...${normal}"
         install_marktext "$new_ver"
+        dl_preferences "$repository"
       ;;
       r )
         exists marktext || leave "Marktext is not installed."
@@ -162,7 +177,6 @@ main() {
         tmp_file=$(mktemp) || die "Failed to create temporary file." 1
         tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
         trap cleanup EXIT
-        check_dependencies
         new_ver="$(newest_version)"
         [[ "$new_ver" ]] || die "No download available. Try again later." 1
         compare_versions "$new_ver"
