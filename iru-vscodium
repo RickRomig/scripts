@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2022
-# Updated      : 10 Nov 2024
+# Updated      : 19 Nov 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.2.24315"
+readonly version="2.3.24324"
 readonly gh_url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -43,8 +43,28 @@ cleanup() {
 }
 
 check_dependencies() {
-  local packages=( gdebi wget )
+  local packages=( gdebi git wget )
   check_packages "${packages[@]}"
+}
+
+assign_repo() {
+	local localip repo
+	localip=$(local_ip)
+	case "$localip" in
+		10|16|22 )
+			repo="$HOME/gitea/configs"
+		;;
+		* )
+			if [[ -d "$HOME/Downloads/configs" ]]; then
+				pushd "$HOME/Downloads/configs" || die "pushd failed"
+				git pull --quiet origin main
+				popd || die "popd failed"
+			else
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
+			fi
+			repo="$HOME/Downloads/configs"
+	esac
+	printf "%s" "$repo"
 }
 
 codium_version() {
@@ -92,19 +112,13 @@ remove_vscodium() {
 }
 
 apply_settings() {
-  local json_file localip repository vsc_cfg_d
-  localip=$(local_ip)
+  local json_file repository vsc_cfg_d
+  repository="$1"
   vsc_cfg_d="${HOME}/.config/VSCodium/User"
   json_file="settings.json"
   [[ -d "$vsc_cfg_d" ]] || mkdir -p "$vsc_cfg_d"
   printf "Applying VSCodium settings...\n"
-  if [[ "$localip" == "16" ]]; then
-    repository="HOME/gitea/configs/VSCodium/User"
-    cp -v "$repository/$json_file" "$vsc_cfg_d/"
-  else
-    repository="configs/raw/branch/main/VSCodium/User"
-    curl -so "$vsc_cfg_d/$json_file" "$GITEA_URL/$repository/$json_file"
-  fi
+  cp -v "$repository/VSCodium/User/$json_file" "$vsc_cfg_d/"
   printf "VSCodium settings applied.\n"
 }
 
@@ -129,8 +143,9 @@ _HELP_
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr repository
   check_dependencies
+  repository=$(assign_repo)
   noOpt=1
   optstr=":hirsu"
   while getopts "$optstr" opt; do
@@ -148,7 +163,7 @@ main() {
         [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
         echo "${lightyellow}Installing VSCodium $new_ver...${normal}"
 			  install_vscodium
-        apply_settings
+        apply_settings "$repository"
       ;;
 		  r )
         exists codium || leave "VSCodium is not installed."
@@ -157,7 +172,7 @@ main() {
       ;;
 		  s )
         exists codium || leave "VSCodium is not installed."
-        apply_settings
+        apply_settings "$repository"
       ;;
 		  u )
         exists codium || leave "VSCodium is not installed."
