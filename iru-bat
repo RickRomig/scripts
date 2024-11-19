@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : iru-bat
 # Description  : Installs, updates, and removes the Bat utillity program.
-# Dependencies : gdebi, wget
+# Dependencies : gdebi, wget git
 # Arguments    : -c -h -i -r -u (See the help function for details.)
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 31 Oct 2024
+# Updated      : 19 Nov 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -15,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-
 
 ## Source function library ##
 
@@ -31,7 +30,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="5.11.24305"
+readonly version="5.11.24324"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 readonly cfg_d=$HOME"/.config/bat"
 
@@ -45,8 +44,28 @@ cleanup() {
 }
 
 check_dependencies() {
-  local packages=( gdebi wget )
+  local packages=( gdebi git wget )
   check_packages "${packages[@]}"
+}
+
+assign_repo() {
+	local localip repo
+	localip=$(local_ip)
+	case "$localip" in
+		10|16|22 )
+			repo="$HOME/gitea/configs"
+		;;
+		* )
+			if [[ -d "$HOME/Downloads/configs" ]]; then
+				pushd "$HOME/Downloads/configs" || die "pushd failed"
+				git pull --quiet origin main
+				popd || die "popd failed"
+			else
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
+			fi
+			repo="$HOME/Downloads/configs"
+	esac
+	printf "%s" "$repo"
 }
 
 check_distro() {
@@ -103,25 +122,19 @@ remove_bat() {
 }
 
 dl_bat_config() {
-  local cfg_file localip repository
-  localip=$(local_ip)
+  local cfg_file repository
+  repository="$1"
   cfg_file="config"
   [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
   printf "Applying Bat configuration...\n"
-	if [[ "$localip" == "16" ]]; then
-    repository="HOME/gitea/configs/bat"
-    cp -v "$repository/$cfg_file" "$cfg_d/"
-  else
-    repository="configs/raw/branch/main/bat"
-    curl -so "$cfg_d/$cfg_file" "$GITEA_URL/$repository/$cfg_file"
-  fi
+  cp -v "$repository/bat/$cfg_file" "$cfg_d/"
   printf "Bat configuration applied.\n"
 }
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="31 Oct 2024"
+	updated="19 Nov 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Bat utililty.
@@ -138,7 +151,9 @@ _HELP_
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr repository
+  check_dependencies
+	repository=$(assign_repo)
   noOpt=1
   optstr=":chiru"
   while getopts "$optstr" opt; do
@@ -146,7 +161,7 @@ main() {
       c )
         exists bat || leave "Bat is not installed."
         box "$script v$version"
-        dl_bat_config
+        dl_bat_config "$repository"
       ;;
       h )
         help 0
@@ -157,13 +172,12 @@ main() {
         tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
         trap cleanup EXIT
         sudo_login 2
-        check_dependencies
         box "$script v$version"
         new_ver="$(newest_version)"
         echo "${lightyellow}Installing Bat version $new_ver...${normal}"
         check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
         install_bat
-        dl_bat_config
+        dl_bat_config "$repository"
       ;;
       r )
         exists bat || leave "Bat is not installed."
