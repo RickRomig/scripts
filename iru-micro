@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 15 Nov 2024
+# Updated      : 19 Nov 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.2.24320"
+readonly version="6.3.24324"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 readonly cfg_d=$HOME"/.config/micro"
 
@@ -44,8 +44,28 @@ cleanup() {
 }
 
 check_dependencies() {
-  local packages=( curl gdebi wget )
+  local packages=( gdebi git wget )
   check_packages "${packages[@]}"
+}
+
+assign_repo() {
+	local localip repo
+	localip=$(local_ip)
+	case "$localip" in
+		10|16|22 )
+			repo="$HOME/gitea/configs"
+		;;
+		* )
+			if [[ -d "$HOME/Downloads/configs" ]]; then
+				pushd "$HOME/Downloads/configs" || die "pushd failed"
+				git pull --quiet origin main
+				popd || die "popd failed"
+			else
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
+			fi
+			repo="$HOME/Downloads/configs"
+	esac
+	printf "%s" "$repo"
 }
 
 check_distro() {
@@ -113,40 +133,28 @@ remove_micro() {
 
 apply_settings() {
   local json_file localip repository
-  localip=$(local_ip)
+  repository="$1"
   json_file="settings.json"
   [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
   echo "Applying Micro settings..."
-  if [[ "$localip" == "16" ]]; then
-    repository="HOME/gitea/configs/micro"
-    cp -v "$repository/$json_file" "$cfg_d/"
-  else
-    repository="configs/raw/branch/main/micro"
-  curl -so "$cfg_d/$json_file" "$GITEA_URL/$repository/$json_file"
-  fi
+  cp -v "$repository//micro$json_file" "$cfg_d/"
   echo "Micro setttings applied."
 }
 
 apply_bindings() {
   local json_file localip repository
-  localip=$(local_ip)
+  repository="$1"
   json_file="bindings.json"
   [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
   echo "Applying Micro keybindings..."
-  if [[ "$localip" == "16" ]]; then
-    repository="HOME/gitea/configs/micro"
-    cp -v "$repository/$json_file" "$cfg_d/"
-  else
-    repository="configs/raw/branch/main/micro"
-    curl -so "$cfg_d/$json_file" "$GITEA_URL/$repository/$json_file"
-  fi
+  cp -v "$repository/micro/$json_file" "$cfg_d/"
   echo "Micro keybindings applied."
 }
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="15 Nov 2024"
+	updated="19 Nov 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -165,15 +173,16 @@ _HELP_
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr repository
   check_dependencies
+	repository=$(assign_repo)
   noOpt=1
   optstr=":bhirsu"
   while getopts "$optstr" opt; do
     case "$opt" in
       b )
         exists micro || leave "Micro is not installed."
-        apply_bindings
+        apply_bindings"$repository"
       ;;
       h )
         help 0
@@ -187,8 +196,8 @@ main() {
         new_ver="$(newest_version)"
         echo "${lightyellow}Installing Micro version $new_ver...${normal}"
         install_micro
-        apply_settings
-        apply_bindings
+        apply_settings "$repository"
+        apply_bindings "$repository"
       ;;
       r )
         exists micro || leave "Micro is not installed."
@@ -197,7 +206,7 @@ main() {
       ;;
       s )
         exists micro || leave "Micro is not installed."
-        apply_settings
+        apply_settings "$repository"
       ;;
       u )
         exists micro || leave "Micro is not installed."
