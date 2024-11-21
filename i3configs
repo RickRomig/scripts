@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Apr 2023
-# Updated      : 31 Oct 2024
+# Updated      : 20 Nov 2024
 # Comments     : Assumes i3wm, polybar, rofi, dunst have been previously installed
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,18 +28,18 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.3.24305"
-readonly repository="configs/raw/branch/main/"
-readonly local_repo="$HOME/gitea/configs"
+readonly version="3.4.24325"
+# readonly repository="configs/raw/branch/main/"
+# readonly local_repo="$HOME/gitea/configs"
 readonly config_dir="$HOME/.config"
-localip="$(local_ip)"; readonly localip
+# localip="$(local_ip)"; readonly localip
 
 ## Functions ##
 
 help() {
 	local errcode updated
 	errcode="${1:-2}"
-	updated="31 Oct 2024"
+	updated="20 Nov 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated $updated
 Copies default i3 configuration files from the local Gitea server.
@@ -54,9 +54,8 @@ ${orange}Available options:${normal}
   -e  Copy everything (all configuration files and scripts)
   -h  Display help
   -i  Copy all i3wm configuration files
-  -k  Copy bindings.list (List of default keybindings, read by ~/bin/i3kb.sh)
+  -k  Copy keyhelper.sh & keybinds.txt
   -l  Copy logout (Rofi menu of logout actions)
-  -m  Copy dmconf.sh (dmenu script to edit configuration files)
   -p  Copy polybar-i3 launch script
   -r  Copy rofi configuration files
   -s  Copy sxhkdrc (i3 keybindings)
@@ -68,44 +67,51 @@ _HELP_
   exit "$errcode"
 }
 
+assign_repo() {
+	local localip repo
+	localip=$(local_ip)
+	case "$localip" in
+		10|16|22 )
+			repo="$HOME/gitea/configs"
+		;;
+		* )
+			if [[ -d "$HOME/Downloads/configs" ]]; then
+				pushd "$HOME/Downloads/configs" || die "pushd failed"
+				git pull --quiet origin main
+				popd || die "popd failed"
+			else
+				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
+			fi
+			repo="$HOME/Downloads/configs"
+	esac
+	printf "%s" "$repo"
+}
+
 copy_i3_config() {
-	local file="$1"
-	[[ -d "$config_dir/i3/sxhkd" ]] || mkdir -p "$config_dir/i3/sxhkd"
-	printf "Downloading i3 configuration file from Gitea server...\n"
-	if [[ "$localip" == "16" ]]; then
-		if [[ "$file" == "sxhkdrc" ]]; then
-			cp "$local_repo/i3/sxhkd/$file" "$config_dir/i3/sxhkd/"
-		else
-			cp "$local_repo/i3/$file" "$config_dir/i3/"
-		fi
-	else
-		if [[ "$file" == "sxhkdrc" ]]; then
-			curl -so "$config_dir/i3/sxhkd/$file" "$GITEA_URL/$repository/i3/sxhkd/$file"
-		else
-			curl -so "$config_dir/i3/$file" "$GITEA_URL/$repository/i3/$file"
-		fi
-	fi
-	printf "%s copied from the Gitea Server.\n" "$file"
+	local file repository
+	file="$1"
+	repository="$2"
+	[[ -d "$config_dir/i3/" ]] || mkdir -p "$config_dir/i3/"
+	printf "Copying %s to %s ...\n" "$file" "$config_dir/i3"
+	cp "$repository/i3/$file" "$config_dir/i3/"
 }
 
 copy_all_i3_configs() {
-	local i3file
-	local i3files=( "config" "sxhkdrc" "workspaces.conf" "autostart.sh" "logout" "dmconf.sh" "bindings.list" )
-	for i3file in "${i3files[@]}"; do copy_i3_config "$i3file"; done
+	local i3file i3files repository
+	[[ -d "$config_dir/i3/" ]] || mkdir -p "$config_dir/i3/"
+	i3files=( "autostart.sh" "backgrounds.sh" "config" "keybinds.txt" "keyhelper.sh" "logout" "polybar-i3" "rules.conf" "sxhkdrc" "workspaces.conf" )
+	for i3file in "${i3files[@]}"; do
+		copy_i3_config "$i3file" "$repository"
+	done
 }
 
 copy_polybar_config() {
+	local file repository
+	repository="$1"
 	[[ -d "$config_dir/polybar" ]] || mkdir -p "$config_dir/polybar"
-	printf "Downloading Polybar configuration file from Gitea server...\n"
-	if [[ "$localip" == "16" ]]; then
-		local file="config"
-		cp "$local_repo/polybar/$file" "$config_dir/polybar/"
-	else
-		local file="config.ini"
-		curl -so "$config_dir/polybar/$file" "$GITEA_URL/$repository/polybar/$file"
-	fi
+	printf "Copying %s to %s ...\n" "$file" "$config_dir/polybar"
+	cp "$repository/polybar/$file" "$config_dir/polybar/"
 	configure_polybar
-	printf "%s copied from the Gitea Server.\n" "$file"
 }
 
 configure_polybar() {
@@ -133,46 +139,32 @@ configure_polybar() {
 }
 
 copy_polybar_launch() {
-	local file="polybar-i3"
-	printf "Copying the Polybar launch script from the Gitea server...\n"
-	if [[ "$localip" == "16" ]]; then
-		cp "$local_repo/polybar/$file" "$config_dir/polybar/"
-	else
-		curl -so "$config_dir/polybar/$file" "$GITEA_URL/$repository/$file"
-	fi
-	printf "%s copied from the Gitea Server.\n" "$file"
+	local file repository
+	repository="$1"
+	[[ -d "$config_dir/i3/" ]] || mkdir -p "$config_dir/i3/"
+	file="polybar-i3"
+	printf "Copying %s to %s ...\n" "$file" "$config_dir/i3"
+		cp "$repository/i3/$file" "$config_dir/13/"
 }
 
 copy_rofi_configs() {
-	local files=( "config.rasi" "arc_dark_colors.rasi" "arc_dark_transparent_colors.rasi"	)
+	local file files repository
+	repository="$1"
 	[[ -d "$config_dir/rofi" ]] || mkdir -p "$config_dir/rofi"
-	if [[ "$localip" == "16" ]]; then
-		for file in "${files[@]}"; do cp "$local_repo/rofi/$file" "$config_dir/rofi/"; done
-	else
-		for file in "${files[@]}"; do curl -so "$config_dir/rofi/$file" "$GITEA_URL/$repository/rofi/$file"; done
-	fi
-	printf "%s copied from the Gitea Server.\n" "${files[@]}"
+	files=( "arc_dark_colors.rasi" "arc_dark_transparent_colors.rasi" "config.rasi"	)
+	for file in "${files[@]}"; do
+		printf "Copying %s to %s ...\n" "$file" "$config_dir/rofi"
+		cp "$repository/rofi/$file" "$config_dir/rofi/";
+	done
 }
 
 copy_dunst_config() {
-	local file="dunstrc"
+	local file repository
+	repository="$1"
+	file="dunstrc"
 	[[ -d "$config_dir/dunst" ]] || mkdir -p "$config_dir/dunst"
-	if [[ "$localip" == "16" ]]; then
-		cp "$local_repo/dunst/$file" "$config_dir/dunst/"
-	else
-		curl -so "$config_dir/dunst/$file" "$GITEA_URL/$repository/dunst$file"
-	fi
-	printf "%s copied from the Gietea Server.\n" "$file"
-}
-
-copy_dmconf() {
-	local file="dmconf.sh"
-	if [[ "$localip" == "16" ]]; then
-		cp -p "$local_repo/i3/$file" "$config_dir/i3/"
-	else
-		curl -so "$config_dir/i3/$file" "$GITEA_URL/$repository/i3/$file"
-	fi
-	printf "%s copied from the Gitea Server.\n" "$file"
+	printf "Copying %s to %s ...\n" "$file" "$config_dir/dunst"
+	cp "$repository/dunst/$file" "$config_dir/dunst/"
 }
 
 check_dependencies() {
@@ -180,7 +172,7 @@ check_dependencies() {
 		printf "i3wm is installed.\n"
 		sleep 2
 		printf '\e[A\e[K'
-		check_package curl
+		check_package git
 	else
 		printf "i3wm is not installed.\n"
 		help 0
@@ -188,57 +180,55 @@ check_dependencies() {
 }
 
 main() {
-	local noOpt optstr opt
+	local noOpt optstr opt repository
 	check_dependencies
+	repository=$(assign_repo)
 	noOpt=1
-	optstr=":abcdehklmprsw"
+	optstr=":abcdehklprsw"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			a )
-				copy_i3_config "autostart.sh"
+				copy_i3_config "autostart.sh" "$repository"
 			;;
 			b )
-				copy_polybar_config
+				copy_polybar_config "$repository"
 			;;
 			c )
-				copy_i3_config "config"
+				copy_i3_config "config" "$repository"
 			;;
 			d )
-				copy_dunst_config
+				copy_dunst_config "$repository"
 			;;
 			e )
-				copy_all_i3_configs
-				copy_polybar_config
-				copy_polybar_launch
-				copy_rofi_config
-				copy_dunst_config
+				copy_all_i3_configs "$repository"
+				copy_polybar_config "$repository"
+				copy_rofi_config "$repository"
+				copy_dunst_config "$repository"
 			;;
 			h )
 				help 0
 			;;
 			i )
-				copy_all_i3_configs
+				copy_all_i3_configs "$repository"
 			;;
 			k )
-				copy_i3_config "bindings.list"
+				copy_i3_config "keyhelper.sh" "$repository"
+				copy_i3_config "keybinds.txt" "$repository"
 			;;
 			l )
-				copy_i3_config "logout"
-			;;
-			m )
-				copy_dmconf
+				copy_i3_config "logout" "$repository"
 			;;
 			p )
-				copy_polybar_launch
+				copy_i3_config "polybar-i3" "$repository"
 			;;
 			r )
-				copy_rofi_configs
+				copy_rofi_configs "$repository"
 			;;
 			s )
-				copy_i3_config "sxhkdrc"
+				copy_i3_config "sxhkdrc" "$repository"
 			;;
 			w )
-				copy_i3_config "workspaces.conf"
+				copy_i3_config "workspaces.conf" "$repository"
 			;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
