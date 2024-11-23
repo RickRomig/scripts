@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Oct 2023
-# Last updated : 06 Jan 2024 (Version 0.1.6)
-# Comments     : Run as a daily cron job on the finance system.
+# Last updated : 23 Nov 2024 (Version 1.7.24328)
+# Comments     : Run as a daily cron job
 #              : Excludes ~/Documents/Finance/Archives directory
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,8 +33,4 @@ fi
 # Incremental backup of Finance and HomeBank directories.
 tar --exclude='Archives' -cpzf "$arc_dir/$archive" -g "$arc_dir/$snar" "$HOME"/Documents/Finance "$HOME"/Documents/HomeBank
 
-# Copy backup and updated Finance and HomeBank directories to main system.
-rsync -aq --delete "$HOME"/Downloads/archives/finance/ 192.168.0.10:Downloads/archives/finance/
-rsync -aq --delete "$HOME"/Documents/Finance/ 192.168.0.10:Documents/Finance/
-rsync -aq --delete "$HOME"/Documents/HomeBank/ 192.168.0.10:Documents/HomeBank/
 exit
