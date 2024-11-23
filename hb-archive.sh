@@ -6,8 +6,8 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Version      : 3.7.24287
-# Last updated : 13 Oct 2024
+# Version      : 3.8.24328
+# Last updated : 23 Nov 2024
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
@@ -52,8 +52,5 @@ log_len=$(wc -l "$log_dir/$log_file" | cut -d " " -f1)
 
 # Delete archive files older than 3 years
 find "$arc_dir" -mtime +1095 -exec rm {} +
-
-# Sync HomeBank archive with archive copy on the main system
-rsync -aq --delete "$HOME"/Downloads/archives/homebank/ 192.168.0.10:Downloads/archives/homebank/
 
 exit
