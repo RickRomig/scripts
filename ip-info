@@ -7,10 +7,10 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Feb 2019
-# Updated      : 27 Nov 2024
+# Updated      : 28 Nov 2024
 # Comments     : Some systems require sudo to get ssid & signal strength.
 #              : If necesary, add hostnames to req_sudo()
-# TODO (rick)  :
+# TODO (rick)  : format printf statements for devices.
 # License      : GNU General Public License, version 2.0
 #####################################################################
 
@@ -97,7 +97,7 @@ show_wireless() {
   # Assumes only one active wireless interface in the system.
   local wifi_int wifi_state wifi_ip wifi_mac wifi_ssid wifi_sig
   wifi_int=$(/usr/bin/nmcli dev | awk '/wifi / {print $1}')
-  if [[ -n "$wifi_int" ]]; then
+  if [[ "$wifi_int" ]]; then
     # interface data
     wifi_state=$(cat "/sys/class/net/$wifi_int/operstate")
     wifi_ip=$(/usr/bin/nmcli dev show "$wifi_int" | awk '/IP4.ADDRESS/ {print $NF}' | sed 's/\/24//')
@@ -137,6 +137,43 @@ show_wireless() {
   fi
 }
 
+show_bridge() {
+  local br_int br_state br_ip br_mac br_route
+	br_int=$(/usr/bin/nmcli dev | awk '/bridge / {print $1}')
+
+	if [[ "$br_int" ]]; then
+    # interface data
+    br_state=$(cat "/sys/class/net/$br_int/operstate")
+    br_ip=$(ip addr show | awk '/vir/ && /brd/ {print $2}')
+    br_mac=$(cat "/sys/class/net/$br_int/address")
+    br_route=$(ip route show | awk '/vir/ && /kernel/ {print $1}')
+    # display status
+    # set -x
+    printf "\t%sBridge:%s   " "$darkgray" "$normal"
+    case "$br_state" in
+      up )
+        printf "%s\n" "$br_ip"
+        printf "\t  %sDevice:%s %s\n" "$gray" "$normal" "$br_int"
+        printf "\t     %sMAC:%s %s\n" "$gray" "$normal" "$br_mac"
+	      printf "\t  %sSubnet:%s %s\n" "$gray" "$normal" "$br_route"
+      ;;
+      down )
+        printf "Not connected\n"
+        printf "\t  %sDevice:%s %s\n" "$gray" "$normal" "$br_int"
+        printf "\t     %sMAC:%s %s\n" "$gray" "$normal" "$br_mac"
+      ;;
+      unknown )
+        printf "Unknown state\n"
+        printf "\t  %sDevice:%s %s\n" "$gray" "$normal" "$br_int"
+        printf "\t     %sMAC:%s %s\n" "$gray" "$normal" "$br_mac"
+      ;;
+      * )
+        printf "No device found.\n"
+    esac
+    # set +x
+	fi
+}
+
 show_network() {
   local network_addr
   network_addr=$(/sbin/ip route show | grep -w kernel -m 1 | cut -d' ' -f1)
@@ -158,7 +195,7 @@ main() {
   local script version lhost
   lhost="${HOSTNAME:-$(hostname)}"
   script=$(basename "$0")
-  version="2.9.24333"
+  version="2.10.24333"
 
   req_sudo "$lhost" && sudo_login 2
   check_dependencies
@@ -172,6 +209,7 @@ main() {
   printf "%sLocal IP:%s\n" "$orange" "$normal"
   show_wired
   show_wireless
+  show_bridge
   show_network
   show_gateway
   show_dns
