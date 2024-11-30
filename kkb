@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Apr 2023
-# Last updated : 31 Oct 2024
+# Last updated : 30 Nov 2024
 # Comments     : Install with kitty-bindings.list in ~/.config/kitty/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -42,19 +42,20 @@ copy_bindings() {
 
 show_bindings() {
 	[[ -f "$kitty_dir/$bindings" ]] || copy_bindings
-	printf "Kitty keybindings:\n"
-	(printf "Binding|Action|Binding|Action\n"; less "$kitty_dir/$bindings") | column -ts "|"
+	printf "%sKitty keybindings:%s\n" "$green" "$normal"
+	(printf "%s%sBinding|Action|Binding|Action%s\n" "$underline" "$lightblue" "$normal"; less "$kitty_dir/$bindings") | column -ts "|"
 }
 
 main() {
   local script version
   script=$(basename "$0")
-  version="1.7.24305"
+  version="1.8.24335"
 	# exists kitty || leave "Kitty terminal emumator is not installed."
 	[[ "$TERM" != "xterm-kitty" ]] && die "Terminal emulater is not Kitty." 1
 	clear
 	show_bindings
-	leave "$script v$version"
+	over_line "$script v$version"
+	exit
 }
 
 ## Execution ##
