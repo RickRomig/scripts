@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Mar 2023
-# Updated      : 16 Oct 2024
+# Updated      : 05 Nov 2024
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -40,95 +40,100 @@ transfer_status() {
 syncscript() {
   local hostip="$1"
 
-  echo $'\n'$"${orange}Syncing aliases...${normal}"
-  rsync -avh --delete "$HOME"/.bash_aliases "$LOCALNET.$hostip":
+  printf "\n%sSyncing aliases...%s\n" "$orange" "$normal"
+   rsync -avh --delete "$HOME"/.bash_aliases "$LOCALNET.$hostip":
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing script configuration files...${normal}"
+  printf "\n%sSyncing script configuration files...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/.config/scripts/ "$LOCALNET.$hostip":.config/scripts/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing Password Databases...${normal}"
+  printf "\n%sSyncing Password Databases...%s\n" "$orange" "$normal"
   rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$LOCALNET.$hostip":Documents/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing homepage directory...${normal}"
+  printf "\n%sSyncing homepage directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/homepage/ "$LOCALNET.$hostip":Documents/homepage/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing .local/share/doc ...${normal}"
+  printf "\n%sSyncing .local/share/doc...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/.local/share/doc/ "$LOCALNET.$hostip":.local/share/doc/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing MOSFANET...${normal}"
+  printf "\n%sSyncing MOSFANET directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/mosfanet/ "$LOCALNET.$hostip":Documents/mosfanet/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing Work..${normal}"
+  printf "\n%sSyncing Work directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Work/ "$LOCALNET.$hostip":Work/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing Templates...${normal}"
+  printf "\n%sSyncing Templates...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Templates/ "$LOCALNET.$hostip":Templates/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing Pictures/wallpaper...${normal}"
+  printf "\n%sSyncing Wallpaperd directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$hostip":Pictures/wallpaper/
   exit_status="$?"
   transfer_status "$exit_status"
 
   # Sync repositories
-  echo $'\n'$"${orange}Syncing Gitea repositories...${normal}"
+  printf "\n%sSyncing Gitea Repositories...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing GitHub repositories...${normal}"
+  printf "\n%sSyncing Gighub Repositories...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  # Sync personal files.
-  echo $'\n'$"${orange}Syncing Audio Books...${normal}"
+  # Sync audiobooks files.
+  printf "\n%sSyncing Audio Books...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Audiobooks/ "$LOCALNET.$hostip":Audiobooks/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing Blogs...${normal}"
+  printf "\n%sSyncing Blogs directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/Blogs/ "$LOCALNET.$hostip":Documents/Blogs/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing Dreams...${normal}"
+  printf "\n%sSyncing Dreams directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/Dreams/ "$LOCALNET.$hostip":Documents/Dreams/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing Journals...${normal}"
+  printf "\n%sSyncing Journals directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/Journals/ "$LOCALNET.$hostip":Documents/Journals/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing Quotes...${normal}"
+  printf "\n%sSyncing Quotes directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/Quotes/ "$LOCALNET.$hostip":Documents/Quotes/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing Language...${normal}"
+  printf "\n%sSyncing Language directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/Language/ "$LOCALNET.$hostip":Documents/Language/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing Tech Videos...${normal}"
+  printf "\n%sSyncing Tech Videos...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Videos/Tech/ "$LOCALNET.$hostip":Videos/Tech/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  printf "\n%sSyncing cloned repositories...%s\n" "$orange" "$normal"
+  rsync -avh --delete "$HOME"/Downloads/cloned-repositories/ "$LOCALNET.$hostip":Downloads/cloned-repositories/
   exit_status="$?"
   transfer_status "$exit_status"
 }
@@ -172,7 +177,7 @@ sync_to_main() {
 main() {
   local lap_host local_host main_host script version
   script=$(basename "$0")
-  version="4.0.24290"
+  version="4.1.24340"
   local_host="${HOSTNAME:-$(hostname)}"
   main_host="hp-800g2-sff"
   lap_host="hp-850-g3"
@@ -189,7 +194,8 @@ main() {
     die "Invalid client. $script must be run from either $main_host or $lap_host."
   fi
 
-  box "$script completed in $(format_time $SECONDS)" "*"
+  over_line "$script completed in $(format_time $SECONDS)" "*"
+  printf "%s v%s\n" "$script" "$version"
   exit
 }
 
