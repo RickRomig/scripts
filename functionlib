@@ -996,13 +996,15 @@ default_no() {
 }
 
 ###############################################################################
-# is_url_good
+# url_accessible
 # Purpose: Returns true if URL is accessible
 # Argument:
 # $1 -> URL to be checked
 # Returns: True or False
 ###############################################################################
-is_url_good() {
-  local url="$1"
-  wget --spider -q "$url" && return "$TRUE" || return "$FALSE"
+url_accessible() {
+  local url result
+  url="$1"
+  result=$(curl --head --connect-timeout 8 --max-time 14 --silent --output /dev/null --write-out '%{http_code}' "$url")
+  [[ "$result" -eq 200 ]] && return "$TRUE" || return "$FALSE"
 }
