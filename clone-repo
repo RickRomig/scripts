@@ -7,11 +7,23 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 18 Nov 2024
+# Updated      : 10 Nov 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
 
 ## Functions ##
 
@@ -30,13 +42,25 @@ clone_repo() {
   git_repo="$1"
   dl_dir="$HOME/Downloads"
   gitea_svr="http://192.168.0.16:3000/Nullifidian"
-  git clone "$gitea_svr/$git_repo.git" "$dl_dir/$git_repo"
+  if [[ -d "$dl_dir/$git_repo" ]]; then
+    printf "%s exists.\n" "$dl_dir/$git_repo"
+    if [[ -n $(ls -A "$dl_dir/$git_repo") ]]; then
+      printf "%s is not empty.\n" "$dl_dir/$git_repo"
+      pushd "$dl_dir/$git_repo" || die "pushd failes"
+      git pull
+      popd || die "popd failed"
+    else
+      git clone "$gitea_svr/$git_repo.git" "$dl_dir/$git_repo"
+    fi
+  else
+    git clone "$gitea_svr/$git_repo.git" "$dl_dir/$git_repo"
+  fi
 }
 
 main() {
   local index _repo repos script version
   script=$(basename "$0")
-  version="3.4.24323"
+  version="3.5.24345"
 
   exist_git
   printf "Clone a repository from the local Gitea server.\n\n"
@@ -49,7 +73,7 @@ main() {
 		  printf "Exiting. No repository selected or cloned.\n"
 		  break
 	  elif (( REPLY > 0 && REPLY <= ${#repos[@]} )); then
-      index=$((( REPLY - 1 )))
+      index=$(( REPLY - 1 ))
       printf "Cloning the %s repository...\n" "${repos[index]}"
 		  clone_repo "${repos[index]}"
 		  break
@@ -57,7 +81,7 @@ main() {
 		  printf "Invalid option. Choose 1 - %d\n" "${#repos[@]}"
 	  fi
   done
-  over_line "$script $version"
+  over_line "$script v$version"
   exit
 }
 
