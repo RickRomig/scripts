@@ -3,14 +3,14 @@
 # Script Name  : meditation-timer
 # Description  : Counts down remaining time of a meditation session.
 # Dependencies : aplay (alsa-utils)
-# Arguments    : Time in minutes to cound down from.
+# Arguments    : Time in minutes to count down from. Optional volume setting (0-100%)
 # Author       : Copyright (C) 2021, Richard B. Romig, ludditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jul 2021
-# Updated      : 02 Oct 2024
+# Updated      : 11 Dec 2024
 # Comments     : Original script found on Reddit r/dharmmawheel, posted by u/Jhanna4
 #              : Sound does not work with Pipewire audio.
-# TODO (Rick)  :
+# TODO (Rick)  : Work on getting sound functions to work on Pipewire.
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -38,23 +38,29 @@ check_alsa() {
   dpkg -l alsa-utils >/dev/null 2>&1 && return "$TRUE" || return "$FALSE"
 }
 
+is_valid_integer() {
+  local value="$1"
+  [[ "$value" =~ ^[0-9]+$ ]] || return "$FALSE"
+  [[ "$value" -ge 0 || "$value" -le 100 ]] && return "$TRUE" || return "$FALSE"
+}
+
 input_value() {
   printf "%s Invalid argument\n" "$RED_ERROR" >&2
-  printf "Please supply a value for minutes, only minutes, and only whole numbers greater than 0.\n" >&2
+  printf "Please supply a value for minutes, only minutes, and only integers greater than 0.\n" >&2
   exit 2
 }
 
 get_volume() {
-  # Get the cuurent volume setting
+  # Get the cuurent volume setting (percentaage, ie 50%)
   local vol
-  vol=$(amixer get Master | awk '/Mono:/ {print $3}')
+  vol=$(amixer get Master | awk -F'[][]' 'END{print $2}')
   echo "$vol"
 }
 
 set_volume() {
-  # Set the volume for sounds played or reset to original volume
+  # Set the volume for sounds played or reset to original volume (voluume is a percentage, ie 60%)
   local vol="$1"
-  amixer cset iface=MIXER,name="Master Playback Volume" "$vol" >/dev/null
+  amixer set Master "$vol" >/dev/null
 }
 
 play_sound() {
@@ -71,6 +77,8 @@ screensaver_off() {
   tput civis
 }
 
+# shellcheck disable=SC2317 # Don't warn about unrachable commands in this function.
+# Shellcheck may incorrectly believe that code is unreachable if it's invoked by a variable or in a trap.
 screensaver_on() {
   # Turn screensaver back on and restore cursor.
   xset s on
@@ -106,12 +114,15 @@ meditation_timer() {
 }
 
 main() {
+  trap screensaver_on EXIT
   local meditation_time ovol vol script version
   script=$(basename "$0")
-  version="2.1.24278"
-  meditation_time="${1:-20}"
-  vol="${2:-50}"
+  version="2.2.24346"
+  meditation_time="${1:-20}"  # Default time is 20 minutes.
   [[ -n "${meditation_time//[0-9]/}" || "$meditation_time" -eq 0 ]] && input_value
+  vol="${2:-50}"  # Default volume setting is 50%.
+  is_valid_integer "$vol" || vol="30"
+  vol="${vol}%"   # pass volume as a percent.
   check_alsa || { printf "%s Audio utilities not installed. Audio will not function.\n" "$RED_WARNING" >&2; sleep 5; }
   clear
   # Capture original volume setting
@@ -125,7 +136,6 @@ main() {
   meditation_timer "$meditation_time"
   play_sound "$sound_dir/$tibet_bowl"
   sleep 30
-  screensaver_on
   set_volume "$ovol"
   printf "\n\n\U2638 %s v%s\n" "$script" "$version"
   printf "\UA9 2021-2024 Richard B. Romig\n"
