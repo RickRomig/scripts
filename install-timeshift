@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Last updated : 02 Sep 2024
+# Last updated : 12 Dec 2024
 # Comments     : My default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -54,15 +54,17 @@ install_timeshift() {
 main() {
   local script version
   script=$(basename "$0")
-  version="2.3.24276"
+  version="2.4.24347"
   if exists timeeshift; then
     printf "%s is already installed.\n" "$(timeshift --version)"
+  elif ! in_repo timeshift; then
+    printf "Timeshift is not availabe in %s  repositories.\n" "$(get_distribution)"
   else
-    in_repo timeshift || leave "Timeshift is not availabe in $(get_distribution) repositories."
     sudo_login 2
     install_timeshift
   fi
-  leave "$script v$version"
+  over_line "$script v$version"
+  exit
 }
 
 ## Execution ##
