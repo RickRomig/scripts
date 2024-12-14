@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Mar 2022
-# Updated      : 21 Oct 2024
+# Updated      : 14 Dec 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,22 +25,33 @@ else
   exit 1
 fi
 
-## Global Variables ##
+## Functions ##
 
-script=$(basename "$0"); readonly script
-readonly version="4.11.24295"
-readonly lhost="${HOSTNAME:-$(hostname)}"
-readonly kdbx_d="$HOME/Documents"
-readonly mhost="hp-800g2-sff"
-readonly mhostip="10"
+is_main_host() {
+  local l_host m_host
+  m_host="$1"
+  l_host="${HOSTNAME:-$(hostname)}"
+  [[ "$l_host" == "$m_host" ]] && return "$TRUE" || return "$FALSE"
+}
+
+main() {
+  local  script version kdbx_d mhost mhostip
+  script=$(basename "$0")
+  version="5.0.24349"
+  kdbx_d="$HOME/Documents"
+  mhost="hp-800g2-sff"
+  mhostip="10"
+
+  # Ensure script is not being run from HP-800-G2-SFF (10)
+  is_main_host "$mhost" && leave "$script cannot be run from $mhost."
+  printf "Making a backup of Passwords.kdbx on %s\n" "$mhost"
+  ssh rick@"$LOCALNET.$mhostip" cp -pv "$kdbx_d/Passwords.kdbx" "$kdbx_d/Passwords.$(date '+%y%m%d').kdbx"
+  printf "Copying updated KeepassXC databases to %s\n" "$mhost"
+  scp -p "$kdbx_d/Passwords.kdbx" "$kdbx_d/Passwords.old.kdbx" "$kdbx_d/Tina-passwords.kdbx"  rick@"$LOCALNET.$mhostip":Documents/
+  over_line "$script v$version" "-"
+  exit
+}
 
 ## Execution ##
 
-# Ensure script is not being run from HP-800-G2-SFF (10)
-[[ "$lhost" == "$mhost" ]] && leave "$script cannot be run from $mhost."
-printf "Making a backup of Passwords.kdbx on %s\n" "$mhost"
-ssh rick@"$LOCALNET.$mhostip" cp -pv "$kdbx_d/Passwords.kdbx" "$kdbx_d/Passwords.$(date '+%y%m%d').kdbx"
-printf "Copying updated KeepassXC databases to %s\n" "$mhost"
-scp -p "$kdbx_d/Passwords.kdbx" "$kdbx_d/Passwords.old.kdbx" "$kdbx_d/Tina-passwords.kdbx"  rick@"$LOCALNET.$mhostip":Documents/
-over_line "$script v$version" "-"
-exit
+main "$@"
