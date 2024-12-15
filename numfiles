@@ -1,32 +1,56 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Script Name  : numfiles
-# Description  : displays number of files in current directory
-#              : and how much disk space they use.
+# Description  : displays number of files and directories in current directory
+#              : and how much disk space the directory uses.
 # Dependencies : none
 # Arguments    : none
-# Author       : Copyright (C) 2018, Richard Romig, 22 November 2018
+# Author       : Copyright (C) 2018, Richard Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 22 Nov 2018
+# Updated      : 15 Dec 2024
 # Comment      :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##############################################################################
 
-## Variables ##
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
 
-_script=$(basename "$0"); readonly _script
-readonly _version="0.2.0"
-readonly _updated="07 Sep 2023"
-# curdir=$(dirname "$(readlink -f "$0")")
-readonly curdir=$PWD
-num=$(find . -maxdepth 1 -type f -iname \* | wc -l)
-size=$(du -ch -d 1 ./* | awk '/total/ {print $1}')
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Functions ##
+
+num_files() {
+	local ndirs nfiles size
+	ndirs=$(find . -type d | wc -l)
+	nfiles=$(find . -type f | wc -l)
+	size=$(du -ch | awk '$2 == "total" {print $1}')
+
+	printf "%s contains:\n" "$PWD"
+	printf "%d " "$(( ndirs - 1 ))"
+	(( ndirs != 1 )) && printf "directories " || printf "directory "
+	printf "and %d " "$nfiles"
+	(( nfiles != 1 )) && printf "files.\n" || printf "file.\n"
+	printf "Disk spaced used: %s\n" "$size"
+}
+
+main() {
+	local script version
+	script=$(basename "$0")
+	version="3.0.24350"
+	num_files
+	over_line "$script v$version"
+	exit
+}
 
 ## Execution ##
 
-printf "%s contains %s " "$curdir" "$num"
-(( num >1 )) && printf "files " || printf "file "
-printf "using %s of disk space.\n" "$size"
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-
-exit
+	main "$@"
