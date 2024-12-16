@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2017, Richard Romig
 # Email        : rick.romig@gmail.com
 # Created      : 2017
-# Updated      : 03 Oct 2024
+# Updated      : 16 Dec 2024
 # Comment      : File extensions are not case sensitive, will change to lowercase.
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -27,15 +27,14 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.7.24277"
-readonly updated="23 Aug 2024"
+readonly version="2.8.24351"
 
 ## Functions ##
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="03 Oct 2024"
+	updated="16 Dec 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Bulk renames file extensions in the current diectory.
@@ -43,7 +42,7 @@ Bulk renames file extensions in the current diectory.
 ${green}Usage:${normal} $script <file-extension>
 
 ${orange}Example:${normal} $script JPG
-* Supported extensions: AVI, BAK, FLV, GIF, HTM, HTML, JPEG, JPG, MP3, MP4, MPG, MPEG, PDF, PNG, TXT, WMV
+* Supported extensions: AVI, BAK, FLV, GIF, HTM, HTML, IMG, JPEG, JPG, MP3, MP4, MPG, MPEG. MKV, PDF, PNG, TXT, WEBM, WMV
 * Input file extensions are not case sensitive.
 * Any combination of upper and lower case are acceptable. Changed file extensions will be lowercase.
 _HELP_
@@ -70,6 +69,9 @@ rename_extension() {
     htm|html )
       echo "Renaming .$ext files to .html"
       rename -v 's/\.HTML?$/\.html/i' ./* ;;
+    img )
+      echo "Renameing .$ext files to .img"
+      rename -v 's/\.IMG/\.img/i' ./* ;;
     jpeg|jpg )
       echo "Renaming .$ext files to .jpg"
       rename -v 's/\.JPE?G$/\.jpg/i' ./* ;;
@@ -82,6 +84,9 @@ rename_extension() {
     mpg|mpeg )
       echo "Renaming .$ext files to .mpg"
       rename -v 's/\.MPE?G$/\.mpg/i' ./* ;;
+    mkv )
+      echo "Renaming .$ext files to .mkv"
+      rename -v 's/\.MKV/\.mkv/i' ./* ;;
     pdf )
       echo "Renaming .$ext files to .pdf"
       rename -v 's/\.PDF$/\.pdf/i' ./* ;;
@@ -91,6 +96,9 @@ rename_extension() {
     txt )
       echo "Renaming .$ext files to .txt"
       rename -v 's/\.TXT$/\.txt/i' ./* ;;
+    webm )
+      echo "Renaming .$ext files  to .webm"
+      rename -v 's/\.WEBM/\.webm/i' ./* ;;
     wmv )
       echo "Renaming .$ext files to .wmv"
       rename -v 's/\.WMV$/\.wmv/i' ./* ;;
@@ -103,6 +111,7 @@ rename_extension() {
 }
 
 main() {
+  local extension
   if [[ "$#" -eq 0 ]]; then
     printf "\%s Must provide a file extension to be renamed.\n" "$RED_ERROR" <&2
     help 2
@@ -111,7 +120,8 @@ main() {
     printf "Bulk renames file extensions in the current diectory.\n"
     rename_extension "$extension"
   fi
-  leave "$script v$version"
+  over_line "$script v$version"
+  exit
 }
 
 ## Execution ##
