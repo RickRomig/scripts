@@ -7,7 +7,7 @@
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Created      : Unknown
-# Updated      : 03 Oct 2024
+# Updated      : 16 Dec 2024
 # Comment      :
 # TODO (Rick)  : Find solutions for other init systems.
 #              : Look at adapting check-init script.
@@ -34,16 +34,13 @@ restart_network() {
   init_sys=$(strings /sbin/init | awk 'match($0, /(upstart|systemd|sysvinit)/) { print toupper(substr($0, RSTART, RLENGTH));exit; }')
   case $init_sys in
     "SYSTEMD" )
-      sudo systemctl restart NetworkManager.service
-    ;;
+      sudo systemctl restart NetworkManager.service ;;
     "SYSVINIT" )
-      sudo service network-manager restart
-    ;;
+      sudo service network-manager restart ;;
     "UPSTART" )
       sudo service networking stop
       sleep 5
-      sudo service networking start
-    ;;
+      sudo service networking start ;;
     * )
       die "Init system is undetermined." 1
   esac
@@ -52,14 +49,13 @@ restart_network() {
 main() {
   local script version
   script=$(basename "$0")
-  version="2.6.24277"
-  printf "%s v%s\n" "$script" "$version"
-  printf "Refreshes network connection.\n"
+  version="2.7.24351"
 
   sudo_login 2
   printf "Restarting network...\n"
   restart_network
   sleep 3
+  over_line "$script v$version"
   exit
 }
 
