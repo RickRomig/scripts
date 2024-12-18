@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : laptop-lid
+# Description  : allows laptop lid to be closed without suspend or sleep.
+# Dependencies : ~./bin/files/laptoplid.sed
+# Arguments    : None
+# Author       : Copyright (C) 2020, Richard B. Romig, LudditeGee@Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 22 Oct 2020
+# Updated      : 18 Dec 2024
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Functions ##
+
+modify_logind() {
+  local logind_conf="/etc/systemd/logind.conf"
+  local sed_file="$HOME/bin/files/laptoplid.sed"
+  if [[ -f "$sed_file" ]]; then
+    sudo_login 2
+    printf "Allows a laptop lid to be closed without going into suspend mode.\n"
+    printf "Modifying %s and restarting systemd-logind service.\n" "$logind_conf"
+    sudo sed -i.bak -f "$sed_file" "$logind_conf"
+    sudo systemctl restart systemd-logind.service
+    printf "%s modified and backup created.\n" "$logind_conf"
+  else
+    printf  "A required file, %s, was not found. Operation canceled" "$(basename "$sed_file")"
+  fi
+}
+
+main() {
+  local lhost script version
+  lhost="${HOSTNAME:=-$(hostname)}"
+  script=$(basename "$0")
+  version="4.0.24353"
+  if is_laptop; then
+    modify_logind
+  else
+    printf "%s is not a laptop. Operation canceled.\n" "$lhost"
+  fi
+  over_line "$script v$version"
+  exit
+}
+
+## Execution ##
+
+main "$@"
