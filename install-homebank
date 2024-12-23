@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #####################################################################
 # Script Name  : install-homebank
-# Description  : Installs Homebank from PPA or distribution reposistory
+# Description  : Installs Homebank
 # Dependencies : none
 # Arguments    : none
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Nov 2018
-# Updated      : 13 Oct 2024
+# Updated      : 23 Dec 2024
 # Comments     : Available as a flatpak (preferred method)
 #              : https://flathub.org/apps/details/fr.free.Homebank
 #              : Linux Mint Sofware Manager
@@ -30,7 +30,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="5.1.24287"
+readonly version="5.2.24358"
 
 ## Functions ##
 
@@ -38,25 +38,21 @@ homebank_version() {
   local hb_ver
   if exists homebank; then
     hb_ver=$(homebank --version | cut -d' ' -f2)
-  elif flatpak list | grep -q 'Homebank';then
+  elif flatpak list | grep -q 'Homebank'; then
     hb_ver=$(flatpak list | awk '/Homebank/ {print $(NF-2)}')
   fi
   printf "%s" "$hb_ver"
 }
-
-# flatpak_version() {
-#   flatpak list | awk '/HomeBank/ {print $3}'
-# }
 
 flatpak_homebank() {
   exists flatpak || return "$FALSE"
   flatpak list | grep -qw HomeBank && return "$TRUE" || return "$FALSE"
 }
 
-install_flatpak_hombank() {
+install_flatpak_homebank() {
   printf "Install the HomeBank flatpak...\n"
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-  # flatpak install --user flathub fr.free.Homebank
+  flatpak install --user flathub fr.free.Homebank
   printf "HomeBank flatpak (%s) installed.\n" "$(homebank_version)"
 }
 
@@ -115,7 +111,7 @@ remove_configs() {
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="13 Oct 2024"
+	updated="23 Dec 2024"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes HomeBank Personal Finance Software.
@@ -142,7 +138,7 @@ main() {
       f )
         exists homebank && leave "HomeBank $(homebank_version) is already installed."
         flatpak_homebank && leave "HomeBank $(homebank_version) (flatpak) is installed."
-        install_flatpak_hombank
+        install_flatpak_homebank
       ;;
       h )
         help 0
@@ -161,7 +157,7 @@ main() {
       r )
         if flatpak_homebank; then
           remove_flatpak_homebank
-        elif exists hombank; then
+        elif exists homebank; then
           sudo_login 2
           remove_homebank
         else
@@ -176,7 +172,7 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  printf "%s v%s\n" "$script" "$version"
+  over_line "$script v$version"
   exit
 }
 
