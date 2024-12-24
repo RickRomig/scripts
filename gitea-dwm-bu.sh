@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Jan 2024
-# Last updated : 25 May 2024 Version 1.3.24146
-# Comments     :
+# Last updated : 24 Dec 2024 Version 1.4.24359
+# Comments     : Includes both Gitea and GitHub repositories.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -36,16 +36,11 @@ monthly_bu() {
 }
 
 # Create archive directories if they don't exist
-[[ -d "$arc_dir/daily" ]] || mkdir -p "$arc_dir/daily"
-[[ -d "$arc_dir/weekly" ]] || mkdir -p "$arc_dir/weekly"
-[[ -d "$arc_dir/monthly" ]] || mkdir -p "$arc_dir/monthly"
+[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"/{daily,weekly,monthly}
 
 # Snapshot schedule
 daily_bu
 [[ "$dow" == "Sun" ]] && weekly_bu
 [[ "$dom" -eq 1 ]] && monthly_bu
-
-# Sync archives to Gitea server
-# rsync -aq --delete "$HOME"/Downloads/archives/gitea/ rick@192.168.0.16:Downloads/archives/gitea/
 
 exit
