@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, ludditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jul 2021
-# Updated      : 11 Dec 2024
+# Updated      : 23 Dec 2024
 # Comments     : Original script found on Reddit r/dharmmawheel, posted by u/Jhanna4
 #              : Sound does not work with Pipewire audio.
 # TODO (Rick)  : Work on getting sound functions to work on Pipewire.
@@ -37,6 +37,10 @@ readonly tibet_bowl="Tibetan_bowl.wav"
 check_alsa() {
   dpkg -l alsa-utils >/dev/null 2>&1 && return "$TRUE" || return "$FALSE"
 }
+
+# dpms_enabled() {
+#   xset -q | grep -w Enabled || return "$TRUE" || return "$FALSE"
+# }
 
 is_valid_integer() {
   local value="$1"
@@ -70,21 +74,19 @@ play_sound() {
 }
 
 screensaver_off() {
-  # Turn off screensaver and hide cursor.
-  xset s off
-  xset s noblank
-  xset -dpms
-  tput civis
+  xset s off      # turns screensaver off
+  xset s noblank  # set blanking off
+  xset -dpms      # turns DPMS off
+  tput civis      # hides cursor
 }
 
 # shellcheck disable=SC2317 # Don't warn about unrachable commands in this function.
 # Shellcheck may incorrectly believe that code is unreachable if it's invoked by a variable or in a trap.
 screensaver_on() {
-  # Turn screensaver back on and restore cursor.
-  xset s on
-  xset s blank
-  xset +dpms
-  tput cnorm
+  xset s on     # turns screesaver on
+  xset s blank  # allows screen blanking
+  xset +dpms    # turns DPMS on
+  tput cnorm    # restores cursor
 }
 
 countdown() {
@@ -117,7 +119,7 @@ main() {
   trap screensaver_on EXIT
   local meditation_time ovol vol script version
   script=$(basename "$0")
-  version="2.2.24346"
+  version="2.3.24358"
   meditation_time="${1:-20}"  # Default time is 20 minutes.
   [[ -n "${meditation_time//[0-9]/}" || "$meditation_time" -eq 0 ]] && input_value
   vol="${2:-50}"  # Default volume setting is 50%.
