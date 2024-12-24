@@ -7,13 +7,13 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Oct 2023
-# Last updated : 25 May 2024 (Version 1.9.24146)
+# Last updated : 24 Dec 2024 (Version 1.10.24359)
 # Comments     : Run as a daily cron job on the main system.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
-set -euo pipefail
+set -eu
 
 ## Global Variables ##
 
@@ -31,9 +31,7 @@ if [[ "$day" == "Sun" ]]; then
   find "$arc_dir" -mtime +91 -delete
 fi
 
-# Incremental backup of GitHbe repositories (Projects directory).
+# Incremental backup of GitHub repositories (Projects directory).
 tar -cpzg "$arc_dir/$snar" -f "$arc_dir/$archive" -C "$HOME" Projects
 
-# Copy archive to Gitea server.
-# rsync -aq --delete "$HOME"/Downloads/archives/projects-repo/ rick@192.168.0.16:Downloads/archives/projects-repo/
 exit
