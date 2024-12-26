@@ -7,8 +7,9 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 21 Nov 2024
+# Updated      : 26 Dec 2024
 # Comments     : Inserts the license immediately after the file's header.
+#              : Assumes the standard script or C/C++ header is present.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -25,13 +26,13 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="3.4.24326"
-readonly _updated="21 Nov 2024"
+script=$(basename "$0"); readonly script
+readonly version="3.5.24361"
+readonly _updated="26 Dec 2024"
 readonly conf_dir="$HOME/.config/scripts"
-readonly conf_file="$_script.conf"
+readonly conf_file="$script.conf"
 cur_yr=$(echo -e "\UA9 $(date +%Y)"); readonly cur_yr
 verbose_mode="$FALSE"
 
@@ -54,23 +55,29 @@ create_conf() {
 help() {
   local errcode="${1:-2}"
   cat << _HELP_
-${orange}$_script${normal} $_version ($_updated)
+${orange}$script${normal} $version ($_updated)
 Inserts an Open Source license into a shell script or a C/C++ source code file.
 
-${green}Usage:${normal} $_script [OPTION] [source-file]
+${green}Usage:${normal} $script [OPTION] [source-file]
 
 ${orange}Available options:${normal}
   -c  C code
-      $_script -c <c-source.c>
-  -e  Edit $_script.conf
+      $script -c <c-source.c>
+  -e  Edit $script.conf
   -h  Show this help text.
   -p  C++ code
-      $_script -p <c-source.cpp>
+      $script -p <c-source.cpp>
   -s  Shell script
-      $_script -s <shell-script>
+      $script -s <shell-script>
   -v  Enable verbose mode
 _HELP_
   exit "$errcode"
+}
+
+show_license_copyright() {
+  printf "Inserts an Open Source license into a shell script or a C/C++ source code file.\n"
+  printf "Licensed under the GNU General Public License, version 2.\n"
+  printf "Copyright \UA9 2019-2024, Richard B. Romig\n"
 }
 
 show_message() {
@@ -86,8 +93,6 @@ cleanup() {
 
 ## Execution ##
 
-box " $_script $_version"
-
 noOpt=1
 optstr=":c:ehp:s:v"
 while getopts "$optstr" opt; do
@@ -102,7 +107,7 @@ while getopts "$optstr" opt; do
     e )
       if [[ -f "$conf_dir/$conf_file" ]]; then
         micro "$conf_dir/$conf_file"
-			  printf "%s edited.\n" "$_script"
+			  printf "%s edited.\n" "$script"
       else
         create_conf
       fi
@@ -152,34 +157,32 @@ show_message "Creating temporary file."
 tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 trap cleanup EXIT
 
-printf "Inserts an Open Source license into a shell script or a C/C++ source code file.\n"
-printf "Licensed under the GNU General Public License, version 2.\n"
-printf "Copyright \UA9 2019-2023, Richard B. Romig\n"
+show_license_copyright
 
 # Select the type of license
 
 printf "\n%sLicense type:%s\n" "$orange" "$normal"
 options=("GPL v1" "GPL v2" "GPL v3" "MIT")
 PS3="Select the type of license: "
-select _opt in "${options[@]}"; do
+select license in "${options[@]}"; do
   case $REPLY in
     1 )
-      lic_type="$opt"
+      lic_type="$license"
       lic_file="gpl_v1.txt"
       break
     ;;
     2 )
-      lic_type="$opt"
+      lic_type="$license"
       lic_file="gpl_v2.txt"
       break
     ;;
     3 )
-      lic_type="$opt"
+      lic_type="$license"
       lic_file="gpl_v3.txt"
       break
     ;;
     4 )
-      lic_type="$opt"
+      lic_type="$license"
       lic_file="mit_lic.txt"
       break
     ;;
@@ -225,4 +228,5 @@ printf "\n%s license has been inserted into %s.\n" "$lic_type" "$code_file"
 edit_view_quit "$code_file"
 
 printf "\n"
+over_line "$script $version"
 leave ""
