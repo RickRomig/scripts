@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 11 Mar 2024
 # Last updated : 27 Dec 2024
-# Version      : 2.0.24362
+# Version      : 2.1.24362
 # Comments     : Run as a local cron job.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ main() {
 	day=$(date +%a)
 	[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
 	[[ "$day" == "Sun" ]] && sunday_actions "$arc_dir" "$snar"
-	tar -cpzg "$arc_dir/$snar" -f "$arc_dir/$archive" -C "$HOME" Journals
+	tar -cpzg "$arc_dir/$snar" -f "$arc_dir/$archive" --exclude='.~lock*' -C "$HOME/Documents" Journals
 	rsync -aq --delete "$HOME"/Downloads/archives/journals/ rick@192.168.0.11:/data/archives/journals/
 	exit
 }
