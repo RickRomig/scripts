@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
-
-# Script to clean apt cache and remove orphaned packages & obsolete config files.
-# Anacron - copy to /etc/cron.monthly/
-# Cron - copy to /usr/local/bin/ or /opt/bin/
-# Last updated: 17 Nov 2024
-# License: GNU General Public License, version 2.0
+###############################################################################
+# Script Name  : zz-clean
+# Description  : Clean apt cache and remove orphaned packages & obsolete config files.
+# Dependencies : None
+# Arguments    : None
+# Author       : Copyright © 2024, Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
+# Created      : 28 Dec 2024
+# Last updated : 28 Dec 2024
+# Comments     : Anacron - copy to /etc/cron.monthly/
+#              : Cron - copy to /usr/local/bin/ or /opt/bin/
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
 
 set -eu
-
-log_dir="/var/log"
-log_file="clean.log"
-log_date=$(date '+%a %F %R')
 
 purge_configs() {
   local rcpkg
@@ -34,14 +38,22 @@ autoremove_packages() {
   fi
 }
 
-{
-  printf "Autoclean log: %s\n" "$log_date"
-  printf "\nCleaning APT cache...\n"
-  DEBIAN_FRONTEND=noninteractive apt-get autoclean
-  printf "\nRemoving orphaned packages...\n"
-  autoremove_packages
-  printf "\nPurging obsolete configuration files\n"
-  purge_configs
-} > "$log_dir/$log_file" 2>&1
+main() {
+  local log_dir log_file log_date
+  log_dir="/var/log"
+  log_file="clean.log"
+  log_date=$(date '+%a %F %R')
 
-exit
+  {
+    printf "Autoclean log: %s\n" "$log_date"
+    printf "\nCleaning APT cache...\n"
+    DEBIAN_FRONTEND=noninteractive apt-get autoclean
+    printf "\nRemoving orphaned packages...\n"
+    autoremove_packages
+    printf "\nPurging obsolete configuration files\n"
+    purge_configs
+  } > "$log_dir/$log_file" 2>&1
+  exit
+}
+
+main "$@"
