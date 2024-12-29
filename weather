@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 24 Nov 2024
+# Updated      : 28 Dec 2024
 # Comments     : Based on script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.11.24329"
+readonly version="6.12.24363"
 
 ## Functions ##
 
@@ -61,7 +61,7 @@ is_url_accessible() {
 
 help() {
   local updated
-	updated="24 Nov 2024"
+	updated="28 Dec 2024"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Displays current weather and 3-day forecast for a location.
@@ -94,7 +94,7 @@ wx_forecast() {
   clear
   box "$script v$version"
   printf "\n"
-  if curl -so "$tmp_file" "$url/$wx_loc"; then
+  if curl -so "$tmp_file" "$url/${wx_loc}?u"; then
     sed '1 s/:.*//;/Follow/d' "$tmp_file"
   else
     timeout_exit "$wx_loc"
