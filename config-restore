@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019,Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Apr 2019
-# Updated      : 24 Oct 2024
+# Updated      : 02 Jan 2025
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,8 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="5.9.24298"
+script=$(basename "$0"); readonly script
+readonly version="5.10.25002"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="$HOME/.config/backup"
 readonly cfg_dir="$HOME/.config"
@@ -104,7 +104,7 @@ main_menu() {
   options=("System Configs" "Editor Configs" "i3 Configs" "BunsenLabs Configs" "Misc Configs" "Quit")
 	clear
 	COLUMNS=40
-  printf "%s %s\n" "$_script" "$_version"
+  printf "%s %s\n" "$script" "$version"
   printf "Restore configuration files from local backup.\n"
 	printf "\nConfiguration Classes\n"
 	select _opt in "${options[@]}"; do
@@ -151,7 +151,7 @@ sys_cfgs() {
     "neofetch" "fastfetch" "Cinnamon keybindings" ".conkyrc" ".xinitrc" "System Info" "Main Menu")
 		clear
 		COLUMNS=40
-    printf "%s %s\n" "$_script" "$_version"
+    printf "%s %s\n" "$script" "$version"
 		printf "\nSystem Configurations\n"
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
@@ -233,7 +233,7 @@ ed_cfgs() {
 		local options=("Bluefish" "Geany" "Mark Text" "Micro" "Nano" "VSCodium" "Main Menu")
 		clear
 		COLUMNS=20
-    printf "%s %s\n" "$_script" "$_version"
+    printf "%s %s\n" "$script" "$version"
 		printf "\nEditor Configurations\n"
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
@@ -287,10 +287,10 @@ i3_cfgs() {
   local _opt options
 	while true; do
 		local options=("i3 config" "sxhkdrc" "bindings.list" "i3status.conf" "polybar" "bar.conf" \
-    "workspaces.conf" "autostart.sh" "logout" "rofi config" "rofi themes" "dunstrc" "Main Menu")
+    "workspaces.conf" "autostart.sh" "backgrounds.sh" "logout" "rofi config" "rofi themes" "dunstrc" "Main Menu")
 		clear
 		COLUMNS=40
-    printf "%s %s\n" "$_script" "$_version"
+    printf "%s %s\n" "$script" "$version"
 		printf "\ni3 Configurations\n"
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
@@ -299,7 +299,13 @@ i3_cfgs() {
           break
         ;;
         2 )
-          res_config_cfg "i3/sxhkd" "sxhkdrc"
+          if [[ -f "$bu_dir/i3/sxhkdrc" ]]; then
+            res_config_cfg "i3" "sxhkdrc"
+          elif [[ -f "$bu_dir/i3/sxhkd/sxhkdrc" ]]; then
+            res_config_cfg "i3/sxhkd" "sxhkdrc"
+          else
+            printf "No sxhkdrc file found.\n"
+          fi
           break
         ;;
         3 )
@@ -335,20 +341,24 @@ i3_cfgs() {
           break
         ;;
         9 )
+          res_config_cfg "i3" "backgrounds.sh"
+          break
+        ;;
+        10 )
           res_config_cfg "i3" "logout"
           break
         ;;
-				10 )
+				11 )
           res_config_cfg "rofi" "config.rasi"
           break
         ;;
-				11 )
+				12 )
           res_rofi_theme;
           res_config_cfg "rofi" "arc_dark_colors.rasi"
           res_config_cfg "rofi" "arc_dark_transparent_colors.rasi"
           break
         ;;
-        12 )
+        13 )
           res_config_cfg "dunst" "dunstrc"
           break
         ;;
@@ -370,7 +380,7 @@ bl_cfgs() {
 		options=(".xbindkeysrc" "clipitrc" "conky.conf" "Main Menu")
 		clear
 		COLUMNS=20
-    printf "%s %s\n" "$_script" "$_version"
+    printf "%s %s\n" "$script" "$version"
 		printf "\nBunsenLabs Configurations\n"
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
@@ -404,7 +414,7 @@ misc_cfgs() {
 		options=("Bat" "gitconfig" "git-credentials" "KeepassXC" "Kitty" "Monitor Config" "Terminator" "imwheelrc" "Redshift" "Main Menu")
 		clear
 		COLUMNS=20
-    printf "%s %s\n" "$_script" "$_version"
+    printf "%s %s\n" "$script" "$version"
 		printf "\nMiscellaneous Configurations\n"
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
