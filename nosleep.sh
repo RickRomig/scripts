@@ -27,7 +27,7 @@ fi
 
 main() {
   local script sed_file sleep_file version
-  script=$(basename "$0");  script
+  script=$(basename "$0")
   version="1.3.25003"
   sleep_file="/etc/systemd/sleep.conf"
   sed_file="$HOME/bin/files/nosleep.sed"
