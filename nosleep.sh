@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2023
-# Last updated : 03 Oct 2024
-# Comments     :
+# Last updated : 03 Jan 2026
+# Comments     : Script started, output log is 'typescript'. (Then runs .bashrc)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -28,17 +28,16 @@ fi
 main() {
   local script sed_file sleep_file version
   script=$(basename "$0");  script
-  version="1.2.24277"
+  version="1.3.25003"
   sleep_file="/etc/systemd/sleep.conf"
   sed_file="$HOME/bin/files/nosleep.sed"
 
-  printf "%s v%s\n" "$script" "$version"
   printf "Disables sleep and hiberation on Debian-based systems.\n"
-
   [[ -f "$sed_file" ]] || die "A required files ($(basename "$sed_file")) was not found." 1
   sudo_login 2
   sudo sed -i.bak -f "$sed_file" "$sleep_file"
-  leave "$sleep_file modified. Backup (${sleep_file}.bak) created."
+  printf "%s modified. Backup (%s.bak) created.\n" "$sleep_file" "$sleep_file"
+  over_line "$script $version"
 }
 
 ## Execution ##
