@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : nosleep
+# Script Name  : nosleep.sh
 # Description  : Script to disable sleep and hiberation on Debian-based systems
 # Dependencies : None
 # Arguments    : None
