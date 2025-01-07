@@ -103,6 +103,7 @@ compare_versions() {
 
 install_bat() {
   local new_pkg="bat_${new_ver}_amd64.deb"
+  sudo_login 2
   printf "Downloading Bat %s from the sharkdp GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
@@ -114,6 +115,7 @@ install_bat() {
 
 remove_bat() {
   local cfg_bu_d="$HOME/.config/backup/bat"
+  sudo_login 2
   printf "Removing Bat %s...\n" "$(bat_version)"
   sudo dpkg --remove bat
   [[ -d "$cfg_d" ]] && rm -rf "$cfg_d"
@@ -134,7 +136,7 @@ dl_bat_config() {
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="19 Nov 2024"
+	updated="07 Jan 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Bat utililty.
@@ -171,7 +173,6 @@ main() {
         tmp_file=$(mktemp) || die "Failed to create temporary file." 1
         tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
         trap cleanup EXIT
-        sudo_login 2
         box "$script v$version"
         new_ver="$(newest_version)"
         echo "${lightyellow}Installing Bat version $new_ver...${normal}"
@@ -181,7 +182,6 @@ main() {
       ;;
       r )
         exists bat || leave "Bat is not installed."
-        sudo_login 2
         box "$script v$version"
         remove_bat
       ;;
@@ -190,7 +190,6 @@ main() {
         tmp_file=$(mktemp) || die "Failed to create temporary file." 1
         tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
         trap cleanup EXIT
-        sudo_login 2
         box "$script v$version"
         new_ver="$(newest_version)"
         [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
