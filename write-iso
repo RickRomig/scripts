@@ -75,7 +75,7 @@ select_usb() {
 }
 
 mount_usb() {
-	local mount_name usbpart mount_name
+	local mount_name usbpart
 	mount_name="$1"
 	usbpart="$2"
   [[ -d "/media/$user/$mount_name" ]] || sudo mkdir -p "/media/$user/$mount_name"
@@ -138,7 +138,8 @@ write_iso() {
 		mount_name="$(date +%y%b%d)"
 		mount_usb "$usbpart"
 	fi
-
+	printf "Current contents of /dev/%s:\n" "$usbdevice"
+	ls "/media/$user/$mount_name"
 	# Confirm action or cancel
 	if [[ "$dryrun" == "$TRUE" ]]; then
 		simulate_dd "$isofile" "$usbdevice" "$mount_name"
