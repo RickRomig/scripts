@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2019
-# Updated      : 19 Nov 2024
+# Updated      : 08 Jan 2025
 # Comments     : Google Chrome should update through apt
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.17.24324"
+readonly version="3.18.25008"
 readonly chrome_list="/etc/apt/sources.list.d/google-chrome.list"
 readonly keyring_dir="/usr/share/keyrings"
 readonly trusted_key="google-chrome.gpg"
@@ -47,9 +47,9 @@ install_chrome() {
   echo "$source_list" | sudo tee "$chrome_list" > /dev/null
   sudo apt update
   if sudo apt-get install -y google-chrome-stable; then
-    echo "Google Chrome $(chrome_version) successfully installed."
+    printf "Google Chrome %s successfully installed.\n" "$(chrome_version)"
   else
-    echo "Google Chrome installation failed." >&2
+    printf "Google Chrome installation failed.\n" >&2
   fi
 }
 
@@ -60,18 +60,19 @@ purge_chrome() {
   # sudo apt-key del D38B4796 2>/dev/null #apt-key deprecated
   [[ -f "$chrome_list" ]] && sudo rm -v "$chrome_list"
   [[ -d "$chrome_cfg_d" ]] && rm -rf "$chrome_cfg_d"
-  echo "Google Chrome removed from this computer."
+  printf "Google Chrome removed from this computer.\n"
 }
 
 update_chrome() {
+  printf "Current version: %s/n" "$(chrome_version)"
   sudo apt install google-chrome-stable
-  echo "Google Chrome updated to $(chrome_version)."
+  printf "Google Chrome updated to %s.\n" "$(chrome_version)"
 }
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="19 Nov 2024"
+	updated="08 Jan 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updated, or removes Google Chrome.
@@ -120,7 +121,7 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  box "$script v$version"
+  over_line "$script v$version"
   exit
 }
 
