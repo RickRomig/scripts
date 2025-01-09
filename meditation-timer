@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, ludditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jul 2021
-# Updated      : 23 Dec 2024
+# Updated      : 09 Jan 2025
 # Comments     : Original script found on Reddit r/dharmmawheel, posted by u/Jhanna4
 #              : Sound does not work with Pipewire audio.
 # TODO (Rick)  : Work on getting sound functions to work on Pipewire.
@@ -25,12 +25,6 @@ else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
-
-## Global Variables ##
-
-readonly sound_dir="$HOME/bin/files"
-readonly tibet_bowl="Tibetan_bowl.wav"
-# readonly wood_block="Low-Wood-Block.wav"
 
 ## Functions ##
 
@@ -69,8 +63,9 @@ set_volume() {
 
 play_sound() {
   # Play a sound as a background process.
+  local sound_dir="$HOME/bin/files"
   local sound="$1"
-  /usr/bin/aplay "$sound" > /dev/null 2>&1 &
+  /usr/bin/aplay "$sound_dir/$sound" > /dev/null 2>&1 &
 }
 
 screensaver_off() {
@@ -90,12 +85,14 @@ screensaver_on() {
 }
 
 countdown() {
-  for i in {10..1}; do printf "\t%02d\r" "$i"; sleep 1; done
+  local count
+  for count in {10..1}; do printf "\t%02d\r" "$count"; sleep 1; done
 }
 
 meditation_timer() {
-  local hours interval min minutes seconds sec_rem
+  local audio_file hours interval min minutes seconds sec_rem
   min="$1"
+  # audio_file="Low-Wood-Block.wav"
   sec_rem=$(( 60 * min ))
   while [[ "$sec_rem" -gt 0 ]]; do
     sec_rem=$(( sec_rem - 1 ))
@@ -110,16 +107,17 @@ meditation_timer() {
     # interval=$(( interval - hours ))
     # weeks=$(( interval / 604800 ))
     printf "\t%02d:%02d:%02d\r" "$hours" "$minutes" "$seconds"
-    # [[ $(( sec_rem % 300 )) -eq 0 && "$sec_rem" -gt 0 ]] && play_sound "$sound_dir/$wood_block"
+    # [[ $(( sec_rem % 300 )) -eq 0 && "$sec_rem" -gt 0 ]] && play_sound "$audio_file"
     sleep 1
   done
 }
 
 main() {
   trap screensaver_on EXIT
-  local meditation_time ovol vol script version
+  local audio_file meditation_time ovol vol script version
   script=$(basename "$0")
-  version="2.3.24358"
+  version="2.4.25009"
+  audio_file="Tibetan_bowl.wav"
   meditation_time="${1:-20}"  # Default time is 20 minutes.
   [[ -n "${meditation_time//[0-9]/}" || "$meditation_time" -eq 0 ]] && input_value
   vol="${2:-50}"  # Default volume setting is 50%.
@@ -134,13 +132,13 @@ main() {
   printf "\n\t\U2638 Meditation Timer \U2638 \n\n"
   screensaver_off
   countdown
-  play_sound "$sound_dir/$tibet_bowl"
+  play_sound "$audio_file"
   meditation_timer "$meditation_time"
-  play_sound "$sound_dir/$tibet_bowl"
+  play_sound "$audio_file"
   sleep 30
   set_volume "$ovol"
   printf "\n\n\U2638 %s v%s\n" "$script" "$version"
-  printf "\UA9 2021-2024 Richard B. Romig\n"
+  printf "\UA9 2021-2025 Richard B. Romig\n"
   exit
 }
 
