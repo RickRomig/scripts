@@ -56,7 +56,7 @@ show_public() {
   # if [[ "$public_ipv6" ]]; then
   #   printf "\t%sIPv4:%s %s\n" "$darkgray" "$normal" "$public_ipv6"
   # else
-  #   printf "\tNo public IPv4 address found.\n"
+  #   printf "\tNo public IPv6 address found.\n"
   # fi
 }
 
@@ -148,7 +148,6 @@ show_bridge() {
     br_mac=$(cat "/sys/class/net/$br_int/address")
     br_route=$(ip route show | awk '/vir/ && /kernel/ {print $1}')
     # display status
-    # set -x
     printf "\t%sBridge:%s   " "$darkgray" "$normal"
     case "$br_state" in
       up )
@@ -170,7 +169,6 @@ show_bridge() {
       * )
         printf "No device found.\n"
     esac
-    # set +x
 	fi
 }
 
