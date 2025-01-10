@@ -14,17 +14,10 @@
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
+## Global Variables ##
 
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
+readonly TRUE=0
+readonly FALSE=1
 
 ## Functions ##
 
@@ -84,7 +77,7 @@ screensaver_on() {
   tput cnorm    # restores cursor
 }
 
-countdown() {
+prep_countdown() {
   local count
   for count in {10..1}; do printf "\t%02d\r" "$count"; sleep 1; done
 }
@@ -116,7 +109,7 @@ main() {
   trap screensaver_on EXIT
   local audio_file meditation_time ovol vol script version
   script=$(basename "$0")
-  version="2.4.25009"
+  version="2.5.25010"
   audio_file="Tibetan_bowl.wav"
   meditation_time="${1:-20}"  # Default time is 20 minutes.
   [[ -n "${meditation_time//[0-9]/}" || "$meditation_time" -eq 0 ]] && input_value
@@ -131,7 +124,7 @@ main() {
   set_volume "$vol"
   printf "\n\t\U2638 Meditation Timer \U2638 \n\n"
   screensaver_off
-  countdown
+  prep_countdown
   play_sound "$audio_file"
   meditation_timer "$meditation_time"
   play_sound "$audio_file"
