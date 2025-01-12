@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 24 Aug 2024
+# Updated      : 12 Jan 2025
 # Comments     : Testing indicates USB drive need to be mounted.
 #              : Works with fuzzy finder (fzf) or zenity, if installed.
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
@@ -31,7 +31,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.3.24277"
+readonly version="6.4.25012"
 user=$(whoami)
 dryrun="$FALSE"
 
@@ -40,7 +40,7 @@ dryrun="$FALSE"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="03 Oct 2024"
+	updated="12 Jan 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
@@ -63,7 +63,7 @@ check_usb_drive() {
 select_iso() {
 	local isofile iso_d
 	iso_d="$HOME/Downloads/ISO/"
-	isofile=$(find "$iso_d" -maxdepth 3 -type f -iname "*.iso" -print | sort -d | fzf --height 40% --reverse --prompt "Select the ISO file to write: ")
+	isofile=$(find "$iso_d" -maxdepth 3 -type f -iname "*.iso" -print | sort -d | fzf --height 75% --reverse --prompt "Select the ISO file to write: ")
 	echo "$isofile"
 }
 
@@ -104,6 +104,7 @@ simulate_dd() {
   tput cnorm
   printf "\n%s written to /dev/%s (SIMULATED)\n"  "$(basename "$iso")" "$usb"
   printf "\nContents of /dev/%s:\n" "$usb"
+	printf "Disk label: %s\n" "$mount_name"
   ls "/media/$user/$mount_name"
 }
 
@@ -116,6 +117,7 @@ write_dd() {
 	if sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync; then
 	  printf "%s written to /dev/%s.\n" "$(basename "$iso")" "$usb"
     printf "\nContents of /dev/%s\n\n" "$usb"
+	printf "Disk label: %s\n" "$mount_name"
     ls "/media/$user/$mount_name"
 else
     diehard "$iso write to /dev/$usb failed.\n" "$script v$version"
@@ -139,6 +141,7 @@ write_iso() {
 		mount_usb "$usbpart"
 	fi
 	printf "Current contents of /dev/%s:\n" "$usbdevice"
+	printf "Disk label: %s\n" "$mount_name"
 	ls "/media/$user/$mount_name"
 	# Confirm action or cancel
 	if [[ "$dryrun" == "$TRUE" ]]; then
