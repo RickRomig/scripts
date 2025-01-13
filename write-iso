@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 12 Jan 2025
+# Updated      : 13 Jan 2025
 # Comments     : Testing indicates USB drive need to be mounted.
 #              : Works with fuzzy finder (fzf) or zenity, if installed.
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
@@ -31,8 +31,8 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.4.25012"
-user=$(whoami)
+readonly version="6.4.25013"
+user=$(whoami); readonly user
 dryrun="$FALSE"
 
 ## Functions ##
@@ -40,7 +40,7 @@ dryrun="$FALSE"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="12 Jan 2025"
+	updated="13 Jan 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
@@ -161,7 +161,7 @@ write_iso() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr iso_file usb_device
 	noOpt=1
 	optstr=":dhw"
 	while getopts "$optstr" opt; do
