@@ -172,6 +172,12 @@ show_title() {
 	printf "Verifies SHA256/SHA512/MD5 checksums with ISO files.\n"
 }
 
+show_check_verify() {
+	show_title
+	check_package fzf
+	verify_iso
+}
+
 main() {
 	local noOpt optstr opt
 	noOpt=1
@@ -179,20 +185,16 @@ main() {
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
-				help 0
-			;;
+				help 0 ;;
 			v )
-				show_title
-				check_package fzf
-				verify_iso
-			;;
+				show_check_verify	;;
 			? )
 				printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { check_package fzf; verify_iso; }
+	[[ "$noOpt" = 1 ]] && show_check_verify
 	shift "$(( OPTIND - 1 ))"
 	exit
 }
