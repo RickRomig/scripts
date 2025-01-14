@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 23 Nov 2024
+# Updated      : 14 Jan 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,9 +30,9 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.3.24328"
+readonly version="6.4.25014"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
-readonly cfg_d=$HOME"/.config/micro"
+readonly cfg_d="$HOME/.config/micro"
 
 ## Functions ##
 
@@ -88,25 +88,24 @@ newest_version() {
   else
     new_ver="2.0.13"
   fi
-echo "$new_ver"
+  echo "$new_ver"
 }
 
 compare_versions() {
   local cur_ver
   cur_ver=$(micro_version)
   if [[ "$cur_ver" == "$new_ver" ]]; then
-    echo "${lightyellow}Micro $cur_ver is the current version. No update required.${normal}"
-    check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
-else
-    echo "${lightyellow}Installed version of Micro is $cur_ver, updating to $new_ver...${normal}"
-    check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
+    printf "%sMicro %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
+    check_distro || printf "Bat %s is the latest version compatible with %s.\n" "$new_ver" "$(get_distribution)"
+  else
+    printf "%sInstalled version of Micro is %s, updating to %s...\n" "$lightyellow" "$cur_ver" "$normal"
+    check_distro || printf "Bat %s is the latest version compatible with %s.\n" "$new_ver" "$(get_distribution)"
     install_micro
   fi
 }
 
 install_micro() {
-  local new_pkg
-  new_pkg="micro-${new_ver}-linux64.tar.gz"
+  local new_pkg="micro-${new_ver}-linux64.tar.gz"
   printf "Downloading Micro %s from the zyedidia GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
@@ -123,12 +122,12 @@ remove_micro() {
   local cur_ver cfg_bu_d
   cur_ver=$(micro_version)
   cfg_bu_d="$HOME/.config/backup/micro"
-  echo "Removing the Micro CLI text editor..."
+  printf "Removing the Micro CLI text editor...\n"
   sudo dpkg --remove -y micro
   [[ -d "$cfg_d" ]] && rm -rf "$cfg_d"
   [[ -d "$cfg_bu_d" ]] && rm -rf "$cfg_bu_d"
   [[ -d /root/.config/micro ]] && sudo rm -rf /root/.config/micro
-  echo "Micro $cur_ver and configuration files have been removed."
+  printf "Micro %s and configuration files have been removed.\n" "$cur_ver"
 }
 
 apply_settings() {
@@ -136,9 +135,9 @@ apply_settings() {
   repository="$1"
   json_file="settings.json"
   [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
-  echo "Applying Micro settings..."
+  printf "Applying Micro settings...\n"
   cp -v "$repository//micro/$json_file" "$cfg_d/"
-  echo "Micro setttings applied."
+  printf "Micro setttings applied.\n"
 }
 
 apply_bindings() {
@@ -146,15 +145,15 @@ apply_bindings() {
   repository="$1"
   json_file="bindings.json"
   [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
-  echo "Applying Micro keybindings..."
+  printf "Applying Micro keybindings...\n"
   cp -v "$repository/micro/$json_file" "$cfg_d/"
-  echo "Micro keybindings applied."
+  printf "Micro keybindings applied.\n"
 }
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="23 Nov 2024"
+	updated="14 Jan 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -173,7 +172,7 @@ _HELP_
 }
 
 main() {
-  local noOpt opt optstr repository
+  local noOpt opt optstr new_ver repository
   check_dependencies
 	repository=$(assign_repo)
   noOpt=1
@@ -194,7 +193,7 @@ main() {
         trap cleanup EXIT
         sudo_login 2
         new_ver="$(newest_version)"
-        echo "${lightyellow}Installing Micro version $new_ver...${normal}"
+        printf "%sInstalling Micro version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
         install_micro
         apply_settings "$repository"
         apply_bindings "$repository"
@@ -226,7 +225,7 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  box "$script v$version"
+  over_line "$script v$version"
   exit
 }
 
