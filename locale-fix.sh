@@ -7,7 +7,7 @@
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Created      :
-# Updated      : 02 Oct 2024
+# Updated      : 14 Jan 2025
 # Comment      :
 # License      : GNU General Public License, version 2.0
 #########################################################################
@@ -34,7 +34,7 @@ readonly version="2.4.24276"
 ## Functions ##
 
 show_intro() {
-  local updated="02 Oct 2024"
+  local updated="14 Jan 2025"
   cat << _INTRO_
 $script changes the setting to store locales in individual locale direectories
 instead of a single archive file.
@@ -61,7 +61,8 @@ main() {
   sudo_login 2
   show_intro
   purge_update
-  leave "$script v$version"
+  over_line "$script v$version"
+  exit
 }
 
 ## Execution ##
