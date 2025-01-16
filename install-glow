@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : install-glow
 # Description  : Installs and removes the Glow markdown reader.
-# Dependencies : curl, gdebi
+# Dependencies : curl
 # Arguments    : [-h] [-i] [-r] [-s] (See help function)
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 01 Oct 2024
+# Updated      : 15 Jan 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.19.24236"
+readonly version="4.20.25015"
 readonly charm_url="https://repo.charm.sh/apt"
 readonly src_list_d="/etc/apt/sources.list.d"
 readonly keyring_d="/etc/apt/keyrings"
@@ -71,15 +71,10 @@ glow_version() {
   dpkg -l glow | awk '/ii/ {print $3}'
 }
 
-check_dependencies() {
-  local packages=( curl gdebi )
-  check_packages "${packages[@]}"
-}
-
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="201 Oct 2024"
+  updated="15 Jan 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removed Glow Markdown reader
@@ -96,7 +91,7 @@ _HELP_
 
 main() {
   local noOpt opt optstr
-  check_dependencies
+  check_package curl
 	noOpt=1
   optstr=":hirs"
   while getopts "$optstr" opt; do
@@ -128,7 +123,8 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  leave "$script v$version"
+  over_line "$script v$version"
+  exit
 }
 
 ## Execution ##
