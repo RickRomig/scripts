@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Nov 2019
-# Updated      : 03 Oct 2024
+# Updated      : 16 Jan 2025
 # Comments     : Extracts swap partition UUID from output of /sbin/blkid
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -67,15 +67,16 @@ update_initramfs() {
 main() {
   local script version swap_uuid
   script=$(basename "$0")
-  version="5.5.24289"
+  version="5.5.25016"
   sudo_login 2
-  box "$script v$version" "*"
   print_message
   swap_uuid=$(get_swap_uuid)
   [[ "$swap_uuid" ]] || die "No UUID for swap found." 1
   set_resume "$swap_uuid"
   update_initramfs
-  leave "Reboot the system for the change to take affect."
+  over_line "$script v$version" "-"
+  printf "Reboot the system for the change to take affect.\n"
+  exit
 }
 
 ## Execution ##
