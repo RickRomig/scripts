@@ -161,7 +161,7 @@ memory_info() {
   local mem_max mem_type phys_mem
 	phys_mem=$(sudo /usr/bin/lshw -class memory -short -quiet | awk '/System/ {print $(NF-2)}' | sed 's/GiB/ GB/')
 	mem_type=$(sudo dmidecode --type 17 | awk '/Type:/ {print $NF; exit}')
-	mem_max=$(sudo dmidecode --type 16 | awk -F: '/Capacity/ {print $NF; exit}' | sed 's/^ //')
+	mem_max=$(sudo dmidecode --type 16 | awk -F: '/Capacity/ {print $NF; exit}')
 	printf "%-9s %s %s (%s maximum)\n" "Memory:" "$phys_mem" "$mem_type" "$mem_max"
 }
 
