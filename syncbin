@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Last updated : 15 Oct 2024
+# Last updated : 17 Jan 2025
 # Comments     : Can sync to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -32,14 +32,14 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.2.24289"
+readonly version="6.3.25017"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="15 Oct 2024"
+  updated="17 Jan 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Synchrnizes ~/bin with remote hosts.
@@ -124,7 +124,7 @@ syncscript() {
       exit_status="$?"
       transfer_status "$exit_status"
     ;;
-    24|25|227 )
+    21|24|25 )
       echo $'\n'$"${orange}Syncing Homepage...${normal}"
       rsync -avh --delete --exclude '.git' "$HOME"/Documents/homepage/ "$LOCALNET.$hostip":Documents/homepage/
       exit_status="$?"
@@ -255,7 +255,6 @@ check_host() {
 }
 
 main() {
-  box "$script v$version"
   check_host
   check_package rsync
   # Start timer
@@ -272,6 +271,8 @@ main() {
   else
     sync_one "$1"
   fi
+  over_line "$script v$version"
+  exit
 }
 
 ## Execution ##
