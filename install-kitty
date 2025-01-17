@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 19 Nov 2024
+# Updated      : 17 Jan 2025
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.11.24324"
+readonly version="2.12.25017"
 readonly kitty_cfg_d="$HOME/.config/kitty"
 
 ## Functions ##
@@ -36,7 +36,7 @@ readonly kitty_cfg_d="$HOME/.config/kitty"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="215 Nov 2024"
+	updated="17 Jan 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Kitty terminal emulator
@@ -56,21 +56,14 @@ _HELP_
 assign_repo() {
 	local localip repo
 	localip=$(local_ip)
+	repo="$HOME/Downloads/configs"
 	case "$localip" in
 		10|16|22 )
-			repo="$HOME/gitea/configs"
-		;;
+			repo="$HOME/gitea/configs" ;;
 		* )
-			if [[ -d "$HOME/Downloads/configs" ]]; then
-				pushd "$HOME/Downloads/configs" || die "pushd failed"
-				git pull --quiet origin main
-				popd || die "popd failed"
-			else
-				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
-			fi
-			repo="$HOME/Downloads/configs"
+			[[ -d "$repo" ]] || git clone --quiet "$GITEA_URL/configs.git" "$repo"
 	esac
-	printf "%s" "$repo"
+	echo "$repo"
 }
 
 kitty_version() {
@@ -99,15 +92,17 @@ purge_kitty() {
 }
 
 kitty_config() {
-  local repository="$1"
+  local repository
+	repository=$(assign_repo)
   [[ -d "$kitty_cfg_d" ]] || mkdir -p "$kitty_cfg_d"
-  printf "Apllying up %s ...\n" "kitty.conf"
+  printf "Applying up %s ...\n" "kitty.conf"
   cp -v "$repository/kitty/kitty.conf" "$kitty_cfg_d/"
-  printf "kitty.conf created and configured.\n"
+  printf "kitty.conf copied.\n"
 }
 
 kitty_bindings() {
-  local repository="$1"
+  local repository
+	repository=$(assign_repo)
   cp -v "$repository/kitty/bindings.list" "$kitty_cfg_d/"
   printf "Kitty keybindings list copied to ~/.config/kitty\n"
   printf "Run the kkb script to display keybindings.\n"
@@ -115,8 +110,7 @@ kitty_bindings() {
 
 main() {
   check_package git
-  local noOpt opt optstr repository
-	repository=$(assign_repo)
+  local noOpt opt optstr
   noOpt=1
   optstr=":bchipr"
   while getopts "$optstr" opt; do
@@ -124,12 +118,12 @@ main() {
       b )
         exists kitty || leave "Kitty is not installed."
         printf "Copying Kitty keybindings...\n"
-        kitty_bindings "$repository"
+        kitty_bindings
       ;;
       c )
         exists kitty || leave "Kitty is not installed."
         printf "Configuring Kitty %s...\n" "$(kitty_version)"
-        kitty_config "$repository"
+        kitty_config
       ;;
       h )
         help 0
@@ -138,8 +132,8 @@ main() {
         exists kitty && leave "Kitty terminal emulator $(kitty_version) already installed."
         sudo_login 2
         install_kitty
-        kitty_config "$repository"
-        kitty_bindings "$repository"
+        kitty_config
+        kitty_bindings
 
       ;;
       p )
