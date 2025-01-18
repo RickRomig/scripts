@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : install-keepassxc
 # Description  : Installs/removes KeePassXC from Flathub or distro repos
-# Dependencies : git
+# Dependencies : wget
 # Arguments    : -c -d -f -h -r (see help function)
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Jan 2021
-# Updated      : 31 Oct 2024
+# Updated      : 17 Jan 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.14.24305"
+readonly version="3.15.25017"
 readonly cfg_dir="$HOME/.config/keepassxc"
 
 ## Functions ##
@@ -76,21 +76,23 @@ create_ini() {
 	localip=$(local_ip)
   ini_file="keepassxc.ini"
   [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
-  printf "Appying %s ...\n" "$ini_file"
-  if [[ "$localip" == "16" ]]; then
-    repository="$HOME/gitea/configs/keepassxc"
-    cp -v "$repository/$ini_file" "$cfg_dir"
-  else
-    repository="configs/raw/branch/main/keepassxc"
-	  wget -P "$cfg_dir" "$GITEA_URL/$repository/$ini_file"
-  fi
+  printf "Applying %s ...\n" "$ini_file"
+  case "$localip" in
+    10|16|22 )
+      repository="$HOME/gitea/configs/keepassxc"
+      cp -v "$repository/$ini_file" "$cfg_dir"
+    ;;
+    * )
+      repository="configs/raw/branch/main/keepassxc"
+      wget -P "$cfg_dir" "$GITEA_URL/$repository/$ini_file"
+  esac
   printf "%s created and applied.\n" "$ini_file"
 }
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="31 Oct 2024"
+	updated="17 Jan 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removed KeePassXC password manager
@@ -154,7 +156,7 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  box "$script v$version"
+  over_line "$script v$version"
   exit
 }
 
