@@ -148,14 +148,13 @@ _HELP_
 main() {
   local noOpt opt optstr repository
   check_dependencies
-	repository=$(assign_repo)
   noOpt=1
   optstr=":chiru"
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
         exists bat || leave "Bat is not installed."
-        dl_bat_config "$repository"
+        dl_bat_config
       ;;
       h )
         help 0
@@ -169,7 +168,7 @@ main() {
         echo "${lightyellow}Installing Bat version $new_ver...${normal}"
         check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
         install_bat
-        dl_bat_config "$repository"
+        dl_bat_config
       ;;
       r )
         exists bat || leave "Bat is not installed."
