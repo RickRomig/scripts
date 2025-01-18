@@ -51,21 +51,14 @@ check_dependencies() {
 assign_repo() {
 	local localip repo
 	localip=$(local_ip)
+	repo="$HOME/Downloads/configs"
 	case "$localip" in
 		10|16|22 )
-			repo="$HOME/gitea/configs"
-		;;
+			repo="$HOME/gitea/configs" ;;
 		* )
-			if [[ -d "$HOME/Downloads/configs" ]]; then
-				pushd "$HOME/Downloads/configs" || die "pushd failed"
-				git pull --quiet origin main
-				popd || die "popd failed"
-			else
-				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
-			fi
-			repo="$HOME/Downloads/configs"
+			[[ -d "$repo" ]] || git clone --quiet "$GITEA_URL/configs.git" "$repo"
 	esac
-	printf "%s" "$repo"
+	echo "$repo"
 }
 
 check_distro() {
@@ -125,7 +118,7 @@ remove_bat() {
 
 dl_bat_config() {
   local cfg_file repository
-  repository="$1"
+  repository=$(assign_repo)
   cfg_file="config"
   [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
   printf "Applying Bat configuration...\n"
