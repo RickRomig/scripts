@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 19 Nov 2024
+# Updated      : 17 Jan 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.8.24324"
+readonly version="4.9.25017"
 readonly gh_url="https://github.com/marktext/marktext/releases"
 readonly cfg_dir="$HOME/.config/marktext"
 
@@ -49,21 +49,14 @@ check_dependencies() {
 assign_repo() {
 	local localip repo
 	localip=$(local_ip)
+	repo="$HOME/Downloads/configs"
 	case "$localip" in
 		10|16|22 )
-			repo="$HOME/gitea/configs"
-		;;
+			repo="$HOME/gitea/configs" ;;
 		* )
-			if [[ -d "$HOME/Downloads/configs" ]]; then
-				pushd "$HOME/Downloads/configs" || die "pushd failed"
-				git pull --quiet origin main
-				popd || die "popd failed"
-			else
-				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
-			fi
-			repo="$HOME/Downloads/configs"
+			[[ -d "$repo" ]] || git clone --quiet "$GITEA_URL/configs.git" "$repo"
 	esac
-	printf "%s" "$repo"
+	echo "$repo"
 }
 
 marktext_version() {
@@ -115,7 +108,7 @@ remove_marktext() {
 
 dl_preferences() {
   local json_file repository
-  repository="$1"
+	repository=$(assign_repo)
   json_file="preferences.json"
   [[ -d "$cfg_dir" ]] && mkdir -p "$cfg_dir"
   printf "Applying MarkText preferences...\n"
@@ -126,7 +119,7 @@ dl_preferences() {
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="19 Nov 2024"
+	updated="17 Jan 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, removes the Mark Text markdown editor.
@@ -146,14 +139,13 @@ _HELP_
 main() {
   local noOpt opt optstr new_ver repository
   check_dependencies
-	repository=$(assign_repo)
   noOpt=1
   optstr=":chiru"
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
         exists marktext || leave "Marktext is not installed."
-        dl_preferences "$repository"
+        dl_preferences
       ;;
       h )
         help 0
@@ -166,7 +158,7 @@ main() {
         new_ver="$(newest_version)"
         echo "${lightyellow}Installing MarkText version $new_ver...${normal}"
         install_marktext "$new_ver"
-        dl_preferences "$repository"
+        dl_preferences
       ;;
       r )
         exists marktext || leave "Marktext is not installed."
