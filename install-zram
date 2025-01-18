@@ -19,7 +19,7 @@ set -eu
 
 install_zram() {
 	sudo apt install -y zram-tools
-	sed -i.bak '/ALGO/s/^#//;/PERCENT/s/^#//;s/50$/25/' /etc/default/zramswap
+	sudo sed -i.bak '/ALGO/s/^#//;/PERCENT/s/^#//;s/50$/25/' /etc/default/zramswap
 	printf "Zram swap file installed.\n"
 }
 
@@ -66,7 +66,7 @@ over_line() {
 main() {
   local script version swap_type
   script=$(basename "$0")
-  version="1.0.25018"
+  version="1.1.25018"
   swap_type=$(get_swap_type)
   case "$swap_type" in
     disk )
