@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 17 Feb 2022
-# Updated      : 24 Dec 2024
+# Updated      : 17 Jan 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="5.18.24359"
+readonly version="5.19.25017"
 localip="$(local_ip)"; readonly localip
 # path variables
 readonly script_path="$HOME/bin"
@@ -68,7 +68,7 @@ cp_main_bu() {
 
 cp_finance_bu() {
   case "$localip" in
-    10|21 )
+    10 )
       [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
       cp -puv "$script_path/fin-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}'
       cp -puv "$script_path/hb-archive.sh" "$user_cron_path" | awk '{print "==> "$NF}'
@@ -178,7 +178,8 @@ no_copy() {
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="28 Oct 2024"
+  updated="17 Jan 2025
+# Comments     :"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Copies updated cron scripts to the appropriate directories.
