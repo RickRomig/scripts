@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018,Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Nov 2018
-# Updated      : 09 Nov 2024
+# Updated      : 20 Jan 2025
 # Comments     : Inspired by Joe Collins and Luke Smith <https://lukesmith.xyz>
 # License      : GNU General Public License, version 2.0
 #####################################################################
@@ -31,6 +31,7 @@ check_drivetemp() {
   grep -qw drivetemp /etc/modules || echo drivetemp | sudo tee -a /etc/modules
   printf "drivetemp module - OK\n"
   sleep 2
+  printf '\e[A\e[K'
 }
 
 check_dependencies() {
@@ -130,7 +131,7 @@ show_header() {
 show_footer() {
   local script version
   script=$(basename "$0")
-  version="6.5.24313"
+  version="6.6.25020"
   printf "\nThe system has been %s\n" "$(/usr/bin/uptime -p)"
   printf "Last reboot: %s\n" "$(/usr/bin/who -b | awk '{print $(NF-1)" at "$NF}')"
   over_line "$script $version"
@@ -139,9 +140,7 @@ show_footer() {
 
 main() {
   check_dependencies
-  local sensor_json script version
-  script=$(basename "$0")
-  version="6.6.24314"
+  local sensor_json
   sensor_json="$(sensors -j)"
   clear
   show_header
