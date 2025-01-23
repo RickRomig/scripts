@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Apr 2023
-# Updated      : 26 Dec 2024
+# Updated      : 23 Jan 2025
 # Comments     : Assumes i3wm, polybar, rofi, dunst have been previously installed
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.4.24361"
+readonly version="3.5.25023"
 readonly config_dir="$HOME/.config"
 
 ## Functions ##
@@ -36,7 +36,7 @@ readonly config_dir="$HOME/.config"
 help() {
 	local errcode updated
 	errcode="${1:-2}"
-	updated="20 Nov 2024"
+	updated="23 Jan 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated $updated
 Copies default i3 configuration files from the local Gitea server.
@@ -69,19 +69,11 @@ assign_repo() {
 	localip=$(local_ip)
 	case "$localip" in
 		10|16|22 )
-			repo="$HOME/gitea/configs"
-		;;
+			repo="$HOME/gitea/configs" ;;
 		* )
-			if [[ -d "$HOME/Downloads/configs" ]]; then
-				pushd "$HOME/Downloads/configs" || die "pushd failed"
-				git pull --quiet origin main
-				popd || die "popd failed"
-			else
-				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
-			fi
-			repo="$HOME/Downloads/configs"
+			[[ -d "$repo" ]] || git clone --quiet "$GITEA_URL/configs.git" "$repo"
 	esac
-	printf "%s" "$repo"
+	echo "$repo"
 }
 
 copy_i3_config() {
