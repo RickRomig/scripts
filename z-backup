@@ -16,28 +16,32 @@
 
 set -eu
 
-log_date=$(date +"%a|%F|%R")
-log_dir="/var/log"
-log_file="backup.log"
-backup_dir="/data/backup"
-error_log="/error.log"
+main() {
+  local backup_dir error_log log_date log_dir log_file
+  log_date=$(date +"%a|%F|%R")
+  log_dir="/var/log"
+  log_file="backup.log"
+  backup_dir="/data/backup"
+  error_log="/error.log"
 
-[[ -d "$backup_dir" ]] || mkdir -p "$backup_dir"
-[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
+  [[ -d "$backup_dir" ]] || mkdir -p "$backup_dir"
+  [[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 
-{
-  printf "%s|" "$log_date"
-  if rsync -aH --delete /etc /home "$backup_dir/" 2> "$backup_dir/$error_log"; then
-    printf "successful\n"
-    echo "Local Backup was successful: $(date +%F)" > "$backup_dir/$error_log"
-  else
-    printf "had errors %d\n" "$?"
-    echo "Local Backup had errors: $(date +%F)" >> "$backup_dir/$error_log"
-fi
-  sync
-} >> "$log_dir/$log_file" 2>&1
+  {
+    printf "%s|" "$log_date"
+    if rsync -aH --delete /etc /home "$backup_dir/" 2> "$backup_dir/$error_log"; then
+      printf "successful\n"
+      echo "Local Backup was successful: $(date +%F)" > "$backup_dir/$error_log"
+    else
+      printf "had errors %d\n" "$?"
+      echo "Local Backup had errors: $(date +%F)" >> "$backup_dir/$error_log"
+  fi
+    sync
+  } >> "$log_dir/$log_file" 2>&1
 
-log_len=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
-[[ "$log_len" -gt 30 ]] && sed -i '1d' "$log_dir/$log_file"
+  log_len=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
+  [[ "$log_len" -gt 30 ]] && sed -i '1d' "$log_dir/$log_file"
+  exit
+}
 
-exit
+main "$@"
