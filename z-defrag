@@ -6,7 +6,7 @@
 # Arguments    : None
 # Author       : Copyright (C) 2021-2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Updated      : 15 Jun 2024 Version 2.6.24167
+# Updated      : 24 Jan 2025
 # Comments     : Do not run this e4defrag on SSD or NVME drives.
 #              : anacron job: Copy to /etc/cron.monthly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
@@ -15,30 +15,37 @@
 
 set -eu
 
-log_dir="/var/log"
-log_file="defrag.log"
-host_name=$(/usr/bin/uname -n)
+main() {
+	local dashes host_name log_dir log_file script version
+	log_dir="/var/log"
+	log_file="defrag.log"
+	host_name=$(/usr/bin/uname -n)
+  script=$(basename "$0")
+  version="2.7.25024"
+	dashes="----------------------------"
+	{
+		printf "Defrag Report: %s\n\n" "$(date '+%a %F %R')"
+		case "$host_name" in
+			hp-800-g1-usdt|hp-probook-6570|e-475m|hp-mini-110 )
+				printf "SSD - e4defrag not run.\n"
+			;;
+			hp-860-g3 )
+				printf "NVMe - e4defrag not run.\n"
+			;;
+			hp-6005 )
+				/usr/sbin/e4defrag -c / /home /data
+			;;
+			hp-800g2-sff )
+				printf "/dev/sda is an SSD, e4defrag not run.\n\n"
+				/usr/sbin/e4defrag -c /home
+			;;
+			* )
+				/usr/sbin/e4defrag -c / /home
+		esac
+		printf "%s\n%s %s\n" "$dashes" "$script" "$version"
+	} > "$log_dir/$log_file" 2>&1
+	[[ -f "$log_dir/$log_file" ]] && sed -i '/^e4defrag/d;/0-30/d;/^ Done/d' "$log_dir/$log_file"
+	exit
+}
 
-{
-	printf "Defrag Report: %s\n\n" "$(date '+%a %F %R')"
-	case "$host_name" in
-		hp-800-g1-usdt|hp-probook-6570|e-475m|hp-mini-110 )
-			printf "SSD - e4defrag not run.\n"
-		;;
-		hp-860-g3 )
-			printf "NVMe - e4defrag not run.\n"
-		;;
-		hp-6005 )
-			/usr/sbin/e4defrag -c / /home /data
-		;;
-		hp-800g2-sff )
-			printf "/dev/sda is an SSD, e4defrag not run.\n\n"
-			/usr/sbin/e4defrag -c /home
-		;;
-		* )
-			/usr/sbin/e4defrag -c / /home
-	esac
-	printf "\n"
-} > "$log_dir/$log_file" 2>&1
-[[ -f "$log_dir/$log_file" ]] && sed -i '/^e4defrag/d;/0-30/d;/^ Done/d' "$log_dir/$log_file"
-exit
+main "$@"
