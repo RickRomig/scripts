@@ -6,7 +6,7 @@
 # Arguments    : none
 # Author       : Copyright (C) 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Updated      : 01 Oct 2024
+# Updated      : 23 Jan 2025
 # Comment      :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,8 +26,8 @@ fi
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="1.3.24275"
+script=$(basename "$0"); readonly script
+readonly version="1.4.25023"
 
 ## Functions ##
 
@@ -45,20 +45,20 @@ remove_matrix() {
 }
 
 help() {
-  local errcode _updated
+  local errcode updated
   errcode="${1:=-2}"
-  _updated="04 Oct 2024"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  updated="23 Jan 2025"
+  cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Installs/Removes C-Matrix
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -h  Display help
   -i  Install C-Matrix
   -r  Remove C-Matrix
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
@@ -89,7 +89,7 @@ main() {
   done
   [[   "$noOpt" == 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  printf "%s v%s\n" "$_script" "$_version"
+  over_line "$script $version"
   exit
 }
 
