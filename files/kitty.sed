@@ -1,5 +1,5 @@
 /font_family/ {
-	s/monospace/JetBrainsMono Nerd Font/
+	s/monospace/FiraCode Nerd Font Mono/
 }
 /font_size/ {
 	s/11.0/14.0/
