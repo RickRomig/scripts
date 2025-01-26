@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 12 May 2021
-# Updated      : 18 Oct 2024
+# Updated      : 25 Jan 2025
 # Comments     : Backup of Cinnamon keybindings in ~/.config
 #              : Tested with Cinnamon DE on Mint 19.x & 20.x, 21.x, LMDE 5/6, Debian 10/11/12
 # TODO (Rick)  :
@@ -28,6 +28,8 @@ fi
 
 ## Variables ##
 
+readonly  cfg_dir="$HOME/.config"
+readonly  kb_bu="keybindings-backup.dconf"
 verbose_mode="$FALSE"
 
 ## Functions ##
@@ -35,7 +37,7 @@ verbose_mode="$FALSE"
 help() {
   local errcode updated
   errcode="${1:-1}"
-  updated="18 Oct 2024"
+  updated="25 Jan 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Creates a backup file of Cinnamon keybindings and restores from a backup file.
@@ -43,12 +45,33 @@ Creates a backup file of Cinnamon keybindings and restores from a backup file.
 ${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
-  -d  Dumps Cinnamon keybindings to a backup file in ~/.config.
-  -h  Displays this help text.
-  -l  Loads Cinnamon keybindings from the backup file.
+  -c  Copy Cinnamon keybindings from Gitea repo to ~/.config
+  -d  Dump Cinnamon keybindings to a backup file in ~/.config
+  -h  Display this help text
+  -l  Load Cinnamon keybindings from the backup file
   -v  Enable verbose mode
 _HELP_
   exit "$errcode"
+}
+
+dump_to_backup() {
+  show_message "Dumping keybindings to backup file."
+  dconf dump /org/cinnamon/desktop/keybindings/ > "$cfg_dir/$kb_bu"
+  printf "Cinnamon Keybindings dumped to %s/%s\n" "$cfg_dir" "$kb_bu"
+
+}
+
+load_from_backup() {
+  show_message "Loading keybindings from backup file."
+  dconf load /org/cinnamon/desktop/keybindings/ < "$cfg_dir/$kb_bu"
+  printf "Cinnamon Keybindings loaded from %s/%s\n" "$cfg_dir" "$kb_bu"
+}
+
+copy_from_repo() {
+  local cinn_keys="configs/raw/branch/main/keybindings-backup.dconf"
+  show_message "Installing Cinnamon keybindings from local repository.\n"
+  curl -so "$cfg_dir/$kb_bu" "$GITEA_URL/$cinn_keys"
+  printf "Cinnamont keybindings copied from Gitea respository.\n"
 }
 
 show_message() {
@@ -57,35 +80,31 @@ show_message() {
 }
 
 main() {
-  local cfg_dir kb_bu script version
+  local script version
   script=$(basename "$0")
-  version="2.5.24292"
-  cfg_dir="$HOME/.config"
-  kb_bu="keybindings-backup.dconf"
+  version="2.6.25025"
 
   if is_cinnamon; then
     noOpt=1
-    optstr=":dhlv"
+    optstr=":cdhlv"
     while getopts "$optstr" opt; do
       case "$opt" in
+        c )
+          copy_from_repo
+          load_from_backup
+        ;;
         d )
-          show_message "Dumping keybindings to backup file."
-          dconf dump /org/cinnamon/desktop/keybindings/ > "$cfg_dir/$kb_bu"
-          printf "Cinnamon Keybindings dumped to %s\n" "$cfg_dir/$kb_bu"
+          dump_to_backup
         ;;
         h )
           help 0
         ;;
         l )
           if [[ -f "$cfg_dir/$kb_bu" ]]; then
-            show_message "loading keybindings from backup file."
-            dconf load /org/cinnamon/desktop/keybindings/ < "$HOME/.config/$kb_bu"
-            printf "Cinnamon Keybindings loaded from %s\n" "$cfg_dir/$kb_bu"
+            load_from_backup
           else
             pirntf "%s does not exist. Creating it...\n" "$kb_bu" >&2
-            show_message "Dumping keybindings to backup file."
-            dconf dump /org/cinnamon/desktop/keybindings/ > "$cfg_dir/$kb_bu"
-            printf "Cinnamon Keybindings dumped to %s\n" "$cfg_dir/$kb_bu"
+            dump_to_backup
           fi
         ;;
         v )
@@ -102,7 +121,6 @@ main() {
     shift "$(( OPTIND - 1 ))"
   else
     pirntf "The desktop environment is not Cinnamon.\n" >&2
-    exit 1
   fi
   over_line "$script v$version"
   exit
