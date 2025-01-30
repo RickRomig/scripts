@@ -32,18 +32,15 @@ clone_repo() {
   git_repo="$1"
   dl_dir="$HOME/Downloads"
   if [[ -d "$dl_dir/$git_repo" ]]; then
-    printf "%s exists.\n" "$dl_dir/$git_repo"
     if [[ $(find "$dl_dir/$git_repo" -type f) ]]; then
       printf "%s is not empty. Updating the directory...\n" "$dl_dir/$git_repo"
       pushd "$dl_dir/$git_repo" || die "pushd failed"
       git pull
       popd || die "popd failed"
     else
-      printf "Cloning %s to %s...\n" "$git_repo" "$dl_dir"
       git clone "$GITEA_URL/$git_repo.git" "$dl_dir/$git_repo"
     fi
   else
-    printf "Cloning %s to %s...\n" "$git_repo" "$dl_dir"
     git clone "$GITEA_URL/$git_repo.git" "$dl_dir/$git_repo"
   fi
 }
