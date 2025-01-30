@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 01 Oct 2024
+# Updated      : 30 Jan 2025
 # Comments     : Based on instructions from Joe Collins.
 # TODO (Rick)  : Test this. Test for Intel/AMD CPU.
 # License      : GNU General Public License, version 2.0
@@ -55,7 +55,7 @@ enable_libvirtd() {
 add_to_kvm_group() {
   local qemu_conf user
   qemu_conf="/etc/libvirt/qemu.conf"
-  user="$USER"
+  user=$(whoami)
   printf "\nAdding %s to the kvm group.\n" "$user"
   sudo usermod -a -G kvm "$user"
   printf "%s added to the kvm group.\n" "$user"
@@ -77,7 +77,7 @@ install_boxes() {
 main() {
   local script version
   script=$(basename "$0")
-  version="1.11.24275"
+  version="1.12.25030"
   sudo_login 2
   printf "Installs GNOME Boxes.\n"
   check_bios
