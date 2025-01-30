@@ -1,21 +1,31 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Script Name  : clean-c
-# Description  : Cleans up current working directory, removing a.out, *.o *~ files
+# Description  : removes *~, *.o, and a.out in the current working directory
 # Dependencies : none
 # Arguments    : none
 # Author       : Copyright (C) 2019, Richard Romig,
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Feb 2019
-# Updated      : 13 Oct 2024
-# Comment      : removes *~, *.o, and a.out in the current working directory
+# Updated      : 30 Jan 2025
+# Comment      :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
-# Cleans up current working directory, removing a.out, *.o *~ files
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
 
-clean_work() {
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+clean_work_dir() {
 	local work_dir
 	work_dir=$(dirname "$(readlink -f "$0")")
 	printf "\nCleaning up %s ...\n" "$work_dir"
@@ -25,8 +35,8 @@ clean_work() {
 main() {
 	local script version
 	script=$(basename "$0")
-	version="2.0.24287"
-	clean_work
-	printf "%s v%s\n" "$script" "$version"
+	version="2.1.25030"
+	clean_work_dir
+	over_line "$script $version"
 	exit
 }
