@@ -8,10 +8,10 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 03 Feb 2025
+# Last updated : 04 Feb 2025
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
-#              : Starting with Micro 2.0.14, no deb package released.
+#              : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -28,6 +28,8 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Functions ##
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
@@ -43,7 +45,7 @@ installed_version() {
     micro )
       ver=$(micro -version 2>/dev/null | awk '/Version:/ {print $NF}') ;;
     gitea )
-      ver=$(gitea --version | cut -d' ' -f3) ;;
+      ver=$(gitea --version 2>/dev/null | cut -d' ' -f3) ;;
     * )
       ver=$(dpkg -l "$pkg" 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//') ;;
   esac
@@ -61,20 +63,15 @@ github_versions() {
     # Set URL of GitHub repoository and currently installed version of package.
     case "$package" in
       bat )
-        release_path="sharkdp/bat/releases"
-      ;;
+        release_path="sharkdp/bat/releases" ;;
       micro )
-        release_path="zyedidia/micro/releases"
-      ;;
+        release_path="zyedidia/micro/releases" ;;
       marktext )
-        release_path="marktext/marktext/releases"
-      ;;
+        release_path="marktext/marktext/releases" ;;
 		  codium )
-			  release_path="VSCodium/vscodium/releases"
-      ;;
+			  release_path="VSCodium/vscodium/releases" ;;
       fastfetch )
-        release_path="fastfetch-cli/fastfetch/releases"
-      ;;
+        release_path="fastfetch-cli/fastfetch/releases" ;;
       * )
         printf "%s Invalid package name - %s\n" "$RED_ERROR" "${package,,}" >&2
     esac
@@ -95,18 +92,18 @@ github_versions() {
     # Print capitalized package name
     printf "%s%-16s" "${darkgray}" "${package^}"
     # Print newest version
-    if [[ -z "$new_ver" ]]; then
-      printf "%s%-16s" "${red}" "No release"
-    else
+    if [[ "$new_ver" ]]; then
       printf "%s%-16s" "${gray}" "$new_ver"
+     else
+      printf "%s%-16s" "${red}" "No release"
     fi
     # Print current installed version.
-    if [[ -z "$cur_ver" ]]; then
-      printf "%s%s\n" "${gray}" "not installed"
-    elif [[ "$new_ver" == "$cur_ver" ]]; then
+    if [[ "$new_ver" == "$cur_ver" ]]; then
       printf "%s%s\n" "${gray}" "$cur_ver"
-    else
+    elif [[ "$cur_ver" ]]; then
       printf "%s%-16s%sUpdate available\n" "${gray}" "$cur_ver" "${orange}"
+    else
+      printf "%s%s\n" "${gray}" "not installed"
     fi
   done
   printf "%s\n" "${normal}"
@@ -162,7 +159,7 @@ browsers() {
 main() {
   local script version
   script=$(basename "$0")
-  version="13.9.25034"
+  version="14.0.25035"
   clear
   box "$script $version"
   printf "\n"
