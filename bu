@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 31 Oct 2024
+# Last updated : 04 Feb 2025
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,14 +25,17 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.5.24305"
-readonly user=$USER
+readonly version="4.6.25035"
+user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
 exit_status=0
+SECONDS=0
 
 ## Functions ##
 
@@ -175,7 +178,7 @@ restore() {
 }
 
 help() {
-	local updated="31 Oct 2024"
+	local updated="04 Feb 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -257,8 +260,6 @@ _DISCLAIMER_
 
 main() {
 	local noOpt optstr opt
-	# Start timer
-	SECONDS=0
 	box "${script^^} -- USB Backup Tool (Version $version)"
 	printf "Copyright \UA9 2023, Rick Romig\n\n"
 
