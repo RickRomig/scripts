@@ -20,7 +20,7 @@ archive="gitea-bu-$(date +%y%m%d).tar.gz"; declare -r
 
 daily_bu() {
 	tar -zpcf "$arc_dir/daily/$archive" "$HOME"/gitea "$HOME"/Projects
-	find "$arc_dir/daily" -daystart -mtime +7 -delete
+	find "$arc_dir/daily" -daystart -mtime +6 -delete
 }
 
 weekly_bu() {
