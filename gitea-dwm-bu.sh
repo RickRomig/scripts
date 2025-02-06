@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Jan 2024
-# Last updated : 02 Feb 2025 Version 1.5.25933
+# Last updated : 05 Feb 2025 Version 1.6.25036
 # Comments     : Includes both Gitea and GitHub repositories.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -20,17 +20,17 @@ archive="gitea-bu-$(date +%y%m%d).tar.gz"; declare -r
 
 daily_bu() {
 	tar -zpcf "$arc_dir/daily/$archive" "$HOME"/gitea "$HOME"/Projects
-	find "$arc_dir/daily" -mtime +8 -delete
+	find "$arc_dir/daily" -daystart -mtime +7 -delete
 }
 
 weekly_bu() {
 	tar -zpcf "$arc_dir/weekly/$archive" "$HOME"/gitea "$HOME"/Projects
-	find "$arc_dir/weekly" -mtime +32 -delete
+	find "$arc_dir/weekly" -daystart -mtime +28 -delete
 }
 
 monthly_bu() {
 	tar -zpcf "$arc_dir/monthly/$archive" "$HOME"/gitea "$HOME"/Projects
-	find "$arc_dir/monthly" -mtime +367 -delete
+	find "$arc_dir/monthly" -daystart -mtime +366 -delete
 }
 
 main() {
