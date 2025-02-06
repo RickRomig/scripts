@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 31 Jan  2025
+# Updated      : 06 Feb  2025
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to ~/Videos/
 # TODO (Rick)  :
@@ -29,8 +29,8 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.1.25031"
-readonly updated="31 Jan  2025"
+readonly version="6.2.25037"
+readonly updated="06 Feb 2025"
 
 ## Functions ##
 
@@ -86,10 +86,11 @@ _INFO_
 }
 
 check_dependencies() {
+  local packages=(ffmpeg fzr)
   if [[ -x /usr/local/bin/yt-dlp ]]; then
     printf "yt-dlp [OK]\n"
     sleep 2
-    check_package fzf
+    check_packages "${packages[@]}"
   else
     die "yt-dlp is not installed." 1
   fi
