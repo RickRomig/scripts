@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 15 Oct 2024
+# Updated      : 08 Feb 2025
 # Comments     : match by regex, starts with http:// or https://
 #              : Downloads videos to ~/Videos/Pornography/<category>
 # TODO (Rick)  :
@@ -30,8 +30,8 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.0.24289"
-readonly updated="15 Oct 2024"
+readonly version="3.1.25039"
+readonly updated="08 Feb 2025"
 
 ## Functions ##
 
@@ -89,10 +89,12 @@ _INFO_
 }
 
 check_dependencies() {
+  local packages=(ffmpeg fzf)
   if [[ -x /usr/local/bin/yt-dlp ]]; then
     printf "yt-dlp [OK]\n"
     sleep 2
-    check_package fzf
+    printf '\e[A\e[K'
+    check_packages "${packages[@]}"
   else
     die "yt-dlp is not installed." 1
   fi
