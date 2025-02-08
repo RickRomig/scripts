@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Jan 2024
-# Last updated : 05 Feb 2025 Version 1.6.25036
+# Last updated : 08 Feb 2025 Version 1.6.25039
 # Comments     : Includes both Gitea and GitHub repositories.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -16,7 +16,7 @@
 set -eu
 
 declare -r arc_dir="$HOME/Downloads/archives/gitea"
-archive="gitea-bu-$(date +%y%m%d).tar.gz"; declare -r
+archive="gitea-bu-$(date +%y%m%d).tar.gz"; declare -r archive
 
 daily_bu() {
 	tar -zpcf "$arc_dir/daily/$archive" "$HOME"/gitea "$HOME"/Projects
