@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Nov 2019
-# Updated      : 01 Jan 2025
+# Updated      : 08 Feb 2025
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to current working directory
 # TODO (Rick)  :
@@ -29,14 +29,14 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.1.25001"
+readonly version="3.2.25039"
 
 ## Functions
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="01 Jan 2025"
+  updated="08 Feb2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Downloads mp3 audio from YouTube videos to current working diretory.
@@ -57,7 +57,9 @@ check_dependencies() {
   if [ -x /usr/local/bin/yt-dlp ]; then
     printf "yt-dlp [OK]\n"
     sleep 2
-  else
+    printf '\e[A\e[K'
+    check_package ffmpeg
+ else
     die "yt-dlp is not installed." 1
   fi
 }
