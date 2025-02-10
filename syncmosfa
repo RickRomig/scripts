@@ -142,6 +142,11 @@ syncscript() {
   exit_status="$?"
   transfer_status "$exit_status"
 
+  echo $'\n'$"${orange}Syncing Pictures/backgrounds...${normal}"
+  rsync -avh --delete "$HOME"/Pictures/backgrounds/ "$LOCALNET.$hostip":Pictures/backgrounds/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
 if [[ "$hostip" == "16" ]]; then
     # Sync Deb packages and Git repositories
     printf "\n%sSyncing Deb Packages...%s\n" "$orange" "$normal"
