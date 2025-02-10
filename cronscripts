@@ -43,9 +43,9 @@ cp_repo_backup() {
   case "$localip" in
     10|16 )
       [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
-      cp -puv "$script_path/gitea-dwm-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
-      cp -puv "$script_path/gitea-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
-      cp -puv "$script_path/github-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
+      cp -puv "$script_path/gitea-dwm-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
+      cp -puv "$script_path/gitea-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
+      cp -puv "$script_path/github-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
     ;;
     * )
       no_copy "Repository archives are"
@@ -56,11 +56,11 @@ cp_main_bu() {
   case "$localip" in
   10 )
       [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
-      cp -puv "$script_path/sync-nas.sh" "$user_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
-      cp -puv "$script_path/sync6005.sh" "$user_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
-      cp -puv "$script_path/journal-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
-      cp -puv "$script_path/passwdsync.sh" "$user_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
-      cp -puv $"$script_path/repo-backup.sh" "$user_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
+      cp -puv "$script_path/sync-nas.sh" "$user_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
+      cp -puv "$script_path/sync6005.sh" "$user_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
+      cp -puv "$script_path/journal-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
+      cp -puv "$script_path/passwdsync.sh" "$user_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
+      cp -puv $"$script_path/repo-backup.sh" "$user_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
   ;;
     * )
       no_copy "Main system sync scripts are"
@@ -71,8 +71,8 @@ cp_finance_bu() {
   case "$localip" in
     10 )
       [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
-      cp -puv "$script_path/fin-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
-      cp -puv "$script_path/hb-archive.sh" "$user_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
+      cp -puv "$script_path/fin-bu.sh" "$user_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
+      cp -puv "$script_path/hb-archive.sh" "$user_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
     ;;
     * )
       no_copy "Finance archives are"
@@ -83,7 +83,7 @@ cpscriptarchive() {
   case "$localip" in
     10|11|12|13|14|15|16|19|20|23 )
       [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
-      cp -puv "$script_path/scriptarchive.sh" "$user_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
+      cp -puv "$script_path/scriptarchive.sh" "$user_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
     ;;
     * )
       no_copy "scriptarchive.sh is"
@@ -94,7 +94,7 @@ cp_empty_trash() {
   case "$localip" in
     10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25 )
       [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
-      cp -puv "$script_path/empty-trash.sh" "$user_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
+      cp -puv "$script_path/empty-trash.sh" "$user_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
     ;;
     * )
       no_copy "empty-trash.sh is"
@@ -103,9 +103,9 @@ cp_empty_trash() {
 
 cp_redshift_notify() {
   case "$localip" in
-    10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25 )
+    11|12|13|14|15|16|17|18|19|20|21|22|23|24|25 )
       [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
-      cp -puv "$script_path/redshift-notify.sh" "$user_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
+      cp -puv "$script_path/redshift-notify.sh" "$user_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
     ;;
     * )
       no_copy "redshift-notify.sh is"
@@ -116,7 +116,7 @@ cp_zbackup() {
 	case "$localip" in
 		11 )
 		  [[ -d "$opt_cron_path" ]] || sudo mkdir -p "$opt_cron_path"
-		  sudo cp -uv "$script_path/z-backup" "$opt_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
+		  sudo cp -uv "$script_path/z-backup" "$opt_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
     ;;
 		* )
 			no_copy "z-backup is"
@@ -127,11 +127,11 @@ cp_zdefrag() {
   local anacron_path="/etc/cron.monthly/"
   case "$localip" in
     10|12|13|15|20|23 )
-      sudo cp -uv "$script_path/z-defrag" "$anacron_path" | awk '{print "==> "$NF}' || (( count++ ))
+      sudo cp -uv "$script_path/z-defrag" "$anacron_path" | awk '{print "==> "$NF}' && (( count++ ))
     ;;
     11|14|16|19 )
       [[ -d "$opt_cron_path" ]] || sudo mkdir -p "$opt_cron_path"
-      sudo cp -uv "$script_path/z-defrag" "$opt_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
+      sudo cp -uv "$script_path/z-defrag" "$opt_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
     ;;
     * )
       no_copy "z-defrag is"
@@ -144,13 +144,13 @@ cp_zupdate() {
   anacron_path="/etc/cron.weekly/"
   case "$localip" in
     10|12|13|15|17|20|21|22|23|24|25|227 )
-      sudo cp -uv "$script_path/z-update" "$anacron_path" | awk '{print "==> "$NF}' || (( count++ ))
-      sudo cp -uv "$script_path/$sed_file" "$sed_path" | awk '{print "==> "$NF}' || (( count++ ))
+      sudo cp -uv "$script_path/z-update" "$anacron_path" | awk '{print "==> "$NF}' && (( count++ ))
+      sudo cp -uv "$script_path/$sed_file" "$sed_path" | awk '{print "==> "$NF}' && (( count++ ))
     ;;
     11|14|16|19 )
       [[ -d "$opt_cron_path" ]] || sudo mkdir -p "$opt_cron_path"
-      sudo cp -uv "$script_path/z-update" "$opt_cron_path" | awk '{print "==> "$NF}' || (( count++ ))
-      sudo cp -uv "$script_path/$sed_file" "$sed_path" | awk '{print "==> "$NF}' || (( count++ ))
+      sudo cp -uv "$script_path/z-update" "$opt_cron_path" | awk '{print "==> "$NF}' && (( count++ ))
+      sudo cp -uv "$script_path/$sed_file" "$sed_path" | awk '{print "==> "$NF}' && (( count++ ))
     ;;
     * )
       no_copy "z-update is"
@@ -163,8 +163,8 @@ cp_zytdlpupdate() {
   anacron_path="/etc/cron.daily/"
   case "$localip" in
     10|15|17 )
-      sudo cp -uv "$script_path/z-ytdlp-update" "$anacron_path" | awk '{print "==> "$NF}' || (( count++ ))
-      sudo cp -uv "$script_path/$sed_file" "$sed_path" | awk '{print "==> "$NF}' || (( count++ ))
+      sudo cp -uv "$script_path/z-ytdlp-update" "$anacron_path" | awk '{print "==> "$NF}' && (( count++ ))
+      sudo cp -uv "$script_path/$sed_file" "$sed_path" | awk '{print "==> "$NF}' && (( count++ ))
     ;;
     * )
       no_copy "z-ytdlp-update is"
@@ -173,7 +173,7 @@ cp_zytdlpupdate() {
 
 no_copy() {
   local cron_script="$1"
-  printf "%s not applicable to this system and not copied.\n" "$cron_script"
+  printf "%s not applicable to this system and was not copied.\n" "$cron_script"
 }
 
 help() {
@@ -267,7 +267,7 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No arguments passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  [[ "$count" -eq 0 ]] && printf "No updates required.\n"
+  [[ "$count" -eq 0 ]] && printf "No scripts updated.\n"
   over_line "$script v$version"
   exit
 }
