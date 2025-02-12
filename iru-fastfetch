@@ -109,7 +109,9 @@ install_fastfetch(){
   wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
   kill "$!"; tput cnorm
   printf "done\nInstalling FastFetch %s...\n" "$new_ver"
-  sudo gdebi -n "$tmp_dir/$new_pkg"
+  # sudo gdebi -n "$tmp_dir/$new_pkg" 2>/dev/null
+	# sudo apt-get install "$tmp_dir/$new_pkg"
+	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-brokenq
   printf "%sFastFetch %s installed.%s\n" "$lightyellow" "$(ff_version)" "$normal"
 }
 
