@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 17 Jan 2025
+# Updated      : 12 Feb 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.9.25017"
+readonly version="4.10.25043"
 readonly gh_url="https://github.com/marktext/marktext/releases"
 readonly cfg_dir="$HOME/.config/marktext"
 
@@ -92,7 +92,9 @@ install_marktext() {
   kill "$!";printf "done\n";tput cnorm
   sudo_login 2
   printf "Installing Mark Text %s...\n" "$new_ver"
-  sudo gdebi -n "$tmp_dir/$new_pkg"
+  # sudo gdebi -n "$tmp_dir/$new_pkg" 2>/dev/null
+	# sudo apt-get install "$tmp_dir/$new_pkg"
+	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-brokenq
   printf "Mark Text %s installed.\n" "$(marktext_version)"
 }
 
@@ -119,7 +121,7 @@ dl_preferences() {
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="17 Jan 2025"
+	updated="12 Feb 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, removes the Mark Text markdown editor.
