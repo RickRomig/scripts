@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 10 Feb 2025
+# Updated      : 14 Feb 2025
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -85,14 +85,16 @@ purge_rc_packages() {
 }
 
 main() {
-  local dashes log_dir log_file script sed_file version
+  local dashes lhost log_dir log_file script sed_file version
   script=$(basename "$0")
-  version="1.0.25024"
+  version="1.1.25045"
+  lhost="${HOSTNAME:-$(hostname)}"
   log_dir="/var/log"
   log_file="update.log"
   sed_file="/usr/share/misc/updatelog.sed"
   dashes="----------------------------"
   {
+    printf "%s weekly update\n" "$lhost"
     printf "Date: %s\n" "$(date '+%F %R')"
 	  check_disk_space
     printf "\n*** Checking for updates ***\n"
