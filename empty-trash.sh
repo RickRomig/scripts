@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 28 Sep 2024, Version 4.1.24272
+# Updated      : 14 Feb 2025, Version 4.2.25045
 # Comments     : Run as a user cron job.
 #              : Trash directory does not exist until a file is moved to the trash.
 # TODO (Rick)  :
@@ -38,13 +38,18 @@ empty_trash() {
 }
 
 main() {
-	local trash_dir log_dir log_file
+	local dashes lhost trash_dir log_dir log_file script version
+  script=$(basename "$0")
+  version="4.2.25045"
+  lhost="${HOSTNAME:-$(hostname)}"
 	trash_dir="$HOME/.local/share/Trash"
 	log_dir="$HOME/.local/share/logs"
 	log_file="trash.log"
+	dashes="----------------------------"
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 
 	{
+		printf "L%s ocal Trash Log\n" "$lhost"
 		printf "Date: %s \n" "$(date '+%F %R')"
 		if ! dpkg -l trash-cli > /dev/null 2>&1; then
 			printf "trash-cli package is not installed.\n"
@@ -53,8 +58,9 @@ main() {
 		else
 			printf "\nTrash directory does not exist.\nWill be created when a file is moved to the trash.\n"
 		fi
-	} > "$log_dir/$log_file" 2>&1
+		printf "%s\n%s %s\n" "$dashes" "$script" "$version"
+		} > "$log_dir/$log_file" 2>&1
 	exit
 }
 
-main
+main "$@"
