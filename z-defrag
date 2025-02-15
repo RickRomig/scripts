@@ -6,7 +6,7 @@
 # Arguments    : None
 # Author       : Copyright (C) 2021-2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Updated      : 14 Feb 2025
+# Updated      : 15 Feb 2025
 # Comments     : Do not run this e4defrag on SSD or NVME drives.
 #              : anacron job: Copy to /etc/cron.monthly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
@@ -19,9 +19,9 @@ main() {
 	local dashes host_name log_dir log_file script version
 	log_dir="/var/log"
 	log_file="defrag.log"
-	host_name=$(/usr/bin/uname -n)
+	host_name="${HOSTNAME:-$(hostname)}"
   script=$(basename "$0")
-  version="2.9.25045"
+  version="2.10.25046"
 	dashes="----------------------------"
 	{
 		printf "Defrag Report for %s: %s\n\n" "$host_name" "$(date '+%a %F %R')"
@@ -29,7 +29,7 @@ main() {
 			hp-800-g1-usdt|hp-probook-6570|e-475m|hp-mini-110 )
 				printf "SSD - e4defrag not run.\n"
 			;;
-			hp-860-g3 )
+			hp-850-g3 )
 				printf "NVMe - e4defrag not run.\n"
 			;;
 			hp-6005 )
