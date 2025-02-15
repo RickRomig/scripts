@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 29 Aug 2019
-# Updated      : 14 Feb 2025
+# Updated      : 15 Feb 2025
 # Comments     : sudo access required to view Timeshift snapshots
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -78,7 +78,7 @@ timeshift_snapshots() {
       printf "\nNo Timeshift snapshots found.\n"
     else
       clear
-      printf "%s%s - Timeshift Snapshots:%s\n\n" "$lightgreen" "$lhost" "$normal"
+      printf "%s%s - Timeshift Snapshots:%s\n" "$lightgreen" "$lhost" "$normal"
       sudo timeshift --list | awk 'NR!=1 && NR!=3' 2>/dev/null
     fi
   else
@@ -110,11 +110,11 @@ ytdlpupdate_log() {
   log_file="ytdlpup.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
-    printf "%s%s - yt-dlp Update Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
+    printf "%s%s - yt-dlp Update Log:%s\n" "$lightgreen" "$lhost" "$normal"
 		(printf "DATE|TIME|VERSION\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "29"
     entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
-    (( entries > 1 )) && printf "%s entries\n\n" "$entries" || printf "%s entry\n\n" "$entries"
+    (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
   else
     printf "%sThe yt-dlp update log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
@@ -132,11 +132,11 @@ local_backup_log() {
   log_file="backup.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
-    printf "%s%s - Local Backup Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
+    printf "%s%s - Local Backup Log:%s\n" "$lightgreen" "$lhost" "$normal"
 		(printf "DAY|DATE|TIME|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "34"
     entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
-    (( entries > 1 )) && printf "%s entries\n\n" "$entries" || printf "%s entry\n\n" "$entries"
+    (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
   else
     printf "%sThe local backup log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
@@ -154,11 +154,11 @@ script_archive_log() {
 	log_file="script-archive.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
-    printf "%s%s - Bash Script Archive Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
+    printf "%s%s - Bash Script Archive Log:%s\n" "$lightgreen" "$lhost" "$normal"
 		(printf "DAY|DATE|TIME|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "34"
     entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
-    (( entries > 1 )) && printf "%s entries\n\n" "$entries" || printf "%s entry\n\n" "$entries"
+    (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
   else
     printf "%sThe bash script archive log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
@@ -176,11 +176,11 @@ password_log() {
   log_file="password-db.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
-    printf "%s%s - Password Database Change Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
+    printf "%s%s - Password Database Change Log:%s\n" "$lightgreen" "$lhost" "$normal"
     (printf "DATE|TIME|STATUS\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "28"
     entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
-    (( entries > 1 )) && printf "%s entries\n\n" "$entries" || printf "%s entry\n\n" "$entries"
+    (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
   else
     printf "%sThe Password Database Change Log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
@@ -198,11 +198,11 @@ homebank_log() {
 	log_file="HomeBank-archive.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
-    printf "%s%s- HomeBank Archive Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
+    printf "%s%s- HomeBank Archive Log:%s\n" "$lightgreen" "$lhost" "$normal"
     (printf "DAY|DATE|TIME|ARCHIVE|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "43"
     entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
-    (( entries > 1 )) && printf "%s entries\n\n" "$entries" || printf "%s entry\n\n" "$entries"
+    (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
   else
     printf "%sThe HomeBank archive log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
@@ -220,7 +220,6 @@ trash_log() {
   local log_file="trash.log"
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
-    printf "%s%s Local Trash Log:%s\n\n" "$lightgreen" "$lhost" "$normal"
     viewtext "$log_dir/$log_file"
     printf "\n"
   else
@@ -428,7 +427,7 @@ archive_logs() {
 main() {
 	local _opt options script version
   script=$(basename "$0")
-  version="10.3.25045"
+  version="10.4.25046"
 	options=( "System logs" "Local logs" "Archive Logs" "Quit")
 	while true; do
 		show_header
