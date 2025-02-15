@@ -6,8 +6,8 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Version      : 4.0.254039
-# Last updated : 08 Feb 2025
+# Last updated : 15 Feb 2025
+# Version      : 4.1.25046
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
@@ -22,7 +22,7 @@ trim_log() {
 	log_dir="$1"
 	log_file="$2"
 	log_len=$(wc -l "$log_dir/$log_file" | cut -d " " -f1)
-	[[ "$log_len" -gt 36 ]] && sed -i '1d' "$log_dir/$log_file"
+	[[ "$log_len" -gt 12 ]] && sed -i '1d' "$log_dir/$log_file"
 }
 
 del_old() {
@@ -69,7 +69,7 @@ main() {
 
 	# Backup *.bak files from from 2 months previous.
 	archive_bak "$arc_dir" "$log_dir" "$log_file"
-	# Trim top entry from the log file when the length exceeds 36 entries.
+	# Trim top entry from the log file when the length exceeds 12 entries.
 	trim_log "$log_dir" "$log_file"
 	# Delete archive files older than 3 years.
 	del_old "$arc_dir"
