@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Aug 2019
-# Last updated : 30 Sep 2024
+# Last updated : 14 Feb 2025
 # Comments     : For entertainiment purposes only.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -24,8 +24,6 @@ else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
-
-## Global Variables ##
 
 ## Functions ##
 
@@ -78,33 +76,26 @@ print_analysis() {
   printf "Your statement has been analyzed and found to be %s%% bullshit -- " "$level"
   case "$level" in
     0 )
-      printf "absolutely true\n"
-    ;;
+      printf "absolutely true\n" ;;
     [1-9] )
-      printf "very likely true.\n"
-    ;;
+      printf "very likely true.\n" ;;
     1[0-9] )
-      printf "mostly true.\n"
-    ;;
+      printf "mostly true.\n" ;;
     [2-4]? )
-      printf "somewhat true.\n"
-    ;;
+      printf "somewhat true.\n" ;;
     [5-6]? )
-      printf "might be false.\n"
-    ;;
+      printf "might be false.\n" ;;
     [7-8]? )
-      printf "probably false.\n"
-    ;;
+      printf "probably false.\n" ;;
     9[0-9] )
-      printf "mostly false.\n"
-    ;;
+      printf "mostly false.\n" ;;
     * )
-      printf "absolutely false!\n"
+      printf "absolutely false!\n" ;;
   esac
 }
 
 print_disclaimer() {
-  cat << _EOF_
+  cat << _DISCLAIMER_
 ${green}Welcome to the Luddite Geek Universal Bullshit Detector.${normal}
 Enter a statement to be verified and wait for it to be analyzed.
 Once its bullshit content has been determined, the results will be displayed.
@@ -112,13 +103,13 @@ Once its bullshit content has been determined, the results will be displayed.
 ${orange}Disclaimer:${normal}
 This program is for entertainment purposes only and its accuracy cannot be guaranteed.
 
-_EOF_
+_DISCLAIMER_
 }
 
 main() {
   local bs_level script version
   script=$(basename "$0")
-  version="5.2.24274"
+  version="5.3.2045"
   bs_level=$(shuf -i 0-100 -n 1)
 
   clear
@@ -133,7 +124,7 @@ main() {
   print_header
   print_indicator "$bs_level"
   print_analysis "$bs_level"
-  printf "\n%s v%s\n" "$script" "$version"
+  over_line "$script $version"
   exit
 }
 
