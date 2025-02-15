@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : sshlocal
+# Description  : connect to remote servers via SSH using the .local domain
+# Dependencies : OpenSSH, OpenSSH_server
+# Arguments    : None
+# Author       : Copyright © 2025 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 14 Feb 2025
+# Last updated : 14 Feb 2025
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+set -eu
+
+## Functions ##
+
+connect_local() {
+	local index arr_len x11_fwd
+	x11_fwd="$FALSE"
+	default_no "Enable X11 forwarding?" && x11_fwd="$TRUE"
+	COLUMNS=40
+	PS3="Choose a remote server: "
+	local servers=(hp-800g2-sff hp-6005 e6500-deb probook-6570b hp-8300 lenovo-m91p hp-8300-usdt hp-800-g1-usdt probook-6570 hp-probook-6570 hp-850-g3 hp-2560p e-475m)
+	select _server in "${servers[@]}" "Exit"; do
+		if (( REPLY == 1 + "${#servers[@]}" )); then
+			printf "Exiting. No server contacted.\n"
+			break
+		elif (( REPLY > 0 && REPLY <= "${#servers[@]}" )); then
+			clear
+			index=$(( REPLY -1 ))
+			if [[ "$x11_fwd" == "$TRUE" ]]; then
+				printf "Connecting to %s (X11 forwarding) ...\n" "${servers[index]}"
+				ssh -X "${servers[index]}".local
+			else
+				printf "Connecting to %s ...\n" "${servers[index]}"
+				ssh "${servers[index]}".local
+			fi
+			break
+		else
+			arr_len="${#servers[@]}"; arr_len=$(( arr_len + 1 ))
+			printf "Invalid option. Choose 1 - %d.\n" "$arr_len"
+		fi
+	done
+}
+
+main() {
+	local script version
+	script=$(basename "$0")
+	version="1.0.25045"
+	connect_local
+  over_line "$script $version"
+}
+
+## Execution ##
+
+main "$@"
