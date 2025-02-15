@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 30 Jan 2025
+# Updated      : 14 Feb 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -46,9 +46,9 @@ clone_repo() {
 }
 
 main() {
-  local index _repo repos script version
+  local arr_len index _repo repos script version
   script=$(basename "$0")
-  version="3.6.25030"
+  version="3.7.25045"
 
   check_package git
   printf "Clone a repository from the local Gitea server.\n\n"
@@ -66,7 +66,8 @@ main() {
 		  clone_repo "${repos[index]}"
 		  break
 	  else
-		  printf "Invalid option. Choose 1 - %d\n" "${#repos[@]}"
+      arr_len="${#repos[@]}"; arr_len=$(( arr_len + 1 ))
+		  printf "Invalid option. Choose 1 - %d\n" "$arr_len"
 	  fi
   done
   over_line "$script $version"
