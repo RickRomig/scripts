@@ -67,7 +67,7 @@ Short description
 ${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
-	-h	Show help
+	-h	Show this help message and exit
 	-i	Install application
 	-r	Remove application
 	-s	Apply settings
@@ -95,6 +95,7 @@ main() {
 			i )
 				# argI="$OPTARG"
 				exists application && leave "Application $(appversion) is already installed."
+				trap cleanup EXIT	# for temp files and directories
 				install_application
 				apply_settings	# optional custom configuration
 			;;
@@ -127,11 +128,10 @@ main() {
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
 	# printf "%s v%s\n" "$script" "$version"
-	# exit
-	leave "$script $version"
+	over_line "$script $version"
+	exit
 }
 
 ## Execution ##
 
-trap cleanup EXIT	# for temp files and directories
 main "$@"
