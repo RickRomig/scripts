@@ -66,7 +66,7 @@ Short description
 ${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
-  -h  Show help
+  -h  Show this help message and exit
 
 _HELP_
   exit "$errcode"
@@ -88,12 +88,13 @@ main() {
     filename="$1"
   fi
 
+  trap cleanup EXIT	# for temp files and directories
+
   # printf "%s v%s\n" "$script" "$version"
-  # exit
-  leave "$script $version"
+  over_line "$script $version"
+  exit
 }
 
 ## Execution ##
 
-trap cleanup EXIT	# for temp files and directories
 main "$@"
