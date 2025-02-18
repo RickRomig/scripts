@@ -230,3 +230,7 @@ $ journalctl --list-boots | tail -1
 $ journalctl -b <boot_id> # 1st field from --list-boots
 # produces hundreds of lines of information
 ```
+### remove temporary files created today
+```bash
+$ sudo find /tmp/ -type f -name "tmp.*" -daystart -mtime -1 -delete
+```
