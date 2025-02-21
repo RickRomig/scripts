@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 17 Jan 2025
+# Updated      : 21 Feb 2025
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.12.25017"
+readonly version="2.12.25052"
 readonly kitty_cfg_d="$HOME/.config/kitty"
 
 ## Functions ##
@@ -36,7 +36,7 @@ readonly kitty_cfg_d="$HOME/.config/kitty"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="17 Jan 2025"
+	updated="21 Feb 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Kitty terminal emulator
@@ -45,7 +45,7 @@ ${green}Usage:${normal} $script [OPTION]
 ${orange}Available options:${normal}
   -b  Copy Kitty keybindings list
   -c  Install Kitty configuration
-  -h  Display help
+  -h  Show this help message and exit
   -i  Install Kitty from distro repositories
   -p  Purge Kitty from system (remove config files)
   -r  Remove Kitty from system (leave config files)
@@ -154,7 +154,7 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  printf "%s v%s\n" "$script" "$version"
+  over_line "$script $version"
   exit
 }
 
