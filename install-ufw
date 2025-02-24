@@ -7,7 +7,7 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 04 Oct 2024
+# Updated      : 24 Feb 2025
 # Comments     : Install & remove for Deian-based systems only.
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
@@ -29,14 +29,14 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="1.14.24278"
+readonly version="1.15.25055"
 
 ## Functions ##
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="04 Oct 2024"
+	updated="24 Feb 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs UFW on Debian, BunsenLabs, and MX Linux systems.
@@ -48,7 +48,7 @@ ${orange}Available options:${normal}
   -a  Add rules for CUPS and SSH (XRDP if installed)
   -d  Delete rules
   -e  Toggle Enable/Disable UFW
-  -h  Show this Help text.
+  -h  Show this help message and exit
   -i  Install UFW on a Debian-based system
   -n  Add New rules
   -r  Remove UFW from a Debian-based system
@@ -164,7 +164,7 @@ main() {
         help 0
       ;;
       i )
-        debian_system || die "Not a Debian system."
+        debian_system || die "Not a Debian system." 1
         dpkg -l | grep -qw ufw && leave "UFW $(ufw_version) is already installed."
         sudo_login 2
         install_ufw
@@ -197,7 +197,8 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  leave "$script v$version"
+  over_line "$script $version"
+  exit
 }
 
 ## Execution ##
