@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : create-c-cpp
+# Description  : create C source file from template
+# Dependencies : None
+# Arguments    : new C source file
+# Author       : Copyright (C) 2023, Richard Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 01 Jan 2023
+# Last updated : 25 Feb 2025
+# Comment      : C template includes GNU GPL v2 license
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+script=$(basename "$0"); readonly script
+readonly version="4.0.2056"
+verbose_mode="$FALSE"
+
+## Functions ##
+
+help() {
+  local errcode="${1:-2}"
+  local updated="25 Feb 2025"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
+Creates a C/C++ source code file with descriptive comments (GPL v2.0 license)
+
+${green}Usage:${normal} $script [OPTION] [source-file]
+
+${orange}Available options:${normal}
+  -c  Create a C source code file
+      $script -c <code-file>
+  -h  Show this help message and exit
+  -p  Create a C++ source code file
+      $script -p <code-file>
+  -v  Enable verbose mode (Must precede c or p flags)
+      $script -vc <code-file>
+_HELP_
+  exit "$errcode"
+}
+
+show_message() {
+	local message="$1"
+	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+}
+
+import_metadata() {
+	local code_file cur_yr template_dir template_file today
+	code_file="$1"
+	template_file="$2"
+	copy_holder="Richard B. Romig"
+	email_addr="rick.romig@gmail"
+	email_addr1="rick.romig@mymetronet.net"
+	work_org="Mosfanet"
+	template_dir="$HOME/bin/Templates"
+	today=$(date +"%d %b %Y")
+	cur_yr=$(echo -e "\UA9 $(date +%Y)")
+
+	show_message "Creating C/C++ source code file: $code_file"
+	show_message "Filling in the template and creating the source code."
+	sed -e '1d' \
+		-e "s/<PROGNAME>/$code_file/" \
+		-e "s/<YEAR>/$cur_yr/" \
+		-e "s/<AUTHOR>/$copy_holder/" \
+		-e "s/<ORG>/$work_org/" \
+		-e "s/<EMAIL>/$email_addr/" \
+		-e "s/<EMAIL1>/$email_addr1/" \
+		-e "s/<TODAY>/$today/"  "$template_dir/$template_file" > "$code_file"
+
+	printf "%s has been created." "$code_file"
+}
+
+main() {
+	local code_file noOpt opt optstr template_file
+	noOpt=1
+	optstr=":c:hp:v"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			c )
+				code_file="$OPTARG"
+				[[ -f "$code_file" ]] && { printf "%s %s already exists\n" "$RED_ERROR" "$code_file" >&2; help 2; }
+				show_message "Code file: $code_file"
+				template_file="c-template.txt"
+				show_message "Template: c-template.txt"
+			;;
+			h )
+				help 0
+			;;
+			p )
+				code_file="$OPTARG"
+				[[ -f "$code_file" ]] && { printf "%s %s already exists\n" "$RED_ERROR" "$code_file" >&2; help 2; }
+				show_message "Code file: $code_file"
+				template_file="cpp-template.txt"
+			;;
+			v )
+				verbose_mode="$TRUE"
+				show_message "Verbose mode enabled."
+			;;
+			: )
+				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+			;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	import_metadata "$code_file" "$template_file"
+	edit_view_quit "$code_file"
+	over_line "$script $version"
+	printf "MOTD: "; leave ""
+}
+
+## Execution ##
+
+main "$@"
