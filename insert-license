@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 26 Dec 2024
+# Updated      : 25 Feb 2025
 # Comments     : Inserts the license immediately after the file's header.
 #              : Assumes the standard script or C/C++ header is present.
 # TODO (rick)  :
@@ -29,33 +29,16 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.5.24361"
-readonly _updated="26 Dec 2024"
-readonly conf_dir="$HOME/.config/scripts"
-readonly conf_file="$script.conf"
-cur_yr=$(echo -e "\UA9 $(date +%Y)"); readonly cur_yr
+readonly version="4.0.25056"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
-create_conf() {
-  [[ -d "$conf_dir" ]] || mkdir -p "$conf_dir"
-  echo "Complete all fields"
-  read -rp "Full name: " copy_holder
-  read -rp "Primary email: " email_addr
-  read -rp "Template diretory (full path): " template_dir
-
-  echo "
-  copy_holder='$copy_holder'
-  email_addr='$email_addr'
-  template_dir='$template_dir'
-  " > "$conf_dir/$conf_file"
-}
-
 help() {
   local errcode="${1:-2}"
+  local updated="25 Feb 2025"
   cat << _HELP_
-${orange}$script${normal} $version ($_updated)
+${orange}$script${normal} $version ($updated)
 Inserts an Open Source license into a shell script or a C/C++ source code file.
 
 ${green}Usage:${normal} $script [OPTION] [source-file]
@@ -69,15 +52,10 @@ ${orange}Available options:${normal}
       $script -p <c-source.cpp>
   -s  Shell script
       $script -s <shell-script>
-  -v  Enable verbose mode
+  -v  Enable verbose mode (Must precede c, p, or s flags)
+      $script -vs <shell-script>
 _HELP_
   exit "$errcode"
-}
-
-show_license_copyright() {
-  printf "Inserts an Open Source license into a shell script or a C/C++ source code file.\n"
-  printf "Licensed under the GNU General Public License, version 2.\n"
-  printf "Copyright \UA9 2019-2024, Richard B. Romig\n"
 }
 
 show_message() {
@@ -88,145 +66,143 @@ show_message() {
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
+	show_message "Removing temporary file."
   [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
 }
 
-## Execution ##
+create_tmp_file() {
+	show_message "Creating temporary file."
+	tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+	trap cleanup EXIT
+}
 
-noOpt=1
-optstr=":c:ehp:s:v"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    c )
-			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
-      show_message "File: $code_file"
-      code_type="C"
-      show_message "Code type: $code_type source code"
-    ;;
-    e )
-      if [[ -f "$conf_dir/$conf_file" ]]; then
-        micro "$conf_dir/$conf_file"
-			  printf "%s edited.\n" "$script"
-      else
-        create_conf
-      fi
-    ;;
-    h )
-      help 0
-    ;;
-    p )
-			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
-      show_message "File: $code_file"
-      code_type="C++"
-      show_message "Code type: $code_type source code"
-    ;;
-    s )
-			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
-      show_message "File: $code_file"
-      code_type="Shell"
-      show_message "Code type: $code_type script"
-    ;;
-		v )
-			verbose_mode="$TRUE"
-			show_message "Verbose mode enabled."
-		;;
-    : )
-      printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-      help 2
-    ;;
-    ? )
-			printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-			help 2
-  esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
+insert_license() {
+	local code_file code_type copy_holder cur_yr email_addr options lic_file lic_type template_dir
+	code_type="$1"
+	code_file="$2"
+	copy_holder="Richard B. Romig"
+	email_addr="rick.romig@gmail.com"
+	cur_yr=$(echo -e "\UA9 $(date +%Y)")
+	template_dir="$HOME/bin/Templates"
 
-[[ -z "$code_file" ]] && leave "No file selected."
-
-## Source script configuration file ##
-
-[[ -f "$conf_dir/$conf_file" ]] || create_conf
-source "$conf_dir/$conf_file"
-
-show_message "Creating temporary file."
-tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
-trap cleanup EXIT
-
-show_license_copyright
-
-# Select the type of license
-
-printf "\n%sLicense type:%s\n" "$orange" "$normal"
-options=("GPL v1" "GPL v2" "GPL v3" "MIT")
-PS3="Select the type of license: "
-select license in "${options[@]}"; do
-  case $REPLY in
+	# Select license type
+	printf "\n%sLicense type:%s\n" "$orange" "$normal"
+	options=("GPL v1" "GPL v2" "GPL v3" "MIT")
+	PS3="Select the type of license: "
+	select lic_type in "${options[@]}"; do
+		case $REPLY in
     1 )
-      lic_type="$license"
       lic_file="gpl_v1.txt"
       break
     ;;
     2 )
-      lic_type="$license"
       lic_file="gpl_v2.txt"
       break
     ;;
     3 )
-      lic_type="$license"
       lic_file="gpl_v3.txt"
       break
     ;;
     4 )
-      lic_type="$license"
       lic_file="mit_lic.txt"
       break
     ;;
     * )
       printf "%sInvalid option. Try again.%s\n" "$lightred" "$normal" >&2
-  esac
-done
-show_message "License: $lic_type"
+		esac
+	done
+	show_message "License: $lic_type"
 
-# Insert the license into the source file
+	# Insert the license into the source file
+	show_message "Inserting $lic_type license into $code_file."
+	case $code_type in
+	"C" )
+		sed -e '1d' \
+			-e "s/<YEAR>/$cur_yr/" \
+			-e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
+			-e "s/<EMAIL>/$email_addr/" \
+			-e "s/^/ * /" "$template_dir/$lic_file" > "$tmp_file"
+		sed -i -e "21r ${tmp_file}" "$code_file"
+	;;
+	"C++" )
+		sed -e '1d' \
+			-e "s/<YEAR>/$cur_yr/" \
+			-e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
+			-e "s/<EMAIL>/$email_addr/" \
+			-e "s/^/\/\/ /" "$template_dir/$lic_file" > "$tmp_file"
+		sed -i -e "20r ${tmp_file}" "$code_file"
+	;;
+	"Shell" )
+		sed -e '1d' \
+			-e "s/<YEAR>/$cur_yr/" \
+			-e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
+			-e "s/<EMAIL>/$email_addr/" \
+			-e "s/^/# /" "$template_dir/$lic_file" > "$tmp_file"
+		sed -i -e "15r ${tmp_file}" "$code_file"
+	;;
+	* )
+		die "Invalid code type. Exiting the script." 1
+	esac
 
-printf "%sInserting %s license into %s...%s\n" "$orange" "$lic_type" "$code_file" "$normal"
-case $code_type in
-  "C" )
-    sed -e '1d' \
-        -e "s/<YEAR>/$cur_yr/" \
-        -e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
-        -e "s/<EMAIL>/$email_addr/" \
-        -e "s/^/ * /" "$template_dir/$lic_file" > "$tmp_file"
-    sed -i -e "21r ${tmp_file}" "$code_file"
-  ;;
-  "C++" )
-    sed -e '1d' \
-        -e "s/<YEAR>/$cur_yr/" \
-        -e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
-        -e "s/<EMAIL>/$email_addr/" \
-        -e "s/^/\/\/ /" "$template_dir/$lic_file" > "$tmp_file"
-    sed -i -e "20r ${tmp_file}" "$code_file"
-  ;;
-  "Shell" )
-    sed -e '1d' \
-        -e "s/<YEAR>/$cur_yr/" \
-        -e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
-        -e "s/<EMAIL>/$email_addr/" \
-        -e "s/^/# /" "$template_dir/$lic_file" > "$tmp_file"
-    sed -i -e "15r ${tmp_file}" "$code_file"
-  ;;
-  * )
-    die "Invalid code type. Exiting the script." 1
-esac
+	printf "\n%s license has been inserted into %s." "$lic_type" "$code_file"
+}
 
-printf "\n%s license has been inserted into %s.\n" "$lic_type" "$code_file"
-edit_view_quit "$code_file"
+main() {
+	local noOpt opt optstr code_file code_type
+	noOpt=1
+	optstr=":c:hp:s:v"
+	while getopts "$optstr" opt; do
+	case "$opt" in
+		c )
+			code_file="$OPTARG"
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
+			show_message "File: $code_file"
+			code_type="C"
+			show_message "Code type: $code_type source code"
+			create_tmp_file
+		;;
+		h )
+			help 0
+		;;
+		p )
+			code_file="$OPTARG"
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
+			show_message "File: $code_file"
+			code_type="C++"
+			show_message "Code type: $code_type source code"
+			create_tmp_file
+		;;
+		s )
+			code_file="$OPTARG"
+			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
+			show_message "File: $code_file"
+			code_type="Shell"
+			show_message "Code type: $code_type script"
+			create_tmp_file
+		;;
+		v )
+			verbose_mode="$TRUE"
+			show_message "Verbose mode enabled."
+		;;
+		: )
+			printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
+			help 2
+		;;
+		? )
+			printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
 
-printf "\n"
-over_line "$script $version"
-leave ""
+	insert_license "$code_type" "$code_file"
+	edit_view_quit "$code_file"
+	over_line "$script $version"
+	printf "MOTD: "; leave ""
+}
+
+## Executtion **
+
+main "$@"
