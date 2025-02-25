@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : create_script
+# Description  : Creates script file with header information
+# Dependencies : bat, micro (used by edit_view_quit.)
+# Arguments    : See help function
+# Author       : Copyright (C) 2023, Richard Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 01 Jan 2023
+# Last updated : 25 Feb 2025
+# Comments     : Creates the script in the current working directory.
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+script=$(basename "$0"); readonly script
+readonly version="4.0.25056"
+verbose_mode="$FALSE"
+
+## Functions ##
+
+help() {
+	local errcode="${1:-2}"
+	local updated="25 Feb 2025"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
+Creates a shell script with header comments (getopts optional)
+
+${green}Usage:${normal} $script [OPTION] [script-name]
+
+${orange}Available options:${normal}
+  -b  Create a standard BASH script
+      $script -b <script-name>
+  -h  Show this help message and exit
+  -g  Create a getopts BASH script
+      $script -g <script-name>
+  -v  Enable verbose mode (Must precede b or g flags)
+      $script -vb <script-name>
+_HELP_
+  exit "$errcode"
+}
+
+show_message() {
+	local message="$1"
+	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+}
+
+create_script() {
+	local coder copy_holder cur_yr email_addr email_addr1 init_ver license script_name template_dir template_file today work_org
+	script_name="$1"
+	template_file="$2"
+	coder="Rick"
+	copy_holder="Richard B. Romig"
+	email_addr="rick.romig@gmail"
+	email_addr1="rick.romig@mymetronet.net"
+	work_org="Mosfanet"
+	license="GNU General Public License, version 2.0"
+	template_dir="$HOME/bin/Templates"
+	today=$(date +"%d %b %Y")
+	cur_yr=$(echo -e "\UA9 $(date +%Y)")
+	init_ver="1.0.$(date +%y%j)"
+
+	show_message "Creating BASH script: $script_name"
+	show_message "Filling in the template and creating the script."
+
+	sed -e '1d' \
+		-e "s/<FILE>/$script_name/" \
+		-e "s/<YEAR>/$cur_yr/" \
+		-e "s/<AUTHOR>/$copy_holder/" \
+		-e "s/<ORG>/$work_org/" \
+		-e "s/<EMAIL>/$email_addr/" \
+		-e "s/<EMAIL1>/$email_addr1/" \
+		-e "s/<TODAY>/$today/" \
+		-e "s/<CODER>/$coder/" \
+		-e "s/<LICENSE>/$license/" \
+		-e "s/<VERSION>/$init_ver/" "$template_dir/$template_file" > "$script_name"
+
+	show_message "Setting file permissions to 755 (rwxr-xr-x)."
+	chmod 755 "$script_name"
+	printf "The %s script has been created." "$script_name"
+}
+
+main() {
+	local noOpt opt optstr script_name template_file
+	noOpt=1
+	optstr=":b:hg:v"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			b )
+				script_name="$OPTARG"
+				[[ -f "$script_name" ]] && { printf "%s %s already exists\n" "$RED_ERROR" "$script_name" >&2; help 2; }
+				template_file="bash-template.txt"
+				show_message "Template: $template_file"
+			;;
+			h )
+				help 0
+			;;
+			g )
+				script_name="$OPTARG"
+				[[ -f "$script_name" ]] && { printf "%s %s already exists\n" "$RED_ERROR" "$script_name" >&2; help 2; }
+				template_file="bash-getopts.txt"
+				show_message "Template: $template_file"
+			;;
+			v )
+				verbose_mode="$TRUE"
+				show_message "Verbose mode enabled."
+			;;
+			: )
+				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+			;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	create_script "$script_name" "$template_file"
+	edit_view_quit "$script_name"
+	over_line "$script $version"
+	printf "MOTD: "; leave ""
+}
+
+## Execution ##
+
+main "$@"
