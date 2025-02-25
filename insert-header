@@ -2,14 +2,13 @@
 ###############################################################################
 # Script Name  : insert-header
 # Description  : Insert a header into a shell script or C source code.
-# Dependencies : bat, micro (nano)
-# Arguments    : Bash script or c source file
+# Dependencies : bat, micro (used by edit_view_quit.)
+# Arguments    : see help(). Shell script or C/C++ source file
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
 # Updated      : 25 Feb 2025
-# Comments     : Assumes first line or the target file is either a hash-bang or
-#              : a C-style comment
+# Comments     : Assumes first line or the target file is either a hash-bang or a C/C++ comment
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -26,39 +25,13 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.5.25056"
-readonly conf_dir="$HOME/.config/scripts"
-readonly conf_file="$script.conf"
-today=$(date +"%d %b %Y"); readonly today
-cur_yr=$(echo -e "\UA9 $(date +%Y)"); readonly cur_yr
+readonly version="4.0.25056"
 verbose_mode="$FALSE"
 
 ## Functions ##
-
-create_conf() {
-  [[ -d "$conf_dir" ]] || mkdir -p "$conf_dir"
-  echo "Complete all fields"
-  read -rp "Full name: " copy_holder
-  read -rp "Primary email: " email_addr
-  read -rp "Alternate email: " email_addr1
-  read -rp "Organization: " work_org
-  read -rp "Coder name: " coder
-  read -rp "License: " license
-  read -rp "Template diretory (full path): " template_dir
-
-  echo "
-  copy_holder='$copy_holder'
-  email_addr='$email_addr'
-  email_addr1='$email_addr1'
-  work_org='$work_org'
-  coder='$coder'
-  license='$license'
-  template_dir='$template_dir'
-  " > "$conf_dir/$conf_file"
-}
 
 help() {
   local errcode="${1:-2}"
@@ -72,21 +45,15 @@ ${green}Usage:${normal} $script [OPTION] [code-file]
 ${orange}Available options:${normal}
   -c  Insert C code header
       $script -c <c-source.c>
-  -e  Edit $script.conf
   -h  Show this help message and exit
   -p  Insert C++ code header
       $script -p <c-source.cpp>
   -s  Insert Shell script header
       $script -s <shell-script>
-  -v  Enable verbose mode
+  -v  Enable verbose mode (Must precede c, p, or s flags)
+      $script -vs <shell-script>
 _HELP_
   exit "$errcode"
-}
-
-show_license_copyright() {
-  printf "Inserts a header into a shell script or a C/C++ source file.\n"
-  printf "Licensed under the GNU General Public License, version 2.\n"
-  printf "Copyright \UA9 2019-2024, Richard B. Romig\n"
 }
 
 show_message() {
@@ -97,88 +64,35 @@ show_message() {
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
+	show_message "Removing temporary file."
   [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
 }
 
-## Execution ##
+create_tmp_file() {
+	show_message "Creating temporary file."
+	tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+	trap cleanup EXIT
+}
 
-noOpt=1
-optstr=":c:ehp:s:v"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    c )
-			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
-      show_message "File: $code_file"
-      code_type="C"
-      show_message "Code type: $code_type header"
-      template_file="c-header.txt"
-      show_message "Template: $template_file"
-    ;;
-    e )
-      if [[ -f "$conf_dir/$conf_file" ]]; then
-        micro "$conf_dir/$conf_file"
-			  printf "%s edited.\n" "$script"
-      else
-        create_conf
-      fi
-    ;;
-    h )
-      help 0
-    ;;
-    p )
-			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
-      show_message "File: $code_file"
-      code_type="C++"
-      show_message "Code type: $code_type header"
-      template_file="cpp-header.txt"
-      show_message "Template: $template_file"
-   ;;
-    s )
-			code_file="$OPTARG"
-			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
-      show_message "File: $code_file"
-      code_type="Shell"
-      show_message "Code type: $code_type header"
-      template_file="bash-header.txt"
-      show_message "Template: $template_file"
-    ;;
-		v )
-			verbose_mode="$TRUE"
-			show_message "Verbose mode enabled."
-		;;
-    : )
-      printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-      help 2
-    ;;
-    ? )
-			printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-			help 2
-  esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
+insert_header() {
+	local coder code_file code_type cur_yr copy_holder email_addr email_addr1 work_org today license template_dir template_file
+	code_file="$1"
+	code_type="$2"
+	template_file="$3"
+	coder="Rick"
+	copy_holder="Richard B. Romig"
+	email_addr="rick.romig@gmail.com"
+	email_addr1="rick.romig@mymetronet.com"
+	work_org="Mosfanet"
+	license="GNU General Public License, version 2.0"
+	today=$(date +"%d %b %Y")
+	cur_yr=$(echo -e "\UA9 $(date +%Y)")
+	template_dir="$HOME/bin/Templates"
 
-[[ -z "$code_file" ]] && leave "No file selected."
-
-## Source script configuration file ##
-
-[[ -f "$conf_dir/$conf_file" ]] || create_conf
-show_message "Sourcing $conf_file."
-source "$conf_dir/$conf_file"
-
-show_message "Creating temporary file."
-tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
-trap cleanup EXIT
-
-show_license_copyright
-
-printf "\n%sInserting %s header into %s...%s\n" "$green" "$code_type" "$code_file" "$normal"
-case $code_type in
-  "C"|"C++" )
-    sed -e '1d' \
+	show_message "Inserting $code_type header into $code_file."
+	case $code_type in
+    "C"|"C++" )
+      sed -e '1d' \
         -e "s/<PROGNAME>/$code_file/" \
         -e "s/<YEAR>/$cur_yr/" \
         -e "s/<AUTHOR>/$copy_holder/" \
@@ -187,10 +101,10 @@ case $code_type in
         -e "s/<ORG>/$work_org/" \
         -e "s/<TODAY>/$today/" \
         -e "s/<LICENSE>/$license/" "$template_dir/$template_file" > "$tmp_file"
-    sed -i -e "1r ${tmp_file}" "$code_file"
-  ;;
-  "Shell" )
-    sed -e '1d' \
+      sed -i -e "1r ${tmp_file}" "$code_file"
+    ;;
+    "Shell" )
+	    sed -e '1d' \
         -e "s/<FILE>/$code_file/" \
         -e "s/<YEAR>/$cur_yr/" \
         -e "s/<AUTHOR>/$copy_holder/" \
@@ -200,15 +114,77 @@ case $code_type in
         -e "s/<TODAY>/$today/" \
         -e "s/<CODER>/$coder/" \
         -e "s/<LICENSE>/$license/" "$template_dir/$template_file" > "$tmp_file"
-    sed -i -e "1r ${tmp_file}" "$code_file"
-  ;;
-  * )
-    printf "%sInvalid code type.%s\n" "$lightred" "$normal" >&2
-esac
+      sed -i -e "1r ${tmp_file}" "$code_file"
+    ;;
+    * )
+      printf "%sInvalid code type.%s\n" "$lightred" "$normal" >&2
+	esac
 
-printf "%s header has been inserted into %s.\n" "$code_type" "$code_file"
-edit_view_quit "$code_file"
+	printf "The %s header has been inserted into %s." "$code_type" "$code_file"
+}
 
-printf "\n"
-over_line "$script $version"
-leave ""
+main() {
+	local code_file code_type template_file
+	noOpt=1
+	optstr=":c:hp:s:v"
+	while getopts "$optstr" opt; do
+    case "$opt" in
+      c )
+				code_file="$OPTARG"
+				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
+        show_message "File: $code_file"
+        code_type="C"
+        show_message "Code type: $code_type header"
+        template_file="c-header.txt"
+        show_message "Template: $template_file"
+        create_tmp_file
+      ;;
+      h )
+        help 0
+      ;;
+      p )
+				code_file="$OPTARG"
+				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
+        show_message "File: $code_file"
+        code_type="C++"
+        show_message "Code type: $code_type header"
+        template_file="cpp-header.txt"
+        show_message "Template: $template_file"
+        create_tmp_file
+      ;;
+      s )
+				code_file="$OPTARG"
+				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
+        show_message "File: $code_file"
+        code_type="Shell"
+        show_message "Code type: $code_type header"
+        template_file="bash-header.txt"
+        show_message "Template: $template_file"
+        create_tmp_file
+      ;;
+			v )
+				verbose_mode="$TRUE"
+				show_message "Verbose mode enabled."
+			;;
+      : )
+        printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+      ;;
+      ? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+    esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+
+	insert_header "$code_file" "$code_type" "$template_file"
+	edit_view_quit "$code_file"
+	over_line "$script $version"
+	leave ""
+}
+
+## Execution ##
+
+main "$@"
