@@ -4,16 +4,17 @@
 # Description  : Creates shell for a README.md file from a template
 # Dependencies : sed
 # Arguments    : name of project
-# Author       : Richard B. Romig, 09 April 2019
-# Email        : rick.romig@gmail.com
-# Comment      :
+# Author       : Copyright © 2019 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
+# Created      : 09 Apr 2019
+# Updated      : 26 Feb 2025
+# Comment      : Should be run from the project's main directory.'
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -24,87 +25,102 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.0.2"
-readonly _updated="06 Dec 2023"
-readonly conf_dir="$HOME/.config/scripts"
-readonly conf_file="$_script.conf"
-today=$(date +"%d %B %Y"); readonly today
+script=$(basename "$0"); readonly script
+readonly version="3.0.25057"
+verbose_mode="$FALSE"
 
 # Information to be inserted into README template
 # For sed, forward slashes have to be escaped with backslashes
 
 ## Functions ##
 
-create_conf() {
-  [[ -d "$conf_dir" ]] || mkdir -p "$conf_dir"
-  echo "Complete all fields"
-  read -rp "Full name: " copy_holder
-  read -rp "GitHub username: " github
-  read -rp "Blog name: " blog_name
-  read -rp "Blog title: " blog_url
-  read -rp "Twitter name: " twitter_name
-  read -rp "Primary email: " email_addr1
-  read -rp "Alternate email: " email_addr2
-  read -rp "Template diretory (full path): " template_dir
-
-  echo "
-  copy_holder='$copy_holder'
-  github_url='$github'
-  blog_name='$blog_name'
-  blog_url='$blog_url'
-  twitter_name='$twitter_name'
-  email_addr1='$email_addr1'
-  email_addr2='$email_addr2'
-  template_dir='$template_dir'
-  " > "$conf_dir/$conf_file"
-}
-
-usage() {
+help() {
   local errcode="${1:-2}"
-  echo "${orange}Usage:${normal} $_script <project-name>"
-  echo "${orange}Example:${normal}  $_script my-project"
+  local updated="26 Feb 2025"
+  cat << _HELP_
+${orange}$script${normal} $version, updated: $updated
+Creates a README file for a project.
+
+${green}Usage:${normal} $script <project-name>
+
+${orange}Available options:${normal}
+  -c  Create a README file
+      $script -c <project-name>
+  -h  Show this help message and exit
+  -v  Enable verbose mode (Must precede c flag)
+      $script -vc <project-name>
+_HELP_
   exit "$errcode"
 }
 
-## Execution ##
+show_message() {
+	local message="$1"
+	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+}
 
-## Source script configuration file ##
+create_readme() {
+  local blog_name blog_url copy_holder email_addr1 email_addr2 template_dir today
+  project="$1"
+  copy_holder="Richard B. Romig"
+  github="RickRomig"
+  blog_name="Ricks Tech Stuff"
+  blog_url="ricktech"
+  email_addr1="rick.romig@gmail.com"
+  email_addr2="rick.romig@mymetronet.net"
+  today=$(date +"%d %B %Y")
+  template_dir="$HOME/bin/Templates"
 
-[[ -f "$conf_dir/$conf_file" ]] || create_conf
-source "$conf_dir/$conf_file"
-
-# Check arguments
-
-if [[ $# -eq 0 ]]; then
-  echo "${lightred}Error:${normal} No argment passed." >&2
-  usage 2
-elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-  echo "$_script v$_version ($_updated)"
-  usage 0
-else
-  project=$1
-fi
-
-echo "$_script v$_version ($_updated)"
-echo "Creating a README.md template for project $project"
-
-# Fill in placeholders and create README.md
-
-sed -e '1d' \
+  show_message "Importing data into README.md"
+  sed -e '1d' \
     -e "s/<PROJECT>/$project/" \
     -e "s/<GITHUB>/$github/" \
     -e "s/<BLOG>/$blog_name/" \
     -e "s/<BLOGURL>/$blog_url/" \
-    -e "s/<TWITNAME>/$twitter_name/g" \
     -e "s/<EMAIL1>/$email_addr1/g" \
     -e "s/<EMAIL2>/$email_addr2/g" \
     -e "s/<AUTHOR>/$copy_holder/" \
     -e "s/<DATE>/$today/" "$template_dir/readme.txt" > README.md
-echo "The README.md for $project has been created."
+  printf "The README.md for %s$project has been created." "$$project"
+  edit_view_quit README.md
+}
 
-edit_view_quit README.md
+main() {
+  local noOpt opt optstr project_name
+  noOpt=1
+  optstr=":c:hv"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      c )
+        project_name="$OPTARG"
+        [[ -f README.md ]] && { printf "%s README.md already exists.\n" "$RED_ERROR" >&2; help 2; }
+        show_message "Creating README for $project_name"
+        create_readme "$project_name"
+      ;;
+			h )
+				help 0
+			;;
+			v )
+				verbose_mode="$TRUE"
+				show_message "Verbose mode enabled."
+			;;
+			: )
+				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+      ;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+    esac
+    noOpt=0
+  done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+	exit
+}
 
-exit
+## Execution ##
+
+main "$@"
