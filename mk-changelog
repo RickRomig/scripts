@@ -66,6 +66,7 @@ create_changelog() {
   today=$(date +"%d %B %Y")
   template_dir="$HOME/bin/Templates"
 
+  show_message "Importing data into changlog.md"
   sed -e '1d' \
     -e "s/<PROJECT>/$project/" \
     -e "s/<AUTHOR>/$copy_holder/" \
@@ -85,7 +86,7 @@ main() {
       c )
         project_name="$OPTARG"
         [[ -f changelog.md ]] && { printf "%s changelog.md already exists.\n" "$RED_ERROR" >&2; help 2; }
-        show_message "Preject: $project_name"
+        show_message "Creating changelog for $project_name"
         create_changelog "$project_name"
       ;;
 			h )
