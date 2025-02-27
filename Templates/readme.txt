@@ -20,7 +20,7 @@ Brief description of the project, program, etc.
 Feel free to contact me with comments and suggestions.
  * [GitHub](https://github.com/<GITHUB>)
  * [<BLOG>](https://<BLOGURL>.wordpress.com)
- * Twitter: [@<TWITNAME>](https://twitter.com/<TWITNAME>)
+ * [Gitea](http://192.168.0.16:3000/Nullifidian/)
  * Email: [<EMAIL1>](mailto:<EMAIL1>) or [<EMAIL2>](mailto:<EMAIL2>)
 
 <AUTHOR>
