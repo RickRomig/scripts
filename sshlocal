@@ -40,8 +40,9 @@ check_x11() {
 }
 
 connect_local() {
-	local index arr_len x11_arg
+	local index arr_len x11_arg lhost
 	x11_arg="$1"
+	lhost="${HOSTNAME:-$(hostname)}"
 	COLUMNS=40
 	PS3="Choose a remote server: "
 	local servers=(hp-800g2-sff hp-6005 e6500-deb probook-6570b hp-8300 lenovo-m91p hp-8300-usdt hp-800-g1-usdt probook-6570 hp-probook-6570 hp-850-g3 hp-2560p e-475m)
@@ -50,8 +51,9 @@ connect_local() {
 			printf "Exiting. No server contacted.\n"
 			break
 		elif (( REPLY > 0 && REPLY <= "${#servers[@]}" )); then
-			clear
 			index=$(( REPLY -1 ))
+			[[ "$lhost" == "${servers[index]}" ]] && diehard "Attempting to connect to local client." "$script $version"
+			clear
 			if check_x11 "$x11_arg"; then
 				printf "%sConnecting to %s (X11 forwarding) ...%s\n" "$lightyellow" "${servers[index]}" "$normal"
 				ssh -X "${servers[index]}".local
