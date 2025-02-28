@@ -7,7 +7,7 @@
 # Author       : Copyright © 2021 Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2021
-# Updated      : 18 Feb 2025
+# Updated      : 28 Feb 2025
 # Comment      : The for-loop to parse info for multipule webcams leave several blank lines.
 # TODO (Rick)  : Resolve extra blank lines problem
 # License      : GNU General Public License, version 2.0
@@ -42,7 +42,7 @@ webcam_info() {
   webcam_data=$(mktemp)|| die "Failed to create temporary file." 1
   trap cleanup EXIT	# for temp files and directories
   /usr/bin/lsusb | grep -iw Webcam > "$webcam_data"
-  len=$(wc -l "$webcam_data" | cut -d' ' -f1 )
+  len=$(wc -l < "$webcam_data")
   if (( len = 1 )); then
     printf "Available Webcam:\n"
     model=$(cut -d' ' -f7- "$webcam_data")
@@ -64,7 +64,7 @@ webcam_info() {
 main() {
   local script version
   script=$(basename "$0")
-  version="3.0.25049"
+  version="3.1.25059"
   if webcam_present; then
     webcam_info
   else
