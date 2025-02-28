@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Last updated : 24 Jan 2025
+# Last updated : 28 Feb 2025
 # Comments     : copy as root to /etc/cron.daily
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -25,7 +25,7 @@ main() {
 	printf "%s|%s\n" "$log_date" "$update_status" >> "$log_dir/$log_file" 2>&1
 	# sed -i -f "$sed_file" "$log_dir/$log_file"
 	# Remove top entry if more than 30 entries.
-	log_len=$(wc -l "$log_dir/$log_file" | cut -d ' ' -f1)
+	log_len=$(wc -l < "$log_dir/$log_file")
 	[[ "$log_len" -gt 30 ]] && sed -i '1d' "$log_dir/$log_file"
 	exit
 }
