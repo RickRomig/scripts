@@ -6,8 +6,8 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Last updated : 15 Feb 2025
-# Version      : 4.1.25046
+# Last updated : 28 Feb 2025
+# Version      : 4.2.25059
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
@@ -21,7 +21,7 @@ trim_log() {
 	local log_len log_dir log_file
 	log_dir="$1"
 	log_file="$2"
-	log_len=$(wc -l "$log_dir/$log_file" | cut -d " " -f1)
+	log_len=$(wc -l < "$log_dir/$log_file")
 	[[ "$log_len" -gt 12 ]] && sed -i '1d' "$log_dir/$log_file"
 }
 
