@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, 19 August 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : run as a local daily cron job
-# Version      : 0.4.13, updated 26 Nov 2023
+# Version      : 0.4.14, updated 28 Feb 2025
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -33,7 +33,7 @@ log_file="password-db.log"
 } >> "$log_dir/$log_file"
 
 # If more than 30 entries, remove the oldest entry
-log_len=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
+log_len=$(wc -l < "$log_dir/$log_file")
 [[ "$log_len" -gt 30 ]] && sed -i '1d' "$log_dir/$log_file"
 
 exit
