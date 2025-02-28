@@ -113,7 +113,7 @@ ytdlpupdate_log() {
     printf "%s%s - yt-dlp Update Log:%s\n" "$lightgreen" "$lhost" "$normal"
 		(printf "DATE|TIME|VERSION\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "29"
-    entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
+    entries=$(wc -l < "$log_dir/$log_file")
     (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
   else
     printf "%sThe yt-dlp update log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
@@ -135,7 +135,7 @@ local_backup_log() {
     printf "%s%s - Local Backup Log:%s\n" "$lightgreen" "$lhost" "$normal"
 		(printf "DAY|DATE|TIME|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "34"
-    entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
+    entries=$(wc -l < "$log_dir/$log_file")
     (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
   else
     printf "%sThe local backup log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
@@ -157,7 +157,7 @@ script_archive_log() {
     printf "%s%s - Bash Script Archive Log:%s\n" "$lightgreen" "$lhost" "$normal"
 		(printf "DAY|DATE|TIME|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "34"
-    entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
+    entries=$(wc -l < "$log_dir/$log_file")
     (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
   else
     printf "%sThe bash script archive log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
@@ -179,7 +179,7 @@ password_log() {
     printf "%s%s - Password Database Change Log:%s\n" "$lightgreen" "$lhost" "$normal"
     (printf "DATE|TIME|STATUS\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "28"
-    entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
+    entries=$(wc -l < "$log_dir/$log_file")
     (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
   else
     printf "%sThe Password Database Change Log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
@@ -201,7 +201,7 @@ homebank_log() {
     printf "%s%s- HomeBank Archive Log:%s\n" "$lightgreen" "$lhost" "$normal"
     (printf "DAY|DATE|TIME|ARCHIVE|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
     print_line "-" "43"
-    entries=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
+    entries=$(wc -l < "$log_dir/$log_file")
     (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
   else
     printf "%sThe HomeBank archive log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
@@ -215,7 +215,6 @@ homebank_log() {
 }
 
 trash_log() {
-  local log_dir log_file
   local log_dir="$HOME/.local/share/logs"
   local log_file="trash.log"
   if [[ -f "$log_dir/$log_file" ]]; then
