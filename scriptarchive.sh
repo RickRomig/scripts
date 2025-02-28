@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jan 2020
-# Updated      : 04 Sep 2024 (version 3.0.24248)
+# Updated      : 28 Feb 2025 (version 3.1.25059)
 # Comments     : Includes all subdirectories
 #              : Schedule with user's crontab from ~/.local/bin
 # TODO (Rick)  :
@@ -46,7 +46,7 @@ err_log="error.log"
 ## Clean up and exit ##
 
 # Remove oldest log entry if more than 30 entries
-log_len=$(wc -l "$log_dir/$log_file" | cut -d' ' -f1)
+log_len=$(wc -l < "$log_dir/$log_file")
 [[ "$log_len" -gt 30 ]] && sed -i '1d' "$log_dir/$log_file"
 # Remove archives older than two years (730 days).
 find "$arc_dir"/ -maxdepth 1 -type f -mtime +730 -exec rm {} +
