@@ -1,0 +1,141 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-librewolf
+# Description  : install/remove LibreWolf browser
+# Dependencies : extrepo
+# Arguments    : See help() function for available options.
+# Author       : Copyright © 2025 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail | rick.romig@mymetronet.net
+# Created      : 01 Mar 2025
+# Updated      : 02 Mar 2025
+# Comments     : instructions from https://librewolf.net/
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+set -eu
+
+## Global Variables ##
+
+script=$(basename "$0"); readonly script
+readonly version="1.0.25061"
+verbose_mode="$FALSE"
+
+## Functions ##
+
+app_version() {
+	# librewolf --version | cut -d' ' -f3
+	dpkg -l librewolf | awk '/ii/ {print $3}' | sed 's/[~+-].*//'
+}
+
+help() {
+	local errcode updated
+	errcode="${1:-2}"
+	updated="02 Mar 2025"
+	cat << _HELP_
+${orange}$script${normal} $version, Upated: $updated
+Installs/removes LibreWolf browser.
+
+${green}Usage:${normal} $script [OPTION]
+
+${orange}Available options:${normal}
+	-h	Show this help message and exit
+	-i	Install LibreWolf
+	-r	Remove LibreWolf
+	-v	Enable verbose mode
+_HELP_
+  exit "$errcode"
+}
+
+show_message() {
+	local message="$1"
+	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+}
+
+install_librewolf() {
+	printf "Installing LibreWolf browser...\n"
+	sudo_login 2
+	show_message "Updating cache and checking/installing extrepo..."
+	sudo apt update > /dev/null
+	check_package extrepo
+	# sudo apt update && sudo apt install extrepo -y
+	sudo extrepo enable librewolf
+	show_message "Installing LibreWolf..."
+	sudo apt update && sudo apt install librewolf -y
+	printf "LibreWolf browser installed.\n"
+}
+
+remove_librewolf() {
+	local sources_list="/etc/apt/sources.list.d"
+	printf "Removing LibreWolf browser...\n"
+	sudo_login 2
+	show_message "Removing LibreWolf..."
+	sudo apt remove -y librewolf
+	show_message "Removing LibreWolf repositories..."
+	[[ -f "$sources_list/extrepolibrewolf.source.list" ]] && sudo rm "$sources_list/extrepolibrewolf.source.list"
+	[[ -d /usr/share/librewolf ]] && sudo rm -rf /usr/share/librewolf
+	[[ -L /usr/bin/librewolf ]] && sudo unlink /usr/share/librewolf/librewolf
+	# Shown in LibreWolf removal instructinos, but not found on system.
+	# sudo rm -f \
+	# 	/etc/apt/sources.list.d/librewolf.sources \
+	# 	/etc/apt/keyrings/librewolf.gpg \
+	# 	/etc/apt/preferences.d/librewolf.pref \
+	# 	/etc/apt/sources.list.d/home_bgstack15_aftermozilla.sources \
+	# 	/etc/apt/keyrings/home_bgstack15_aftermozilla.gpg \
+	# 	/etc/apt/sources.list.d/librewolf.list \
+	# 	/etc/apt/trusted.gpg.d/librewolf.gpg \
+	# 	/etc/apt/sources.list.d/home:bgstack15:aftermozilla.list \
+	# 	/etc/apt/trusted.gpg.d/home_bgstack15_aftermozilla.gpg
+	show_message "Removing LibreWolf configuration files..."
+	[[ -d "$HOME/.librewolf" ]] && rm -rf "$HOME/.librewolf"
+	printf "LibreWolf has been removed.\n"
+}
+
+main() {
+	noOpt=1
+	optstr=":hirv"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			h )
+				help 0
+			;;
+			i )
+				exists librewolf && leave "LibreWolf $(app_version) is already installed."
+				check_package extrepo
+				install_librewolf
+			;;
+			r )
+				exists librewolf || leave "LibreWolf is not installed."
+				remove_librewolf
+			;;
+			v )
+				verbose_mode="$TRUE"
+				show_message "Verbose mode enabled."
+			;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+	exit
+}
+
+## Execution ##
+
+main "$@"
