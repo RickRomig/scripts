@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Jan 2024
-# Last updated : 08 Feb 2025 Version 1.6.25039
+# Last updated : 02 Mar 2025 Version 1.7.25061
 # Comments     : Includes both Gitea and GitHub repositories.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ weekly_bu() {
 
 monthly_bu() {
 	tar -zpcf "$arc_dir/monthly/$archive" "$HOME"/gitea "$HOME"/Projects
-	find "$arc_dir/monthly" -daystart -mtime +366 -delete
+	find "$arc_dir/monthly" -daystart -mtime +364 -delete
 }
 
 main() {
