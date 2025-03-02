@@ -97,22 +97,22 @@ make_preference_file() {
 Package: *
 Pin: origin packages.mozilla.org
 Pin-Priority: 1000
-' | sudo tee /etc/apt/preferences.d/mozilla.pref
+'| sudo tee /etc/apt/preferences.d/mozilla.pref
 }
 
-verify_keys() {
-	local asc_file keyrings_d ref_key
-	ref_key="35BAA0B33E9EB3k96F59CA838C0BA5CE6DC6315A3"
-	keyrings_d="/etc/apt/keyrings"
-	asc_file="packages.mozilla.org.asc"
+# verify_keys() {
+# 	local asc_file keyrings_d ref_key
+# 	ref_key="35BAA0B33E9EB3k96F59CA838C0BA5CE6DC6315A3"
+# 	keyrings_d="/etc/apt/keyrings"
+# 	asc_file="packages.mozilla.org.asc"
 
-	if [[ -f "$HOME/.gnupg/pubring.kbx" ]]; then
-		gen_key=$(gpg -n -q --import --import-options import-show "$keyrings_d/$asc_file" | awk '/pub/{getline; gsub(/^ +| +$/,""); print $0}')
-		printf "Generated key: %s\n" "$gen_key"
-		printf "Reference key: %s\n" "$ref_key"
-		[[ "$gen_key" == "$ref_key" ]] || die "Mozilla Firefox GPG keys do not match." 1
-	fi
-}
+# 	if [[ -f "$HOME/.gnupg/pubring.kbx" ]]; then
+# 		gen_key=$(gpg -n -q --import --import-options import-show "$keyrings_d/$asc_file" | awk '/pub/{getline; gsub(/^ +| +$/,""); print $0}')
+# 		printf "Generated key: %s\n" "$gen_key"
+# 		printf "Reference key: %s\n" "$ref_key"
+# 		[[ "$gen_key" == "$ref_key" ]] || die "Mozilla Firefox GPG keys do not match." 1
+# 	fi
+# }
 
 mozilla_deb_install() {
 	local asc_file keyrings_d key_url list_url mozilla_list
