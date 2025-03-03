@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Jan 2021
-# Updated      : 17 Jan 2025
+# Updated      : 03 Mar 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,31 +28,31 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.15.25017"
+readonly version="3.16.25052"
 readonly cfg_dir="$HOME/.config/keepassxc"
 
 ## Functions ##
 
-kpxc_ver() {
-  dpkg -l keepassxc | awk '/ii/ {print $3}' | sed 's/[+-].*//'
+keepass_version() {
+  if exists keepassxc; then
+    dpkg -l keepassxc | awk '/ii/ {print $3}' | sed 's/[+-].*//'
+  elif flatpak list | grep -qw KeePassXC; then
+    flatpak list | awk '/KeePassXC/ {print $3}'
+  fi
 }
 
-keepass_ver() {
-  flatpak list | awk '/KeePassXC/ {print $3}'
-}
-
-flathub_keepassxc() {
+install_flathub_keepassxc() {
   sudo_login 2
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   flatpak install --user flathub org.keepassxc.KeePassXC
-  printf "KeePassXC %s installed from flathub.\n" "$(keepass_ver)"
+  printf "KeePassXC %s installed from flathub.\n" "$(keepass_version)"
 }
 
-distro_keepassxc() {
+install_distro_keepassxc() {
   sudo_login 2
   sudo apt-get install keepassxc -yy
   create_ini
-  printf "Keepassxc %s installed from distro repositories.\n" "$(kpxc_ver)"
+  printf "Keepassxc %s installed from distro repositories.\n" "$(keepass_version)"
 }
 
 remove_flatpak_keepassxc() {
@@ -92,7 +92,7 @@ create_ini() {
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="17 Jan 2025"
+	updated="03 Mar 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removed KeePassXC password manager
@@ -103,7 +103,7 @@ ${orange}Available options:${normal}
   -c  Apply KeePassXC configuration.
   -d  Install KeePassXC from distribution repositories.
   -f  Install KeePassXC from flathub repositories.
-  -h  Display help.
+  -h  Show this help message and exit.
   -r  Remove KeePassXC from the system.
 _HELP_
   exit "$errcode"
@@ -120,20 +120,20 @@ main() {
       ;;
       d )
         if exists keepassxc; then
-          printf "KeePassXC version %s is already installed from distro.\n" "$(kpxc_ver)"
+          printf "KeePassXC version %s is already installed from distro.\n" "$(keepass_version)"
         elif  flatpak list | grep -qw KeePassXC; then
-          printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_ver)"
+          printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_version)"
         else
-          distro_keepassxc
+          install_distro_keepassxc
         fi
       ;;
       f )
         if exists keepassxc; then
-          printf "KeePassXC version %s is already installed from distro.\n" "$(kpxc_ver)"
+          printf "KeePassXC version %s is already installed from distro.\n" "$(keepass_version)"
         elif  flatpak list | grep -qw KeePassXC; then
-          printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_ver)"
+          printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_version)"
         else
-          flathub_keepassxc
+          install_flathub_keepassxc
         fi
       ;;
       h )
@@ -156,7 +156,7 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
