@@ -64,29 +64,40 @@ show_message() {
 	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
 
+check_extrepo() {
+	show_message "Updating cache and checking/installing extrepo..."
+	if exists extrepo; then
+		printf "extrepo [OK]\n"
+		# sleep 2
+		# printf '\e[A\e[K'
+	else
+		sudo apt update && sudo apt install extrepo -y
+		sudo extrepo enable librewolf
+
+	fi
+}
+
 install_librewolf() {
 	printf "Installing LibreWolf browser...\n"
 	sudo_login 2
-	show_message "Updating cache and checking/installing extrepo..."
-	sudo apt update > /dev/null
-	check_package extrepo
-	# sudo apt update && sudo apt install extrepo -y
-	sudo extrepo enable librewolf
+	check_extrepo
+	set -x
 	show_message "Installing LibreWolf..."
 	sudo apt update && sudo apt install librewolf -y
-	printf "LibreWolf browser installed.\n"
+	printf "LibreWolf browser version %s installed.\n" "$(app_version)"
+	set +x
 }
 
 remove_librewolf() {
-	local sources_list="/etc/apt/sources.list.d"
 	printf "Removing LibreWolf browser...\n"
 	sudo_login 2
 	show_message "Removing LibreWolf..."
 	sudo apt remove -y librewolf
-	show_message "Removing LibreWolf repositories..."
-	[[ -f "$sources_list/extrepolibrewolf.source.list" ]] && sudo rm "$sources_list/extrepolibrewolf.source.list"
+	show_message "Removing LibreWolf directories and files..."
+	[[ -f /etc/apt/sources.list.d/extrepo_librewolf.sources ]] && sudo rm /etc/apt/sources.list.d/extrepo_librewolf.sources
+	[[ -L /usr/bin/librewolf ]] && sudo unlink /usr/bin/librewolf
 	[[ -d /usr/share/librewolf ]] && sudo rm -rf /usr/share/librewolf
-	[[ -L /usr/bin/librewolf ]] && sudo unlink /usr/share/librewolf/librewolf
+	[[ -f /var/lib/extrepo/key/librewolf.asc ]] && sudo rm /var/lib/extrepo/keylibrewolf.asc
 	# Shown in LibreWolf removal instructinos, but not found on system.
 	# sudo rm -f \
 	# 	/etc/apt/sources.list.d/librewolf.sources \
@@ -98,7 +109,7 @@ remove_librewolf() {
 	# 	/etc/apt/trusted.gpg.d/librewolf.gpg \
 	# 	/etc/apt/sources.list.d/home:bgstack15:aftermozilla.list \
 	# 	/etc/apt/trusted.gpg.d/home_bgstack15_aftermozilla.gpg
-	show_message "Removing LibreWolf configuration files..."
+	show_message "Removing LibreWolf local configuration files..."
 	[[ -d "$HOME/.librewolf" ]] && rm -rf "$HOME/.librewolf"
 	printf "LibreWolf has been removed.\n"
 }
@@ -113,7 +124,6 @@ main() {
 			;;
 			i )
 				exists librewolf && leave "LibreWolf $(app_version) is already installed."
-				check_package extrepo
 				install_librewolf
 			;;
 			r )
