@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 June 2019
-# Updated      : 16 Oct 2024
+# Updated      : 05 Mar 2025
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ##  Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.7.24290"
+readonly version="3.8.2064"
 readonly tmp_pics=$HOME"/tmp/journal"
 
 ## Functions ##
@@ -89,7 +89,9 @@ while true; do
   printf "Selects a random image from ~/Pictures\n"
   printf "%sSelected image: %s%s/%s%s\n" "$blue" "$orange" "$sel_dir" "$pic_file" "$normal"
   cp -p "$pic_dir/$pic_file" "$tmp_pics"
-  /usr/bin/display -geometry +600+20 "$tmp_pics/$pic_file" &
+  # /usr/bin/display -geometry +600+20 "$tmp_pics/$pic_file" &
+  /usr/bin/display -geometry +1000+20 -resize 800x600 "$tmp_pics/$pic_file" &
+  # kitten icat --clear --place 60x30@80x1 --scale-up "$tmp_pics/$pic_file"
   pic_pid="$!"
   printf "\n%sOptions:%s\n" "$blue" "$normal"
   COLUMNS=12
@@ -130,7 +132,7 @@ while true; do
       5 )
         printf "\n%sImage deleted:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
         printf "\nSelecting another random image...\n"
-        kill $pic_pid
+        # kill $pic_pid
         rm "$tmp_pics/$pic_file"
         rm "$pic_dir/$pic_file"
         sleep 2
