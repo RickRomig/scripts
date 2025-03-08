@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Sep 2019
-# Updated      : 09 Jan 2025
+# Updated      : 08 Mar 2025
 # Comments     : Creates a compressed tar archive of the folder's contents.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -32,11 +32,9 @@ SECONDS=0
 ## Functions ##
 
 check_host() {
-	local local_host main_host script
-	script="$1"
-	local_host="${HOSTNAME:-$(hostname)}"
-	main_host="hp-800g2-sff"
-	[[ "$local_host" != "$main_host" ]] && die "$script must be run from $main_host." 2
+	local main_host="$1"
+	local local_host="${HOSTNAME:-$(hostname)}"
+	[[ "$local_host" == "$main_host" ]] && return "$TRUE" || return "$FALSE"
 }
 
 cleanup_files() {
@@ -70,18 +68,22 @@ sync_dropbox() {
 }
 
 main() {
-	local script version homepage_dir archive_dir
+	local script version homepage_dir archive_dir main_host
+	main_host="hp-800g2-sff"
 	script=$(basename "$0")
-	version="6.7.25009"
+	version="6.8.25057"
 	homepage_dir="$HOME/gitea/homepage"
 	archive_dir="$HOME/Downloads/archives/homepage"
 
 	printf "Archiving homepage...\n"
-	check_host "$script"
-	cleanup_files "$homepage_dir"
-	archive_homepage "$homepage_dir" "$archive_dir"
-	sync_dropbox "$homepage_dir" "$archive_dir"
-	printf "\nScript completed in %s\n" "$(format_time $SECONDS)"
+	if check_host "$local_host"; then
+		cleanup_files "$homepage_dir"
+		archive_homepage "$homepage_dir" "$archive_dir"
+		sync_dropbox "$homepage_dir" "$archive_dir"
+		printf "\nScript completed in %s\n" "$(format_time $SECONDS)"
+	else
+		printf "Script must be run from %s.\n" "$main_host"
+	fi
 	over_line "$script v$version" "-"
 	exit
 }
