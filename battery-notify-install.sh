@@ -29,8 +29,8 @@ set -eu
 
 ## Global Variables ##
 
-	script=$(basename "$0"); readonly script
-	readonly version="1.3.24299"
+script=$(basename "$0"); readonly script
+readonly version="1.3.24299"
 
 ## Functions ##
 
