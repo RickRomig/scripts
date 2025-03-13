@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : sshlocal
 # Description  : connect to remote servers via SSH using the .local domain
-# Dependencies : OpenSSH, OpenSSH_server
+# Dependencies : OpenSSH, OpenSSH_server, fzf (optional)
 # Arguments    : X or x to enable X11 forwarding
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Feb 2025
-# Last updated : 27 Feb 2025
+# Last updated : 13 Mar 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,6 +27,13 @@ fi
 
 set -eu
 
+## Global Variables ##
+
+script=$(basename "$0"); readonly script
+readonly version="3.0.25072"
+readonly lhost="${HOSTNAME:-$(hostname)}"
+readonly servers=(hp-800g2-sff hp-6005 e6500-deb probook-6570b hp-8300 lenovo-m91p hp-8300-usdt hp-800-g1-usdt probook-6570 hp-probook-6570 hp-850-g3 hp-2560p e-475m)
+
 ## Functions ##
 
 check_x11() {
@@ -39,13 +46,35 @@ check_x11() {
 	esac
 }
 
-connect_local() {
-	local index arr_len x11_arg lhost
+connect_server() {
+	local server="$1"
+	printf "%sConnecting to %s ...%s\n" "$lightyellow" "$server" "$normal"
+	ssh "$server".local
+}
+
+connect_server_x() {
+	local server="$1"
+	printf "%sConnecting to %s (X11 forwarding) ...%s\n" "$lightyellow" "$server" "$normal"
+	ssh -X "$server".local
+}
+
+fuzzy_server() {
+	local server x11_arg
 	x11_arg="$1"
-	lhost="${HOSTNAME:-$(hostname)}"
+	server=$(printf "%s\n" "${servers[@]}" | fzf --height 40% --reverse --prompt "Choose the remote server: ")
+	[[ "$lhost" == "${servers[index]}" ]] && diehard "Attempting to connect to local client." "$script $version"
+	if check_x11 "$x11_arg"; then
+		connect_server_x "$server"
+	else
+		connect_server "$server"
+	fi
+}
+
+select_server() {
+	local index arr_len x11_arg _server
+	x11_arg="$1"
 	COLUMNS=40
 	PS3="Choose a remote server: "
-	local servers=(hp-800g2-sff hp-6005 e6500-deb probook-6570b hp-8300 lenovo-m91p hp-8300-usdt hp-800-g1-usdt probook-6570 hp-probook-6570 hp-850-g3 hp-2560p e-475m)
 	select _server in "${servers[@]}" "Exit"; do
 		if (( REPLY == 1 + "${#servers[@]}" )); then
 			printf "Exiting. No server contacted.\n"
@@ -55,11 +84,9 @@ connect_local() {
 			[[ "$lhost" == "${servers[index]}" ]] && diehard "Attempting to connect to local client." "$script $version"
 			clear
 			if check_x11 "$x11_arg"; then
-				printf "%sConnecting to %s (X11 forwarding) ...%s\n" "$lightyellow" "${servers[index]}" "$normal"
-				ssh -X "${servers[index]}".local
+				connect_server_x "${servers[index]}"
 			else
-				printf "%sConnecting to %s ...%s\n" "$lightyellow" "${servers[index]}" "$normal"
-				ssh "${servers[index]}".local
+				connect_server "${servers[index]}"
 			fi
 			break
 		else
@@ -70,11 +97,12 @@ connect_local() {
 }
 
 main() {
-	local script version x11_arg
-	script=$(basename "$0")
-	version="2.0.25058"
-	x11_arg="${1:-Y}"
-	connect_local "$x11_arg"
+	local x11_arg="${1:-Y}"
+	if exists fzf; then
+		fuzzy_server "$x11_arg"
+	else
+		select_server "$x11_arg"
+	fi
   over_line "$script $version"
 	exit
 }
