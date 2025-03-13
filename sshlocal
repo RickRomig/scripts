@@ -62,7 +62,7 @@ fuzzy_server() {
 	local server x11_arg
 	x11_arg="$1"
 	server=$(printf "%s\n" "${servers[@]}" | fzf --height 40% --reverse --prompt "Choose the remote server: ")
-	[[ "$lhost" == "${servers[index]}" ]] && diehard "Attempting to connect to local client." "$script $version"
+	[[ "$lhost" == "$server" ]] && diehard "Attempting to connect to local client." "$script $version"
 	if check_x11 "$x11_arg"; then
 		connect_server_x "$server"
 	else
