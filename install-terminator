@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 24 Feb 2025
+# Updated      : 14 Mar 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.13.25055"
+readonly version="6.14.25073"
 readonly term_cfg_d=$HOME"/.config/terminator"
 
 ## Functions ##
@@ -38,7 +38,7 @@ readonly term_cfg_d=$HOME"/.config/terminator"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="24 Feb 2025"
+	updated="14 Mar 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Terminator terminal emulator
@@ -69,19 +69,21 @@ apply_config() {
   check_package curl
   [[ -d "$term_cfg_d" ]] || mkdir -p "$term_cfg_d"
   printf "Applying Terminator configuration...\n"
-  if [[ "$localip" == "16" ]]; then
-    repository="$HOME/gitea/configs/terminator"
-    cp -v "$repository$term_cfg" "$term_cfg_d/"
-  else
-    repsoitory="configs/raw/branch/main/terminator"
-    curl -so "$term_cfg_d/$term_cfg" "$GITEA_URL/$repsoitory/$term_cfg"
-  fi
-  is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg_d/config"
+  case "$localip" in
+    10|16|22 )
+      repository="$HOME/gitea/configs/terminator"
+      cp -v "$repository$term_cfg" "$term_cfg_d/"
+    ;;
+    * )
+      repsoitory="configs/raw/branch/main/terminator"
+      curl -so "$term_cfg_d/$term_cfg" "$GITEA_URL/$repsoitory/$term_cfg"
+  esac
+  is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg_d/$term_cfg"
   printf "Terminator configuration file applied.\n"
 }
 
 install_terminator() {
-  printf "Installing terminator...\m"
+  printf "Installing terminator...\n"
   sudo apt-get -yq update
   sudo apt-get install =y terminator
   if bunsenlabs; then
@@ -94,7 +96,7 @@ install_terminator() {
 }
 
 remove_terminator() {
-  local term_cfg_d_bu="{$HOME}/backup/terminator"
+  local term_cfg_d_bu="{$HOME}/.config/backup/terminator"
   printf "Removing terminator %s and configuration files...\n" "$(terminator_version)"
   sudo apt-get purge terminator
   find "$HOME/.config/" -maxdepth 2 -type d -name "terminator" -exec rm -rf {} \;
@@ -134,12 +136,13 @@ main() {
       ? )
       printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
       help 2
-      esac
-      noOpt=0
+    esac
+    noOpt=0
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  leave "$script v$version"
+  over_line "$script v$version"
+  exit
 }
 
 ## Execution ##
