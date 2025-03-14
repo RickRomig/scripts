@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Last updated : 13 Dec 2024
+# Last updated : 14 Mar 2025
 # Comments     : My default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -42,7 +42,6 @@ configure_timeshift() {
   ts_json="timeshift.json"
   ts_sed="$HOME/bin/files/timeshift.sed"
   ts_uuid=$(get_home_uuid)
-
   if [[ -f "$ts_sed" ]]; then
     printf "Configuring Timeshift...\n"
     sudo cp -v "$ts_dir/default.json" "$ts_dir/$ts_json"  # copy default json file
@@ -50,7 +49,7 @@ configure_timeshift() {
     sudo sed -i "/backup_device_uuid/ s/\",/$ts_uuid\",/" "$ts_dir/$ts_json"  # insert UUID for snapshots
     sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/$ts_json"  # to get leading spaces right in json file
   else
-    printf "The %s configuration script was not found. Configure using the GUI application.\n" "$ts_sed"
+    printf "%s was not found. Configure using the GUI application.\n" "$(basename "$ts_sed")"
   fi
 }
 
@@ -64,16 +63,16 @@ install_timeshift() {
 main() {
   local script version
   script=$(basename "$0")
-  version="3.0.24348"
+  version="3.1.25073"
   if exists timeeshift; then
     printf "%s is already installed.\n" "$(timeshift --version)"
-  elif ! in_repos timeshift; then
-    printf "Timeshift is not availabe in %s  repositories.\n" "$(get_distribution)"
-  else
+  elif in_repos timeshift; then
     sudo_login 2
     install_timeshift
+  else
+    printf "Timeshift is not availabe in %s repositories.\n" "$(get_distribution)"
   fi
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
