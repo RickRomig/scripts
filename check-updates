@@ -3,7 +3,7 @@
 # Script Name  : check-updates
 # Description  : check for updates and install if necessary.
 # Dependencies : apt-get (optional: nala, flatpak, cinnamon-spice-updater)
-# Arguments    : none
+# Arguments    : apt, nala, help
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
@@ -11,8 +11,6 @@
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
-#              : Uses Nala, if installed.
-#              : `check-updates apt` forces use of apt_update().
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -40,7 +38,7 @@ SECONDS=0
 ## Functions ##
 
 help() {
-	errcode="${1:-2}"
+	local errcode="${1:-2}"
   local updated="15 Mar 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
@@ -244,9 +242,9 @@ apt_update() {
     PS3="Choose an option: "
     options=(
       "Install updates."
-      "Install updates & clean cache"
-      "Install updates & remove orphaned packages."
-      "Install updates, clean cache, & remove orphaned packages."
+      "Install updates and clean cache."
+      "Install updates and remove orphaned packages."
+      "Install updates, clean cache, and remove orphaned packages."
       "Defer updates until later."
     )
     select _opt in "${options[@]}"; do
