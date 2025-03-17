@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 08 Feb 2025
+# Updated      : 17 Mar 2025
 # Comments     : match by regex, starts with http:// or https://
 #              : Downloads videos to ~/Videos/Pornography/<category>
 # TODO (Rick)  :
@@ -30,8 +30,20 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.1.25039"
-readonly updated="08 Feb 2025"
+readonly version="3.2.25076"
+readonly updated="17 Mar 2025"
+FMENU="fzf --header=$(basename "$0") \
+           --layout=reverse \
+           --exact \
+           --border=bold \
+           --border=rounded \
+           --margin=5% \
+           --color=dark \
+           --height=95% \
+           --info=hidden \
+           --header-first \
+           --bind change:top \
+           --prompt"
 
 ## Functions ##
 
@@ -108,10 +120,14 @@ extract_domain() {
 }
 
 select_directory() {
-	local directory video_dir
+	local video_dir vid_d selected_directory
 	video_dir=$HOME"/Videos/Pornography"
-	directory=$(find "$video_dir" -type d | sort -d | fzf --height 60% --reverse --prompt "Select destination directory: ")
-	printf "%s" "$directory"
+  local directories=()
+  for vid_d in $video_dir; do
+    [[ -d "$vid_d" ]] && directories+=("$(find "$video_dir" -type d -print | sort -d)")
+  done
+  selected_directory=$($FMENU "Select destination directory: " < <(printf "%s\n" "${directories[@]}"))
+	printf "%s" "$selected_directory"
 }
 
 download_video() {
