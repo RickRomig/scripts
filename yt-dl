@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 06 Feb  2025
+# Updated      : 16 Mar 2025
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to ~/Videos/
 # TODO (Rick)  :
@@ -29,8 +29,20 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.2.25037"
+readonly version="6.3.25075"
 readonly updated="06 Feb 2025"
+FMENU="fzf --header=$(basename "$0") \
+           --layout=reverse \
+           --exact \
+           --border=bold \
+           --border=rounded \
+           --margin=5% \
+           --color=dark \
+           --height=95% \
+           --info=hidden \
+           --header-first \
+           --bind change:top \
+           --prompt"
 
 ## Functions ##
 
@@ -105,10 +117,14 @@ extract_domain() {
 }
 
 select_directory() {
-	local directory video_dir
+	local video_dir vid_d selected_directory
 	video_dir=$HOME"/Videos"
-	directory=$(find "$video_dir" -path "/home/rick/Videos/Pornography" -prune -o -type d | sort -d | fzf --height 75% --reverse --prompt "Select destination directory: ")
-	printf "%s" "$directory"
+  local directories=()
+  for vid_d in $video_dir; do
+    [[ -d "$vid_d" ]] && directories+=("$(find "$video_dir" -path "$video_dir/Pornography" -prune -o -type d | sort -d)")
+  done
+  selected_directory=$($FMENU "Select destination directory: " < <(printf "%s\n" "${directories[@]}"))
+	printf "%s" "$selected_directory"
 }
 
 download_video() {
