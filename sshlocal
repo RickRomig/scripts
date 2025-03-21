@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Feb 2025
-# Last updated : 16 Mar 2025
+# Last updated : 21 Mar 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,8 +30,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.1.25075"
-readonly lhost="${HOSTNAME:-$(hostname)}"
+readonly version="3.2.25080"
 readonly servers=(hp-800g2-sff hp-6005 e6500-deb probook-6570b hp-8300 lenovo-m91p hp-8300-usdt hp-800-g1-usdt probook-6570 hp-probook-6570 hp-850-g3 hp-2560p e-475m)
 FMENU="fzf --header=$(basename "$0") \
            --layout=reverse \
@@ -71,8 +70,9 @@ connect_server_x() {
 }
 
 fuzzy_server() {
-	local server x11_arg
+	local lhost server x11_arg
 	x11_arg="$1"
+	lhost="$2"
 	server=$(printf "%s\n" "${servers[@]}" | $FMENU "Choose the remote server: ")
 	[[ "$lhost" == "$server" ]] && diehard "Attempting to connect to local client." "$script $version"
 	if check_x11 "$x11_arg"; then
@@ -83,7 +83,8 @@ fuzzy_server() {
 }
 
 select_server() {
-	local index arr_len x11_arg _server
+	local index arr_len lhost x11_arg _server
+	lhost="$2"
 	x11_arg="$1"
 	COLUMNS=40
 	PS3="Choose a remote server: "
@@ -110,10 +111,11 @@ select_server() {
 
 main() {
 	local x11_arg="${1:-Y}"
+	local local_host="${HOSTNAME:-$(hostname)}"
 	if exists fzf; then
-		fuzzy_server "$x11_arg"
+		fuzzy_server "$x11_arg" "$local_host"
 	else
-		select_server "$x11_arg"
+		select_server "$x11_arg" "$local_host"
 	fi
   over_line "$script $version"
 	exit
