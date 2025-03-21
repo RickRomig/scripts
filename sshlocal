@@ -87,7 +87,8 @@ select_server() {
 	lhost="$2"
 	x11_arg="$1"
 	COLUMNS=40
-	PS3="Choose a remote server: "
+	PS3="Choose the remote server: "
+	print "%s\n" "$script"
 	select _server in "${servers[@]}" "Exit"; do
 		if (( REPLY == 1 + "${#servers[@]}" )); then
 			printf "Exiting. No server contacted.\n"
@@ -95,7 +96,6 @@ select_server() {
 		elif (( REPLY > 0 && REPLY <= "${#servers[@]}" )); then
 			index=$(( REPLY -1 ))
 			[[ "$lhost" == "${servers[index]}" ]] && diehard "Attempting to connect to local client." "$script $version"
-			clear
 			if check_x11 "$x11_arg"; then
 				connect_server_x "${servers[index]}"
 			else
@@ -112,6 +112,7 @@ select_server() {
 main() {
 	local x11_arg="${1:-Y}"
 	local local_host="${HOSTNAME:-$(hostname)}"
+	clear
 	if exists fzf; then
 		fuzzy_server "$x11_arg" "$local_host"
 	else
