@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 16 Mar 2025
+# Updated      : 23 Mar 2025
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to selected directory under ~/Videos/
 # TODO (Rick)  :
@@ -29,8 +29,8 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.3.25075"
-readonly updated="16 Feb 2025"
+readonly version="7.0.25082"
+readonly updated="123 Mar 2025"
 FMENU="fzf --header=$(basename "$0") \
            --layout=reverse \
            --exact \
@@ -43,15 +43,9 @@ FMENU="fzf --header=$(basename "$0") \
            --header-first \
            --bind change:top \
            --prompt"
+ec=0
 
 ## Functions ##
-
-display_title() {
-  local site="$1"
-  clear
-  box "${site^} Download" "="
-  echo "$script v$version"
-}
 
 help() {
   local errcode="${1:-2}"
@@ -113,7 +107,7 @@ extract_domain() {
   local domain fullurl
   fullurl="$1"
   domain=$(echo "$fullurl" | sed 's|^[^/]*//||;s|^www\.||;s|/.*$||;s|\..*$||')
-  echo "$domain"
+  printf "%s" "$domain"
 }
 
 select_directory() {
@@ -131,33 +125,25 @@ download_video() {
   local site url destination
   url="$1"
   site="$2"
-  display_title "$site"
+  clear
 	destination=$(select_directory)
+  box "${site^} Download" "="
   printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "${site^}"
 	printf "%s...%s\n" "$destination" "$normal"
-	dl_2_video "$url" "$destination"
-}
-
-dl_2_video() {
-  local url dest_dir
-  url="$1"
-  dest_dir="$2"
-  if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$dest_dir/%(title)s.%(ext)s" "$url"
+  if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$destination/%(title)s.%(ext)s" "$url"
   then
-    leave "Download successful."
+    printf "Download successful.\n"
   else
     ec="$?"
-    die "Download failed. Error: $ec" "$ec"
+    printf "Download failed. Error: %d\n" "$ec"
   fi
 }
-
-## Execution ##
 
 main() {
   local url
   # Check arguments and fetch URL
-  if [[ -z "$1" ]]; then
-    echo "$RED_ERROR No argument passed." >&2
+  if [[  $# -eq 0 ]]; then
+    printf "%s No argument passed.\n" "$RED_ERROR" >&2
     help 2
   elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
     script_info
@@ -167,12 +153,14 @@ main() {
     # match by regex, starts with http:// or https://
     url=$*
   else
-    # match by video ID
+    # match by YouTube video ID
     url="https://www.youtube.com/watch?v=$*"
   fi
   check_dependencies
   site=$(extract_domain "$url")
   download_video "$url" "$site"
+  over_line "$script $version"
+  exit "$ec"
 }
 
 ## Execution ##
