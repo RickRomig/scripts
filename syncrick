@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Mar 2023
-# Updated      : 08 Jan 2025
+# Updated      : 25 Mar 2025
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -136,6 +136,11 @@ syncscript() {
   rsync -avh --delete "$HOME"/Downloads/cloned-repositories/ "$LOCALNET.$hostip":Downloads/cloned-repositories/
   exit_status="$?"
   transfer_status "$exit_status"
+
+  printf "\n%sSyncing Code directory...%s\n" "$orange" "$normal"
+  rsync -avh --delete "$HOME"/Downloads/Code/ "$LOCALNET.$hostip":Downloads/Code/
+  exit_status="$?"
+  transfer_status "$exit_status"
 }
 
 sync_to_laptop() {
@@ -177,7 +182,7 @@ sync_to_main() {
 main() {
   local lap_host local_host main_host script version
   script=$(basename "$0")
-  version="4.2.25008"
+  version="4.3.25084"
   local_host="${HOSTNAME:-$(hostname)}"
   main_host="hp-800g2-sff"
   lap_host="hp-850-g3"
