@@ -47,7 +47,6 @@ main() {
 
     IFS=$'\n'
     while read -r line; do cards+=("$line"); done <<< "$white_card"
-    # choices=("$($FMENU "Choose cards" < <(printf "%s\n" "${cards[@]}"))")
     choices=("$(fzf --header="$black_card" --layout=reverse --border=bold --border=rounded --margin=5% --multi --prompt "Choose cards" < <(printf "%s\n" "${cards[@]}"))")
 
     printf "\n%s\n" "$black_card"
