@@ -21,7 +21,8 @@ tar -xfg /dev/null -f inc_archive.tar.gz							# incremental backup
 
 ### Extract or restore an archive
 ```bash
-tar -xvf archive_file.tar.gz
+tar -xzf archive_file.tar.gz -C /path/to/directory
+tar -xf archive_file.tar.xz -C /path/to/directory
 ```
 ### More examples
 ```bash
