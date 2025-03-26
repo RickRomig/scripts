@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 23 Mar 2025
-# Last updated : 25 Mar 2025
+# Last updated : 26 Mar 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ set -eu
 main() {
   local black_card white_card choices cards line script version card_dir black_file white_file
   script=$(basename "$0")
-  version="1.1.25084"
+  version="1.2.25085"
   card_dir="$HOME/.local/share/doc"
   black_file="cam-black.lst"
   white_file="cam-white.lst"
@@ -49,6 +49,7 @@ main() {
     while read -r line; do cards+=("$line"); done <<< "$white_card"
     choices=("$(fzf --header="$black_card" --layout=reverse --border=bold --border=rounded --margin=5% --multi --prompt "Choose cards" < <(printf "%s\n" "${cards[@]}"))")
 
+    box "Cards Against Muggles" "*"
     printf "\n%s\n" "$black_card"
     printf "%s\n\n" "${choices[@]}"
     read -rsn1 -p "Press q to quit." ans
