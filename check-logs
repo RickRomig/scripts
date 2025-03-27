@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 29 Aug 2019
-# Updated      : 15 Feb 2025
+# Updated      : 27 Mar 2025
 # Comments     : sudo access required to view Timeshift snapshots
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -111,7 +111,8 @@ ytdlpupdate_log() {
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
     printf "%s%s - yt-dlp Update Log:%s\n" "$lightgreen" "$lhost" "$normal"
-		(printf "DATE|TIME|VERSION\n"; cat "$log_dir/$log_file") | column -ts "|"
+		# (printf "DATE|TIME|VERSION\n"; cat "$log_dir/$log_file") | column -ts "|"
+    column -t -s "|" -N DAY,DATE,VERSION "$log_dir/$log_file"
     print_line "-" "29"
     entries=$(wc -l < "$log_dir/$log_file")
     (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
@@ -133,7 +134,8 @@ local_backup_log() {
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
     printf "%s%s - Local Backup Log:%s\n" "$lightgreen" "$lhost" "$normal"
-		(printf "DAY|DATE|TIME|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
+		# (printf "DAY|DATE|TIME|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
+    column -t -s "|" -N DAY,DATE,TIME,RESULT "$log_dir/$log_file"
     print_line "-" "34"
     entries=$(wc -l < "$log_dir/$log_file")
     (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
@@ -155,7 +157,8 @@ script_archive_log() {
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
     printf "%s%s - Bash Script Archive Log:%s\n" "$lightgreen" "$lhost" "$normal"
-		(printf "DAY|DATE|TIME|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
+		# (printf "DAY|DATE|TIME|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
+    column -t -s "|" -N DAY,DATE,TIME,RESULT "$log_dir/$log_file"
     print_line "-" "34"
     entries=$(wc -l < "$log_dir/$log_file")
     (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
@@ -178,6 +181,7 @@ password_log() {
     clear
     printf "%s%s - Password Database Change Log:%s\n" "$lightgreen" "$lhost" "$normal"
     (printf "DATE|TIME|STATUS\n"; cat "$log_dir/$log_file") | column -ts "|"
+    column -t -s "|" -N DATE,TIME,STATUS "$log_dir/$log_file"
     print_line "-" "28"
     entries=$(wc -l < "$log_dir/$log_file")
     (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
@@ -199,7 +203,8 @@ homebank_log() {
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
     printf "%s%s- HomeBank Archive Log:%s\n" "$lightgreen" "$lhost" "$normal"
-    (printf "DAY|DATE|TIME|ARCHIVE|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
+    # (printf "DAY|DATE|TIME|ARCHIVE|RESULT\n"; cat "$log_dir/$log_file") | column -ts "|"
+    column -t -s "|" -N DAY,DATE,TIME,ARCHIVE,RESULT "$log_dir/$log_file"
     print_line "-" "43"
     entries=$(wc -l < "$log_dir/$log_file")
     (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
@@ -426,7 +431,7 @@ archive_logs() {
 main() {
 	local _opt options script version
   script=$(basename "$0")
-  version="10.4.25046"
+  version="10.5.25086"
 	options=( "System logs" "Local logs" "Archive Logs" "Quit")
 	while true; do
 		show_header
