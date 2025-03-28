@@ -230,7 +230,11 @@ $ journalctl --list-boots | tail -1
 $ journalctl -b <boot_id> # 1st field from --list-boots
 # produces hundreds of lines of information
 ```
-### remove temporary files created today
+### Remove temporary files created today
 ```bash
 $ sudo find /tmp/ -type f -name "tmp.*" -daystart -mtime -1 -delete
+```
+### Use column to copy password file into json format
+```bash
+$ cat /etc/passwd | column -t -s ":" -N USERNAME,PW,UID,GUID,COMMENT,HOME,INTERPRETER, -J -n passwordfile > passwd.json
 ```
