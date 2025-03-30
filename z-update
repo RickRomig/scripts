@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 14 Feb 2025
+# Updated      : 30 Mar 2025
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -43,23 +43,44 @@ check_flatpak() {
   if [[ "$fp_count" -gt 0 ]]; then
     flatpak update --system --noninteractive --force-remove --assumeyes 2> /dev/null
   else
-    printf "No Flatpaks installed.\n\n"
+    printf "No Flatpak packages installed.\n\n"
   fi
 }
 
 get_updates() {
-  local nupd summary tmp1 tmp2
+  local nupd fields field1 field2 field3
   /usr/bin/apt-get update
-  summary=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3)
-  tmp1=$(echo "$summary" | cut -d' ' -f1)
-  tmp2=$(echo "$summary" | cut -d' ' -f2)
-  nupd=$((tmp1 + tmp2))
+  fields=$(apt-get -s dist-upgrade | awk '$2 == "upgraded," {print $1,$3,$6,$(NF-2)}')
+  field1=$(echo "$fields" | cut -d' ' -f1)
+  field2=$(echo "$fields" | cut -d' ' -f2)
+  field3=$(echo "$fields" | cut -d' ' -f3)
+  nupd=$((field1 + field2 + field3))
   if [[ "$nupd" -gt 0 ]]; then
+    printf "Upgradable packages:\n"
+    list_uprgradable
+    update_summary "$fields"
     printf "\n*** Installing updates ***\n"
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get dist-upgrade -yy
   else
     printf "\n*** Packages are up to date ***\n"
+    list_uprgradable
+    update_summary "$fields"
   fi
+}
+
+list_uprgradable() {
+  apt list --upgradable 2>/dev/null | sed '1d' | cut -d'/' -f1
+}
+
+update_summary() {
+	local fields nupg nnew nrem ndef
+  fields="$1"
+	nupg=$(echo "$fields" | cut -d' ' -f1)
+	nnew=$(echo "$fields" | cut -d' ' -f2)
+	nrem=$(echo "$fields" | cut -d' ' -f3)
+	ndef=$(echo "$fields" | cut -d' ' -f4)
+  printf "Package summary:\n"
+  printf "%s|%s|%s|%s\n" "$nupg" "$nnew" "$nrem" "$ndef" | column -t -s "|" -N UPGRADE,NEW,REMOVE,HOLD
 }
 
 autoremove_packages() {
@@ -87,7 +108,7 @@ purge_rc_packages() {
 main() {
   local dashes lhost log_dir log_file script sed_file version
   script=$(basename "$0")
-  version="1.1.25045"
+  version="1.2.25089"
   lhost="${HOSTNAME:-$(hostname)}"
   log_dir="/var/log"
   log_file="update.log"
