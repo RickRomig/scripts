@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 17 Feb 2025
+# Updated      : 31 Mar 2025
 # Comments     : Run as a user cron job.
 #              : Trash directory does not exist until a file is moved to the trash.
 # TODO (Rick)  :
@@ -20,12 +20,12 @@ trash() {
 }
 
 empty_trash() {
-	local last_week; last_week=$(date -d "$(date) - 7 days" +%F)
+	local last_week; last_week=$(date -d "$(date) - 6 days" +%F)
 	if trash; then
 		printf "\nTrash contents:\n"
 		/usr/bin/trash-list
 		printf "\nRemoving trash older than %s...\n" "$last_week"
-		/usr/bin/trash-empty 7
+		/usr/bin/trash-empty 6
 		if trash; then
 			printf "\nTrash newer than %s...\n" "$last_week"
 			/usr/bin/trash-list
@@ -40,7 +40,7 @@ empty_trash() {
 main() {
 	local dashes lhost trash_dir log_dir log_file script version
   script=$(basename "$0")
-  version="4.3.25048"
+  version="4.4.25090"
   lhost="${HOSTNAME:-$(hostname)}"
 	trash_dir="$HOME/.local/share/Trash"
 	log_dir="$HOME/.local/share/logs"
