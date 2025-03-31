@@ -18,3 +18,10 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDPrk7K2eHhnoDpUirtyLn2P5498PyD63lenR64/tG0
 `git remote set-url origin git@github.com:RickRomig/<repo>.git`
 **Set the remote asupstream origin master:**
 `git push --set-upstream origin master`
+
+### Check if you are in a git working directory
+```bast
+git rev-parse --is-inside-work-tree
+```
+- Prints 'true' to STDOUT if you are in a git repos working tree.
+- Returns output to STDERR if you are outside of a git repo (and does not print 'false').
