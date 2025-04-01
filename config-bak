@@ -7,7 +7,7 @@
 # Author       : Cepyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2019
-# Updated      : 02 Jan 2025
+# Updated      : 01 Apr 2025
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -103,13 +103,16 @@ bu_cinnamon_keybindings() {
 	local kb_bu_file="keybindings-backup.dconf"
 	if [[ -f "$cfg_dir/$kb_bu_file" && -f "$bu_dir/$kb_bu_file" ]]; then
 	  if [[ "$bu_dir/$kb_bu_file" -ot "$cfg_dir/$kb_bu_file" ]]; then
-	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"; (( count++ ))
+	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
+			(( count++ ))
 	  fi
 	elif [[ -f "$cfg_dir/$kb_bu_file" ]]; then
-	  cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> "$NF}' | sed "s/'$//"; (( count++ ))
+	  cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> "$NF}' | sed "s/'$//"
+		(( count++ ))
 	elif is_cinnamon; then
-	    dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$kb_bu_file"
-	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$S//"; (( count++ ))
+	  dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$kb_bu_file"
+	  cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$S//"
+		(( count++ ))
 	fi
 }
 
@@ -210,7 +213,7 @@ completion_status() {
 main() {
 	local script version
 	script=$(basename "$0")
-	version="6.2.25002"
+	version="6.3.25091"
 	[[ -d "$bu_dir" ]] || mkdir -p "$bu_dir"
 	printf "Backing up configuration files...\n"
 	bu_user_cfgs
