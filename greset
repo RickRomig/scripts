@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 May 2024
-# Last updated : 19 Mar 2025
+# Last updated : 02 Apr 2025
 # Comments     : Commits that haven't been pushed to the repository.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -40,9 +40,9 @@ git_reset() {
 main() {
 	local script version
 	script=$(basename "$0")
-	version="2.1.25068"
+	version="2.2.25092"
 	check_package git
-	[[ -d "$PWD/.git" ]] || die "You are not in the main directory of a git repositiory." 1
+	[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || die "You are not in the main directory of a git repositiory." 1
 	if y_or_n "Reset last commit (not pushed) to the previous version?"; then
 		git_reset
 	else
