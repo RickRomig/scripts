@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 01 Apr 2025
+# Last updated : 02 Apr 2025
 # Comments     : Do not use with scripts or files inside git repos. Use gretire instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,13 +30,13 @@ set -eu
 ## Global Variables ##
 
 	script=$(basename "$0"); readonly script
-	readonly version="1.1.25091"
+	readonly version="1.2.25092"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="01 Apr 2025"
+	local updated="02 Apr 2025"
 	printf "%sUsage:%s %s file-to-retire\n" "$green" "$normal" "$script" >&2
 	printf "Do not use with scripts in git repos. Use gretire instead.\n" >&2
 	over_line "$script $version, $updated"
@@ -63,8 +63,8 @@ main() {
 	elif [[ ! -f "$1" ]]; then
 		printf "%s %s not found.\n" "$RED_ERROR" "$1" >&2
 		help 2
-	elif git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-		die "This is a git repository. Use the gretire script.\n"
+	elif [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]; then
+		die "This is a git repository. Use the gretire script." 2
 	else
 		ret_script="$1"
 		retire_script "$ret_script"
