@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : retire-scripts
+# Description  : send scripts to a retired archive
+# Dependencies : git zip
+# Arguments    : none
+# Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 04 Jul 2024
+# Last updated : 01 Apr 2025
+# Comments     : Do not use with scripts or files inside git repos. Use gretire instead.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+set -eu
+
+## Global Variables ##
+
+	script=$(basename "$0"); readonly script
+	readonly version="1.1.25091"
+
+## Functions ##
+
+help() {
+	local errcode="${1:-2}"
+	local updated="01 Apr 2025"
+	printf "%sUsage:%s %s file-to-retire\n" "$green" "$normal" "$script" >&2
+	printf "Do not use with scripts in git repos. Use gretire instead.\n" >&2
+	over_line "$script $version, $updated"
+	exit "$errcode"
+}
+
+retire_script() {
+	local foo foobar archive_dir ret_archive
+	foo="$1"
+	archive_dir="$HOME/Downloads/archives"
+	ret_archive="retired-scripts.zip"
+	foobar="${foo}.$(date +'%y%j')"
+	mv -v "$foo" "$foobar"
+	zip -um "$archive_dir/$ret_archive$" "$foobar"
+}
+
+main() {
+	local ret_script packages
+	packages=(git zip)
+	check_packages "${packages[@]}"
+	if [[ "$#" -eq 0 ]]; then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help 1
+	elif [[ ! -f "$1" ]]; then
+		printf "%s %s not found.\n" "$RED_ERROR" "$1" >&2
+		help 2
+	elif git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+		die "This is a git repository. Use the gretire script.\n"
+	else
+		ret_script="$1"
+		retire_script "$ret_script"
+		over_line "$script $version"
+		exit 0
+	fi
+}
+
+## Execution ##
+
+main "$@"
