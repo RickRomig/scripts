@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 04 Nov 2024
+# Updated      : 02 apri 2025
 # Comments     : Mount points are at ~/mnt/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ set -eu
 ## Glonal Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.7.24309"
+readonly version="4.8.25093"
 readonly local_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -108,10 +108,11 @@ Mounts/Unmounts an SSHFS share.
 ${green}Usage:${normal} $script [OPTION]
 
 ${orange}Availabel options:${normal}
+  -d  toggle mount/umount HP EliteDesk 800 G1 USDT (destop)
   -e  toggle mount/umount HP EliteBook 850 G3 (laptop)
-  -f  toggle mount/umount HP ProBook 6570b (Finance)
+  -f  toggle mount/umount HP ProBook 6570b (desk)
   -g  toggle mount/umount HP Compaq Elite 8300 USDT (Gitea Server)
-  -h  help
+  -h  Show this help message and exit
   -l  toggle mount/umount Lenovo M91p (VM and media)
   -m  toggle mount/umount HP 800 G2 (Main system)
   -n  toggle mount/umount QNAP NAS (network attached storage)
@@ -125,14 +126,23 @@ main() {
 	check_package sshfs
 	printf "Mount or unmount an SSHFS share.\n"
 	noOpt=1
-	optstr=":efghlmns"
+	optstr=":defghlmns"
 	while getopts "$optstr" opt; do
 		case "$opt" in
+			d )
+				share_name="EliteDesk-880"
+				ip_address=22
+				if [[ "$local_host" == "hp-800-g1-usdt" ]]; then
+					diehard "Cannot mount/unmount local system." "$script $version"
+				else
+					handle_mount "$ip_address" "$share_name"
+				fi
+			;;
 			e )
 				share_name="EliteBook-850"
 				ip_address=22
 				if [[ "$local_host" == "hp-850-g3" ]]; then
-					diehard "Cannot mount/unmount local system." "$script v$version"
+					diehard "Cannot mount/unmount local system." "$script $version"
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
@@ -141,7 +151,7 @@ main() {
 				share_name="HP-ProBook-6570b"
 				ip_address=21
 				if [[ "$local_host" == "hp-probook-6570" ]]; then
-					diehard "Cannot mount/unmount local system." "$script v$version"
+					diehard "Cannot mount/unmount local system." "$script $version"
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
@@ -150,7 +160,7 @@ main() {
 				share_name="Gitea-Server"
 				ip_address=16
 				if [[ "$local_host" == "hp-8300-usdt" ]]; then
-					diehard "Cannot mount/unmount local system." "$script v$version"
+					diehard "Cannot mount/unmount local system." "$script $version"
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
@@ -162,7 +172,7 @@ main() {
 				share_name="Lenovo-M91p"
 				ip_address=15
 				if [[ "$local_host" == "lenovo-m91p" ]]; then
-					diehard "Cannot mount/unmount local system." "$script v$version"
+					diehard "Cannot mount/unmount local system." "$script $version"
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
@@ -171,7 +181,7 @@ main() {
 				share_name="HP-800-G2"
 				ip_address=10
 				if [[ "$local_host" == "hp-800g2-sff" ]]; then
-					diehard "Cannot mount/unmount local system." "$script v$version"
+					diehard "Cannot mount/unmount local system." "$script $version"
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
@@ -180,7 +190,7 @@ main() {
 				share_name="NASD97167"
 				ip_address=4
 				if [[ "$local_host" == "NASD97167" ]]; then
-					diehard "Cannot mount/unmount local system." "$script v$version"
+					diehard "Cannot mount/unmount local system." "$script $version"
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
@@ -189,7 +199,7 @@ main() {
 				share_name="HP-6005"
 				ip_address=11
 				if [[ "$local_host" == "hp-6005" ]]; then
-					diehard "Cannot mount/unmount local system." "$script v$version"
+					diehard "Cannot mount/unmount local system." "$script $version"
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
@@ -202,7 +212,7 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-	over_line "$script v$version"
+	over_line "$script $version"
 	exit
 }
 
