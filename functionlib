@@ -700,11 +700,11 @@ check_package() {
   local package="$1"
   if dpkg -l | grep -qw "$package"; then
     printf "%s [OK]\n" "$package"
-    sleep 2
+    sleep 1
     printf '\e[A\e[K'
   else
     printf "Installing %s ...\n" "$package"
-    sudo_login 2
+    sudo_login 1
     sudo apt-get install "$package" -yyq
   fi
 }
@@ -723,11 +723,11 @@ check_packages() {
 	for pkg in "${pkgs[@]}"; do
 		if dpkg -l | grep -qw "$pkg"; then
 			printf "%s [OK]\n" "$pkg"
-      sleep 2
+      sleep 1
       printf '\e[A\e[K'
 		else
 			printf "Installing %s ...\n" "$pkg"
-      sudo_login 2
+      sudo_login 1
 			sudo apt-get install "$pkg" -yyq
 		fi
 	done
