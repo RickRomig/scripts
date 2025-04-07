@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Mar 2023
-# Updated      : 25 Mar 2025
+# Updated      : 07 Apr 2025
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -82,6 +82,11 @@ syncscript() {
 
   printf "\n%sSyncing Wallpaper directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$hostip":Pictures/wallpaper/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  printf "\n%sSyncing SFW Wallpaper directory...%s\n" "$orange" "$normal"
+  rsync -avh --delete "$HOME"/Pictures/backgrounds/ "$LOCALNET.$hostip":Pictures/backgrounds/
   exit_status="$?"
   transfer_status "$exit_status"
 
@@ -182,7 +187,7 @@ sync_to_main() {
 main() {
   local lap_host local_host main_host script version
   script=$(basename "$0")
-  version="4.3.25084"
+  version="4.4.25097"
   local_host="${HOSTNAME:-$(hostname)}"
   main_host="hp-800g2-sff"
   lap_host="hp-850-g3"
