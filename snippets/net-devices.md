@@ -59,8 +59,15 @@ $ nmcli -f SSID,SECURITY,SIGNAL,BARS dev wifi | sed '/SSID/d;/^--/d'
 ```bash
 $ sudo nmcli d wifi connect "$ssid_name" password "$passphrase" ifname "$wifi_dev"
 ```
-#### Bring up a netwokr interface
+#### Bring up a network interface
 ```bash
 sudo ip link set interface-name up
 sudo ip link set interface-name down
+```
+#### Get local network address
+Assumes a /24 (Class C) private network.
+```bash
+ip route get 1.2.3.4 | cut -d' ' -f3 | sed 's/\..$//'
+ip route get 1.2.3.4 | awk '{print $3}' | cut -d '.' -f1,2,3
+ip route | awk '/default via/ {print $3}' | sort -u | cut -d'.' -f1,2,3
 ```
