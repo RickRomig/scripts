@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Last updated : 17 Jan 2025
+# Last updated : 07 Apr 2025
 # Comments     : Can sync to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -32,14 +32,14 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.3.25017"
+readonly version="6.4.25097"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="17 Jan 2025"
+  updated="07 Apr 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Synchrnizes ~/bin with remote hosts.
@@ -137,6 +137,11 @@ syncscript() {
 
       echo $'\n'$"${orange}Syncing wallpaper directory...${normal}"
       rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$hostip":Pictures/wallpaper/
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      echo $'\n'$"${orange}Syncing SFW wallpaper directory...${normal}"
+      rsync -avh --delete "$HOME"/Pictures/backgrounds/ "$LOCALNET.$hostip":Pictures/backgrounds/
       exit_status="$?"
       transfer_status "$exit_status"
 
