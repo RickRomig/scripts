@@ -7,9 +7,9 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 30 Jan 2025
+# Updated      : 09 Apr 2025
 # Comments     : Based on instructions from Joe Collins.
-# TODO (Rick)  : Test this. Test for Intel/AMD CPU.
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
 
@@ -25,17 +25,44 @@ else
   exit 1
 fi
 
+## Global Variables ##
+
+script=$(basename "$0"); readonly script
+readonly  version="2.0.25099"
+
 ## Functions ##
 
+help() {
+	local errcode="${1:-2}"
+	local updated="09 Apr 2025"
+	cat << _HELP_
+${orange}$script${normal} $version, Upated: $updated
+Install Gnome Boxes from either distribution repositories or flatpak from Flathub.
+
+${green}Usage:${normal} $script [OPTION]
+
+${orange}Available options:${normal}
+	-d	Install Gnome Boxes from distro repo
+	-f	Install Gnome Boxes from Flathub
+	-h	Show this help message and exit
+_HELP_
+  exit "$errcode"
+}
+
 check_bios() {
-  # Check if virtualization is enabled in BIOS (is flag set?)
-  local vcpu
-  vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo)  # egrep -c '(vmx|svm)'
+  local vcpu vmx_svm
+  printf "Checking if virtualization is enabled in BIOS...\n"
+  vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo)
   printf "Virtualization is "
   if [[ "$vcpu" -gt 0 ]]; then
     printf "enabled in the BIOS. (%s threads)\n" "$vcpu"
-    grep -w -m 1 vmx /proc/cpuinfo && sudo sh -c 'echo "options kvm_intel nested=1" >> /etc/modprobe.d/qemu-system-x86.conf'
-    grep -w -m 1 svm /proc/cpuinfo > /dev/null && sudo sh -c 'echo "options kvm_amd nested=1" >> /etc/modprobe.d/qemu-system-x86.conf'
+    vmx_svm=$(grep -E -m 1 'vmx|svm' /proc/cpuinfo )
+    case "$vmx_svm" in
+      *vmx* )
+        sudo sh -c 'echo "options kvm_intel nested=1" >> /etc/modprobe.d/qemu-system-x86.conf' ;;
+      *svm* )
+        sudo sh -c 'echo "options kvm_amd nested=1" >> /etc/modprobe.d/qemu-system-x86.conf' ;;
+    esac
     sudo sh -c 'echo "group=kvm" >> /etc/modprobe.d/qemu-system-x86.conf'
   else
     printf "not enabled in the BIOS.\n"
@@ -47,44 +74,74 @@ check_bios() {
 enable_libvirtd() {
   sudo systemctl enable libvirtd.service
   sudo systemctl start libvirtd.service
-  # sudo systemctl start libvirt
-  # sudo systemctl restart libvirtd
   printf "libvirtd started.\n"
 }
 
 add_to_kvm_group() {
-  local qemu_conf user
-  qemu_conf="/etc/libvirt/qemu.conf"
+  local user in_kvm_grp
   user=$(whoami)
-  printf "\nAdding %s to the kvm group.\n" "$user"
-  sudo usermod -a -G kvm "$user"
-  printf "%s added to the kvm group.\n" "$user"
-  if [[ -f "/etc/libvirt/qemu.conf" ]]; then
+  in_kvm_grp=$(awk '/kvm:/ && /'"$user"'/' /etc/group)
+printf "User %s " "$user"
+  if [[ "$in_kvm_grp" ]]; then
+    printf "is already a member of "
+  else
+    sudo usermod -a -G kvm "$user"
+    printf "added to "
+  fi
+  printf "the kvm group.\n"
+  if [[ -f /etc/libvirt/qemu.conf ]]; then
     printf "Allow users in the kvm group to start VMs.\n"
-    sudo sed -i.bak 's/\#group\ =\ "root"/group\ =\ "kvm"/' "$qemu_conf"
+    sudo sed -i.bak 's/\#group\ =\ "root"/group\ =\ "kvm"/' /etc/libvirt/qemu.conf
     enable_libvirtd
   else
-    printf "%s not found!\n" "$qemu_conf" >&2
+    printf "/etc/libvirt/qemu.conf not found!\n" >&2
   fi
 }
 
 install_boxes() {
-  printf "\nInstalling GNOME Boxes ...\n"
+  printf "\nInstalling GNOME Boxes (distro)...\n"
   sudo apt update -qq
   sudo apt install -yy gnome-boxes qemu-kvm libvirt-bin
 }
 
+install_flatpak() {
+  printf "\nInstalling GNOME Boxes (flatpak)...\n"
+  flatpak install --user flathub org.gnome.Boxes
+}
+
 main() {
-  local script version
-  script=$(basename "$0")
-  version="1.12.25030"
-  sudo_login 2
-  printf "Installs GNOME Boxes.\n"
-  check_bios
-  install_boxes
-  add_to_kvm_group
+  local noOpt opt optstr
+	noOpt=1
+	optstr=":dfh"
+	while getopts "$optstr" opt; do
+    case "$opt" in
+      d )
+        sudo_login 2
+        check_bios
+        install_boxes
+        add_to_kvm_group
+      ;;
+      f )
+        sudo_login 2
+        check_bios
+        install_flatpak
+        add_to_kvm_group
+      ;;
+      h )
+        help 0
+      ;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+    noOpt=0
+done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+
   printf "Gnome boxes installed and configured.\n"
-  leave "$script $version"
+  over_line "$script $version"
+  exit
 }
 
 ## Execution ##
