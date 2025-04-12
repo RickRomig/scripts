@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 13 Feb 2025
+# Updated:     : 12 Apr 2025
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Rewrite of version 2.5.0
 #              : Will not get desktop session info from an SSH connection. Run locally.
@@ -214,7 +214,7 @@ ssd_hd_info() {
 	printf "\nHard Disk Information:\n"
 	for disk in /dev/sd[a-z]; do
 		sudo hdparm -I "${disk}" 2>/dev/null | tee "$hd_data" > /dev/null
-    printf "%s\n" "$(grep -w dev "$hd_data")"
+    printf "%s\n" "$(grep -w dev "$hd_data" | sed 's/\/dev\///')"
     printf "   %-15s%s\n" "Model Number:" "$(awk -F: '/Model/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
     printf "   %-15s%s\n" "Serial Number:" "$(awk -F: '/Serial N/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
     printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | tr -d '()')" # sed 's/[)(]//g')"
@@ -231,7 +231,7 @@ ssd_hd_info() {
 
 nvme_info() {
   local nvme_data devline
-  printf "\nNVMe Information\n"
+  printf "\nNVMe Information:\n"
   nvme_data=$(sudo /usr/sbin/nvme list | tail -n+3)
   for devline in "${nvme_data[@]}"; do
     printf "%s\n" "$(echo "$devline" | awk '/dev/ {print $1}' | cut -d'/' -f3)"
@@ -268,7 +268,7 @@ battery_info() {
 main() {
   local script version lhost info_file today
   script=$(basename "$0")
-  version="3.11.25044"
+  version="3.12.25102"
   lhost="${HOSTNAME:-$(hostname)}"
   info_file="$HOME/$lhost.info"
   today=$(date +'%d %B %Y')
