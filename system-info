@@ -214,7 +214,7 @@ ssd_hd_info() {
 	printf "\nHard Disk Information:\n"
 	for disk in /dev/sd[a-z]; do
 		sudo hdparm -I "${disk}" 2>/dev/null | tee "$hd_data" > /dev/null
-    printf "%s\n" "$(grep -w dev "$hd_data" | sed 's/\/dev\///')"
+    printf "%s\n" "$(grep -w dev "$hd_data" | sed 's/\/dev\///;s/:$//')"
     printf "   %-15s%s\n" "Model Number:" "$(awk -F: '/Model/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
     printf "   %-15s%s\n" "Serial Number:" "$(awk -F: '/Serial N/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
     printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | tr -d '()')" # sed 's/[)(]//g')"
