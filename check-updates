@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 10 Apr 2025
+# Updated      : 13 Apr 2025
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -32,10 +32,16 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.3.25100"
+readonly version="7.0.25103"
 SECONDS=0
 
 ## Functions ##
+
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+cleanup() {
+  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+}
 
 help() {
 	local errcode="${1:-2}"
@@ -178,47 +184,28 @@ nala_update() {
 }
 
 apt_update() {
-  local nupd summary
+  local nupd #summary
   printf "%sChecking for updates...%s\n" "$orange" "$normal"
   update_apt_cache
-  summary=$(apt-get dist-upgrade -s |  awk '$2 == "upgraded," {print $1,$3,$6,$(NF-2)}')
-  nupd=$(count_updates "$summary")
+  nupd=$(count_updates)
   if (( nupd > 0 )); then
-    printf "%sUpgradable packages:%s\n" "$orange" "$normal"
-    list_uprgradable
-    update_summary "$summary"
+    printf "%sSummary:%s\n" "$orange" "$normal"
+    sed -ne '/^Calculating/,/newly/p' "$tmp_file" | sed '1d'
     apt_menu "$nupd"
   else
-    printf "%sPackages are up to date.%s\n" "$orange" "$normal"
-    printf "Packages held:\n"
-    list_uprgradable
-    update_summary "$summary"
+    printf "%sSummary:%s\n" "$orange" "$normal"
+    sed -ne '/^Calculating/,/newly/p' "$tmp_file" | sed '1d'
   fi
 }
 
-update_summary() {
-	local fields nupg nnew nrem ndef
-  fields="$1"
-	nupg=$(echo "$fields" | cut -d' ' -f1)
-	nnew=$(echo "$fields" | cut -d' ' -f2)
-	nrem=$(echo "$fields" | cut -d' ' -f3)
-	ndef=$(echo "$fields" | cut -d' ' -f4)
-  printf "%sPackage summary:%s\n" "$orange" "$normal"
-  printf "%s|%s|%s|%s\n" "$nupg" "$nnew" "$nrem" "$ndef" | column -t -s "|" -N UPGRADE,NEW,REMOVE,HOLD
-}
-
-list_uprgradable() {
-  apt list --upgradable 2>/dev/null | sed '1d' | cut -d'/' -f1
-}
-
 count_updates() {
-  local nupdates fields field1 field2
-  fields="$1"
-  field1=$(echo "$fields" | cut -d' ' -f1)
-  field2=$(echo "$fields" | cut -d' ' -f2)
-  field3=$(echo "$fields" | cut -d' ' -f3)
-  nupdates=$((field1 + field2 + field3))
-  printf "%s" "$nupdates"
+	local field1 field2 field3
+	local -i count=0
+	field1=$(awk '$8 == "remove" {print $1}' "$tmp_file")
+	field2=$(awk '$8 == "remove" {print $3}' "$tmp_file")
+	field3=$(awk '$8 == "remove" {print $6}' "$tmp_file")
+	count=$((field1 + field2 + field3))
+	echo "$count"
 }
 
 apt_menu() {
@@ -290,7 +277,11 @@ main() {
 	while getopts "$optstr" opt; do
     case "$opt" in
       a )
+        tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+        trap cleanup EXIT
+        apt-get dist-upgrade -s > "$tmp_file"
         show_header
+        # cat "$tmp_file"
         check_disk_space
         sudo_login 2
         apt_update
