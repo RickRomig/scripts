@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 30 Mar 2025
+# Updated      : 14 Apr 2025
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -56,20 +56,13 @@ get_updates() {
   field3=$(echo "$fields" | cut -d' ' -f3)
   nupd=$((field1 + field2 + field3))
   if [[ "$nupd" -gt 0 ]]; then
-    printf "Upgradable packages:\n"
-    list_uprgradable
     update_summary "$fields"
     printf "\n*** Installing updates ***\n"
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get dist-upgrade -yy
   else
     printf "\nPackages are up to date\n"
-    list_uprgradable
     update_summary "$fields"
   fi
-}
-
-list_uprgradable() {
-  apt list --upgradable 2>/dev/null | sed '1d' | cut -d'/' -f1
 }
 
 update_summary() {
@@ -134,6 +127,7 @@ main() {
     printf "%s %s\n" "$script" "$version"
   } > "$log_dir/$log_file" 2>&1
   sed -i -f "$sed_file" "$log_dir/$log_file"
+  exit
 }
 
 main "$@"
