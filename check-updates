@@ -116,20 +116,21 @@ remove_orphans() {
   npkgs=$(apt-get autoremove -s | awk '$2 == "upgraded," {print $6}')
   printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
   if [[ "$npkgs" -gt 0 ]]; then
-    sudo apt-get autoremove -yy
+    sudo apt-get autoremove -yy   # autopurge
   else
     printf "No packages to be removed.\n"
   fi
 }
 
 purge_rc_packages() {
-  local rcpkg
+  # local rcpkg
   printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
   if dpkg -l | grep -c '^rc' > /dev/null; then
-    for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
-      printf "Purging %s...\n" "$rcpkg"
-      sudo apt-get remove --purge "$rcpkg" -yy
-    done
+    apt-get autopurge -yy
+    # for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
+    #   printf "Purging %s...\n" "$rcpkg"
+    #   sudo apt-get remove --purge "$rcpkg" -yy
+    # done
   else
     printf "No packages in the 'rc' state.\n"
   fi
@@ -282,7 +283,7 @@ main() {
         trap cleanup EXIT
         show_header
         check_disk_space
-        sudo_login 2
+        sudo_login 1
         apt_update
       ;;
       h )
@@ -291,7 +292,7 @@ main() {
       n )
         show_header
         check_disk_space
-        sudo_login 2
+        sudo_login 1
         if exists nala; then nala_update; else apt_update; fi
       ;;
 			? )
