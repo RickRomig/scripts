@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 14 Apr 2025
+# Updated      : 17 Apr 2025
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -67,23 +67,23 @@ autoremove_packages() {
   local npkgs
   npkgs=$(apt-get autoremove -s | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f6)
   if [[ "$npkgs" -gt 0 ]]; then
-    DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove -yy
+    DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove --purge -yy
   else
     printf "No packages to be removed.\n"
   fi
 }
 
-purge_rc_packages() {
-  local rcpkg
-  if dpkg -l | grep -c '^rc' > /dev/null; then
-    for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
-      printf "Purging %s...\n" "$rcpkg"
-      DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get remove --purge "$rcpkg" -yy
-    done
-  else
-    printf "No packages in the 'rc' state.\n"
-  fi
-}
+# purge_rc_packages() {
+#   local rcpkg
+#   if dpkg -l | grep -c '^rc' > /dev/null; then
+#     for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
+#       printf "Purging %s...\n" "$rcpkg"
+#       DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get remove --purge "$rcpkg" -yy
+#     done
+#   else
+#     printf "No packages in the 'rc' state.\n"
+#   fi
+# }
 
 main() {
   local dashes lhost log_dir log_file script sed_file version
@@ -104,8 +104,8 @@ main() {
     /usr/bin/apt-get autoclean
     printf "\n*** Removing orphaned packages ***\n"
     autoremove_packages
-    printf "\n*** Purging obsolete configuration files ***\n"
-    purge_rc_packages
+    # printf "\n*** Purging obsolete configuration files ***\n"
+    # purge_rc_packages
     command -v flatpak > /dev/null 2>&1 && check_flatpak
 	  check_disk_space
     printf "Update completed in %s\n" "$(format_time $SECONDS)"
