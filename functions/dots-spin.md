@@ -50,3 +50,5 @@
    echo ""
    tput cnorm
   ```
+
+4. Spin function has been removed from functionlib because it's problematic and I rarely used it.
