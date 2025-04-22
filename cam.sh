@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 23 Mar 2025
-# Last updated : 26 Mar 2025
+# Last updated : 22 Apr 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ set -eu
 main() {
   local black_card white_card choices cards line script version card_dir black_file white_file
   script=$(basename "$0")
-  version="1.2.25085"
+  version="1.3.25112"
   card_dir="$HOME/.local/share/doc"
   black_file="cam-black.lst"
   white_file="cam-white.lst"
@@ -43,7 +43,7 @@ main() {
     clear
     unset cards
     black_card=$(printf "%s\n" "${black_cards[@]}" | shuf -n 1)
-    white_card=$(printf "%s\n" "${white_cards[@]}" | shuf -n 10)
+    white_card=$(printf "%s\n" "${white_cards[@]}" | shuf -n 15)
 
     IFS=$'\n'
     while read -r line; do cards+=("$line"); done <<< "$white_card"
