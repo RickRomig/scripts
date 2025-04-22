@@ -27,13 +27,29 @@ fi
 
 set -eu
 
+check_files() {
+  local file card_files
+  card_files=(cam-black.lst cam-white.lst)
+  check_package fzf
+  for file in "${card_files[@]}"; do
+    if [[ -f "$card_dir/$file" ]]; then
+      printf "%s [OK]\n" "$file"
+      sleep 1
+      printf '\e[A\e[K'
+    else
+      die "$file not found!" 1
+    fi
+  done
+}
+
 main() {
   local black_card white_card choices cards line script version card_dir black_file white_file
   script=$(basename "$0")
-  version="1.3.25112"
+  version="1.4.25112"
   card_dir="$HOME/.local/share/doc"
   black_file="cam-black.lst"
   white_file="cam-white.lst"
+  check_files
 
   # Create the arrays
   mapfile -t black_cards < "$card_dir/$black_file"
