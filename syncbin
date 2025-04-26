@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Last updated : 07 Apr 2025
+# Last updated : 26 Apr 2025
 # Comments     : Can sync to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -32,14 +32,14 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.4.25097"
+readonly version="6.5.25116"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="07 Apr 2025"
+  updated="26 Apr 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Synchrnizes ~/bin with remote hosts.
@@ -126,7 +126,7 @@ syncscript() {
     ;;
     21|24|25 )
       echo $'\n'$"${orange}Syncing Homepage...${normal}"
-      rsync -avh --delete --exclude '.git' "$HOME"/Documents/homepage/ "$LOCALNET.$hostip":Documents/homepage/
+      rsync -avh --delete --exclude '.git' --exclude '.gitignore' "$HOME"/Documents/homepage/ "$LOCALNET.$hostip":Documents/homepage/
       exit_status="$?"
       transfer_status "$exit_status"
 
@@ -146,7 +146,7 @@ syncscript() {
       transfer_status "$exit_status"
 
       echo $'\n'$"${orange}Syncing bin...${normal}"
-      rsync -avh --delete --exclude '.git' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
+      rsync -avh --delete --exclude '.git' --exclude '.gitignore' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
       exit_status="$?"
       transfer_status "$exit_status"
 
@@ -162,7 +162,7 @@ syncscript() {
     ;;
    * )
       echo $'\n'$"${orange}Syncing bin...${normal}"
-      rsync -avh --delete --exclude '.git' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
+      rsync -avh --delete --exclude '.git' --exclude '.gitignore' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
       exit_status="$?"
       transfer_status "$exit_status"
   esac
