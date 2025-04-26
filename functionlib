@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 21 Apr 2025
+# Last updated : 25 Apr 2025
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -843,13 +843,20 @@ unmount_nas() {
 
 ###############################################################################
 # clone_repo
-# Purpose: Clone a git repository on the Gitea server to ~/Downloads
+# Purpose: Clone a git repository on the GitHub server to ~/Downloads
 # Argument:
 #   $1 -> name of the repository to clone
 ###############################################################################
 clone_repo() {
   local git_repo="${1}.git"
-  git clone "$GITEA_URL/$git_repo" "$HOME/Downloads"
+  local url
+  case "$git_repo" in
+    configs|scripts|i3wm-debian )
+      url="$GITHUB_URL" ;;
+    * )
+      url="$GITEA_URL"
+  esac
+  git clone "$url/$git_repo" "$HOME/Downloads"
 }
 
 ###############################################################################
