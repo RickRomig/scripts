@@ -848,15 +848,15 @@ unmount_nas() {
 #   $1 -> name of the repository to clone
 ###############################################################################
 clone_repo() {
-  local git_repo="${1}.git"
+  local git_repo="$1"
   local url
   case "$git_repo" in
-    configs|scripts|i3wm-debian )
+    configs | scripts | i3wm-debian )
       url="$GITHUB_URL" ;;
     * )
       url="$GITEA_URL"
   esac
-  git clone "$url/$git_repo" "$HOME/Downloads"
+  git clone "$url/${git_repo}.git" "$HOME/Downloads/$git_repo"
 }
 
 ###############################################################################
