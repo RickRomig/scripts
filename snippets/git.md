@@ -13,15 +13,29 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDPrk7K2eHhnoDpUirtyLn2P5498PyD63lenR64/tG0
 ```
 
 **Check SSH connection:**
-`ssh git@ssh.github.com`
+```bash
+ssh git@ssh.github.com`
+```
 **Set remote to use SSH:**
-`git remote set-url origin git@github.com:RickRomig/<repo>.git`
+```bash
+git remote set-url origin git@github.com:RickRomig/<repo>.git
+```
 **Set the remote asupstream origin master:**
-`git push --set-upstream origin master`
+```bash
+git push --set-upstream origin master
+```
 
 ### Check if you are in a git working directory
-```bast
+```bash
 git rev-parse --is-inside-work-tree
 ```
 - Prints 'true' to STDOUT if you are in a git repos working tree.
 - Returns output to STDERR if you are outside of a git repo (and does not print 'false').
+
+### Transfer existing Git repository to GitHub
+1. In GitHub account create a new repository, but do not initiate it with a README.md, LICENSE, or .gitignore.
+2. Run the following command:
+```bash
+	$ git push --mirror git@github.com:username/project.git
+```
+3. In the local repository you transferred, edit `.git/config` to change the `url` line to have the same URL that you used in Step 2, and update your username and email.
