@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard Romig, 29 Sep 2020
 # Email        : rick.romig@gmail.com
 # Created      : 29 Sep 2020
-# Last updated : 07 Apr 2025
+# Last updated : 26 Apr 2025
 # Comments     : Can sync to one or all machines on the network.
 #              : LOCALNET is declared in functionlib
 # TODO (rick)  :
@@ -29,7 +29,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.19.25097"
+readonly version="3.20.25116"
 SECONDS=0
 
 ## Functions ##
@@ -37,7 +37,7 @@ SECONDS=0
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="07 Apr 2025"
+	updated="26 Apr 2025"
 	cat << _HELP_
   $script help
   ${orange}Usage:${normal} $script [OPTION] Updated $updated
@@ -113,7 +113,7 @@ syncscript() {
   transfer_status "$exit_status"
 
   echo $'\n'$"${orange}Syncing homepage...${normal}"
-  rsync -avh --delete --exclude '.git' "$HOME"/Documents/homepage/ "$LOCALNET.$hostip":Documents/homepage/
+  rsync -avh --delete --exclude '.git' --exclude '.gitignore' "$HOME"/Documents/homepage/ "$LOCALNET.$hostip":Documents/homepage/
   exit_status="$?"
   transfer_status "$exit_status"
 
