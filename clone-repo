@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 14 Feb 2025
+# Updated      : 26 Apr 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,7 +27,7 @@ fi
 
 ## Functions ##
 
-clone_repo() {
+check_repo() {
   local dl_dir git_repo
   git_repo="$1"
   dl_dir="$HOME/Downloads"
@@ -38,24 +38,24 @@ clone_repo() {
       git pull
       popd || die "popd failed"
     else
-      git clone "$GITEA_URL/$git_repo.git" "$dl_dir/$git_repo"
+      clone_repo "$git_repo"
     fi
   else
-    git clone "$GITEA_URL/$git_repo.git" "$dl_dir/$git_repo"
+    clone_repo "$git_repo"
   fi
 }
 
 main() {
   local arr_len index _repo repos script version
   script=$(basename "$0")
-  version="3.7.25045"
+  version="3.8.25116"
 
   check_package git
   printf "Clone a repository from the local Gitea server.\n\n"
   printf "Available repositories:\n"
   COLUMNS=40
   PS3="Choose a repository to clone: "
-  repos=( scripts configs debian-i3 i3debian deb12wm-scripts deb12wm-dotfiles gitea-server openboxdebian fnloc fnloc-win homepage )
+  repos=( scripts configs i3wm-debian homepage gitea-server fnloc fnloc-win )
   select _repo in "${repos[@]}" "Exit"; do
 	  if (( REPLY == 1 + ${#repos[@]} )); then
 		  printf "Exiting. No repository selected or cloned.\n"
@@ -63,7 +63,7 @@ main() {
 	  elif (( REPLY > 0 && REPLY <= ${#repos[@]} )); then
       index=$(( REPLY - 1 ))
       printf "Cloning the %s repository...\n" "${repos[index]}"
-		  clone_repo "${repos[index]}"
+		  check_repo "${repos[index]}"
 		  break
 	  else
       arr_len="${#repos[@]}"; arr_len=$(( arr_len + 1 ))
