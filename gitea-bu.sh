@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Oct 2023
-# Last updated : 27 Dec 2024
-# Version      : 2.1.24362
+# Last updated : 27 Apr 2025
+# Version      : 2.2.25117
 # Comments     : Run as a daily cron job on the main system.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,12 +28,12 @@ sunday_actions() {
 main() {
 	local arc_dir archive day snar
 	arc_dir="$HOME/Downloads/archives/gitea-repo"
-	archive="gitea.$(date +'%y%m%d-%u').tar.gz"
-	snar="gitea.snar"
+	archive="git-repo.$(date +'%y%m%d-%u').tar.gz"
+	snar="git-repo.snar"
 	day=$(date +%a)
 	[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
 	[[ "$day" == "Sun" ]] && sunday_actions "$arc_dir" "$snar"
-	tar -cpzg "$arc_dir/$snar" -f "$arc_dir/$archive" -C "$HOME" gitea
+	tar -cpzg "$arc_dir/$snar" -f "$arc_dir/$archive" "$HOME"/gitea "$HOME"/Projects
 	exit
 }
 
