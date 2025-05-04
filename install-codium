@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 23 Feb 2025
+# Updated      : 02 May 2025
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.2.25054"
+readonly version="2.3.25123"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
@@ -61,40 +61,21 @@ check_dependencies() {
 	check_packages "${packages[@]}"
 }
 
-assign_repo() {
-	local localip repo
-	localip=$(local_ip)
-	case "$localip" in
-		10|16|22 )
-			repo="$HOME/gitea/configs"
-		;;
-		* )
-			if [[ -d "$HOME/Downloads/configs" ]]; then
-				pushd "$HOME/Downloads/configs" || die "pushd failed"
-				git pull --quiet origin main
-				popd || die "popd failed"
-			else
-				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
-			fi
-			repo="$HOME/Downloads/configs"
-	esac
-	printf "%s" "$repo"
-}
-
 codium_version() {
 	# codium --version | head -n 1
 	dpkg -l codium | awk '/ii/ {print $3}'
 }
 
 apply_settings() {
-	local repository cfg_dir json_file
-	repository="$1"
-  cfg_dir="${HOME}/.config/VSCodium/User"
-  json_file="settings.json"
-  [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
+	# local repository cfg_dir json_file
+	local repository="$1"
+  # cfg_dir="${HOME}/.config/VSCodium/User"
+  # json_file="settings.json"
+  # [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
   show_message "Applying VSCodium settings..."
-	show_message "Copying $json_file from $repository..."
-	cp -v "$repository/VSCodium/User/$json_file" "$cfg_dir"
+	# show_message "Copying $json_file from $repository..."
+	ln -s "$repository/VSCodium" "$HOME/.config/VSCodium/"
+	# cp -v "$repository/VSCodium/User/$json_file" "$cfg_dir/"
   show_message "VSCodium settings applied."
 }
 
@@ -121,9 +102,9 @@ install_vscodium() {
 }
 
 remove_vscodium() {
-	local cfg_dir cfg_bu_dir
-	cfg_dir="${HOME}/.config/VSCodium"
-	cfg_bu_dir="${HOME}/.config/backup/VSCodium"
+	# local cfg_dir cfg_bu_dir
+	# cfg_dir="${HOME}/.config/VSCodium"
+	local cfg_bu_dir="${HOME}/.config/backup/VSCodium"
 	show_message "Removing VSCodium..."
 	sudo apt-get purge codium
 	show_message "Removing VSCodium GPG key ..."
@@ -131,7 +112,8 @@ remove_vscodium() {
 	show_message "Removing VSCodium source list ..."
 	[[ -f "$src_list" ]] && sudo rm -v "$src_list"
 	show_message "Removing VSCodium configuration files ..."
-  [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
+	unlink "$HOME/.config/VSCodium/"
+  # [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
 	show_message "Removing VSCodium configuration backup ..."
   [[ -d "$cfg_bu_dir" ]] && rm -rf "$cfg_bu_dir"
 	printf "VSCodium has been removed.\n"
@@ -145,7 +127,7 @@ show_message() {
 main() {
 	check_dependencies
   local noOpt opt optstr repository
-	repository=$(assign_repo)
+	repository=$(assign_cfg_repo)
 	noOpt=1
 	optstr=":ahirsv"
 	while getopts "$optstr" opt; do
