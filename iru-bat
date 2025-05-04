@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 04 Apr 2025
+# Updated      : 04 May 2025
 # Comments     : Use install-batcat if distro version equals latest GitHub release.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="5.14.25094"
+readonly version="5.14.25124"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 readonly cfg_d=$HOME"/.config/bat"
 
@@ -48,24 +48,11 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
-assign_repo() {
-	local localip repo
-	localip=$(local_ip)
-	repo="$HOME/Downloads/configs"
-	case "$localip" in
-		10|16|22 )
-			repo="$HOME/gitea/configs" ;;
-		* )
-			[[ -d "$repo" ]] || git clone --quiet "$GITEA_URL/configs.git" "$repo"
-	esac
-	echo "$repo"
-}
-
 check_distro() {
   local codename
   codename=$(lsb_release -c -s)
   case "$codename" in
-    bookworm|bullseye|boron|faye|jammy|noble|virginia|wilma|xia ) return "$TRUE" ;;
+    bookworm|bullseye|faye|jammy|noble|wilma|xia ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
 }
@@ -104,7 +91,7 @@ install_bat() {
   printf "done\nInstalling Bat %s...\n" "$new_ver"
   # sudo gdebi -n "$tmp_dir/$new_pkg" 2>/dev/null
 	# sudo apt-get install "$tmp_dir/$new_pkg"
-	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-brokenq
+	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
   printf "Bat %s installed.\n" "$(bat_version)"
 }
 
@@ -113,18 +100,21 @@ remove_bat() {
   sudo_login 2
   printf "Removing Bat %s...\n" "$(bat_version)"
   sudo dpkg --remove bat
-  [[ -d "$cfg_d" ]] && rm -rf "$cfg_d"
+  if [[ -L "$HOME/.config/bat" ]]; then
+    unlink "$HOME/.config/bat"
+  elif [[ -d "$cfg_d" ]]; then
+    rm -rf "$cfg_d"
+  fi
   [[ -d "$cfg_bu_d" ]] && rm -rf "$cfg_bu_d"
   printf "Bat and its configuration files have been removed.\n"
 }
 
-dl_bat_config() {
-  local cfg_file repository
-  repository=$(assign_repo)
-  cfg_file="config"
-  [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
+bat_config() {
+  local repository
+  repository=$(assign_cfg_repo)
+  [[ -d "$cfg_d" ]] &&  rm -rf "$cfg_d"
   printf "Applying Bat configuration...\n"
-  cp -v "$repository/bat/$cfg_file" "$cfg_d/"
+  ln -s "$repository/bat/config" "$HOME/.config/bat"
   printf "Bat configuration applied.\n"
 }
 
@@ -156,7 +146,7 @@ main() {
     case "$opt" in
       c )
         exists bat || leave "Bat is not installed."
-        dl_bat_config
+        bat_config
       ;;
       h )
         help 0
@@ -170,7 +160,7 @@ main() {
         echo "${lightyellow}Installing Bat version $new_ver...${normal}"
         check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
         install_bat
-        dl_bat_config
+        bat_config
       ;;
       r )
         exists bat || leave "Bat is not installed."
