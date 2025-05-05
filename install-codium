@@ -67,17 +67,12 @@ codium_version() {
 }
 
 apply_settings() {
-	# local repository cfg_dir json_file
 	local repository="$1"
-  # cfg_dir="${HOME}/.config/VSCodium/User"
-  # json_file="settings.json"
-  # [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
   show_message "Applying VSCodium settings..."
-	# show_message "Copying $json_file from $repository..."
 	ln -s "$repository/VSCodium" "$HOME/.config/VSCodium/"
-	# cp -v "$repository/VSCodium/User/$json_file" "$cfg_dir/"
   show_message "VSCodium settings applied."
 }
+
 
 set_key() {
 	local key_url="https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg"
@@ -102,8 +97,6 @@ install_vscodium() {
 }
 
 remove_vscodium() {
-	# local cfg_dir cfg_bu_dir
-	# cfg_dir="${HOME}/.config/VSCodium"
 	local cfg_bu_dir="${HOME}/.config/backup/VSCodium"
 	show_message "Removing VSCodium..."
 	sudo apt-get purge codium
@@ -112,8 +105,7 @@ remove_vscodium() {
 	show_message "Removing VSCodium source list ..."
 	[[ -f "$src_list" ]] && sudo rm -v "$src_list"
 	show_message "Removing VSCodium configuration files ..."
-	unlink "$HOME/.config/VSCodium/"
-  # [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
+	[[ -L "$HOME/.config/VSCodium" ]] && unlink "$HOME/.config/VSCodium/"
 	show_message "Removing VSCodium configuration backup ..."
   [[ -d "$cfg_bu_dir" ]] && rm -rf "$cfg_bu_dir"
 	printf "VSCodium has been removed.\n"
