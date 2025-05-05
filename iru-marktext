@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 04 Apr 2025
+# Updated      : 04 May 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.11.25094"
+readonly version="4.12.25124"
 readonly gh_url="https://github.com/marktext/marktext/releases"
 readonly cfg_dir="$HOME/.config/marktext"
 
@@ -44,19 +44,6 @@ cleanup() {
 check_dependencies() {
   local packages=( gdebi git wget )
   check_packages "${packages[@]}"
-}
-
-assign_repo() {
-	local localip repo
-	localip=$(local_ip)
-	repo="$HOME/Downloads/configs"
-	case "$localip" in
-		10|16|22 )
-			repo="$HOME/gitea/configs" ;;
-		* )
-			[[ -d "$repo" ]] || git clone --quiet "$GITEA_URL/configs.git" "$repo"
-	esac
-	echo "$repo"
 }
 
 marktext_version() {
@@ -105,23 +92,23 @@ remove_marktext() {
   sudo apt-get remove --purge marktext -yy
   [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
   [[ -d "$cfg_bu_dir" ]] && rm -rf "$cfg_bu_dir"
+  [[ -L "$HOME/.config/marktext" ]] && unlink "$HOME/.config/marktext"
   echo "Mark Text markdown editor has been removed."
 }
 
-dl_preferences() {
-  local json_file repository
-	repository=$(assign_repo)
-  json_file="preferences.json"
-  [[ -d "$cfg_dir" ]] && mkdir -p "$cfg_dir"
+marktext_preferences() {
+  local repository
+	repository=$(assign_cfg_repo)
+  [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
   printf "Applying MarkText preferences...\n"
-  cp -v "$repository/marktext/$json_file" "$cfg_dir/"
-  printf "MarkText %s applied.\n" "$json_file"
+  ln -s "$repository/marktext" "$cfg_dir/marktext"
+  printf "MarkText preferences applied.\n"
 }
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="04 Apr 2025"
+	updated="04 May 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, removes the Mark Text markdown editor.
@@ -147,7 +134,7 @@ main() {
     case "$opt" in
       c )
         exists marktext || leave "Marktext is not installed."
-        dl_preferences
+        marktext_preferences
       ;;
       h )
         help 0
@@ -160,7 +147,7 @@ main() {
         new_ver="$(newest_version)"
         echo "${lightyellow}Installing MarkText version $new_ver...${normal}"
         install_marktext "$new_ver"
-        dl_preferences
+        marktext_preferences
       ;;
       r )
         exists marktext || leave "Marktext is not installed."
