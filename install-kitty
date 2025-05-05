@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 03 Mar 2025
+# Updated      : 04 May 2025
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.13.25062"
+readonly version="2.14.25124"
 readonly kitty_cfg_d="$HOME/.config/kitty"
 
 ## Functions ##
@@ -43,26 +43,11 @@ Installs/Removes/Configures Kitty terminal emulator
 
 ${green}Usage:${normal} $script [OPTION]
 ${orange}Available options:${normal}
-  -b  Copy Kitty keybindings list
-  -c  Install Kitty configuration
   -h  Show this help message and exit
   -i  Install Kitty from distro repositories
-  -p  Purge Kitty from system (remove config files)
-  -r  Remove Kitty from system (leave config files)
+  -r  Remove Kitty from system
 _HELP_
   exit "$errcode"
-}
-
-assign_repo() {
-	local localip repo
-	localip=$(local_ip)
-	case "$localip" in
-		10|16|22 )
-			repo="$HOME/gitea/configs" ;;
-		* )
-			[[ -d "$repo" ]] || git clone --quiet "$GITEA_URL/configs.git" "$repo"
-	esac
-	echo "$repo"
 }
 
 kitty_version() {
@@ -76,54 +61,32 @@ install_kitty() {
 }
 
 remove_kitty() {
-  printf "Removing the Kitty terminal emulator %s\n" "$(kitty_version)"
-  sudo apt-get remove kitty -yy
-  printf "The Kitty terminal emulator has been uninstalled.\n"
-}
-
-purge_kitty() {
   local kitty_cache="$HOME/.cache/kitty"
   printf "Purging the Kitty terminal emulator %s\n" "$(kitty_version)"
   sudo apt-get purge kitty -yy
   [[ -d "$kitty_cfg_d" ]] && rm -rf "$kitty_cfg_d"
   [[ -d "$kitty_cache" ]] && rm -rf "$kitty_cache"
+  [[ -L "$HOME/.config/kitty" ]] && unlink "$HOME/.config/kitty"
   printf "The Kitty terminal emulator and configuration files have been removed.\n"
 }
 
 kitty_config() {
-  local repository
-	repository=$(assign_repo)
+	repository=$(assign_cfg_repo)
   [[ -d "$kitty_cfg_d" ]] || mkdir -p "$kitty_cfg_d"
   printf "Applying up %s ...\n" "kitty.conf"
-  cp -v "$repository/kitty/kitty.conf" "$kitty_cfg_d/"
-  printf "kitty.conf copied.\n"
-}
-
-kitty_bindings() {
-  local repository
-	repository=$(assign_repo)
-  cp -v "$repository/kitty/bindings.list" "$kitty_cfg_d/"
-  printf "Kitty keybindings list copied to ~/.config/kitty\n"
-  printf "Run the kkb script to display keybindings.\n"
+  ln -s "$repository/kitty" "$HOME/.config/kitty"
+  printf "kitty configuration files applied.\n"
 }
 
 main() {
+
   check_package git
-  local noOpt opt optstr
+  local noOpt opt optstr repository
+	repository=$(assign_cfg_repo)
   noOpt=1
-  optstr=":bchipr"
+  optstr=":hir"
   while getopts "$optstr" opt; do
     case "$opt" in
-      b )
-        exists kitty || leave "Kitty is not installed."
-        printf "Copying Kitty keybindings...\n"
-        kitty_bindings
-      ;;
-      c )
-        exists kitty || leave "Kitty is not installed."
-        printf "Configuring Kitty %s...\n" "$(kitty_version)"
-        kitty_config
-      ;;
       h )
         help 0
       ;;
@@ -132,14 +95,8 @@ main() {
         sudo_login 2
         install_kitty
         kitty_config
-        kitty_bindings
 
-      ;;
-      p )
-        exists kitty || leave "Kitty is not installed."
-        sudo_login 2
-        purge_kitty
-      ;;
+  repsoitory    ;;
       r )
         exists kitty || leave "Kitty is not installed."
         sudo_login 2
