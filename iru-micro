@@ -48,19 +48,6 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
-assign_repo() {
-	local localip repo
-	localip=$(local_ip)
-	repo="$HOME/Downloads/configs"
-	case "$localip" in
-		10|16|22 )
-			repo="$HOME/gitea/configs" ;;
-		* )
-			[[ -d "$repo" ]] || git clone --quiet "$GITEA_URL/configs.git" "$repo"
-	esac
-	echo "$repo"
-}
-
 check_distro() {
   local codename
   codename=$(lsb_release -c -s)
@@ -119,28 +106,17 @@ remove_micro() {
   sudo dpkg --remove micro
   [[ -d "$cfg_d" ]] && rm -rf "$cfg_d"
   [[ -d "$cfg_bu_d" ]] && rm -rf "$cfg_bu_d"
-  [[ -d /root/.config/micro ]] && sudo rm -rf /root/.config/micro
+  [[ -L "$HOME/.cofnig/micro" ]] && unlink "$HOME/.cofnig/micro"
   printf "Micro %s and configuration files have been removed.\n" "$cur_ver"
 }
 
-apply_settings() {
-  local json_file localip repository
-	repository=$(assign_repo)
-  json_file="settings.json"
-  [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
-  printf "Applying Micro settings...\n"
-  cp -v "$repository//micro/$json_file" "$cfg_d/"
+micro_configs() {
+  local repository
+	repository=$(assign_cfg_repo)
+  [[ -d "$cfg_d" ]] && rm -rf "$cfg_d"
+  printf "Applying Micro settings and bindings...\n"
+  ln -s "$repository/micro" "$cfg_d/"
   printf "Micro setttings applied.\n"
-}
-
-apply_bindings() {
-  local json_file localip repository
-	repository=$(assign_repo)
-  json_file="bindings.json"
-  [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
-  printf "Applying Micro keybindings...\n"
-  cp -v "$repository/micro/$json_file" "$cfg_d/"
-  printf "Micro keybindings applied.\n"
 }
 
 help() {
@@ -154,11 +130,9 @@ Installs, configures, updates, or removes the Micro CLI text editor.
 ${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
-  -b  Installs/updates the Micro key-bindings json file.
   -h  Show this help message and exit.
   -i  Installs the Micro CLI text editor.
   -r  Removes the Micro CLI text editor from the system.
-  -s  Installs/updates the Micro settings json file.
   -u  Updates the Micro CLI text editor to the latest version.
 _HELP_
   exit "$errcode"
@@ -167,15 +141,10 @@ _HELP_
 main() {
   local noOpt opt optstr new_ver repository
   check_dependencies
-	repository=$(assign_repo)
   noOpt=1
-  optstr=":bhirsu"
+  optstr=":hiru"
   while getopts "$optstr" opt; do
     case "$opt" in
-      b )
-        exists micro || leave "Micro is not installed."
-        apply_bindings
-      ;;
       h )
         help 0
       ;;
@@ -187,18 +156,12 @@ main() {
         sudo_login 2
         new_ver="$(newest_version)"
         printf "%sInstalling Micro version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
-        install_micro
-        apply_settings
-        apply_bindings
+        micro_configs
       ;;
       r )
         exists micro || leave "Micro is not installed."
         sudo_login 2
         remove_micro
-      ;;
-      s )
-        exists micro || leave "Micro is not installed."
-        apply_settings
       ;;
       u )
         exists micro || leave "Micro is not installed."
