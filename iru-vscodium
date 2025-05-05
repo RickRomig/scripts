@@ -47,19 +47,6 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
-assign_repo() {
-	local localip repo
-	localip=$(local_ip)
-	repo="$HOME/Downloads/configs"
-	case "$localip" in
-		10|16|22 )
-			repo="$HOME/gitea/configs" ;;
-		* )
-			[[ -d "$repo" ]] || git clone --quiet "$GITEA_URL/configs.git" "$repo"
-	esac
-	echo "$repo"
-}
-
 codium_version() {
 	dpkg -l  codium | awk '/ii/ {print $3}'
 }
@@ -103,17 +90,16 @@ remove_vscodium() {
   sudo dpkg --remove codium
   [[ -d "$vsc_cfg_d" ]] && rm -rf "$vsc_cfg_d"
   [[ -d "$vsc_cfg_bu_d" ]] && rm -rf "$vsc_cfg_bu_d"
+  [[ -L "$HOME/.config/VSCodium" ]] && unlink "$HOME/.config/VSCodium/"
   printf "VSCodium editor has been removed.\n"
 }
 
 apply_settings() {
-  local json_file repository vsc_cfg_d
-  repository=$(assign_repo)
-  vsc_cfg_d="${HOME}/.config/VSCodium/User"
-  json_file="settings.json"
-  [[ -d "$vsc_cfg_d" ]] || mkdir -p "$vsc_cfg_d"
+  local repository
+  repository=$(assign_cfg_repo)
+  [[ -d "$HOME/.config/VSCodium" ]] && rm -rf "$HOME/.config/VSCodiu"
   printf "Applying VSCodium settings...\n"
-  cp -v "$repository/VSCodium/User/$json_file" "$vsc_cfg_d/"
+  ln -s "$repository/VSCodium" "$HOME/.config/VSCodium/"
   printf "VSCodium settings applied.\n"
 }
 
