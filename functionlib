@@ -634,6 +634,36 @@ over_line() {
 }
 
 ###############################################################################
+# center_file
+# Purpose: Display the contents of a text file centered.
+# Argument:
+#   $1 => a text file
+# Ouput: File contents displayed with lines centered.
+###############################################################################
+center_file() {
+  local columns line
+	columns="$(tput cols)"
+	while IFS= read -r line; do
+		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
+	done < "$1"
+}
+
+###############################################################################
+# center_file
+# Purpose: Display a string of text centered.
+# Argument:
+#  $1 => a string of text
+# String displayed with lines centered.
+###############################################################################
+center_text() {
+  local columns line
+	columns="$(tput cols)"
+	while IFS= read -r line; do
+		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
+	done <<< "$1"
+}
+
+###############################################################################
 # leave
 # Purpose: Display either a random message from a file or a message string passed
 # as an argument before exiting the script.
