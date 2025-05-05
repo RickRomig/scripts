@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Nov 2023
-# Updated      : 15 Nov 2024
+# Updated      : 05 May 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,48 +33,26 @@ readonly polybar_d="$HOME/.config/polybar"
 
 ## Functions ##
 
-assign_repo() {
-	local localip repo
-	localip=$(local_ip)
-	case "$localip" in
-		10|16|22 )
-			repo="$HOME/gitea/configs"
-		;;
-		* )
-			if [[ -d "$HOME/Downloads/configs" ]]; then
-				pushd "$HOME/Downloads/configs" || die "pushd failed"
-				git pull --quiet origin main
-				popd || die "popd failed"
-			else
-				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
-			fi
-			repo="$HOME/Downloads/configs"
-	esac
-	printf "%s" "$repo"
-}
-
 copy_polybar_config() {
   local repository="$1"
 	[[ -d "$polybar_d" ]] || mkdir -p "$polybar_d"
-	printf "Copying the Polybar configuration file from the Gitea server...\n"
+	printf "Copying the Polybar configuration file ...\n"
 	cp -v "$repository/polybar/config.ini" "$polybar_d/"
 	printf "Polybar configuration file copied from the Gitea server.\n"
 }
 
 copy_polybar_launcher() {
-	local i3_dir launcher
-	i3_dir="$HOME/,config/i3"
-	launcher="polybar-i3"
-	printf "Installing the %s launcher...\n" "$launcher"
-	cp -v "$repository/i3/$launcher" "$i3_dir/"
-	[[ -x "$i3_dir/$launcher" ]] || chmod +x "$i3_dir/$launcher"
-	printf "%s installed.\n" "$launcher"
+  local repository="$1"
+	local i3_dir="$HOME/.config/i3"
+	printf "Installing the Polynsr launcher...\n"
+	cp -v "$repository/i3/polybar-i3" "$i3_dir/"
+	[[ -x "$i3_dir/polybar-i3" ]] || chmod +x "$i3_dir/polybar-i3"
+	printf "polybar-i3 installed.\n"
 }
 
 configure_polybar() {
 	local cfg_file b_name e_name w_name
 	cfg_file="config.ini"
-	# [[ "$localip" == "16" ]] && cfg_file="config"
 	# Get device names from system.
 	e_name=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
 	w_name=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
@@ -101,9 +79,9 @@ main() {
   check_package git
   local i3_dir script version repository
   script=$(basename "$0")
-  version="2.4.24320"
+  version="2.5.25125"
 	i3_dir="$HOME/.config/i3"
-	repository=$(assign_repo)
+	repository=$(assign_cfg_repo)
 	printf "Installs Polybar on Debian with i3wm.\n"
 	exists polybar && leave "Polybar is already installed."
 	sudo apt-get install -y polybar
