@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Apr 2024
-# Last updated : 27 Feb 2025
+# Last updated : 04 May 2025
 # Comments     : Intended for main system
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,26 +28,6 @@ fi
 set -eu
 
 ## Functions ##
-
-assign_repo() {
-	local localip repo
-	localip=$(local_ip)
-	case "$localip" in
-		10|16|22 )
-			repo="$HOME/gitea/configs"
-		;;
-		* )
-			if [[ -d "$HOME/Downloads/configs" ]]; then
-				pushd "$HOME/Downloads/configs" || die "pushd failed"
-				git pull --quiet origin main
-				popd || die "popd failed"
-			else
-				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
-			fi
-			repo="$HOME/Downloads/configs"
-	esac
-	printf "%s" "$repo"
-}
 
 copy_group_list() {
   local file repository
@@ -71,7 +51,7 @@ copy_machines_list() {
 
 install_dsh() {
   local group groups repository
-	repository=$(assign_repo)
+	repository=$(assign_cfg_repo)
   groups=( desktops i3wm laptops )
   sudo apt-get -y install dsh
   printf "Changing remote shell to ssh.\n"
@@ -85,7 +65,7 @@ install_dsh() {
 main() {
   local script version
   script=$(basename "$0")
-  version="2.1.25058"
+  version="2.2.25124"
   check_package git
   sudo_login 2
   install_dsh
