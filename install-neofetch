@@ -29,7 +29,6 @@ fi
 
 script=$(basename "$0"); readonly script
 readonly version="2.2.25052"
-readonly neofetch_cfg_d="${HOME}/.config/neofetch"
 
 ## Functions ##
 
@@ -51,26 +50,6 @@ _HELP_
   exit "$errcode"
 }
 
-assign_repo() {
-	local localip repo
-	localip=$(local_ip)
-	case "$localip" in
-		10|16|22 )
-			repo="$HOME/gitea/configs"
-		;;
-		* )
-			if [[ -d "$HOME/Downloads/configs" ]]; then
-				pushd "$HOME/Downloads/configs" || die "pushd failed"
-				git pull --quiet origin main
-				popd || die "popd failed"
-			else
-				git clone --quiet "$GITEA_URL/configs.git" "$HOME/Downloads/configs"
-			fi
-			repo="$HOME/Downloads/configs"
-	esac
-	printf "%s" "$repo"
-}
-
 neofetch_version() {
 	/usr/bin/neofetch --version | cut -d' ' -f2
 }
@@ -85,12 +64,10 @@ install_neofetch() {
 }
 
 apply_config() {
-	local repository cfg_conf
-	repository="$1"
-	cfg_conf="config.conf"
-	[[ -d "$neofetch_cfg_d" ]] || mkdir -p "$neofetch_cfg_d"
-  printf "Appying %s ...\n" "$cfg_conf"
-	cp -v "$repository/neofetch/$cfg_conf" "$neofetch_cfg_d/"
+	local repository="$1"
+	[[ -d "$HOME/.config/neofetch" ]] && rm -rf "$HOME/.config/neofetch"
+  printf "Appying Neofetch configuration...\n"
+	ln -s "$repository/neofetch/"  "$HOME/.config/neofetch/"
 	printf "Neofetch configuration applied.\n"
 }
 
@@ -98,8 +75,9 @@ remove_neofetch() {
 	local cfg_bu_dir="${HOME}/.config/backup/neofetch"
 	printf "Removing Neofetch %s...\n" "$(neofetch_version)"
 	sudo apt-get purge -yy neofetch
-	[[ -d "$neofetch_cfg_d" ]] && rm -rf "$neofetch_cfg_d"
+	[[ -d "$HOME/.config/neofetch" ]] && rm -rf "$HOME/.config/neofetch"
 	[[ -d "$cfg_bu_dir" ]] && rm -rf "$cfg_bu_dir"
+	[[ -L "$HOME/.config/neofetch" ]] && unlink "$HOME/.config/neofetch"
 	printf "Neofetch and configuration files removed.\n"
 	sed -i '/neofetch/Id' "$HOME/.bashrc"
 }
@@ -107,7 +85,7 @@ remove_neofetch() {
 main() {
   local noOpt opt optstr repository
 	check_package git
-	repository=$(assign_repo)
+	repository=$(assign_cfg_repo)
 	noOpt=1
 	optstr=":chir"
 	while getopts "$optstr" opt; do
