@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 14 Mar 2025
+# Updated      : 04 May 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.14.25073"
+readonly version="6.15.25124"
 readonly term_cfg_d=$HOME"/.config/terminator"
 
 ## Functions ##
@@ -63,35 +63,25 @@ terminator_version() {
 }
 
 apply_config() {
-  local localip repsoitory term_cfg
-	localip=$(local_ip)
-  term_cfg="config"
-  check_package curl
-  [[ -d "$term_cfg_d" ]] || mkdir -p "$term_cfg_d"
+  local repository
+  repository=$(assign_cfg_repo)
+  [[ -d "$term_cfg_d" ]] && mkxir -p "$term_cfg_d"
   printf "Applying Terminator configuration...\n"
-  case "$localip" in
-    10|16|22 )
-      repository="$HOME/gitea/configs/terminator"
-      cp -v "$repository$term_cfg" "$term_cfg_d/"
-    ;;
-    * )
-      repsoitory="configs/raw/branch/main/terminator"
-      curl -so "$term_cfg_d/$term_cfg" "$GITEA_URL/$repsoitory/$term_cfg"
-  esac
-  is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg_d/$term_cfg"
+  cp -v "$repository/config" "$term_cfg_d/"
+  is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg_d/config"
   printf "Terminator configuration file applied.\n"
 }
 
 install_terminator() {
   printf "Installing terminator...\n"
   sudo apt-get -yq update
-  sudo apt-get install =y terminator
+  sudo apt-get install -y terminator
   if bunsenlabs; then
     printf "Terminator %s installed.\n" "$(terminator_version)"
     printf "BunsenLabs uses its own profiles based on the version of the distribution.\n"
   else
     apply_config
-    printf "terminator %s installed with configuration file.\n" "$(terminator_version)"
+    printf "terminator %s configured.\n" "$(terminator_version)"
   fi
 }
 
