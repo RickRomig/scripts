@@ -19,6 +19,10 @@ ln -s /home/james/transactions.txt my-stuffs/trans.txt
 ```bash
 ln -s /home/james james
 ```
+### Symlink multiple folders:
+```bash
+ln -s /home/rick/Work/shell/{codesamples,configs,dmenu-scripts,github_releases,testdata} testdir
+```
 ### Remove a symlink:
 ```bash
 ls -l <path/to/assumed-symlink>
