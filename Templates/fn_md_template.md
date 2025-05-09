@@ -1,14 +1,17 @@
 # function name
 
-1. **Purpose**:
+### Purpose
 
-2. **Arguments**:
+### Arguments
 
-3. **Returns**:
+### Returns
 
+### Usage
+```bash
+$
+```
 ### Notes
 
 ### Code
-
 ```bash
 ```
