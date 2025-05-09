@@ -6,7 +6,7 @@ Displays a box of asterisks around a line of text passed to the function.
 - A single character inside double-quotes ("\*") to form the box. An asterisk is the default character if no character is specified. If more than one character appears in the string, only the first character is used.
 ### Usage
 ```bash
-$ box "string of text"
+box "string of text"
 ```
 ### Code
 ```bash

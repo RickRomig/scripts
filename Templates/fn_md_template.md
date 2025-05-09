@@ -8,10 +8,9 @@
 
 ### Usage
 ```bash
-$
 ```
-### Notes
-
 ### Code
 ```bash
 ```
+### Notes
+

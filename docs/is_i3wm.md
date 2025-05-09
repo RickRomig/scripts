@@ -1,11 +1,14 @@
 # is_i3wm
-
-1. **Purpose**: Check if the window manager is i3wm.
-
-2. None
-
-3. **Returns**: TRUE (0) is the window manager is i3wm, otherwise returns FALSE (0).
-
+### Purpose
+Check if the window manager is i3wm.
+### Arguments
+None
+### Returns
+TRUE (0) is the window manager is i3wm, otherwise returns FALSE (1).
+### Usage
+```bash
+is_i3wm && do something
+```
 ### Code
 ```bash
 is_i3wm() {
@@ -13,3 +16,4 @@ is_i3wm() {
   [[ -f /usr/bin/i3-session ]] && return "$TRUE" || return "$FALSE"
 }
 ```
+### Notes

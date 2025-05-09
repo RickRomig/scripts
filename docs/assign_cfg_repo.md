@@ -8,7 +8,7 @@ None
 Repository path is passed to variable via command subsitution.
 ### Usage
 ```bash
-$ repository=$(assign_cfg_repo)
+repository=$(assign_cfg_repo)
 ```
 ### Notes
 None

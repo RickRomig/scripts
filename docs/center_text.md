@@ -5,7 +5,7 @@ Display a string with the line centered.
 A string of text.
 ### Usage
 ```bash
-$ center_text "Text string"
+center_text "Text string"
 ```
 ### Code
 ```bash

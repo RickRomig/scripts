@@ -5,7 +5,7 @@ Displays the contents of a text file with each line centered.
 The text file to be displayed.
 ### Usage
 ```bash
-$ center_file "text file to be centered"
+center_file "text file to be centered"
 ```
 ### Code
 ```bash

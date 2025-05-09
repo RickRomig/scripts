@@ -1,52 +1,26 @@
 # leapyear
-
-1. **Purpose**: Return true (0 )if the current year is a leap year, otherwhise false (1).
-
-2. **Argument**:
-
-   - \$1 - 4-digit year to be checked
-
-   ```bash
-   leapyear()
-   {
-     YEAR=$(date +"%Y")
-
-     if [ $(( year % 4 )) -ne 0 ] ; then
-       return "$FALSE"
-     elif [ $(( year % 400 )) -eq 0 ] ; then
-       return "$TRUE"
-     elif [ $(( year % 100 )) -eq 0 ] ; then
-       return "$FALSE"
-     else
-       return "$TRUE"
-     fi
-   }
-   ```
-
-#### Alternative without if statements
-
-```bash
-leapyear()
-{
-  YEAR=$(date +"%Y")
-  [ $(( YEAR % 4 )) -ne 0 ] && return "$FALSE"
-  [ $(( YEAR % 400 )) -eq 0 ] && return "$TRUE"
-  [ $(( YEAR % 100 )) -eq 0 ] && return "$FALSE" || return "$TRUE"
-}
-```
-
+### Purpose
+Determine if a given year is a leap year.
+### Arguments
+4-digit year to be checked.
+### Returns
+Return true (0) if the current year is a leap year, otherwhise false (1).
 ### Usage
-
-```
-declare -r TRUE=0
-declare -r FALSE=1
-
-leapyear
-LEAP="$?"
-
-if [ "$LEAP" = "$TRUE" ]; then
+```bash
+leapyear && do something
+if leapyear; then
   echo "February has 29 days."
 else
   echo "February has 28 days."
 fi
 ```
+### Code
+```bash
+leapyear() {
+  local year="$1"
+  [[ $(( year % 4 )) -ne 0 ]] && return "$FALSE"
+  [[ $(( year % 400 )) -eq 0 ]] && return "$TRUE"
+  [[ $(( year % 100 )) -eq 0 ]] && return "$FALSE" || return "$TRUE"
+}
+```
+### Notes

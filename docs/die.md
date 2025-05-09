@@ -1,21 +1,20 @@
 # die
-
-1. **Purpose**: Display an error message and exits with an error code.
-
-2. **Arguments**:
-   
-   - $1 -> Message
-   
-   - $2 -> Exit status (optional)
-
-3. The default exit code is 1 but can be overridden by a second argument.
-
+### Purpose
+Display an error message and exits with an error code.
+### Arguments
+- $1 -> Error message
+- $2 -> Exit status (optional, defaults to 1)
+### Usage
 ```bash
-function die()
-{
- local msg="$1" # message
- local es=${2-1} # default exit status 1
- echo -e "\e[1;31m$msg\e[0m" >&2
- exit "$es"
+command -x || die "invalid option" 2
+```
+### Code
+```bash
+die() {
+  local errmsg errcode
+  errmsg="${1:-Undefined error}"
+  errcode="${2:-1}"
+  printf "\e[91mERROR:\e[0m %s\n" "$errmsg" >&2
+  exit "$errcode"
 }
 ```

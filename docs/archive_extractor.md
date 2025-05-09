@@ -9,7 +9,7 @@ Extract an archive using the appropriate application.
 
 ### Usage
 ```bash
-$ ex <file>
+ex <file>
 ```
 ### Code
 ```bash
