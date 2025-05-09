@@ -36,17 +36,22 @@ cleanup() {
 }
 
 install_nerd_fonts() {
-  local font font_dir fonts font_repo
-  font_repo="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0"
-  font_dir="/usr/local/share/fonts"
+  local font font_dir fonts font_repo symbols_font symbols_archive
+  symbols_font="SymbolsNerdFontMono-Regular.ttf"
+  symbols_archive="NerdFontsSymbolsOnly.tar.xz"
+  font_repo="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0"
+  # font_dir="/usr/local/share/fonts"
+  font_dir="$HOME/.local/share/fonts"
   [[ -d "$font_dir" ]] || sudo mkdir -p "$font_dir"
   fonts=( "CascadiaCode" "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
   for font in "${fonts[@]}"; do
     wget -P "$tmp_dir" "$font_repo/$font.tar.xz"
-    sudo tar xvf "$tmp_dir/$font.tar.xz" -C "$font_dir/$font/"
+    tar xvf "$tmp_dir/$font.tar.xz" -C "$font_dir/$font/"
 	  # wget -P "$tmp_dir" "$font_repo/$font.zip"
 	  # sudo unzip "$tmp_dir/$font.zip" -d "$font_dir/$font/"
   done
+  wget -P "$tmp_dir" "$font_repo/$symbols_archive"
+  tar xvf "$tmp_dir/$symbols_archive" "$font_dir/$symbols_font"
   fc-cache
   printf "Nerd fonts installed.\n"
 }
