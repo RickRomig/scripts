@@ -1,15 +1,19 @@
 # Yes or No functions
 
-1. **Purpose**: Prompt for a yes or no response.
+###Purpose
+Prompt for a yes or no response.
 
-2. **Arguments**: A prompt requiring a y/n or yes/no response.
+### Arguments
+A prompt (string) requiring a y/n or yes/no response.
 
-3. **Returns**: TRUE (0) for a y or yes response, otherwise FALSE (0).
+### Returns
+TRUE (0) for a y or yes response, otherwise FALSE (0).
 
 ### Notes
 - Of these functions, only `yes_or_no` requires the full word to be enter. Otherise y or n is sufficient.
 - Responses are case insensitive.
-- With `default_yes` and `default_no`, pressing the Enter key will default to either y or n, respectively
+- With `default_yes` and `default_no`, pressing the Enter key will default to either y or n, respectively.
+- With `y_or_n` and `yes_or_no`,  pressing the Enter key will display a warning that a response is requried.
 
 ### Code
 ```bash

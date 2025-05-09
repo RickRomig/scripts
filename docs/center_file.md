@@ -1,9 +1,13 @@
 # center_file
-1. **Purpose:** Display the contents of a text file with each line centered.
-2. **Arguments:**
-	- The text file to be displayed.
-3. **Code:**
-
+### Purpose
+Displays the contents of a text file with each line centered.
+### Arguments
+The text file to be displayed.
+### Usage
+```bash
+$ center_file "text file to be centered"
+```
+### Code
 ```bash
 center_file() {
   local columns line

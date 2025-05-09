@@ -1,7 +1,11 @@
 # Press any key to continue
-
-1. **Purpose**: Prompt user to press a key to continue with the script.
-
+### Purpose
+Prompt user to press a key to continue with the script.
+### Arguments
+None
+### Returns
+Nothing
+### Code
 ```bash
 anykey()
 {

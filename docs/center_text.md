@@ -1,8 +1,13 @@
 # center_text
-1. **Purpose:** Display a string with the line centered.
-2. **Arguments:**
-	- A string of text.
-3. **Code:**
+### Purpose
+Display a string with the line centered.
+### Arguments
+A string of text.
+### Usage
+```bash
+$ center_text "Text string"
+```
+### Code
 ```bash
 center_text() {
   local columns line

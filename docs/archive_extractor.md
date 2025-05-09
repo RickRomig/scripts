@@ -1,10 +1,18 @@
 # ex - archive extractor
 
-1. **Purpose**: Extract an archive using the appropriate application.
+### Purpose
+Extract an archive using the appropriate application.
 
-2. **Usage:** ex <file>
+### Arguments
 
+### Returns
+
+### Usage
+```bash
+$ ex <file>
 ```
+### Code
+```bash
 ex ()
 {
   if [ -f $1 ]; then
