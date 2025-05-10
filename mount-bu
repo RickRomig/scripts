@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, 04 Jul 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2022
-# Updated      : 07 Feb 2025
+# Updated      : 10 May 2025
 # Comments     : For use with BU backup script.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.16.25038"
+readonly version="2.17.25130"
 readonly mount_point="/media/$USER/BU_Drive"
 
 ## Functions ##
@@ -74,7 +74,7 @@ help() {
   ${green}Usage:${normal} $script [OPTION]
 
   ${orange}Availabel options:${normal}
-    -h    Help
+    -h    Show this help message and exit
     -m    Mount USB Backup Drive (BU_Drive)
     -s    Status, is USB Backup Drive (BU_Drive) mounted?
     -u    Unmount USB Backup Drive (BU_Drive)
@@ -118,7 +118,7 @@ main() {
     esac
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && bu_status
+  [[ "$noOpt" = 1 ]] && { bu_status; help 0; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script v$version"
 }
