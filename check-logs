@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 29 Aug 2019
-# Updated      : 27 Mar 2025
+# Updated      : 11 May 2025
 # Comments     : sudo access required to view Timeshift snapshots
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -233,7 +233,7 @@ trash_log() {
   fi
 }
 
-gitea_snapshots() {
+git_snapshots() {
   local log_dir="$HOME/Downloads/archives/gitea"
   if [[ -d "$log_dir" ]]; then
     clear
@@ -258,7 +258,7 @@ incremental_backups() {
   arc_dir="$HOME/Downloads/archives"
   if [[ -d "$arc_dir/$sub_dir" ]]; then
     clear
-    printf "%s%s - %s Incremental Backup (last 7):%s\n\n" "$lightgreen" "$lhost" "$bu_name" "$normal"
+    printf "%s%s - %s Incremental Backup (last 7 days):%s\n\n" "$lightgreen" "$lhost" "$bu_name" "$normal"
     find "$arc_dir/$sub_dir" -maxdepth 1 -type f -mtime -7 | sort | awk -F/ '{print $NF}' | head -n8
     printf "\n"
   else
@@ -267,11 +267,8 @@ incremental_backups() {
       "Finance" )
         job_name="fin-backup.sh"
       ;;
-      "Gitea" )
+      "Git" )
         job_name="gitea-bu.sh"
-      ;;
-      "GitHub" )
-        job_name="github-bu.sh"
       ;;
       "Journals" )
         job_name="journal-bu.sh"
@@ -370,7 +367,7 @@ local_logs() {
 
 archive_logs() {
 	local _opt options
-	options=( "Script archive" "Finance Incremental" "HomeBank Archive" "Gitea Snapshots" "Gitea Incremental" "GitHub Incremental" "Journal Incremental" "Main Menu" )
+	options=( "Script archive" "Finance Incremental" "HomeBank Archive" "Git Snapshots" "Git Incremental" "Journal Incremental" "Main Menu" )
 	while true; do
 		show_header
 		COLUMNS=40
@@ -394,26 +391,21 @@ archive_logs() {
 					break
 				;;
 				4 )
-					gitea_snapshots
+					git_snapshots
 					anykey
 					break
 				;;
 				5 )
-					incremental_backups "Gitea" "gitea-repo"
+					incremental_backups "Git" "gitea-repo"
 					anykey
 					break
 				;;
 				6 )
-					incremental_backups "GitHub" "projects-repo"
-					anykey
-					break
-				;;
-				7 )
 					incremental_backups "Journals" "journals"
 					anykey
 					break
 				;;
-				8 )
+				7 )
 					main
 					break
 				;;
@@ -427,7 +419,7 @@ archive_logs() {
 main() {
 	local _opt options script version
   script=$(basename "$0")
-  version="10.5.25086"
+  version="10.6.25131"
 	options=( "System logs" "Local logs" "Archive Logs" "Quit")
 	while true; do
 		show_header
