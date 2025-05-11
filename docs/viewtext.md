@@ -1,22 +1,23 @@
 # viewtext
-
-1. **Purpose**: View a text file in a terminal, automatically choosing cat or less depending on the number of lines in the files and the number of rows in the terminal window. Whether less or cat is used to display the file is based on the ratio of number of lines in the file to the number of rows in the local terminal. If the number of the lines is greater than 90% of the number of terminal rows, less is used, otherwise cat.
-
-2. Argument:
-   
-   - \$1 - file to be viewed.
-   
-   ```bash
-   viewtext()
-   {
-     local FILE="$1"
-     TROWS="$(tput lines)" # Number of rows in the local terminal
-     NLINES=$(wc -l "$FILE" | cut -d " " -f1) # Number of lines in the file
-    LC=$(( TROWS*90/100 ))
-    (( NLINES > LC )) && /usr/bin/less "$FILE" || /bin/cat "$FILE"
-   }
-   ```
-
+### Purpose
+View a text file in a terminal, automatically choosing cat or less.
+### Arguments
+Name of the file to be viewed.
+### Returns
+Nothing. Displays the contents of the file.
+### Usage
+```bash
+viewtext foobar.txt
 ```
-
+### Code
+```bash
+viewtext() {
+  local catmax file filelines
+  file="$1"
+  catmax=$(( $(tput lines)*87/100 ))
+  filelines=$(wc -l < "$file")
+  if [[ "$filelines" -gt "$catmax" ]]; then less "$file"; else cat "$file"; fi
+}
 ```
+### Notes
+Automatically chooses `cat` or `less` to view the file based on the ratio of the number of lines in the file and in the terminal.
