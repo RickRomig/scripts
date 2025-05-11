@@ -1,33 +1,38 @@
 # mount_server
-
-1. **Purpose:** Mount a specific sshfs server on the local network using sshfs.
-
-2. **Arguments:** None.
-
-3. **Notes:**
-   
-   - Checks to see if the server is accessible on the network.
-   
-   - The mount point will be created if it does not already exist.
-
+### Purpose
+Mount a specific remote server on the local network using sshfs.
+### Arguments
+None
+### Returns
+None
+### Usage
+```bash
+mount_server
+```
+### Code
 ```bash
 mount_server() {
-  local SVR_IP="18"
-  local SHARE="HP-6005"
-  ping -c3 "$LOCALNET$SVR_IP" > /dev/null 2>&1 || die "$SHARE at $LOCALNET$IP is not online."
-  if [ -d "/mnt/$SHARE/" ]; then
-    MOUNTED=$(mount | grep "$SHARE")
-    if [ -z "$MOUNTED" ]; then
-      sshfs -o follow_symlinks rick@"$LOCALNET$SVR_IP:/home/rick" "/mnt/$SHARE/"
-      echo "$SHARE has been mounted."
+  local server_ip share mounted
+  server_ip="11"
+  share="HP-6005"
+  ping -c3 "$LOCALNET.$server_ip" > /dev/null 2>&1 || die "$share at $LOCALNET.$server_ip is not online."
+  if [[ -d "$HOME/mnt/$share/" ]]; then
+    mounted=$(mount | grep "$share")
+    if [[ -z "$mounted" ]]; then
+      sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:/home/rick" "$HOME/mnt/$share/"
+      echo "$share has been mounted."
     else
-      echo "$SHARE is already mounted"
+      echo "$share is already mounted"
     fi
   else
-    sudo mkdir -p /mnt/$SHARE/    # Create the mount point.
-    sudo chown rick:rick /mnt/$SHARE/
-    sshfs -o follow_symlinks rick@"$LOCALNET$SVR_IP:/home/rick" "/mnt/$SHARE/"
-    echo "$SHARE has been created and mounted."
+    # Create the mount point.
+    mkdir -p "$HOME/mnt/$share/"
+    sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:/home/rick" "$HOME/mnt/$share/"
+    echo "$share has been created and mounted."
   fi
 }
 ```
+### Notes
+- Checks to see if the server is accessible on the network.
+- The mount point will be created if it does not already exist.
+

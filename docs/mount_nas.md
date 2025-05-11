@@ -25,7 +25,7 @@ mount_nas() {
       echo "$share is already mounted"
     fi
   else
-    mkdir -p "%HOME/mnt/$share/"    # Create the mount point.
+    mkdir -p "$HOME/mnt/$share/"    # Create the mount point.
     sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:" "$HOME/mnt/$share/"
     echo "$share has been created and mounted."
   fi

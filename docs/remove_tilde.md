@@ -1,11 +1,20 @@
 # remove_tilde
-
-1. Purpose: Remove backup files appended by a tilde in the current directory.
-
+### Purpose
+Remove backup files appended by a tilde in the current directory.
+### Arguments
+None
+### Returns
+Nothing
+### Usage
+```bash
+remove_tilde
 ```
-function remove_tilde()
-{
-  NBU=$(find ./ -maxdepth 1 -type f -name \*~  | wc -l)
-  (( NBU > 0 )) && find . -maxdepth 1 -type f -iname \*~ -exec rm {} \;
+### Code
+```bash
+remove_tilde() {
+  local nbu
+  nbu=$(find ./ -maxdepth 1 -type f -regex '\./.*~$' | wc -l)
+  (( nbu > 0 )) && find . -maxdepth 1 -type f -regex '\./.*~$' -exec rm {} \;
 }
 ```
+### Notes

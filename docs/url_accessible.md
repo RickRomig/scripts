@@ -1,11 +1,14 @@
 # url_accessible
-
-1. **Purpose**: Check if a URL is valid and accessible.
-
-2. **Arguments**: A URL address, such as https://google.com
-
-3. **Returns**: TRUE (0) is the URL is accessible, otherwise returns FALSE (0).
-
+### Purpose
+Check if a URL is valid and accessible.
+### Arguments
+A URL address, such as https://google.com
+### Returns
+TRUE (0) is the URL is accessible, otherwise returns FALSE (1).
+### Usage
+```bash
+url_accessible "https:foobar.com" || die "foobar.com is not accessible" 1
+```
 ### Code
 ```bash
 url_accessible() {
@@ -15,3 +18,4 @@ url_accessible() {
   [[ "$result" -eq 200 ]] && return "$TRUE" || return "$FALSE"
 }
 ```
+### Notes
