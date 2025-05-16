@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Last updated : 26 Apr 2025
+# Last updated : 15 May 2025
 # Comments     : Can sync to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -32,7 +32,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.5.25116"
+readonly version="7.0.25135"
 
 ## Functions ##
 
@@ -78,37 +78,31 @@ transfer() {
   host_ip="$1"
   # Skip local machine:
   ip_addr="$(local_ip)"
-  if [[ "$ip_addr" = "$host_ip" ]]; then
-    echo -e "${green}...Syncing from $host_ip${normal}\n"
+  if [[ "$ip_addr" == "$host_ip" ]]; then
+    printf "%sSkipping Machine %s (local client)%s\n\n" "$green" "$host_ip" "$normal"
     return
   fi
-
   # Check for machines and sync if on-line:
-  echo "${green}Checking for $host_ip...${normal}"
+  printf "%sChecking for %s...%s\n" "$green" "$host_ip" "$normal"
   if ping -c 3 "$LOCALNET.$host_ip" >/dev/null 2>&1; then
-    echo "...Syncing to Machine $host_ip"
+    printf "...Syncing to Machine %s\n" "$host_ip"
     syncscript "$host_ip"
-    echo -e "\n...Machine $host_ip Synced!\n"
+    printf "\n...Machine %s Synced!\n\n" "$host_ip"
   else
-    echo -e "\n...Skipping $host_ip! Not on network.\n"
+    printf "\n...Skipping %s! Not on network.\n\n" "$host_ip"
   fi
 }
 
 syncscript() {
   local exit_status hostip
   hostip="$1"
-  echo $'\n'$"${orange}Syncing aliases...${normal}"
+  printf "\n%sSyncing ~/.bashrc ...%s\n" "$orange" "$normal"
+  rsync -avh --delete "$HOME"/.bashrc "$LOCALNET.$hostip":
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  printf "\n%sSyncing ~/bash_aliases ...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/.bash_aliases "$LOCALNET.$hostip":
-  exit_status="$?"
-  transfer_status "$exit_status"
-
-  echo $'\n'$"${orange}Syncing script configuration files...${normal}"
-  rsync -avh --delete "$HOME"/.config/scripts/ "$LOCALNET.$hostip":.config/scripts/
-  exit_status="$?"
-  transfer_status "$exit_status"
-
-  echo $'\n'$"${orange}Syncing Templates...${normal}"
-  rsync -avh --delete "$HOME"/Templates/ "$LOCALNET.$hostip":Templates/
   exit_status="$?"
   transfer_status "$exit_status"
 
@@ -119,49 +113,45 @@ syncscript() {
       exit_status="$?"
       transfer_status "$exit_status"
 
-      printf "\n%sSyncing Github Repositories...%s\n" "$orange" "$normal"
+      printf "\n%sSyncing Project Repositories...%s\n" "$orange" "$normal"
       rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
       exit_status="$?"
       transfer_status "$exit_status"
     ;;
     21|24|25 )
-      echo $'\n'$"${orange}Syncing Homepage...${normal}"
+      printf "\n%sSyncing Homepage directory...%s\n" "$orange" "$normal"
       rsync -avh --delete --exclude '.git' --exclude '.gitignore' "$HOME"/Documents/homepage/ "$LOCALNET.$hostip":Documents/homepage/
       exit_status="$?"
       transfer_status "$exit_status"
 
-      echo $'\n'$"${orange}Syncing Todo list...${normal}"
+      printf "\n%sSyncing ~/.local/share/doc ...%s\n" "$orange" "$normal"
       rsync -avh --delete "$HOME"/.local/share/doc/ "$LOCALNET.$hostip":.local/share/doc/
       exit_status="$?"
       transfer_status "$exit_status"
 
-      echo $'\n'$"${orange}Syncing wallpaper directory...${normal}"
+      printf "\n%sSyncing Wallpaper directory...%s\n" "$orange" "$normal"
       rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$hostip":Pictures/wallpaper/
       exit_status="$?"
       transfer_status "$exit_status"
 
+      printf "\n%sSyncing Backgrounds directory...%s\n" "$orange" "$normal"
       echo $'\n'$"${orange}Syncing SFW wallpaper directory...${normal}"
       rsync -avh --delete "$HOME"/Pictures/backgrounds/ "$LOCALNET.$hostip":Pictures/backgrounds/
       exit_status="$?"
       transfer_status "$exit_status"
 
-      echo $'\n'$"${orange}Syncing bin...${normal}"
+      printf "\n%sSyncing ~/bin ...%s\n" "$orange" "$normal"
       rsync -avh --delete --exclude '.git' --exclude '.gitignore' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
       exit_status="$?"
       transfer_status "$exit_status"
 
-      echo $'\n'$"${orange}Syncing script configuration files...${normal}"
-      rsync -avh --delete "$HOME"/.config/scripts/ "$LOCALNET.$hostip":.config/scripts/
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      echo $'\n'$"${orange}Syncing Password Databases...${normal}"
+      printf "\n%sSyncing Password Vaults...%s\n" "$orange" "$normal"
       rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$LOCALNET.$hostip":Documents/
       exit_status="$?"
       transfer_status "$exit_status"
     ;;
    * )
-      echo $'\n'$"${orange}Syncing bin...${normal}"
+      printf "\n%sSyncing ~/bin ...%s\n" "$orange" "$normal"
       rsync -avh --delete --exclude '.git' --exclude '.gitignore' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
       exit_status="$?"
       transfer_status "$exit_status"
@@ -171,65 +161,43 @@ syncscript() {
 sync_one() {
   local hostip
   hostip="$1"
-  valid_ip "$1" && hostip="$1"
-
-  if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
-    case $hostip in
-      1|2|3|4|5|6|7|8|9 )
-        echo -n "${orange}Warning!${normal} $LOCALNET.$hostip is a restricted address."
-        echo -e " Access denied.\n"
-        exit
-      ;;
-      * )
-        echo -e "Synchronizing bin and template directories with $LOCALNET.$hostip:"
-        transfer "$hostip"
-        all_done
-    esac
-  elif [[ "$hostip" -eq 153 ]]; then
-    echo -e "Synchronizing bin and template directories with $LOCALNET.$hostip:"
+  if [[ "$hostip" -gt 0 && "$hostip" -lt 10 ]]; then
+    printf "%s %s is a restricted address. Access denied.\n" "$RED_WARNING" $"$LOCALNET.$hostip"
+    exit
+  elif valid_ip "$hostip"; then
+    printf "Synchronizing bin and template directories with %s:\n\n" "$LOCALNET.$hostip"
     transfer "$hostip"
     all_done
-  else
-    echo -e "${orange}Warning!${normal} $LOCALNET.$hostip is outside the range of static addresses.\n"
   fi
 }
 
 sync_some() {
-  local hostip xfr_flag
+  local hostip
   hostip="$1"
-  echo -e "Synchronizing bin and template directories with selected systems on the local network.\n"
-  xfr_flag=0
   for hostip in "$@"; do
     if [[ "$hostip" -eq "$hostip" ]] 2>/dev/null; then
-      if [[ "$hostip" -gt 0 && "$hostip" -lt 26 ]]; then
+      if [[ "$hostip" -gt 0 && "$hostip" -lt 255 ]]; then
         case "$hostip" in
           1|2|3|4|5|6|7|8|9 )
-            echo -n "${orange}Warning!${normal} $LOCALNET.$hostip is a restricted"
-            echo -e " address. Access denied.\n"
+            printf "%s %s is a restricted address. Access denied.\n" "$RED_WARNING" "$LOCALNET.$hostip"
           ;;
           * )
             transfer "$hostip"
-            (( xfr_flag++ ))
         esac
-      elif [[ "$hostip" -eq 153 ]]; then
-        echo -e "Synchronizing bin and template directories with $LOCALNET.$hostip:"
-        transfer "$hostip"
-        (( xfr_flag++ ))
-      elif [[ "$hostip" -gt 25 && "$hostip" -lt 255 ]]; then
-        echo -e "${orange}Warning!${normal} $LOCALNET.$hostip is outside the range of static addresses.\n"
+      elif [[ "$hostip" -gt 254 ]]; then
+        printf "%s %s is outside the range of static addresses.\n\n" "$RED_WARNING" "$LOCALNET.$hostip"
       else
-        echo -e "${lightred}ERROR!${normal} Invalid argument: $hostip\n" >&2
+        printf "%s Invalid argument: %s\n\n" "$RED_ERROR" "$hostip" >&2
       fi
     else
-      echo -e "${lightred}ERROR!${normal} Integer argument expected.\n" >&2
+      printf "%sInteger argument expected.\n" "$RED_WARNING" >&2
     fi
   done
-  [ "$xfr_flag" -gt 0 ] && all_done
+  all_done
 }
 
 sync_all() {
   local octets hostip
-  echo -e "Synchronizing bin and template directories with all systems on the local network.\n"
   octets=(10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)
   for hostip in "${octets[@]}"; do
     transfer "$hostip"
@@ -247,14 +215,14 @@ check_host() {
   lhost="hp-800g2-sff"
   chost="${HOSTNAME:-$(hostname)}"
   cur_ip="$(local_ip)"
-  echo -n "Synchronizing from host: ${lightyellow}$chost${normal} at "
-  echo "IP: ${lightyellow}$LOCALNET.$cur_ip${normal}"
+  printf "Host: %s%s%s at " "$lightyellow" "$chost" "$normal"
+  printf "%s%s%s\n\n" "$lightyellow" "$LOCALNET.$cur_ip" "$normal"
   if [[ "$lhost" != "$chost" ]]; then
     if yes_or_no "Do you wish to continue?"; then
       printf "/nContinuing with the script...\n"
     else
-      printf "\nSynchronization canceled.\n"
-      leave "Exiting the script..."
+      printf "\nSynchronization canceled. Exiting the script...\n"
+      exit
     fi
   fi
 }
