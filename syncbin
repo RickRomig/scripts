@@ -32,7 +32,8 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="7.0.25135"
+readonly version="7.1.25137"
+SECONDS=0
 
 ## Functions ##
 
@@ -70,7 +71,7 @@ _HELP_
 transfer_status() {
   # Exit script if transfer fails.
   local xfr_status="$1"
-  (( xfr_status != 0 )) && die "A transfer failed! Check network status."
+  (( xfr_status != 0 )) && die "A transfer failed! Check network status." "$xfr_status"
 }
 
 transfer() {
@@ -96,6 +97,7 @@ transfer() {
 syncscript() {
   local exit_status hostip
   hostip="$1"
+
   printf "\n%sSyncing ~/.bashrc ...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/.bashrc "$LOCALNET.$hostip":
   exit_status="$?"
@@ -115,38 +117,6 @@ syncscript() {
 
       printf "\n%sSyncing Project Repositories...%s\n" "$orange" "$normal"
       rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
-      exit_status="$?"
-      transfer_status "$exit_status"
-    ;;
-    21|24|25 )
-      printf "\n%sSyncing Homepage directory...%s\n" "$orange" "$normal"
-      rsync -avh --delete --exclude '.git' --exclude '.gitignore' "$HOME"/Documents/homepage/ "$LOCALNET.$hostip":Documents/homepage/
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      printf "\n%sSyncing ~/.local/share/doc ...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/.local/share/doc/ "$LOCALNET.$hostip":.local/share/doc/
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      printf "\n%sSyncing Wallpaper directory...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$hostip":Pictures/wallpaper/
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      printf "\n%sSyncing Backgrounds directory...%s\n" "$orange" "$normal"
-      echo $'\n'$"${orange}Syncing SFW wallpaper directory...${normal}"
-      rsync -avh --delete "$HOME"/Pictures/backgrounds/ "$LOCALNET.$hostip":Pictures/backgrounds/
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      printf "\n%sSyncing ~/bin ...%s\n" "$orange" "$normal"
-      rsync -avh --delete --exclude '.git' --exclude '.gitignore' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      printf "\n%sSyncing Password Vaults...%s\n" "$orange" "$normal"
-      rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$LOCALNET.$hostip":Documents/
       exit_status="$?"
       transfer_status "$exit_status"
     ;;
@@ -198,7 +168,7 @@ sync_some() {
 
 sync_all() {
   local octets hostip
-  octets=(10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)
+  octets=(11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)
   for hostip in "${octets[@]}"; do
     transfer "$hostip"
   done
@@ -207,44 +177,37 @@ sync_all() {
 
 all_done() {
   box "All directories synced!" "-"
-  leave "Script completed in $(format_time $SECONDS)"
+  printf "Script completed in %s\n" "$(format_time $SECONDS)"
 }
 
 check_host() {
-  local lhost chost cur_ip
-  lhost="hp-800g2-sff"
-  chost="${HOSTNAME:-$(hostname)}"
-  cur_ip="$(local_ip)"
-  printf "Host: %s%s%s at " "$lightyellow" "$chost" "$normal"
-  printf "%s%s%s\n\n" "$lightyellow" "$LOCALNET.$cur_ip" "$normal"
-  if [[ "$lhost" != "$chost" ]]; then
-    if yes_or_no "Do you wish to continue?"; then
-      printf "/nContinuing with the script...\n"
-    else
-      printf "\nSynchronization canceled. Exiting the script...\n"
-      exit
-    fi
-  fi
+  local main_host local_host ip_addr
+  main_host="hp-800g2-sff"
+  local_host="${HOSTNAME:-$(hostname)}"
+  ip_addr="$(local_ip)"
+  printf "Host: %s%s%s at " "$lightyellow" "$local_host" "$normal"
+  printf "%s%s%s\n\n" "$lightyellow" "$LOCALNET.$ip_addr" "$normal"
+  [[ "$local_host" != "$main_host" ]] && leave "Script must be run from $main_host!"
 }
 
 main() {
-  check_host
   check_package rsync
-  # Start timer
-  SECONDS=0
-  # Check arguments
-  if [[ "$#" -eq 0 ]]; then
+ if [[ "$#" -eq 0 ]]; then
+    printf "%s No arguments passed.\n" "$RED_ERROR" >&2
     help 2
   elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
     help 0
   elif [[ "$1" = "-a" || "$1" = "--all" ]]; then
+    check_host
     sync_all
   elif [[ "$#" -gt 1 ]]; then
+    check_host
     sync_some "$@"
   else
+    check_host
     sync_one "$1"
   fi
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
