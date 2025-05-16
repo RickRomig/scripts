@@ -127,18 +127,18 @@ syncscript() {
   transfer_status "$exit_status"
 
   case "$hostip" in
-    16|22 )
+    16|22|153 )
       printf "\n%sSyncing Deb Packages...%s\n" "$orange" "$normal"
       rsync -avh --delete "$HOME"/debpkgs/  "$LOCALNET.$hostip":debpkgs/
       exit_status="$?"
       transfer_status "$exit_status"
 
-      printf "\n%sSyncing Gitea Repositories...%s\n" "$orange" "$normal"
+      printf "\n%sSyncing Git Repositories...%s\n" "$orange" "$normal"
       rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
       exit_status="$?"
       transfer_status "$exit_status"
 
-      printf "\n%sSyncing Github Repositories...%s\n" "$orange" "$normal"
+      printf "\n%sSyncing Projects Repositories...%s\n" "$orange" "$normal"
       rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
       exit_status="$?"
       transfer_status "$exit_status"
