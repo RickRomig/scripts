@@ -108,8 +108,13 @@ sync_to_fin() {
   exit_status="$?"
   transfer_status "$exit_status"
 
-  printf "\n%sSyncing Work directory...%s\n" "$orange" "$normal"
+  printf "\n%sSyncing Wallpaper directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$fin_ip":Pictures/wallpaper/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  printf "\n%sSyncing SFW Wallpaper directory...%s\n" "$orange" "$normal"
+  rsync -avh --delete "$HOME"/Pictures/backgrounds/ "$LOCALNET.$fin_ip":Pictures/backgrounds/
   exit_status="$?"
   transfer_status "$exit_status"
 
@@ -136,7 +141,7 @@ check_host() {
 main() {
   local script version local_host main_host fin_host
   script=$(basename "$0")
-  version="4.0.25137"
+  version="4.1.25137"
   box "$script $version" "*"
   check_host
   over_line "Syncronization completed in $(format_time $SECONDS)" "-"
