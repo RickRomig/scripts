@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com
 # Created      : 11 Mar 2022
-# Updated      : 16 Oct 2024
+# Updated      : 17 May 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -69,12 +69,12 @@ transfer_to_main() {
 sync_to_main() {
   local exit_status main_ip
   main_ip="$1"
-  echo  $'\n'$"${orange}Syncing Finance directory...${normal}"
+  printf "\n%sSyncing Finance directory..%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/Finance/ "$LOCALNET.$main_ip":Documents/Finance/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo  $'\n'$"${orange}Syncing HomeBank directory...${normal}"
+  printf "\n%sSyncing HomeBank directory..%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/HomeBank/ "$LOCALNET.$main_ip":Documents/HomeBank/
   exit_status="$?"
   transfer_status "$exit_status"
@@ -83,59 +83,47 @@ sync_to_main() {
 sync_to_fin() {
   local exit_status fin_ip
   fin_ip="$1"
-  echo $'\n'$"${orange}Syncing bash aliases...${normal}"
+  printf "\n%sSyncng ~/.bashrc ...%s\n" "$orange" "$normal"
+  rsync -avh --delete "$HOME"/.bashrc "$LOCALNET.$fin_ip":
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  printf "\n%sSyncng ~/.bash_aliases ...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/.bash_aliases "$LOCALNET.$fin_ip":
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing bin directory...${normal}"
+  printf "\n%sSyncng ~/bin ...%s\n" "$orange" "$normal"
   rsync -avh --delete --exclude '.git' "$HOME"/bin/ "$LOCALNET.$fin_ip":bin/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing script configuration files...${normal}"
-  rsync -avh --delete "$HOME"/.config/scripts/ "$LOCALNET.$fin_ip":.config/scripts/
-  exit_status="$?"
-  transfer_status "$exit_status"
-
-  echo $'\n'$"${orange}Syncing homepage directory...${normal}"
+  printf "\n%sSyncng Homepage directory...%s\n" "$orange" "$normal"
   rsync -avh --delete --exclude '.git' "$HOME"/Documents/homepage/ "$LOCALNET.$fin_ip":Documents/homepage/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing Password Databases...${normal}"
+  printf "\n%sSyncng Password Databases...%s\n" "$orange" "$normal"
   rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$LOCALNET.$fin_ip":Documents/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing Templates directory...${normal}"
-  rsync -avh --delete "$HOME"/Templates/ "$LOCALNET.$fin_ip":Templates/
-  exit_status="$?"
-  transfer_status "$exit_status"
-
-  echo $'\n'$"${orange}Syncing wallpaper directory...${normal}"
+  printf "\n%sSyncing Work directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$fin_ip":Pictures/wallpaper/
   exit_status="$?"
   transfer_status "$exit_status"
 
-  echo $'\n'$"${orange}Syncing .local/share/doc...${normal}"
+  printf "\n%sSyncing ~/.local/share/doc ...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/.local/share/doc/ "$LOCALNET.$fin_ip":.local/share/doc/
   exit_status="$?"
   transfer_status "$exit_status"
 }
 
-main() {
-  local script version local_host main_host fin_host
-  script=$(basename "$0")
-  version="3.0.24290"
-  local_host="${HOSTNAME:-$(hostname)}"
-  main_host="hp-800g2-sff"
+check_host() {
+  local local_host="${HOSTNAME:-$(hostname)}"
+  local main_host="hp-800g2-sff"
   fin_host="hp-probook-6570"
-
-  box "$script v$version" "*"
   printf "Synchronizes files between %s and %s.\n" "$main_host" "$fin_host"
-
-  # Check host
   if [[ "$local_host" == "$main_host" ]]; then
     transfer_to_fin "$main_host" "$fin_host"
   elif [[ "$local_host" == "$fin_host" ]]; then
@@ -143,8 +131,16 @@ main() {
   else
     die "Invalid client. $script must be run from either $main_host or $fin_host." 1
   fi
+}
 
-  box "$script completed in $(format_time $SECONDS)" "*"
+main() {
+  local script version local_host main_host fin_host
+  script=$(basename "$0")
+  version="4.0.25137"
+  box "$script $version" "*"
+  check_host
+  over_line "Syncronization completed in $(format_time $SECONDS)" "-"
+  printf "%s v%s\n" "$script" "$version"
   exit
 }
 
