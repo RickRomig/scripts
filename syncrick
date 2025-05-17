@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Mar 2023
-# Updated      : 16 May 2025
+# Updated      : 17 May 2025
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -168,6 +168,7 @@ check_host() {
   local local_host="${HOSTNAME:-$(hostname)}"
   local main_host="hp-800g2-sff"
   local lap_host="hp-850-g3"
+  printf "Synchronizes files between %s and %s.\n" "$main_host" "$lap_host"
   if [[ "$local_host" == "$main_host" ]]; then
     sync_to_laptop "$main_host" "$lap_host"
   elif [[ "$local_host" == "$lap_host" ]]; then
@@ -180,9 +181,8 @@ check_host() {
 main() {
   local script version
   script=$(basename "$0")
-  version="4.4.25136"
+  version="4.5.25137"
   box "$script $version" "-"
-  printf "Synchronizes files between %s and %s.\n" "$main_host" "$lap_host"
   check_host
   over_line "Syncronization completed in $(format_time $SECONDS)" "-"
   printf "%s v%s\n" "$script" "$version"
