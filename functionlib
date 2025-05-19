@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 03 May 2025
+# Last updated : 19 May 2025
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -897,21 +897,24 @@ clone_repo() {
 ###############################################################################
 
 assign_cfg_repo() {
-	local localip repo_dir
+	local localip repo_dir repo
 	localip=$(local_ip)
 	repo_dir="$HOME/Downloads/configs"
 	case "$localip" in
-		10|16|22 )
-			repo_dir="$HOME/gitea/configs" ;;
+		10|16|22|153 )
+			repo_dir="$HOME/gitea/configs"
+			repo="$repo_dir"
+    ;;
 		* )
 			if [[ -d "$repo_dir" ]]; then
 				pushd "$repo_dir" || die "pushd failed"
-				git pull
+				git pull --quiet
 				popd || die "popd failed"
+        repo="$repo_dir"
 			else
-				git clone "$GITHUB_URL/configs.git" "$repo_dir/configs"
+				git clone --quiet "$GITHUB_URL/configs.git" "$repo_dir/configs"
 			fi
-			# repo="$repo_dir"
+			repo="$repo_dir"
 	esac
 	printf "%s" "$repo_dir"
 }
