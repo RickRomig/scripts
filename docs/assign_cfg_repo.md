@@ -15,11 +15,11 @@ None
 ### Code
 ```bash
 assign_cfg_repo() {
-	local localip repo_dir
-	localip=$(local_ip)
+	local local_host repo_dir
+	local_host="${HOSTNAME:-$(hostname)}"
 	repo_dir="$HOME/Downloads/configs"
-	case "$localip" in
-		10|16|22|153 )
+	case "$local_host" in
+		hp-800g2-sff|hp-8300-usdt|hp-850-g3 )
 			repo_dir="$HOME/gitea/configs" ;;
 		* )
 			if [[ -d "$repo_dir" ]]; then
