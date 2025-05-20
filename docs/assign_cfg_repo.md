@@ -19,17 +19,16 @@ assign_cfg_repo() {
 	localip=$(local_ip)
 	repo_dir="$HOME/Downloads/configs"
 	case "$localip" in
-		10|16|22 )
+		10|16|22|153 )
 			repo_dir="$HOME/gitea/configs" ;;
 		* )
 			if [[ -d "$repo_dir" ]]; then
 				pushd "$repo_dir" || die "pushd failed"
-				git pull
+				git pull --quiet
 				popd || die "popd failed"
 			else
-				git clone "$GITHUB_URL/configs.git" "$repo_dir/configs"
+				git clone --quiet "$GITHUB_URL/configs.git" "$repo_dir/configs"
 			fi
-			# repo="$repo_dir"
 	esac
 	printf "%s" "$repo_dir"
 }
