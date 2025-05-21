@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Jul 2022
-# Updated      : 21 Feb 2025
+# Updated      : 21 May 2025
 # Comments     : NeoFetch is no longer in development. Recommnd using Fastfetch instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.2.25052"
+readonly version="2.3.25141"
 
 ## Functions ##
 
@@ -73,13 +73,15 @@ apply_config() {
 
 remove_neofetch() {
 	local cfg_bu_dir="${HOME}/.config/backup/neofetch"
+	local thumbnail_dir="${HOME}/.cache/thumbnails/neofetch"
 	printf "Removing Neofetch %s...\n" "$(neofetch_version)"
 	sudo apt-get purge -yy neofetch
 	[[ -d "$HOME/.config/neofetch" ]] && rm -rf "$HOME/.config/neofetch"
 	[[ -d "$cfg_bu_dir" ]] && rm -rf "$cfg_bu_dir"
+	[[ -d "$thumbnail_dir" ]] && rm -rf "$thumbnail_dir"
 	[[ -L "$HOME/.config/neofetch" ]] && unlink "$HOME/.config/neofetch"
 	printf "Neofetch and configuration files removed.\n"
-	sed -i '/neofetch/Id' "$HOME/.bashrc"
+	sed -i '/neofetch/d' "$HOME/.bashrc"
 }
 
 main() {
