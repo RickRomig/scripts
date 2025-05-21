@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Last updated : 04 May 2025
+# Last updated : 21 May 2025
 # Comments     : Fastfetch config.jsonc does not work with Terminator.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.3.25124"
+readonly version="2.4.25141"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
 readonly cfg_d="$HOME/.config/fastfetch"
 readonly logo_d="$HOME/.local/share/fastfetch/logos"
@@ -117,22 +117,23 @@ remove_fastfetch() {
 	printf "Fastfetch and its configuration files have been removed.\n"
 }
 
-append_bashrc() {
-	# Comment out Neofetch & add Fastfetch to .bashrc
-	printf "Addng Festfetch to .bashrc...\n"
-	sed -i '/neofetch/s/^\[/# \[/' "$HOME/.bashrc"
-	if grep -E '#.*fastfetch|fastfetch.*#' ~/.bashrc; then
-		# commented fastfetch line, uncomment
-		sed -i '/fastfetch/s/^# \[/\[' "$HOME/.bashrc"
-	elif grep -qw 'fastfetch' "$HOME/.bashrc"; then
-		# uncommented fastfetch line, do nothing
-		:
-	else
-		# no fastfetch line, add line to .bashrc
-		sed -i '/leave.txt/i[[ -x /usr/bin/fastfetch ]] && /usr/bin/fastfetch/' "$HOME/.bashrc"
-		# echo '[[ -x /usr/bin/fastfetch ]] && /usr/bin/fastfetch' | tee -a "$HOME/.bashrc"
-	fi
-}
+# append_bashrc() {
+# 	# Comment out Neofetch & add Fastfetch to .bashrc
+# 	printf "Addng Festfetch to .bashrc...\n"
+# 	# sed -i '/neofetch/s/^\[/# \[/' "$HOME/.bashrc"
+# 	sed -i '/neofetch/d' "$HOME/.bashrc"
+# 	if grep -E '#.*fastfetch|fastfetch.*#' ~/.bashrc; then
+# 		# commented fastfetch line, uncomment
+# 		sed -i '/fastfetch/s/^# \[/\[' "$HOME/.bashrc"
+# 	elif grep -qw 'fastfetch' "$HOME/.bashrc"; then
+# 		# uncommented fastfetch line, do nothing
+# 		:
+# 	else
+# 		# no fastfetch line, add line to .bashrc
+# 		sed -i '/leave.txt/i[[ -x /usr/bin/fastfetch ]] && /usr/bin/fastfetch/' "$HOME/.bashrc"
+# 		# echo '[[ -x /usr/bin/fastfetch ]] && /usr/bin/fastfetch' | tee -a "$HOME/.bashrc"
+# 	fi
+# }
 
 fastfetch_config() {
 	local config repository localip
@@ -152,7 +153,7 @@ fastfetch_config() {
 			ln -s "$repository/fastfetch" "$HOME/.config/fastfetch"
 			cp -v "$repository/fastfetch/logo.png" "$logo_d/"
 	esac
-	append_bashrc
+	# append_bashrc
 	printf "Fastfetch configuration applied.\n"
 }
 
