@@ -27,11 +27,11 @@ else
 fi
 
 set -eu
-# set -euo pipefail
+# set -eu
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
+readonly script="${0##*/}
 readonly version="<VERSION>"
 verbose_mode="$FALSE"
 tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
@@ -126,7 +126,7 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-	# printf "%s v%s\n" "$script" "$version"
+	# printf "%s %s\n" "$script" "$version"
 	over_line "$script $version"
 	exit
 }
