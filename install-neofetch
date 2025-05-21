@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.3.25141"
+readonly version="2.4.25141"
 
 ## Functions ##
 
@@ -48,6 +48,10 @@ ${orange}Available options:${normal}
   -r  Remove Neofetch and configuration
 _HELP_
   exit "$errcode"
+}
+
+neofetch_installed() {
+	dpkg -l neofetch > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
 }
 
 neofetch_version() {
@@ -93,21 +97,21 @@ main() {
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c )
-				exists neofetch || leave "Neofetch is not installed."
+				neofetch_installed || leave "Neofetch is not installed."
 				apply_config "$repository"
 			;;
 			h )
 				help 0
 			;;
 			i )
-				exists neofetch && leave "Neofetch $(neofetch_version) is already installed."
+				neofetch_installed && leave "Neofetch $(neofetch_version) is already installed."
 				in_repo neofetch || leave "Neofetch is no longer in the repositories."
 				sudo_login 2
 				install_neofetch
 				apply_config "$repository"
 			;;
 			r )
-				exists neofetch || leave "Neofetch is not installed."
+				neofetch_installed || leave "Neofetch is not installed."
 				sudo_login 2
 				remove_neofetch
 			;;
@@ -119,7 +123,8 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-	leave "$script v$version"
+	over_line "$script $version"
+	exit
 }
 
 ## Execution ##
