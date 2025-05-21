@@ -31,7 +31,7 @@ set -eu
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
+readonly script="${0##*/}
 readonly version="<VERSION>"
 tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." 1
@@ -90,7 +90,7 @@ main() {
 
   trap cleanup EXIT	# for temp files and directories
 
-  # printf "%s v%s\n" "$script" "$version"
+  # printf "%s %s\n" "$script" "$version"
   over_line "$script $version"
   exit
 }
