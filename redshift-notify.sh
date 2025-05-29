@@ -7,8 +7,9 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Oct 2024
-# Last updated : 18 Nov 2024 version 1.2.24323
+# Last updated : 29 May 2025 version 1.3.25149
 # Comments     : Script doesn't do anything if there is no display (on a KVM or headless)
+#              : Checks if Redshift has changed brightness.
 #              : Run as cron job: */10 * * * * /home/username/.local/bin/redshift-notify.sh
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,8 +31,8 @@ fi
 
 if [[ "$brightness" == "1.0" && ! -f "$DAY_FILE" ]]; then
 	touch "$DAY_FILE"
-	notify-send -t 3500 "Redshift" "Changed to day setting"
+	notify-send -t 3500 -i "$HOME/.icons/sun-custom.png" "Redshift" "Changed to day setting"
 elif [[ "$brightness" != "1.0" && ! -f  "$NIGHT_FILE" ]]; then
 	touch "$NIGHT_FILE"
-	notify-send -t 3500 "Redshift" "Changed to night setting"
+	notify-send -t 3500 -i "$HOME/.icons/sunset-fill-red.png" "Redshift" "Changed to night setting"
 fi
