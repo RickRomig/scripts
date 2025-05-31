@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, 04 Jul 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2022
-# Updated      : 10 May 2025
+# Updated      : 31 May 2025
 # Comments     : For use with BU backup script.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.17.25130"
+readonly version="2.18.25151"
 readonly mount_point="/media/$USER/BU_Drive"
 
 ## Functions ##
@@ -41,6 +41,7 @@ mount_bu() {
   [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
   sudo mount /dev/"$usbdrv" "$mount_point"
   printf "Backup drive (/dev/%s) is mounted at %s\n" "$usbdrv" "$(mount | awk '/BU_Drive/ {print $3}')"
+  notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is mounted"
 }
 
 umount_bu() {
@@ -50,15 +51,18 @@ umount_bu() {
   printf "Unmounting USB Backup drive at %s ...\n" "$mount_point"
   sudo umount "$mount_point"
   printf "BU_Drive (%s) is unmounted.\n" "$usbdrv"
+  notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is unmounted"
 }
 
 bu_status() {
   printf "BU_Drive is "
   if lsblk | grep -qw BU_Drive; then
     printf "mounted.\n"
+    notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is mounted"
     return "$TRUE"
   else
     printf "not mounted.\n"
+    notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is not mounted"
     return "$FALSE"
   fi
 }
