@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : verify-iso
-# Description  : Verifies SHA256, SHA512, and MD5 checksums of ISO files
+# Description  : Verifies SHA1, SHA256, SHA512, and MD5 checksums of ISO files
 # Dependencies : fzf
 # Arguments    : see help function
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 16 Mar 2025
+# Updated      : 02 Jun 2025
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
@@ -30,9 +30,9 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="10.0.25075"
-FMENU="fzf --header=$(basename "$0") \
+readonly script="${0##*/}"
+readonly version="10.1.25153"
+FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
            --border=bold \
@@ -50,7 +50,7 @@ FMENU="fzf --header=$(basename "$0") \
 help() {
 	local errcode updated
 	errcode="${1:-2}"
-	updated="16 Mar 2025"
+	updated="02 Jun 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Verifies SHA256/SHA512/MD5 checksums with ISO files.
@@ -110,7 +110,9 @@ check_sha1() {
 	iso_sha=$(/usr/bin/sha1sum "$iso_file" | awk '{print $1}')
 	src_sha=$(awk '{print $1}' "$sha_file")
   kill "$!"; tput cnorm
-  printf "done\n\nSelected ISO: %s\n" "$(basename "$iso_file")"
+  printf "done\n"
+  sleep 2
+  printf '\e[A\e[K'
 	printf "ISO checksum: %s\n" "$iso_sha"
 	printf "SHA checksum: %s\n" "$src_sha"
 	[[ "$iso_sha" == "$src_sha" ]] && return "$TRUE" || return "$FALSE"
@@ -124,7 +126,9 @@ check_sha256() {
 	iso_sha=$(/usr/bin/sha256sum "$iso_file" | awk '{print $1}')
 	src_sha=$(awk '{print $1}' "$sha_file")
   kill "$!"; tput cnorm
-  printf "done\n\nSelected ISO: %s\n" "$(basename "$iso_file")"
+  printf "done\n"
+  sleep 2
+  printf '\e[A\e[K'
 	printf "ISO checksum: %s\n" "$iso_sha"
 	printf "SHA checksum: %s\n" "$src_sha"
 	[[ "$iso_sha" == "$src_sha" ]] && return "$TRUE" || return "$FALSE"
@@ -138,7 +142,9 @@ check_sha512() {
 	iso_sha=$(/usr/bin/sha512sum "$iso_file" | awk '{print $1}')
 	src_sha=$(awk '{print $1}' "$sha_file")
   kill "$!"; tput cnorm
-  printf "done\n\nSelected ISO: %s\n" "$(basename "$iso_file")"
+  printf "done\n"
+  sleep 2
+  printf '\e[A\e[K'
 	printf "ISO checksum: %s\n" "$iso_sha"
 	printf "SHA checksum: %s\n" "$src_sha"
 	[[ "$iso_sha" == "$src_sha" ]] && return "$TRUE" || return "$FALSE"
@@ -152,7 +158,9 @@ check_md5() {
   iso_md5=$(/usr/bin/md5sum "$iso_file" | awk '{print $1}')
   src_md5=$(awk '{print $1}' "$md5_file")
   kill "$!"; tput cnorm
-  printf "done\n\nSelected ISO: %s\n" "$(basename "$iso_file")"
+  printf "done\n"
+  sleep 2
+  printf '\e[A\e[K'
   printf "ISO checksum: %s\n" "$iso_md5"
   printf "MD5 checksum: %s\n" "$src_md5"
   [[ "$iso_md5" == "$src_md5" ]] && return "$TRUE" || return "$FALSE"
@@ -209,7 +217,7 @@ verify_iso() {
 	iso_dir=$(select_directory)
 	isofile=$(select_iso "$iso_dir")
 	checksum=$(select_checksum "$iso_dir")
-	printf "\n%-18s %s\n" "Selected Distro:" "$(basename "$iso_dir")"
+	printf "\n%-18s %s\n" "Selected Distro:" "${iso_dir##*/}"
 	printf "%-18s %s\n" "Selected ISO:" "$isofile"
 	printf "%-18s %s\n\n" "Selected Checksum:" "$checksum"
 	check_checksum "$iso_dir/$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$script $version"
