@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Jan 2021
-# Updated      : 04 May 20254
+# Updated      : 04 Jun 20254
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,10 +28,30 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.17.25124"
+readonly version="3.18.25155"
 readonly cfg_dir="$HOME/.config/keepassxc"
 
 ## Functions ##
+
+help() {
+  local errcode updated
+	errcode="${1:-2}"
+	updated="03 Mar 2025"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
+Installs/Removed KeePassXC password manager
+
+${green}Usage:${normal} $script [OPTION]
+
+${orange}Available options:${normal}
+  -c  Apply KeePassXC configuration.
+  -d  Install KeePassXC from distribution repositories.
+  -f  Install KeePassXC from flathub repositories.
+  -h  Show this help message and exit.
+  -r  Remove KeePassXC from the system.
+_HELP_
+  exit "$errcode"
+}
 
 keepass_version() {
   if exists keepassxc; then
@@ -62,44 +82,21 @@ remove_flatpak_keepassxc() {
 }
 
 remove_distro_keeepassxc() {
-  local cfg_bu_d="$HOME/.config/backup/keepassxc"
   sudo_login 2
   printf "Removing the KeePassXC DEB package...\n"
   sudo apt-get remove --purge keepassxc -yy
-  [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
-  [[ -d "$cfg_bu_d" ]] && rm -rf "$cfg_bu_d"
+  find "$HOME/.config/" -maxdepth 2 -type d -name keepassxc -exec rm -rf {} \;
   printf "KeePassXC DEB package removed.\n"
 }
 
 create_ini() {
-	local localip repository ini_file
+	local repository ini_file
   repository=$(assign_cfg_repo)
-	localip=$(local_ip)
   ini_file="keepassxc.ini"
   [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
   printf "Applying %s ...\n" "$ini_file"
-  cp -v "$repository/$ini_file" "$cfg_dir/"
+  cp -v "$repository/keepassxc/$ini_file" "$cfg_dir/"
   printf "%s applied.\n" "$ini_file"
-}
-
-help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="03 Mar 2025"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Installs/Removed KeePassXC password manager
-
-${green}Usage:${normal} $script [OPTION]
-
-${orange}Available options:${normal}
-  -c  Apply KeePassXC configuration.
-  -d  Install KeePassXC from distribution repositories.
-  -f  Install KeePassXC from flathub repositories.
-  -h  Show this help message and exit.
-  -r  Remove KeePassXC from the system.
-_HELP_
-  exit "$errcode"
 }
 
 main() {
