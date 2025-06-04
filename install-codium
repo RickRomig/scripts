@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 02 May 2025
+# Updated      : 04 Jun 2025
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,8 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="2.3.25123"
+readonly script="${0##*/}"
+readonly version="2.4.25155"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
@@ -38,7 +38,7 @@ verbose_mode="$FALSE"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="23 Feb 2025"
+	updated="04 Jun 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
 Install/Removes VSCodium & applies settings
@@ -66,14 +66,6 @@ codium_version() {
 	dpkg -l codium | awk '/ii/ {print $3}'
 }
 
-apply_settings() {
-	local repository="$1"
-  show_message "Applying VSCodium settings..."
-	ln -s "$repository/VSCodium" "$HOME/.config/VSCodium/"
-  show_message "VSCodium settings applied."
-}
-
-
 set_key() {
 	local key_url="https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg"
 	wget "$key_url"
@@ -93,11 +85,23 @@ install_vscodium() {
 	set_src
 	sudo apt-get update
 	sudo apt-get install codium
+	apply_settings
 	printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 }
 
+apply_settings() {
+	local repository config_d
+	repository=$(assign_cfg_repo)
+	config_d="$HOME/.config/VSCodium/User"
+	[[ -d "$config_d" ]] || mkdir -p "$config_d"
+  show_message "Applying VSCodium settings..."
+	[[ -f "$config_d/settings.json" ]] && rm "$config_d/settings.json"
+	ln -s "$repository/VSCodium/User/settings.json" "$config_d/settings.json"
+  show_message "VSCodium settings applied."
+}
+
 remove_vscodium() {
-	local cfg_bu_dir="${HOME}/.config/backup/VSCodium"
+	local	config_d="$HOME/.config/VSCodium/User"
 	show_message "Removing VSCodium..."
 	sudo apt-get purge codium
 	show_message "Removing VSCodium GPG key ..."
@@ -105,9 +109,8 @@ remove_vscodium() {
 	show_message "Removing VSCodium source list ..."
 	[[ -f "$src_list" ]] && sudo rm -v "$src_list"
 	show_message "Removing VSCodium configuration files ..."
-	[[ -L "$HOME/.config/VSCodium" ]] && unlink "$HOME/.config/VSCodium/"
-	show_message "Removing VSCodium configuration backup ..."
-  [[ -d "$cfg_bu_dir" ]] && rm -rf "$cfg_bu_dir"
+	[[ -L "$config_d/settings.json" ]] && unlink "$config_d/settings.json"
+	find "$HOME/.config" -maxdepth 2 -type d -name VSCodium -exec rm -rf {} \;
 	printf "VSCodium has been removed.\n"
 }
 
@@ -119,16 +122,14 @@ show_message() {
 main() {
 	check_dependencies
   local noOpt opt optstr repository
-	repository=$(assign_cfg_repo)
 	noOpt=1
 	optstr=":ahirsv"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			a)
+			# Set apt gpg key and source list
 				exists codium || leave "VSCodium is not installed."
 				sudo_login 2
-				show_message "Checking dependencies..."
-				show_message "Setting the GPG key and creating the source list file."
 				set_key
 				set_src
 			;;
@@ -136,24 +137,21 @@ main() {
 				help 0
 			;;
 			i )
+				# Install VSCodium via apt
 				exists codium && leave "VSCodium $(codium_version) is already installed."
 				sudo_login 2
-				show_message "Checking dependencies..."
 				install_vscodium
-				apply_settings "$repository"
-
 			;;
 			r )
+				# Remove VSCodium
 				exists codium || leave "VSCodium is not installed."
 				sudo_login 2
 				remove_vscodium
 			;;
 			s )
+			# Apply VSCodium settings
 				exists codium || leave "VSCodium is not installed."
-				sudo_login 2
-				show_message "Checking dependencies..."
-				apply_settings "$repository"
-
+				apply_settings
 			;;
 			v )
 				verbose_mode="$TRUE"
