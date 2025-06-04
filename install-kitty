@@ -61,28 +61,29 @@ install_kitty() {
 }
 
 remove_kitty() {
-  local kitty_cache="$HOME/.cache/kitty"
   printf "Purging the Kitty terminal emulator %s\n" "$(kitty_version)"
   sudo apt-get purge kitty -yy
-  [[ -d "$kitty_cfg_d" ]] && rm -rf "$kitty_cfg_d"
-  [[ -d "$kitty_cache" ]] && rm -rf "$kitty_cache"
-  [[ -L "$HOME/.config/kitty" ]] && unlink "$HOME/.config/kitty"
+  [[ -L "$kitty_cfg_d/kitty.conf" ]] && unlink "$kitty_cfg_d/kitty.conf"
+  [[ -L "$kitty_cfg_d//bindings.list" ]] && unlink "$kitty_cfg_d//bindings.list"
+  find "$HOME/.config" -maxdepth 2 -type d -name bat -exec rm -rf {} \;
+  [[ -d "$$HOME/.cache/kitty" ]] && rm -rf "$$HOME/.cache/kitty"
   printf "The Kitty terminal emulator and configuration files have been removed.\n"
 }
 
 kitty_config() {
 	repository=$(assign_cfg_repo)
   [[ -d "$kitty_cfg_d" ]] || mkdir -p "$kitty_cfg_d"
-  printf "Applying up %s ...\n" "kitty.conf"
-  ln -s "$repository/kitty" "$HOME/.config/kitty"
+  printf "Applying configuration files ...\n"
+  [[ -f "$kitty_cfg_d/kitty.conf" ]] && rm "$kitty_cfg_d/kitty.conf"
+  ln -s "$repository/kitty/kitty.conf" "$kitty_cfg_d/kitty.conf"
+  [[ -f "$kitty_cfg_d//bindings.list" ]] && rm "$kitty_cfg_d//bindings.list"
+  ln -s "$repository/kitty/bindings.list" "$kitty_cfg_d//bindings.list"
   printf "kitty configuration files applied.\n"
 }
 
 main() {
-
   check_package git
-  local noOpt opt optstr repository
-	repository=$(assign_cfg_repo)
+  local noOpt opt optstr
   noOpt=1
   optstr=":hir"
   while getopts "$optstr" opt; do
@@ -95,8 +96,7 @@ main() {
         sudo_login 2
         install_kitty
         kitty_config
-
-  repsoitory    ;;
+      ;;
       r )
         exists kitty || leave "Kitty is not installed."
         sudo_login 2
