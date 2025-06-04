@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 04 May 2025
+# Updated      : 04 Jun 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,8 +30,8 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.15.25124"
-readonly term_cfg_d=$HOME"/.config/terminator"
+readonly version="6.16.25155"
+readonly term_cfg_d="$HOME/.config/terminator"
 
 ## Functions ##
 
@@ -50,26 +50,14 @@ ${green}OPTIONS:${normal}
   -i  Install Terminator & configuration files.
   -r  Remove Terminator & configuration files.
 ${bold}NOTES:${normal}
-  1. Script will not overwrite Terminator config for BunsenLabs installations.
-     Configuration changes should be made through Terminator Preferences.
-  2. For Debian and Debian-based distributions (Antix, MX Linux, LMDE),
-     Terminator will be configured as a login shell.
+  1. Script will not overwrite Terminator config for BunsenLabs installations. Configuration changes should be made through Terminator Preferences.
+  2. For Debian and Debian-based distributions (Antix, MX Linux, LMDE),Terminator will be configured as a login shell.
 _HELP_
   exit "$errcode"
 }
 
 terminator_version() {
   dpkg -l terminator | awk '/ii/ {print $3}' | sed 's/-.*//'
-}
-
-apply_config() {
-  local repository
-  repository=$(assign_cfg_repo)
-  [[ -d "$term_cfg_d" ]] && mkxir -p "$term_cfg_d"
-  printf "Applying Terminator configuration...\n"
-  cp -v "$repository/config" "$term_cfg_d/"
-  is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg_d/config"
-  printf "Terminator configuration file applied.\n"
 }
 
 install_terminator() {
@@ -86,13 +74,20 @@ install_terminator() {
 }
 
 remove_terminator() {
-  local term_cfg_d_bu="{$HOME}/.config/backup/terminator"
   printf "Removing terminator %s and configuration files...\n" "$(terminator_version)"
   sudo apt-get purge terminator
-  find "$HOME/.config/" -maxdepth 2 -type d -name "terminator" -exec rm -rf {} \;
-  [[ -d "$term_cfg_d" ]] && rm -rf "$term_cfg_d"
-  [[ -d "$term_cfg_d_bu" ]] && rm -rf "$term_cfg_d_bu"
+  find "$HOME/.config/" -maxdepth 2 -type d -name terminator -exec rm -rf {} \;
   printf "Terminator and its configuration files have been removed.\n"
+}
+
+apply_config() {
+  local repository
+  repository=$(assign_cfg_repo)
+  [[ -d "$term_cfg_d" ]] && mkdir -p "$term_cfg_d"
+  printf "Applying Terminator configuration...\n"
+  cp -v "$repository/terminator/config" "$$term_cfg_d/config"
+  is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg_d/config"
+  printf "Terminator configuration file applied.\n"
 }
 
 main() {
@@ -131,7 +126,7 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
