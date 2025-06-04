@@ -7,8 +7,9 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 24 Feb 2025
+# Updated      : 04 Jun 2025
 # Comments     : Geany does not write configuration files by default.
+#              : Need to set options from within the program.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -28,7 +29,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.5.25055"
+readonly version="2.5.25155"
 verbose_mode="$FALSE"
 
 ## Functions ##
@@ -41,16 +42,22 @@ help() {
 ${orange}$script${normal} $version ($updated)
 Installs/Removes Geany text editor and themes
 
-${green}Usage:${normal} $script [OPTION]
+${green}Usage:${normal} $script [OPTIONS]
 
 ${orange}Available options:${normal}
   -h  Show this help message and exit
-  -i  Install Geany editor
+  -i  Install Geany editor (user -it to install with themes)
   -r  Remove Geany editor
   -t  Install Geany themes
   -v  Enable verbose mode
 _HELP_
   exit "$errcode"
+}
+
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+cleanup() {
+  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
 }
 
 geany_version() {
@@ -76,27 +83,16 @@ install_geany() {
 }
 
 remove_geany() {
-  local cfg_dir cfg_bu_dir
-  cfg_dir="$HOME/.config/geany"
-  cfg_bu_dir="$HOME/.config/backup/geany"
   show_message "Removing Geany $(geany_version)..."
-  sudo apt remove -y geany
+  sudo apt-get remove -y geany
   show_message "Removing Geany configuration files ..."
-  [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
-  show_message "Removing config backups..."
-  [[ -d "$cfg_bu_dir" ]] && rm -rf "$cfg_bu_dir"
+  find "$HOME/.config" -type d -name geany -exec rm -rf {} \;
   printf "Geany and configuration files removed.\n"
 }
 
 show_message() {
 	local message="$1"
 	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
-}
-
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-cleanup() {
-  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
 }
 
 main() {
@@ -111,8 +107,6 @@ main() {
       ;;
       i )
         exists geany && leave "Geany $(geany_version) is already installed."
-        # tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
-        # trap cleanup EXIT
         sudo_login 2
         check_package git
         install_geany
@@ -141,7 +135,8 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  leave "$script v$version"
+  over_line "$script $version"
+  exit
 }
 
 ## Execution ##
