@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : install-polybar
 # Description  : Installs polybar on Debian i3wm systems.
-# Dependencies : git
+# Dependencies : git (for assign_cfg_repo() in functionlib)
 # Arguments    : None
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Nov 2023
-# Updated      : 05 May 2025
+# Updated      : 04 Jun 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,36 +27,30 @@ fi
 
 set -eu
 
-## Global Variables ##
-
-readonly polybar_d="$HOME/.config/polybar"
-
 ## Functions ##
 
 copy_polybar_config() {
-  local repository="$1"
+  local repository polybar_d
+	repository=$(assign_cfg_repo)
+	polybar_d="$1"
 	[[ -d "$polybar_d" ]] || mkdir -p "$polybar_d"
 	printf "Copying the Polybar configuration file ...\n"
 	cp -v "$repository/polybar/config.ini" "$polybar_d/"
 	printf "Polybar configuration file copied from the Gitea server.\n"
-}
-
-copy_polybar_launcher() {
-  local repository="$1"
-	local i3_dir="$HOME/.config/i3"
-	printf "Installing the Polynsr launcher...\n"
-	cp -v "$repository/i3/polybar-i3" "$i3_dir/"
-	[[ -x "$i3_dir/polybar-i3" ]] || chmod +x "$i3_dir/polybar-i3"
+	printf "Installing the Polybar launcher...\n"
+	cp -v "$repository/polybar/polybar-i3" "$polybar_d/"
+	[[ -x "$polybar_d/polybar-i3" ]] || chmod +x "$polybar_d/polybar-i3"
 	printf "polybar-i3 installed.\n"
 }
 
 configure_polybar() {
-	local cfg_file b_name e_name w_name
+	local cfg_file b_name e_name w_name polybar_d
+	polybar_d="$1"
 	cfg_file="config.ini"
 	# Get device names from system.
 	e_name=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
 	w_name=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
-	b_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
+	b_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $NF}')
 	# Apply device names or exlude modules as required.
 	if [[ "$w_name" ]]; then
 		sed -i "s/wlan0/$w_name/" "$polybar_d/$cfg_file"
@@ -75,23 +69,21 @@ configure_polybar() {
 	fi
 }
 
+install_polybar() {
+	local polybar_d="$HOME/.config/polybar"
+	sudo_login 2
+	sudo apt-get install -y polybar
+	copy_polybar_config "$polybar_d"
+	configure_polybar "$polybar_d"
+}
+
 main() {
   check_package git
-  local i3_dir script version repository
-  script=$(basename "$0")
-  version="2.5.25125"
-	i3_dir="$HOME/.config/i3"
-	repository=$(assign_cfg_repo)
+  local script="${0##*/}"
+  local version="2.6.25155"
 	printf "Installs Polybar on Debian with i3wm.\n"
 	exists polybar && leave "Polybar is already installed."
-	sudo apt-get install -y polybar
-	copy_polybar_config "$repository"
-	copy_polybar_launcher "$repository"
-	# Add polybar launcher to i3wm autostart script.
-	sed -i '/policykit/a ~/.local/bin/polybar-i3 &' "$i3_dir/autostart.sh"
-	# Comment out i3 status bar or Bumblebee status bar.
-	sed -i '/bar/s/^/# /' "$i3_dir/config"
-	configure_polybar
+	install_polybar
 	over_line "$script $version"
 }
 
