@@ -32,7 +32,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.0.25155"
+readonly version="6.1.25155"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 
 ## Functions ##
@@ -106,8 +106,7 @@ remove_bat() {
   printf "Removing Bat %s...\n" "$(bat_version)"
   sudo dpkg --remove bat
   [[ -L "$HOME/.config/bat/config" ]] && unlink "$HOME/.config/bat/config"
-  [[ -d "$HOME/.config/bat" ]] && rm -rf "$HOME/.config/bat"
-  [[ -d "$HOME/.config/backup/bat" ]] && rm -rf "$HOME/.config/backup/bat"
+  find "$HOME/.config/" -maxdepth 2 -type d -name bat -exec rm -rf {} \;
   printf "Bat and its configuration files have been removed.\n"
 }
 
