@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Jul 2022
-# Updated      : 21 May 2025
-# Comments     : NeoFetch is no longer in development. Recommnd using Fastfetch instead.
+# Updated      : 04 Jun 2025
+# Comments     : NeoFetch is no longer in development. Highly recommnd using Fastfetch instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -25,17 +25,17 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="2.4.25141"
+readonly script="${0##*/}"
+readonly version="2.5.25155"
 
 ## Functions ##
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="21 Feb 2025"
+	updated=" 04 Ju 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Configures/Removes Neofetch
@@ -59,7 +59,7 @@ neofetch_version() {
 }
 
 install_neofetch() {
-	local thumbnail_dir="${HOME}/.cache/thumbnails/neofetch"
+	local thumbnail_dir="$HOME/.cache/thumbnails/neofetch"
 	printf "%s Neofetch is no longer in developemnt as of 26 April 2024.\n" "$RED_WARNING"
 	sudo apt-get updates >/dev/null
 	sudo apt-get install -yy neofetch
@@ -68,37 +68,38 @@ install_neofetch() {
 }
 
 apply_config() {
-	local repository="$1"
-	[[ -d "$HOME/.config/neofetch" ]] && rm -rf "$HOME/.config/neofetch"
-  printf "Appying Neofetch configuration...\n"
-	ln -s "$repository/neofetch/"  "$HOME/.config/neofetch/"
+	local repository neo_logo
+	repository=$(assign_cfg_repo)
+	neo_logo="neo-atheist.txt"
+	[[ -d "$HOME/.config/neofetch" ]] || mkdir -p "$HOME/.config/neofetch"
+  printf "Applying Neofetch configuration...\n"
+	ln -s "$repository/neofetch/config.conf"  "$HOME/.config/neofetch/config.conf"
+	cp -v "$repository/neofetch/$neo_logo" "$HOME/.local/share/doc/"
 	printf "Neofetch configuration applied.\n"
 }
 
 remove_neofetch() {
-	local cfg_bu_dir="${HOME}/.config/backup/neofetch"
-	local thumbnail_dir="${HOME}/.cache/thumbnails/neofetch"
+	local neo_logo="neo-atheist.txt"
 	printf "Removing Neofetch %s...\n" "$(neofetch_version)"
 	sudo apt-get purge -yy neofetch
-	[[ -d "$HOME/.config/neofetch" ]] && rm -rf "$HOME/.config/neofetch"
-	[[ -d "$cfg_bu_dir" ]] && rm -rf "$cfg_bu_dir"
-	[[ -d "$thumbnail_dir" ]] && rm -rf "$thumbnail_dir"
-	[[ -L "$HOME/.config/neofetch" ]] && unlink "$HOME/.config/neofetch"
+	[[ -L "$HOME/.config/neofetch/config.conf" ]] && unlink "$HOME/.config/neofetch/config.conf"
+	find "$HOME/.config" -maxdepth 2 -type d -name neofetch -exec rm -rf {} \;
+	[[ -d "$HOME/.cache/thumbnails/neofetch" ]] && rm -rf "$HOME/.cache/thumbnails/neofetch"
+	[[ -f "$HOME/.local/share/doc/$neo_logo" ]] && rm "$HOME/.local/share/doc/$neo_logo"
 	printf "Neofetch and configuration files removed.\n"
 	sed -i '/neofetch/d' "$HOME/.bashrc"
 }
 
 main() {
-  local noOpt opt optstr repository
+  local noOpt opt optstr
 	check_package git
-	repository=$(assign_cfg_repo)
 	noOpt=1
 	optstr=":chir"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c )
 				neofetch_installed || leave "Neofetch is not installed."
-				apply_config "$repository"
+				apply_config
 			;;
 			h )
 				help 0
@@ -108,7 +109,7 @@ main() {
 				in_repo neofetch || leave "Neofetch is no longer in the repositories."
 				sudo_login 2
 				install_neofetch
-				apply_config "$repository"
+				apply_config
 			;;
 			r )
 				neofetch_installed || leave "Neofetch is not installed."
