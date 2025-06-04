@@ -2,13 +2,13 @@
 ##########################################################################
 # Script Name  : install-dsh
 # Description  : Installs & configures DSH
-# Dependencies : git
+# Dependencies : git (used by assign_cfg_repo in functionlib)
 # Arguments    : none
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Apr 2024
-# Last updated : 15 May 2025
-# Comments     : Intended for main system
+# Last updated : 04 Jun 2025
+# Comments     : Intended for main system only
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -54,9 +54,9 @@ install_dsh() {
 	repository=$(assign_cfg_repo)
   groups=( desktops i3wm laptops )
   sudo apt-get -y install dsh
+  sudo mkdir -p /etc/dsh/groups
   printf "Changing remote shell from rsh to ssh.\n"
   sudo sed -i '/remoteshell/s/rsh/ssh/' /etc/dsh/dsh.conf
-  sudo mkdir -p /etc//dsh/groups
   copy_machines_list "$repository"
   for group in "${groups[@]}"; do
     copy_group_list "$repository" "$group"
@@ -64,9 +64,8 @@ install_dsh() {
 }
 
 main() {
-  local script version
-  script=$(basename "$0")
-  version="2.3.25135"
+  local script="${0##*/}"
+  local version="2.4.25155"
   check_package git
   sudo_login 2
   install_dsh
