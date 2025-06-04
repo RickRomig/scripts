@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 04 May 2025
+# Updated      : 04 Jun 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,12 +27,31 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="4.12.25124"
+readonly script="${0##*/}"
+readonly version="4.13.25155"
 readonly gh_url="https://github.com/marktext/marktext/releases"
-readonly cfg_dir="$HOME/.config/marktext"
 
 ## Functions ##
+
+help() {
+  local errcode updated
+	errcode="${1:-2}"
+	updated="04 Jun 2025"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
+Installs, configures, updates, removes the Mark Text markdown editor.
+
+${green}Usage:${normal} $script [OPTION]
+
+${orange}Available options:${normal}
+  -c  Applies Marktext preferences.
+  -h  Show this help message and exit.
+  -i  Installs the Marktext markdown editor.
+  -r  Removes the Marktext markdown editor from the system.
+  -u  Updates the Marktext markdown editor to the latest version.
+_HELP_
+  exit "$errcode"
+}
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
@@ -62,9 +81,9 @@ compare_versions() {
   new_ver="$1"
   cur_ver=$(marktext_version)
   if [[ "$cur_ver" == "$new_ver" ]]; then
-    echo "${lightyellow}Marktext $cur_ver is the current version. No update required.${normal}"
+    printf "%sMarktext %s is the latest version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
   else
-    echo "${lightyellow}Installed version of MarkText is $cur_ver, updating to $new_ver...${normal}"
+    printf "%sInstalled version of MarkText is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
     install_marktext "$new_ver"
   fi
 }
@@ -79,62 +98,42 @@ install_marktext() {
   kill "$!";printf "done\n";tput cnorm
   sudo_login 2
   printf "Installing Mark Text %s...\n" "$new_ver"
-  # sudo gdebi -n "$tmp_dir/$new_pkg" 2>/dev/null
-	# sudo apt-get install "$tmp_dir/$new_pkg"
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-brokenq
   printf "Mark Text %s installed.\n" "$(marktext_version)"
 }
 
 remove_marktext() {
-  local cfg_bu_dir="$HOME/.config/backup/marktext"
+  local cfg_dir="$1"
   sudo_login 2
-  echo "Removing the Mark Text markdown editor..."
+  printf "Removing the Mark Text markdown editor...\n"
   sudo apt-get remove --purge marktext -yy
-  [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
-  [[ -d "$cfg_bu_dir" ]] && rm -rf "$cfg_bu_dir"
-  [[ -L "$HOME/.config/marktext" ]] && unlink "$HOME/.config/marktext"
-  echo "Mark Text markdown editor has been removed."
+  [[ -L "$cfg_dir/marktext/preferences.json" ]] && unlink "$cfg_dir/marktext/preferences.json"
+  find "$HOME/".config -type d -name marktext -exec rm -rf {} \;
+  printf "Mark Text markdown editor has been removed.\n"
 }
 
-marktext_preferences() {
-  local repository
+marktext_config() {
+  local repository cfg_dir
+  cfg_dir="$1"
 	repository=$(assign_cfg_repo)
-  [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
+  [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
   printf "Applying MarkText preferences...\n"
-  ln -s "$repository/marktext" "$cfg_dir/marktext"
+  [[ -f "$cfg_dir/marktext/preferences.json" ]] && rm "$cfg_dir/marktext/preferences.json"
+  ln -s "$repository/marktext/preferences.json" "$cfg_dir/marktext/preferences.json"
   printf "MarkText preferences applied.\n"
 }
 
-help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="04 May 2025"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Installs, configures, updates, removes the Mark Text markdown editor.
-
-${green}Usage:${normal} $script [OPTION]
-
-${orange}Available options:${normal}
-  -c  Applies Marktext preferences.
-  -h  Show this help message and exit.
-  -i  Installs the Marktext markdown editor.
-  -r  Removes the Marktext markdown editor from the system.
-  -u  Updates the Marktext markdown editor to the latest version.
-_HELP_
-  exit "$errcode"
-}
-
 main() {
-  local noOpt opt optstr new_ver
+  local noOpt opt optstr new_ver cfg_dir
   check_dependencies
+  cfg_dir="$HOME/.config/marktext"
   noOpt=1
   optstr=":chiru"
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
         exists marktext || leave "Marktext is not installed."
-        marktext_preferences
+        marktext_config "$cfg_dir"
       ;;
       h )
         help 0
@@ -145,13 +144,13 @@ main() {
         tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
         trap cleanup EXIT
         new_ver="$(newest_version)"
-        echo "${lightyellow}Installing MarkText version $new_ver...${normal}"
+        printf "%sInstalling MarkText version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
         install_marktext "$new_ver"
-        marktext_preferences
+        marktext_config "$cfg_dir"
       ;;
       r )
         exists marktext || leave "Marktext is not installed."
-        remove_marktext
+        remove_marktext "$cfg_dir"
       ;;
       u )
         exists marktext || leave "Marktext is not installed."
@@ -170,7 +169,7 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
