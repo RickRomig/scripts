@@ -32,8 +32,8 @@ set -eu
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="2.0.25155"
+readonly script="${0##*/}"
+readonly version="2.1.25155"
 # readonly cfg_d=$HOME"/.config/bat"
 
 ## Functions ##
@@ -69,16 +69,15 @@ install_bat() {
 
 remove_bat() {
   printf "Removing Bat %s...\n" "$(bat_version)"
+	[[ -L "$HOME"/.local/bin/bat ]] && unlink "$HOME"/.local/bin/bat
 	sudo apt-get remove --purge -y bat
 	if default_no "Remove configuration files?"; then
-		[[ -d "HOME/.config/bat" ]] && rm -rf "HOME/.config/bat"
-		[[ -d "$HOME/.config/backup/bat" ]] && rm -rf "$HOME/.config/backup/bat"
 		[[ -L "$HOME/.config/bat/config" ]] && unlink "$HOME/.config/bat/config"
+		find ~/.config -type d -name bat -exec rm -rf \;
 		printf "Bat configuration files removed.\n"
 	else
 		printf "Kept user configuration files.\n"
 	fi
-	[[ -L "$HOME"/.local/bin/bat ]] && unlink "$HOME"/.local/bin/bat
   printf "Bat has been removed.\n"
 }
 
