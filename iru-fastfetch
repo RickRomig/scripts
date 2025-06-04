@@ -127,7 +127,9 @@ fastfetch_config() {
 		cp -v "$repository/fastfetch/config.jsonc.ascii" "$cfg_d/config.jsonc"
 		cp -v "$repository/fastfetch/logo.txt" "$logo_d/"
 	else
+		[[ -f "$cfg_d/config.jsonc" ]] && rm "$cfg_d/config.jsonc"
 		ln -s "$repository/fastfetch/config.jsonc" "$cfg_d/config.jsonc"
+		[[ -f "$logo_d/logo.png" ]] && rm "$logo_d/logo.png"
 		ln -s "$repository/fastfetch/logo.png" "$logo_d/logo.png"
 	fi
 	printf "Fastfetch configuration applied.\n"
