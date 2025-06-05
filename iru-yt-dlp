@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 04 Apr 2025
+# Updated      : 04 Jun 2025
 # Comments     : Removes distro repo version if installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,15 +29,29 @@ set -eu
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="2.2.25094"
-readonly update_script="z-ytdlp-update"
-readonly sed_file="ytdlp-uplog.sed"
-readonly bin_loc="/usr/local/bin"
-readonly sed_loc="/usr/share/misc"
-readonly cron_loc="/etc/cron.daily"
+readonly script="${0##*/}"
+readonly version="2.3.25155"
 
 ## Functions ##
+
+help() {
+  local errcode updated
+	errcode="${1:-2}"
+	updated="04 Apr 2025"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
+Installs, removes, updates YouTube-dlp.
+
+${green}Usage:${normal} $script [OPTION]
+${orange}Available options:${normal}
+	-h 	Show this help message and exit
+	-i 	Install yt-dlp (binary)
+	-r 	Remove yt-dlp (binary)
+	-u 	Update yt-dlp (binary)
+	-x	Remove yt-dlp (repo version)
+_HELP_
+  exit "$errcode"
+}
 
 check_dependencies() {
   local packages=( atomicparsley curl ffmpeg ffmpeg-doc )
@@ -53,27 +67,25 @@ ytdlp_bin() {
 }
 
 ytdlp_version() {
-	"$bin_loc/yt-dlp" --version
+	/usr/local/binc/yt-dlp --version
 }
 
 update_ytdlp() {
 	printf "Updating yt-dlp ...\n"
-	"$bin_loc/yt-dlp" --update
+	/usr/local/binc/yt-dlp --update
 }
 
 install_ytdlp() {
-  local script_dir sed_dir url
+  local url
 	url="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp"
-	script_dir="$HOME/bin"
-	sed_dir="$HOME/bin/files"
 	printf "Installing yt-dlp, and update scripts...\n"
-  sudo curl -# -L "$url" -o "$bin_loc/yt-dlp"
+  sudo curl -# -L "$url" -o /usr/local/binc/yt-dlp
   [[ -x /usr/bin/python3 ]] && sudo ln -s /usr/bin/python3 /usr/bin/python
-  sudo chmod a+rx "$bin_loc/yt-dlp"
+  sudo chmod a+rx /usr/local/binc/yt-dlp
   # Copies update & log cleanup scripts
-  [[ -x "$script_dir/$update_script" ]] && sudo cp -v "$script_dir/$update_script" "$cron_loc/"
-  [[ -f "$sed_dir/$sed_file" ]] && sudo cp -v "$sed_dir/$sed_file" "$sed_loc"
-	[[ -L "$HOME/.local/bin/yt-dlp" ]] || ln -s /usr/local/bin/yt-dlp ~/.local/bin/yt-dlp
+  [[ -x "$HOME/bin/z-ytdlp-update" ]] && sudo cp -v "$HOME/bin/z-ytdlp-update" /etc/cron.daily/
+  [[ -f "$HOME/bin/files/ytdlp-uplog.sed" ]] && sudo cp -v "$HOME/bin/files/ytdlp-uplog.sed" /usr/share/misc
+	[[ -L "$HOME/.local/bin/yt-dlp" ]] || ln -s /usr/local/bin/yt-dlp "$HOME/.local/bin/yt-dlp"
   printf "%s v%s installed.\n" "yt-dlp" "$(ytdlp_version)"
 }
 
@@ -81,7 +93,7 @@ remove_repo_ver() {
 	local deb_version
 	deb_version=$(dpkg -l yt-dlp | awk '/ii/ {print $3}' | sed 's/[+-].*//')
   # Purges repo version of yt-dlp & removes orphaned dependencies
-	printf "yt-dlp v%s installed distro repos. Removing this version.\n" "$deb_version"
+	printf "yt-dlp %s installed from distro repos. Removing this version.\n" "$deb_version"
   sudo apt-get purge -y yt-dlp
   sudo apt-get autoremove -y
   printf "Repository version of yt-dlp removed from the system.\n"
@@ -90,7 +102,7 @@ remove_repo_ver() {
 remove_ytdlp() {
   # Removes the yt-dl.org version
   printf "Removing yt-dlp v%s...\n" "$(ytdlp_version)"
-  sudo rm "$bin_loc/yt-dlp"
+  sudo rm /usr/local/binc/yt-dlp
   remove_configs
   remove_updater
   remove_logs
@@ -117,48 +129,28 @@ remove_configs() {
 }
 
 remove_updater() {
-	if [[ -f "$sed_loc/$sed_file" ]]; then
-		sudo rm "$sed_loc/$sed_file"
-		printf "%s removed.\n" "$sed_file"
+	if [[ -f /usr/share/misc/ytdlp-uplog.sed ]]; then
+		sudo rm /usr/share/misc/ytdlp-uplog.sed
+		printf "ytdlp-uplog.sed removed.\n"
 	else
-		printf "%s not found.\n"  "$sed_file"
+		printf "ytdlp-uplog.sed not found.\n"
 	fi
-	if [[ -x "$cron_loc/$update_script" ]]; then
-		sudo rm "$cron_loc/$update_script"
-  	printf "%s script removed.\n" "$update_script"
+	if [[ -x /etc/cron.daily/z-ytdlp-update ]]; then
+		sudo rm /etc/cron.daily/z-ytdlp-update
+		printf "z-ytdlp-update script removed.\n"
 	else
-		printf "%s script not found.\n" "$update_script"
+		printf "z-ytdlp-update script not found.\n"
 	fi
 }
 
 remove_logs() {
-	local log_location="/var/log/ytdlpup.log"
   # Remove update log file if it exists
-  if [[ -f "$log_location" ]]; then
-    sudo rm "$log_location"
+  if [[ -f /var/log/ytdlpup.log ]]; then
+    sudo rm /var/log/ytdlpup.log
     printf "yt-dlp update log file removed.\n"
   else
     printf "No yt-dlp log file found.\n"
   fi
-}
-
-help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="04 Apr 2025"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Installs, removes, updates YouTube-dlp.
-
-${green}Usage:${normal} $script [OPTION]
-${orange}Available options:${normal}
-	-h 	Show this help message and exit
-	-i 	Install yt-dlp (binary)
-	-r 	Remove yt-dlp (binary)
-	-u 	Update yt-dlp (binary)
-	-x	Remove yt-dlp (repo version)
-_HELP_
-  exit "$errcode"
 }
 
 install_intro() {
@@ -222,7 +214,7 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-	over_line "$script v$version"
+	over_line "$script $version"
 	exit
 }
 
