@@ -66,15 +66,6 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
-check_distro() {
-  local codename
-  codename=$(lsb_release -c -s)
-  case "$codename" in
-    bullseye ) return "$FALSE" ;;
-    * ) return "$TRUE"
-  esac
-}
-
 micro_version() {
   micro -version | awk '/Version/ {print $NF}'
 }
@@ -94,10 +85,8 @@ compare_versions() {
   cur_ver=$(micro_version)
   if [[ "$cur_ver" == "$new_ver" ]]; then
     printf "%sMicro %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
-    check_distro || printf "Bat %s is the latest version compatible with %s.\n" "$new_ver" "$(get_distribution)"
   else
     printf "%sInstalled version of Micro is %s, updating to %s...\n" "$lightyellow" "$cur_ver" "$normal"
-    check_distro || printf "Bat %s is the latest version compatible with %s.\n" "$new_ver" "$(get_distribution)"
     install_micro
   fi
 }
