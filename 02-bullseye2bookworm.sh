@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Jan 2024
-# Last updated : 05 Jun 2025
+# Last updated : 06 Jun 2025
 # Comments     : This scripts updates sources.list & backports.list for upgrade.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -45,7 +45,8 @@ source_list() {
 	local src_list="sources.list"
 	sudo_login 2
 	sudo cp -v "$list_path/$src_list" /root/
-	sudo sed -i 's/bullseye/bookworm/;/deb/s/$/ non-free-firmware/' "$list_path/$src_list"
+	sudo sed -i 's/bullseye/bookworm/' "$list_path/$src_list"
+	grep -q 'non-free-firmware' || sed -i 's/^deb/s/$/ non-free non-free-firmware/' "$list_path/$src_list"
 }
 
 backports_list() {
@@ -63,7 +64,7 @@ backports_list() {
 	fi
 }
 
-deb_12_upgrade() {
+upgrade_debian() {
 	# Cleans and updates apt cache, then upgrades to Debian 12.
 	sudo apt clean
 	sudo apt update
@@ -73,8 +74,8 @@ deb_12_upgrade() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.3.25156"
-	local updated="05 Jun 2025"
+	local version="1.4.25157"
+	local updated="06 Jun 2025"
 	check_files || die "01-bullseye2bookworm.sh must be run first." 1
 	version_info
 	[[ "$(cut -d. -f1 /etc/debian_version)" -ne "11" ]] && die "Unsupported Debian version." 1
@@ -82,7 +83,7 @@ main() {
 	source_list
 	backports_list
 	printf "Upgrading to Debian 12\n"
-	deb_12_upgrade
+	upgrade_debian
 	printf "Debian 12 Bookworm installed.\n"
 	printf "Reboot and run 03-bullseye2bookworm.sh\n"
 	touch "$HOME/02-sources"
