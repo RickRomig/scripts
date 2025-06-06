@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Jan 2024
-# Last updated : 05 Jun  2025
+# Last updated : 06 Jun 2025
 # Comments     : Final cleanup after upgrade to Debian 12.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -15,7 +15,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -53,8 +52,8 @@ clean_up() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.3.25156"
-	local updated="05 Jun 2025"
+	local version="1.4.25157"
+	local updated="06 Jun 2025"
 	check_files || die "01-bullseye2bookworm.sh and 02-bullseye2bookworm.sh must be run first." 1
 	version_info
 	if [[ "$(cut -d. -f1 /etc/debian_version)" -ne "12" ]]; then
