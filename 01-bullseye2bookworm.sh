@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Jan 2024
-# Last updated : 05 Jun 2025
+# Last updated : 06 Jun 2025
 # Comments     : This script updates current Debian 11 before upgrade.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -43,7 +43,7 @@ version_info() {
 	printf "%-16s%s\n" "Version:" "$(cat /etc/debian_version)"
 }
 
-upgrade_11_pkgs() {
+upgrade_packages() {
 	sudo_login 2
 	sudo apt update
 	sudo apt full upgrade -y
@@ -52,14 +52,14 @@ upgrade_11_pkgs() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.4.25156"
-	local updated="05 Jun 2025"
+	local version="1.5.25157"
+	local updated="06 Jun 2025"
 	check_codename || die "This is not Debian 11 Bullseye" 1
 	check_files && die "This script has already been run." 1
 	version_info
 	[[ "$(cut -d. -f1 /etc/debian_version)" -ne "11" ]] && die "Unsupported Debian version." 1
 	printf "Updating current Debian 11 packages.\n"
-	upgrade_11_pkgs
+	upgrade_packages
 	printf "Debian 11 packages have been upgraded.\n"
 	printf "Reboot and run 02-bullseye2bookworm.sh\n"
 	touch "$HOME/01-upgrade"
