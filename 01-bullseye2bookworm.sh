@@ -33,6 +33,10 @@ check_files() {
 	[[ -f "$HOME/01-upgrade" ]] && return "$TRUE" || return "$FALSE"
 }
 
+check_codename() {
+	lsb_release --codename | grep -q bullseye && return "$TRUE" || return "$FALSE"
+}
+
 version_info() {
 	printf "Version information:\n"
 	lsb_release -a | sed '1d'
@@ -48,8 +52,9 @@ upgrade_11_pkgs() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.3.25156"
+	local version="1.4.25156"
 	local updated="05 Jun 2025"
+	check_codename || die "This is not Debian 11 Bullseye" 1
 	check_files && die "This script has already been run." 1
 	version_info
 	[[ "$(cut -d. -f1 /etc/debian_version)" -ne "11" ]] && die "Unsupported Debian version." 1
