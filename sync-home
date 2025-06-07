@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Sep 2019
-# Updated      : 09 Mar 2025
+# Updated      : 07 Jun 2025
 # Comments     : Creates a compressed tar archive of the folder's contents.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -37,30 +37,29 @@ check_host() {
 	[[ "$local_host" == "$main_host" ]] && return "$TRUE" || return "$FALSE"
 }
 
-cleanup_files() {
+remove_bu_files() {
 	local homepage_d="$1"
   printf "Removing backup files (if any)...\n"
-  find "$homepage_d"/ -name "*~" -print -delete
+  find "$homepage_d"/ -type f -regex '\./.*~$' -print -delete
   find "$homepage_d"/ -maxdepth 2 -type f -name "*.bak" -exec rm -v {} \;
 }
 
 archive_homepage() {
-	local archive archive_d homepage_d
+	local archive homepage_d archive_d
 	homepage_d="$1"
 	archive_d="$2"
 	archive="homepage-$(date +%y%m%d).tar.gz"
 	[[ -d "$archive_d" ]] || mkdir -p "$archive_d"
 	printf "Backing up %s...\n" "$homepage_d"
 	tar -czf "$archive_d/$archive" -C "$HOME/gitea" homepage
-	printf "Removing archives more than six months old...\n"
-	find "$archive_d" -mtime +180 -print -delete
+	printf "Removing archives more than three months old...\n"
+	find "$archive_d" -mtime +90 -print -delete
 }
 
 sync_dropbox() {
-	local archive_d dropbox_d homepage_d
-	archive_d="$1"
-	homepage_d="$2"
-	dropbox_d="$HOME/Dropbox/homepage"
+	local archive_d="$1"
+	local homepage_d="$2"
+	local dropbox_d="$HOME/Dropbox/homepage"
 	if [[ -d "$dropbox_d" ]]; then
 		printf "Synchronizing ~/Documents/homepage with ~/Dropbox/homepage...\n"
 		rsync -av --delete --exclude '.git' "$homepage_d"/ "$archive_d"/ "$dropbox_d"
@@ -68,23 +67,22 @@ sync_dropbox() {
 }
 
 main() {
-	local script version homepage_dir archive_dir main_host
-	script=$(basename "$0")
-	version="6.8.25058"
-	main_host="hp-800g2-sff"
-	homepage_dir="$HOME/gitea/homepage"
-	archive_dir="$HOME/Downloads/archives/homepage"
-
-	printf "Archiving homepage...\n"
+	local script="${0##*/}"
+	local version="6.9.25158"
+	local main_host="hp-800g2-sff"
+	local homepage_dir="$HOME/gitea/homepage"
+	local archive_dir="$HOME/Downloads/archives/homepage"
+	printf "Archiving homepage files...\n"
 	if check_host "$main_host"; then
-		cleanup_files "$homepage_dir"
+		check_package rsync
+		remove_bu_files "$homepage_dir"
 		archive_homepage "$homepage_dir" "$archive_dir"
 		sync_dropbox "$homepage_dir" "$archive_dir"
 		printf "\nScript completed in %s\n" "$(format_time $SECONDS)"
 	else
 		printf "Script must be run from %s.\n" "$main_host"
 	fi
-	over_line "$script v$version" "-"
+	over_line "$script $version" "-"
 	exit
 }
 
