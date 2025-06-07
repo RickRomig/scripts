@@ -39,7 +39,7 @@ check_host() {
 
 remove_bu_files() {
 	local homepage_d="$1"
-  printf "Removing backup files (if any)...\n"
+  printf "Removing backup files (if any)...\n\n"
   find "$homepage_d"/ -type f -regex '\./.*~$' -print -delete
   find "$homepage_d"/ -maxdepth 2 -type f -name "*.bak" -exec rm -v {} \;
 }
@@ -51,7 +51,7 @@ archive_homepage() {
 	archive="homepage-$(date +%y%m%d).tar.gz"
 	[[ -d "$archive_d" ]] || mkdir -p "$archive_d"
 	printf "Backing up %s...\n" "$homepage_d"
-	tar -czf "$archive_d/$archive" -C "$HOME/gitea" homepage
+	tar -czvf "$archive_d/$archive" -C "$HOME/gitea" homepage
 	printf "Removing archives more than three months old...\n"
 	find "$archive_d" -mtime +90 -print -delete
 }
@@ -61,8 +61,8 @@ sync_dropbox() {
 	local homepage_d="$2"
 	local dropbox_d="$HOME/Dropbox/homepage"
 	if [[ -d "$dropbox_d" ]]; then
-		printf "Synchronizing ~/Documents/homepage with ~/Dropbox/homepage...\n"
-		rsync -av --delete --exclude '.git' "$homepage_d"/ "$archive_d"/ "$dropbox_d"
+		printf "\nSynchronizing ~/Documents/homepage with ~/Dropbox/homepage...\n"
+		rsync -av --delete --exclude '.git' --exclude '.gitignore' "$homepage_d"/ "$archive_d"/ "$dropbox_d"
 	fi
 }
 
@@ -80,7 +80,7 @@ main() {
 		sync_dropbox "$homepage_dir" "$archive_dir"
 		printf "\nScript completed in %s\n" "$(format_time $SECONDS)"
 	else
-		printf "Script must be run from %s.\n" "$main_host"
+		printf "%sScript must be run from %s.\n" "$RED_WARNING" "$main_host"
 	fi
 	over_line "$script $version" "-"
 	exit
