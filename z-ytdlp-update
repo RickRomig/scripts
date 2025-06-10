@@ -2,12 +2,12 @@
 ###############################################################################
 # Script Name  : z-ytdlp-update
 # Description  : Updates youtube-dl automatically using anacron
-# Dependencies : anacron, yt-dlp (downloaded from GitHub)
+# Dependencies : yt-dlp (downloaded from GitHub)
 # Arguments    : None
 # Author       : Copyright (C) 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Last updated : 28 Feb 2025
+# Last updated : 09 Jun 2025
 # Comments     : copy as root to /etc/cron.daily
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -21,7 +21,7 @@ main() {
 	log_date=$(date '+%F|%R')
 	# sed_file="/usr/share/misc/ytdlp-uplog.sed"
 	update_status=$(/usr/local/bin/yt-dlp --update | awk '/Latest version/ {print $3}' | sed 's/stable@//')
-	[[ -z "$update_status" ]] && update_status="Unavailable"
+	[[ "$update_status" ]] || update_status="unavailable"
 	printf "%s|%s\n" "$log_date" "$update_status" >> "$log_dir/$log_file" 2>&1
 	# sed -i -f "$sed_file" "$log_dir/$log_file"
 	# Remove top entry if more than 30 entries.
