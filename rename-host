@@ -31,8 +31,6 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="5.1.24285"
 readonly old_host="${HOSTNAME:-$(hostname)}"
 new_host="foo-bar"
 
@@ -52,13 +50,12 @@ _RULES_
 }
 
 get_new_hostname() {
-  local strlen maxlen minlen
-  minlen=5
-  maxlen=15
+  local strlen=0
+  local minlen=5
+  local maxlen=15
   while true; do
     printf "\nCurrent hostname is %s\n\n" "$old_host"
-
-    read -rp "Enter new hostname: " new_host
+    read -rp "Enter new hostname (Enter to cancel): " new_host
     strlen=${#new_host}
     if (( strlen < minlen || strlen > maxlen )); then
       printf "\n%sHostname must be between %d and %d characters.%s\n" "$orange" "$minlen" "$maxlen" "$normal" >&2
@@ -87,6 +84,10 @@ get_new_hostname() {
         hostname_rules
         continue
       ;;
+      '' )
+        printf "Rename hostname canceled. No changes made.\n"
+        exit
+      ;;
     esac
 
     # Compare new hostname with the old hostname
@@ -102,49 +103,53 @@ get_new_hostname() {
   done
 }
 
-change_hostname_hosts() {
-  # Make backup copies of the original files and replace old hostname with new hostname
-  sudo sed -i.old "s/$old_host/$new_host/" /etc/hostname
-  sudo sed -i.old "s/$old_host/$new_host/" /etc/hosts
-}
-
-revert_to_old_hostname() {
-  sudo mv /etc/hostname.old /etc/hostname > /dev/null 2>&1
-  sudo mv /etc/hosts.old /etc/hosts > /dev/null 2>&1
-}
-
-remove_old_hostname_hosts() {
-  sudo rm /etc/hostname.old /etc/hosts.old
-}
-
-confirm_hostname_hosts() {
+confirm_hostname() {
   local host1 host2
   host1=$(cat /etc/hostname)
   host2=$(awk '/127.0.1.1/ {print $2}' /etc/hosts)
+  printf "Confirming the new hostname ...\n"
   if [[ -z "$host2" ]]; then
     host2=$(awk '/127.0.0.1/ {print $2}' /etc/hosts | tail -n1)
-    # Change address for hostname from 127.0.0.1 to 127.0.1.1
+    # Change address for hostname from 127.0.0.1 to 127.0.1.1 (antiX, MX Linux)
     sudo sed -i '0,/127.0.0.1/! {0,/127.0.0.1/ s/127.0.0.1/127.0.1.1/}' /etc/hosts
   fi
   printf "/etc/hostname = %s\t/etc/hosts = %s\n" "$host1" " $host2"
   if [[ "$host1" == "$new_host" && "$host2" == "$new_host" ]]; then
-    remove_old_hostname_hosts
-    leave "Hostname successfully changed. Reboot to ensure the change takes effect."
+    remove_old_hostnames
+    printf "Hostname successfully changed. Reboot to ensure the change takes effect.\n"
   else
-    revert_to_old_hostname
-    leave "Hostname change was unsuccessful. Reverted to the original hostname."
+    revert_hostname
+    printf "Hostname change was unsuccessful. Reverted to the original hostname.\n"
   fi
 }
 
+change_hostname() {
+  # Make backup copies of the original files and replace old hostname with new hostname
+  print "\nChanging the hostname from %s to %s ...\n" "$old_host" "$new_host"
+  sudo sed -i.old "s/$old_host/$new_host/" /etc/hostname
+  sudo sed -i.old "s/$old_host/$new_host/" /etc/hosts
+}
+
+revert_hostname() {
+  sudo mv /etc/hostname.old /etc/hostname > /dev/null 2>&1
+  sudo mv /etc/hosts.old /etc/hosts > /dev/null 2>&1
+}
+
+remove_old_hostnames() {
+  sudo rm /etc/hostname.old /etc/hosts.old
+}
+
 main() {
+  local script="${0##*/}"
+  local version="5.2.24162"
   sudo_login 2
-  printf "%s v%s\n" "$script" "$version"
   printf "Renames the system hostname.\n"
   hostname_rules
   get_new_hostname
-  print "\nChanging the hostname from %s to %s ...\n" "$old_host" "$new_host"
-  change_hostname_hosts
-  confirm_hostname_hosts
+  change_hostname
+  confirm_hostname
+  over_line "$script $version"
+  exit
 }
 
 ## Execution ##
