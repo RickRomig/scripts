@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Nov 2019
-# Updated      : 11 Jun 2025
+# Updated      : 12 Jun 2025
 # Comments     : Changes the hostname in both /etc/hostname and /etc/hosts.
 #              : antiX/MX Linux: /etc/hosts - 127.0.0.1      hostname
 #              : Rules based on hostname(7) man page
@@ -32,7 +32,7 @@ fi
 ## Global Variables ##
 
 readonly old_host="${HOSTNAME:-$(hostname)}"
-new_host="foo-bar"
+new_host=""
 
 ## Functions ##
 
@@ -103,51 +103,22 @@ get_new_hostname() {
   done
 }
 
-confirm_hostname() {
-  local host1 host2
-  host1=$(cat /etc/hostname)
-  host2=$(awk '/127.0.1.1/ {print $2}' /etc/hosts)
-  printf "Confirming the new hostname ...\n"
-  if [[ -z "$host2" ]]; then
-    host2=$(awk '/127.0.0.1/ {print $2}' /etc/hosts | tail -n1)
-    # Change address for hostname from 127.0.0.1 to 127.0.1.1 (antiX, MX Linux)
-    sudo sed -i '0,/127.0.0.1/! {0,/127.0.0.1/ s/127.0.0.1/127.0.1.1/}' /etc/hosts
-  fi
-  printf "/etc/hostname = %s\t/etc/hosts = %s\n" "$host1" " $host2"
-  if [[ "$host1" == "$new_host" && "$host2" == "$new_host" ]]; then
-    remove_old_hostnames
-    printf "Hostname successfully changed. Reboot to ensure the change takes effect.\n"
-  else
-    revert_hostname
-    printf "Hostname change was unsuccessful. Reverted to the original hostname.\n"
-  fi
-}
-
 change_hostname() {
-  # Make backup copies of the original files and replace old hostname with new hostname
-  print "\nChanging the hostname from %s to %s ...\n" "$old_host" "$new_host"
-  sudo sed -i.old "s/$old_host/$new_host/" /etc/hostname
-  sudo sed -i.old "s/$old_host/$new_host/" /etc/hosts
-}
-
-revert_hostname() {
-  sudo mv /etc/hostname.old /etc/hostname > /dev/null 2>&1
-  sudo mv /etc/hosts.old /etc/hosts > /dev/null 2>&1
-}
-
-remove_old_hostnames() {
-  sudo rm /etc/hostname.old /etc/hosts.old
+  printf "\nChanging the hostname from %s to %s ...\n" "$old_host" "$new_host"
+  sudo sed -i "s/$old_host/$new_host/" /etc/hosts
+  sudo hostnamectl set-hostname "$new_host"
+  printf "Hostname successfully changed. Reboot to ensure the change takes effect.\n"
+  sudo systemctl restart systemd-resolved.service
 }
 
 main() {
   local script="${0##*/}"
-  local version="5.2.24162"
+  local version="5.3.24163"
   sudo_login 2
   printf "Renames the system hostname.\n"
   hostname_rules
   get_new_hostname
   change_hostname
-  confirm_hostname
   over_line "$script $version"
   exit
 }
