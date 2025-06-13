@@ -9,10 +9,10 @@
 # Created      : 06 Nov 2019
 # Updated      : 12 Jun 2025
 # Comments     : Changes the hostname in both /etc/hostname and /etc/hosts.
-#              : antiX/MX Linux: /etc/hosts - 127.0.0.1      hostname
 #              : Rules based on hostname(7) man page
-#              : Hostname length limited to 15 characters for NETBIOS compatibility.
-#              : old_host & new_host variables are global.
+#              : Hostname length limited to 5-15 characters for NETBIOS compatibility.
+#              : old_host & new_host variables are global for convenience.
+#              : May get a “unable to resolve host” error after changing hostname in /etc/hosts. It will go away after reboting.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
@@ -108,12 +108,12 @@ change_hostname() {
   sudo sed -i "s/$old_host/$new_host/" /etc/hosts
   sudo hostnamectl set-hostname "$new_host"
   printf "Hostname successfully changed. Reboot to ensure the change takes effect.\n"
-  sudo systemctl restart systemd-resolved.service
+  # sudo systemctl restart systemd-resolved.service
 }
 
 main() {
   local script="${0##*/}"
-  local version="5.3.24163"
+  local version="5.3.25163"
   sudo_login 2
   printf "Renames the system hostname.\n"
   hostname_rules
