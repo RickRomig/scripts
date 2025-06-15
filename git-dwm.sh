@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : gitea-dwm-bu.sh
+# Script Name  : git-dwm.sh
 # Description  : daily, weekly, monthly snapshots of git repositories
 # Dependencies : none
 # Arguments    : none
@@ -16,7 +16,7 @@
 set -eu
 
 declare -r arc_dir="$HOME/Downloads/archives/gitea"
-archive="gitea-bu-$(date +%y%m%d).tar.gz"; declare -r archive
+archive="git-snapshot-$(date +%y%m%d).tar.gz"; declare -r archive
 
 daily_bu() {
 	tar -zpcf "$arc_dir/daily/$archive" "$HOME"/gitea "$HOME"/Projects
