@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : gitea-bu.dh
+# Script Name  : git-bu.dh
 # Description  : Incremental backups of Gitea repositories
 # Dependencies : none
 # Arguments    : none
@@ -28,8 +28,8 @@ sunday_actions() {
 main() {
 	local arc_dir archive day snar
 	arc_dir="$HOME/Downloads/archives/gitea-repo"
-	archive="git-repo.$(date +'%y%m%d-%u').tar.gz"
-	snar="git-repo.snar"
+	archive="git-repos.$(date +'%y%m%d-%u').tar.gz"
+	snar="git-repos.snar"
 	day=$(date +%a)
 	[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
 	[[ "$day" == "Sun" ]] && sunday_actions "$arc_dir" "$snar"
