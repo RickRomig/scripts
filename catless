@@ -3,11 +3,11 @@
 # Script Name  : catless
 # Description  : view text file with less or cat based on terminal window size.
 # Dependencies : none
-# Arguments    : $1 -> file to be viewed
+# Arguments    : See help()
 # Author       : Copyright ©  2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 06 Apr 2025
+# Updated      : 16 Jun 2025
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,31 +29,46 @@ set -eu
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="5.0.25096"
+readonly script="${0##*/}"
+readonly version="6.0.25167"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="06 Apr 2025"
+  updated="16 Jun 2025"
   cat << _HELP_
 ${orange}$script${normal} $version (updated $updated)
 Displays a text file using either cat or less depending the number of lines in
 the file and the number of rows in the current terminal window. Less is used when
 the number of lines is greater than the 87% of the rows, otherwise cat is used.
-Line numbers can be displayed in the output by adding an 'n' or 'N' flag after the file name.
 
-${green}Usage:${normal} $script [filename] [OPTION]
+${green}Usage:${normal} $script <OPTION> [filename]
 
 ${orange}Available options:${normal}
-  -h | --help  Show this help message and exit. (first argument)
-  -N | -n      Enable line numbers in the output (second argument)
-               The dash is optional. N|n works as well.
+  -f  View file without line numbers.
+  -h  Show this help message and exit.
+  -n  View file with line numbers.
 
 _HELP_
   exit "$errcode"
+}
+
+check_file() {
+	local filename="$1"
+	if [[ ! -f "$1" ]]; then
+		printf "%s %s not found.\n" "$RED_ERROR" "$1" >&2
+		return "$FALSE"
+	elif [[ ! -s "$1" ]]; then
+		printf "%s %s is an empty file.\n" "$RED_ERROR" "$1" >&2
+		return "$FALSE"
+	elif file -bL "$1" | grep -qEi "text|json"; then
+		return "$TRUE"
+	else
+		printf "%s %s is not a text file.\n" "$RED_ERROR" "$1" >&2
+		return "$FALSE"
+	fi
 }
 
 over_max() {
@@ -66,18 +81,18 @@ over_max() {
 
 view_file() {
   local textfile="$1"
-  local ln="$2"
+  local linenumbers="$2"
   if over_max "$textfile"; then
-    case "$ln" in
-      [nN]* )
+    case "$linenumbers" in
+      0 )
         less -N "$textfile" ;;
       * )
         less "$textfile"
     esac
     head -n5 "$textfile"
   else
-    case "$ln" in
-      [nN]* )
+    case "$linenumbers" in
+      0 )
         cat -n "$textfile" ;;
       * )
         cat "$textfile"
@@ -87,25 +102,38 @@ view_file() {
 }
 
 main() {
-	local line_numbers="${2:-y}"
-  if [[ $# -eq 0 ]]; then
-    printf "%s No argument passed.\n" "$RED_ERROR" >&2
-    help 1
-  elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-    help 0
-  elif [[ ! -f "$1" ]]; then
-    printf "%s %s not found.\n" "$RED_ERROR" "$1" >&2
-    help 2
-  elif [[ ! -s "$1" ]]; then
-    printf "%s %s is an empty file.\n" "$RED_ERROR" "$1" >&2
-  elif file -bL "$1" | grep -qEi "text|json"; then
-		line_numbers="${line_numbers//[![:alnum:]]}"
-    view_file "$1" "$line_numbers"
-  else
-    printf "%s %s is not a text file.\n" "$RED_ERROR" "$1" >&2
-  fi
-  over_line "$script $version" "-"
-  exit 0
+	local noOpt opt optstr filename linenumbers
+	linenumbers="$FALSE"
+	noOpt=1
+	optstr=":f:hn:"
+	while getopts "$optstr" opt; do
+	case "$opt" in
+		f )
+			filename="$OPTARG"
+			check_file "$filename" && view_file "$filename" "$linenumbers"
+		;;
+		h )
+			help 0
+		;;
+		n )
+			filename="$OPTARG"
+			linenumbers="$TRUE"
+			check_file "$filename" && view_file "$filename" "$linenumbers"
+		;;
+		: )
+			printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
+			help 2
+	  ;;
+		? )
+			printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			help 2
+	esac
+	noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No option passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+	exit
 }
 
 ## Execution ##
