@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 26 Apr 2025
-# Comments     :
+# Updated      : 18 Jun 2025
+# Comments     : clone-repo() is part of functionlib
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -46,9 +46,9 @@ check_repo() {
 }
 
 main() {
-  local arr_len index _repo repos script version
-  script=$(basename "$0")
-  version="3.8.25116"
+  local array_length index _repo repos script version
+  script="${0##*/}"
+  version="3.9.25169"
 
   check_package git
   printf "Clone a repository from the local Gitea server.\n\n"
@@ -56,8 +56,9 @@ main() {
   COLUMNS=40
   PS3="Choose a repository to clone: "
   repos=( scripts configs i3wm-debian homepage gitea-server fnloc fnloc-win )
+  array_length="${#repos[@]}"
   select _repo in "${repos[@]}" "Exit"; do
-	  if (( REPLY == 1 + ${#repos[@]} )); then
+	  if (( REPLY == 1 + array_length )); then
 		  printf "Exiting. No repository selected or cloned.\n"
 		  break
 	  elif (( REPLY > 0 && REPLY <= ${#repos[@]} )); then
@@ -66,8 +67,8 @@ main() {
 		  check_repo "${repos[index]}"
 		  break
 	  else
-      arr_len="${#repos[@]}"; arr_len=$(( arr_len + 1 ))
-		  printf "Invalid option. Choose 1 - %d\n" "$arr_len"
+      array_length=$(( array_length + 1 ))
+		  printf "Invalid option. Choose 1 - %d\n" "$array_length"
 	  fi
   done
   over_line "$script $version"
