@@ -7,7 +7,7 @@
 # Author       : Cepyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2019
-# Updated      : 23 May 2025
+# Updated      : 18 jun 2025
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -127,6 +127,7 @@ bu_user_cfgs() {
 	[[ -f "$HOME/.inputrc" ]] && bu_home_cfg ".inputrc"
 	[[ -f "$HOME/.face" ]] && bu_home_cfg ".face"
 	[[ -f "$HOME/.xinitrc" ]] && bu_home_cfg ".xinitrc"
+	[[ -f "$HOME/.imwheelrc" ]] && bu_home_cfg ".imwheelrc"
 }
 
 bu_i3_cfgs() {
@@ -188,8 +189,6 @@ bu_misc_cfgs() {
 	[[ -f "$cfg_dir/git/config" ]] && bu_config_cfg "git" "config"
 	[[ -f "$HOME/.git-credentials" ]] && bu_home_cfg ".git-credentials"
 	[[ -f "$cfg_dir/git/credentials" ]] && bu_config_cfg "git" "credentials"
-	[[ -f /etc/X11/xorg.conf.d/10-monitor.conf ]] && bu_etc_cfg "/etc/X11/xorg.conf.d" "10-monitor.conf"
-	[[ -f "$HOME/.imwheelrc" ]] && bu_home_cfg ".imwheelrc"
 	[[ -f "$cfg_dir/picom/picom.conf" ]] && bu_config_cfg "picom" "picom.conf"
 	[[ -f "$cfg_dir/picom.conf" ]] && bu_misc_cfg ".config" "picom.conf"
 	[[ -f "$cfg_dir/compton.conf" ]] && bu_misc_cfg ".config" "compton.conf"
@@ -197,10 +196,12 @@ bu_misc_cfgs() {
 	[[ -f "$HOME/.ssh/id_rsa.pub" ]] && bu_misc_cfg ".ssh" "id_rsa.pub"
 	[[ -f "$HOME/.ssh/config" ]] && bu_misc_cfg ".ssh" "config"
 	[[ -f "$HOME/.config/redshift.conf" ]] && bu_misc_cfg ".config" "redshift.conf"
+	[[ -f /etc/X11/xorg.conf.d/10-monitor.conf ]] && bu_etc_cfg "/etc/X11/xorg.conf.d" "10-monitor.conf"
+	[[ -f /etc/X11/xorg.conf.d/10-force-vga1.conf ]] && bu_etc_cfg "/etc/X11/xorg.conf.d" "10-monitor.conf"
 }
 
 completion_status() {
-	# printf "count = %d\n"  "$count"
+	# printf "count = %d\n" "$count"
 	if (( count < 1 )); then
 		printf "Configuration files are up to date. No backup required.\n"
 	elif (( count > 1 )); then
@@ -212,9 +213,8 @@ completion_status() {
 }
 
 main() {
-	local script version
-	script=$(basename "$0")
-	version="6.4.25143"
+	local script="${0##*/}"
+	local version="6.5.25168"
 	[[ -d "$bu_dir" ]] || mkdir -p "$bu_dir"
 	printf "Backing up configuration files...\n"
 	bu_user_cfgs
@@ -225,7 +225,7 @@ main() {
 	bu_conky_cfgs
 	bu_misc_cfgs
 	completion_status
-	over_line "$script v$version"
+	over_line "$script $version"
 	exit
 }
 
