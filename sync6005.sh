@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : sync6006.sh
+# Script Name  : sync6005.sh
 # Description  : synchronize archive files to HP-6005 data drive.
 # Dependencies : rsync
 # Arguments    : None
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Dec 2023
-# Last updated : 01 Feb 2025 (version 1.1.24032)
-# Comments     : Run in user crontab
+# Last updated : 19 Jun 2025 (version 1.1.24032)
+# Version      : 1.2.25170
+# Comments     : Run in user crontab of main system
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
