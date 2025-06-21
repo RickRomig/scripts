@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 30 Jul 2020
-# Updated      : 09 Jan 2025
+# Updated      : 21 Jun 2025
 # Comments     : Obtains battery data from upower utility.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,15 +27,15 @@ fi
 
 ## Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="4.7.25009"
+readonly script="${0##*/}"
+readonly version="4.8.25172"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="109 Jan 2025"
+  updated="21 Jun 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Shows battery charge and health information
@@ -45,18 +45,9 @@ With no argument, displays battery health information.
 
 ${orange}Options:${normal}
   -h,--help     Show this help text
-  -v,--version  Show version and information
   With no argument, displays battery health information.
 _HELP_
   exit "$errcode"
-}
-
-version() {
-  cat << _VER_INFO_
-  $script $version, Upated: $updated
-Displays the charge state and health of a laptop battery using data obtained
-from the upower utilty.
-_VER_INFO_
 }
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
@@ -166,21 +157,16 @@ main() {
   if [[ "$#" -gt 0 ]]; then
     case "$1" in
       -h|--help )
-        help 0
-      ;;
-      -v|--version )
-        version
-        exit
-      ;;
+        help 0 ;;
       * )
         printf "%s Invalid argument - %s\n" "$RED_ERROR" "$1" >&2
         help 2
     esac
   else
-  check_package upower
-  battery_check
-  over_line "$script v$version"
-  exit
+    check_package upower
+    battery_check
+    over_line "$script v$version"
+    exit
   fi
 }
 
