@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jul 2020
-# Updated      : 10 Jan 2025
+# Updated      : 21 Jun 2025
 # Comments     : Uses data from /sys/class/power_supply/BAT*
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -27,14 +27,14 @@ fi
 
 ## Global Variables ##
 
-  script=$(basename "$0"); readonly script
-  readonly version="6.7.25010"
+readonly script="${0##*/}"
+readonly version="6.8.25172"
+readonly updated="21 Jun 2025"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-  errcode="${1:-2}"
+  local errcode="${1:-2}"
   cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Shows battery charge and health information
@@ -42,20 +42,10 @@ Shows battery charge and health information
 ${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
-  -h,--help     Show this help text
-  -v,--version  Show version and information
+  -h | --help     Show this help text
   With no argument, displays battery health information.
 _HELP_
   exit "$errcode"
-}
-
-version() {
-  cat << _VERSION_
-$script $version, Updated: $updated
-Displays the charge state and health of a laptop battery using data obtained
-from files in /sys/class/power_supply/BAT*. Capacity information may be shown
-in either Ampere-hours (Ah) or Watt-hours (Wh), depending on your system.
-_VERSION_
 }
 
 battery_status() {
@@ -146,11 +136,9 @@ ac_power() {
   printf "\tLaptop"
   case "$ac_status" in
     0 )
-      printf " is not plugged in to AC power.\n"
-    ;;
+      printf " is not plugged in to AC power.\n" ;;
     1 )
-      printf " is plugged in to AC power.\n"
-    ;;
+      printf " is plugged in to AC power.\n" ;;
     * )
       printf "'s AC power status cannot be determined.\n"
   esac
@@ -195,12 +183,7 @@ main() {
   if [[ "$#" -gt 0 ]]; then
     case "$1" in
       -h|--help )
-        help 0
-      ;;
-      -v|--version )
-        version
-        exit
-      ;;
+        help 0 ;;
       * )
         printf "%s Invalid argument - %s\n" "$RED_ERROR" "$1" >&2
         help 2
@@ -208,7 +191,7 @@ main() {
   else
     check_package bc
     battery_check
-    over_line "$script v$version"
+    over_line "$script $version"
     exit
   fi
 }
