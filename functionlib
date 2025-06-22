@@ -90,9 +90,8 @@ DEFAULT=$(echo -en "\e[49m")
 #   $2 -> Exit status (optional, default is 1)
 ###############################################################################
 die() {
-  local errmsg errcode
-  errmsg="${1:-Undefined error}"
-  errcode="${2:-1}"
+  local -r errmsg="${1:-Undefined error}"
+  local -r errcode="${2:-1}"
   printf "\e[91mERROR:\e[0m %s\n" "$errmsg" >&2
   exit "$errcode"
 }
@@ -119,8 +118,8 @@ diehard() {
 # Do not use in scripts with functions that return non-error integers.
 ###############################################################################
 error_handler() {
-  local err_code="$1"
-  local line_nr="$2"
+  local -r err_code="$1"
+  local -r line_nr="$2"
   printf "\e[91mERROR:\e[0m (%s) occurred on line %s\n" "$err_code" "$line_nr" >&2
   exit "$err_code"
 }
