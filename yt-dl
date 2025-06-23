@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 06 May 2025
+# Updated      : 23 Jun 2025
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to selected directory under ~/Videos/
 # TODO (Rick)  :
@@ -28,10 +28,10 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="7.1.25126"
-readonly updated="06 May 2025"
-FMENU="fzf --header=$(basename "$0") \
+readonly script="${0##*/}"
+readonly version="7.1.25174"
+readonly updated="23 Jun 2025"
+FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
            --border=bold \
@@ -111,8 +111,8 @@ extract_domain() {
 }
 
 select_directory() {
-	local video_dir vid_d selected_directory
-	video_dir=$HOME"/Videos"
+	local vid_d selected_directory
+	local video_dir=$HOME"/Videos"
   local directories=()
   for vid_d in $video_dir; do
     [[ -d "$vid_d" ]] && directories+=("$(find "$video_dir" -path "$video_dir/Pornography" -prune -o -type d | sort -d)")
