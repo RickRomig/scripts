@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 23 Mar 2025
-# Last updated : 21 jun 2025
+# Last updated : 21 Jun 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -79,7 +79,7 @@ play_game() {
 
 main() {
   local script="${0##*/}"
-  local version="2.1.25172"
+  local version="2.1.25174"
   check_files
   play_game
   over_line "$script $version"
