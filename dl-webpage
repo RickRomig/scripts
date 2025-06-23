@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, 02 Nov 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Nov 2019
-# Updated      : 13 Oct 2024
+# Updated      : 23 Jun 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,50 +25,47 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="2.0.24287"
+readonly script="${0##*/}"
+readonly version="2.1.25174"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-  errcode="${1:-2}"
-  updated="13 Oct 2024"
+  local errcode="${1:-2}"
+  local updated="23 Jun 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Downloads a web page to the current directory.
 
-${green}Usage:  ${normal} $script [URL] [OPTOON]
+${green}Usage:  ${normal} $script [URL | OPTION]
 ${green}Example:${normal} $script https://example.com/index.html
 
 ${orange}Available options:${normal}
-  -h | --help  Show help
-
-  Example: $script https://example.com/index.html
+  -h | --help  Show this help message and exit.
 _HELP_
   exit "$errcode"
 }
 
 download_page() {
-  local domain url
-  domain="$1"
-  url="$2"
-  if wget --quiet --recursive --no-clobber --page-requisites --html-extension \
-    --convert-links --restrict-file-names=windows --domains "$domain" \
-    --no-parent "$url"
-  then
-    return 0
+  local -r domain="$1"
+  local -r url="$2"
+  printf "Downloading %s to %s\n" "$url" "$PWD"
+  wget --quiet --recursive --no-clobber --page-requisites --html-extension --convert-links --restrict-file-names=windows --domains "$domain" --no-parent "$url"
+}
+
+print_status() {
+  local -r exit_code="${1:-0}"
+  if [[ "$exit_code" -eq 0 ]]; then
+    printf "Page succesfully downloaded.\n"
   else
-    status="$?"
-    return "$status"
+    printf "Download failed with exit code: %s.\n" "$exit_code"
   fi
 }
 
 main() {
-  local cur_d domain ec url
-  cur_d="$PWD"
+  local dl_ec domain url
   check_package wget
   if [[ "$#" -eq 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
@@ -78,19 +75,15 @@ main() {
   elif [[ "$1" =~ ^https?:\/\/.* ]]; then
     url="$*"
     domain=$(echo "$url" | sed -e 's|^[^/]*//||' -e 's|^www\.||' -e 's|/.*$||')
+    download_page "$domain" "$url"
+    dl_ec="$?"
+    print_status "$dl_ec"
+    over_line "$script $version"
+    exit "$dl_ec"
   else
-    printf "%s Invalid parameter - %s\n" "$RED_ERROR" "$1" >&2
+    printf "%s Invalid argument - %s\n" "$RED_ERROR" "$1" >&2
     help 2
   fi
-
-  printf "Downloading %s to %s\n" "$url" "$cur_d"
-  download_page "$domain" "$url"; ec="$?"
-  if [[ "$ec" -eq 0 ]]; then
-    leave "$url successfully downloaded."
-  else
-    die "Download failed with exit status $ec." "$ec"
-  fi
-  printf "%s v%s\n" "$script" "$version"
 }
 
 ## Execution ##
