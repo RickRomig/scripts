@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jan 2025
-# Last updated : 06 Mar 2025
+# Last updated : 23 Jun 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,8 +31,8 @@ set -eu
 
 main() {
 	local script version swap_dev
-	script=$(basename "$0")
-	version="1.9.25065"
+	script="${0##*/}"
+	version="1.9.25174"
 	swap_dev=$(awk '/file/ || /partition/ {print $1}' /proc/swaps)
 	if [[ "$swap_dev" ]]; then
 		case "$swap_dev" in
