@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jan 2025
-# Updaged      : 07 Mar 2025
-# Comments     :
+# Updaged      : 23 Jun 2025
+# Comments     : Option to disable current swap && install ZRam.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -53,11 +53,11 @@ install_zram() {
 }
 
 main() {
-  local script version swap_dev
-  script=$(basename "$0")
-  version="3.0.25066"
-  sudo_login 2
+  local -r script="${0##*/}"
+  local -r version="3.1.25174"
+  local swap_dev
   swap_dev=$(find_current_swap)
+  sudo_login 2
   if [[ "$swap_dev" ]]; then
     case "$swap_dev" in
       "/dev/zram0" )
