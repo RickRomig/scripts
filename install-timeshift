@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Last updated : 14 Mar 2025
+# Last updated : 23 Jun 2025
 # Comments     : My default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -32,15 +32,15 @@ set -eu
 get_home_uuid() {
   local target_uuid
   target_uuid=$(lsblk -f | awk '/home/ {print $4}')
-  [[ "$target_uuid" ]] || target_uuid=$(lsblk -f | awk '$NF ~ /\/$/ {print $4}')
+  [[ "$target_uuid" ]] || target_uuid=$(lsblk -f | awk '$NF ~ /\/$/ {print $4}')  # root partition if no /home partition
   printf "%s" "$target_uuid"
 }
 
 configure_timeshift() {
-  local ts_dir ts_json ts_sed ts_uuid
-  ts_dir="/etc/timeshift"
-  ts_json="timeshift.json"
-  ts_sed="$HOME/bin/files/timeshift.sed"
+  local ts_uuid
+  local -r ts_dir="/etc/timeshift"
+  local -r ts_json="timeshift.json"
+  local -r ts_sed="$HOME/bin/files/timeshift.sed"
   ts_uuid=$(get_home_uuid)
   if [[ -f "$ts_sed" ]]; then
     printf "Configuring Timeshift...\n"
@@ -49,7 +49,7 @@ configure_timeshift() {
     sudo sed -i "/backup_device_uuid/ s/\",/$ts_uuid\",/" "$ts_dir/$ts_json"  # insert UUID for snapshots
     sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/$ts_json"  # to get leading spaces right in json file
   else
-    printf "%s was not found. Configure using the GUI application.\n" "$(basename "$ts_sed")"
+    printf "%s was not found. Configure using the GUI application.\n"  "${ts_sed##*/}"
   fi
 }
 
@@ -61,9 +61,8 @@ install_timeshift() {
 }
 
 main() {
-  local script version
-  script=$(basename "$0")
-  version="3.1.25073"
+  local -r script="${0##*/}"
+  local -r version="3.1.25174"
   if exists timeeshift; then
     printf "%s is already installed.\n" "$(timeshift --version)"
   elif in_repos timeshift; then
