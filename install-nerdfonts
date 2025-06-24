@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Sep 2023
-# Last updated : 11 Apr 2025
-# Comments     :
+# Last updated : 23 Jun 2025
+# Comments     : system install directory = /usr/local/share/fonts
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -36,19 +36,16 @@ cleanup() {
 }
 
 install_nerd_fonts() {
-  local font font_dir fonts font_repo symbols_font symbols_archive
-  symbols_font="SymbolsNerdFontMono-Regular.ttf"
-  symbols_archive="NerdFontsSymbolsOnly.tar.xz"
-  font_repo="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0"
-  # font_dir="/usr/local/share/fonts"
-  font_dir="$HOME/.local/share/fonts"
-  [[ -d "$font_dir" ]] || sudo mkdir -p "$font_dir"
-  fonts=( "CascadiaCode" "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
+  local -r font_repo="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0"
+  local -r symbols_font="SymbolsNerdFontMono-Regular.ttf"
+  local -r symbols_archive="NerdFontsSymbolsOnly.tar.xz"
+  local -r font_dir="$HOME/.local/share/fonts"
+  local -r fonts=( "CascadiaCode" "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
+  local font
+  [[ -d "$font_dir" ]] || mkdir -p "$font_dir"
   for font in "${fonts[@]}"; do
     wget -P "$tmp_dir" "$font_repo/$font.tar.xz"
     tar xvf "$tmp_dir/$font.tar.xz" -C "$font_dir/$font/"
-	  # wget -P "$tmp_dir" "$font_repo/$font.zip"
-	  # sudo unzip "$tmp_dir/$font.zip" -d "$font_dir/$font/"
   done
   wget -P "$tmp_dir" "$font_repo/$symbols_archive"
   tar xvf "$tmp_dir/$symbols_archive" "$font_dir/$symbols_font"
@@ -57,15 +54,14 @@ install_nerd_fonts() {
 }
 
 main() {
-  local script version
-  script=$(basename "$0")
-  version="1.5.25101"
+  local -r script="${0##*/}"
+  local -r version="1.6.25174"
   sudo_login 2
   check_packages wget
   tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
   trap cleanup EXIT
   install_nerd_fonts
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
