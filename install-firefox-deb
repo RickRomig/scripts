@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Updated      : 20 Mar 2025
+# Updated      : 23 Jun 2025
 # Comments     : For Debian/Ubuntu=based systems with ESR, Flatpak, or Snap versions of Firefox installed.
 # TODO (Rick)  : getopts with uninstall Mozilla deb package (pref and list files)
 # License      : GNU General Public License, version 2.0
@@ -48,9 +48,9 @@ rm_mint_firefox() {
 
 # Remove Mozilla deb package
 rm_mozilla_firefox() {
-	local mozilla_list="/etc/apt/sources.list.d/mozilla.list"
-	local mozilla_pref="/etc/apt/preferences.d/mozilla.pref"
-	local mozilla_asc="/etc/apt/keyrings/packages.mozilla.org.asc"
+	local -r mozilla_list="/etc/apt/sources.list.d/mozilla.list"
+	local -r mozilla_pref="/etc/apt/preferences.d/mozilla.pref"
+	local -r mozilla_asc="/etc/apt/keyrings/packages.mozilla.org.asc"
 	printf "Firefox version installed: %s\n" "$(firefox_version)"
 	sudo apt-get remove -y firefox
 	[[ -f "$mozilla_list" ]] && sudo rm "$mozilla_list"
@@ -117,11 +117,11 @@ Pin-Priority: 1000
 }
 
 mozilla_deb_install() {
-	local keyrings_d="/etc/apt/keyrings"
-	local asc_file="packages.mozilla.org.asc"
-	local key_url="https://packages.mozilla.org/apt/repo-signing-key.gpg"
-	local list_url="https://packages.mozilla.org/apt"
-	local mozilla_list="/etc/apt/sources.list.d/mozilla.list"
+	local -r keyrings_d="/etc/apt/keyrings"
+	local -r asc_file="packages.mozilla.org.asc"
+	local -r key_url="https://packages.mozilla.org/apt/repo-signing-key.gpg"
+	local -r list_url="https://packages.mozilla.org/apt"
+	local -r mozilla_list="/etc/apt/sources.list.d/mozilla.list"
 
 	printf "Installing the Mozilla Firefox DEB package...\n"
 	[[ -d "$keyrings_d" ]] || sudo install -d -m 0755 "$keyrings_d"
@@ -139,8 +139,8 @@ mozilla_deb_install() {
 
 main() {
   local script version
-  script=$(basename "$0")
-  version="4.0.25079"
+  local -r script="${0##*/}"
+  local -r version="4.1.25174"
 
 	sudo_login 2
 	check_package wget
