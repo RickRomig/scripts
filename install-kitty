@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 04 May 2025
+# Updated      : 23 Jun 2025
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,15 +28,14 @@ fi
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.14.25124"
+readonly version="2.15.25174"
 readonly kitty_cfg_d="$HOME/.config/kitty"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="03 Mar 2025"
+	local errcode="${1:-2}"
+	local -r updated="23 Jun 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Kitty terminal emulator
@@ -71,6 +70,7 @@ remove_kitty() {
 }
 
 kitty_config() {
+  local repository
 	repository=$(assign_cfg_repo)
   [[ -d "$kitty_cfg_d" ]] || mkdir -p "$kitty_cfg_d"
   printf "Applying configuration files ...\n"
