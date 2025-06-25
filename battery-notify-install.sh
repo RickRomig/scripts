@@ -29,17 +29,17 @@ set -eu
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="1.3.24299"
+readonly script="${0##*/}"
+readonly version="1.4.25176"
 
 ## Functions ##
 
 install_scripts() {
-	local batt batt_array dest_dir source_dir repo
-	repo="$1"
-	dest_dir="HOME/.local/bin"
-	batt_array=(battery-alert battery-charging)
-	source_dir="$repo/.local/bin"
+	local batt
+	local repo="$1"
+	local dest_dir="HOME/.local/bin"
+	local batt_array=(battery-alert battery-charging)
+	local source_dir="$repo/.local/bin"
 	printf "Copying the battery scripts...\n"
 	for batt in "${batt_array[@]}"; do
 		cp -v "$source_dir/$batt" "$dest_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
@@ -101,12 +101,12 @@ assign_repository() {
 			repository="$HOME/Downloads/i3debian"
 			git clone "$GITEA_URL/i3debian.git" "$repository/"
 			install_notifier_scripts "$repository"
-		;;
+			;;
 		22 )
 			printf "Using the i3debian repository mirror on the system.\n"
 			repository="$HOME/gitea/i3debian"
 			install_notifier_scripts "$repository"
-		;;
+			;;
 		* )
 			printf "System is not a laptop running the i3 window manager.\n"
 			over_line "$script v$version" "-"
