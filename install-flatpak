@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Mar 2020
-# Updated      : 17 May 2024
+# Updated      : 25 Jun 2025
 # Comments     : Debian 10+, Ubuntu 18.04, Mint 19.x
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -35,11 +35,12 @@ install_flatpak() {
   else
     ver_code=$(lsb_release -c | awk '{print $2}')
     case "$ver_code" in
-      bookworm|bullseye )
+      bookworm|bullseye|trixie )
         echo "Installing Flatpak on ${ver_code^}..."
+        sudo_login 2
         sudo apt update -qq
         sudo apt install -y flatpak
-      ;;
+        ;;
       * )
         die "Flatpak can't be installed on ${ver_code^} using this script." 1
     esac
@@ -50,6 +51,7 @@ install_gnome_plugin() {
   # Install only if using Gnome Desktop or Gnome Software Store
   echo "Installing the Gnome software plugin for Flatpak ..."
   sudo apt install -y gnome-software-plugin-flatpak
+  printf "Gnome software plugin installed.\n"
 }
 
 install_flathub() {
@@ -58,11 +60,11 @@ install_flathub() {
 }
 
 main() {
-  local script version
+  local script="${0##*/}"
+  local version="1.1.25176"
   clear
   echo "$script v$version"
   echo "Installs Flatpak & Flathub repository."
-  sudo_login 2
   install_flatpak
   exists gnome-software && install_gnome_plugin
   install_flathub
