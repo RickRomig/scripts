@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 09 Apr 2025
+# Updated      : 25 Jun 2025
 # Comments     : Based on instructions from Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,19 +27,19 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly  version="2.0.25099"
+readonly script="${0##*/}"
+readonly  version="2.1.25176"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="09 Apr 2025"
+	local updated="25 Jun 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Install Gnome Boxes from either distribution repositories or flatpak from Flathub.
 
-${green}Usage:${normal} $script [OPTION]
+${green}Usage:${normal} $script [-d] [-f] [-h]
 
 ${orange}Available options:${normal}
 	-d	Install Gnome Boxes from distro repo
@@ -81,7 +81,7 @@ add_to_kvm_group() {
   local user in_kvm_grp
   user=$(whoami)
   in_kvm_grp=$(awk '/kvm:/ && /'"$user"'/' /etc/group)
-printf "User %s " "$user"
+  printf "User %s " "$user"
   if [[ "$in_kvm_grp" ]]; then
     printf "is already a member of "
   else
@@ -120,25 +120,24 @@ main() {
         check_bios
         install_boxes
         add_to_kvm_group
-      ;;
+        ;;
       f )
         sudo_login 2
         check_bios
         install_flatpak
         add_to_kvm_group
-      ;;
+        ;;
       h )
         help 0
-      ;;
+        ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
     esac
     noOpt=0
-done
+  done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-
   printf "Gnome boxes installed and configured.\n"
   over_line "$script $version"
   exit
