@@ -7,11 +7,11 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Last updated : 04 Jun 2025
+# Last updated : 25 Jun 2025
 # Comments     : the executable and its manpage will be renamed from ‘bat’ to ‘batcat’
 #              : because of a file name clash with another Debian package.
-#              : Mint 22 installs version 0.24.0 with the Ubuntu version appended.
-#              : Debian 13 installs version 0.25.0 with the Debian version appended.
+#              : Mint 22 installs version 0.24.0 with the Ubuntu suffix appended.
+#              : Debian 13 installs version 0.25.0 with the Debian suffix appended.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -33,26 +33,24 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.1.25155"
-# readonly cfg_d=$HOME"/.config/bat"
+readonly version="2.1.25176"
 
 ## Functions ##
 
 help() {
-	local errcode updated
-	errcode="${1:-2}"
-	updated="04 Jun 2025"
+	local errcode="${1:-2}"
+	local updated="25 Jun 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Installs/removes/configures bat/batcat
 
-${green}Usage:${normal} $script [OPTION]
+${green}Usage:${normal} $script [-c] [-h] [-i] [-r]
 
 ${orange}Available options:${normal}
-  -c	Install bat configuration
-  -h	Show this help message and exit
-  -i	Install bat from Debian/Ubuntu repository
-  -r	Remove bat and configuration files
+  -c	Install bat configuration file.
+  -h	Show this help message and exit.
+  -i	Install bat from Debian/Ubuntu repository.
+  -r	Remove bat and configuration files.
 _HELP_
   exit "$errcode"
 }
@@ -73,7 +71,7 @@ remove_bat() {
 	sudo apt-get remove --purge -y bat
 	if default_no "Remove configuration files?"; then
 		[[ -L "$HOME/.config/bat/config" ]] && unlink "$HOME/.config/bat/config"
-		find ~/.config -type d -name bat -exec rm -rf \;
+		find ~/.config -type d -name bat -exec rm -rf {} \;
 		printf "Bat configuration files removed.\n"
 	else
 		printf "Kept user configuration files.\n"
@@ -82,8 +80,7 @@ remove_bat() {
 }
 
 bat_config() {
-	local repository
-	repository=$(assign_cfg_repo)
+	local repository; repository=$(assign_cfg_repo)
 	[[ -d "$HOME/.config/bat" ]] || mkdir -p "$HOME/.config/bat"
   printf "Applying Bat configuration...\n"
 	[[ -f "$HOME/.config/bat/config" ]] && rm "$HOME/.config/bat/config"
@@ -104,17 +101,17 @@ main() {
 			;;
 			h )
 				help 0
-			;;
+				;;
 			i )
 				exists bat && leave "Bat $(bat_version) is already installed."
 				sudo_login 2
 				install_bat
-			;;
+				;;
 			r )
 				exists bat || leave "Bat is not installed."
 				sudo_login 2
 				remove_bat
-			;;
+				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
@@ -124,6 +121,7 @@ main() {
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
+	exit 0
 }
 
 ## Execution ##
