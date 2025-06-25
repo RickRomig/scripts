@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 04 Jun 2025
+# Updated      : 25 Jun 2025
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.4.25155"
+readonly version="2.5.25176"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
@@ -38,28 +38,28 @@ verbose_mode="$FALSE"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="04 Jun 2025"
+	updated="25 Jun 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
 Install/Removes VSCodium & applies settings
 
-${green}Usage:${normal} $script [OPTION]
+${green}Usage:${normal} $script [-h] [-va] [-vi] [-vr] [-vs]
 
 ${orange}Available options:${normal}
-  -a  Set apt gpg key and source list
-  -h  Show this help message and exit
-  -i  Install VSCodium via apt
-  -r  Remove VSCodium
-  -s  Apply VSCodium settings
-  -v  Enable verbose mode
+  -a  Set apt gpg key and source list.
+  -h  Show this help message and exit.
+  -i  Install VSCodium via apt.
+  -r  Remove VSCodium.
+  -s  Apply VSCodium settings.
+  -v  Enable verbose mode. If used, must precede other flags.
 _HELP_
   exit "$errcode"
 }
 
-check_dependencies() {
-	local packages=( git wget )
-	check_packages "${packages[@]}"
-}
+# check_dependencies() {
+# 	local packages=( git wget )
+# 	check_packages "${packages[@]}"
+# }
 
 codium_version() {
 	# codium --version | head -n 1
@@ -90,18 +90,18 @@ install_vscodium() {
 }
 
 apply_settings() {
-	local repository config_d
+	local repository settings_dir
+	settings_dir="$1"
 	repository=$(assign_cfg_repo)
-	config_d="$HOME/.config/VSCodium/User"
-	[[ -d "$config_d" ]] || mkdir -p "$config_d"
+	[[ -d "$settings_dir" ]] || mkdir -p "$settings_dir"
   show_message "Applying VSCodium settings..."
-	[[ -f "$config_d/settings.json" ]] && rm "$config_d/settings.json"
-	ln -s "$repository/VSCodium/User/settings.json" "$config_d/settings.json"
+	[[ -f "$settings_dir/settings.json" ]] && rm "$settings_dir/settings.json"
+	ln -s "$repository/VSCodium/User/settings.json" "$settings_dir/settings.json"
   show_message "VSCodium settings applied."
 }
 
 remove_vscodium() {
-	local	config_d="$HOME/.config/VSCodium/User"
+	local	settings_dir="$1"
 	show_message "Removing VSCodium..."
 	sudo apt-get purge codium
 	show_message "Removing VSCodium GPG key ..."
@@ -109,7 +109,7 @@ remove_vscodium() {
 	show_message "Removing VSCodium source list ..."
 	[[ -f "$src_list" ]] && sudo rm -v "$src_list"
 	show_message "Removing VSCodium configuration files ..."
-	[[ -L "$config_d/settings.json" ]] && unlink "$config_d/settings.json"
+	[[ -L "$settings_dir/settings.json" ]] && unlink "$settings_dir/settings.json"
 	find "$HOME/.config" -maxdepth 2 -type d -name VSCodium -exec rm -rf {} \;
 	printf "VSCodium has been removed.\n"
 }
@@ -120,43 +120,44 @@ show_message() {
 }
 
 main() {
-	check_dependencies
-  local noOpt opt optstr repository
+	# check_dependencies
+  local noOpt opt optstr settings_dir
+	settings_dir="$HOME/.config/VSCodium/User"
 	noOpt=1
 	optstr=":ahirsv"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			a)
-			# Set apt gpg key and source list
+				# Set apt gpg key and source list
 				exists codium || leave "VSCodium is not installed."
 				sudo_login 2
 				set_key
 				set_src
-			;;
+				;;
 			h )
 				help 0
-			;;
+				;;
 			i )
 				# Install VSCodium via apt
 				exists codium && leave "VSCodium $(codium_version) is already installed."
 				sudo_login 2
 				install_vscodium
-			;;
+				;;
 			r )
 				# Remove VSCodium
 				exists codium || leave "VSCodium is not installed."
 				sudo_login 2
-				remove_vscodium
-			;;
+				remove_vscodium "$settings_dir"
+				;;
 			s )
-			# Apply VSCodium settings
+				# Apply VSCodium settings
 				exists codium || leave "VSCodium is not installed."
-				apply_settings
-			;;
+				apply_settings "$settings_dir"
+				;;
 			v )
 				verbose_mode="$TRUE"
 				show_message "Verbose mode enabled."
-			;;
+				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
