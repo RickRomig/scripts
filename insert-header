@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 12 Mar 2025
+# Updated      : 25 Jun 2025
 # Comments     : Assumes first line or the target file is either a hash-bang or a C/C++ comment
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,30 +27,30 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="4.1.25071"
+readonly script="${0##*/}"
+readonly version="4.2.25176"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="12 Mar 2025"
+  local updated="25 Jun 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts a header into a shell script or a C/C++ source file.
 
-${green}Usage:${normal} $script [OPTION] [code-file]
+${green}Usage:${normal} $script [-h] [-vc c-source-file] [-vp cpp-source-file] [-vs shell-script]
 
 ${orange}Available options:${normal}
   -c  Insert C code header
       $script -c <c-source.c>
   -h  Show this help message and exit
   -p  Insert C++ code header
-      $script -p <c-source.cpp>
+      $script -p <cpp-source.cpp>
   -s  Insert Shell script header
       $script -s <shell-script>
-  -v  Enable verbose mode (Must precede c, p, or s flags)
+  -v  Enable verbose mode (Must precede -c, -p, or -s flags)
       $script -vs <shell-script>
 _HELP_
   exit "$errcode"
@@ -102,7 +102,7 @@ insert_header() {
         -e "s/<TODAY>/$today/" \
         -e "s/<LICENSE>/$license/" "$template_dir/$template_file" > "$tmp_file"
       sed -i -e "1r ${tmp_file}" "$code_file"
-    ;;
+      ;;
     "Shell" )
 	    sed -e '1d' \
         -e "s/<FILE>/$code_file/" \
@@ -115,7 +115,7 @@ insert_header() {
         -e "s/<CODER>/$coder/" \
         -e "s/<LICENSE>/$license/" "$template_dir/$template_file" > "$tmp_file"
       sed -i -e "1r ${tmp_file}" "$code_file"
-    ;;
+      ;;
     * )
       printf "%sInvalid code type.%s\n" "$lightred" "$normal" >&2
 	esac
@@ -138,10 +138,10 @@ main() {
         template_file="c-header.txt"
         show_message "Template: $template_file"
         create_tmp_file
-      ;;
+        ;;
       h )
         help 0
-      ;;
+        ;;
       p )
 				code_file="$OPTARG"
 				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
@@ -151,7 +151,7 @@ main() {
         template_file="cpp-header.txt"
         show_message "Template: $template_file"
         create_tmp_file
-      ;;
+        ;;
       s )
 				code_file="$OPTARG"
 				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
@@ -161,15 +161,15 @@ main() {
         template_file="bash-header.txt"
         show_message "Template: $template_file"
         create_tmp_file
-      ;;
+        ;;
 			v )
 				verbose_mode="$TRUE"
 				show_message "Verbose mode enabled."
-			;;
+			  ;;
       : )
         printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
-      ;;
+        ;;
       ? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
@@ -178,7 +178,7 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-
+	[[ "$code_file" ]] || { printf "%s No code file provided.\n" "$RED_ERROR" >&2; help 2; }
 	insert_header "$code_file" "$code_type" "$template_file"
 	edit_view_quit "$code_file"
 	over_line "$script $version"
