@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 04 Apr 2025
+# Updated      : 25 Jun 2025
 # Comments     : Inserts the license immediately after the file's header.
 #              : Assumes the standard script or C/C++ header is present.
 # TODO (rick)  :
@@ -28,31 +28,30 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="4.1.25094"
+readonly script="${0##*/}"
+readonly version="4.2.25176"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="25 Feb 2025"
+  local updated="25 Jun 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts an Open Source license into a shell script or a C/C++ source code file.
 
-${green}Usage:${normal} $script [OPTION] [source-file]
+${green}Usage:${normal} $script [-h] [-vc c-source-file] [-vp cpp-source-file] [-vs shell-script]
 
 ${orange}Available options:${normal}
   -c  C code
       $script -c <c-source.c>
-  -e  Edit $script.conf
   -h  Show this help message and exit
   -p  C++ code
       $script -p <c-source.cpp>
   -s  Shell script
       $script -s <shell-script>
-  -v  Enable verbose mode (Must precede c, p, or s flags)
+  -v  Enable verbose mode (Must precede -c, -p, or -s flags)
       $script -vs <shell-script>
 _HELP_
   exit "$errcode"
@@ -94,19 +93,19 @@ insert_license() {
     1 )
       lic_file="gpl_v1.txt"
       break
-    ;;
+			;;
     2 )
       lic_file="gpl_v2.txt"
       break
-    ;;
+			;;
     3 )
       lic_file="gpl_v3.txt"
       break
-    ;;
+			;;
     4 )
       lic_file="mit_lic.txt"
       break
-    ;;
+			;;
     * )
       printf "%sInvalid option. Try again.%s\n" "$lightred" "$normal" >&2
 		esac
@@ -123,7 +122,7 @@ insert_license() {
 			-e "s/<EMAIL>/$email_addr/" \
 			-e "s/^/ * /" "$template_dir/$lic_file" > "$tmp_file"
 		sed -i -e "21r ${tmp_file}" "$code_file"
-	;;
+		;;
 	"C++" )
 		sed -e '1d' \
 			-e "s/<YEAR>/$cur_yr/" \
@@ -131,7 +130,7 @@ insert_license() {
 			-e "s/<EMAIL>/$email_addr/" \
 			-e "s/^/\/\/ /" "$template_dir/$lic_file" > "$tmp_file"
 		sed -i -e "20r ${tmp_file}" "$code_file"
-	;;
+		;;
 	"Shell" )
 		sed -e '1d' \
 			-e "s/<YEAR>/$cur_yr/" \
@@ -139,7 +138,7 @@ insert_license() {
 			-e "s/<EMAIL>/$email_addr/" \
 			-e "s/^/# /" "$template_dir/$lic_file" > "$tmp_file"
 		sed -i -e "15r ${tmp_file}" "$code_file"
-	;;
+		;;
 	* )
 		die "Invalid code type. Exiting the script." 1
 	esac
@@ -160,10 +159,10 @@ main() {
 			code_type="C"
 			show_message "Code type: $code_type source code"
 			create_tmp_file
-		;;
+			;;
 		h )
 			help 0
-		;;
+			;;
 		p )
 			code_file="$OPTARG"
 			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
@@ -171,7 +170,7 @@ main() {
 			code_type="C++"
 			show_message "Code type: $code_type source code"
 			create_tmp_file
-		;;
+			;;
 		s )
 			code_file="$OPTARG"
 			[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
@@ -179,15 +178,15 @@ main() {
 			code_type="Shell"
 			show_message "Code type: $code_type script"
 			create_tmp_file
-		;;
+			;;
 		v )
 			verbose_mode="$TRUE"
 			show_message "Verbose mode enabled."
-		;;
+			;;
 		: )
 			printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
 			help 2
-		;;
+			;;
 		? )
 			printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 			help 2
@@ -196,7 +195,7 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-
+	[[ "$code_file" ]] || { printf "%s No code file provided.\n" "$RED_ERROR" >&2; help 2; }
 	insert_license "$code_type" "$code_file"
 	edit_view_quit "$code_file"
 	over_line "$script $version"
