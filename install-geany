@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 04 Jun 2025
+# Updated      : 25 Jun 2025
 # Comments     : Geany does not write configuration files by default.
 #              : Need to set options from within the program.
 # TODO (Rick)  :
@@ -29,7 +29,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.5.25155"
+readonly version="2.6.25176"
 verbose_mode="$FALSE"
 
 ## Functions ##
@@ -37,19 +37,19 @@ verbose_mode="$FALSE"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="24 Feb 2025"
+	updated="25 Jun 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes Geany text editor and themes
 
-${green}Usage:${normal} $script [OPTIONS]
+${green}Usage:${normal} $script [-h] [-vi] [-vit] [-vr] [-vt]
 
 ${orange}Available options:${normal}
-  -h  Show this help message and exit
-  -i  Install Geany editor (user -it to install with themes)
-  -r  Remove Geany editor
-  -t  Install Geany themes
-  -v  Enable verbose mode
+  -h  Show this help message and exit.
+  -i  Install Geany editor (user -it to install with themes).
+  -r  Remove Geany editor.
+  -t  Install Geany themes.
+  -v  Enable verbose mode. If used, must precede other flags.
 _HELP_
   exit "$errcode"
 }
@@ -65,14 +65,13 @@ geany_version() {
 }
 
 clone_themes() {
-  local theme_url colorscheme_d
-  theme_url="https://github.com/geany/geany-themes.git"
-  colorscheme_d="$HOME/.config/geany/colorschemes"
-  [[ -d "$colorscheme_d" ]] || mkdir -p "$colorscheme_d"
+  local theme_url="https://github.com/geany/geany-themes.git"
+  local colorschemes_dir="$HOME/.config/geany/colorschemes"
+  [[ -d "$colorschemes_dir" ]] || mkdir -p "$colorschemes_dir"
   show_message "Cloning Geany themes..."
   git clone "$theme_url" "$tmp_dir"
-  printf "Copying Geany colorschemes into %s\n" "$colorscheme_d"
-  cp -v "$tmp_dir/colorschemes/*.conf" "$colorscheme_d/" | awk -F"/" '{print "=> " $NF}' | sed "s/'//"
+  printf "Copying Geany colorschemes into %s\n" "$colorschemes_dir"
+  cp -v "$tmp_dir/colorschemes/*.conf" "$colorschemes_dir/" | awk -F"/" '{print "=> " $NF}' | sed "s/'//"
   printf "Geany themes installed.\n"
 }
 
@@ -104,29 +103,29 @@ main() {
       h )
         printf "%s help:\n" "$script"
         help 0
-      ;;
+        ;;
       i )
         exists geany && leave "Geany $(geany_version) is already installed."
         sudo_login 2
         check_package git
         install_geany
-      ;;
+        ;;
       r )
         exists geany || leave "Geany is not installed."
         sudo_login 2
         remove_geany
-    ;;
+        ;;
       t )
         exists geany || leave "Geany is not installed."
         tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
         trap cleanup EXIT
         check_package git
         clone_themes
-      ;;
+        ;;
       v )
         verbose_mode="$TRUE"
 			  show_message "Verbose mode enabled."
-      ;;
+        ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
