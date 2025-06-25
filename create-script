@@ -59,7 +59,7 @@ show_message() {
 	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
 
-create_script() {
+import_metadata() {
 	local coder copy_holder cur_yr email_addr email_addr1 init_ver license script_name template_dir template_file today work_org
 	script_name="$1"
 	template_file="$2"
@@ -75,7 +75,7 @@ create_script() {
 	init_ver="1.0.$(date +%y%j)"
 
 	show_message "Creating BASH script: $script_name"
-	show_message "Filling in the template and creating the script."
+	show_message "Filling in metadata from the template."
 
 	sed -e '1d' \
 		-e "s/<FILE>/$script_name/" \
@@ -134,7 +134,7 @@ main() {
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
 	[[ "$script_name" ]] || { printf "%s No script file provided.\n" "$RED_ERROR" >&2; help 2; }
-	create_script "$script_name" "$template_file"
+	import_metadata "$script_name" "$template_file"
 	edit_view_quit "$script_name"
 	over_line "$script $version"
 	printf "MOTD: "; leave ""
