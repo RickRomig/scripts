@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : boxes-spice
+# Script Name  : install-spice-tools
 # Description  : Installs Spice Tools Guest Additions to a Gnome Boxes VM
 # Dependencies : none
 # Arguments    : none
-# Author       : Copyright (C) 2021, Richard B. Romig, 16 Sep 2021
-# Created      : 16 Sep 2021
-# Updated      : 23 Jun 2024
+# Author       : Copyright (C) 2021, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 16 Sep 2021
+# Updated      : 25 Jun 2025
 # Comments     : Supports Arch and Debian-based operating systems.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -25,29 +25,36 @@ else
   exit 1
 fi
 
-## Global Variables ##
-
 ## Functions ##
 
-main() {
-  local script version
-  script="${0##*/}"
-  version="1.5.25174"
+install_arch_spice() {
   sudo_login 2
+  sudo pacman -Sy
+  sudo pacman -S spice-vdagent spice-webdavd
+}
+
+install_debian_spice() {
+  sudo_login 2
+  sudo apt-get update
+  sudo apt-get install -y spice-vdagent spice-webdavd
+}
+
+main() {
+  local script="${0##*/}"
+  local version="2.0.25174"
   box "$script $version"
-  printf "Installs Spice Tools Guest Additions to a Gnome Boxes VM\n"
-  if is_arch; then
-    sudo pacman -Sy
-    sudo pacman -S spice-vdagent spice-webdavd
-  elif debian_based; then
-    sudo apt-get update
-    sudo apt-get install -y spice-vdagent spice-webdavd
+  [[ "$LOCALNET" != "192.168.122" && "$LOCALNET" != "10.0.2" ]] && die "This is not a virtual machine." 1
+  printf "Installs Spice Tools Guest Additions to a Virtual Machine.\n"
+  if debian_based; then
+    install_debian_spice
+  elif is_arch; then
+    install_arch_spice
   else
-    die "Unsupported operating system." 1
+    die "Operating system not supported by this script." 1
   fi
   leave "Spice Tools Guest Additions installed."
 }
 
 ## Execution ##
 
-main
+main "$@"
