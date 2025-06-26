@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 04 Jun 2025
+# Updated      : 26 Jun 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,20 +30,19 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.16.25155"
-readonly term_cfg_d="$HOME/.config/terminator"
+readonly version="6.17.25177"
 
 ## Functions ##
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="14 Mar 2025"
+	updated="26 Jun 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Terminator terminal emulator
 
-${orange}Usage:${normal} $script [OPTION]
+${orange}Usage:${normal} $script [-c] [-h] [-i] [-r]
 ${green}OPTIONS:${normal}
   -c  Apply configuration file.
   -h  Show this help message and exit.
@@ -62,10 +61,11 @@ terminator_version() {
 
 install_terminator() {
   printf "Installing terminator...\n"
+  sudo_login 2
   sudo apt-get -yq update
   sudo apt-get install -y terminator
+  printf "Terminator %s installed.\n" "$(terminator_version)"
   if bunsenlabs; then
-    printf "Terminator %s installed.\n" "$(terminator_version)"
     printf "BunsenLabs uses its own profiles based on the version of the distribution.\n"
   else
     apply_config
@@ -75,18 +75,26 @@ install_terminator() {
 
 remove_terminator() {
   printf "Removing terminator %s and configuration files...\n" "$(terminator_version)"
+  sudo_login 2
   sudo apt-get purge terminator
+  [[ -L "$HOME/.config/terminator/config" ]] && unlink "$HOME/.config/terminator/config"
   find "$HOME/.config/" -maxdepth 2 -type d -name terminator -exec rm -rf {} \;
   printf "Terminator and its configuration files have been removed.\n"
 }
 
 apply_config() {
-  local repository
+  local repository term_cfg_d
+  term_cfg_d="$HOME/.config/terminator"
   repository=$(assign_cfg_repo)
   [[ -d "$term_cfg_d" ]] && mkdir -p "$term_cfg_d"
   printf "Applying Terminator configuration...\n"
-  cp -v "$repository/terminator/config" "$$term_cfg_d/config"
-  is_debian && sed -i '/login_shell/s/False/True/' "$term_cfg_d/config"
+  if is_debian; then
+    [[ -f "$term_cfg_d/config" ]] && rm "$term_cfg_d/config"
+    ln -s "$repository/terminator/config" "$term_cfg_d/config"
+  else
+    cp -v "$repository/terminator/config" "$$term_cfg_d/"
+    sed -i '/login_shell/s/True/False/' "$term_cfg_d/config"
+  fi
   printf "Terminator configuration file applied.\n"
 }
 
@@ -97,27 +105,34 @@ main() {
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
-        exists terminator || leave "Terminator is not installed."
-        if bunsenlabs; then
-          printf "Terminator configuration for BunsenLabs was not overwritten.\n"
-          printf "Configuration changes should be made through the Terminator Preferences menu.\n"
+        if exists terminator; then
+          if bunsenlabs; then
+            printf "Terminator configuration for BunsenLabs was not overwritten.\n"
+            printf "Configuration changes should be made through the Terminator Preferences menu.\n"
+          else
+            apply_config
+          fi
         else
-          apply_config
+          printf "Terminator is not installed.\nConfiguration cannot be applied.\n" >&2
         fi
-      ;;
+        ;;
       h )
         help 0
-      ;;
+        ;;
       i )
-        exists terminator && leave "Terminator $(terminator_version) is already installed."
-        sudo_login 2
-        install_terminator
-      ;;
+        if exists terminator; then
+          printf "Terminator %s is installed.\nInstallation canceled.\n" "$(terminator_version)" >&2
+        else
+          install_terminator
+        fi
+        ;;
       r )
-        exists terminator || leave "Terminator is not installed."
-        sudo_login 2
-        remove_terminator
-      ;;
+        if exists terminator; then
+          remove_terminator
+        else
+          printf "Terminator is not installed.\nOperation canceled.\n" >&2
+        fi
+        ;;
       ? )
       printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
       help 2
