@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Jan 2021
-# Updated      : 04 Jun 20254
+# Updated      : 26 Jun 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,26 +25,23 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.18.25155"
-readonly cfg_dir="$HOME/.config/keepassxc"
+readonly version="4.0.25177"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="03 Mar 2025"
+	local errcode="${1:-2}"
+	local updated="26 Jun 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removed KeePassXC password manager
 
-${green}Usage:${normal} $script [OPTION]
+${green}Usage:${normal} $script [-d] [-f] [-h] [-r]
 
 ${orange}Available options:${normal}
-  -c  Apply KeePassXC configuration.
   -d  Install KeePassXC from distribution repositories.
   -f  Install KeePassXC from flathub repositories.
   -h  Show this help message and exit.
@@ -65,58 +62,60 @@ install_flathub_keepassxc() {
   sudo_login 2
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   flatpak install --user flathub org.keepassxc.KeePassXC
+  keepassxc_ini
   printf "KeePassXC %s installed from flathub.\n" "$(keepass_version)"
 }
 
 install_distro_keepassxc() {
   sudo_login 2
   sudo apt-get install keepassxc -yy
-  create_ini
+  keepassxc_ini
   printf "Keepassxc %s installed from distro repositories.\n" "$(keepass_version)"
 }
 
 remove_flatpak_keepassxc() {
   printf "Removing the KeePassXC flatpak...\n"
-  [[ -d "HOME/.var/app/org.keepassxc.KeePassXC" ]] && flatpak uninstall --noninteractive --assumeyes org.keepassxc.KeePassXC
+  flatpak uninstall --noninteractive --assumeyes org.keepassxc.KeePassXC
+  rm -rf "$HOME/.var/app/org.keepassxc.KeePassXC"
   printf "KeePassXC flatpak removed.\n"
 }
 
 remove_distro_keeepassxc() {
   sudo_login 2
-  printf "Removing the KeePassXC DEB package...\n"
+  printf "Removing KeePassXC ...\n"
   sudo apt-get remove --purge keepassxc -yy
   find "$HOME/.config/" -maxdepth 2 -type d -name keepassxc -exec rm -rf {} \;
-  printf "KeePassXC DEB package removed.\n"
+  [[ -d "$HOME/.cache/keepassxc" ]] && rm -rf "$HOME/.cache/keepassxc"
+  printf "KeePassXC removed.\n"
 }
 
-create_ini() {
-	local repository ini_file
+keepassxc_ini() {
+	local repository cfg_dir ini_file
   repository=$(assign_cfg_repo)
   ini_file="keepassxc.ini"
+  cfg_dir="$HOME/.config"
+  flatpak list | grep -qw KeePassXC && cfg_dir="$HOME/.var/app/org.keepassxc.KeePassXC/config"
   [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
   printf "Applying %s ...\n" "$ini_file"
-  cp -v "$repository/keepassxc/$ini_file" "$cfg_dir/"
+  cp -v "$repository/keepassxc/$ini_file" "$cfg_dir/keepassxc/"
   printf "%s applied.\n" "$ini_file"
 }
 
 main() {
   local noOpt opt optstr
   noOpt=1
-  optstr=":cdfhr"
+  optstr=":dfhr"
   while getopts "$optstr" opt; do
     case "$opt" in
-      c )
-        create_ini
-      ;;
       d )
         if exists keepassxc; then
           printf "KeePassXC version %s is already installed from distro.\n" "$(keepass_version)"
-        elif  flatpak list | grep -qw KeePassXC; then
+        elif flatpak list | grep -qw KeePassXC; then
           printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_version)"
         else
           install_distro_keepassxc
         fi
-      ;;
+        ;;
       f )
         if exists keepassxc; then
           printf "KeePassXC version %s is already installed from distro.\n" "$(keepass_version)"
@@ -125,19 +124,19 @@ main() {
         else
           install_flathub_keepassxc
         fi
-      ;;
+        ;;
       h )
         help 0
-      ;;
+        ;;
       r )
         if flatpak list | grep -qw KeePassXC; then
           remove_flatpak_keepassxc
         elif exists keepassxc; then
           remove_distro_keeepassxc
         else
-          leave "KeePassXC is not installed."
+          printf "KeePassXC is not installed.\n"
         fi
-      ;;
+        ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
