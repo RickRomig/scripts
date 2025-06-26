@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 01 Mar 2025
-# Updated      : 07 Mar 2025
+# Updated      : 26 Jun 2025
 # Comments     : instructions from https://librewolf.net/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,8 +29,8 @@ set -eu
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="1.0.25066"
+readonly script="${0##*/}"
+readonly version="1.1.25177"
 verbose_mode="$FALSE"
 
 ## Functions ##
@@ -41,20 +41,19 @@ lw_version() {
 }
 
 help() {
-	local errcode updated
-	errcode="${1:-2}"
-	updated="07 Mar 2025"
+	local errcode="${1:-2}"
+	local -r updated="26 Jun 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/removes LibreWolf browser.
 
-${green}Usage:${normal} $script [OPTION]
+${green}Usage:${normal} $script [-h] [-vi] [-vr]
 
 ${orange}Available options:${normal}
-	-h	Show this help message and exit
-	-i	Install LibreWolf
-	-r	Remove LibreWolf
-	-v	Enable verbose mode
+  -h  Show this help message and exit.
+  -i  Install LibreWolf.
+  -r  Remove LibreWolf.
+  -v  Enable verbose mode. If used, must prccede -i and -r.
 _HELP_
   exit "$errcode"
 }
@@ -88,7 +87,7 @@ install_librewolf() {
 }
 
 remove_librewolf() {
-	printf "Removing LibreWolf browser...\n"
+	printf "Removing LibreWolf browser %s...\n" "$(lw_version)"
 	sudo_login 2
 	show_message "Removing LibreWolf..."
 	sudo apt remove -y librewolf
@@ -97,7 +96,10 @@ remove_librewolf() {
 	[[ -L /usr/bin/librewolf ]] && sudo unlink /usr/bin/librewolf
 	[[ -d /usr/share/librewolf ]] && sudo rm -rf /usr/share/librewolf
 	[[ -f /var/lib/extrepo/key/librewolf.asc ]] && sudo rm /var/lib/extrepo/keylibrewolf.asc
-	# Shown in LibreWolf removal instructinos, but not found on system.
+	show_message "Removing LibreWolf local configuration files..."
+	[[ -d "$HOME/.librewolf" ]] && rm -rf "$HOME/.librewolf"
+	[[ -d "$HOME/.cache/librewolf" ]] && rm -rf "$HOME/.cache/librewolf"
+	# Shown in LibreWolf removal instructions, but not found on system.
 	# sudo rm -f \
 	# 	/etc/apt/sources.list.d/librewolf.sources \
 	# 	/etc/apt/keyrings/librewolf.gpg \
@@ -108,8 +110,6 @@ remove_librewolf() {
 	# 	/etc/apt/trusted.gpg.d/librewolf.gpg \
 	# 	/etc/apt/sources.list.d/home:bgstack15:aftermozilla.list \
 	# 	/etc/apt/trusted.gpg.d/home_bgstack15_aftermozilla.gpg
-	show_message "Removing LibreWolf local configuration files..."
-	[[ -d "$HOME/.librewolf" ]] && rm -rf "$HOME/.librewolf"
 	printf "LibreWolf has been removed.\n"
 }
 
@@ -121,19 +121,25 @@ main() {
 		case "$opt" in
 			h )
 				help 0
-			;;
+				;;
 			i )
-				exists librewolf && leave "LibreWolf $(lw_version) is already installed."
-				install_librewolf
-			;;
+				if exists librewolf; then
+					printf "LibreWolf %s is already installed.\n" "$(lw_version)"
+				else
+					install_librewolf
+				fi
+				;;
 			r )
-				exists librewolf || leave "LibreWolf is not installed."
-				remove_librewolf
-			;;
+				if exists librewolf; then
+					remove_librewolf
+				else
+					printf "LibreWolf is not installed.\n"
+				fi
+				;;
 			v )
 				verbose_mode="$TRUE"
 				show_message "Verbose mode enabled."
-			;;
+				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
