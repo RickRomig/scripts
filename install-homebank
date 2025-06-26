@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Nov 2018
-# Updated      : 04 Apr 2025
+# Updated      : 26 Jun 2025
 # Comments     : Available as a flatpak (preferred method)
 #              : https://flathub.org/apps/details/fr.free.Homebank
 #              : Linux Mint Sofware Manager
@@ -29,89 +29,14 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="5.3.25094"
+readonly script="${0##*/}"
+readonly version="6.0.25177"
 
 ## Functions ##
 
-homebank_version() {
-  local hb_ver
-  if exists homebank; then
-    hb_ver=$(homebank --version | cut -d' ' -f2)
-  elif flatpak list | grep -q 'HomeBank'; then
-    hb_ver=$(flatpak list | awk '/HomeBank/ {print $(NF-2)}')
-  fi
-  printf "%s" "$hb_ver"
-}
-
-flatpak_homebank() {
-  exists flatpak || return "$FALSE"
-  flatpak list | grep -qw HomeBank && return "$TRUE" || return "$FALSE"
-}
-
-install_flatpak_homebank() {
-  printf "Install the HomeBank flatpak...\n"
-  sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-  flatpak install --user flathub fr.free.Homebank
-  printf "HomeBank flatpak (%s) installed.\n" "$(homebank_version)"
-}
-
-remove_flatpak_homebank() {
-  printf "Removing HomeBank flatpak (%s)...\n" "$(homebank_version)"
-  flatpak uninstall --oninteractive --assumeyes fr.free.Homebank
-  remove_configs
-  printf "HomeBank has been removed.\n"
-}
-
-add_ppa() {
-  printf "Adding PPA repository...\n"
-  sudo add-apt-repository ppa:mdoyen/homebank
-}
-
-remove_ppa() {
-  sudo add-apt-repository --remove ppa:mdoyen/homebank
-}
-
-install_homebank() {
-  sudo_login 2
-  support_ppa && add_ppa
-  sudo apt-get install homebank -yyq
-  printf "HomeBank %s installed.\n" "$(homebank_version)"
-}
-
-remove_homebank() {
-  printf "Removing HomeBank %s...\n" "$(homebank_version)"
-  sudo_login 2
-  support_ppa && remove_ppa
-  sudo apt-get remove homebank -yy > /dev/null 2>&1
-  remove_configs
-  printf "HomeBank has been removed.\n"
-}
-
-purge_homebank() {
-  printf "Removing HomeBank %s and purging configuration files.\n" "$(homebank_version)"
-  sudo_login 2
-  support_ppa && remove_ppa
-  sudo apt-get purge homebank -yy > /dev/null 2>&1
-  remove_configs
-  printf "HomeBank and its configuration files have been removed.\n"
-}
-
-remove_configs() {
-  local cfg_d="$HOME/.config/homebank"
-  if default_no "Remove user configuration files?"; then
-    printf "Removing user configuration files...\n"
-    [[ -d "$cfg_d" ]] && rm -rf "$cfg_d"
-    printf "User configuration files removed.\n"
-  else
-    printf "User configuations files left intact.\n"
-  fi
-}
-
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="04 Apr 2025"
+	local errcode="${1:-2}"
+	local updated="26 Jun 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes HomeBank Personal Finance Software.
@@ -121,49 +46,108 @@ ${green}Usage:${normal} $script [option]
 ${orange}Available options:${normal}
   -f  install HomeBank from Flathub
   -h  Show this help message and exit
-  -i  Install HomeBank from PPA or repository
-  -p  Remove HomeBank and purge configuration files (PPA or repository)
-  -r  Remove HomeBank (PPA or repository)
-HomeBank is also available as a Flatpak (Flathub or Mint Software Manager)
+  -i  Install HomeBank from repository
+  -r  Remove HomeBank
 _HELP_
   exit "$errcode"
+}
+
+flatpak_homebank() {
+  exists flatpak || return "$FALSE"
+  flatpak list | grep -qw HomeBank && return "$TRUE" || return "$FALSE"
+}
+
+homebank_version() {
+  local hb_ver
+  if exists homebank; then
+    hb_ver=$(homebank --version | cut -d' ' -f2)
+  elif flatpak_homebank; then
+    hb_ver=$(flatpak list | awk '/HomeBank/ {print $(NF-2)}')
+  fi
+  printf "%s" "$hb_ver"
+}
+
+install_flatpak_homebank() {
+  printf "Install the HomeBank flatpak...\n"
+  sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  flatpak install --user flathub fr.free.Homebank
+  apply_preferences
+  printf "HomeBank flatpak (%s) installed.\n" "$(homebank_version)"
+}
+
+remove_flatpak_homebank() {
+  printf "Removing HomeBank flatpak (%s)...\n" "$(homebank_version)"
+  flatpak uninstall --oninteractive --assumeyes fr.free.Homebank
+  [[ -d "$HOME/.var/app/fr.free.Homebank" ]] && rm -rf "$HOME/.var/app/fr.free.Homebank"
+  remove_configs
+  printf "HomeBank has been removed.\n"
+}
+
+install_homebank() {
+  sudo_login 2
+  sudo apt-get install homebank -yyq
+  apply_preferences
+  printf "HomeBank %s installed.\n" "$(homebank_version)"
+}
+
+remove_homebank() {
+  printf "Removing HomeBank %s...\n" "$(homebank_version)"
+  sudo_login 2
+  sudo apt-get remove homebank -yy > /dev/null 2>&1
+  remove_configs
+  printf "HomeBank has been removed.\n"
+}
+
+apply_preferences() {
+  local cfg_dir repository
+  repository=$(assign_cfg_repo)
+  cfg_dir="$HOME/.config"
+  flatpak_homebank && cfg_dir="$HOME/.var/app/fr.free.Homebank/config"
+  [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
+  cp -v "$repository/homebank/preferences" "$cfg_dir/homebank/"
+  printf "HomeBank preferences applied.\n"
+}
+
+remove_configs() {
+  local cfg_dir="$HOME/.config"
+  flatpak_homebank && cfg_dir="$HOME/.var/app/fr.free.Homebank/config"
+  if default_no "Remove user configuration files?"; then
+    printf "Removing user configuration files...\n"
+    [[ -d "$cfg_dir/homebank" ]] && rm -rf "$cfg_dir/homebank"
+    printf "User configuration files removed.\n"
+  else
+    printf "User configuations files left intact.\n"
+  fi
 }
 
 main() {
   local noOpt opt optstr
   noOpt=1
-  optstr=":fhipr"
+  optstr=":fhir"
   while getopts "$optstr" opt; do
     case "$opt" in
       f )
         exists homebank && leave "HomeBank $(homebank_version) is already installed."
         flatpak_homebank && leave "HomeBank $(homebank_version) (flatpak) is installed."
         install_flatpak_homebank
-      ;;
+        ;;
       h )
         help 0
-      ;;
+        ;;
       i )
         exists homebank && leave "HomeBank $(homebank_version) is already installed."
         flatpak_homebank && leave "HomeBank $(homebank_version) (flatpak) is installed."
-        sudo_login 2
         install_homebank
-      ;;
-      p )
-        exists hombank || leave "HomeBank (.deb) is not installed."
-        sudo_login 2
-        purge_homebank
-      ;;
+        ;;
       r )
         if flatpak_homebank; then
           remove_flatpak_homebank
         elif exists homebank; then
-          sudo_login 2
           remove_homebank
         else
           leave "HomeBank is not installed.\n"
         fi
-      ;;
+        ;;
       ? )
         printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
@@ -172,7 +156,7 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
