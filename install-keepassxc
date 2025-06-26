@@ -28,7 +28,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.0.25177"
+readonly version="4.1.25177"
 
 ## Functions ##
 
@@ -50,10 +50,15 @@ _HELP_
   exit "$errcode"
 }
 
+flatpak_keepassxc() {
+  exists flatpak || return "$FALSE"
+  flatpak list | grep -qw KeePassXC && return "$TRUE" || return "$FALSE"
+}
+
 keepass_version() {
   if exists keepassxc; then
     dpkg -l keepassxc | awk '/ii/ {print $3}' | sed 's/[+-].*//'
-  elif flatpak list | grep -qw KeePassXC; then
+  elif flatpak_keepassxc; then
     flatpak list | awk '/KeePassXC/ {print $3}'
   fi
 }
@@ -110,7 +115,7 @@ main() {
       d )
         if exists keepassxc; then
           printf "KeePassXC version %s is already installed from distro.\n" "$(keepass_version)"
-        elif flatpak list | grep -qw KeePassXC; then
+        elif flatpak_keepassxc; then
           printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_version)"
         else
           install_distro_keepassxc
@@ -119,7 +124,7 @@ main() {
       f )
         if exists keepassxc; then
           printf "KeePassXC version %s is already installed from distro.\n" "$(keepass_version)"
-        elif  flatpak list | grep -qw KeePassXC; then
+        elif  flatpak_keepassxc; then
           printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_version)"
         else
           install_flathub_keepassxc
@@ -129,7 +134,7 @@ main() {
         help 0
         ;;
       r )
-        if flatpak list | grep -qw KeePassXC; then
+        if flatpak_keepassxc; then
           remove_flatpak_keepassxc
         elif exists keepassxc; then
           remove_distro_keeepassxc
