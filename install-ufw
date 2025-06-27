@@ -7,7 +7,7 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 04 May 2025
+# Updated      : 26 Jun 2025
 # Comments     : Install & remove for Deian-based systems only.
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
@@ -28,21 +28,20 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="1.15.25124"
+readonly script="${0##*/}"
+readonly version="1.16.25177"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="24 Feb 2025"
+	local errcode="${1:-2}"
+	local -r updated="26 Jun 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs UFW on Debian, BunsenLabs, and MX Linux systems.
 UFW/GUFW is installed by default in Linux Mint, LMDE, and Ubuntu.
 
-${green}Usage:${normal} $script [OPTION]
+${green}Usage:${normal} $script [-a] [-d] [-e] [-h] [-i] [-n] [-r] [-s]
 
 ${orange}Available options:${normal}
   -a  Add rules for CUPS and SSH (XRDP if installed)
@@ -124,9 +123,9 @@ debian_system() {
   local codename
   codename=$(lsb_release --codename --short)
   case "$codename" in
-    bookworm|bullseye|boron )
+    bookworm|bullseye|trixie|boron )
       return "$TRUE"
-    ;;
+      ;;
     * )
       return "$FALSE"
   esac
@@ -139,56 +138,83 @@ main() {
   while getopts "$optstr" opt; do
     case "$opt" in
       a )
-        dpkg -l | grep -qw ufw || leave "UFW is not installed."
-        sudo_login 2
-        add_rules
-        ufw_active || enable_ufw
-        printf "Rules for CUPS and SSH added.\n"
-      ;;
-      d )
-        dpkg -l | grep -qw ufw || leave "UFW is not installed."
-        sudo_login 2
-        delete_rules
-      ;;
-      e )
-        dpkg -l | grep -qw ufw || leave "UFW is not installed."
-        sudo_login 2
-        if ufw_active; then
-          printf "UFW %s is enabled.\n" "$(ufw_version)"
-          defult_no "Disable UFW?" && disable_ufw
+        if dpkg -l | grep -qw ufw; then
+          sudo_login 2
+          add_rules
+          ufw_active || enable_ufw
+          printf "Rules for CUPS and SSH added.\n"
         else
-          enable_ufw
+          printf "UFW is not installed.\n" >&2
         fi
-      ;;
+        ;;
+      d )
+        if dpkg -l | grep -qw ufw; then
+          sudo_login 2
+          delete_rules
+        else
+          printf "UFW is not installed.\n" >&2
+        fi
+        ;;
+      e )
+        if dpkg -l | grep -qw ufw; then
+          sudo_login 2
+          if ufw_active; then
+            printf "UFW %s is enabled.\n" "$(ufw_version)"
+            defult_no "Disable UFW?" && disable_ufw
+          else
+            enable_ufw
+          fi
+        else
+          printf "UFW is not installed.\n" >&2
+        fi
+        ;;
       h )
         help 0
-      ;;
+        ;;
       i )
-        debian_system || die "Not a Debian system." 1
-        dpkg -l | grep -qw ufw && leave "UFW $(ufw_version) is already installed."
-        sudo_login 2
-        install_ufw
-        add_rules
-        enable_ufw
-        printf "UFW %s installed and configured.\n" "$(ufw_version)"
-      ;;
+        if debian_system; then
+          if dpkg -l | grep -qw ufw; then
+            printf "UFW %s is already installed.\n" "$(ufw_version)" >&2
+          else
+            sudo_login 2
+            install_ufw
+            add_rules
+            enable_ufw
+            printf "UFW %s installed and configured.\n" "$(ufw_version)"
+          fi
+        else
+          printf "Not a Debian system.\n" >&2
+        fi
+        ;;
       n )
-        dpkg -l | grep -qw ufw || leave "UFW is not installed."
-        sudo_login 2
-        new_rules
-      ;;
+        if dpkg -l | grep -qw ufw; then
+          sudo_login 2
+          new_rules
+        else
+          printf "UFW is not installed.\n" >&2
+        fi
+        ;;
       r )
-        debian_system || die "Not a Debian-based system."
-        dpkg -l | grep -qw ufw || leave "UFW is not installed."
-        sudo_login 2
-        remove_ufw
-      ;;
+        if debian_system; then
+          if dpkg -l | grep -qw ufw; then
+            sudo_login 2
+            remove_ufw
+          else
+            printf "UFW is not installed.\n" >&2
+          fi
+        else
+          printf "Not a Debian system.\n" >&2
+        fi
+        ;;
       s )
-        dpkg -l | grep -qw ufw || leave "UFW is not installed."
-        sudo_login 2
-        printf "UFW %s\n" "$(ufw_version)"
-        sudo ufw status numbered
-      ;;
+        if dpkg -l | grep -qw ufw; then
+          sudo_login 2
+          printf "UFW %s\n" "$(ufw_version)"
+          sudo ufw status numbered
+        else
+          printf "UFW is not installed.\n" >&2
+        fi
+        ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
