@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2019
-# Updated      : 04 Jun 2025
+# Updated      : 27 Jun 2025
 # Comments     : Google Chrome should update through apt
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,12 +28,30 @@ fi
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.20.25155"
+readonly version="3.21.25178"
 readonly chrome_list="/etc/apt/sources.list.d/google-chrome.list"
 readonly keyring_dir="/usr/share/keyrings"
 readonly trusted_key="google-chrome.gpg"
 
 ## Functions ##
+
+help() {
+	local errcode="${1:-2}"
+	local -r updated="27 Jun 2025"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
+Installs, updated, or removes Google Chrome.
+
+${green}Usage:${normal} $script [-h] [-i] [-r] [-u]
+
+${orange}Available options:${normal}
+  -h  Show this help message and exit
+  -i  Install Google Chrome
+  -r  Remove Google Chrome
+  -u  Update Google Chrome (normally throught apt updates)
+_HELP_
+  exit "$errcode"
+}
 
 chrome_version() {
   google-chrome-stable --version | cut -d' ' -f3
@@ -54,6 +72,7 @@ install_chrome() {
 }
 
 purge_chrome() {
+  sudo_login 2
   sudo apt purge google-chrome-stable
   [[ -f "$keyring_dir/$trusted_key" ]] && sudo rm -v "$keyring_dir/$trusted_key"
   [[ -f "$chrome_list" ]] && sudo rm -v "$chrome_list"
@@ -62,28 +81,10 @@ purge_chrome() {
 }
 
 update_chrome() {
+  sudo_login 2
   printf "Current version: %s/n" "$(chrome_version)"
   sudo apt install google-chrome-stable
   printf "Google Chrome updated to %s.\n" "$(chrome_version)"
-}
-
-help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="04 Jun 2025"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Installs, updated, or removes Google Chrome.
-
-${green}Usage:${normal} $script [OPTION]
-
-${orange}Available options:${normal}
-  -h  Show this help message and exit
-  -i  Install Google Chrome
-  -r  Remove Google Chrome
-  -u  Update Google Chrome (normally throught apt updates)
-_HELP_
-  exit "$errcode"
 }
 
 main() {
@@ -94,26 +95,33 @@ main() {
     case "$opt" in
       h )
         help 0
-      ;;
+        ;;
       i )
-        exists google-chrome-stable && leave "Google Chrome $(chrome_version) already installed."
-        sudo_login 2
-        check_package wget
-        install_chrome
-      ;;
+        if exists google-chrome-stable; then
+          printf "Google Chrome %s is already installed.\n" "$(chrome_version)" >&2
+        else
+          sudo_login 2
+          check_package wget
+          install_chrome
+        fi
+        ;;
       r )
-        exists google-chrome-stable || leave "Google Chrome is not installed."
-        sudo_login 2
-        purge_chrome
-      ;;
+        if exists google-chrome-stable; then
+          purge_chrome
+        else
+          printf "Google Chrome is not installed.\n" >&2
+        fi
+        ;;
       u )
-        exists google-chrome-stable || leave "Google Chrome is not installed."
-        sudo_login 2
-        update_chrome
-      ;;
+        if exists google-chrome-stable; then
+          update_chrome
+        else
+          printf "Google Chrome is not installed.\n" >&2
+        fi
+        ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-      help 2
+        help 2
     esac
 	  noOpt=0
   done
