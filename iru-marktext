@@ -116,7 +116,6 @@ marktext_config() {
 
 main() {
   local noOpt opt optstr new_ver
-  cfg_dir="$HOME/.config/marktext"
   check_package wget
   noOpt=1
   optstr=":chiru"
@@ -135,12 +134,12 @@ main() {
           new_ver="$(newest_version)"
           printf "%sInstalling MarkText version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
           install_marktext "$new_ver"
-          marktext_config "$cfg_dir"
+          marktext_config
         fi
         ;;
       r )
         if exists marktext; then
-          remove_marktext "$cfg_dir"
+          remove_marktext
         else
           printf "Marktext is not installed.\n" >&2
         fi
