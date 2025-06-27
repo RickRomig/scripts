@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2011, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Feb 2021
-# Updated      : 02 Oct 2024
+# Updated      : 26 Jun 2025
 # Comments     : Based on Chris Titus video for installing virt-manager:
 #              : https://www.youtube.com/watch?v=ozYKkaVK0_A
 # TODO (Rick)  : Set up default image pool in home directory.
@@ -39,10 +39,10 @@ check_cpu() {
 
   printf "* Kernel is "
   if [[ "$kernel64" == "x86_64" ]]; then
-	   printf "64-bit.\n"
+	  printf "64-bit.\n"
   else
-	    printf "not 64-bit.\n" >&2
-	    (( virt_flag++ ))
+	  printf "not 64-bit.\n" >&2
+	  (( virt_flag++ ))
   fi
 
   printf "* Processor is "
@@ -142,12 +142,10 @@ install_packages() {
 }
 
 main() {
-  local script version
-  script=$(basename "$0")
-  version="2.5.24276"
-  box "$script v$version"
+  local -r script="${0##*/}"
+  local -r version="2.6.25177"
+  box "$script $version"
   printf "Installs Virt-Manager and KVM/QEMU...\n\n"
-
   is_systemd || die "Systemd is required to run background services." 1
   check_cpu
   sudo_login 2
@@ -160,7 +158,7 @@ main() {
   add_to_kvm
   printf "Starting and enabling the libvirt daemon"
   enable_libvirtd
-  leave "Virt-Manager installed. $USER added to libvirt, libvirt-qemu, and kvm groups."
+  printf "Virt-Manager installed. %s added to libvirt, libvirt-qemu, and kvm groups." "$USER"
 }
 
 ## Execution ##
