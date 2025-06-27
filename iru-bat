@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 04 Jun 2025
+# Updated      : 27 Jun 2025
 # Comments     : Use install-batcat if distro version equals latest GitHub release.
 #              : Mint 22 installs version 0.24.0 with the Ubuntu version appended.
 #              : Debian 13 installs version 0.25.0 with the Debian version appended.
@@ -32,26 +32,24 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.1.25155"
+readonly version="6.2.25178"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="04 Jun 2025"
+	local errcode="${1:-2}"
+	local -r updated="27 Jun 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Bat utililty.
 
-${green}Usage:${normal} $script [OPTION]
+${green}Usage:${normal} $script [-h] [-i] [-r] [-u]
 ${orange}Available options:${normal}
-  -c  Installs/updates Bat configuration file.
   -h  Show this help message and exit
   -i  Installs the Bat utility.
   -r  Removes the Bat utility from the system.
-  -u  Updates the Bat utility to the latest version.
+  -u  Updates the Bat utility to the latest GitHub release.
 _HELP_
   exit "$errcode"
 }
@@ -106,7 +104,7 @@ remove_bat() {
   printf "Removing Bat %s...\n" "$(bat_version)"
   sudo dpkg --remove bat
   [[ -L "$HOME/.config/bat/config" ]] && unlink "$HOME/.config/bat/config"
-  find "$HOME/.config/" -maxdepth 2 -type d -name bat -exec rm -rf {} \;
+  find "$HOME/.config/" -type d -name bat -exec rm -rf {} \;
   printf "Bat and its configuration files have been removed.\n"
 }
 
@@ -123,41 +121,48 @@ bat_config() {
 
 main() {
   local noOpt opt optstr
-  check_dependencies
   noOpt=1
-  optstr=":chiru"
+  optstr=":hiru"
   while getopts "$optstr" opt; do
     case "$opt" in
-      c )
-        exists bat || leave "Bat is not installed."
-        bat_config
-      ;;
       h )
         help 0
-      ;;
+        ;;
       i )
-        exists bat && leave "Bat $(bat_version) is already installed."
-        tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-        tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-        trap cleanup EXIT
-        new_ver="$(newest_version)"
-        printf "%sInstalling Bat version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
-        install_bat
-        bat_config
-      ;;
+        if exists bat; then
+          printf "Bat %s is already installed.\n" "$(bat_version)" >&2
+        else
+          check_dependencies
+          tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+          trap cleanup EXIT
+          new_ver="$(newest_version)"
+          [[ "$new_ver" ]] || die "No download available. Try again later." 1
+          printf "%sInstalling Bat version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
+          install_bat
+          bat_config
+        fi
+        ;;
       r )
-        exists bat || leave "Bat is not installed."
-        remove_bat
-      ;;
+        if exist bat; then
+          remove_bat
+        else
+          printf "Bat is not installed.\n" >&2
+        fi
+        ;;
       u )
-        exists bat || leave "Bat is not installed."
-        tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-        tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-        trap cleanup EXIT
-        new_ver="$(newest_version)"
-        [[ "$new_ver" ]] || die "No download available. Try again later." 1
-        compare_versions
-      ;;
+        if exists bat; then
+          check_dependencies
+          tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+          trap cleanup EXIT
+          new_ver="$(newest_version)"
+          [[ "$new_ver" ]] || die "No download available. Try again later." 1
+          compare_versions
+        else
+          printf "Bat is not installed.\n" >&2
+        fi
+        ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
