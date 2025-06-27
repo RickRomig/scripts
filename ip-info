@@ -7,9 +7,9 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Feb 2019
-# Updated      : 28 Nov 2024
-# Comments     : Some systems require sudo to get ssid & signal strength.
-#              : If necesary, add hostnames to req_sudo()
+# Updated      : 27 Jun 2025
+# Comments     : Some systems require toot access to get ssid & signal strength.
+#              : If necesary, add applicable hostnames to requires_sudo().
 # TODO (rick)  : format printf statements for devices.
 # License      : GNU General Public License, version 2.0
 #####################################################################
@@ -28,7 +28,8 @@ fi
 
 ## Functions ##
 
-req_sudo() {
+# Some systems may requere root access for the iw command. Plase these hostnames in the case statement.
+requires_sudo() {
 	local lhost="$1"
   case "$lhost" in
     foo-bar )
@@ -52,6 +53,7 @@ show_public() {
   else
     printf "\tNo public IPv4 address found.\n"
   fi
+  # local public_ipv6
   # public_ipv6=$(/usr/bin/curl -s ifconfig.co)
   # if [[ "$public_ipv6" ]]; then
   #   printf "\t%sIPv4:%s %s\n" "$darkgray" "$normal" "$public_ipv6"
@@ -102,15 +104,15 @@ show_wireless() {
     wifi_state=$(cat "/sys/class/net/$wifi_int/operstate")
     wifi_ip=$(/usr/bin/nmcli dev show "$wifi_int" | awk '/IP4.ADDRESS/ {print $NF}' | sed 's/\/24//')
     wifi_mac=$(/usr/bin/nmcli dev show "$wifi_int" | awk '/GENERAL.HWADDR/ {print $NF}')
-    if req_sudo; then
+    if requires_sudo; then
       wifi_ssid=$(sudo /sbin/iw dev "$wifi_int" link | awk '/SSID/ {print $2}')
       wifi_sig=$(sudo /sbin/iw dev "$wifi_int" link | awk '/signal/ {print $2,$3}')
     else
       wifi_ssid=$(/sbin/iw dev "$wifi_int" link | awk '/SSID/ {print $2}')
       wifi_sig=$(/sbin/iw dev "$wifi_int" link | awk '/signal/ {print $2,$3}')
     fi
-    [[ -z "$wifi_ssid" ]] && wifi_ssid="Not available"
-    [[ -z "$wifi_sig" ]] && wifi_sig="Not available"
+    [[ "$wifi_ssid" ]] || wifi_ssid="Not available"
+    [[ "$wifi_sig" ]] || wifi_sig="Not available"
     # display status
     printf "\t%sWireless:%s " "$darkgray" "$normal"
     case "$wifi_state" in
@@ -140,7 +142,6 @@ show_wireless() {
 show_bridge() {
   local br_int br_state br_ip br_mac br_route
 	br_int=$(/usr/bin/nmcli dev | awk '/bridge / {print $1}')
-
 	if [[ "$br_int" ]]; then
     # interface data
     br_state=$(cat "/sys/class/net/$br_int/operstate")
@@ -181,7 +182,7 @@ show_network() {
 
 show_gateway() {
   printf "%sDefault Gateway:%s\n" "$orange" "$normal"
-  /sbin/ip route get 1.2.3.4 | awk '/via/ {print "\t"$3}'
+  /sbin/ip route get 1.2.3.4 | awk 'NR==1 {print "\t"$3}'
 }
 
 show_dns() {
@@ -190,12 +191,11 @@ show_dns() {
 }
 
 main() {
-  local script version lhost
-  lhost="${HOSTNAME:-$(hostname)}"
-  script=$(basename "$0")
-  version="2.10.24333"
+  local -r lhost="${HOSTNAME:-$(hostname)}"
+  local -r script="${0##*/}"
+  local -r version="2.19.25178"
 
-  req_sudo "$lhost" && sudo_login 2
+  requires_sudo "$lhost" && sudo_login 2
   check_dependencies
 
   clear
