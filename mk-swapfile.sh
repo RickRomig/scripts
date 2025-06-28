@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jan 2025
-# Last updated : 27 Jan 2025
+# Last updated : 28 Jun 2025
 # Comments     : creates swap file if no other swap exists.
 #              : Disable old swap and comment out in /etc/fstab
 # TODO (Rick)  :
@@ -42,7 +42,7 @@ swap_exists() {
 
 create_swapfile() {
 	printf "Creating swap file in the root directory...\n"
-	# create a 1GB swap file (multiple count by number of gigabyes needed)
+	# create a 1GB swap file (multiply count by number of gigabyes needed)
 	sudo dd if=/dev/zero of=/swapfile bs=1024 count=1048576	# 4 x count = 4194304
 	ls -lh /swapfile  # see the file in the root directory
 	sudo mkswap /swapfile # prepare swap file
@@ -52,9 +52,8 @@ create_swapfile() {
 }
 
 main() {
-	local script version
-	script=$(basename "$0")
-	version="1.0.25027"
+	local script="${0##*/}"
+	local version="1.1.25179"
 	sudo_login 2
 	if swap_exists; then
 		printf "A swap device exists and is enabled.\n"
