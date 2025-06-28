@@ -4,10 +4,10 @@
 # Description  : Fix for update-initramfs error
 # Dependencies : locale-gen, update-initramfs
 # Arguments    : none
-# Author       : Richard Romig
-# Email        : rick.romig@gmail.com
-# Created      :
-# Updated      : 14 Jan 2025
+# Author       : Copyright © 2025 Richard Romig, Luddite Geek
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : unknown
+# Updated      : 28 Jun 2025
 # Comment      :
 # License      : GNU General Public License, version 2.0
 #########################################################################
@@ -28,8 +28,8 @@ set -eu
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="2.4.24276"
+readonly script="${0##*/}"
+readonly version="2.5.25179"
 
 ## Functions ##
 
@@ -61,7 +61,7 @@ main() {
   sudo_login 2
   show_intro
   purge_update
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
