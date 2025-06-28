@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Mar 2022
-# Updated      : 14 Dec 2024
+# Updated      : 27 Jun 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,19 +28,17 @@ fi
 ## Functions ##
 
 is_main_host() {
-  local l_host m_host
-  m_host="$1"
-  l_host="${HOSTNAME:-$(hostname)}"
+  local m_host="$1"
+  local l_host="${HOSTNAME:-$(hostname)}"
   [[ "$l_host" == "$m_host" ]] && return "$TRUE" || return "$FALSE"
 }
 
 main() {
-  local  script version kdbx_d mhost mhostip
-  script=$(basename "$0")
-  version="5.0.24349"
-  kdbx_d="$HOME/Documents"
-  mhost="hp-800g2-sff"
-  mhostip="10"
+  local script="${0##*/}"
+  local -r version="5.1.25178"
+  local -r kdbx_d="$HOME/Documents"
+  local -r mhost="hp-800g2-sff"
+  local -r mhostip="10"
 
   # Ensure script is not being run from HP-800-G2-SFF (10)
   is_main_host "$mhost" && leave "$script cannot be run from $mhost."
