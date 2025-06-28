@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Mar 2023
-# Updated      : 17 May 2025
+# Updated      : 28 Jun 2025
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -58,6 +58,11 @@ syncscript() {
 
   printf "\n%sSyncing Language directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/Language/ "$LOCALNET.$hostip":Documents/Language/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  printf "\n%sSyncing Password Databases...%s\n" "$orange" "$normal"
+  rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$LOCALNET.$hostip":Documents/
   exit_status="$?"
   transfer_status "$exit_status"
 
@@ -180,8 +185,8 @@ check_host() {
 
 main() {
   local script version
-  script=$(basename "$0")
-  version="4.5.25137"
+  script="${0##*/}"
+  version="4.6.25179"
   box "$script $version" "-"
   check_host
   over_line "Syncronization completed in $(format_time $SECONDS)" "-"
