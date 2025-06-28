@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : iru-vscodium
 # Description  : Install, update, remove VSCodium editor.
-# Dependencies : gdebi, wget
+# Dependencies : wget
 # Arguments    : [-h] [-i] [-r] [-s] [-u] (See help function)
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -43,14 +43,12 @@ help() {
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates,  removes the VSCodium editor.
 
-${green}Usage:${normal} $script [OPTION]
-
+${green}Usage:${normal} $script [-h] [-i] [-r] [-u]
 ${orange}Available options:${normal}
   -h  Show this help message and exit.
   -i  Installs the VSCodium editor.
   -r  Removes the VSCodium editor from the system.
-  -s  Applies VSCodium settings.
-  -u  Updates the VSCodium editor to the latest version.
+  -u  Updates the VSCodium editor to the latest GitHub release.
 _HELP_
   exit "$errcode"
 }
@@ -62,16 +60,12 @@ cleanup() {
   [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
 }
 
-check_dependencies() {
-  local packages=( git wget )
-  check_packages "${packages[@]}"
-}
-
 codium_version() {
 	dpkg -l  codium | awk '/ii/ {print $3}'
 }
 
 newest_version() {
+  local new_ver
   wget -qO "$tmp_file" "$gh_url"
   new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $8;exit}')
   echo "$new_ver"
@@ -95,72 +89,74 @@ install_vscodium() {
   wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
   kill "$!";printf "done\n";tput cnorm
   printf "Installing VSCodium %s...\n" "$new_ver"
+  sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-brokenq
   printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 }
 
 remove_vscodium() {
-  local cfg_d="$1"
+  local config_dir="$HOME/.config/VSCodium/User"
+  sudo_login 2
   printf "Removing the VSCodium editor...\n"
   sudo dpkg --remove codium
-  [[ -L "$cfg_d/settings.json" ]] && unlink "$cfg_d/settings.json"
+  [[ -L "$config_dir/settings.json" ]] && unlink "$config_dir/settings.json"
   find "$HOME/.config" -type d -name VSCodium -exec rm -rf {} \;
   printf "VSCodium editor has been removed.\n"
 }
 
 apply_settings() {
-  local repository cfg_d
-  cfg_d="$1"
+  local repository config_dir
+  config_dir="$HOME/.config/VSCodium/User"
   repository=$(assign_cfg_repo)
-  [[ -d "$cfg_d" ]] && mkdir -p "$cfg_d"
+  [[ -d "$config_dir" ]] && mkdir -p "$config_dir"
   printf "Applying VSCodium settings...\n"
-  [[ -f "$cfg_d/settings.json" ]] && rm "$cfg_d/settings.json"
-  ln -s "$repository/VSCodium/User/settings.json" "$cfg_d/settings.json"
+  [[ -f "$config_dir/settings.json" ]] && rm "$config_dir/settings.json"
+  ln -s "$repository/VSCodium/User/settings.json" "$config_dir/settings.json"
   printf "VSCodium settings applied.\n"
 }
 
 main() {
-  local noOpt opt optstr cfg_d
-  cfg_d="$HOME/.config/VSCodium/User"
-  check_dependencies
+  local noOpt opt optstr
   noOpt=1
-  optstr=":hirsu"
+  optstr=":hiru"
   while getopts "$optstr" opt; do
 	  case "$opt" in
 		  h )
 			  help 0
-      ;;
+        ;;
 		  i )
-			  exists codium && leave "VSCodium $(codium_version) is already installed."
-        sudo_login 2
-        tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-			  tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-			  trap cleanup EXIT
-			  new_ver="$(newest_version)"
-        [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
-        echo "${lightyellow}Installing VSCodium $new_ver...${normal}"
-			  install_vscodium
-        apply_settings "$cfg_d"
-      ;;
+        if exists codium; then
+          printf "VSCodium %s is already installed.\n" "$(codium_version)" >&2
+        else
+          tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+			    tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+			    trap cleanup EXIT
+			    new_ver="$(newest_version)"
+          [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
+          echo "${lightyellow}Installing VSCodium $new_ver...${normal}"
+			    install_vscodium
+          apply_settings
+        fi
+        ;;
 		  r )
-        exists codium || leave "VSCodium is not installed."
-        sudo_login 2
-        remove_vscodium "$cfg_d"
-      ;;
-		  s )
-        exists codium || leave "VSCodium is not installed."
-        apply_settings "$cfg_d"
-      ;;
+        if exists codium; then
+          remove_vscodium
+        else
+          printf "VSCodium is not installed.\n" >&2
+        fi
+        ;;
 		  u )
-        exists codium || leave "VSCodium is not installed."
-        sudo_login 2
-			  tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
-			  tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-			  trap cleanup EXIT
-			  new_ver="$(newest_version)"
-        [[ "$new_ver" ]] || die "No download available. Try again later." 1
-			  compare_versions
-      ;;
+        if exists codium; then
+			    tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+			    tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+			    trap cleanup EXIT
+			    new_ver="$(newest_version)"
+          [[ "$new_ver" ]] || die "No download available. Try again later." 1
+			    compare_versions
+        else
+          printf "VSCodium is not installed.\n" >&2
+        fi
+        ;;
 		  ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 			  help 2
@@ -169,7 +165,7 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  box "$script v$version"
+  over_line "$script v$version"
   exit
 }
 
