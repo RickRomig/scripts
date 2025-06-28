@@ -7,7 +7,7 @@
 # Author       : Richard B. Romig, 01 Dec 2019
 # Email        : rick.romig@gmail.com
 # Created      : 01 Dec 2019
-# Updated      : 31 Oct 2024
+# Updated      : 28 Jun 2025
 # Comments     : Variables for IP range do not work, must be hard coded.
 #              : Local host will not respond to arping.
 #              : Local host will respond using arping in iputils-arping.
@@ -30,12 +30,30 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="4.8.24305"
+readonly script="${0##*/}"
+readonly version="4.9.25179"
 SECONDS=0
 COUNT=0
 
 ## Functions ##
+
+help() {
+	local errcode="${1:-2}"
+	local updated="28 Jun 2025"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
+Scans local network to see which addresses are active.
+
+${green}Usage:${normal} $script [-a] [-d] [-h] [-s]
+${orange}Available options:${normal}
+  -a  Scan entire network.
+  -d  Scan DHCP assigned addresses.
+  -h  Show this help message and exit.
+  -s  Scan static addresses.
+  ${orange}Note:${normal} Uses iputils-arping.
+_HELP_
+  exit "$errcode"
+}
 
 check_dependencies() {
   local packages=( avahi-daemon avahi-utils libnss-mdns iputils-arping )
@@ -59,13 +77,13 @@ scan_static_addresses() {
         case $ip_addr in
           "192.168.0.1" ) printf "\tGateway (TP Link AC1750)\n" ;;
           "192.168.0.2" ) printf "\tD-Link AP\n" ;;
-          "192.168.0.3" ) printf "\hp-8300 (Network test)\n" ;;
+          "192.168.0.3" ) printf "\tunassigned ip\n" ;;
           "192.168.0.4" ) printf "\tNASD97167 (QNAP NAS)\n" ;;
           "192.168.0.5" ) printf "\tunassigned ip\n" ;;
           "192.168.0.6" ) printf "\tRaspberry Pi 4\n" ;;
           "192.168.0.7" ) printf "\tunassigned ip\n" ;;
-          "192.168.0.8" ) printf "\tHP LaserJet P1505n\n" ;;
-          "192.168.0.9" ) printf "\tHP489EBDBB5940 (HP ENVY 6052e)\n" ;;
+          "192.168.0.8" ) printf "\tunassigned ip\n" ;;
+          "192.168.0.9" ) printf "\tunassigned ip\n" ;;
           "192.168.0.10" ) printf "\thp-800g2-sff (Main PC)\n" ;;
           "192.168.0.11" ) printf "\thp-6005 (Server)\n" ;;
           "192.168.0.12" ) printf "\te6500-deb (Dell laptop)\n" ;;
@@ -79,10 +97,11 @@ scan_static_addresses() {
           "192.168.0.20" ) printf "\tprobook-6570\n" ;;
           "192.168.0.21" ) printf "\thp-probook-6570 (Finance)\n" ;;
           "192.168.0.22" ) printf "\thp-850-g3 (i3)\n" ;;
-          "192.168.0.23" ) printf "\thp-2560p (MX)\n" ;;
+          "192.168.0.23" ) printf "\thp-2560p (i3)\n" ;;
           "192.168.0.24" ) printf "\te-475m (Gateway laptop)\n" ;;
-          "192.168.0.25" ) printf "\thp-mini-110 (Netbook)\n" ;;
-          * ) printf "\tUnknown host\n"
+          "192.168.0.25" ) printf "\tunassigned ip\n" ;;
+          * )
+            printf "\tUnknown host\n"
         esac
       fi
       (( COUNT++ ))
@@ -106,26 +125,6 @@ scan_dhcp_addresses() {
   done
 }
 
-help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="31 Oct 2024"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Scans local network to see which addresses are active.
-
-${green}Usage:${normal} $script [OPTION]
-
-${orange}Available options:${normal}
-  -a  Scan entire network
-  -d  Scan DHCP assigned addresses
-  -h  Display Help
-  -s  Scan static addresses
-  ${orange}Note:${normal} Uses iputils-arping.
-_HELP_
-  exit "$errcode"
-}
-
 main() {
   local noOpt opt optstr
   noOpt=1
@@ -140,7 +139,7 @@ main() {
         scan_static_addresses
         scan_dhcp_addresses
         tput cnorm
-      ;;
+        ;;
       d )
         check_dependencies
         tput civis
@@ -148,10 +147,10 @@ main() {
         echo -e "${underline}${green}IP Address\tHostname${normal}"
         scan_dhcp_addresses
         tput cnorm
-      ;;
+        ;;
       h )
         help 0
-      ;;
+        ;;
       s )
         check_dependencies
         tput civis
@@ -159,7 +158,7 @@ main() {
         echo -e "${underline}${green}IP Address\tHostname${normal}"
         scan_static_addresses
         tput cnorm
-      ;;
+        ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
@@ -169,7 +168,8 @@ main() {
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
   printf "\n%d active addresses discovered in %s.\n\n" "$COUNT" "$(format_time SECONDS)"
-  leave "$script v$version"
+  over_line "$script $version"
+  exit
 }
 
 ## Execution ##
