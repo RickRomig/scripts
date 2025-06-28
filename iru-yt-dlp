@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 10 Jun 2025
+# Updated      : 27 Jun 2025
 # Comments     : Removes distro repo version if installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,18 +30,18 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.4.25161"
+readonly version="2.5.25178"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="10 Jun 2025"
+	local updated="27 Jun 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, removes, updates YouTube-dlp.
 
-${green}Usage:${normal} $script [OPTION]
+${green}Usage:${normal} $script [-h] [-i] [-r] [-u] [-x]
 ${orange}Available options:${normal}
 	-h 	Show this help message and exit
 	-i 	Install yt-dlp (binary)
@@ -58,7 +58,6 @@ check_dependencies() {
 }
 
 ytdlp_deb() {
-	# [[ -f /usr/bin/yt-dlp ]] && return "$TRUE" || return "$FALSE"
 	dpkg -l yt-dlp 2>/dev/null && return "$TRUE" || return "$FALSE"
 }
 
@@ -67,11 +66,11 @@ ytdlp_bin() {
 }
 
 ytdlp_version() {
-	/usr/local/bin/yt-dlp --version
+	ytdlp_bin && /usr/local/bin/yt-dlp --version
 }
 
 deb_version() {
-	dpkg -l yt-dlp | awk '/ii/ {print $3}' | sed 's/[+-].*//'
+	ytdlp_deb && dpkg -l yt-dlp | awk '/ii/ {print $3}' | sed 's/[+-].*//'
 }
 
 update_ytdlp() {
@@ -80,16 +79,17 @@ update_ytdlp() {
 }
 
 install_updater() {
-	local updater="$HOME/bin/z-ytdlp-update"
-	local cleanup="$HOME/bin/files/ytdlp-uplog.sed"
+	local -r updater="$HOME/bin/z-ytdlp-update"
+	local -r cleanup="$HOME/bin/files/ytdlp-uplog.sed"
   [[ -x "$updater" ]] && sudo cp -v "$updater" /etc/cron.daily/
-  [[ -f "$cleanup" ]] && sudo cp -v "$cleanup" /usr/share/misc
+  [[ -f "$cleanup" ]] && sudo cp -v "$cleanup" /usr/share/misc/
 
 }
 
 install_ytdlp() {
-  local url="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp"
+  local -r url="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp"
 	printf "Installing yt-dlp, and update scripts...\n"
+	sudo_login 2
   sudo curl -# -L "$url" -o /usr/local/bin/yt-dlp
   sudo chmod a+rx /usr/local/bin/yt-dlp
   [[ -x /usr/bin/python3 ]] && sudo ln -s /usr/bin/python3 /usr/bin/python
@@ -99,8 +99,9 @@ install_ytdlp() {
 }
 
 remove_ytdlp_repo() {
-	local ytdlp_docs="/usr/share/doc/yt-dlp"
+	local -r ytdlp_docs="/usr/share/doc/yt-dlp"
 	printf "Removing yt-dlp %s installed from distro repos.\n" "$(deb_version)"
+	sudo_login 2
   sudo apt-get purge -y yt-dlp
   sudo apt-get autoremove -y
 	[[ -d "$ytdlp_docs" ]] && sudo rm -rf "$ytdlp_docs"
@@ -109,7 +110,8 @@ remove_ytdlp_repo() {
 
 remove_ytdlp() {
   # Removes the yt-dl.org version
-  printf "Removing yt-dlp v%s installed from yt-dlp.org...\n" "$(ytdlp_version)"
+  printf "Removing yt-dlp %s installed from yt-dlp.org...\n" "$(ytdlp_version)"
+	sudo_login 2
   sudo rm /usr/local/bin/yt-dlp
   remove_configs
   remove_updater
@@ -136,8 +138,8 @@ remove_configs() {
 }
 
 remove_updater() {
-	local sed_file="/usr/share/misc/ytdlp-uplog.sed "
-	local updater="/etc/cron.daily/z-ytdlp-update"
+	local -r sed_file="/usr/share/misc/ytdlp-uplog.sed "
+	local -r updater="/etc/cron.daily/z-ytdlp-update"
 	printf "Removing the yt-dlp updater...\n"
 	if [[ -f "$sed_file" ]]; then
 		sudo rm "$sed_file"
@@ -154,7 +156,7 @@ remove_updater() {
 }
 
 remove_ytdlp_logs() {
-	local log_file="/var/log/ytdlpup.log"
+	local -r log_file="/var/log/ytdlpup.log"
 	printf "Removing yt-dlp log file...\n"
   if [[ -f "$log_file" ]]; then
     sudo rm "$log_file"
@@ -190,33 +192,41 @@ main() {
 		case "$opt" in
 			h )
 				help 0
-			;;
+				;;
 			i )
-				ytdlp_bin && leave "yt-dlp $(ytdlp_version) already installed."
-				sudo_login 2
-				install_intro
-				check_dependencies
-				ytdlp_deb && remove_ytdlp_repo
-				install_ytdlp
-			;;
+				if ytdlp_bin; then
+					printf "yt-dlp %s is already installed.\n" "$(ytdlp_version)"
+				else
+					install_intro
+					check_dependencies
+					ytdlp_deb && remove_ytdlp_repo
+					install_ytdlp
+				fi
+				;;
 			r )
 				remove_intro
 				ytdlp_deb && remove_ytdlp_repo
-				ytdlp_bin || leave "yt-dlp is not installed."
-				sudo_login 2
-				remove_ytdlp
-			;;
+				if ytdlp_bin; then
+					remove_ytdlp
+				else
+					printf "yt-dlp is not installed.\n"
+				fi
+				;;
 			u )
-				ytdlp_bin || leave "yt-dlp is not installed."
-				sudo_login 2
-				update_ytdlp
-			;;
+				if ytdlp_bin; then
+					update_ytdlp
+				else
+					printf "yt-dlp is not installed.\n"
+				fi
+				;;
 			x )
-				ytdlp_deb || leave "The distribution version of yt-dlp is not installed."
-				printf "Removing yt-dlp %s was installed from the distribution repository.\n" "$(deb_version)"
-				sudo_login 2
-				remove_ytdlp_repo
-			;;
+				if ytdlp_bin; then
+					printf "Removing yt-dlp %s installed from the distribution repository.\n" "$(deb_version)"
+					remove_ytdlp_repo
+				else
+					printf "The distribution version of yt-dlp is not installed.\n"
+				fi
+				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
