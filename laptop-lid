@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGee@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Oct 2020
-# Updated      : 18 Dec 2024
+# Updated      : 28 Jun 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -32,27 +32,26 @@ modify_logind() {
   local sed_file="$HOME/bin/files/laptoplid.sed"
   if [[ -f "$sed_file" ]]; then
     sudo_login 2
-    printf "Allows a laptop lid to be closed without going into suspend mode.\n"
     printf "Modifying %s and restarting systemd-logind service.\n" "$logind_conf"
     sudo sed -i.bak -f "$sed_file" "$logind_conf"
     sudo systemctl restart systemd-logind.service
     printf "%s modified and backup created.\n" "$logind_conf"
   else
-    printf  "A required file, %s, was not found. Operation canceled" "$(basename "$sed_file")"
+    printf  "A required file, %s, was not found. Operation canceled" "${sed_file##*/}"
   fi
 }
 
 main() {
-  local lhost script version
-  lhost="${HOSTNAME:=-$(hostname)}"
-  script=$(basename "$0")
-  version="4.0.24353"
+  local lhost="${HOSTNAME:=-$(hostname)}"
+  local script="${0##*/}"
+  local -r version="4.1.25179"
+  printf "Allows a laptop lid to be closed without going into suspend mode.\n"
   if is_laptop; then
     modify_logind
   else
     printf "%s is not a laptop. Operation canceled.\n" "$lhost"
   fi
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
