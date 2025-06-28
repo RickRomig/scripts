@@ -27,7 +27,7 @@ else
 fi
 
 set -eu
-# set -eu
+# set -euo pipefail
 
 ## Global Variables ##
 
@@ -40,7 +40,7 @@ tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." 1
 ## Functions ##
 
 check_dependencies() {
-  local packages=( gdebi wget )
+  local packages=( git wget )
   check_packages "${packages[@]}"
 }
 
@@ -58,20 +58,20 @@ app_version() {
 
 help() {
 	local errcode="${1:-2}"
-	local updated="<TODAY>"
+	local -r updated="<TODAY>"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Short description
 
-${green}Usage:${normal} $script [OPTION]
+${green}Usage:${normal} $script [-h] [-i] [-r] [-s] [-u] [-v]
 
 ${orange}Available options:${normal}
-	-h	Show this help message and exit
-	-i	Install application
-	-r	Remove application
-	-s	Apply settings
-	-u	Update application
-	-v	Enable verbose mode
+	-h	Show this help message and exit.
+	-i	Install application.
+	-r	Remove application.
+	-s	Apply settings.
+	-u	Update application.
+	-v	Enable verbose mode. If used, must precede other flags.
 _HELP_
   exit "$errcode"
 }
@@ -93,22 +93,35 @@ main() {
 			;;
 			i )
 				# argI="$OPTARG"
-				exists application && leave "Application $(app_version) is already installed."
-				trap cleanup EXIT	# for temp files and directories
-				install_application
-				apply_settings	# optional custom configuration
+				if exists application; then
+					printf "Application %s is already installed.\n" "$(app_version)" >&2
+				else
+					trap cleanup EXIT	# for temp files and directories
+					install_application
+					apply_settings	# optional custom configuration
+				fi
 				;;
 			r )
 				# argR="$OPTARG"
-				exists application || leave "Application is not installed."
-				remove_application
+				if exists application; then
+					remove_application
+				else
+					printf "Application is not installed.\n" >&2
+				fi
 				;;
 			s )
-				apply_settings
+				if exists application; then
+					apply_settings
+				else
+					printf "Application is not installed.\n" >&2
+				fi
 				;;
 			u )
-				exists application || leave "Application is not installed."
-				update_application
+				if exists application; then
+					update_application
+				else
+					printf "Application is not installed.\n" >&2
+				fi
 				;;
 			v )
 				verbose_mode="$TRUE"
