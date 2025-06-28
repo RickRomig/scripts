@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 09 Jan 2025
+# Updated      : 28 Jun 2025
 # Comments     : Based on a script by Joe Collins.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,10 +26,29 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="6.3.25009"
+readonly script="${0##*/}"
+readonly version="6.4.25179"
 
 ## Funtions ##
+
+help() {
+	local errcode="${1:-2}"
+	local updated="28 Jun 2025"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
+Installs laptop-specific utlities.
+
+${green}Usage:${normal} $script [-h] [-i] [-l] [-s]
+${orange}Available options:${normal}
+  -h  Display help.
+  -i  Install laptop utilities.
+  -l  Display installed utilities.
+  -s  Start TLP service.
+
+_HELP_
+  intro
+  exit "$errcode"
+}
 
 intro() {
   cat << _INTRO_
@@ -40,27 +59,6 @@ Installs laptop-specific utilities:
  * Touchpad Indicator - utility to enable/disable the touchpad.
 
 _INTRO_
-}
-
-help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="09 Jan 2025"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Installs laptop-specific utlities.
-
-${green}Usage:${normal} $script [OPTION]
-
-${orange}Available options:${normal}
-  -h  Display help.
-  -i  Install laptop utilities.
-  -l  Display installed utilities.
-  -s  Start TLP service
-
-_HELP_
-  intro
-  exit "$errcode"
 }
 
 installed() {
@@ -160,30 +158,39 @@ main() {
   lhost="${HOSTNAME:=-$(hostname)}"
   noOpt=1
   optstr=":hils"
+  intro
   while getopts "$optstr" opt; do
     case "$opt" in
       h )
         help 0
-      ;;
+        ;;
       i )
-        is_laptop || die "$lhost is not a laptop." 1
-        sudo_login 2
-        intro
-        install_thermald
-        install_acpi
-        install_tlp
-        install_touchpad_indicator
-        util_status
-      ;;
+        if is_laptop; then
+          sudo_login 2
+          install_thermald
+          install_acpi
+          install_tlp
+          install_touchpad_indicator
+          util_status
+        else
+          printf "%s is not a laptop. Nothing to do.\n" "$lhost" >&2
+        fi
+        ;;
       l )
-        is_laptop || die "$lhost is not a laptop." 1
-        util_status
-      ;;
+        if is_laptop; then
+          util_status
+        else
+          printf "%s is not a laptop. Nothing to do.\n" "$lhost" >&2
+        fi
+        ;;
       s )
-        is_laptop || die "$lhost is not a laptop." 1
-        sudo_login 2
-        tlp_status
-      ;;
+        if is_laptop; then
+          sudo_login 2
+          tlp_status
+        else
+          printf "%s is not a laptop. Nothing to do.\n" "$lhost" >&2
+        fi
+        ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
@@ -192,7 +199,7 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
