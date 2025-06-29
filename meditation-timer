@@ -16,6 +16,7 @@
 
 ## Global Variables ##
 
+script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly TRUE=0
 readonly FALSE=1
 
@@ -56,9 +57,8 @@ set_volume() {
 
 play_sound() {
   # Play a sound as a background process.
-  local sound_dir="$HOME/bin/files"
   local sound="$1"
-  /usr/bin/aplay "$sound_dir/$sound" > /dev/null 2>&1 &
+  /usr/bin/aplay "$sound" > /dev/null 2>&1 &
 }
 
 screensaver_off() {
@@ -85,7 +85,7 @@ prep_countdown() {
 meditation_timer() {
   local hours interval min minutes seconds sec_rem
   min="$1"
-  # local -r audio_file="Low-Wood-Block.wav"
+  # local -r audio_file="$script_dir/files/Low-Wood-Block.wav"
   sec_rem=$(( 60 * min ))
   while [[ "$sec_rem" -gt 0 ]]; do
     sec_rem=$(( sec_rem - 1 ))
@@ -109,8 +109,8 @@ main() {
   trap screensaver_on EXIT
   local ovol
   local script="${0##*/}"
-  local -r version="2.5.25178"
-  local -r audio_file="Tibetan_bowl.wav"
+  local -r version="2.6.25180"
+  local -r audio_file="$script_dir/files/Tibetan_bowl.wav"
   local meditation_time="${1:-20}"  # Default time is 20 minutes.
   [[ -n "${meditation_time//[0-9]/}" || "$meditation_time" -eq 0 ]] && input_value
   local vol="${2:-50}"  # Default volume setting is 50%.
