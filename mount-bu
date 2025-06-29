@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, 04 Jul 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2022
-# Updated      : 31 May 2025
+# Updated      : 29 Jun 2025
 # Comments     : For use with BU backup script.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,10 +28,32 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.18.25151"
+readonly version="2.19.25180"
 readonly mount_point="/media/$USER/BU_Drive"
 
 ## Functions ##
+
+help() {
+  local errcode updated
+	errcode="${1:-2}"
+	updated="29 Jun 2025"
+	cat << _HELP_
+  ${orange}$script${normal} $version, Updated $updated
+  Mounts/Unmounts USB backup drive for the BU script.
+
+  ${green}Usage:${normal} $script [-h] [-m] [-s] [-u]
+
+  ${orange}Availabel options:${normal}
+    -h    Show this help message and exit
+    -m    Mount USB Backup Drive (BU_Drive)
+    -s    Status, is USB Backup Drive (BU_Drive) mounted?
+    -u    Unmount USB Backup Drive (BU_Drive)
+  ${green}NOTEs:${normal}
+  - When prompted, enter only the drive, i.e., sdb1
+  - If no argument is passed, displays status of the BU drive.
+_HELP_
+  exit "$errcode"
+}
 
 mount_bu() {
   local usbdrv
@@ -67,28 +89,6 @@ bu_status() {
   fi
 }
 
-help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="07 Feb 2025"
-	cat << _HELP_
-  ${orange}$script${normal} $version, Updated $updated
-  Mounts/Unmounts USB backup drive for the BU script.
-
-  ${green}Usage:${normal} $script [OPTION]
-
-  ${orange}Availabel options:${normal}
-    -h    Show this help message and exit
-    -m    Mount USB Backup Drive (BU_Drive)
-    -s    Status, is USB Backup Drive (BU_Drive) mounted?
-    -u    Unmount USB Backup Drive (BU_Drive)
-  ${green}NOTEs:${normal}
-  - When prompted, enter only the drive, i.e., sdb1
-  - If no argument is passed, displays status of the BU drive.
-_HELP_
-  exit "$errcode"
-}
-
 main() {
   local noOpt opt optstr
   [[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || die "BU_Drive not attached."
@@ -98,24 +98,24 @@ main() {
     case "$opt" in
       h )
         help 0
-      ;;
+        ;;
       m )
         if bu_status; then
           printf "No further action necessary.\n"
         else
           mount_bu
         fi
-      ;;
+        ;;
       s )
         bu_status
-      ;;
+        ;;
       u )
         if bu_status; then
           umount_bu
         else
           printf "No further action necessary.\n"
         fi
-      ;;
+        ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
