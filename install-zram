@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jan 2025
-# Updaged      : 23 Jun 2025
+# Updaged      : 29 Jun 2025
 # Comments     : Option to disable current swap && install ZRam.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,6 +27,10 @@ fi
 
 set -eu
 
+## Global Variables ##
+
+script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
+
 ## Functions ##
 
 find_current_swap() {
@@ -44,7 +48,7 @@ disable_swap() {
 }
 
 install_zram() {
-  local sed_file="$HOME/bin/files/zramswap.sed"
+  local sed_file="$script_dir/files/zramswap.sed"
 	sudo apt install -y zram-tools
 	# sudo sed -i.bak '/ALGO/s/^#//;/PERCENT/s/^#//;s/50$/25/' /etc/default/zramswap
   sudo sed -i.bak -f "$sed_file" /etc/default/zramswap
@@ -54,7 +58,7 @@ install_zram() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.1.25174"
+  local -r version="3.2.25180"
   local swap_dev
   swap_dev=$(find_current_swap)
   sudo_login 2
