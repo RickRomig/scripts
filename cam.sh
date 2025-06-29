@@ -29,8 +29,9 @@ set -eu
 
 ## Global Variables ##
 
+script_dir=$(dirname "$(readlink -f "${0}")")
 readonly card_files=(cam-black.lst cam-white.lst)
-readonly card_dir="$HOME/bin/files"
+readonly card_dir="$script_dir/files"
 
 ## Functions ##
 
@@ -79,7 +80,7 @@ play_game() {
 
 main() {
   local script="${0##*/}"
-  local version="2.1.25174"
+  local version="2.2.25180"
   check_files
   play_game
   over_line "$script $version"
