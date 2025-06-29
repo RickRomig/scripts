@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 02 apri 2025
+# Updated      : 29 Jun 2025
 # Comments     : Mount points are at ~/mnt/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,9 +31,32 @@ set -eu
 
 script=$(basename "$0"); readonly script
 readonly version="4.8.25093"
-readonly local_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
+
+help() {
+  local errcode updated
+	errcode="${1:-2}"
+	updated="29 Jun 2025"
+	cat << _HELP_
+${orange}$script${normal} $version, Updated $updated
+Mounts/Unmounts an SSHFS share.
+
+${green}Usage:${normal} $script [-d] [-e] [-f] [-g] [-h] [-l] [-m] [-n] [-s]
+
+${orange}Availabel options:${normal}
+  -d  toggle mount/umount HP EliteDesk 800 G1 USDT (destop)
+  -e  toggle mount/umount HP EliteBook 850 G3 (laptop)
+  -f  toggle mount/umount HP ProBook 6570b (desk)
+  -g  toggle mount/umount HP Compaq Elite 8300 USDT (Gitea Server)
+  -h  Show this help message and exit
+  -l  toggle mount/umount Lenovo M91p (VM and media)
+  -m  toggle mount/umount HP 800 G2 (Main system)
+  -n  toggle mount/umount QNAP NAS (network attached storage)
+  -s  toggle mount/umount HP Compaq 6005 Pro SSF (file server)
+_HELP_
+	exit "$errcode"
+}
 
 cd_fail() {
 	local share="$1"
@@ -97,32 +120,9 @@ handle_mount() {
 	fi
 }
 
-help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="04 Nov 2024"
-	cat << _HELP_
-${orange}$script${normal} $version, Updated $updated
-Mounts/Unmounts an SSHFS share.
-
-${green}Usage:${normal} $script [OPTION]
-
-${orange}Availabel options:${normal}
-  -d  toggle mount/umount HP EliteDesk 800 G1 USDT (destop)
-  -e  toggle mount/umount HP EliteBook 850 G3 (laptop)
-  -f  toggle mount/umount HP ProBook 6570b (desk)
-  -g  toggle mount/umount HP Compaq Elite 8300 USDT (Gitea Server)
-  -h  Show this help message and exit
-  -l  toggle mount/umount Lenovo M91p (VM and media)
-  -m  toggle mount/umount HP 800 G2 (Main system)
-  -n  toggle mount/umount QNAP NAS (network attached storage)
-  -s  toggle mount/umount HP Compaq 6005 Pro SSF (file server)
-_HELP_
-	exit "$errcode"
-}
-
 main() {
   local noOpt opt optstr
+	local_host="${HOSTNAME:-$(hostname)}"
 	check_package sshfs
 	printf "Mount or unmount an SSHFS share.\n"
 	noOpt=1
