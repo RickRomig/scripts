@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2023
-# Last updated : 04 Jan 2026
+# Last updated : 29 Jun 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,19 +25,28 @@ else
   exit 1
 fi
 
-main() {
-  local script sed_file sleep_file version
-  script=$(basename "$0")
-  version="1.3.25004"
-  sleep_file="/etc/systemd/sleep.conf"
-  sed_file="$HOME/bin/files/nosleep.sed"
+set_nosleep() {
+  local -r sleep_file="/etc/systemd/sleep.conf"
+  local -r sed_file="$HOME/bin/files/nosleep.sed"
+  if [[ -f "$sed_file" ]]; then
+    sudo_login 2
+    sudo sed -i.bak -f "$sed_file" "$sleep_file"
+    printf "%s modified. Backup (%s.bak) created.\n" "$sleep_file" "${sleep_file##*/}"
+    return 0
+  else
+    printf "A required file (%s) was not found.\n" "${sed_file##*/}"  >&2
+    printf "Operation could not continue.\n" >&2
+    return 1
+  fi
+}
 
+main() {
+  local script="${0##*/}"
+  local -r version="1.3.25180"
   printf "Disables sleep and hiberation on Debian-based systems.\n"
-  [[ -f "$sed_file" ]] || die "A required file ($(basename "$sed_file")) was not found." 1
-  sudo_login 2
-  sudo sed -i.bak -f "$sed_file" "$sleep_file"
-  printf "%s modified. Backup (%s.bak) created.\n" "$sleep_file" "$sleep_file"
+  set_nosleep; code="$?"
   over_line "$script $version"
+  exit "$code"
 }
 
 ## Execution ##
