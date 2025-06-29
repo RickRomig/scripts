@@ -29,15 +29,14 @@ set -eu
 
 ## Glonal Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="4.8.25093"
+readonly script="${0##*/}"
+readonly version="4.9.25180"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="29 Jun 2025"
+	local errcode="${1:-2}"
+	local -r updated="29 Jun 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated $updated
 Mounts/Unmounts an SSHFS share.
@@ -67,22 +66,22 @@ cd_fail() {
 
 fail_msg() {
 	local share="$1"
+	local -r mount_point="$HOME/mnt"
   printf "Make sure you are not in the mountpoint and run the following command:\n" >&2
-  printf "\t%sfusermount -u \$HOME/mnt/%s/%s\n" "$orange" "$share" "$normal"  >&2
+  printf "\t%sfusermount -u %s/%s/%s\n" "$orange" "$mount_point" "$share" "$normal"  >&2
   exit 1
 }
 
 mount_share() {
-	local octet share
-	octet="$1"
-  share="$2"
+	local octet="$1"
+  local share="$2"
   ping -c3 "$LOCALNET.$octet" > /dev/null 2>&1 || die "$share at $LOCALNET.$octet is not online."
 	[[ -d "$HOME/mnt/$share/" ]] || mkdir -p "$HOME/mnt/$share"
 	printf "Mounting %s...\n" "$share"
 	if [[ "$share" == "NASD97167" ]]; then
 		sshfs -o follow_symlinks rick@"$LOCALNET.$octet:" "$HOME/mnt/$share/"
 	else
-		sshfs -o follow_symlinks rick@"$LOCALNET.$octet:/home/rick" "$HOME/mnt/$share/"
+		sshfs -o follow_symlinks rick@"$LOCALNET.$octet:$HOME" "$HOME/mnt/$share/"
 	fi
 	printf "Home directory at %s:\n" "$share"
 	ls "$HOME/mnt/$share/"
@@ -106,9 +105,8 @@ mounted() {
 }
 
 handle_mount() {
-	local octet share
-	octet="$1"
-  share="$2"
+	local octet="$1"
+  local share="$2"
   if mounted "$share"; then
 		if default_yes "Unmount $share?"; then
 			unmount_share "$share"
@@ -121,7 +119,7 @@ handle_mount() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr local_host
 	local_host="${HOSTNAME:-$(hostname)}"
 	check_package sshfs
 	printf "Mount or unmount an SSHFS share.\n"
@@ -137,7 +135,7 @@ main() {
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
-			;;
+				;;
 			e )
 				share_name="EliteBook-850"
 				ip_address=22
@@ -146,7 +144,7 @@ main() {
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
-			;;
+				;;
 			f )
 				share_name="HP-ProBook-6570b"
 				ip_address=21
@@ -155,7 +153,7 @@ main() {
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
-			;;
+				;;
 			g )
 				share_name="Gitea-Server"
 				ip_address=16
@@ -164,10 +162,10 @@ main() {
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
-			;;
+				;;
 			h )
 				help 0
-			;;
+				;;
 			l )
 				share_name="Lenovo-M91p"
 				ip_address=15
@@ -176,7 +174,7 @@ main() {
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
-			;;
+				;;
 			m )
 				share_name="HP-800-G2"
 				ip_address=10
@@ -185,7 +183,7 @@ main() {
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
-			;;
+				;;
 			n )
 				share_name="NASD97167"
 				ip_address=4
@@ -194,7 +192,7 @@ main() {
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
-			;;
+				;;
 			s )
 				share_name="HP-6005"
 				ip_address=11
@@ -203,7 +201,7 @@ main() {
 				else
 					handle_mount "$ip_address" "$share_name"
 				fi
-			;;
+				;;
 			?)
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
