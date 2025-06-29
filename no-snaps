@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 30 Jun 2020
-# Updated      : 16 Jan 2025
+# Updated      : 29 Jun 2025
 # Comments     : See EZNix snapkill script
 #              : /home/rick/Downloads/Utilities/snapkill.d/snapkill
 # TODO (Rick)  : Figure out what remove_snaps() does.
@@ -26,13 +26,28 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="3.3.25016"
+readonly script="${0##*/}"
+readonly version="3.4.25180"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
 
 ## Functions ##
+
+help() {
+	local errcode="${1:-2}"
+	local updated="29 Jun 2025"
+	cat << _HELP_
+${green}Usage:${normal} $script [-d] [-e] [-h] [-s]
+${orange}OPTIONS:${normal}
+  -d    Disable the installation of snapd and snap packages.
+  -e    Enable the installation of snapd and snap packages.
+  -h    Show this help message and exit.
+  -s    Status of snapd and snap package installation.
+$script v$version, updated $updated
+_HELP_
+  exit "$errcode"
+}
 
 check_snap_installed() {
   printf "Snap is "
@@ -43,7 +58,11 @@ check_snap_installed() {
   fi
 }
 
-snap_status() {
+snap_packages() {
+  [[ "$(snap list)" ]] && return "$TRUE" || return "$FALSE"
+}
+
+snaps_enabled() {
   if [[ -f "$pref_file" ]]; then
     grep -q '^# Package:' "$pref_file" && return "$TRUE" || return "$FALSE"
   else
@@ -51,24 +70,8 @@ snap_status() {
   fi
 }
 
-remove_snaps() {
-  printf "I don't know what this function does. Don't use!\n"
-	# local snap_pkgs snap_pkg
-	# snap_pkgs=$(snap list)
-  # # What do these loops actually do? What is the 'pkg' variable? Where dis I get this?
-	# for snap_pkg in "${snap_pkgs[@]}"; do
-	# 	[[ "$snap_pkg" != "snap_pkg" || "$pkg" != "snapd-desktop-integration" ]] && sudo snap remove --purge "$snap_pkg"
-	# done
-	# for snap_pkg in "${snap_pkgs[@]}"; do
-	# 	[[ "$snap_pkg" == "snap_pkg" || "$pkg" == "snapd-desktop-integration" ]] && sudo snap remove --purge "$snap_pkg"
-	# done
-	# sudo apt remove --autoremove snapd
-	# sudo apt install synaptic
-	# printf "Snap packages and snapd removed.\n"
-}
-
 enable_snaps() {
-  is_systemd || leave "SystemD is required for Snaps."
+  is_systemd || die "SystemD is required for Snaps." 1
   if [[ -f "$pref_file" ]]; then
     if grep -q '^Package:' "$pref_file"; then
       sudo sed -i '/^Package/s/^/# /;/^Pin/s/^/# /' "$pref_file"
@@ -82,6 +85,7 @@ enable_snaps() {
 }
 
 disable_snaps() {
+  snap_packages && diehard "Snap packages are installed." "Remove all Snaps before disabling  Snap."
   if [[ -f "$pref_file" ]]; then
     if grep -q '^# Package:' "$pref_file"; then
       sudo sed -i '/Package/s/^# //;/Pin/s/^# //' "$pref_file"
@@ -96,7 +100,7 @@ disable_snaps() {
 }
 
 create_nosnaps() {
-  cat << NO_SNAPS sudo tee "$pref_file" > /dev/null
+  cat << _NOSNAPS_ sudo tee "$pref_file" > /dev/null
 # To prevent repository packages from triggering the installation of Snap,
 # this file forbids snapd from being installed by APT.
 # For more information: https://linuxmint-user-guide.readthedocs.io/en/latest/snap.html
@@ -104,54 +108,32 @@ create_nosnaps() {
 Package: snapd
 Pin: release a=*
 Pin-Priority: -10
-NO_SNAPS
-}
-
-help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="16 Jan 2025, "
-	cat << _HELP_
-${green}Usage:${normal} $script [OPTION]
-${orange}OPTIONS:${normal}
-  -e    Enable the installation of snapd and snap packages
-  -d    Disable the installation of snapd and snap packages
-  -h    Help
-  -r		Remove snapd and all snap packages.
-  -s    Status of snapd and snap package installation
-$script v$version, updated $updated
-_HELP_
-  exit "$errcode"
+_NOSNAPS_
 }
 
 main() {
   local noOpt opt optstr
   printf "Enables or disables the installation of Snapd and Snap packages.\n"
   check_snap_installed
-
   noOpt=1
   optstr=":dehs"
   while getopts "$optstr" opt; do
     case "$opt" in
       d )
         sudo_login 2
-        snap_status && disable_snaps
-      ;;
+        snaps_enabled && disable_snaps
+       ;;
       e )
         sudo_login 2
-        snap_status || enable_snaps
-      ;;
+        snaps_enabled || enable_snaps
+       ;;
       h )
         help 0
-      ;;
-      r )
-        sudo_login 2
-        remove_snaps
-      ;;
+       ;;
       s )
         printf "\nStatus of snapd and snap packages: "
-        snap_status && printf "Snaps are enabled.\n" || printf "Snaps are disabled.\n"
-      ;;
+        snaps_enabled && printf "Snaps are enabled.\n" || printf "Snaps are disabled.\n"
+        ;;
       ? )
         printf "\n%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
