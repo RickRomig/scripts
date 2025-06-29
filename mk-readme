@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
 # Created      : 09 Apr 2019
-# Updated      : 26 Feb 2025
+# Updated      : 29 Jun 2025
 # Comment      : Should be run from the project's main directory.'
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,9 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="3.0.25057"
+script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
+readonly script="${0##*/}"
+readonly version="3.1.25180"
 verbose_mode="$FALSE"
 
 # Information to be inserted into README template
@@ -38,13 +39,12 @@ verbose_mode="$FALSE"
 
 help() {
   local errcode="${1:-2}"
-  local updated="26 Feb 2025"
+  local updated="29 Jun  2025"
   cat << _HELP_
 ${orange}$script${normal} $version, updated: $updated
 Creates a README file for a project.
 
-${green}Usage:${normal} $script <project-name>
-
+${green}Usage:${normal} $script [-c project-name] [-h] [-vc project-name]
 ${orange}Available options:${normal}
   -c  Create a README file
       $script -c <project-name>
@@ -61,7 +61,7 @@ show_message() {
 }
 
 create_readme() {
-  local blog_name blog_url copy_holder email_addr1 email_addr2 template_dir today
+  local blog_name blog_url copy_holder email_addr1 email_addr2 today
   project="$1"
   copy_holder="Richard B. Romig"
   github="RickRomig"
@@ -70,7 +70,6 @@ create_readme() {
   email_addr1="rick.romig@gmail.com"
   email_addr2="rick.romig@mymetronet.net"
   today=$(date +"%d %B %Y")
-  template_dir="$HOME/bin/Templates"
 
   show_message "Importing data into README.md"
   sed -e '1d' \
@@ -81,7 +80,7 @@ create_readme() {
     -e "s/<EMAIL1>/$email_addr1/g" \
     -e "s/<EMAIL2>/$email_addr2/g" \
     -e "s/<AUTHOR>/$copy_holder/" \
-    -e "s/<DATE>/$today/" "$template_dir/readme.txt" > README.md
+    -e "s/<DATE>/$today/" "$script_dir/Templates/readme.txt" > README.md
   printf "The README.md for %s$project has been created." "$$project"
   edit_view_quit README.md
 }
@@ -94,21 +93,25 @@ main() {
     case "$opt" in
       c )
         project_name="$OPTARG"
-        [[ -f README.md ]] && { printf "%s README.md already exists.\n" "$RED_ERROR" >&2; help 2; }
-        show_message "Creating README for $project_name"
-        create_readme "$project_name"
-      ;;
+        if [[ -f README.md ]]; then
+          printf "%s README.md already exists.\n" "$RED_ERROR" >&2
+          help 2
+        else
+          show_message "Creating README for $project_name"
+          create_readme "$project_name"
+        fi
+        ;;
 			h )
 				help 0
-			;;
+			  ;;
 			v )
 				verbose_mode="$TRUE"
 				show_message "Verbose mode enabled."
-			;;
+			  ;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
-      ;;
+        ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
