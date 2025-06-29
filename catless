@@ -7,7 +7,7 @@
 # Author       : Copyright ©  2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 25 Jun 2025
+# Updated      : 29 Jun 2025
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,14 +30,14 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.1.25176"
+readonly version="6.2.25180"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="25 Jun 2025"
+  updated="29 Jun 2025"
   cat << _HELP_
 ${orange}$script${normal} $version (updated $updated)
 Displays a text file using either cat or less depending the number of lines in
@@ -50,7 +50,6 @@ ${orange}Available options:${normal}
   -f  View file without line numbers.
   -h  Show this help message and exit.
   -n  View file with line numbers.
-
 _HELP_
   exit "$errcode"
 }
@@ -111,19 +110,19 @@ main() {
 		f )
 			filename="$OPTARG"
 			check_file "$filename" && view_file "$filename" "$linenumbers"
-		;;
+			;;
 		h )
 			help 0
-		;;
+			;;
 		n )
 			filename="$OPTARG"
 			linenumbers="$TRUE"
 			check_file "$filename" && view_file "$filename" "$linenumbers"
-		;;
+			;;
 		: )
 			printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
 			help 2
-	  ;;
+			;;
 		? )
 			printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 			help 2
