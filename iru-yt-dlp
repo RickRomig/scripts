@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 27 Jun 2025
+# Updated      : 29 Jun 2025
 # Comments     : Removes distro repo version if installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,8 +29,9 @@ set -eu
 
 ## Global Variables ##
 
+script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="2.5.25178"
+readonly version="2.6.25180"
 
 ## Functions ##
 
@@ -79,8 +80,8 @@ update_ytdlp() {
 }
 
 install_updater() {
-	local -r updater="$HOME/bin/z-ytdlp-update"
-	local -r cleanup="$HOME/bin/files/ytdlp-uplog.sed"
+	local -r updater="$script_dir/z-ytdlp-update"
+	local -r cleanup="$script_dir/files/ytdlp-uplog.sed"
   [[ -x "$updater" ]] && sudo cp -v "$updater" /etc/cron.daily/
   [[ -f "$cleanup" ]] && sudo cp -v "$cleanup" /usr/share/misc/
 
