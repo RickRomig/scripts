@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2024, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Mar 2024
-# Updated      : 24 Apr 2024
+# Updated      : 29 Jun 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,14 +25,30 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="1.1.24115"
-readonly updated="24 Apr 2024"
+readonly script="${0##*/}"
+readonly version="1.2.25180"
 readonly pref_file="/etc/apt/preferences.d/noflatpak.pref"
 
 ## Functions ##
+
+help() {
+	local errcode="${1:-2}"
+	local updated="02 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version, Updated $updated
+Disables/Enables Flatpak support.
+
+${green}Usage:${normal} $script [-d] [-e] [-h] [-s]
+${orange}OPTIONS:${normal}
+  -d    Disable the installation of flatpak and flatpak packages
+  -e    Enable the installation of flatpak and flatpak packages
+  -h    Show this help message and exit
+  -s    Status of flatpak and flatpak package installation
+_HELP_
+  exit "$errcode"
+}
 
 check_flatpak_installed() {
 	printf "Flatpak is "
@@ -43,7 +59,7 @@ check_flatpak_installed() {
 	fi
 }
 
-flatpak_status() {
+flatpak_enabled() {
 	if [[ -f "$pref_file" ]]; then
 		grep -q '^# Package:' "$pref_file" && return "$TRUE" || return "$FALSE"
 	else
@@ -54,7 +70,7 @@ flatpak_status() {
 enable_flatpak() {
 	if [[ -f "$pref_file" ]]; then
 		if grep -q '^Package:' "$pref_file"; then
-			sed -i '/^Package/s/^/# /;/^Pin/s/^/# /' "$pref_file"
+			sudo sed -i '/^Package/s/^/# /;/^Pin/s/^/# /' "$pref_file"
 			printf "\nInstallation of Flatpak and Flatpak packages is now enabled.\n"
 		else
       printf "\nInstallation of Flatpak and Flatpak packages is already enabled by %s.\n" "$pref_file"
@@ -67,7 +83,7 @@ enable_flatpak() {
 disable_flatpak() {
   if [[ -f "$pref_file" ]]; then
     if grep -q '^# Package:' "$pref_file"; then
-      sed -i '/Package/s/^# //;/Pin/s/^# //' "$pref_file"
+      sudo sed -i '/Package/s/^# //;/Pin/s/^# //' "$pref_file"
       printf "\nInstallation of Flatpak and Flatpak packages is now disabled.\n"
     else
       printf "\nInstallation of Flatpak and Flatpak packages is already disabled.\n"
@@ -79,30 +95,14 @@ disable_flatpak() {
 }
 
 create_noflatpak() {
-  cat << NO_FLATPAK sudo tee "$pref_file" > /dev/null
+  cat << _NOFLATPAK_ sudo tee "$pref_file" > /dev/null
 # To prevent installation of flatpak packages,
 # this file forbids flatpak from being installed by APT.
 
 Package: flatpak
 Pin: release a=*
 Pin-Priority: -10
-NO_FLATPAK
-}
-
-help() {
- local errcode updated
-	errcode="${1:-2}"
-	updated="02 Oct 2024"
-	cat << _HELP_
-${green}Usage:${normal} $script [OPTION]
-${orange}OPTIONS:${normal}
-  -e    Enable the installation of flatpak and flatpak packages
-  -d    Disable the installation of flatpak and flatpak packages
-  -h    Help
-  -s    Status of flatpak and flatpak package installation
-$script v$version, updated $updated
-_HELP_
-  exit "$errcode"
+_NOFLATPAK_
 }
 
 main() {
@@ -116,18 +116,18 @@ main() {
 			d )
 				sudo_login 2
 				disable_flatpak
-			;;
+				;;
 			e )
 				sudo_login 2
 				enable_flatpak
-			;;
+				;;
 			h )
 				help 0
-			;;
+				;;
 			s )
 				printf "\nStatus of flatpak and flatpak packages: "
-				flatpak_status && printf "Flatpaks are enabled.\n" || printf "Flatpaks are disabled.\n"
-			;;
+				flatpak_enabled && printf "Flatpaks are enabled.\n" || printf "Flatpaks are disabled.\n"
+				;;
 			? )
 				printf "\n%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
@@ -136,7 +136,7 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-	leave "$script v$version"
+	leave "$script $version"
 }
 
 ## Execution ##
