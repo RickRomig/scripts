@@ -25,9 +25,15 @@ else
   exit 1
 fi
 
+## Global Variables ##
+
+script_dir=$(dirname "$(readlink -f "${0}")")
+
+## Functions ##
+
 set_nosleep() {
   local -r sleep_file="/etc/systemd/sleep.conf"
-  local -r sed_file="$HOME/bin/files/nosleep.sed"
+  local -r sed_file="$script_dir/files/nosleep.sed"
   if [[ -f "$sed_file" ]]; then
     sudo_login 2
     sudo sed -i.bak -f "$sed_file" "$sleep_file"
@@ -42,7 +48,7 @@ set_nosleep() {
 
 main() {
   local script="${0##*/}"
-  local -r version="1.3.25180"
+  local -r version="1.4.25180"
   printf "Disables sleep and hiberation on Debian-based systems.\n"
   set_nosleep; code="$?"
   over_line "$script $version"
