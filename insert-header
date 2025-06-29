@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 25 Jun 2025
+# Updated      : 29 Jun 2025
 # Comments     : Assumes first line of the target file is either a hash-bang or a C/C++ comment
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,21 +27,21 @@ fi
 
 ## Global Variables ##
 
+script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="4.2.25176"
+readonly version="4.3.25180"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="25 Jun 2025"
+  local updated="29 Jun 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts a header into a shell script or a C/C++ source file.
 
 ${green}Usage:${normal} $script [-h] [-vc c-source-file] [-vp cpp-source-file] [-vs shell-script]
-
 ${orange}Available options:${normal}
   -c  Insert C code header
       $script -c <c-source.c>
@@ -87,7 +87,7 @@ insert_header() {
 	license="GNU General Public License, version 2.0"
 	today=$(date +"%d %b %Y")
 	cur_yr=$(echo -e "\UA9 $(date +%Y)")
-	template_dir="$HOME/bin/Templates"
+	template_dir="$script_dir/Templates"
 
 	show_message "Inserting $code_type header into $code_file."
 	case $code_type in
