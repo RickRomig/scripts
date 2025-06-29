@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGee@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Oct 2020
-# Updated      : 28 Jun 2025
+# Updated      : 29 Jun 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,11 +25,15 @@ else
   exit 1
 fi
 
+## Global Variables ##
+
+script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
+
 ## Functions ##
 
 modify_logind() {
   local logind_conf="/etc/systemd/logind.conf"
-  local sed_file="$HOME/bin/files/laptoplid.sed"
+  local sed_file="$script_dir/files/laptoplid.sed"
   if [[ -f "$sed_file" ]]; then
     sudo_login 2
     printf "Modifying %s and restarting systemd-logind service.\n" "$logind_conf"
@@ -44,7 +48,7 @@ modify_logind() {
 main() {
   local lhost="${HOSTNAME:=-$(hostname)}"
   local script="${0##*/}"
-  local -r version="4.1.25179"
+  local -r version="4.2.25180"
   printf "Allows a laptop lid to be closed without going into suspend mode.\n"
   if is_laptop; then
     modify_logind
