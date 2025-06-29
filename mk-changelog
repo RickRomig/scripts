@@ -2,12 +2,12 @@
 #####################################################################
 # Script Name  : mk-changelog
 # Description  : Create a changelog file from a template
-# Dependencies : sed
+# Dependencies : none
 # Arguments    : Project name
 # Author       : Copyright © 2019 Richard B. Romig, Mosfanet
-# Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Apr 2019
-# Updated      : 26 Feb 2025
+# Updated      : 29 Jun 2025
 # Comment      : Should be run from the project's main directory.'
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,9 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="2.0.25057"
+script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
+readonly script="${0##*/}"
+readonly version="2.1.25180"
 verbose_mode="$FALSE"
 
 ## Functions ##
@@ -40,8 +41,7 @@ help() {
 ${orange}$script${normal} $version, updated: $updated
 Creates a changelog file for a project.
 
-${green}Usage:${normal} $script <project-name>
-
+${green}Usage:${normal} $script [-c project-name] [-h] [-vc project-name]
 ${orange}Available options:${normal}
   -c  Create a changelog file
       $script -c <project-name>
@@ -58,13 +58,12 @@ show_message() {
 }
 
 create_changelog() {
-  local copy_holder email_addr email_addr1 project today template_dir
+  local copy_holder email_addr email_addr1 project today
   project="$1"
   copy_holder="Richard B. Romig"
   email_addr="rick.romig@gmail.com"
   email_addr1="rick.romig@mymetronet.net"
   today=$(date +"%d %B %Y")
-  template_dir="$HOME/bin/Templates"
 
   show_message "Importing data into changlog.md"
   sed -e '1d' \
@@ -72,7 +71,7 @@ create_changelog() {
     -e "s/<AUTHOR>/$copy_holder/" \
     -e "s/<EMAIL>/$email_addr/" \
     -e "s/<EMAIL1>/$email_addr1/" \
-    -e "s/<DATE>/$today/" "$template_dir/changelog.txt" > changelog.md
+    -e "s/<DATE>/$today/" "$script_dir/Templates/changelog.txt" > changelog.md
   printf "The changelog.md for %s has been created." "$$project"
   edit_view_quit changelog.md
 }
@@ -85,21 +84,25 @@ main() {
     case "$opt" in
       c )
         project_name="$OPTARG"
-        [[ -f changelog.md ]] && { printf "%s changelog.md already exists.\n" "$RED_ERROR" >&2; help 2; }
-        show_message "Creating changelog for $project_name"
-        create_changelog "$project_name"
-      ;;
+        if [[ -f changelog.md ]]; then
+          printf "%s changelog.md already exists.\n" "$RED_ERROR" >&2
+          help 2
+        else
+          show_message "Creating changelog for $project_name"
+          create_changelog "$project_name"
+        fi
+        ;;
 			h )
 				help 0
-			;;
+			  ;;
 			v )
 				verbose_mode="$TRUE"
 				show_message "Verbose mode enabled."
-			;;
+			  ;;
 			: )
-				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
-      ;;
+				  printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
+				  help 2
+        ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
