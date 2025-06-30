@@ -6,8 +6,8 @@
 # Arguments    : None
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Created      : 02 June 2019
-# Updated      : 05 Mar 2025
+# Created      : 02 Jun 2019
+# Updated      : 29 Jun 2025
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,8 @@ fi
 
 ##  Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="3.8.2064"
+readonly script="${0##*/}"
+readonly version="3.9.25180"
 readonly tmp_pics=$HOME"/tmp/journal"
 
 ## Functions ##
@@ -40,7 +40,7 @@ valid_folder() {
   case "$folder" in
     album-art|DCIM|Facebook|Tech-pics|unsorted|wallpaper|web-site-pics/Zipped )
       return "$FALSE"
-    ;;
+      ;;
     * )
       return "$TRUE"
   esac
@@ -53,7 +53,7 @@ valid_image() {
   case $ext in
     bmp|gif|jpeg|jpg|png|tiff )
       return "$TRUE"
-    ;;
+      ;;
     * )
       return "$FALSE"
   esac
@@ -109,12 +109,12 @@ while true; do
         kill $pic_pid
         sleep 2
         break
-      ;;
+        ;;
       2 )
         printf "\n%sAccepted image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
         kill $pic_pid
         all_done
-      ;;
+        ;;
       3 )
         printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
         printf "\nSelecting another random image...\n"
@@ -122,13 +122,13 @@ while true; do
         rm "$tmp_pics/$pic_file"
         sleep 2
         break
-      ;;
+        ;;
       4 )
         printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
         kill $pic_pid
         rm "$tmp_pics/$pic_file"
         all_done
-      ;;
+        ;;
       5 )
         printf "\n%sImage deleted:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
         printf "\nSelecting another random image...\n"
@@ -137,7 +137,7 @@ while true; do
         rm "$pic_dir/$pic_file"
         sleep 2
         break
-      ;;
+        ;;
       * )
         printf "\n%sInvalid option. Try again.%s\n" "$lightred" "$normal"
     esac
