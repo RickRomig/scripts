@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 17 Jun 2025
+# Last updated : 30 Jun 2025
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 #              : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
@@ -46,6 +46,8 @@ installed_version() {
       ver=$(micro -version 2>/dev/null | awk '/Version:/ {print $NF}') ;;
     gitea )
       ver=$(gitea --version 2>/dev/null | cut -d' ' -f3) ;;
+    firefox )
+      ver=$(firefox --version 2>/dev/null | cut -d' ' -f3) ;;
     * )
       ver=$(dpkg -l "$pkg" 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+ud].*//') ;;
   esac
@@ -158,7 +160,7 @@ browsers() {
 
 main() {
   local script="${0##*/}"
-  local version="14.2.25168"
+  local version="14.3.25181"
   clear
   box "$script $version"
   printf "\n"
