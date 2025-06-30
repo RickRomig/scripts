@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      :
-# Updated      : 15 Oct 2024
+# Updated      : 29 Jun 2025
 # Comments     : Assumes a /24 (Class C) network
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,21 +27,19 @@ fi
 
 ## Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="3.2.24289"
+readonly script="${0##*/}"
+readonly version="3.3.25180"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="15 Oct 2024"
+	local errcode="${1:-2}"
+	local updated="29 Jun 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Pings an IP address on the local network.
 
 ${green}Usage:${normal} $script [last-octet] [OPTION]
-
 ${orange}Available options${normal}
   1-254        Pings local address ending with that octet.
   -h | --help  Dispplays this help message.
@@ -56,9 +54,8 @@ _HELP_
 }
 
 valid_ip() {
-  local octet status
-  octet="$1"
-  status=0
+  local octet="$1"
+  local status=0
   if [[ -z "$octet" ]]; then
     status=1
     printf "%s No argument passed. No host IP.\n" "$RED_ERROR" <&2
@@ -98,7 +95,6 @@ ping_ip() {
 main() {
   local hostip
   under_line "Pings an address on the local Class C (/24) network."
-
   # Check arguments
   if [[ $# -eq 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
@@ -111,7 +107,7 @@ main() {
   else
     help 2
   fi
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
