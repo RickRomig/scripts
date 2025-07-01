@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 02 Jun 2025
+# Updated      : 01 Jul 2025
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
@@ -31,7 +31,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="10.1.25153"
+readonly version="10.1.25182"
 FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
@@ -48,15 +48,13 @@ FMENU="fzf --header=$script \
 ## Functions ##
 
 help() {
-	local errcode updated
-	errcode="${1:-2}"
-	updated="02 Jun 2025"
+	local errcode="${1:-2}"
+	local -r updated="01 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Verifies SHA256/SHA512/MD5 checksums with ISO files.
 
-${green}Usage:${normal} $script [OPTION]
-
+${green}Usage:${normal} $script [-h] [-v]
 ${orange}Available options:${normal}
   -h  Show this help message and exit
   -v  Verify ISO with checksum
@@ -71,7 +69,7 @@ _HELP_
 }
 
 select_directory() {
-	local iso_d selected_dir
+	local dist_d selected_dir
 	local iso_dirs=()
 	for dist_d in $HOME/Downloads/ISO; do
 		[[ -d "$dist_d" ]] && iso_dirs+=("$(find "$dist_d" -type d -print | sort -d)")
@@ -184,28 +182,27 @@ check_checksum() {
 }
 
 compare_checksums() {
-	local ext checksum iso
-	iso="$1"
-	checksum="$2"
-	ext="${checksum##*.}"
+	local iso="$1"
+	local checksum="$2"
+	local ext="${checksum##*.}"
 	printf "Comparing checksums."
 	case "$ext" in
 	  "md5" )
 	    check_md5 "$iso" "$checksum"
 	    status_msg "$?"
-	  ;;
+			;;
 	  "sha1" )
 	    check_sha1 "$iso" "$checksum"
 	    status_msg "$?"
-	  ;;
+			;;
 	  "sha256" )
 	    check_sha256 "$iso" "$checksum"
 	    status_msg "$?"
-	  ;;
+			;;
 	  "sha512" )
 	    check_sha512 "$iso" "$checksum"
 	    status_msg "$?"
-	  ;;
+			;;
 	  * )
 	    printf "\n"
 	    diehard "Invalid extension" "Checksum must be one of the following:" ".md5 .sha1 .sha256 .sha512" "$script $version"
