@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 02 Jun 2025
+# Updated      : 01 Jul 2025
 # Comments     : Testing indicates USB drive need to be mounted.
 #              : Works with fuzzy finder (fzf) or zenity, if installed.
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
@@ -32,7 +32,7 @@ fi
 
 # script=$(basename "$0"); readonly script
 readonly script="${0##*/}"
-readonly version="7.1.25153"
+readonly version="7.1.25182"
 user=$(whoami); readonly user
 dryrun="$FALSE"
 FMENU="fzf --header=$script \
@@ -53,13 +53,12 @@ FMENU="fzf --header=$script \
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="02 Jun 2025"
+	updated="01 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
 
-${green}Usage:${normal} $script [OPTION]
-
+${green}Usage:${normal} $script [-dw] [-h] [-w]
 ${orange}Available options:${normal}
   -d  Enable Dry Run simulation (-dw for a dry run)
   -h  Show this help message and exit
@@ -74,7 +73,7 @@ check_usb_drive() {
 }
 
 select_directory() {
-	local iso_d selected_dir
+	local dist_d selected_dir
 	local iso_dirs=()
 	for dist_d in $HOME/Downloads/ISO; do
 		[[ -d "$dist_d" ]] && iso_dirs+=("$(find "$dist_d" -type d -print | sort -d)")
@@ -111,9 +110,8 @@ mount_usb() {
 }
 
 unmount_usb() {
-	local mount_name usbpart
-	mount_name="$1"
-	usbpart="$2"
+	local mount_name="$1"
+	local usbpart="$2"
 	sudo umount "/dev/$usbpart" && printf "USB drive unmounted.\n" # /media/$user/"$mount_name"
 	[[ -d "/media/$user/$mount_name" ]] && sudo rmdir "/media/$user/$mount_name"
 	printf "It's now safe to remove the USB drive.\n"
@@ -130,10 +128,9 @@ list_usb_contents() {
 }
 
 simulate_dd() {
-  local iso usb mount_name
-	iso="$1"
-	usb="$2"
-	mount_name="$3"
+	local iso="$1"
+	local usb="$2"
+	local mount_name="$3"
   printf "\nWriting %s to /dev/%s (SIMULATED) ...\n" "${iso##*/}" "$usb"
   dots "."
   sleep 10
@@ -143,10 +140,9 @@ simulate_dd() {
 }
 
 write_dd() {
-  local iso usb mount_name
-	iso="$1"
-	usb="$2"
-	mount_name="$3"
+	local iso="$1"
+	local usb="$2"
+	local mount_name="$3"
 	printf "\nWriting %s to /dev/%s...\n" "${iso##*/}" "$usb"
 	if sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync; then
 	  printf "%s written to /dev/%s.\n" "${iso##*/}" "$usb"
@@ -189,7 +185,7 @@ write_iso() {
 }
 
 main() {
-  local noOpt opt optstr iso_file usb_device
+  local noOpt opt optstr iso_dir iso_file usb_device
 	noOpt=1
 	optstr=":dhw"
 	while getopts "$optstr" opt; do
@@ -197,10 +193,10 @@ main() {
 			d )
 				dryrun="$TRUE"
 				printf "%sPerforming a dryrun. The ISO will NOT be written to USB drive.%s\n\n" "$orange" "$normal"
-			;;
+				;;
 			h )
 				help 0
-			;;
+				;;
 			w )
 				box "$script v$version"
 				printf "Writes ISO to a USB drive.\n\n"
@@ -210,7 +206,7 @@ main() {
 				iso_file=$(select_iso "$iso_dir")
 				usb_device=$(select_usb "$iso_dir")
 				write_iso "$iso_dir/$iso_file" "$usb_device"
-			;;
+				;;
 			? )
 				printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
