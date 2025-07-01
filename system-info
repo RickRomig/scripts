@@ -7,8 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 12 Apr 2025
-# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Updated:     : 01 Jul 2025
 # Comments     : Rewrite of version 2.5.0
 #              : Will not get desktop session info from an SSH connection. Run locally.
 # TODO (Rick)  :
@@ -73,21 +72,21 @@ rename_mnt_pt() {
         sed -i '/timeshift/s/run\/timeshift\/backup/home/' "$tmp_file"
         printf "%s mountpoint changed to /home\n" "$ts_drv"
         break
-      ;;
+        ;;
       2 )
         sed -i '/timeshift/s/run\/timeshift\/backup/data/' "$tmp_file"
         printf "%s mountpoint changed to /data\n" "$ts_drv"
         break
-      ;;
+        ;;
       3 )
         sed -i '/timeshift/s/run\/timeshift\/backup//' "$tmp_file"
         printf "%s mountpoint changed to /]n" "$ts_drv"
         break
-      ;;
+        ;;
       4 )
         printf "%s mountpoint left as is." "$ts_drv"
         break
-      ;;
+        ;;
       * )
         printf "%s Invalid choice! Select 1, 2, 3, or 4\n" >&2 "$RED_ERROR"
     esac
@@ -104,18 +103,18 @@ ff_fix() {
       1 )
         hd_ff="2.5 inch"
         break
-      ;;
+        ;;
       2 )
         hd_ff="3.5 inch"
         break
-      ;;
+        ;;
       3 )
         hd_ff="less than 1.8 inch"
         break
-      ;;
+        ;;
       4 )
         break
-      ;;
+        ;;
       * )
         printf "%s Invalid choice! Choose 1, 2, 3, or 4\n" >&2 "$RED_ERROR"
     esac
@@ -267,8 +266,8 @@ battery_info() {
 
 main() {
   local script version lhost info_file today
-  script=$(basename "$0")
-  version="3.12.25102"
+  script="${0##*/}"
+  version="3.12.25182"
   lhost="${HOSTNAME:-$(hostname)}"
   info_file="$HOME/$lhost.info"
   today=$(date +'%d %B %Y')
