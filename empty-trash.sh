@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 31 Mar 2025
+# Updated      : 02 Jul 2025
 # Comments     : Run as a user cron job.
 #              : Trash directory does not exist until a file is moved to the trash.
 # TODO (Rick)  :
@@ -37,15 +37,24 @@ empty_trash() {
 	fi
 }
 
+# shellcheck disable=SC2001
+over_line() {
+  local char len line title
+  title="$1"
+  char="${2:--}"
+  len=${#char}
+  (( len > 1 )) && char=${char::1}
+  line=$(echo "$title" | sed "s/./$char/g")
+  printf "%s\n%s\n"  "$line" "$title"
+}
+
 main() {
-	local dashes lhost trash_dir log_dir log_file script version
-  script=$(basename "$0")
-  version="4.4.25090"
-  lhost="${HOSTNAME:-$(hostname)}"
-	trash_dir="$HOME/.local/share/Trash"
-	log_dir="$HOME/.local/share/logs"
-	log_file="trash.log"
-	dashes="----------------------------"
+  local script="${0##*/}"
+  local version="4.5.25183"
+  local lhost="${HOSTNAME:-$(hostname)}"
+	local trash_dir="$HOME/.local/share/Trash"
+	local log_dir="$HOME/.local/share/logs"
+	local log_file="trash.log"
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 
 	{
@@ -58,7 +67,7 @@ main() {
 		else
 			printf "\nTrash directory does not exist.\nWill be created when a file is moved to the trash.\n"
 		fi
-		printf "%s\n%s %s\n" "$dashes" "$script" "$version"
+		over_line "$script $version"
 		} > "$log_dir/$log_file" 2>&1
 	exit
 }
