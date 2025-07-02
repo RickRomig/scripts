@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Script Name  : webcam-check
-# Description  : Checks for Webcam
+# Description  : Checks for Webcam & displays Webcam information
 # Dependencies : None
 # Arguments    : None
 # Author       : Copyright © 2021 Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2021
-# Updated      : 28 Feb 2025
-# Comment      : The for-loop to parse info for multipule webcams leave several blank lines.
-# TODO (Rick)  : Resolve extra blank lines problem
+# Updated      : 01 Jul 2025
+# Comment      :
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -27,46 +27,16 @@ fi
 
 ## Functions ##
 
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-cleanup() {
-	[[ -f "$webcam_data" ]] && rm "$webcam_data"
-}
-
 webcam_present() {
   /usr/bin/lsusb | grep -iqsw Webcam && return "$TRUE" || return "$FALSE"
 }
 
-webcam_info() {
-	local bus device model lines idx len
-  webcam_data=$(mktemp)|| die "Failed to create temporary file." 1
-  trap cleanup EXIT	# for temp files and directories
-  /usr/bin/lsusb | grep -iw Webcam > "$webcam_data"
-  len=$(wc -l < "$webcam_data")
-  if (( len = 1 )); then
-    printf "Available Webcam:\n"
-    model=$(cut -d' ' -f7- "$webcam_data")
-    bus=$(cut -d' ' -f1-2 "$webcam_data")
-  	device=$( cut -d' ' -f3-6 "$webcam_data")
-  	printf "%s\n" "$model" "$bus" "$device"
-  else
-    printf "Available Webcams:\n"
-		IFS=$'\n' read -d'' -r -a lines < "$webcam_data"
-		for (( idx=0; idx <= "${#lines[@]}"; idx++ )); do
-			model=$(printf "%s" "${lines[idx]}" | cut -d' ' -f7-)
-			bus=$(printf "%s" "${lines[idx]}" | cut -d' ' -f1-2)
-			device=$(printf "%s" "${lines[idx]}" | cut -d' ' -f3-6)
-			printf "%s\n" "$model" "$bus" "$device"
-		done
-	fi
-}
-
 main() {
   local script version
-  script=$(basename "$0")
-  version="3.1.25059"
+  script="${0##*/}"
+  version="4.0.25182"
   if webcam_present; then
-    webcam_info
+    /usr/bin/lsusb | grep -iw Webcam
   else
     printf "No webcam found.\n"
   fi
