@@ -7,7 +7,7 @@
 # Author       : Copyright © 2018, Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2018
-# Updated      : 31 Oct 2024
+# Updated      : 02 Jul 2025
 # Comment      :
 # License      : GNU General Public License, version 2.0
 ##############################################################################
@@ -26,26 +26,25 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="3.3.24305"
+readonly script="${0##*/}"
+readonly version="3.4.25183"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="31 Oct 2024"
+	local errcode="${1:-2}"
+	local updated="02 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Renames filenames in the current directory to all lowercase.
 
-${green}Usage:${normal} $script [option] [filename1] [filename2] ...
+${green}Usage:${normal} $script [--all] [--help] [filename1] ...
 ${orange}Options:${normal}
-  --all    change all files in the current directory.
-  --help   display this help message.
+  --all    Change all files in the current directory to lowercase.
+  --help   Show this help message and exit
 One or more filenames may be entered to be renamed.
-$script Filename	# Renames filename to lowercase
-$script Filename1 Filename2	# Renames Filename1 and Filename2 to lowercase
+$script filename.txt	# Rename filename to lowercase
+$script Filename1.txt Filename2.txt	# Rename Filename1 and Filename2 to lowercase
 _HELP_
   exit "$errcode"
 }
@@ -73,8 +72,7 @@ lc_one() {
 
 lc_selected() {
 	printf "Renaming selected files to lowercase.\n"
-	for file_name in "$@"
-	do
+	for file_name in "$@"; do
 		upper_to_lower "$file_name"
 	done
 }
@@ -88,14 +86,14 @@ main() {
 		case "$1" in
 			-a|--all )
 				lc_all
-			;;
+				;;
 			-h|--help )
 				help 0
-			;;
+				;;
 			-* )
 				printf "%s Invalid argument, %s\n" "$RED_ERROR" "$1" >&2
 				help 1
-			;;
+				;;
 			* )
 				file_name="$1"
 				lc_one "$file_name"
@@ -103,7 +101,7 @@ main() {
 	else
 		lc_selected "$@"
 	fi
-	over_line "$script v$version"
+	over_line "$script $version"
 	exit
 }
 
