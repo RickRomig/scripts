@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Oct 2024
-# Last updated : 25 Oct 2024
+# Last updated : 03 Jul 2025
 # Comments     : Not needed if a power manager is already installed, i.e., xfce4-power-manager
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.4.25176"
+readonly version="1.4.25184"
 
 ## Functions ##
 
@@ -67,21 +67,20 @@ remove_icons() {
 }
 
 apply_power_rules() {
-	local dest_dir repo rules_file
-	repo="$1"
-	rules_file="60-power.rules"
-	dest_dir="/etc/udev/rules.d"
+	local repo="$1"
+	local -r  rules_file="60-power.rules"
+	local -r dest_dir="/etc/udev/rules.d"
 	sudo_login 2
 	printf "Copying %s to %s.\n" "$rules_file" "$dest_dir"
 	sudo cp -v "$repo/$rules_file" "$dest_dir/" | awk '{print "==> " $NF}' | sed "s/'//g"
 }
 
 remove_notifier() {
-	local batt batt_array bin_dir rules_dir rules_file
-	bin_dir="$HOME/.local/bin"
-	rules_dir="/etc/udev/rules.d"
-	rules_file="60-power.rules"
-	batt_array=(battery-alert battery-charging)
+	local batt
+	local bin_dir="$HOME/.local/bin"
+	local rules_dir="/etc/udev/rules.d"
+	local rules_file="60-power.rules"
+	local batt_array=(battery-alert battery-charging)
 	[[ -f "$rules_dir/$rules_file" ]] || leave "Battery notification scripts & power rules not installed."
 	sudo_login 2
 	printf "Removing battery notification scripts ...\n"
@@ -102,7 +101,7 @@ assign_repository() {
 			git clone "$GITEA_URL/i3debian.git" "$repository/"
 			install_notifier_scripts "$repository"
 			;;
-		22 )
+		10|16|22 )
 			printf "Using the i3debian repository mirror on the system.\n"
 			repository="$HOME/gitea/i3debian"
 			install_notifier_scripts "$repository"
