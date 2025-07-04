@@ -7,9 +7,9 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 07 Jun 2020
-# Updated      : 15 Oct 2024
+# Updated      : 04 Jul 2025
 # Comments     : rsysnc excludes ~/bin/.git/
-# TODO (Rick)  : Is this stript still serve a purpose?
+# TODO (Rick)  : Does this stript still serve a purpose?
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -32,10 +32,9 @@ SECONDS=0
 ## Functions ##
 
 copy_config_files() {
-  local cfg_dir cfg_defaults cinnamon_keys
-  cfg_defaults="$1"
-  cfg_dir=$HOME"/.config"
-  cinnamon_keys=$HOME"/.config/keybindings-backup.dconf"
+  local cfg_defaults="$1"
+  local cfg_dir=$HOME"/.config"
+  local cinnamon_keys=$HOME"/.config/keybindings-backup.dconf"
   printf "\n%sUpdating bat, micro, terminator config files ...%s\n" "$orange" "$normal"
   cp -puv "$cfg_dir/bat/config" "$cfg_defaults/bat/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
   cp -puv "$cfg_dir/micro/bindings.json" "$cfg_defaults/micro/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
@@ -53,11 +52,10 @@ copy_config_files() {
 }
 
 sync_to_server() {
-  local cfg_defaults iso_src remote_dest svr_ip
-  svr_ip="$1"
-  cfg_dir="$2"
-  iso_src=$HOME"/Downloads/ISO"
-  remote_dest="/data/installation"
+  local svr_ip="$1"
+  local cfg_dir="$2"
+  local iso_src=$HOME"/Downloads/ISO"
+  local remote_dest="/data/installation"
   echo $'\n'$"${orange}Synchronizing scripts...${normal}"
   rsync -avzh --delete --exclude '.git' "$HOME/bin/" "$LOCALNET.$svr_ip:$remote_dest/bin/"
   echo $'\n'$"${orange}Synchronizing template files...${normal}"
@@ -71,21 +69,19 @@ sync_to_server() {
 }
 
 main() {
-  local cfg_defaults local_host main_host server_host server_ip script version
-  script=$(basename "$0")
-  version="3.0.24289"
-  cfg_default_dir=$HOME"/Documents/mosfanet/configs/defaults"
-  server_ip="11"
-  # Hostnames
-  local_host="${HOSTNAME:-$(hostname)}"
-  main_host="hp-800g2-sff"
-  server_host="hp-6005"
+  local script="${0##*/}"
+  local version="3.1.25185"
+  local cfg_default_dir=$HOME"/Documents/mosfanet/configs/defaults"
+  local server_ip="11"
+  local local_host="${HOSTNAME:-$(hostname)}"
+  local main_host="hp-800g2-sff"
+  local server_host="hp-6005"
 
   check_package rsync
   # Ensure script is being run from the hp-800g2-sff (10)
   [[ "$local_host" != "$main_host" ]] && die "$script must be run from the $main_host."
   clear
-  box "${orange}$script v$version${normal}"
+  box "${orange}$script $version${normal}"
   printf "Synchronizes installation scripts, configuration files and packages with %s\n" "$server_host"
   copy_config_files "$cfg_default_dir"
   if ping -c 3 "$LOCALNET.$server_ip" > /dev/null 2>&1; then
