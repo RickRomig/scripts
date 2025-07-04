@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019,Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Apr 2019
-# Updated      : 02 Jan 2025
+# Updated      : 04 Jul 2025
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,10 +25,10 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="5.10.25002"
+readonly script="${0##*/}"
+readonly version="5.10.25185"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly bu_dir="$HOME/.config/backup"
 readonly cfg_dir="$HOME/.config"
@@ -51,9 +51,8 @@ res_home_cfg() {
 }
 
 res_config_cfg() {
-  local file folder
-  folder="$1"
-	file="$2"
+  local folder="$1"
+	local file="$2"
   printf "\n%s" "$file"
   if [[ -f "$bu_dir/$folder/$file" ]]; then
     [[ -d "$cfg_dir/$folder" ]] || mkdir -p "$cfg_dir/$folder"
@@ -67,9 +66,8 @@ res_config_cfg() {
 }
 
 res_misc_cfg() {
-  local file folder
-  folder="$1"
-	file="$2"
+  local folder="$1"
+	local file="$2"
   printf "\n %s/%s" "$folder" "$file"
   if [[ -f "$bu_dir/$folder/$file" ]]; then
     [[ -d "$HOME/$folder/" ]] || mkdir -p "$HOME/$folder/"
@@ -112,23 +110,23 @@ main_menu() {
 			1 )
         sys_cfgs
         break
-      ;;
+        ;;
 			2 )
         ed_cfgs
         break
-      ;;
+        ;;
 			3 )
         i3_cfgs
         break
-      ;;
+        ;;
 			4 )
         bl_cfgs
         break
-      ;;
+        ;;
 			5 )
         misc_cfgs
         break
-      ;;
+        ;;
 			6 )
 				printf "\nExiting the script...\n"
 				if (( count == 0 )); then
@@ -136,7 +134,7 @@ main_menu() {
 				else
 					leave "Configurations restored from backup."
 				fi
-      ;;
+        ;;
 			* )
         echo "${lightred}Invalid choice${normal}" >&2
 		esac
@@ -158,28 +156,28 @@ sys_cfgs() {
         1 )
           res_home_cfg ".bashrc"
           break
-        ;;
+          ;;
 				2 )
           res_home_cfg ".bash_aliases"
           break
-        ;;
+          ;;
         3 )
           res_home_cfg ".bash_logout"
           break
-        ;;
+          ;;
 				4 )
           res_home_cfg ".bash_profile"
           break
-         ;;
+          ;;
 				5 )
           res_home_cfg ".profile"
           break
-         ;;
+          ;;
 				6 )
            res_face;
           res_home_cfg ".face"
           break
-         ;;
+          ;;
 				7 )
           if [[ -f "$bu_dir/neofetch/config" ]]; then
             res_config_cfg "neofetch" "config"
@@ -189,15 +187,15 @@ sys_cfgs() {
             printf "No neofetch configuration file found.\n"
           fi
           break
-        ;;
+          ;;
         8 )
           res_config_cfg "fastfetch" "config.jsonc"
           break
-        ;;
+          ;;
 				9 )
           res_cinnamon_keybindings
           break
-        ;;
+          ;;
 				10 )
           if [[ -f "$bu_dir/.conkyrc" ]]; then
             res_home_cfg ".conkyrc"
@@ -207,18 +205,18 @@ sys_cfgs() {
             printf "No conky configuration file found.\n"
           fi
           break
-        ;;
+          ;;
         11 )
           res_home_cfg ".xinitrc"
-        ;;
+          ;;
 				12 )
           res_home_cfg "$lhost.info"
           break
-        ;;
+          ;;
 				13 )
           main_menu
           break
-        ;;
+          ;;
 				* )
           echo "${lightred}Invalid choice${normal}" >&2
 			esac
@@ -240,23 +238,23 @@ ed_cfgs() {
 				1 )
           res_misc_cfg ".bluefish" "rcfile-2.0"
           break
-        ;;
+          ;;
 				2 )
           res_geany;
           res_config_cfg "geany" "geany.conf"
           res_config_cfg "geany" "keybindings.conf"
           break
-        ;;
+          ;;
         3 )
           res_marktext;
           res_config_cfg "marktext" "preferences.json"
           break
-        ;;
+          ;;
 				4 )
           res_config_cfg "micro" "settings.json"
           res_config_cfg "micro" "bindings.json"
           break
-        ;;
+          ;;
 				5 )
           if [[ -f "$bu_dir/nano/nanorc" ]]; then
             res_config_cfg "nano" "nanorc"
@@ -266,15 +264,15 @@ ed_cfgs() {
             printf "No nano configuration file found.\n"
           fi
           break
-        ;;
+          ;;
 				6 )
           res_config_cfg "VSCodium/User" "settings.json"
           break
-        ;;
+          ;;
         7 )
           main_menu
           break
-        ;;
+          ;;
 				* )
           echo "${lightred}Invalid choice${normal}" >&2
 			esac
@@ -297,7 +295,7 @@ i3_cfgs() {
 				1 )
           res_config_cfg "i3" "config"
           break
-        ;;
+          ;;
         2 )
           if [[ -f "$bu_dir/i3/sxhkdrc" ]]; then
             res_config_cfg "i3" "sxhkdrc"
@@ -307,11 +305,11 @@ i3_cfgs() {
             printf "No sxhkdrc file found.\n"
           fi
           break
-        ;;
+          ;;
         3 )
           res_config_cfg "i3" "bindings.list"
           break
-        ;;
+          ;;
 				4 )
           if [[ -f "$bu_dir/polybar/config" ]]; then
             res_config_cfg "polybar" "config"
@@ -323,53 +321,53 @@ i3_cfgs() {
             printf "No polybar configuration file found.\n"
           fi
           break
-        ;;
+          ;;
         5 )
           res_config_cfg "i3" "i3status.conf"
           break
-        ;;
+          ;;
         6 )
           res_config_cfg "i3" "bar.conf"
           break
-        ;;
+          ;;
         7 )
           res_config_cfg "i3" "rules.conf"
           break
-        ;;
+          ;;
         8 )
           res_config_cfg "i3" "workspaces.conf"
           break
-        ;;
+          ;;
         9 )
           res_config_cfg "i3" "autostart.sh"
           break
-        ;;
+          ;;
         10 )
           res_config_cfg "i3" "backgrounds.sh"
           break
-        ;;
+          ;;
         11 )
           res_config_cfg "i3" "logout"
           break
-        ;;
+          ;;
 				12 )
           res_config_cfg "rofi" "config.rasi"
           break
-        ;;
+          ;;
 				13 )
           res_rofi_theme;
           res_config_cfg "rofi" "arc_dark_colors.rasi"
           res_config_cfg "rofi" "arc_dark_transparent_colors.rasi"
           break
-        ;;
+          ;;
         14 )
           res_config_cfg "dunst" "dunstrc"
           break
-        ;;
+          ;;
 				15 )
           main_menu
           break
-        ;;
+          ;;
 				* )
           echo "${lightred}Invalid choice${normal}" >&2
 			esac
@@ -391,19 +389,19 @@ bl_cfgs() {
 				1 )
           res_home_cfg ".xbindkeysrc"
           break
-        ;;
+          ;;
 				2 )
           res_config_cfg "clipit" "clipitrc"
           break
-        ;;
+          ;;
 				3 )
           res_config_cfg "conky" "conky.conf"
           break
-        ;;
+          ;;
 				4 )
           main_menu
           break
-        ;;
+          ;;
 				* )
           echo "${lightred}Invalid choice${normal}" >&2
 			esac
@@ -425,7 +423,7 @@ misc_cfgs() {
 				1 )
           res_config_cfg "bat" "config"
           break
-        ;;
+          ;;
 				2 )
           if [[ -f "$bu_dir/.gitconfig" ]];then
             res_home_cfg ".gitconfig"
@@ -435,7 +433,7 @@ misc_cfgs() {
             printf "No git configuration file found.\n"
           fi
           break
-        ;;
+          ;;
 				3 )
           if [[ -f "$bu_dir/git-credentials" ]];then
             res_home_cfg ".git-credentials"
@@ -445,16 +443,16 @@ misc_cfgs() {
             printf "No git credentials file found.\n"
           fi
           break
-        ;;
+          ;;
 				4 )
           res_config_cfg "keepassxc" "keepassxc.ini"
           break
-        ;;
+          ;;
 				5 )
           res_config_cfg "kitty" "kitty.conf"
           res_config_cfg "kitty" "bindings.list"
           break
-        ;;
+          ;;
         6 )
           if [[ -f "$bu_dir/10-monitor.conf" ]]; then
             sudo_login 2
@@ -464,23 +462,23 @@ misc_cfgs() {
           fi
           (( count++ ))
           break
-        ;;
+          ;;
 				7 )
           res_config_cfg "terminator" "config"
           break
-        ;;
+          ;;
         8 )
           res_home_cfg ".imwheelrc"
           break
-        ;;
+          ;;
         9 )
           res_misc_cfg "config" "redshift.conf"
           break
-        ;;
+          ;;
         10 )
           main_menu
           break
-        ;;
+          ;;
 				* )
           echo "${lightred}Invalid choice${normal}" >&2
 			esac
