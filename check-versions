@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 30 Jun 2025
+# Last updated : 04 Jul 2025
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 #              : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
@@ -100,7 +100,7 @@ github_versions() {
       printf "%s%-16s" "${red}" "No release"
     fi
     # Print current installed version.
-    if [[ "$new_ver" == "$cur_ver" ]]; then
+    if [[ ! "$new_ver" > "$cur_ver" ]]; then
       printf "%s%s\n" "${gray}" "$cur_ver"
     elif [[ "$cur_ver" ]]; then
       printf "%s%-16s%sUpdate available\n" "${gray}" "$cur_ver" "${orange}"
@@ -160,7 +160,7 @@ browsers() {
 
 main() {
   local script="${0##*/}"
-  local version="14.3.25181"
+  local version="14.4.25185"
   clear
   box "$script $version"
   printf "\n"
