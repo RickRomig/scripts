@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 04 Jul 2025
+# Last updated : 05 Jul 2025
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 #              : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
@@ -39,67 +39,71 @@ cleanup() {
 }
 
 installed_version() {
-  local ver pkg
-  pkg="$1"
-  case "$pkg" in
+  local package="$1"
+  local cur_ver
+  case "$package" in
     micro )
-      ver=$(micro -version 2>/dev/null | awk '/Version:/ {print $NF}') ;;
+      cur_ver=$(micro -version 2>/dev/null | awk '/Version:/ {print $NF}') ;;
     gitea )
-      ver=$(gitea --version 2>/dev/null | cut -d' ' -f3) ;;
+      cur_ver=$(gitea --version 2>/dev/null | cut -d' ' -f3) ;;
     firefox )
-      ver=$(firefox --version 2>/dev/null | cut -d' ' -f3) ;;
+      cur_ver=$(firefox --version 2>/dev/null | cut -d' ' -f3) ;;
     * )
-      ver=$(dpkg -l "$pkg" 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+ud].*//') ;;
+      cur_ver=$(dpkg -l "$package" 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+ud].*//')
   esac
-  echo "$ver"
+  echo "$cur_ver"
+}
+
+get_release_path() {
+	local package="$1"
+	local release_path
+	case "$package" in
+	  bat )
+	    release_path="sharkdp/bat/releases" ;;
+		codium )
+			release_path="VSCodium/vscodium/releases" ;;
+	  fastfetch )
+	    release_path="fastfetch-cli/fastfetch/releases" ;;
+	  marktext )
+	    release_path="marktext/marktext/releases" ;;
+	  micro )
+	    release_path="zyedidia/micro/releases"
+	esac
+	echo "$release_path"
+}
+
+get_new_version() {
+	local package="$1"
+	local release_path="$2"
+	local new_ver
+	local -r github_url="https://github.com"
+  curl -s -o "$tmp_file" "$github_url/$release_path"
+    # Extract latest version number from temp file, ignoring beta and release candidate releases.
+  case "$package" in
+    codium )
+      new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $8;exit}' | sed 's/^v//') ;;
+    micro )
+      new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /linux/ {print $7;exit}' | sed 's/^v//') ;;
+    * )
+      new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
+  esac
+  echo "$new_ver"
 }
 
 github_versions() {
-  local cur_ver github_url new_ver package packages release_path
-  github_url="https://github.com"
-  new_ver="Not found"
+  local cur_ver new_ver package packages release_path
   packages=( bat codium fastfetch marktext micro )
-
   printf "%-16s%-16s%s\n" "GitHub Package" "Latest version" "Installed version"
   for package in "${packages[@]}"; do
-    # Set URL of GitHub repoository and currently installed version of package.
-    case "$package" in
-      bat )
-        release_path="sharkdp/bat/releases" ;;
-      micro )
-        release_path="zyedidia/micro/releases" ;;
-      marktext )
-        release_path="marktext/marktext/releases" ;;
-		  codium )
-			  release_path="VSCodium/vscodium/releases" ;;
-      fastfetch )
-        release_path="fastfetch-cli/fastfetch/releases" ;;
-      * )
-        printf "%s Invalid package name - %s\n" "$RED_ERROR" "${package,,}" >&2
-    esac
-
-    # Get installed version
     cur_ver=$(installed_version "$package")
-    # Download package's GitHub release page to a temporary file.
-    curl -s -o "$tmp_file" "$github_url/$release_path"
-    # Extract newest version number, ignoring beta and release candidate releases.
-    case "$package" in
-      micro )
-        new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /linux/ {print $7;exit}' | sed 's/^v//') ;;
-      codium )
-        new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $8;exit}' | sed 's/^v//') ;;
-      * )
-        new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//') ;;
-    esac
-    # Print capitalized package name
+		release_path=$(get_release_path "$package")
+    new_ver=$(get_new_version "$package" "$release_path")
     printf "%s%-16s" "${darkgray}" "${package^}"
-    # Print newest version
     if [[ "$new_ver" ]]; then
       printf "%s%-16s" "${gray}" "$new_ver"
      else
       printf "%s%-16s" "${red}" "No release"
     fi
-    # Print current installed version.
     if [[ ! "$new_ver" > "$cur_ver" ]]; then
       printf "%s%s\n" "${gray}" "$cur_ver"
     elif [[ "$cur_ver" ]]; then
@@ -112,47 +116,41 @@ github_versions() {
 }
 
 apt_tools() {
-	local cur_ver packages package
+	local packages package
   packages=( batcat bluefish featherpad fzf geany gedit git gitea glow keepassxc nala nano picom shellcheck xed zoom )
-
 	printf "%-15s%s\n" "Package" "Version"
 	for package in "${packages[@]}"; do
 		if exists "$package"; then
 		  printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
       [[ "$package" == "batcat" ]] && package="bat"
-      cur_ver=$(installed_version "$package")
-      printf "%s\n" "$cur_ver"
+      printf "%s\n" "$(installed_version "$package")"
 		fi
 	done
 	printf "%s\n" "${normal}"
 }
 
 terminals() {
-	local cur_ver packages package
+	local packages package
   packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
-
 	printf "%-15s%s\n" "Terminal" "Version"
 	for package in "${packages[@]}"; do
 		if exists "$package"; then
 			printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
-      cur_ver=$(installed_version "$package")
-      printf "%s\n" "$cur_ver"
+      printf "%s\n" "$(installed_version "$package")"
 		fi
 	done
 	printf "%s\n" "${normal}"
 }
 
 browsers() {
-	local cur_ver packages package
+	local packages package
   packages=( brave-browser chromium firefox librewolf google-chrome )
-
 	printf "%-15s%s\n" "Browser" "Version"
 	for package in "${packages[@]}"; do
 		if exists "$package"; then
 			printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
       [[ "$package" == "google-chrome" ]] && package+="-stable"
-      cur_ver=$(installed_version "$package")
-      printf "%s\n" "$cur_ver"
+      printf "%s\n" "$(installed_version "$package")"
 		fi
 	done
 	printf "%s\n" "${normal}"
@@ -160,7 +158,7 @@ browsers() {
 
 main() {
   local script="${0##*/}"
-  local version="14.4.25185"
+  local version="15.0.25186"
   clear
   box "$script $version"
   printf "\n"
