@@ -54,6 +54,16 @@ installed_version() {
   echo "$cur_ver"
 }
 
+show_version() {
+	local package="$1"
+	if exists "$package"; then
+		printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
+		[[ "$package" == "batcat" ]] && package="bat"
+		[[ "$package" == "google-chrome" ]] && package+="-stable"
+    printf "%s\n" "$(installed_version "$package")"
+	fi
+}
+
 get_release_path() {
 	local package="$1"
 	local release_path
@@ -120,11 +130,7 @@ apt_tools() {
   packages=( batcat bluefish featherpad fzf geany gedit git gitea glow keepassxc nala nano picom shellcheck xed zoom )
 	printf "%-15s%s\n" "Package" "Version"
 	for package in "${packages[@]}"; do
-		if exists "$package"; then
-		  printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
-      [[ "$package" == "batcat" ]] && package="bat"
-      printf "%s\n" "$(installed_version "$package")"
-		fi
+		show_version "$package"
 	done
 	printf "%s\n" "${normal}"
 }
@@ -134,10 +140,7 @@ terminals() {
   packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
 	printf "%-15s%s\n" "Terminal" "Version"
 	for package in "${packages[@]}"; do
-		if exists "$package"; then
-			printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
-      printf "%s\n" "$(installed_version "$package")"
-		fi
+		show_version "$package"
 	done
 	printf "%s\n" "${normal}"
 }
@@ -147,18 +150,14 @@ browsers() {
   packages=( brave-browser chromium firefox librewolf google-chrome )
 	printf "%-15s%s\n" "Browser" "Version"
 	for package in "${packages[@]}"; do
-		if exists "$package"; then
-			printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
-      [[ "$package" == "google-chrome" ]] && package+="-stable"
-      printf "%s\n" "$(installed_version "$package")"
-		fi
+		show_version "$package"
 	done
 	printf "%s\n" "${normal}"
 }
 
 main() {
   local script="${0##*/}"
-  local version="15.0.25186"
+  local version="15.1.25186"
   clear
   box "$script $version"
   printf "\n"
