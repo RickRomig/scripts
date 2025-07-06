@@ -2,14 +2,14 @@
 ##########################################################################
 # Script Name  : cinnkeys
 # Description  : Backup/Restore Cinnamon keybindings to/from a file.
-# Dependencies : none
+# Dependencies : curl
 # Arguments    : none
 # Author       : Copyright (C) 2021, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 12 May 2021
-# Updated      : 25 Jan 2025
+# Updated      : 06 Jul 2025
 # Comments     : Backup of Cinnamon keybindings in ~/.config
-#              : Tested with Cinnamon DE on Mint 19.x & 20.x, 21.x, LMDE 5/6, Debian 10/11/12
+#              : Tested with Cinnamon DE on Mint 19.x & 20.x, 21.x, 22.x, LMDE 5/6, Debian 10/11/12
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
 ##########################################################################
@@ -28,50 +28,49 @@ fi
 
 ## Variables ##
 
-readonly  cfg_dir="$HOME/.config"
-readonly  kb_bu="keybindings-backup.dconf"
+readonly  config_dir="$HOME/.config"
+readonly  bindings_bu="keybindings-backup.dconf"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-  errcode="${1:-1}"
-  updated="25 Jan 2025"
+  local errcode="${1:-1}"
+  local -r updated="25 Jan 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Creates a backup file of Cinnamon keybindings and restores from a backup file.
 
-${green}Usage:${normal} $script [OPTION]
-
+${green}Usage:${normal} $script [-vc] [-vd] [-h] [-vl]
 ${orange}Available options:${normal}
-  -c  Copy Cinnamon keybindings from Gitea repo to ~/.config
-  -d  Dump Cinnamon keybindings to a backup file in ~/.config
-  -h  Display this help text
-  -l  Load Cinnamon keybindings from the backup file
-  -v  Enable verbose mode
+  -c  Copy Cinnamon keybindings from GitHub repo to ~/.config.
+  -d  Dump Cinnamon keybindings to a backup file in ~/.config.
+  -h  Show this help message and exit.
+  -l  Load Cinnamon keybindings from the backup file.
+  -v  Enable verbose mode. Must precede other flags.
 _HELP_
   exit "$errcode"
 }
 
 dump_to_backup() {
   show_message "Dumping keybindings to backup file."
-  dconf dump /org/cinnamon/desktop/keybindings/ > "$cfg_dir/$kb_bu"
-  printf "Cinnamon Keybindings dumped to %s/%s\n" "$cfg_dir" "$kb_bu"
-
+  dconf dump /org/cinnamon/desktop/keybindings/ > "$config_dir/$bindings_bu"
+  printf "Cinnamon Keybindings dumped to %s/%s\n" "$config_dir" "$bindings_bu"
 }
 
 load_from_backup() {
   show_message "Loading keybindings from backup file."
-  dconf load /org/cinnamon/desktop/keybindings/ < "$cfg_dir/$kb_bu"
-  printf "Cinnamon Keybindings loaded from %s/%s\n" "$cfg_dir" "$kb_bu"
+  dconf load /org/cinnamon/desktop/keybindings/ < "$config_dir/$bindings_bu"
+  printf "Cinnamon Keybindings loaded from %s/%s\n" "$config_dir" "$bindings_bu"
 }
 
 copy_from_repo() {
-  local cinn_keys="configs/raw/branch/main/keybindings-backup.dconf"
-  show_message "Installing Cinnamon keybindings from local repository.\n"
-  curl -so "$cfg_dir/$kb_bu" "$GITEA_URL/$cinn_keys"
-  printf "Cinnamont keybindings copied from Gitea respository.\n"
+  # local cinn_keys="configs/raw/branch/main/mint/keybindings-backup.dconf"   # Gitea server
+  local -r cinn_keys_url="https://raw.githubusercontent.com/RickRomig/configs/refs/heads/main/mint/keybindings-backup.dconf"
+  show_message "Installing Cinnamon keybindings from repository.\n"
+  # curl -so "$config_dir/$bindings_bu" "$GITEA_URL/$cinn_keys"  # Gitea server
+  curl -so "$config_dir/$bindings_bu" "$cinn_keys_url"
+  printf "Cinnamon keybindings copied from respository.\n"
 }
 
 show_message() {
@@ -80,9 +79,10 @@ show_message() {
 }
 
 main() {
+  local noOpt optstr opt
   local script version
-  script=$(basename "$0")
-  version="2.6.25025"
+	local script="${0##*/}"
+  version="3.0.25187"
 
   if is_cinnamon; then
     noOpt=1
@@ -92,25 +92,26 @@ main() {
         c )
           copy_from_repo
           load_from_backup
-        ;;
+          ;;
         d )
           dump_to_backup
-        ;;
+          ;;
         h )
           help 0
-        ;;
+          ;;
         l )
-          if [[ -f "$cfg_dir/$kb_bu" ]]; then
+          if [[ -f "$config_dir/$bindings_bu" ]]; then
             load_from_backup
           else
-            pirntf "%s does not exist. Creating it...\n" "$kb_bu" >&2
-            dump_to_backup
+            printf "Cinnamon Keybindings backup does not exist.\n" >&2
+            printf "%s -c to download keybindings from repository or\n" "$script"
+            printf "%s -d to dump current keybindings to %s/%s.\n" "$script" "${config_dir##*/}" "$bindings_bu"
           fi
-        ;;
+          ;;
         v )
           verbose_mode="$TRUE"
           show_message "Verbose mode enabled."
-        ;;
+          ;;
         ? )
           printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
           help 2
@@ -122,7 +123,7 @@ main() {
   else
     pirntf "The desktop environment is not Cinnamon.\n" >&2
   fi
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
