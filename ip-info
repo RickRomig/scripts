@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Feb 2019
-# Updated      : 27 Jun 2025
+# Updated      : 05 Jul 2025
 # Comments     : Some systems require toot access to get ssid & signal strength.
 #              : If necesary, add applicable hostnames to requires_sudo().
 # TODO (rick)  : format printf statements for devices.
@@ -34,7 +34,7 @@ requires_sudo() {
   case "$lhost" in
     foo-bar )
       return "$TRUE"
-    ;;
+      ;;
     * )
       return "$FALSE"
   esac
@@ -78,17 +78,17 @@ show_wired() {
         printf "%s\n" "$eth_ip"
         printf "\t  %sDevice:%s %s\n" "$gray" "$normal" "$eth_int"
         printf "\t     %sMAC:%s %s\n" "$gray" "$normal" "$eth_mac"
-      ;;
+        ;;
       down )
         printf "Not connected\n"
         printf "\t  %sDevice:%s %s\n" "$gray" "$normal" "$eth_int"
         printf "\t     %sMAC:%s %s\n" "$gray" "$normal" "$eth_mac"
-      ;;
+        ;;
       unknown )
         printf "Unknown state\n"
         printf "\t  %sDevice:%s %s\n" "$gray" "$normal" "$eth_int"
         printf "\t     %sMAC:%s %s\n" "$gray" "$normal" "$eth_mac"
-      ;;
+        ;;
       * )
         printf "No device found.\n"
     esac
@@ -122,17 +122,17 @@ show_wireless() {
         printf "\t     %sMAC:%s %s\n" "$gray" "$normal" "$wifi_mac"
         printf "\t    %sSSID:%s %s\n" "$gray" "$normal" "$wifi_ssid"
         printf "\t  %sSignal:%s %s\n" "$gray" "$normal" "$wifi_sig"
-      ;;
+        ;;
       down )
         printf "Not connected\n"
         printf "\t  %sDevice:%s %s\n" "$gray" "$normal" "$wifi_int"
         printf "\t     %sMAC:%s %s\n" "$gray" "$normal" "$wifi_mac"
-      ;;
+        ;;
       unknown )
         printf "Unknown state\n"
         printf "\t  %sDevice:%s %s\n" "$gray" "$normal" "$wifi_int"
         printf "\t     %sMAC:%s %s\n" "$gray" "$normal" "$wifi_mac"
-      ;;
+        ;;
       * )
         echo "No device found."
     esac
@@ -156,17 +156,17 @@ show_bridge() {
         printf "\t  %sDevice:%s %s\n" "$gray" "$normal" "$br_int"
         printf "\t     %sMAC:%s %s\n" "$gray" "$normal" "$br_mac"
 	      printf "\t  %sSubnet:%s %s\n" "$gray" "$normal" "$br_route"
-      ;;
+        ;;
       down )
         printf "Not connected\n"
         printf "\t  %sDevice:%s %s\n" "$gray" "$normal" "$br_int"
         printf "\t     %sMAC:%s %s\n" "$gray" "$normal" "$br_mac"
-      ;;
+        ;;
       unknown )
         printf "Unknown state\n"
         printf "\t  %sDevice:%s %s\n" "$gray" "$normal" "$br_int"
         printf "\t     %sMAC:%s %s\n" "$gray" "$normal" "$br_mac"
-      ;;
+        ;;
       * )
         printf "No device found.\n"
     esac
@@ -193,11 +193,9 @@ show_dns() {
 main() {
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r script="${0##*/}"
-  local -r version="2.19.25178"
-
+  local -r version="2.20.25186"
   requires_sudo "$lhost" && sudo_login 2
   check_dependencies
-
   clear
   echo "${lightyellow}"
   box "IP Information - $lhost" "*"
@@ -211,7 +209,7 @@ main() {
   show_network
   show_gateway
   show_dns
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
