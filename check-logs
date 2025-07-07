@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 29 Aug 2019
-# Updated      : 17 Jun 2025
+# Updated      : 07 Jul 2025
 # Comments     : sudo access required to view Timeshift snapshots
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -111,7 +111,6 @@ ytdlpupdate_log() {
   if [[ -f "$log_dir/$log_file" ]]; then
     clear
     printf "%s%s - yt-dlp Update Log:%s\n" "$lightgreen" "$lhost" "$normal"
-		# (printf "DATE|TIME|VERSION\n"; cat "$log_dir/$log_file") | column -ts "|"
     column -t -s "|" -N DAY,DATE,VERSION "$log_dir/$log_file"
     print_line "-" "29"
     entries=$(wc -l < "$log_dir/$log_file")
@@ -265,11 +264,9 @@ incremental_backups() {
     printf "%s%s incremental backups do not exist on %s.%s\n" "$orange" "$bu_name" "$lhost" "$normal"
     case "$bu_name" in
       "Finance" )
-        job_name="fin-backup.sh"
-      ;;
+        job_name="fin-backup.sh" ;;
       "Git" )
-        job_name="gitea-bu.sh"
-      ;;
+        job_name="gitea-bu.sh" ;;
       "Journals" )
         job_name="journal-bu.sh"
     esac
@@ -288,7 +285,7 @@ system_logs() {
 	while true; do
 		show_header
 		COLUMNS=40
-		under_line "$lhost System Logs" "="
+		under_line "$lhost System Logs" "-"
 		PS3="Select a log to view: "
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
@@ -296,34 +293,33 @@ system_logs() {
 					sysinfo
 					anykey
 					break
-				;;
+				  ;;
 				2 )
 					update_log
 					anykey
 					break
-				;;
+				  ;;
 				3 )
 					timeshift_snapshots
 					anykey
 					break
-				;;
+				  ;;
 				4 )
 					defrag_log
 					anykey
 					break
-				;;
+				  ;;
 				5 )
 					ytdlpupdate_log
 					anykey
 					break
-				;;
+				  ;;
 				6 )
 					main
 					break
-				;;
+				  ;;
 				* )
 					printf "%sInvalid choice.%s Choose 1-%d.\n" "$lightred" "$normal" "${#options[@]}" >&2
-				;;
 			esac
 		done
 	done
@@ -335,7 +331,7 @@ local_logs() {
 	while true; do
 		show_header
 		COLUMNS=40
-		under_line "$lhost Local Logs" "="
+		under_line "$lhost Local Logs" "-"
 		PS3="Select a log to view: "
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
@@ -343,21 +339,21 @@ local_logs() {
 					password_log
 					anykey
 					break
-				;;
+				  ;;
 				2 )
 					trash_log
 					anykey
 					break
-				;;
+				  ;;
 				3 )
 					local_backup_log
 					anykey
 					break
-				;;
+				  ;;
 				4 )
 					main
 					break
-				;;
+				  ;;
 				* )
 					printf "%sInvalid choice.%s Choose 1-%d.\n" "$lightred" "$normal" "${#options[@]}" >&2
 			esac
@@ -371,7 +367,7 @@ archive_logs() {
 	while true; do
 		show_header
 		COLUMNS=40
-		under_line "$lhost Archive Logs" "="
+		under_line "$lhost Archive Logs" "-"
 		PS3="Select a log to view: "
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
@@ -379,36 +375,36 @@ archive_logs() {
 					script_archive_log
 					anykey
 					break
-				;;
+				  ;;
 				2 )
 					incremental_backups "Finance" "finance"
 					anykey
 					break
-				;;
+				  ;;
 				3 )
 					homebank_log
 					anykey
 					break
-				;;
+				  ;;
 				4 )
 					git_snapshots
 					anykey
 					break
-				;;
+				  ;;
 				5 )
 					incremental_backups "Git" "gitea-repo"
 					anykey
 					break
-				;;
+				  ;;
 				6 )
 					incremental_backups "Journals" "journals"
 					anykey
 					break
-				;;
+				  ;;
 				7 )
 					main
 					break
-				;;
+				  ;;
 				* )
 					printf "%sInvalid choice.%s Choose 1-%d.\n" "$lightred" "$normal" "${#options[@]}" >&2
 			esac
@@ -419,7 +415,7 @@ archive_logs() {
 main() {
 	local _opt options script version
   script="${0##*/}"
-  version="10.6.25168"
+  version="10.7.25188"
 	options=( "System logs" "Local logs" "Archive Logs" "Quit")
 	while true; do
 		show_header
@@ -431,20 +427,20 @@ main() {
 				1 )
 					system_logs
 					break
-				;;
+				  ;;
 				2 )
 					local_logs
 					break
-				;;
+				  ;;
 				3 )
 					archive_logs
 					break
-				;;
+				  ;;
 				4 )
 					printf "\n%sMischief managed!%s\n" "$orange" "$normal"
-					box "$script $version" "*"
+					over_line "$script $version" "-"
 					exit
-				;;
+				  ;;
 				* )
 					printf "%sInvalid choice.%s Choose 1-%d.\n" "$lightred" "$normal" "${#options[@]}" >&2
 			esac
