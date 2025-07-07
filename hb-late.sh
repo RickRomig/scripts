@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ###############################################################################
-# Script Name  : hb-late
+# Script Name  : hb-late.sh
 # Description  : Create HomeBank archive after the end of the month.
 # Dependencies : zip
 # Arguments    : none
@@ -27,8 +27,21 @@ fi
 
 ## Functions ##
 
+trim_log() {
+	local log_len log_dir log_file
+	log_dir="$1"
+	log_file="$2"
+	log_len=$(wc -l < "$log_dir/$log_file")
+	[[ "$log_len" -gt 12 ]] && sed -i '1d' "$log_dir/$log_file"
+}
+
+del_old() {
+	local arc_dir="$1"
+	find "$arc_dir" -daystart -mtime +1095 -exec rm {} +
+}
+
 update_log_file() {
-  local arc_date status log_dir log_file log_date
+  local arc_date arc_dir status log_dir log_file log_date
   status="$1"
   arc_date="$2"
   arc_dir="$HOME/Downloads/archive/homebank"
@@ -46,6 +59,8 @@ update_log_file() {
       echo "$(date +%F) - HomeBank Archive had errors. ($status)" >> "$arc_dir/$err_log"
     fi
   } >> "$log_dir/$log_file"
+	trim_log "$log_dir" "$log_file"
+	del_old "$arc_dir"
  }
 
 monthly_archive() {
