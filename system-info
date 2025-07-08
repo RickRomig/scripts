@@ -265,12 +265,11 @@ battery_info() {
 }
 
 main() {
-  local script version lhost info_file today
+  local script version lhost info_file
   script="${0##*/}"
   version="3.12.25182"
   lhost="${HOSTNAME:-$(hostname)}"
   info_file="$HOME/$lhost.info"
-  today=$(date +'%d %B %Y')
 
   tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
   trap cleanup EXIT
@@ -278,7 +277,7 @@ main() {
   check_dependencies
   clear
   {
-	  printf "System information for %s, as of %s\n\n" "$lhost" "$today"
+	  printf "System information for %s, as of %(%d %B %Y)T\n\n" "$lhost"
 	  mfg_info
 	  os_info
 	  cpu_info
