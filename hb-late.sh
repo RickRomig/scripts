@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Use only if hb-archive.sh fails to run on 1st of the month.
 # Created      : 02 Sep 2019
-# Updatd       : 08 Feb 2025
+# Updatd       : 08 Jul 2025
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -41,16 +41,15 @@ del_old() {
 }
 
 update_log_file() {
-  local arc_date arc_dir status log_dir log_file log_date
+  local arc_date arc_dir status log_dir log_file
   status="$1"
   arc_date="$2"
   arc_dir="$HOME/Downloads/archive/homebank"
   log_dir="$HOME/.local/share/logs"
   log_file="HomeBank-archive.log"
   err_log="HomeBank-error.log"
-  log_date=$(date '+%a|%F|%R')
   {
-    printf "%s|%s|" "$log_date" "$arc_date"
+    printf "$(%a|%F|%R)T|%s|" "$arc_date"
     if (( status > 0 )); then
       printf "successful\n"
       echo "$(date +%F) - HomeBank Archive successful." > "$arc_dir/$err_log"
@@ -86,8 +85,8 @@ monthly_archive() {
 
 main() {
   local fhost lhost script version
-  script=$(basename "$0")
-  version="3.0.25039"
+  script="${0##*/}"
+  version="3.1.25189"
   lhost="${HOSTNAME:-$(hostname)}"
   fhost="hp-800g2-sff"
 
