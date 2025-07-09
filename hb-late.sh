@@ -49,7 +49,7 @@ update_log_file() {
   log_file="HomeBank-archive.log"
   err_log="HomeBank-error.log"
   {
-    printf "$(%a|%F|%R)T|%s|" "$arc_date"
+    printf "%(%a|%F|%R)T|%s|" -1 "$arc_date"
     if (( status > 0 )); then
       printf "successful\n"
       echo "$(date +%F) - HomeBank Archive successful." > "$arc_dir/$err_log"
