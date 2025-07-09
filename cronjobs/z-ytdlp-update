@@ -15,14 +15,13 @@
 set -eu
 
 main() {
-	local log_date log_dir log_file update_status
-	log_dir="/var/log"
-	log_file="ytdlpup.log"
-	log_date=$(date '+%F|%R')
-	# sed_file="/usr/share/misc/ytdlp-uplog.sed"
+	local update_status
+	local log_dir="/var/log"
+	local log_file="ytdlpup.log"
+	# local sed_file="/usr/share/misc/ytdlp-uplog.sed"
 	update_status=$(/usr/local/bin/yt-dlp --update | awk '/Latest version/ {print $3}' | sed 's/stable@//')
 	[[ "$update_status" ]] || update_status="unavailable"
-	printf "%s|%s\n" "$log_date" "$update_status" >> "$log_dir/$log_file" 2>&1
+	printf "%(%F|%R)T|%s\n" -1 "$update_status" >> "$log_dir/$log_file" 2>&1
 	# sed -i -f "$sed_file" "$log_dir/$log_file"
 	# Remove top entry if more than 30 entries.
 	log_len=$(wc -l < "$log_dir/$log_file")
