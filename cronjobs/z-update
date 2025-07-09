@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 17 Apr 2025
+# Updated      : 08 Jul 2025
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -16,6 +16,17 @@
 set -eu
 
 SECONDS=0
+
+# shellcheck disable=SC2001
+over_line() {
+  local char len line title
+  title="$1"
+  char="${2:--}"
+  len=${#char}
+  (( len > 1 )) && char=${char::1}
+  line=$(echo "$title" | sed "s/./$char/g")
+  printf "%s\n%s\n"  "$line" "$title"
+}
 
 check_disk_space() {
   local df_stats r_size r_used r_perc r_avail
@@ -73,30 +84,16 @@ autoremove_packages() {
   fi
 }
 
-# purge_rc_packages() {
-#   local rcpkg
-#   if dpkg -l | grep -c '^rc' > /dev/null; then
-#     for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
-#       printf "Purging %s...\n" "$rcpkg"
-#       DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get remove --purge "$rcpkg" -yy
-#     done
-#   else
-#     printf "No packages in the 'rc' state.\n"
-#   fi
-# }
-
 main() {
-  local dashes lhost log_dir log_file script sed_file version
-  script=$(basename "$0")
-  version="1.3.25107"
-  lhost="${HOSTNAME:-$(hostname)}"
-  log_dir="/var/log"
-  log_file="update.log"
-  sed_file="/usr/share/misc/updatelog.sed"
-  dashes="----------------------------"
+  local script="${0##*/}"
+  local version="1.3.25189"
+  local lhost="${HOSTNAME:-$(hostname)}"
+  local log_dir="/var/log"
+  local log_file="update.log"
+  local sed_file="/usr/share/misc/updatelog.sed"
   {
     printf "%s weekly update\n" "$lhost"
-    printf "Date: %s\n" "$(date '+%F %R')"
+    printf "Date: %(%a %F %R)T\n"
 	  check_disk_space
     printf "\n*** Checking for updates ***\n"
     get_updates
@@ -110,8 +107,7 @@ main() {
 	  check_disk_space
     printf "Update completed in %s\n" "$(format_time $SECONDS)"
     [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && printf "\nREBOOT REQUIRED\n"
-    printf "%s\n" "$dashes"
-    printf "%s %s\n" "$script" "$version"
+    over_line "$script $version"
   } > "$log_dir/$log_file" 2>&1
   sed -i -f "$sed_file" "$log_dir/$log_file"
   exit
