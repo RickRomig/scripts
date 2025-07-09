@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jan 2020
-# Updated      : 28 Feb 2025 (version 3.1.25059)
+# Updated      : 08 Jul 2025
+# Version      : 3.2.25189
 # Comments     : Includes all subdirectories
 #              : Schedule with user's crontab from ~/.local/bin
 # TODO (Rick)  :
@@ -33,7 +34,7 @@ err_log="error.log"
 
 # Create archive of the ~/bin directory and write results to log file
 {
-  printf "%s|" "$(date '+%a|%F|%R')"
+  printf "%(%a|%F|%R)T|"
   if /usr/bin/tar --exclude='.git' -hcpzf "$arc_dir/$archive" -C "$HOME" bin 2> "$arc_dir/$err_log"; then
     printf "successful\n"
     echo "Script Archive successful - $(date +%F)" >> "$arc_dir/$err_log"
