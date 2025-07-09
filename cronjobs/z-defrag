@@ -4,10 +4,11 @@
 # Description  : Script to check defrag condition on spinning drives.
 # Dependencies : None
 # Arguments    : None
-# Author       : Copyright (C) 2021-2023, Richard B. Romig
+# Author       : Copyright (C) 2021-2025, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 01 Jan 2021
 # Updated      : 15 Feb 2025
-# Comments     : Do not run this e4defrag on SSD or NVME drives.
+# Comments     : Do not run e4defrag on SSD or NVME drives.
 #              : anacron job: Copy to /etc/cron.monthly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -15,16 +16,25 @@
 
 set -eu
 
+# shellcheck disable=SC2001
+over_line() {
+  local char len line title
+  title="$1"
+  char="${2:--}"
+  len=${#char}
+  (( len > 1 )) && char=${char::1}
+  line=$(echo "$title" | sed "s/./$char/g")
+  printf "%s\n%s\n"  "$line" "$title"
+}
+
 main() {
-	local dashes host_name log_dir log_file script version
-	log_dir="/var/log"
-	log_file="defrag.log"
-	host_name="${HOSTNAME:-$(hostname)}"
-  script=$(basename "$0")
-  version="2.10.25046"
-	dashes="----------------------------"
+	local log_dir="/var/log"
+	local log_file="defrag.log"
+	local host_name="${HOSTNAME:-$(hostname)}"
+  local script="${0##*/}"
+  local version="2.11.25189"
 	{
-		printf "Defrag Report for %s: %s\n\n" "$host_name" "$(date '+%a %F %R')"
+		printf "Defrag Report for %s: %(%a %F %R)\n\n" -1 "$host_name"
 		case "$host_name" in
 			hp-800-g1-usdt|hp-probook-6570|e-475m|hp-mini-110 )
 				printf "SSD - e4defrag not run.\n"
@@ -42,7 +52,7 @@ main() {
 			* )
 				/usr/sbin/e4defrag -c / /home
 		esac
-		printf "%s\n%s %s\n" "$dashes" "$script" "$version"
+		over_line "$script $version"
 	} > "$log_dir/$log_file" 2>&1
 	[[ -f "$log_dir/$log_file" ]] && sed -i '/^e4defrag/d;/0-30/d;/^ Done/d' "$log_dir/$log_file"
 	exit
