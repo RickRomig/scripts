@@ -6,8 +6,8 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Last updated : 28 Feb 2025
-# Version      : 4.2.25059
+# Last updated : 08 Jul 2025
+# Version      : 4.3.25189
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
@@ -25,17 +25,16 @@ trim_log() {
 	[[ "$log_len" -gt 12 ]] && sed -i '1d' "$log_dir/$log_file"
 }
 
-del_old() {
+del_old_archives() {
 	local arc_dir="$1"
 	find "$arc_dir" -daystart -mtime +1095 -exec rm {} +
 }
 
 archive_bak() {
-	local arc_date arc_dir err_log hb_dir log_date log_dir log_file ref_date status
+	local arc_date arc_dir err_log hb_dir log_dir log_file ref_date status
 	arc_dir="$1"
 	log_dir="$2"
 	log_file="$3"
-	log_date=$(date '+%a|%F|%R')
 	arc_date=$(date -d "$(date +%Y-%m-01) - 2 months" +%Y-%m)
 	ref_date=$(date -d "$(date +%Y-%m-01) - 1 month" +%m%d%Y)
 	archive="$arc_date-backup.zip"
@@ -44,24 +43,23 @@ archive_bak() {
 	status=0
 
 	{
-	  printf "%s|%s|" "$log_date" "$arc_date"
-	  if zip -qmtt "$ref_date" "$arc_dir/$archive" "$hb_dir"/*.bak 2> "$arc_dir/$err_log"
-	  then
+	  printf "%(%a|%F|%R)T|%s|" -1 "$arc_date"
+	    printf "$(%a|%F|%R)T|%s|" "$arc_date"
+  if zip -qmtt "$ref_date" "$arc_dir/$archive" "$hb_dir"/*.bak 2> "$arc_dir/$err_log"; then
 	    printf "successful\n"
-	    echo "$(date +%F) - HomeBank Archive successful." > "$arc_dir/$err_log"
+	    printf "%(%F)T - HomeBank Archive successful.\n" > "$arc_dir/$err_log"
 	  else
 	    status="$?"
 	    printf "had errors\n"
-	    echo "$(date +%F) - HomeBank Archive had errors. ($status)" >> "$arc_dir/$err_log"
+	    printf "%(%F)T - HomeBank Archive had errors. (%s)" -1 "$status" >> "$arc_dir/$err_log"
 	  fi
 	} >> "$log_dir/$log_file"
 }
 
 main() {
-	local arc_dir log_dir log_file
-	arc_dir="$HOME/Downloads/archives/homebank"
-	log_dir="$HOME/.local/share/logs"
-	log_file="HomeBank-archive.log"
+	local arc_dir="$HOME/Downloads/archives/homebank"
+	local log_dir="$HOME/.local/share/logs"
+	local log_file="HomeBank-archive.log"
 
 	# Create directories if they don't exist.
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
@@ -72,7 +70,7 @@ main() {
 	# Trim top entry from the log file when the length exceeds 12 entries.
 	trim_log "$log_dir" "$log_file"
 	# Delete archive files older than 3 years.
-	del_old "$arc_dir"
+	del_old_archives "$arc_dir"
 	exit
 }
 
