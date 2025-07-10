@@ -3,11 +3,11 @@
 # Script Name  : cam.sh
 # Description  : Cards Against Muggles, a Cards Against Humanity card game
 # Dependencies : fzf, cam-black.lst, cam-white.list
-# Arguments    : See help() function for available options.
+# Arguments    : none
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 23 Mar 2025
-# Last updated : 23 Jun 2025
+# Last updated : 10 Jul 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -80,7 +80,7 @@ play_game() {
 
 main() {
   local script="${0##*/}"
-  local version="2.2.25180"
+  local version="2.2.25191"
   check_files
   play_game
   over_line "$script $version"
