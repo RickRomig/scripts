@@ -29,7 +29,7 @@ set -eu
 
 ## Global Variables ##
 
-script_dir=$(dirname "$(readlink -f "${0}")")
+script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly card_files=(cam-black.lst cam-white.lst)
 readonly card_dir="$script_dir/files"
 
