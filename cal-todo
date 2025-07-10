@@ -7,8 +7,9 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Dec 2022
-# Updated      : 13 Oct 2024
+# Updated      : 10 Jul 2025
 # Comments     : base script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
+#              : Uses default editor ($EDITOR) to edit to-do list.
 #              : Limit to-do list to 7 items to maintain proper formating.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,10 +29,11 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="3.1.24287"
+readonly script="${0##*/}"
+readonly version="3.2.25191"
 readonly doc_dir="$HOME/.local/share/doc"
 readonly todolist="todo.lst"
+script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 calendar=$(mktemp -q) || die "Failed to create temporary file." 1
 
 ## Functions ##
@@ -44,68 +46,60 @@ cleanup() {
 
 help() {
 	local errcode="${1:-2}"
-	local updated="13 Oct 2024"
-	cat << END_HELP
+	local updated="10 Jul 2025"
+	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Creates/displays/edits a simple to-do list with a calendar.
 
-${green}Usage:${normal} $script [OPTION]
-
-Usage: $script [OPTION]
-
+${green}Usage:${normal} $script [-13eh]
 ${orange}Available options:${normal}
-	-c  display current month calendar and to-do list.
-	-d  display 3 month calendar and to-do list.
-	-e  edit/create to-do list.
-	-h  display help
+	-1  Display current month calendar and to-do list.
+	-3  Display 3-month calendar and to-do list.
+	-e  Edit/create to-do list.
+	-h  Show this help message and exit.
 	NOTE: To-do list should be limited to 7 short items to maintain format.
-END_HELP
+_HELP_
 	exit "$errcode"
 }
 
 edit_todo() {
-	if exists micro; then
-		/usr/bin/micro "$doc_dir/$todolist"
-	else
-		/usr/bin/nano "$doc_dir/$todolist"
-	fi
-	notify-send -t 3600 "To-do List" "To-do list updated"
+	$EDITOR "$doc_dir/$todolist"
+	# notify-send -t 3600 "To-do List" "To-do list updated"
 }
 
 create_todo() {
-	local templates="$HOME/bin/Templates"
 	printf "Creating todo list...\n"
 	[[ -d "$doc_dir" ]] || mkdir -p "$doc_dir"
-	cp "$templates/$todolist" "$doc_dir/"
+	cp "$script_dir/Templates/$todolist" "$doc_dir/"
 	edit_todo
 }
 
 main() {
 	local noOpt optstr opt
 	noOpt=1
-	optstr=":cdeh"
+	optstr=":13eh"
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			c )
+			1 )
 				[[ -f "$doc_dir/$todolist" ]] || create_todo
 				cal > "$calendar"
 				paste "$calendar" "$doc_dir/$todolist"
-			;;
-			d )
+				;;
+			3 )
 				[[ -f "$doc_dir/$todolist" ]] || create_todo
 				cal -3 > "$calendar"
 				paste "$calendar" "$doc_dir/$todolist"
-			;;
+				;;
 			e )
 				if [[ -f "$doc_dir/$todolist" ]]; then
 					edit_todo
 				else
 					create_todo
 				fi
-			;;
+				;;
 			h )
 				help 0
-			;;
+				;;
 			? )
 				printf "%s Invalid option: -%s\n" >&2 "$RED_ERROR" "$OPTARG"
 				help 2
@@ -114,7 +108,7 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-	leave "$script v$version"
+	over_line "$script v$version"
 }
 
 ## Execution ##
