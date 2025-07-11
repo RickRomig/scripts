@@ -5,6 +5,7 @@
 This repository contains Bash scripts I use on my local network, along with support files, code snippets, templates, and documentation.
 
 ## License
+Copyright © 2025, Richard B. Romig
 Programs in this repository are licensed under the GNU General Public Licencse, version 2 which can be found in the [repository](https://github.com/RickRomig/scripts/blob/main/LICENSE)
 
 ## Function Library
