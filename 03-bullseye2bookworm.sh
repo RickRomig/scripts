@@ -7,10 +7,21 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Jan 2024
-# Last updated : 06 Jun 2025
+# Last updated : 11 Jul 2025
 # Comments     : Final cleanup after upgrade to Debian 12.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -52,8 +63,8 @@ clean_up() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.4.25157"
-	local updated="06 Jun 2025"
+	local version="1.5.25192"
+	local updated="11 Jul 2025"
 	check_files || die "01-bullseye2bookworm.sh and 02-bullseye2bookworm.sh must be run first." 1
 	version_info
 	if [[ "$(cut -d. -f1 /etc/debian_version)" -ne "12" ]]; then

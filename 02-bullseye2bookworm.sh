@@ -7,10 +7,21 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Jan 2024
-# Last updated : 06 Jun 2025
+# Last updated : 11 Jun 2025
 # Comments     : This scripts updates sources.list & backports.list for upgrade.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -74,7 +85,7 @@ upgrade_debian() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.4.25157"
+	local version="1.525192"
 	local updated="06 Jun 2025"
 	check_files || die "01-bullseye2bookworm.sh must be run first." 1
 	version_info
