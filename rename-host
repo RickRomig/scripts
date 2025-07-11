@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Nov 2019
-# Updated      : 12 Jun 2025
+# Updated      : 11 Jul 2025
 # Comments     : Changes the hostname in both /etc/hostname and /etc/hosts.
 #              : Rules based on hostname(7) man page
 #              : Hostname length limited to 5-15 characters for NETBIOS compatibility.
@@ -15,7 +15,18 @@
 #              : May get a “unable to resolve host” error after changing hostname in /etc/hosts. It will go away after reboting.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 #############################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -31,8 +42,10 @@ fi
 
 ## Global Variables ##
 
+readonly script="${0##*/}"
+readonly version="6.0.25192"
 readonly old_host="${HOSTNAME:-$(hostname)}"
-new_host=""
+declare -l new_host=""
 
 ## Functions ##
 
@@ -43,56 +56,53 @@ ${lightblue}Hostname Rules${normal}
   ${orange}*${normal} 5-15 characters (for NETBIOS compatibility)
   ${orange}*${normal} a-z, 0-9, - (hyphen)
   ${orange}*${normal} lowercase (uppercase will be converted)
-  ${orange}*${normal} no special characters
+  ${orange}*${normal} no special characters (except a hyphen)
   ${orange}*${normal} first character cannot be a hyphen or a digit
   ${orange}*${normal} last character cannot be a hyphen
 _RULES_
 }
 
 get_new_hostname() {
-  local strlen=0
   local minlen=5
   local maxlen=15
   while true; do
     printf "\nCurrent hostname is %s\n\n" "$old_host"
     read -rp "Enter new hostname (Enter to cancel): " new_host
-    strlen=${#new_host}
-    if (( strlen < minlen || strlen > maxlen )); then
-      printf "\n%sHostname must be between %d and %d characters.%s\n" "$orange" "$minlen" "$maxlen" "$normal" >&2
-      hostname_rules
-      continue
-    fi
     # Check new hostname against the rules
     case "$new_host" in
       -* )
         printf "\n%sHostname cannot begin with a hypen.%s\n" "$orange" "$normal" >&2
         hostname_rules
         continue
-      ;;
+        ;;
       *- )
         printf "\n%sHostname cannot end with a hyphen.%s\n" "$orange" "$normal" >&2
         hostname_rules
         continue
-      ;;
+        ;;
       [0-9]* )
         printf "%s\nHostname cannot begin with a digit.%s\n" "$orange" "$normal" >&2
         hostname_rules
         continue
-      ;;
+        ;;
       *[^a-zA-Z0-9-]* )
         printf "\n%sHostname cannot contain any special characters.%s\n" "$orange" "$normal" >&2
         hostname_rules
         continue
-      ;;
+        ;;
       '' )
         printf "Rename hostname canceled. No changes made.\n"
+        over_line "$script $version"
         exit
-      ;;
     esac
+    if [[ ${#new_host} -le "$minlen" || ${#new_host} -gt "$maxlen" ]]; then
+      printf "\n%sHostname must be between %d and %d characters.%s\n" "$orange" "$minlen" "$maxlen" "$normal" >&2
+      hostname_rules
+      continue
+    fi
 
     # Compare new hostname with the old hostname
-    new_host="${new_host,,}"
-    if [[ "$new_host" == "${old_host,,}" ]]; then
+    if [[ "$new_host" == "$old_host" ]]; then
       printf "%sHostnames are the same.%s\n" "$orange" "$normal" >&2
       hostname_rules
       continue
@@ -112,8 +122,6 @@ change_hostname() {
 }
 
 main() {
-  local script="${0##*/}"
-  local version="5.3.25163"
   sudo_login 2
   printf "Renames the system hostname.\n"
   hostname_rules
