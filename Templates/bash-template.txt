@@ -12,6 +12,7 @@
 # Comments     :
 # TODO (<CODER>)  :
 # License      : <LICENSE>
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -33,7 +34,7 @@ set -eu
 
 readonly script="${0##*/}"
 readonly version="<VERSION>"
-readonly script_dir==$(dirname "$(readlink -f "${0}")")
+script_dir==$(dirname "$(readlink -f "${0}")"); readonly script_dir
 tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." 1
 
@@ -64,13 +65,21 @@ help() {
 ${orange}$script${normal} $version, Updated: $updated
 Short description
 
-${green}Usage:${normal} $script [OPTION]
+${green}Usage:${normal} $script [-hN]
 
 ${orange}Available options:${normal}
   -h  Show this help message and exit
+	-N  Display GPL Terms & Conditions notice.
 
 _HELP_
   exit "$errcode"
+}
+
+show_notice() {
+	printf "%s\n" "$script"
+	printf "Copyright <YEAR>, <AUTHOR>\n"
+	printf "Email: <EMAIL>\n\n"
+	cat "$script_dir/files/gpl_notice.txt"
 }
 
 main() {
@@ -80,6 +89,9 @@ main() {
     help 1
   elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
     help 0
+  elif [[ "$1" == "-N" ]]; then
+    show_notice
+    exit 0
   elif [[ -f "$1" ]]; then
     printf "%s %s already exists." "$RED_ERROR" "$1" >&2
     help 2
