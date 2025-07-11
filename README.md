@@ -4,6 +4,9 @@
 
 This repository contains Bash scripts I use on my local network, along with support files, code snippets, templates, and documentation.
 
+## License
+Programs in this repository are licensed under the GNU General Public Licencse, version 2 which can be found in the [repository](https://github.com/RickRomig/scripts/blob/main/LICENSE)
+
 ## Function Library
 
 The `functionlib` script is a collection of commonly used functions which I use in most of my scripts. To use it, simply source it near the begining of the script. Since I use Shellcheck as my linter, I include directives to tell Shellcheck the location of the script and to disable the error message it gives about it. To use it, place the following code directory beneath the header information:
@@ -44,8 +47,10 @@ Code snippets and code examples, formatted as markdown files.
 
 Templates for shell scripts, C/C++ source code, configuration files, and open-source licenses.
 
-## Disclaimer
-THIS SOFTWARE IS PROVIDED BY THE AUTHOR “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL The AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+## Terms and conditions
+These programs are free software; you can redistribute them and/or modify them under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+
+These programs are distributed in the hope that they will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 #### Rick Romig (*The Luddite Geek*)
-##### 06 Jul 2025
+##### 10 Jul 2025
