@@ -12,6 +12,7 @@
 # Comments     :
 # TODO (<CODER>)  :
 # License      : <LICENSE>
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -33,7 +34,7 @@ set -eu
 
 readonly script="${0##*/}"
 readonly version="<VERSION>"
-readonly script_dir==$(dirname "$(readlink -f "${0}")")
+script_dir==$(dirname "$(readlink -f "${0}")"); readonly script_dir
 verbose_mode="$FALSE"
 tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." 1
@@ -63,9 +64,11 @@ help() {
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Short description
+$script comes with ABSOLUTELY NO WARRANTY.
+This is free software, and you are welcome to redistribute it
+under certain conditions udner GNU General Public License, version 2.
 
-${green}Usage:${normal} $script [-h] [-i] [-r] [-s] [-u] [-v]
-
+${green}Usage:${normal} $script [-hirsuN] [-v option]
 ${orange}Available options:${normal}
 	-h	Show this help message and exit.
 	-i	Install application.
@@ -73,8 +76,16 @@ ${orange}Available options:${normal}
 	-s	Apply settings.
 	-u	Update application.
 	-v	Enable verbose mode. If used, must precede other flags.
+	-N  Display GPL Terms & Conditions notice.
 _HELP_
   exit "$errcode"
+}
+
+show_notice() {
+	printf "%s\n" "$script"
+	printf "Copyright <YEAR>, <AUTHOR>\n"
+	printf "Email: <EMAIL>\n\n"
+	cat "$script_dir/files/gpl_notice.txt"
 }
 
 show_message() {
@@ -85,8 +96,8 @@ show_message() {
 main() {
 	local noOpt opt optstr
 	noOpt=1
-	optstr=":hirsuv"
-	# optstr=":h:i:r:s:u:v"
+	optstr=":hirsuvN"
+	# optstr=":h:i:r:s:u:vN"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
@@ -127,6 +138,9 @@ main() {
 			v )
 				verbose_mode="$TRUE"
 				show_message "Verbose mode enabled."
+				;;
+			N )
+				show_notice
 				;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
