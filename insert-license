@@ -7,11 +7,12 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 29 Jun 2025
+# Updated      : 11 Jul 2025
 # Comments     : Inserts the license immediately after the file's header.
 #              : Assumes the standard script or C/C++ header is present.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
 
 ## Shellcheck Directives ##
@@ -30,19 +31,19 @@ fi
 
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="4.3.25180"
+readonly version="4.4.25192"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="25 Jun 2025"
+  local updated="11 Jul 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts an Open Source license into a shell script or a C/C++ source code file.
 
-${green}Usage:${normal} $script [-h] [-vc c-source-file] [-vp cpp-source-file] [-vs shell-script]
+${green}Usage:${normal} $script [-hN] [-vc c-source-file] [-vp cpp-source-file] [-vs shell-script]
 ${orange}Available options:${normal}
   -c  C code
       $script -c <c-source.c>
@@ -53,8 +54,17 @@ ${orange}Available options:${normal}
       $script -s <shell-script>
   -v  Enable verbose mode (Must precede -c, -p, or -s flags)
       $script -vs <shell-script>
+  -N  Display GPL Terms & Conditions notice
 _HELP_
   exit "$errcode"
+}
+
+show_notice() {
+	printf "%s\n" "$script"
+	printf "Inserts an Open Source license into a shell script or a C/C++ source code file.\n"
+	printf "Copyright (C) 2019, Richard B. Romig\n"
+	printf "Email: rick.romig@gmail.com\n\n"
+	cat "$script_dir/files/gpl_notice.txt"
 }
 
 show_message() {
@@ -149,7 +159,7 @@ insert_license() {
 main() {
 	local noOpt opt optstr code_file code_type
 	noOpt=1
-	optstr=":c:hp:s:v"
+	optstr=":c:hp:s:vN"
 	while getopts "$optstr" opt; do
 	case "$opt" in
 		c )
@@ -183,6 +193,10 @@ main() {
 			verbose_mode="$TRUE"
 			show_message "Verbose mode enabled."
 			;;
+			N )
+				show_notice
+				exit 0
+				;;
 		: )
 			printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
 			help 2
