@@ -7,10 +7,11 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 29 Jun 2025
+# Last updated : 11 Jul 2025
 # Comments     : Creates the script in the current working directory.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
 
 ## Shellcheck Directives ##
@@ -29,30 +30,39 @@ fi
 
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="4.3.25180"
+readonly version="4.4.25192"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="29 Jun 2025"
+	local updated="11 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Creates a shell script with header comments (getopts optional)
 
-${green}Usage:${normal} $script [-h] [-vb script-name] [-vg script-name]
+${green}Usage:${normal} $script [-hN] [-vb script-name] [-vg script-name]
 
 ${orange}Available options:${normal}
   -b  Create a standard BASH script
       $script -b <script-name>
   -h  Show this help message and exit
-  -g  Create a getopts BASH script
+  -g  Create a BASH script using getopts
       $script -g <script-name>
   -v  Enable verbose mode (Must precede -b or -g flags)
       $script -vb <script-name>
+  -N  Display GPL Terms & Conditions notice
 _HELP_
   exit "$errcode"
+}
+
+show_notice() {
+	printf "%s\n" "$script"
+	printf "Creates a shell script with header comments (getopts optional)\n"
+	printf "Copyright (C) 2023, Richard B. Romig\n"
+	printf "Email: rick.romig@gmail.com\n\n"
+	cat "$script_dir/files/gpl_notice.txt"
 }
 
 show_message() {
@@ -98,7 +108,7 @@ import_metadata() {
 main() {
 	local noOpt opt optstr script_name template_file
 	noOpt=1
-	optstr=":b:hg:v"
+	optstr=":b:hg:vN"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			b )
@@ -122,6 +132,10 @@ main() {
 				verbose_mode="$TRUE"
 				show_message "Verbose mode enabled."
 			;;
+			N )
+				show_notice
+				exit 0
+				;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
