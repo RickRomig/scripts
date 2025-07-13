@@ -65,7 +65,7 @@ Using the declare command in a function makes the variable local to the function
 - Options:
 	```bash
 	declare -f	# restrict action or display to function names and definitions
-	declare -F	# restrict display to function names only (plus line number & source file when debuggigng)
+	declare -F	# restrict display to function names only (plus line number & source file when debugging)
 	declare -g	# create global variables when used in a shell function; otherwise ignore
 	declare -I	# if creating a local varibable, inherit attributes and value	of a variable with the same name at a previous scope
 	declare -p	# display the attributes and values of each NAME
@@ -79,7 +79,12 @@ Using the declare command in a function makes the variable local to the function
 	declare -n	# make NAME a reference to the variable named by its value
 	declare -r	# make NAMEs readonly
 	declare -t	# make NAMEs have the 'trace' attribute
-	declare -u	# conver the value of each NAME to upper case on assignment
+	declare -u	# convert the value of each NAME to upper case on assignment
 	declare -x	# make the NAMEs export
 	```
-Uing `+` instead of `-` turns off the given attribute.
+Using `+` instead of `-` turns off the given attribute.
+#### Check if variable is digits.
+```bash
+[[ "$value" =~ ^[0-9]+$ ]] # returns true if all digits
+[[ "${value//[0-9]/}" ]] # strips out digits and returns true if there's anything left
+ ```
