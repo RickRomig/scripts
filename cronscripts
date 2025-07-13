@@ -7,10 +7,11 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 17 Feb 2022
-# Updated      : 06 Jul 2025
+# Updated      : 13 Jul 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -28,12 +29,12 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.1.25187"
+readonly version="6.2.25194"
 localip="$(local_ip)"; readonly localip
 # path variables
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly job_dir="$script_dir/cronjobs"
-readonly sed_dir="$script_dir/files"
+readonly files_dir="$script_dir/files"
 readonly user_cron_path="$HOME/.local/bin/"
 readonly opt_cron_path="/opt/bin/"
 readonly sed_path="/usr/share/misc/"
@@ -42,12 +43,12 @@ readonly sed_path="/usr/share/misc/"
 
 help() {
   local errcode="${1:-2}"
-  local updated="06 Jul 2025"
+  local updated="13 Jul 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Copies updated cron scripts to the appropriate directories.
 
-${green}Usage:${normal} $script [OPTIONS]
+${green}Usage:${normal} $script [-abdfghmrstuvN]
 
 ${orange}Available options:${normal}
   -a    Copy all applicable scripts.
@@ -62,9 +63,18 @@ ${orange}Available options:${normal}
   -t    Copy empty trash script.
   -u    Copy system update script.
   -y    Copy yt-dlp update script.
+	-N    Display GPL Terms & Conditions notice.
   NOTE: Multiple arguments may be passed to the script.
 _HELP_
   exit "$errcode"
+}
+
+show_notice() {
+	printf "%s\n" "$script"
+	printf "Copies updated cron scripts to the appropriate directories.\n"
+	printf "Copyright (C) 2022, Richard B. Romig\n"
+	printf "Email: rick.romig@gmail.com\n\n"
+	cat "$files_dir/gpl_notice.txt"
 }
 
 cp_repo_backup() {
@@ -152,7 +162,7 @@ cp_zbackup() {
 }
 
 cp_zdefrag() {
-  local anacron_path="/etc/cron.monthly/"
+  local -r anacron_path="/etc/cron.monthly/"
   case "$localip" in
     10|12|13|15|20|23 )
       sudo cp -uv "$job_dir/z-defrag" "$anacron_path" | awk '{print "==> "$NF}'
@@ -167,18 +177,17 @@ cp_zdefrag() {
 }
 
 cp_zupdate() {
-  local sed_file anacron_path
-  sed_file="updatelog.sed"
-  anacron_path="/etc/cron.weekly/"
+  local -r sed_file="updatelog.sed"
+  local -r anacron_path="/etc/cron.weekly/"
   case "$localip" in
     10|12|13|15|17|20|21|22|23|24|25|227 )
       sudo cp -uv "$job_dir/z-update" "$anacron_path" | awk '{print "==> "$NF}'
-      sudo cp -uv "$sed_dir/$sed_file" "$sed_path" | awk '{print "==> "$NF}'
+      sudo cp -uv "$files_dir/$sed_file" "$sed_path" | awk '{print "==> "$NF}'
       ;;
     11|14|16|19 )
       [[ -d "$opt_cron_path" ]] || sudo mkdir -p "$opt_cron_path"
       sudo cp -uv "$job_dir/z-update" "$opt_cron_path" | awk '{print "==> "$NF}'
-      sudo cp -uv "$sed_dir/$sed_file" "$sed_path" | awk '{print "==> "$NF}'
+      sudo cp -uv "$files_dir/$sed_file" "$sed_path" | awk '{print "==> "$NF}'
       ;;
     * )
       no_copy "z-update is"
@@ -186,13 +195,12 @@ cp_zupdate() {
 }
 
 cp_zytdlpupdate() {
-  local sed_file anacron_path
-	sed_file="ytdlp-uplog.sed"
-  anacron_path="/etc/cron.daily/"
+	local -r sed_file="ytdlp-uplog.sed"
+  local -r anacron_path="/etc/cron.daily/"
   case "$localip" in
     10|15|17 )
       sudo cp -uv "$job_dir/z-ytdlp-update" "$anacron_path" | awk '{print "==> "$NF}'
-      sudo cp -uv "$sed_dir/$sed_file" "$sed_path" | awk '{print "==> "$NF}'
+      sudo cp -uv "$files_dir/$sed_file" "$sed_path" | awk '{print "==> "$NF}'
       ;;
     * )
       no_copy "z-ytdlp-update is"
@@ -259,6 +267,9 @@ main() {
         sudo_login 1
         cp_zytdlpupdate
         ;;
+			N )
+				show_notice
+				;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
