@@ -4,13 +4,24 @@
 # Description  : allows laptop lid to be closed without suspend or sleep.
 # Dependencies : ~./bin/files/laptoplid.sed
 # Arguments    : None
-# Author       : Copyright (C) 2020, Richard B. Romig, LudditeGee@Mosfanet
+# Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Oct 2020
-# Updated      : 29 Jun 2025
+# Updated      : 12 Jul 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -25,35 +36,33 @@ else
   exit 1
 fi
 
-## Global Variables ##
-
-script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
-
 ## Functions ##
 
 modify_logind() {
+  local script_dir
+  script_dir=$(dirname "$(readlink -f "${0}")")
   local logind_conf="/etc/systemd/logind.conf"
   local sed_file="$script_dir/files/laptoplid.sed"
   if [[ -f "$sed_file" ]]; then
     sudo_login 2
-    printf "Modifying %s and restarting systemd-logind service.\n" "$logind_conf"
+    printf "Modifying %s and restarting the systemd-logind service.\n" "${logind_conf##*/}"
     sudo sed -i.bak -f "$sed_file" "$logind_conf"
     sudo systemctl restart systemd-logind.service
     printf "%s modified and backup created.\n" "$logind_conf"
   else
-    printf  "A required file, %s, was not found. Operation canceled" "${sed_file##*/}"
+    printf  "A required file, %s, was not found. Operation canceled" "${sed_file##*/}" >&2
   fi
 }
 
 main() {
   local lhost="${HOSTNAME:=-$(hostname)}"
   local script="${0##*/}"
-  local -r version="4.2.25180"
+  local -r version="4.3.25193"
   printf "Allows a laptop lid to be closed without going into suspend mode.\n"
   if is_laptop; then
     modify_logind
   else
-    printf "%s is not a laptop. Operation canceled.\n" "$lhost"
+    printf "%s is not a laptop. Operation canceled.\n" "$lhost" >&2
   fi
   over_line "$script $version"
   exit
