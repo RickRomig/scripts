@@ -7,10 +7,21 @@
 # Author       : Copyright (C) 2022 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com
 # Created      : 11 Mar 2022
-# Updated      : 17 May 2025
-# Comments     :
+# Updated      : 14 Jul 2025
+# Comments     : No longer in use.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -33,37 +44,34 @@ SECONDS=0
 
 transfer_status() {
   # Exit script if transfer fails.
-  xfr_status="$1"
+  local xfr_status="$1"
   (( xfr_status != 0 )) && die "A transfer failed! Check network status." "$xfr_status"
 }
 
 transfer_to_fin() {
-  local main_host fin_host fin_ip
-  main_host="$1"
-  fin_host="$2"
-  fin_ip="21"
+  local main_host="$1"
+  local fin_host="$2"
+  local fin_ip="21"
   if ping -c 3 "$LOCALNET.$fin_ip" >/dev/null 2>&1; then
     printf "Syncing %s to %s...\n" "$main_host" "$fin_host"
     sync_to_fin "$fin_ip"
     printf "\n%s synced with %s.\n" "$fin_host" "$main_host"
-else
+  else
     printf "\n%s %s is not on the network.\n" "$RED_ERROR" "$fin_host"
   fi
 }
 
 transfer_to_main() {
-  local main_host fin_host main_ip
-  main_host="$1"
-  fin_host="$2"
-  main_ip="10"
+  local main_host="$1"
+  local fin_host="$2"
+  local main_ip="10"
   if ping -c 3 "$LOCALNET.$main_ip" >/dev/null 2>&1; then
-      printf "Syncing %s to %s...\n" "$fin_host" "$main_host"
-      sync_to_main "$main_ip"
-      printf "\n%s synced with %s.\n" "$main_host" "$fin_host"
-    else
-      printf "\n%s %s is not on the network.\n" "$RED_ERROR" "$main_host"
-    fi
-
+    printf "Syncing %s to %s...\n" "$fin_host" "$main_host"
+    sync_to_main "$main_ip"
+    printf "\n%s synced with %s.\n" "$main_host" "$fin_host"
+  else
+    printf "\n%s %s is not on the network.\n" "$RED_ERROR" "$main_host"
+  fi
 }
 
 sync_to_main() {
@@ -127,7 +135,7 @@ sync_to_fin() {
 check_host() {
   local local_host="${HOSTNAME:-$(hostname)}"
   local main_host="hp-800g2-sff"
-  fin_host="hp-probook-6570"
+  local fin_host="hp-probook-6570"
   printf "Synchronizes files between %s and %s.\n" "$main_host" "$fin_host"
   if [[ "$local_host" == "$main_host" ]]; then
     transfer_to_fin "$main_host" "$fin_host"
@@ -139,9 +147,8 @@ check_host() {
 }
 
 main() {
-  local script version local_host main_host fin_host
-  script=$(basename "$0")
-  version="4.1.25137"
+  local script="${0##*/}"
+  local version="4.2.25195"
   box "$script $version" "*"
   check_host
   over_line "Syncronization completed in $(format_time $SECONDS)" "-"
