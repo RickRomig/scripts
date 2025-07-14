@@ -11,6 +11,17 @@
 # Comments     : Option to disable current swap && install ZRam.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -26,10 +37,6 @@ else
 fi
 
 set -eu
-
-## Global Variables ##
-
-script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
 ## Functions ##
 
@@ -48,17 +55,19 @@ disable_swap() {
 }
 
 install_zram() {
-  local sed_file="$script_dir/files/zramswap.sed"
+  local script_dir sed_file
+  script_dir=$(dirname "$(readlink -f "${0}")")
+  sed_file="zramswap.sed"
 	sudo apt install -y zram-tools
 	# sudo sed -i.bak '/ALGO/s/^#//;/PERCENT/s/^#//;s/50$/25/' /etc/default/zramswap
-  sudo sed -i.bak -f "$sed_file" /etc/default/zramswap
+  sudo sed -i.bak -f "$script_dir/files/$sed_file" /etc/default/zramswap
   sudo systemctl restart zramswap.service
 	printf "Zram-tools installed and configured.\n"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.2.25180"
+  local -r version="3.3.25193"
   local swap_dev
   swap_dev=$(find_current_swap)
   sudo_login 2
@@ -66,7 +75,7 @@ main() {
     case "$swap_dev" in
       "/dev/zram0" )
         printf "zram-tools is installed and the active swap.\n"
-      ;;
+        ;;
       * )
         printf "Current swap is %s\n" "$swap_dev"
         if yes_or_no "Do you want to disable $swap_dev and install zram-tools?"; then
