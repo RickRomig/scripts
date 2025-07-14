@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard Romig, 29 Sep 2020
 # Email        : rick.romig@gmail.com
 # Created      : 29 Sep 2020
-# Last updated : 27 May 2025
+# Last updated : 14 Jul 2025
 # Comments     : Can sync to one or all machines on the network.
 #              : LOCALNET is declared in functionlib
 # TODO (rick)  :
@@ -29,35 +29,47 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.1.25147"
+readonly version="4.2.25195"
 SECONDS=0
 
 ## Functions ##
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="26 Apr 2025"
+	local errcode="${1:-2}"
+	local updated="14 Jul 2025"
 	cat << _HELP_
-  $script help
-  ${orange}Usage:${normal} $script [OPTION] Updated $updated
-  OPTION       ACTION
-  -h | --help  Displays usage instructions.
-  -a | --all   Synchronizes all designated machines on the network.
+${orange}$script${normal} $version ($updated)
+Syncs directories with machines on the network via SSH
+
+${green}Usage:${normal} $script [-h|--help] [-a|--all] [ip1 ip2 ip3 ...] [-N]
+${orange}Available options:${normal}
+  -h | --help  Show this help message and exit.
+  -a | --all   Synchronize all designated machines on the network.
   1-255        Last octet of the IP address(es) of the machine(s) to synchronize.
-  ${orange}Examples:${normal}
-      $script -h        # Displays usage instructions.
-      $script --help    # Displays usage instructions.
-      $script -a        # Synchronizes with all designated systems.
-      $script --all     # Synchronizes with all designated systems.
-      $script 13        # Synchronizes with the system with a last octet of 13.
-      $script 12 13 14  # Synchronizes with systems whose last octets are 12, 13, 14.
-  ${orange}Notes:${normal}
-      - Multiple IP addresses can be entered.
-      - This script is limited to the range of static IP addresses (1 - 25).
-      - Certain addresses within that range have been marked as restricted and are not accessible.
+  -n           Display GPL 2 notice.
+${blue}Examples:${normal}
+$script -h        # Displays usage instructions.
+$script --help    # Displays usage instructions.
+$script -a        # Synchronizes with all designated systems.
+$script --all     # Synchronizes with all designated systems.
+$script 13        # Synchronizes with the system with a last octet of 13.
+$script 12 13 14  # Synchronizes with systems whose last octets are 12, 13, 14.
+${orange}Notes:${normal}
+  - Multiple IP addresses can be entered.
+  - This script is limited to the range of static IP addresses (1 - 25).
+  - Certain addresses within that range may not be accessible.
 _HELP_
   exit "$errcode"
+}
+
+show_notice() {
+  local script_dir
+  script_dir=$(dirname "$(readlink -f "${0}")")
+	printf "%s\n" "$script"
+	printf "Syncs directories with machines on the network via SSH.\n"
+	printf "Copyright (C) 2020, Richard B. Romig\n"
+	printf "Email: rick.romig@gmail.com\n\n"
+	cat "$script_dir/files/gpl_notice.txt"
 }
 
 transfer_status() {
@@ -152,7 +164,7 @@ syncscript() {
       rsync -avh --delete "$HOME"/Work/ "$LOCALNET.$hostip":Work/
       exit_status="$?"
       transfer_status "$exit_status"
-    ;;
+      ;;
     11|12|13|14|15|20|23 )
       printf "\n%sSyncing ~/Documements/mosfanet ...%s\n" "$orange" "$normal"
       rsync -avh --delete "$HOME"/Documents/mosfanet/ "$LOCALNET.$hostip":Documents/mosfanet/
@@ -163,7 +175,7 @@ syncscript() {
       rsync -avh --delete "$HOME"/Work/ "$LOCALNET.$hostip":Work/
       exit_status="$?"
       transfer_status "$exit_status"
-    ;;
+      ;;
     * )
       # 17, 21, 24. 25 exclusions
       printf "\nMosfanet and Work directories were not synchronized.\n"
@@ -237,11 +249,13 @@ main() {
   if [[ "$#" -eq 0 ]]; then
     printf "%s No arguments passed.\n" "$RED_ERROR" >&2
     help 2
-  elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+  elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
     help 0
-  elif [[ "$1" = "-a" || "$1" = "--all" ]]; then
+  elif [[ "$1" == "-a" || "$1" == "--all" ]]; then
     check_host
     sync_all
+  elif [[ "$1" == "-N" ]]; then
+    show_notice
   elif [[ "$#" -gt 1 ]]; then
     check_host
     sync_some "$@"
