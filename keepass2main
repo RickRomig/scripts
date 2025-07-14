@@ -7,10 +7,21 @@
 # Author       : Copyright (C) 2022 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Mar 2022
-# Updated      : 27 Jun 2025
+# Updated      : 13 Jul 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -28,25 +39,32 @@ fi
 ## Functions ##
 
 is_main_host() {
-  local m_host="$1"
-  local l_host="${HOSTNAME:-$(hostname)}"
+  local -r m_host="$1"
+  local -r l_host="${HOSTNAME:-$(hostname)}"
   [[ "$l_host" == "$m_host" ]] && return "$TRUE" || return "$FALSE"
 }
 
-main() {
-  local script="${0##*/}"
-  local -r version="5.1.25178"
-  local -r kdbx_d="$HOME/Documents"
-  local -r mhost="hp-800g2-sff"
+copy_passwords() {
+  local -r mhost="$1"
   local -r mhostip="10"
-
-  # Ensure script is not being run from HP-800-G2-SFF (10)
-  is_main_host "$mhost" && leave "$script cannot be run from $mhost."
+  local -r kdbx_d="$HOME/Documents"
   printf "Making a backup of Passwords.kdbx on %s\n" "$mhost"
   ssh rick@"$LOCALNET.$mhostip" cp -pv "$kdbx_d/Passwords.kdbx" "$kdbx_d/Passwords.$(date '+%y%m%d').kdbx"
   printf "Copying updated KeepassXC databases to %s\n" "$mhost"
   scp -p "$kdbx_d/Passwords.kdbx" "$kdbx_d/Passwords.old.kdbx" "$kdbx_d/Tina-passwords.kdbx"  rick@"$LOCALNET.$mhostip":Documents/
-  over_line "$script v$version" "-"
+}
+
+main() {
+  local -r script="${0##*/}"
+  local -r version="6.0.25194"
+  local -r mhost="hp-800g2-sff"
+  # Ensure script is not being run from HP-800-G2-SFF (10)
+  if is_main_host "$mhost"; then
+    printf "%s cannot be run from %s\n" "$script" "$mhost"
+  else
+    copy_passwords  "$mhost"
+  fi
+  over_line "$script $version" "-"
   exit
 }
 
