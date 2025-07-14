@@ -8,11 +8,22 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Mar 2018
-# Updated      : 22 Mar 2025
+# Updated      : 14 Jul 2025
 # Comments     : Requires sudo privileges
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
-#####################################################################
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+####################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -37,16 +48,14 @@ anacron_jobs() {
 }
 
 print_anacron_jobs() {
-  local cron_dir interval
-  interval="$1"
-  cron_dir="/etc/cron.$interval"
+  local interval="$1"
+  local cron_dir="/etc/cron.$interval"
   find "$cron_dir" -maxdepth 1 -type f -iname \* | awk -F"/" '{print "  " $NF}'
 }
 
 list_anacron_jobs() {
-  local interval cron_spool
-  interval="$1"
-  cron_spool="/var/spool/anacron/cron.$interval"
+  local interval="$1"
+  local cron_spool="/var/spool/anacron/cron.$interval"
   printf "\n%sAnacron %s:%s Last run on %s\n" "$orange" "${interval^}" "$normal" "$(sudo cat "$cron_spool" 2>/dev/null)"
   if anacron_jobs "$interval"; then
     print_anacron_jobs "$interval"
@@ -85,18 +94,16 @@ show_root_cron() {
 }
 
 main() {
-  local script version lhost
-  script=$(basename "$0")
-  version="6.3.25081"
-  lhost="${HOSTNAME:-$(hostname)}"
-
+  local script="${0##*/}"
+  local version="6.4.25195"
+  local lhost="${HOSTNAME:-$(hostname)}"
   sudo_login 0
   clear
   printf "%s%sAnacron and Cron Jobs for %s%s\n" "$bold" "$green" "$lhost" "$normal"
   show_anacron
   show_user_cron
   show_root_cron
-  over_line "$script v$version" "-"
+  over_line "$script $version" "-"
   exit
 }
 
