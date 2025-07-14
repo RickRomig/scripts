@@ -7,10 +7,11 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 28 Jun 2025
+# Updated      : 13 Jul 2025
 # Comments     : Based on a script by Joe Collins.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
 
 ## Shellcheck Directives ##
@@ -27,27 +28,38 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.4.25179"
+readonly version="6.5.25194"
 
 ## Funtions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="28 Jun 2025"
+	local updated="13 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs laptop-specific utlities.
 
-${green}Usage:${normal} $script [-h] [-i] [-l] [-s]
+${green}Usage:${normal} $script [-hissN]
 ${orange}Available options:${normal}
-  -h  Display help.
+  -h  Show this help message and exit.
   -i  Install laptop utilities.
-  -l  Display installed utilities.
-  -s  Start TLP service.
+  -s  Display installed utilities.
+  -t  Start TLP service.
+  -N  Display GPL Terms & Conditions notice.
 
 _HELP_
   intro
   exit "$errcode"
+}
+
+show_notice() {
+  local script_dir
+  script_dir=$(dirname "$(readlink -f "${0}")")
+	printf "%s\n" "$script"
+	printf "Installs laptop-specific utlities.\n"
+	printf "Copyright (C) 2023, Richard B. Romig\n"
+	printf "Email: rick.romig@gmail.com\n\n"
+	cat "$script_dir/files/gpl_notice.txt"
 }
 
 intro() {
@@ -129,7 +141,6 @@ tlp_status() {
 
 start_tlp_service() {
   if is_systemd; then
-    sudo_login 2
     sudo systemctl enable tlp.service > /dev/null 2>&1
     sudo systemctl start tlp.service > /dev/null 2>&1
     sudo systemctl mask systemd-rfkill.service > /dev/null 2>&1
@@ -144,7 +155,7 @@ start_tlp_service() {
   fi
 }
 
-util_status() {
+installed_utils() {
   printf "Installed utilities:\n"
   installed thermald && printf "%12s\n" "Thermald"
   installed acpi && printf "%8s\n" "ACPI"
@@ -157,8 +168,7 @@ main() {
   local lhost noOpt opt optstr
   lhost="${HOSTNAME:=-$(hostname)}"
   noOpt=1
-  optstr=":hils"
-  intro
+  optstr=":histN"
   while getopts "$optstr" opt; do
     case "$opt" in
       h )
@@ -166,6 +176,7 @@ main() {
         ;;
       i )
         if is_laptop; then
+          intro
           sudo_login 2
           install_thermald
           install_acpi
@@ -176,14 +187,14 @@ main() {
           printf "%s is not a laptop. Nothing to do.\n" "$lhost" >&2
         fi
         ;;
-      l )
+      s )
         if is_laptop; then
-          util_status
+          installed_utils
         else
           printf "%s is not a laptop. Nothing to do.\n" "$lhost" >&2
         fi
         ;;
-      s )
+      t )
         if is_laptop; then
           sudo_login 2
           tlp_status
@@ -191,6 +202,9 @@ main() {
           printf "%s is not a laptop. Nothing to do.\n" "$lhost" >&2
         fi
         ;;
+			N )
+				show_notice
+				;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
