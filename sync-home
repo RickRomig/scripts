@@ -7,10 +7,20 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Sep 2019
-# Updated      : 30 Jun 2025
+# Updated      : 15 Jul 2025
 # Comments     : Creates a compressed tar archive of the folder's contents.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 #############################################################################
 
 ## Shellcheck Directives ##
@@ -28,13 +38,13 @@ fi
 ## Functions ##
 
 check_host() {
-	local main_host="$1"
-	local local_host="${HOSTNAME:-$(hostname)}"
+	local -r main_host="$1"
+	local -r local_host="${HOSTNAME:-$(hostname)}"
 	[[ "$local_host" == "$main_host" ]] && return "$TRUE" || return "$FALSE"
 }
 
 remove_bu_files() {
-	local homepage_d="$1"
+	local -r homepage_d="$1"
   printf "Removing backup files (if any)...\n\n"
   find "$homepage_d"/ -type f -regex '\./.*~$' -print -delete
   find "$homepage_d"/ -maxdepth 2 -type f -name "*.bak" -exec rm -v {} \;
@@ -53,9 +63,9 @@ archive_homepage() {
 }
 
 sync_dropbox() {
-	local archive_d="$1"
-	local homepage_d="$2"
-	local dropbox_d="$HOME/Dropbox/homepage"
+	local -r archive_d="$1"
+	local -r homepage_d="$2"
+	local -r dropbox_d="$HOME/Dropbox/homepage"
 	if [[ -d "$dropbox_d" ]]; then
 		printf "\nSynchronizing ~/Documents/homepage with ~/Dropbox/homepage...\n"
 		rsync -av --delete --exclude '.git' --exclude '.gitignore' "$homepage_d"/ "$archive_d"/ "$dropbox_d"
@@ -63,11 +73,11 @@ sync_dropbox() {
 }
 
 main() {
-	local script="${0##*/}"
-	local version="6.10.25181"
-	local main_host="hp-800g2-sff"
-	local homepage_dir="$HOME/gitea/homepage"
-	local archive_dir="$HOME/Downloads/archives/homepage"
+	local -r script="${0##*/}"
+	local -r version="6.11.25196"
+	local -r main_host="hp-800g2-sff"
+	local -r homepage_dir="$HOME/gitea/homepage"
+	local -r archive_dir="$HOME/Downloads/archives/homepage"
 	printf "Archiving homepage files...\n"
 	if check_host "$main_host"; then
 		check_package rsync
