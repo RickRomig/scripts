@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 12 Jul 2025
+# Last updated : 16 Jul 2025
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.11.25193"
+readonly version="4.12.25197"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -186,7 +186,8 @@ restore() {
 }
 
 help() {
-	local updated="12 Jul 2025"
+	local errcode="${1:-2}"
+	local updated="16 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -199,8 +200,8 @@ ${orange}Available options:${normal}
   -r  Restore the host /home directory.
   -s  Instructions for setting up the BU_Drive.
   -N  Display GPL Terms & Conditions notice
-
 _HELP_
+  exit "$errcode"
 }
 
 show_notice() {
@@ -274,8 +275,8 @@ main() {
 				unmount_usb_drive
 				;;
 			h )
-				help
 				mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
+				help 0
 				;;
 			i )
 				show_description
@@ -295,20 +296,21 @@ main() {
 				;;
 			N )
 				show_notice
+				exit 0
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help
+				help 2
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-	under_line "Script completed in $(format_time $SECONDS)" "-"
 	if [[ "$exit_status" -eq 0 ]]; then
-		leave ""
+		over_line "Script completed in $(format_time $SECONDS)" "-"
 	else
 		printf "%sThere were errors!%s\n" "$lightred" "$normal" >&2
+		over_line "Script completed in $(format_time $SECONDS)" "-"
 		exit "$exit_status"
 	fi
 }
