@@ -7,11 +7,21 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 12 May 2021
-# Updated      : 06 Jul 2025
-# Comments     : Backup of Cinnamon keybindings in ~/.config
+# Updated      : 16 Jul 2025
+# Comments     : Backup of Cinnamon keybindings stored in ~/.config
 #              : Tested with Cinnamon DE on Mint 19.x & 20.x, 21.x, 22.x, LMDE 5/6, Debian 10/11/12
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -26,6 +36,8 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Variables ##
 
 readonly  config_dir="$HOME/.config"
@@ -36,7 +48,7 @@ verbose_mode="$FALSE"
 
 help() {
   local errcode="${1:-1}"
-  local -r updated="25 Jan 2025"
+  local -r updated="16 Jul 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Creates a backup file of Cinnamon keybindings and restores from a backup file.
@@ -82,7 +94,7 @@ main() {
   local noOpt optstr opt
   local script version
 	local script="${0##*/}"
-  version="3.0.25187"
+  version="3.0.25197"
 
   if is_cinnamon; then
     noOpt=1
