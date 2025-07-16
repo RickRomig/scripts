@@ -7,10 +7,20 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jan 2025
-# Last updated : 23 Jun 2025
+# Last updated : 16 Jul 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -38,7 +48,7 @@ main() {
 		case "$swap_dev" in
 			"/dev/zram0" )
 				printf "zram-tools installed and active swap.\n"
-			;;
+				;;
 			* )
 				printf "Current swap is %s\n" "$swap_dev"
 				if yes_or_no "Do you want to disable ${swap_dev}?"; then
