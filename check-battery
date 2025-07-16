@@ -7,10 +7,20 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 30 Jul 2020
-# Updated      : 21 Jun 2025
+# Updated      : 16 Jul 2025
 # Comments     : Obtains battery data from upower utility.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 ###############################################################################
 
 ## Shellcheck Directives ##
@@ -25,30 +35,9 @@ else
   exit 1
 fi
 
-## Variables ##
-
-readonly script="${0##*/}"
-readonly version="4.8.25172"
+set -eu
 
 ## Functions ##
-
-help() {
-  local errcode updated
-  errcode="${1:-2}"
-  updated="21 Jun 2025"
-  cat << _HELP_
-${orange}$script${normal} $version, Upated: $updated
-Shows battery charge and health information
-
-${green}Usage:${normal} $script [OPTION]
-With no argument, displays battery health information.
-
-${orange}Options:${normal}
-  -h,--help     Show this help text
-  With no argument, displays battery health information.
-_HELP_
-  exit "$errcode"
-}
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
@@ -137,7 +126,7 @@ battery_check() {
       battery_data=$(mktemp) || die "Failed to create temporary file." 1
       trap cleanup EXIT
       /usr/bin/upower -i "$(/usr/bin/upower -e | grep BAT)" > "$battery_data"
-      printf "\n%sBatter:%s %s\n" "$orange" "$normal" "$(awk '/native-path:/ {print $NF}' "$battery_data")"
+      printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$(awk '/native-path:/ {print $NF}' "$battery_data")"
       battery_status
       battery_capacity
       battery_condition
@@ -153,21 +142,13 @@ battery_check() {
 }
 
 main() {
+  local script="${0##*/}"
+  local version="5.0.25197"
   clear
-  if [[ "$#" -gt 0 ]]; then
-    case "$1" in
-      -h|--help )
-        help 0 ;;
-      * )
-        printf "%s Invalid argument - %s\n" "$RED_ERROR" "$1" >&2
-        help 2
-    esac
-  else
-    check_package upower
-    battery_check
-    over_line "$script v$version"
-    exit
-  fi
+  check_package upower
+  battery_check
+  over_line "$script $version"
+  exit
 }
 
 ## Execution ##
