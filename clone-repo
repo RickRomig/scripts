@@ -7,10 +7,20 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 18 Jun 2025
+# Updated      : 16 Jul 2025
 # Comments     : clone_repo() is part of functionlib
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -25,12 +35,13 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Functions ##
 
 check_repo() {
-  local dl_dir git_repo
-  git_repo="$1"
-  dl_dir="$HOME/Downloads"
+  local -r git_repo="$1"
+  local -r dl_dir="$HOME/Downloads"
   if [[ -d "$dl_dir/$git_repo" ]]; then
     if [[ $(find "$dl_dir/$git_repo" -type f) ]]; then
       printf "%s is not empty. Updating the directory...\n" "$dl_dir/$git_repo"
@@ -48,7 +59,7 @@ check_repo() {
 main() {
   local array_length index _repo repos script version
   script="${0##*/}"
-  version="3.9.25169"
+  version="3.9.25197"
 
   check_package git
   printf "Clone a repository from the local Gitea server.\n\n"
