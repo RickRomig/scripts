@@ -7,10 +7,11 @@
 # Author       : Copyright ©  2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 29 Jun 2025
+# Updated      : 16 Jul 2025
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 #############################################################################
 
 ## Shellcheck Directives ##
@@ -30,28 +31,37 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.2.25180"
+readonly version="6.3.25197"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-  errcode="${1:-2}"
-  updated="29 Jun 2025"
+  local errcode="${1:-2}"
+  local updated="29 Jun 2025"
   cat << _HELP_
 ${orange}$script${normal} $version (updated $updated)
 Displays a text file using either cat or less depending the number of lines in
 the file and the number of rows in the current terminal window. Less is used when
 the number of lines is greater than the 87% of the rows, otherwise cat is used.
 
-${green}Usage:${normal} $script [-h] [-f filename] [-n filename]
-
+${green}Usage:${normal} $script [-h] [-f filename] [-n filename] [-N]
 ${orange}Available options:${normal}
   -f  View file without line numbers.
   -h  Show this help message and exit.
   -n  View file with line numbers.
+  -N  Display GPL Terms & Conditions notice.
 _HELP_
   exit "$errcode"
+}
+
+show_notice() {
+  local script_dir
+  script_dir=$(dirname "$(readlink -f "${0}")")
+	printf "%s\n" "$script"
+	printf "Displays a text file using either cat or less.\n"
+	printf "Copyright (C) 2020, Richard B. Romig\n"
+	printf "Email: rick.romig@gmail.com\n\n"
+	cat "$script_dir/files/gpl_notice.txt"
 }
 
 check_file() {
@@ -104,7 +114,7 @@ main() {
 	local noOpt opt optstr filename linenumbers
 	linenumbers="$FALSE"
 	noOpt=1
-	optstr=":f:hn:"
+	optstr=":f:hn:N"
 	while getopts "$optstr" opt; do
 	case "$opt" in
 		f )
@@ -118,6 +128,9 @@ main() {
 			filename="$OPTARG"
 			linenumbers="$TRUE"
 			check_file "$filename" && view_file "$filename" "$linenumbers"
+			;;
+		N )
+			show_notice
 			;;
 		: )
 			printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
