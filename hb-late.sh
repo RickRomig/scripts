@@ -8,9 +8,19 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Use only if hb-archive.sh fails to run on 1st of the month.
 # Created      : 02 Sep 2019
-# Updatd       : 08 Jul 2025
+# Updatd       : 16 Jul 2025
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 ###############################################################################
 
 ## Shellcheck Directives ##
@@ -24,6 +34,8 @@ else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
   exit 1
 fi
+
+set -eu
 
 ## Functions ##
 
@@ -41,13 +53,12 @@ del_old() {
 }
 
 update_log_file() {
-  local arc_date arc_dir status log_dir log_file
-  status="$1"
-  arc_date="$2"
-  arc_dir="$HOME/Downloads/archive/homebank"
-  log_dir="$HOME/.local/share/logs"
-  log_file="HomeBank-archive.log"
-  err_log="HomeBank-error.log"
+  local status="$1"
+  local arc_date="$2"
+  local arc_dir="$HOME/Downloads/archive/homebank"
+  local log_dir="$HOME/.local/share/logs"
+  local log_file="HomeBank-archive.log"
+  local err_log="HomeBank-error.log"
   {
     printf "%(%a|%F|%R)T|%s|" -1 "$arc_date"
     if (( status > 0 )); then
@@ -84,11 +95,10 @@ monthly_archive() {
 }
 
 main() {
-  local fhost lhost script version
-  script="${0##*/}"
-  version="3.1.25189"
-  lhost="${HOSTNAME:-$(hostname)}"
-  fhost="hp-800g2-sff"
+  local script="${0##*/}"
+  local version="3.2.25197"
+  local lhost="${HOSTNAME:-$(hostname)}"
+  local fhost="hp-800g2-sff"
 
   [[ "$lhost" != "$fhost" ]] && die "$script must be run from the $fhost."
   check_package zip
