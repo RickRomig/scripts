@@ -7,10 +7,20 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Oct 2024
-# Last updated : 03 Jul 2025
+# Last updated : 16 Jul 2025
 # Comments     : Not needed if a power manager is already installed, i.e., xfce4-power-manager
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -30,7 +40,7 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.4.25184"
+readonly version="1.5.25197"
 
 ## Functions ##
 
@@ -60,8 +70,7 @@ install_icons() {
 }
 
 remove_icons() {
-	local icon_dir
-	icon_dir="$HOME/.local/share/icons/battery"
+	local icon_dir="$HOME/.local/share/icons/battery"
 	printf "Removing battery notification icons ...\n"
 	rm -rf "$icon_dir"
 }
@@ -101,7 +110,7 @@ assign_repository() {
 			git clone "$GITEA_URL/i3debian.git" "$repository/"
 			install_notifier_scripts "$repository"
 			;;
-		10|16|22 )
+		16|22 )
 			printf "Using the i3debian repository mirror on the system.\n"
 			repository="$HOME/gitea/i3debian"
 			install_notifier_scripts "$repository"
@@ -147,7 +156,7 @@ main() {
 	elif [[ "$1" == "--remove" || "$1" == "-r" ]]; then
 		remove_notifier
 	fi
-  over_line "$script v$version" "-"
+  over_line "$script $version" "-"
   exit
 }
 
