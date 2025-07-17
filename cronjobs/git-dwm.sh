@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Jan 2024
 # Last updated : 17 Jul 2025
-# Version      : 2.0.25198
+# Version      : 2.1.25198
 # Comments     : Includes both Gitea and GitHub repositories.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,8 +30,9 @@ set -eu
 create_snapshot() {
 	local archive
 	local interval="$1"
-	local archive_dir="$2"
+	local -r archive_dir="$HOME/Downloads/archives/gitea"
 	archive="git-snapshot-$(date +%y%m%d).tar.gz"
+	[[ -d "$archive_dir$interval" ]] || mkdir -p "$archive_dir/$interval"
 	tar -czpf "$archive_dir/$interval/$archive" "$HOME"/gitea "$HOME"/Projects >/dev/null 2>&1
 	remove_old_snapshots "$interval" "$archive_dir"
 }
@@ -54,11 +55,9 @@ main() {
 	dow=$(date +%a)		# day of week (Sun - Sat)
 	dom=$(date +%d)		# day of month (1-31)
 	local -r period=(daily weekly monthly)
-	local -r archive_dir="$HOME/Downloads/archives/gitea"
-	[[ -d "$archive_dir" ]] || mkdir -p "$archive_dir"/{daily,weekly,monthly}
-	create_snapshot "${period[0]}" "$archive_dir"
-	[[ "$dow" == "Sun" ]] && create_snapshot "${period[1]}" "$archive_dir"
-	[[ "$dom" -eq 1 ]] && create_snapshot "${period[2]}" "$archive_dir"
+	create_snapshot "${period[0]}"
+	[[ "$dow" == "Sun" ]] && create_snapshot "${period[1]}"
+	[[ "$dom" -eq 1 ]] && create_snapshot "${period[2]}"
 	exit
 }
 
