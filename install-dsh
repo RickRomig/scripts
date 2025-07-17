@@ -7,10 +7,21 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Apr 2024
-# Last updated : 04 Jun 2025
+# Last updated : 17 Jul 2025
 # Comments     : Intended for main system only
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -30,18 +41,16 @@ set -eu
 ## Functions ##
 
 copy_group_list() {
-  local file repository
-	repository="$1"
-  file="$2"
+	local -r repository="$1"
+  local -r file="$2"
   printf "Copying %s list to /etc/dsh/groups ...\n" "$file"
   sudo cp "$repository/dsh/group/$file" /etc/dsh/groups/
   printf "%s list added to /etc/dsh/groups\n" "$file"
 }
 
 copy_machines_list() {
-  local file repository
-	repository="$1"
-  file="machines.list"
+	local -r repository="$1"
+  local -r file="machines.list"
   printf "Copying %s to /etc/dsh/ ...\n" "$file"
   sudo cp "$repository/dsh/$file" /etc/dsh/
   printf "%s copied to /etc/dsh/\n" "$file"
@@ -65,7 +74,7 @@ install_dsh() {
 
 main() {
   local script="${0##*/}"
-  local version="2.4.25155"
+  local version="2.4.25198"
   check_package git
   sudo_login 2
   install_dsh
