@@ -7,11 +7,22 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 25 Jun 2025
+# Updated      : 17 Jul 2025
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 #############################################################################
 
 ## Shellcheck Directives ##
@@ -26,14 +37,35 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.0.25176"
+readonly version="5.0.25198"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 
 ## Functions ##
+
+help() {
+  local errcode="${1:-2}"
+  local updated="17 Jul 2025"
+  cat << _HELP_
+${orange}$script${normal} $version, Updated: ($updated)
+Installs/Removes the Brave browser
+
+${green}Usage:${normal} $script [-h] [-vipr]
+
+${orange}Available options:${normal}
+  -h  Show this help message and exit.
+  -i  Install the Brave Browser.
+  -p  Remove the Brave Browser & purge configuration files.
+  -r  Remove the Brave Browser & leave configuration files.
+  -v  Enable verbose mode. Must precede other flags.
+_HELP_
+  exit "$errcode"
+}
 
 show_message() {
 	local message="$1"
@@ -45,8 +77,8 @@ brave_ver() {
 }
 
 install_brave() {
-  local key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
-  local list_url="https://brave-browser-apt-release.s3.brave.com/ stable main"
+  local -r key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
+  local -f list_url="https://brave-browser-apt-release.s3.brave.com/ stable main"
   printf "Installing the Brave Browser ...\n"
   show_message "Importing public key for verification of the APT repository"
   sudo curl -fsSLo "$brave_key" "$key_url"
@@ -59,7 +91,7 @@ install_brave() {
 }
 
 remove_brave() {
-	local apt_key="/etc/apt/trusted.gpg.d/brave-browser-release.gpg"
+	local -r apt_key="/etc/apt/trusted.gpg.d/brave-browser-release.gpg"
   printf "Uninstalling %s...\n" "$(brave_ver)"
   show_message "Removing the Brave browser and keyring"
   sudo apt-get remove brave-browser brave-keyring -yy
@@ -81,25 +113,6 @@ purge_configs() {
   show_message "Removing local configuration and cache files"
   find ~/ -type d -name BraveSoftware -exec rm -rf {} \;
   printf "Brave local configuration and cache files have been removed.\n"
-}
-
-help() {
-  local errcode="${1:-2}"
-  local updated="25 Jun 2025"
-  cat << _HELP_
-${orange}$script${normal} $version, Updated: ($updated)
-Installs/Removes the Brave browser
-
-${green}Usage:${normal} $script [-h] [-i] [-p] [-r] [-v]
-
-${orange}Available options:${normal}
-  -h  Show this help message and exit.
-  -i  Install the Brave Browser.
-  -p  Remove the Brave Browser & purge configuration files.
-  -r  Remove the Brave Browser & leave configuration files.
-  -v  Enable verbose mode. Must preceed other flags.
-_HELP_
-  exit "$errcode"
 }
 
 check_dependencies() {
