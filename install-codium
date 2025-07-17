@@ -7,10 +7,21 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 25 Jun 2025
+# Updated      : 17 Jul 2025
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -25,10 +36,12 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.5.25176"
+readonly version="2.6.25198"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
@@ -38,7 +51,7 @@ verbose_mode="$FALSE"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="25 Jun 2025"
+	updated="17 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
 Install/Removes VSCodium & applies settings
@@ -67,14 +80,14 @@ codium_version() {
 }
 
 set_key() {
-	local key_url="https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg"
+	local -r key_url="https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg"
 	wget "$key_url"
 	show_message "Setting the GPG key..."
 	sudo mv pub.gpg "$key_file"
 }
 
 set_src() {
-	local src_url="https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main"
+	local -r src_url="https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main"
 	show_message "Creating the source list file..."
 	echo "deb [ signed-by=$key_file ] $src_url" | sudo tee "$src_list" > /dev/null
 }
@@ -129,30 +142,42 @@ main() {
 		case "$opt" in
 			a)
 				# Set apt gpg key and source list
-				exists codium || leave "VSCodium is not installed."
-				sudo_login 2
-				set_key
-				set_src
+				if exists codium; then
+					sudo_login 2
+					set_key
+					set_src
+				else
+					printf "VSCodium is not installed.\n" >&2
+				fi
 				;;
 			h )
 				help 0
 				;;
 			i )
 				# Install VSCodium via apt
-				exists codium && leave "VSCodium $(codium_version) is already installed."
-				sudo_login 2
-				install_vscodium
+				if exists codium; then
+					printf "VSCodium %s is already installed.\n" "$(codium_version)"
+				else
+					sudo_login 2
+					install_vscodium
+				fi
 				;;
 			r )
 				# Remove VSCodium
-				exists codium || leave "VSCodium is not installed."
-				sudo_login 2
-				remove_vscodium "$settings_dir"
+				if exists codium; then
+					sudo_login 2
+					remove_vscodium "$settings_dir"
+				else
+					printf "VSCodium is not installed.\n" >&2
+				fi
 				;;
 			s )
 				# Apply VSCodium settings
-				exists codium || leave "VSCodium is not installed."
-				apply_settings "$settings_dir"
+				if exists codium; then
+					apply_settings "$settings_dir"
+				else
+					printf "VSCodium is not installed.\n" >&2
+				fi
 				;;
 			v )
 				verbose_mode="$TRUE"
