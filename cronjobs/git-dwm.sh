@@ -7,43 +7,58 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Jan 2024
-# Last updated : 02 Mar 2025 Version 1.7.25061
+# Last updated : 17 Jul 2025
+# Version      : 2.0.25198
 # Comments     : Includes both Gitea and GitHub repositories.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 set -eu
 
-declare -r arc_dir="$HOME/Downloads/archives/gitea"
-archive="git-snapshot-$(date +%y%m%d).tar.gz"; declare -r archive
-
-daily_bu() {
-	tar -zpcf "$arc_dir/daily/$archive" "$HOME"/gitea "$HOME"/Projects
-	find "$arc_dir/daily" -daystart -mtime +6 -delete
+create_snapshot() {
+	local archive
+	local interval="$1"
+	local archive_dir="$2"
+	archive="git-snapshot-$(date +%y%m%d).tar.gz"
+	tar -czpf "$archive_dir/$interval/$archive" "$HOME"/gitea "$HOME"/Projects >/dev/null 2>&1
+	remove_old_snapshots "$interval" "$archive_dir"
 }
 
-weekly_bu() {
-	tar -zpcf "$arc_dir/weekly/$archive" "$HOME"/gitea "$HOME"/Projects
-	find "$arc_dir/weekly" -daystart -mtime +28 -delete
-}
-
-monthly_bu() {
-	tar -zpcf "$arc_dir/monthly/$archive" "$HOME"/gitea "$HOME"/Projects
-	find "$arc_dir/monthly" -daystart -mtime +364 -delete
+remove_old_snapshots() {
+	local interval="$1"
+	local archive_dir="$2"
+	case "$interval" in
+		daily )
+			find "$archive_dir/$interval" -daystart -mtime +6 -delete ;;
+		weekly )
+			find "$archive_dir/$interval" -daystart -mtime +28 -delete ;;
+		monthly )
+			find "$archive_dir/$interval" -daystart -mtime +364 -delete
+	esac
 }
 
 main() {
 	local dom dow
 	dow=$(date +%a)		# day of week (Sun - Sat)
 	dom=$(date +%d)		# day of month (1-31)
-	# Create archive directories if they don't exist
-	[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"/{daily,weekly,monthly}
-
-	# Snapshot schedule
-	daily_bu
-	[[ "$dow" == "Sun" ]] && weekly_bu
-	[[ "$dom" -eq 1 ]] && monthly_bu
+	local -r period=(daily weekly monthly)
+	local -r archive_dir="$HOME/Downloads/archives/gitea"
+	[[ -d "$archive_dir" ]] || mkdir -p "$archive_dir"/{daily,weekly,monthly}
+	create_snapshot "${period[0]}" "$archive_dir"
+	[[ "$dow" == "Sun" ]] && create_snapshot "${period[1]}" "$archive_dir"
+	[[ "$dom" -eq 1 ]] && create_snapshot "${period[2]}" "$archive_dir"
 	exit
 }
 
