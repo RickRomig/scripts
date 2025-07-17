@@ -6,10 +6,22 @@
 # Arguments    : none
 # Author       : Copyright (C) 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Updated      : 25 Jun 2025
+# Created      : 2024
+# Updated      : 17 Jul 2025
 # Comment      :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ###############################################################################
 
 ### Shellcheck Directives ##
@@ -24,12 +36,30 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.6.25176"
+readonly version="1.6.25198"
 
 ## Functions ##
+
+help() {
+  local errcode="${1:=-2}"
+  local updated="17 Jul 2025"
+  cat << _HELP_
+${orange}$script${normal} $version ($updated)
+Installs/Removes C-Matrix
+
+${green}Usage:${normal} $script [-hir]
+${orange}Available options:${normal}
+  -h  Show this help message and exit
+  -i  Install C-Matrix
+  -r  Remove C-Matrix
+_HELP_
+  exit "$errcode"
+}
 
 install_matrix() {
   printf "Installing C-Matrix...\n"
@@ -44,23 +74,6 @@ remove_matrix() {
   printf "C-Matrix removed.\n"
 }
 
-help() {
-  local errcode="${1:=-2}"
-  local updated="25 Jun 2025"
-  cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Installs/Removes C-Matrix
-
-${green}Usage:${normal} $script [-h] [-i] [-r]
-
-${orange}Available options:${normal}
-  -h  Show this help message and exit
-  -i  Install C-Matrix
-  -r  Remove C-Matrix
-_HELP_
-  exit "$errcode"
-}
-
 main() {
   local noOpt opt optstr
   noOpt=1
@@ -69,7 +82,7 @@ main() {
     case "$opt" in
       h )
         help 0
-      ;;
+        ;;
       i )
         exists cmatrix && leave "C-Matrix already installed."
         sudo_login 2
