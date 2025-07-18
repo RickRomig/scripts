@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 26 Jun 2025
+# Updated      : 17 Jul 2025
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,22 +25,24 @@ else
   exit 1
 fi
 
-## Variables ##
+set -eu
+
+## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.15.25177"
+readonly version="2.16.25198"
 readonly kitty_cfg_d="$HOME/.config/kitty"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="26 Jun 2025"
+	local -r updated="17 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Kitty terminal emulator
 
-${green}Usage:${normal} $script [OPTION]
+${green}Usage:${normal} $script [-hir]
 ${orange}Available options:${normal}
   -h  Show this help message and exit
   -i  Install Kitty from distro repositories
@@ -92,15 +94,21 @@ main() {
         help 0
         ;;
       i )
-        exists kitty && leave "Kitty terminal emulator $(kitty_version) already installed."
-        sudo_login 2
-        install_kitty
-        kitty_config
+        if exists kitty; then
+          printf "Kitty terminal emulator %s already installed.\n" "$(kitty_version)"
+        else
+          sudo_login 2
+          install_kitty
+          kitty_config
+        fi
         ;;
       r )
-        exists kitty || leave "Kitty is not installed."
-        sudo_login 2
-        remove_kitty
+        if exists kitty; then
+          sudo_login 2
+          remove_kitty
+        else
+          printf "Kitty is not installed.\n"
+        fi
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
