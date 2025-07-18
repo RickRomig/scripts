@@ -7,11 +7,22 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 25 Jun 2025
+# Updated      : 17 Jul 2025
 # Comments     : Geany does not write configuration files by default.
 #              : Need to set options from within the program.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -26,18 +37,19 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.6.25176"
+readonly version="2.6.25198"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="25 Jun 2025"
+	local errcode="${1:-2}"
+	local updated="17 Jul 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes Geany text editor and themes
@@ -65,8 +77,8 @@ geany_version() {
 }
 
 clone_themes() {
-  local theme_url="https://github.com/geany/geany-themes.git"
-  local colorschemes_dir="$HOME/.config/geany/colorschemes"
+  local -r theme_url="https://github.com/geany/geany-themes.git"
+  local -r colorschemes_dir="$HOME/.config/geany/colorschemes"
   [[ -d "$colorschemes_dir" ]] || mkdir -p "$colorschemes_dir"
   show_message "Cloning Geany themes..."
   git clone "$theme_url" "$tmp_dir"
@@ -105,22 +117,31 @@ main() {
         help 0
         ;;
       i )
-        exists geany && leave "Geany $(geany_version) is already installed."
-        sudo_login 2
-        check_package git
-        install_geany
+        if exists geany; then
+          printf "Geany %s s already installed.\n" "$(geany_version)"
+        else
+          sudo_login 2
+          check_package git
+          install_geany
+        fi
         ;;
       r )
-        exists geany || leave "Geany is not installed."
-        sudo_login 2
-        remove_geany
+        if exists geany; then
+          sudo_login 2
+          remove_geany
+        else
+          printf "Geany is not installed.\n"
+        fi
         ;;
       t )
-        exists geany || leave "Geany is not installed."
-        tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
-        trap cleanup EXIT
-        check_package git
-        clone_themes
+        if exists geany; then
+          tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
+          trap cleanup EXIT
+          check_package git
+          clone_themes
+        else
+          printf "Geany is not installed.\n"
+        fi
         ;;
       v )
         verbose_mode="$TRUE"
