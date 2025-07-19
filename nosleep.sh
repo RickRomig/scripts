@@ -7,10 +7,21 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2023
-# Last updated : 29 Jun 2025
+# Last updated : 19 Jul 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -25,13 +36,13 @@ else
   exit 1
 fi
 
-## Global Variables ##
-
-script_dir=$(dirname "$(readlink -f "${0}")")
+set -eu
 
 ## Functions ##
 
 set_nosleep() {
+  local script_dir
+  script_dir=$(dirname "$(readlink -f "${0}")")
   local -r sleep_file="/etc/systemd/sleep.conf"
   local -r sed_file="$script_dir/files/nosleep.sed"
   if [[ -f "$sed_file" ]]; then
@@ -48,7 +59,7 @@ set_nosleep() {
 
 main() {
   local script="${0##*/}"
-  local -r version="1.4.25180"
+  local -r version="1.4.25200"
   printf "Disables sleep and hiberation on Debian-based systems.\n"
   set_nosleep; code="$?"
   over_line "$script $version"
