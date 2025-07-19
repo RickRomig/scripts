@@ -3,14 +3,25 @@
 # Script Name  : iru-vscodium
 # Description  : Install, update, remove VSCodium editor.
 # Dependencies : wget
-# Arguments    : [-h] [-i] [-r] [-s] [-u] (See help function)
+# Arguments    : [-hiru] (See help function)
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2022
-# Updated      : 04 Jul 2025
+# Updated      : 19 Jul 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -30,7 +41,7 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.7.25185"
+readonly version="2.7.25200"
 readonly gh_url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -38,12 +49,12 @@ readonly gh_url="https://github.com/VSCodium/vscodium/releases"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="04 Jul 2025"
+	updated="19 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates,  removes the VSCodium editor.
 
-${green}Usage:${normal} $script [-h] [-i] [-r] [-u]
+${green}Usage:${normal} $script [-hiru]
 ${orange}Available options:${normal}
   -h  Show this help message and exit.
   -i  Installs the VSCodium editor.
@@ -165,7 +176,7 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
