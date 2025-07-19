@@ -7,10 +7,21 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 04 May 2019
-# Updated      : 27 Feb 2025
+# Updated      : 19 Jul 2025
 # Comments     :
 # License      : GNU General Public License, version 2.0
-###############################################################################
+## License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -28,13 +39,12 @@ fi
 
 help() {
   local errcode="${1:-2}"
-  local updated="27 Feb 2025"
+  local updated="19 Jul 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, updated: $updated
 Creates fortune cookie files for the fortune program.
 
 ${green}Usage:${normal} $script <cookie-file>
-
 ${orange}Available options:${normal}
   -h --help Show this help message and exit
 _HELP_
@@ -43,7 +53,7 @@ _HELP_
 
 create_cookie_file() {
   local cookiefile="$1"
-  local fortunes_d="/usr/share/games/fortunes"
+  local -r fortunes_d="/usr/share/games/fortunes"
   sudo_login 2
   printf "Creating %s.dat...\n" "$cookiefile"
   if strfile -c % "$cookiefile" "$cookiefile.dat"; then
@@ -55,16 +65,15 @@ create_cookie_file() {
 }
 
 main() {
-  local cookiefile script version
-  script=$(basename "$0")
-  version="2.0.25058"
+  local script="${0##*/}"
+  local version="2.0.25200"
   if [[ "$#" -eq 0 ]]; then
     printf "%s No argument passed." >&2 "$RED_ERROR"
     help 2
   elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
     help 0
   else
-    cookiefile="$1"
+    local cookiefile="$1"
     [[ -f "$cookiefile" ]] || { printf "%s %s not found.\n" "$RED_ERROR" "$cookiefile" >&2; help 1; }
     check_package fortune-mod
     create_cookie_file "$cookiefile"
