@@ -7,10 +7,21 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Last updated : 29 Jun 2025
+# Last updated : 18 Jul 2025
 # Comments     : My default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ###############################################################################
 
 ## Shellcheck Directives ##
@@ -27,10 +38,6 @@ fi
 
 set -eu
 
-## Global Variables ##
-
-script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
-
 ## Functions ##
 
 get_home_uuid() {
@@ -41,7 +48,8 @@ get_home_uuid() {
 }
 
 configure_timeshift() {
-  local ts_uuid
+  local ts_uuid script_dir
+  script_dir=$(dirname "$(readlink -f "${0}")")
   local -r ts_dir="/etc/timeshift"
   local -r ts_json="timeshift.json"
   local -r ts_sed="$script_dir/files/timeshift.sed"
@@ -66,7 +74,7 @@ install_timeshift() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.2.25180"
+  local -r version="3.3.25180"
   if exists timeeshift; then
     printf "%s is already installed.\n" "$(timeshift --version)"
   elif in_repos timeshift; then
