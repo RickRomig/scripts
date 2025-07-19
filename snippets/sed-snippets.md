@@ -73,3 +73,7 @@ sed 's/  */ /g' filename					# replace whitespace with a single space
 ```bash
 sed -E "s/^([[:alnum:]]+)([[:spacee:]])([[;alnum;]])S/\3\2\1/"	# Swaps first word with last word
 ```
+### Append text to the end of a line
+```bash
+sed '/^pattern / s/$/text-to-be-appended/' filename.txt
+```
