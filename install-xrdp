@@ -7,10 +7,21 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2024
-# Last updated : 26 Jun 2025
+# Last updated : 19 Jul 2025
 # Comments     : Working with i3 & Xfce4, no desktop background on Cinnamon.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -49,13 +60,13 @@ install_xdrp() {
 	add_to_sslcert
 	printf "Enabling and starting xrdp sevice...\n"
 	sudo systemctl enable --now xrdp
-	printf "Allowing xrdp port (3389/tcp) on UFW...\n"
-	sudo ufw allow 3389/tcp
+	printf "Allow xrdp port (3389/tcp) on UFW...\n"
+	sudo ufw status | grep -q 'inactive' && sudo ufw enable
+	sudo ufw status | grep -q '3389' || sudo ufw allow 3389/tcp
 }
 
 setup_xsession() {
 	local xsessions_d="/usr/share/xsessions"
-
 	if [[ -f "$xsessions_d/i3.desktop" ]]; then
 		printf "Setting up i3 session...\n"
 		echo "exec i3 >>~/.local/share/logs/i3log 2>&1" | tee "$HOME/.xsessionrc"
@@ -72,7 +83,7 @@ setup_xsession() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.1.25177"
+  local -r version="2.2.25200"
 	sudo_login 2
 	check_package ufw
 	install_xdrp
