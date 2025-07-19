@@ -1,16 +1,27 @@
 #!/usr/bin/env bash
-###############################################################################
+##########################################################################
 # Script Name  : ren-ext
 # Description  : Renames file extensions in the current directory
-# Dependencies : none
+# Dependencies : rename
 # Arguments    : File extenstion to be changed
 # Author       : Copyright (C) 2017, Richard Romig
 # Email        : rick.romig@gmail.com
 # Created      : 2017
-# Updated      : 16 Dec 2024
+# Updated      : 19 Jul 2025
 # Comment      : File extensions are not case sensitive, will change to lowercase.
 # License      : GNU General Public License, version 2.0
-###############################################################################
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -24,27 +35,27 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="2.8.24351"
+readonly script="${0##*/}"
+readonly version="2.9.25200"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="16 Dec 2024"
+	local errcode="${1:-2}"
+	local updated="19 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Bulk renames file extensions in the current diectory.
 
 ${green}Usage:${normal} $script <file-extension>
-
 ${orange}Example:${normal} $script JPG
-* Supported extensions: AVI, BAK, FLV, GIF, HTM, HTML, IMG, JPEG, JPG, MP3, MP4, MPG, MPEG. MKV, PDF, PNG, TXT, WEBM, WMV
+* Supported extensions: AVI, BAK, FLV, GIF, HTM, HTML, IMG, JPEG, JPG, MP3, MP4, MPG, MPEG. MKV, PDF, PNG, SH, TXT, WEBM, WMV
 * Input file extensions are not case sensitive.
-* Any combination of upper and lower case are acceptable. Changed file extensions will be lowercase.
+* Any combination of upper and lower case is acceptable. File extensions will be converted to lowercase.
 _HELP_
   exit "$errcode"
 }
@@ -52,8 +63,7 @@ _HELP_
 rename_extension() {
   local ext="$1"
   # Rename file extensions based on the passed argument
-  shopt -s nocasematch
-  case $ext in
+  case "${ext,,}" in
     avi )
       echo "Renaming .$ext files to .avi"
       rename -v 's/\.AVI$/\.avi/i' ./* ;;
@@ -93,6 +103,9 @@ rename_extension() {
     png )
       echo "Renaming .$ext files to .png"
       rename -v 's/\.PNG$/\.png/i' ./* ;;
+    sh )
+      echo "Renaming .$ext files to .sh"
+      rename -v 's/\.SH$/\.sh/i' ./* ;;
     txt )
       echo "Renaming .$ext files to .txt"
       rename -v 's/\.TXT$/\.txt/i' ./* ;;
@@ -104,14 +117,13 @@ rename_extension() {
       rename -v 's/\.WMV$/\.wmv/i' ./* ;;
     * )
       printf "%s %s is NOT a supported file extension.\n" "$RED_ERROR" "$ext" <&2
-      shopt -u nocasematch
       help 1
   esac
-  shopt -u nocasematch
 }
 
 main() {
   local extension
+  check_package rename
   if [[ "$#" -eq 0 ]]; then
     printf "\%s Must provide a file extension to be renamed.\n" "$RED_ERROR" <&2
     help 2
@@ -120,7 +132,7 @@ main() {
     printf "Bulk renames file extensions in the current diectory.\n"
     rename_extension "$extension"
   fi
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
