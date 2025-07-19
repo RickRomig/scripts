@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-###############################################################################
+##########################################################################
 # Script Name  : scan-range
 # Description  : Scans a range of IP addresses to determine if online.
 # Dependencies : arping (iputils-arping)
@@ -7,11 +7,22 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jul 2022
-# Updated      : 31 Oct 2024
+# Updated      : 19 Jul 2025
 # Comments     : Adapted from a script by Dave McKay at howtogeek.com
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
-###############################################################################
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -28,14 +39,13 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="3.0.24305"
+readonly version="3.0.25200"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="31 Oct 2024"
+	local errcode="${1:-2}"
+	local updated="19 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Scans a range of IP addresses to determine if they are online.
@@ -75,7 +85,7 @@ scan_range() {
 
 main() {
 	local addr1 addr2
-	[[ $# -lt 2 ]] &&  { printf "%s Too few arguments passed.\n" "$RED_ERROR" <&2; help 1; }
+	[[ $# -lt 2 ]] && { printf "%s Too few arguments passed.\n" "$RED_ERROR" <&2; help 1; }
 	addr1="$1"
 	addr2="$2"
 	check_arg_values "$addr1" "$addr2" || { printf "%s Invalid arguments. Values must be integers between 1 and 254.\n" "$RED_ERROR" <&2; help 2; }
