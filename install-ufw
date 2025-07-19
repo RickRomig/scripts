@@ -7,11 +7,22 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 26 Jun 2025
+# Updated      : 18 Jul 2025
 # Comments     : Install & remove for Deian-based systems only.
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -26,22 +37,24 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.16.25177"
+readonly version="1.16.25199"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="26 Jun 2025"
+	local -r updated="18 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs UFW on Debian, BunsenLabs, and MX Linux systems.
 UFW/GUFW is installed by default in Linux Mint, LMDE, and Ubuntu.
 
-${green}Usage:${normal} $script [-a] [-d] [-e] [-h] [-i] [-n] [-r] [-s]
+${green}Usage:${normal} $script [-adehinrs]
 
 ${orange}Available options:${normal}
   -a  Add rules for CUPS and SSH (XRDP if installed)
@@ -124,8 +137,7 @@ debian_system() {
   codename=$(lsb_release --codename --short)
   case "$codename" in
     bookworm|bullseye|trixie|boron )
-      return "$TRUE"
-      ;;
+      return "$TRUE" ;;
     * )
       return "$FALSE"
   esac
