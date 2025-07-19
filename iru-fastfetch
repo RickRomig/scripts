@@ -7,10 +7,21 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Last updated : 04 Jul 2025
-# Comments     : Fastfetch config.jsonc does not work with Terminator.
+# Last updated : 19 Jul 2025
+# Comments     : .png logo does not work with Terminator.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+ License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -30,20 +41,19 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.7.25185"
+readonly version="2.7.25200"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="04 Jul 2025"
+	local -r updated="19 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, removes, updates FastFetch
 
-${green}Usage:${normal} $script [-h] [-i] [-r] [-u]
-
+${green}Usage:${normal} $script [-hiru]
 ${orange}Available options:${normal}
   -h  Show this help message and exit
   -i  Install Fastfetch
@@ -135,7 +145,7 @@ main() {
 	cfg_d="$HOME/.config/fastfetch"
 	logo_d="$HOME/.local/share/fastfetch/logos"
 	noOpt=1
-	optstr=":chiru"
+	optstr=":hiru"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
