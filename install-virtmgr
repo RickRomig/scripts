@@ -7,11 +7,22 @@
 # Author       : Copyright (C) 2011, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Feb 2021
-# Updated      : 26 Jun 2025
+# Updated      : 18 Jul 2025
 # Comments     : Based on Chris Titus video for installing virt-manager:
 #              : https://www.youtube.com/watch?v=ozYKkaVK0_A
 # TODO (Rick)  : Set up default image pool in home directory.
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -30,43 +41,60 @@ set -eu
 
 ## Functions ##
 
-check_cpu() {
-  local proc64 kernel64 vcpu
-  declare -i virt_flag=0
-	proc64=$(grep -Ec ' lm ' /proc/cpuinfo)  # egrep -c ' lm ' /proc/cpuinfo
-	kernel64=$(uname -m)
-	vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo)  # egrep -c '(vmx|svm)' /proc/cpuinfo
-
+check_kernel() {
+  local kernel64
+  kernel64=$(uname -m)
   printf "* Kernel is "
   if [[ "$kernel64" == "x86_64" ]]; then
 	  printf "64-bit.\n"
+    return 0
   else
 	  printf "not 64-bit.\n" >&2
-	  (( virt_flag++ ))
+	  return 1
   fi
+}
 
+check_processor() {
+  local proc64
+	proc64=$(grep -Ec ' lm ' /proc/cpuinfo)  # egrep -c ' lm ' /proc/cpuinfo
   printf "* Processor is "
   if [[ "$proc64" -gt 0 ]]; then
 	  printf "64-bit.\n"
+    return 0
   else
 	  printf "not 64-bit.\n" >&2
-	  (( virt_flag++ ))
+	  return 1
   fi
+}
 
+check_bios() {
+  local vcpu
+	vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo)  # egrep -c '(vmx|svm)' /proc/cpuinfo
   printf "* Virtualization is "
   if [[ "$vcpu" -gt 0 ]]; then
-    printf "enabled in the BIOS\n"
+    printf "enabled in the BIOS.\n"
+    return 0
   else
-    printf "not enabled in the BIOS\n " >&2
-    (( virt_flag++ ))
+    printf "not enabled in the BIOS.\n " >&2
+	  return 1
   fi
+}
 
-  if [[ "$virt_flag" -gt 0 ]]; then
-	  printf "\nKVM/QEMU requires a 64-bit kernel, a 64-bit processor,\n" >&2
+check_requirements() {
+  local -i virt_flag=0
+  is_systemd  || virt_flag=1
+  check_kernel || virt_flag=1
+  check_processor || virt_flag=1
+  check_bios || virt_flag=1
+  if [[ "$virt_flag" -eq 1 ]]; then
+    printf "\nSystem does not meet all requirements to install KVM/QEMU.\n" >&2
+	  printf "KVM/QEMU requires a 64-bit kernel, a 64-bit processor,\n" >&2
 	  printf "and virtualization to be enabled in the BIOS.\n" >&2
-	  leave "KVM/QEMU cannot be installed." >&2
+    printf "Systemd is required to run background services.\n" >&2
+    return 1
   else
 	  printf "\nSystem meets all requirements to install KVM/QEMU.\n"
+    return 0
   fi
 }
 
@@ -143,22 +171,24 @@ install_packages() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.6.25177"
-  box "$script $version"
+  local -r version="3.0.25199"
   printf "Installs Virt-Manager and KVM/QEMU...\n\n"
-  is_systemd || die "Systemd is required to run background services." 1
-  check_cpu
-  sudo_login 2
-  install_packages
-  # Start Default Network for Networking
-  start_networking
-  printf "Adding %s to libvirt, libvirt-qemu, and kvm groups...\n" "$USER"
-  add_to_libvirt
-  add_to_libvirtqemu
-  add_to_kvm
-  printf "Starting and enabling the libvirt daemon"
-  enable_libvirtd
-  printf "Virt-Manager installed. %s added to libvirt, libvirt-qemu, and kvm groups." "$USER"
+  if check_requirements; then
+    sudo_login 2
+    install_packages
+    start_networking
+    printf "Adding %s to libvirt, libvirt-qemu, and kvm groups...\n" "$USER"
+    add_to_libvirt
+    add_to_libvirtqemu
+    add_to_kvm
+    printf "Starting and enabling the libvirt daemon"
+    enable_libvirtd
+    printf "Virt-Manager installed. %s added to libvirt, libvirt-qemu, and kvm groups." "$USER"
+  else
+    printf "KVM/QEMU cannot be installed.\n" >&2
+  fi
+  over_line "$script $version"
+  exit
 }
 
 ## Execution ##
