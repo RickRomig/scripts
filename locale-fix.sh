@@ -7,9 +7,20 @@
 # Author       : Copyright © 2025 Richard Romig, Luddite Geek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : unknown
-# Updated      : 28 Jun 2025
+# Updated      : 19 Jul 2025
 # Comment      :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 #########################################################################
 
 ## Shellcheck Directives ##
@@ -29,12 +40,12 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.5.25179"
+readonly version="2.5.25200"
 
 ## Functions ##
 
 show_intro() {
-  local updated="14 Jan 2025"
+  local updated="19 Jul 2025"
   cat << _INTRO_
 $script changes the setting to store locales in individual locale direectories
 instead of a single archive file.
