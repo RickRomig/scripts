@@ -7,11 +7,22 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jan 2025
-# Last updated : 28 Jun 2025
+# Last updated : 19 Jul 2025
 # Comments     : creates swap file if no other swap exists.
 #              : Disable old swap and comment out in /etc/fstab
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -53,7 +64,7 @@ create_swapfile() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.1.25179"
+	local version="1.1.25200"
 	sudo_login 2
 	if swap_exists; then
 		printf "A swap device exists and is enabled.\n"
