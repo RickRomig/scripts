@@ -7,10 +7,21 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 05 Apr 2025
+# Last updated : 19 Jul 2025
 # Comments     : Do not use with scripts or files inside git repos. Use gretire instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -29,18 +40,23 @@ set -eu
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="1.2.25095"
+readonly script="${0##*/}"
+readonly version="1.2.25200"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="05 Apr 2025"
+	local updated="19 Jul 2025"
 	printf "%sUsage:%s %s file-to-retire\n" "$green" "$normal" "$script" >&2
-	printf "Do not use with scripts in git repos. Use gretire instead.\n" >&2
+	printf "Do not use in a git repository (~/Projects or ~/gitea).\nUse gretire instead.\n" >&2
 	over_line "$script $version, $updated"
 	exit "$errcode"
+}
+
+check_dependencies() {
+	local packages=(git zip)
+	check_packages "${packages[@]}"
 }
 
 retire_script() {
@@ -54,17 +70,18 @@ retire_script() {
 }
 
 main() {
-	local ret_script packages
-	packages=(git zip)
-	check_packages "${packages[@]}"
+	local ret_script
+	check_dependencies
 	if [[ "$#" -eq 0 ]]; then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		help 1
+	elif [[ "$1" == "-h" ]]; then
+		help 0
 	elif [[ ! -f "$1" ]]; then
 		printf "%s %s not found.\n" "$RED_ERROR" "$1" >&2
 		help 2
 	elif [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]; then
-		die "This is a git repository. Use the gretire script." 2
+		die "This is a git repository. Use the gretire script instead." 2
 	else
 		ret_script="$1"
 		retire_script "$ret_script"
