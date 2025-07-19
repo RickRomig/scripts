@@ -7,11 +7,22 @@
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Created      : Unknown
-# Updated      : 16 Dec 2024
+# Updated      : 19 Jul 2025
 # Comment      :
 # TODO (Rick)  : Find solutions for other init systems.
 #              : Look at adapting check-init script.
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ###############################################################################
 
 ## Shellcheck Directives ##
@@ -29,9 +40,10 @@ fi
 ## Functions ##
 
 restart_network() {
-  local init_sys
-  check_package strings
-  init_sys=$(strings /sbin/init | awk 'match($0, /(upstart|systemd|sysvinit)/) { print toupper(substr($0, RSTART, RLENGTH));exit; }')
+  local -u init_sys
+  init_sys=$(cat /proc/1/comm)
+  # check_package strings
+  # init_sys=$(strings /sbin/init | awk 'match($0, /(upstart|systemd|sysvinit)/) { print toupper(substr($0, RSTART, RLENGTH));exit; }')
   case $init_sys in
     "SYSTEMD" )
       sudo systemctl restart NetworkManager.service ;;
@@ -47,15 +59,14 @@ restart_network() {
 }
 
 main() {
-  local script version
-  script=$(basename "$0")
-  version="2.7.24351"
+	local script="${0##*/}"
+  local version="2.8.25200"
 
   sudo_login 2
   printf "Restarting network...\n"
   restart_network
   sleep 3
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
