@@ -7,18 +7,29 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Oct 2023
-# Last updated : 27 Dec 2024
-# Version      : 2.1.24362
+# Last updated : 19 Jul 2025
+# Version      : 2.2.25200
 # Comments     : Run as a daily cron job on the main system.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 set -eu
 
 ## Functions ##
 
-sunday_actions() {
+monday_actions() {
 	local arc_dir="$1"
 	local snar="$2"
 	[[ -e "$arc_dir/$snar" ]] && mv "$arc_dir/$snar" "$arc_dir/$snar.$(date --date '7 days ago' +%y%m%d)"
@@ -32,7 +43,7 @@ main() {
 	snar="github.snar"
 	day=$(date +%a)
 	[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
-	[[ "$day" == "Sun" ]] && sunday_actions "$arc_dir" "$snar"
+	[[ "$day" == "Mon" ]] && monday_actions "$arc_dir" "$snar"
 	tar -cpzg "$arc_dir/$snar" -f "$arc_dir/$archive" -C "$HOME" Projects
 	exit
 }
