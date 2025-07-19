@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-###############################################################################
+##########################################################################
 # Script Name  : pingit
 # Description  : Checks if a host is on the local network
 # Dependencies : ping
@@ -7,11 +7,22 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      :
-# Updated      : 29 Jun 2025
+# Updated      : 19 Jul 2025
 # Comments     : Assumes a /24 (Class C) network
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
-###############################################################################
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -28,13 +39,13 @@ fi
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.3.25180"
+readonly version="3.3.25200"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="29 Jun 2025"
+	local updated="19 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Pings an IP address on the local network.
@@ -42,10 +53,9 @@ Pings an IP address on the local network.
 ${green}Usage:${normal} $script [last-octet] [OPTION]
 ${orange}Available options${normal}
   1-254        Pings local address ending with that octet.
-  -h | --help  Dispplays this help message.
+  -h | --help  Show this help message and exit.
 
 ${orange}Example:${normal} $script 42
-
 ${orange}Note:${normal}
   1. Address must be an integer in the range of 1 to 254, representing the last octet of the target address.
   2. Assumes a Class C (/24) network.
