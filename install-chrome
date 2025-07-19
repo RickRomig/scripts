@@ -1,16 +1,27 @@
 #!/usr/bin/env bash
 ###############################################################################
-# Script Name  : iru-chrome
+# Script Name  : install-chrome
 # Description  : Download and install the Google Chrome browser
 # Dependencies : wget
-# Arguments    : -h -i -r -u (See help function)
+# Arguments    : -h -i -r (See help function)
 # Author       : Copyright (C) 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2019
-# Updated      : 27 Jun 2025
-# Comments     : Google Chrome should update through apt
+# Updated      : 19 Jul 2025
+# Comments     : Google Chrome updates through apt from source list
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ###############################################################################
 
 ## Shellcheck Directives ##
@@ -28,7 +39,7 @@ fi
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.21.25178"
+readonly version="4.0.25200"
 readonly chrome_list="/etc/apt/sources.list.d/google-chrome.list"
 readonly keyring_dir="/usr/share/keyrings"
 readonly trusted_key="google-chrome.gpg"
@@ -42,8 +53,7 @@ help() {
 ${orange}$script${normal} $version ($updated)
 Installs, updated, or removes Google Chrome.
 
-${green}Usage:${normal} $script [-h] [-i] [-r] [-u]
-
+${green}Usage:${normal} $script [-hir]
 ${orange}Available options:${normal}
   -h  Show this help message and exit
   -i  Install Google Chrome
@@ -80,17 +90,10 @@ purge_chrome() {
   printf "Google Chrome removed from this computer.\n"
 }
 
-update_chrome() {
-  sudo_login 2
-  printf "Current version: %s/n" "$(chrome_version)"
-  sudo apt install google-chrome-stable
-  printf "Google Chrome updated to %s.\n" "$(chrome_version)"
-}
-
 main() {
   local noOpt opt optstr
   noOpt=1
-  optstr=":hiru"
+  optstr=":hir"
   while getopts "$optstr" opt; do
     case "$opt" in
       h )
@@ -108,13 +111,6 @@ main() {
       r )
         if exists google-chrome-stable; then
           purge_chrome
-        else
-          printf "Google Chrome is not installed.\n" >&2
-        fi
-        ;;
-      u )
-        if exists google-chrome-stable; then
-          update_chrome
         else
           printf "Google Chrome is not installed.\n" >&2
         fi
