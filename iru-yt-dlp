@@ -3,11 +3,11 @@
 # Script Name  : iru-yt-dlp
 # Description  : Installs, updates, removes yt-dlp from yt-dlp GitHub repo
 # Dependencies : curl, ffmpeg, ffprobe, atomicparsley, ytdlpuplog.sed, z-ytupdate
-# Arguments    : -h -i -r -u (see help function for more information)
+# Arguments    : [-hirux] (see help function for more information)
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 29 Jun 2025
+# Updated      : 19 Jul 2025
 # Comments     : Removes distro repo version if installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,18 +31,18 @@ set -eu
 
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="2.6.25180"
+readonly version="2.6.25200"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="27 Jun 2025"
+	local updated="19 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, removes, updates YouTube-dlp.
 
-${green}Usage:${normal} $script [-h] [-i] [-r] [-u] [-x]
+${green}Usage:${normal} $script [-hiruxx]
 ${orange}Available options:${normal}
 	-h 	Show this help message and exit
 	-i 	Install yt-dlp (binary)
@@ -84,7 +84,6 @@ install_updater() {
 	local -r cleanup="$script_dir/files/ytdlp-uplog.sed"
   [[ -x "$updater" ]] && sudo cp -v "$updater" /etc/cron.daily/
   [[ -f "$cleanup" ]] && sudo cp -v "$cleanup" /usr/share/misc/
-
 }
 
 install_ytdlp() {
