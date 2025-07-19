@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Jan 2024
-# Last updated : 11 Jun 2025
+# Last updated : 19 Jul 2025
 # Comments     : This scripts updates sources.list & backports.list for upgrade.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -57,7 +57,6 @@ source_list() {
 	sudo_login 2
 	sudo cp -v "$list_path/$src_list" /root/
 	sudo sed -i 's/bullseye/bookworm/' "$list_path/$src_list"
-	grep -q 'non-free-firmware' || sed -i 's/^deb/s/$/ non-free non-free-firmware/' "$list_path/$src_list"
 }
 
 backports_list() {
@@ -85,8 +84,8 @@ upgrade_debian() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.525192"
-	local updated="06 Jun 2025"
+	local version="1.6.25200"
+	local updated="19 Jul 2025"
 	check_files || die "01-bullseye2bookworm.sh must be run first." 1
 	version_info
 	[[ "$(cut -d. -f1 /etc/debian_version)" -ne "11" ]] && die "Unsupported Debian version." 1
