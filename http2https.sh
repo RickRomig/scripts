@@ -2,13 +2,13 @@
 ##########################################################################
 # Script Name  : http2https.sh
 # Description  : Change http to https in sources.list & backports.list
-# Dependencies :
+# Dependencies : apt-transport-https
 # Arguments    : See help() function for available options.
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 20 Jul 2025
 # Last updated : 20 Jul 2025
-# Comments     : Intended for use on Debian
+# Comments     : Intended for use on Debian Bullseye, Bookworm, and Trixie
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -50,19 +50,26 @@ http_to_https() {
 	local backports_list="${1}-backports.list"
 	sudo_login 2
 	sudo sed -i.bak 's/http:/https:/' /etc/apt/sources.list
-	[[ -f "/etc/apt/sources.list.d/$backports_list" ]] && sudo sed -i.bak 's/http:/https:/' "/etc/apt/sources.list.d/$backports_list"
+	printf "Changed http to https in sources.list\n"
+	if [[ -f "/etc/apt/sources.list.d/$backports_list" ]]; then
+		sudo sed -i.bak 's/http:/https:/' "/etc/apt/sources.list.d/$backports_list"
+		printf "Changed http to https in %s\n" "$backports_list"
+	else
+		printf "%s does not exist on this system.\n" "$backports_list"
+	fi
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.0.25201"
+	local -r version="1.1.25201"
 	local distro
 	distro=$(debian_distro)
 	case "$distro" in
-		bookworm|trixie )
+		bookworm|bullseye|trixie )
+			check_package apt-transport-https
 			http_to_https "$distro" ;;
 		* )
-			printf "%s is not supported by this script!\n" "$distro" >&2
+			printf "%s does not support %s\n" "$script" "${distro^}" >&2
 	esac
   over_line "$script $version"
   exit
