@@ -14,6 +14,16 @@
 # License      : <LICENSE>
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -58,40 +68,29 @@ app_version() {
 }
 
 help() {
-	local errcode updated
-	errcode="${1:-2}"
-	updated="<TODAY>"
+	local errcode="${1:-2}"
+	local -r updated="<TODAY>"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Short description
 
-${green}Usage:${normal} $script [-hN]
-
+${green}Usage:${normal} $script [-h|--help]
 ${orange}Available options:${normal}
-  -h  Show this help message and exit
-	-N  Display GPL Terms & Conditions notice.
+  -h | --help]  Show this help message and exit
 
 _HELP_
   exit "$errcode"
 }
 
-show_notice() {
-	printf "%s\n" "$script"
-	printf "Copyright <YEAR>, <AUTHOR>\n"
-	printf "Email: <EMAIL>\n\n"
-	cat "$script_dir/files/gpl_notice.txt"
-}
-
 main() {
+  local -r script="${0##*/}"
+  local -r version="<VERSION>"
   # Check arguments
   if [[ "$#" -eq 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
     help 1
   elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
     help 0
-  elif [[ "$1" == "-N" ]]; then
-    show_notice
-    exit 0
   elif [[ -f "$1" ]]; then
     printf "%s %s already exists." "$RED_ERROR" "$1" >&2
     help 2
