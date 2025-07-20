@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 16 Jul 2025
+# Updated      : 20 Jul 2025
 # Comments     : Assumes first line of the target file is either a hash-bang or a C/C++ comment
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -42,19 +42,18 @@ set -eu
 
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="4.3.25197"
-verbose_mode="$FALSE"
+readonly version="4.4.25201"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="16 Jul 2025"
+  local updated="20 Jul 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts a header into a shell script or a C/C++ source file.
 
-${green}Usage:${normal} $script [-h] [-vc c-source-file] [-vp cpp-source-file] [-vs shell-script]
+${green}Usage:${normal} $script [-h] [-c c-source-file] [-p cpp-source-file] [-s shell-script]
 ${orange}Available options:${normal}
   -c  Insert C code header
       $script -c <c-source.c>
@@ -63,26 +62,17 @@ ${orange}Available options:${normal}
       $script -p <cpp-source.cpp>
   -s  Insert Shell script header
       $script -s <shell-script>
-  -v  Enable verbose mode (Must precede -c, -p, or -s flags)
-      $script -vs <shell-script>
 _HELP_
   exit "$errcode"
-}
-
-show_message() {
-	local message="$1"
-	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
-	show_message "Removing temporary file."
   [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
 }
 
 create_tmp_file() {
-	show_message "Creating temporary file."
 	tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 	trap cleanup EXIT
 }
@@ -102,7 +92,6 @@ insert_header() {
 	cur_yr=$(echo -e "\UA9 $(date +%Y)")
 	template_dir="$script_dir/Templates"
 
-	show_message "Inserting $code_type header into $code_file."
 	case $code_type in
     "C"|"C++" )
       sed -e '1d' \
@@ -144,11 +133,8 @@ main() {
       c )
 				code_file="$OPTARG"
 				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
-        show_message "File: $code_file"
         code_type="C"
-        show_message "Code type: $code_type header"
         template_file="c-header.txt"
-        show_message "Template: $template_file"
         create_tmp_file
         ;;
       h )
@@ -157,28 +143,18 @@ main() {
       p )
 				code_file="$OPTARG"
 				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
-        show_message "File: $code_file"
         code_type="C++"
-        show_message "Code type: $code_type header"
-        template_file="cpp-header.txt"
-        show_message "Template: $template_file"
+        template_file="cppset-header.txt"
         create_tmp_file
         ;;
       s )
 				code_file="$OPTARG"
 				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
-        show_message "File: $code_file"
         code_type="Shell"
-        show_message "Code type: $code_type header"
         template_file="bash-header.txt"
-        show_message "Template: $template_file"
         create_tmp_file
         ;;
-			v )
-				verbose_mode="$TRUE"
-				show_message "Verbose mode enabled."
-			  ;;
-      : )
+     : )
         printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
         ;;
