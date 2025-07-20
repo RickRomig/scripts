@@ -14,7 +14,16 @@
 # License      : <LICENSE>
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
-
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
 
@@ -68,7 +77,7 @@ $script comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions udner GNU General Public License, version 2.
 
-${green}Usage:${normal} $script [-hirsuN] [-v option]
+${green}Usage:${normal} $script [-hirsu] [-v option]
 ${orange}Available options:${normal}
 	-h	Show this help message and exit.
 	-i	Install application.
@@ -76,16 +85,8 @@ ${orange}Available options:${normal}
 	-s	Apply settings.
 	-u	Update application.
 	-v	Enable verbose mode. If used, must precede other flags.
-	-N  Display GPL Terms & Conditions notice.
 _HELP_
   exit "$errcode"
-}
-
-show_notice() {
-	printf "%s\n" "$script"
-	printf "Copyright <YEAR>, <AUTHOR>\n"
-	printf "Email: <EMAIL>\n\n"
-	cat "$script_dir/files/gpl_notice.txt"
 }
 
 show_message() {
@@ -96,7 +97,7 @@ show_message() {
 main() {
 	local noOpt opt optstr
 	noOpt=1
-	optstr=":hirsuvN"
+	optstr=":hirsuv"
 	# optstr=":h:i:r:s:u:vN"
 	while getopts "$optstr" opt; do
 		case "$opt" in
@@ -138,9 +139,6 @@ main() {
 			v )
 				verbose_mode="$TRUE"
 				show_message "Verbose mode enabled."
-				;;
-			N )
-				show_notice
 				;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
