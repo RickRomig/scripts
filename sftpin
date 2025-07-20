@@ -4,14 +4,25 @@
 # Description  : Connects to host computer via sftp
 # Dependencies : sftp (openssh-client)
 # arguments    : Last octet of target host's IP address
-# Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
+# Author       : Copyright (C) 2017, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Created      : unknown
-# Updated      : 16 Oct 2024
+# Created      : 08 Dec 2017 (Joe Collins)
+# Updated      : 20 Ju1 2025
 # Comments     : Based on script by Joe Collins.
 #              : LOCALNET and valid_ip() are declared in functionlib
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ###############################################################################
 
 ## Shellcheck Directives ##
@@ -28,21 +39,19 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="2.3.24290"
+readonly script="${0##*/}"
+readonly version="2.3.25201"
 
 ## Functions ##
 
 help() {
-  local errcode updated
-  errcode="${1:-2}"
-  updated="16 Oct 2024"
+  local errcode="${1:-2}"
+  local updated="20 Ju1 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Log in to a remote server using Secure File Transfer Protocol (SFTP).
 
 ${green}Usage:${normal} $script <last_octet>
-
 ${orange}Example:${normal} $script 15
 Argument is the last octet of the remote server's IP address.
 Assumes a /24 network.
@@ -61,7 +70,7 @@ main() {
     valid_ip "$1" && hostip="$1"
     /usr/bin/sftp "$LOCALNET.$hostip"
   fi
-  over_line "$script v$version"
+  over_line "$script $version"
   exit
 }
 
