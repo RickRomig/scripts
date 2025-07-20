@@ -50,7 +50,7 @@ http_to_https() {
 	local backports_list="${1}-backports.list"
 	sudo_login 2
 	sudo sed -i.bak 's/http:/https:/' /etc/apt/sources.list
-	printf "Changed http to https in sources.list\n"
+	printf "\nChanged http to https in sources.list\n"
 	if [[ -f "/etc/apt/sources.list.d/$backports_list" ]]; then
 		sudo sed -i.bak 's/http:/https:/' "/etc/apt/sources.list.d/$backports_list"
 		printf "Changed http to https in %s\n" "$backports_list"
