@@ -46,14 +46,26 @@ debian_distro() {
 	printf "%s" "$codename"
 }
 
-http_to_https() {
+convert_sources_list() {
+	if grep -q 'deb https' /etc/apt/sources.list; then
+		printf "\nSources.list has already been converted\n"
+	else
+		sudo_login 2
+		sudo sed -i.bak 's/http:/https:/' /etc/apt/sources.list
+		printf "\nChanged http to https in sources.list\n"
+	fi
+}
+
+convert_backports_list() {
 	local backports_list="${1}-backports.list"
-	sudo_login 2
-	sudo sed -i.bak 's/http:/https:/' /etc/apt/sources.list
-	printf "\nChanged http to https in sources.list\n"
 	if [[ -f "/etc/apt/sources.list.d/$backports_list" ]]; then
-		sudo sed -i.bak 's/http:/https:/' "/etc/apt/sources.list.d/$backports_list"
-		printf "Changed http to https in %s\n" "$backports_list"
+		if grep -q 'deb https' "/etc/apt/sources.list.d/$backports_list"; then
+			printf "%s has already been converted\n" "$backports_list"
+		else
+			sudo_login 2
+			sudo sed -i.bak 's/http:/https:/' "/etc/apt/sources.list.d/$backports_list"
+			printf "Changed http to https in %s\n" "$backports_list"
+		fi
 	else
 		printf "%s does not exist on this system.\n" "$backports_list"
 	fi
@@ -61,13 +73,15 @@ http_to_https() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.1.25201"
+	local -r version="1.2.25201"
 	local distro
 	distro=$(debian_distro)
 	case "$distro" in
 		bookworm|bullseye|trixie )
 			check_package apt-transport-https
-			http_to_https "$distro" ;;
+			convert_sources_list
+			convert_backports_list "$distro"
+			;;
 		* )
 			printf "%s does not support %s\n" "$script" "${distro^}" >&2
 	esac
