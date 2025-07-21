@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-###############################################################################
-# Script Name  : syncbin
+########################################################################### Script Name  : syncbin
 # Description  : Syncs bin diectory with machines on the network via SSH
 # Dependencies : rsync
 # Arguments    : See help function for detailed information.
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Last updated : 15 May 2025
+# Last updated : 20 Jul 2025
 # Comments     : Can sync to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -15,9 +14,20 @@
 #              : LOCALNET variable is defined & declared in functionlib.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
-###############################################################################
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 
-## Shellcheck Directives ##
+Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
 
 ## Load function library ##
@@ -31,31 +41,29 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="7.1.25137"
+readonly script="${0##*/}"
+readonly version="7.1.25201"
 SECONDS=0
 
 ## Functions ##
 
 help() {
-  local errcode updated
-  errcode="${1:-2}"
-  updated="26 Apr 2025"
+  local errcode="${1:-2}"
+  local updated="20 Jul 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Synchrnizes ~/bin with remote hosts.
 
 ${green}Usage:${normal} $script [OPTION]
-
 ${orange}Available options${normal}
   OPTION   ACTION
-  -h | --help Displays help text.
-  -a | --all  Synchronizes all designated machines on the network.
+  -h | --help Show this help message and exit.
+  -a | --all  Synchronize all designated machines on the network.
   1-255       Last octet of the IP address(es) of the machine(s) to synchronize.
 
 ${orange}Examples:${normal}
-  $script -h       # Displays help instructions.
-  $script --help   # Displays help instructions.
+  $script -h       # Show this help message and exit.
+  $script --help   # Show this help message and exit.
   $script -a       # Synchronizes with all designated systems.
   $script --all    # Synchronizes with all designated systems.
   $script 13       # Synchronizes with the system with a last octet of 13.
