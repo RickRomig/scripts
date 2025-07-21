@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 20 Jul 2025
-# Last updated : 20 Jul 2025
+# Last updated : 21 Jul 2025
 # Comments     : Intended for use on Debian Bullseye, Bookworm, and Trixie
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -42,7 +42,7 @@ set -eu
 
 debian_distro() {
 	local codename
-	codename=$(/usr/bin/lsb_release --codename --short | awk 'NR = 1 {print $0}')
+	codename=$(/usr/bin/lsb_release --codename --short | awk 'NR = 1 {print}')
 	printf "%s" "$codename"
 }
 
@@ -51,7 +51,7 @@ convert_sources_list() {
 		printf "\nSources.list has already been converted\n"
 	else
 		sudo_login 2
-		sudo sed -i.bak 's/http:/https:/' /etc/apt/sources.list
+		sudo sed -i.bak 's/http:/https:/;/ftp/s/https:/http:/' /etc/apt/sources.list
 		printf "\nChanged http to https in sources.list\n"
 	fi
 }
@@ -73,7 +73,7 @@ convert_backports_list() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.2.25201"
+	local -r version="1.2.25202"
 	local distro
 	distro=$(debian_distro)
 	case "$distro" in
