@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-###############################################################################
+##########################################################################
 # Script Name  : empty-trash.sh
 # Description  : Empty the local trash directory
 # Dependencies : trash-cli 'sudo apt install trash-cli'
@@ -7,12 +7,23 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 04 Jul 2025
+# Updated      : 21 Jul 2025
 # Comments     : Run as a user cron job.
 #              : Trash directory does not exist until a file is moved to the trash.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
-###############################################################################
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 
 trash_count() {
 	local count; count=$(/usr/bin/trash-list | wc -l)
@@ -50,7 +61,7 @@ over_line() {
 
 main() {
   local script="${0##*/}"
-  local version="4.6.25189"
+  local version="4.6.25202"
   local lhost="${HOSTNAME:-$(hostname)}"
 	local trash_dir="$HOME/.local/share/Trash"
 	local log_dir="$HOME/.local/share/logs"
