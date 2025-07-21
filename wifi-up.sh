@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-###############################################################################
+##########################################################################
 # Script Name  : wifi-up.sh
 # Description  : Checks wifi connection & if down, bring it up.
 # Dependencies : none
@@ -7,11 +7,22 @@
 # Author       : Copyright © 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Jan 2022
-# Updated      : 02 Oct 2024
+# Updated      : 21 Jul 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
-###############################################################################
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -69,7 +80,7 @@ show_wifi_ip() {
 
 main() {
   local script="${0##*/}"
-  local -r version="3.0.25182"
+  local -r version="3.0.25202"
   show_wifi_ip
   over_line "$script $version" "-"
   exit
