@@ -39,7 +39,7 @@ else
   exit 1
 fi
 
-set -eu
+# set -eu
 
 ## Global Variables ##
 
@@ -105,8 +105,8 @@ transfer() {
 }
 
 syncscript() {
-  local exit_status hostip
-  hostip="$1"
+  local exit_status=0
+  local hostip="$1"
 
   printf "\n%sSyncing ~/.bashrc ...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/.bashrc "$LOCALNET.$hostip":
@@ -197,7 +197,7 @@ check_host() {
   ip_addr="$(local_ip)"
   printf "Host: %s%s%s at " "$lightyellow" "$local_host" "$normal"
   printf "%s%s%s\n\n" "$lightyellow" "$LOCALNET.$ip_addr" "$normal"
-  [[ "$local_host" != "$main_host" ]] && leave "Script must be run from $main_host!"
+  [[ "$local_host" == "$main_host" ]] || leave "Script must be run from $main_host!"
 }
 
 main() {
