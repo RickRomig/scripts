@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#############################################################################
+##########################################################################
 # Script Name  : scriptarchive.sh
 # Description  : Makes a dated tarball archive of shell scripts in ~/bin
 # Dependencies : None
@@ -7,13 +7,24 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jan 2020
-# Updated      : 08 Jul 2025
-# Version      : 3.2.25189
+# Updated      : 21 Jul 2025
+# Version      : 3.2.25202
 # Comments     : Includes all subdirectories
 #              : Schedule with user's crontab from ~/.local/bin
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
-#############################################################################
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 
 set -eu
 
