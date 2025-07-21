@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Jan 2024
-# Last updated : 19 Jul 2025
+# Last updated : 21 Jul 2025
 # Comments     : This scripts updates sources.list & backports.list for upgrade.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -50,13 +50,12 @@ version_info() {
 	printf "%-16s%s\n" "Version:" "$(cat /etc/debian_version)"
 }
 
-source_list() {
+sources_list() {
 	# Backs up, then updates sources list
 	local list_path="/etc/apt/"
 	local src_list="sources.list"
 	sudo_login 2
-	sudo cp -v "$list_path/$src_list" /root/
-	sudo sed -i 's/bullseye/bookworm/' "$list_path/$src_list"
+	sudo sed -i.bak 's/http:/https:/;/ftp/s/https:/http:/;s/bullseye/bookworm/' "$list_path/$src_list"
 }
 
 backports_list() {
@@ -66,8 +65,7 @@ backports_list() {
 	local new_name="bookworm-backports.list"
 	sudo_login 2
 	if [[ -f "$list_path/$old_name" ]]; then
-		sudo cp -v "$list_path/$old_name" /root/
-		sudo sed -i 's/bullseye/bookworm/' "$list_path/$old_name"
+		sudo sed -i.bak 's/http:/https:/;s/bullseye/bookworm/' "$list_path/$old_name"
 		sudo mv -v "$list_path/$old_name" "$list_path/$new_name"
 	else
 		printf "%s/%s does not exist.\n" "$list_path" "$old_name"
@@ -84,13 +82,13 @@ upgrade_debian() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.6.25200"
-	local updated="19 Jul 2025"
+	local version="1.7.25200"
+	local updated="21 Jul 2025"
 	check_files || die "01-bullseye2bookworm.sh must be run first." 1
 	version_info
 	[[ "$(cut -d. -f1 /etc/debian_version)" -ne "11" ]] && die "Unsupported Debian version." 1
 	printf "Updatings source lists...\n"
-	source_list
+	sources_list
 	backports_list
 	printf "Upgrading to Debian 12\n"
 	upgrade_debian
