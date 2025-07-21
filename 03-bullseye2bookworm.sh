@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Jan 2024
-# Last updated : 11 Jul 2025
+# Last updated : 21 Jul 2025
 # Comments     : Final cleanup after upgrade to Debian 12.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -63,14 +63,14 @@ clean_up() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.5.25192"
-	local updated="11 Jul 2025"
+	local version="1.6.25202"
+	local updated="21 Jul 2025"
 	check_files || die "01-bullseye2bookworm.sh and 02-bullseye2bookworm.sh must be run first." 1
 	version_info
-	if [[ "$(cut -d. -f1 /etc/debian_version)" -ne "12" ]]; then
-		die "Debian inplace upgrade failed." 1
-	else
+	if [[ "$(lsb_release --codename --short | awk 'NR = 1 {print}')" == "bookworm" ]]; then
 		printf "Debian inplace upgrade was successful!\n"
+	else
+		printf "Debian inplace upgrade failed.\nBackup the home directory and any important files, then install from the ISO.\n" >&2
 	fi
 	clean_up
 	over_line "$script $version ($updated)"
