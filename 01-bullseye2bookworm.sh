@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Jan 2024
-# Last updated : 11 Jul 2025
+# Last updated : 21 Jul 2025
 # Comments     : This script updates current Debian 11 before upgrade.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -63,12 +63,12 @@ upgrade_packages() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.5.25192"
-	local updated="11 Jul 2025"
+	local version="1.5.25202"
+	local updated="21 Jul 2025"
 	check_codename || die "This is not Debian 11 Bullseye" 1
 	check_files && die "This script has already been run." 1
 	version_info
-	[[ "$(cut -d. -f1 /etc/debian_version)" -ne "11" ]] && die "Unsupported Debian version." 1
+	[[ "$(lsb_release --codename --short | awk 'NR = 1 {print}')" == "bullseye" ]] || die "Unsupported Debian version." 1
 	printf "Updating current Debian 11 packages.\n"
 	upgrade_packages
 	printf "Debian 11 packages have been upgraded.\n"
