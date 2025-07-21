@@ -7,11 +7,22 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 01 Jul 2025
+# Updated:     : 20 Jul 2025
 # Comments     : Rewrite of version 2.5.0
 #              : Will not get desktop session info from an SSH connection. Run locally.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -44,13 +55,13 @@ cleanup() {
 save_info() {
   local main_host="hp-800g2-ssf"
   printf "\n"
-  if default_yes "Save system information to ~/$(basename "$info_file")"; then
-    printf "Writing system information to ~/%s\n" "$(basename "$info_file")"
+  if default_yes "Save system information to ~/${info_file##*/}"; then
+    printf "Writing system information to ~/%s\n" "${info_file##*/}"
     cp -v "$tmp_file" "$info_file"
     chmod 664 "$info_file"
-    default_yes "Copy $(basename "$info_file") to $main_host?" && send_to_main
+    default_yes "Copy ${info_file##*/} to $main_host?" && send_to_main
   else
-    printf "System information was not written to ~/%s\n" "$(basename "$info_file")"
+    printf "System information was not written to ~/%s\n" "${info_file##*/}"
   fi
 }
 
@@ -265,11 +276,10 @@ battery_info() {
 }
 
 main() {
-  local script version lhost info_file
-  script="${0##*/}"
-  version="3.12.25182"
-  lhost="${HOSTNAME:-$(hostname)}"
-  info_file="$HOME/$lhost.info"
+  local -r script="${0##*/}"
+  local -r version="3.12.25201"
+  local -r lhost="${HOSTNAME:-$(hostname)}"
+  local -r info_file="$HOME/$lhost.info"
 
   tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
   trap cleanup EXIT
