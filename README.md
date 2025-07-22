@@ -10,7 +10,9 @@ Programs in this repository are licensed under the GNU General Public Licencse, 
 
 ## Function Library
 
-The `functionlib` script is a collection of commonly used functions used in many of my scripts. To use it, simply source it near the begining of the script.  Ideally, the `functionlib` script should be located in `~/bin`.
+The `functionlib` script is a collection of commonly used functions used in many of my scripts. To use it, simply source it near the beginning of the script, immediately after the header comments and license information.
+
+Ideally, the `functionlib` script should be located in `~/bin` or a directory linked to `~/bin`.
 
 ### Shellcheck
 
@@ -20,8 +22,8 @@ If you use Shellcheck to check syntax, include Shellcheck directives to tell She
 # shellcheck source=/home/rick/bin/functionlib
 # shellcheck disable=SC1091
 ```
-Disabling SC1091 is not required if using shellcheck -x to check syntax.
-If running outside the `~/bin` directory, change the path in the directive. Use the full path, i.e., `/home/username/script_directory`.
+Disabling SC1091 is not required if using `shellcheck -x` to check syntax.
+If running outside the `~/bin` directory, change the path in the directive. Use the full path, i.e., `/home/username/script-directory`.
 
 ### Sourcing the function library
 
@@ -41,13 +43,13 @@ fi
 
 Contains scripts that are run as user or system cron jobs.
 
+### docs
+
+Supporting markdown documentation for functions contained in `functionlib`, `.bashrc`, and `.bash_aliases`. The directory also contains examples of commonly used routines in my scripts that are not in functions.
+
 ### files
 
 Contains support files called by scripts. These files include sed scripts, audio files, and files to be appended or prepended to other files.
-
-### functions
-
-Supporting markdown documentation for functions contained in `functionlib`, `.bashrc`, and `.bash_aliases` files. The directory also contains examples of commonly used routines in my scripts that are not in functions.
 
 ### snippets
 
@@ -64,4 +66,4 @@ These programs are free software; you can redistribute them and/or modify them u
 These programs are distributed in the hope that they will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 #### Rick Romig (*The Luddite Geek*)
-##### 13 Jul 2025
+##### 22 Jul 2025
