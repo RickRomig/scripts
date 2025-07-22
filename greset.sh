@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : greset
+# Script Name  : greset.sh
 # Description  : Reset most recent commit to the previous version before it's pushed to repo
 # Dependencies : git
 # Arguments    : none
@@ -11,6 +11,17 @@
 # Comments     : Commits that haven't been pushed to the repository.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -39,7 +50,7 @@ git_reset() {
 
 main() {
   local script="${0##*/}"
-	local version="2.3.25188"
+	local version="2.3.25203"
 	check_package git
 	[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || die "You are not in a git repositiory." 1
 	if y_or_n "Reset last commit (not pushed) to the previous version?"; then
