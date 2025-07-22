@@ -7,10 +7,21 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Oct 2022
-# Updated      : 11 Oct 2024
+# Updated      : 22 Jul 2025
 # Comments     : Syncs files on 850 G3 laptoo to configs repo on 800 G2 desktop
-# TODO (Rick)  : Reconsider purpose. Do I want to sync i3 configs to configs repo?
+# TODO (Rick)  : Retire - no longer needed.
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -28,65 +39,60 @@ fi
 ## Functions ##
 
 sync_i3() {
-  local cfg_dir hostip remote_destination
-  hostip="$1"
-  cfg_dir="$HOME/.config/i3"
-  remote_destination="gitea/configs/i3"
+  local -r hostip="$1"
+  local -r cfg_dir="$HOME/.config/i3"
+  local -r remote_destination="gitea/configs/i3"
   printf "\nSynchronizing i3 configuration files...\n"
   rsync -avh --delete "$cfg_dir/" "$LOCALNET.$hostip:$remote_destination/"
 }
 
 sync_kitty() {
-  local cfg_dir hostip remote_destination
-  hostip="$1"
-  cfg_dir="$HOME/.config/kitty"
-  remote_destination="gitea/configs/kitty"
+  local -r hostip="$1"
+  local -r cfg_dir="$HOME/.config/kitty"
+  local -r remote_destination="gitea/configs/kitty"
   printf "\nSynchronizing kitty configuration files...\n"
   rsync -avh --delete "$cfg_dir/" "$LOCALNET.$hostip:$remote_destination/"
 }
 
 sync_rofi() {
-  local cfg_dir hostip remote_destination
-  hostip="$1"
-  cfg_dir="$HOME/.config/rofi"
-  remote_destination="gitea/configs/rofi"
+  local -r hostip="$1"
+  local -r cfg_dir="$HOME/.config/rofi"
+  local -r remote_destination="gitea/configs/rofi"
   printf "\nSynchronizing rofi configuratinon files...\n"
   rsync -avh --delete "$cfg_dir/" "$LOCALNET.$hostip:$remote_destination/"
 }
 
 sync_polybar() {
-  local cfg_dir hostip remote_destination
-  hostip="$1"
-  cfg_dir="$HOME/.config/polybar"
-  remote_destination="gitea/configs/polybar"
+  local -r hostip="$1"
+  local -r cfg_dir="$HOME/.config/polybar"
+  local -r remote_destination="gitea/configs/polybar"
   printf "\nSynchronizing polybar configuratinon files...\n"
   rsync -avh --delete "$cfg_dir/" "$LOCALNET.$hostip:$remote_destination/"
 }
 
 script_header() {
-  local lhost localip script source_host target_host
-  script="$1"
-  lhost="${HOSTNAME:-$(hostname)}"
-  source_host="hp-850-g3"
-  target_host="hp-800g2-sff"
+  local localip
+  local -r script="$1"
+  local -r lhost="${HOSTNAME:-$(hostname)}"
+  local -r source_host="hp-850-g3"
+  local -r target_host="hp-800g2-sff"
   localip=$(local_ip);
   printf "%-12s %s at %s.%s\n" "Local Host:" "$lhost" "$LOCALNET" "$localip"
   printf "Remote Host: %s at %s.%s\n" "$target_host" "$LOCALNET" "$target_ip"
-  [[ "$lhost" != "$source_host" ]] && die "$script must be run from $source_host."
-
+  [[ "$lhost" == "$source_host" ]] || die "$script must be run from $source_host."
 }
 
 main() {
-  local hostip script version
-  script=$(basename "$0")
-  version="1.6.24285"
-  target_ip=10
+  local -r script="${0##*/}"
+  local -r version="1.7.25203"
+  local -r target_ip=10
   script_header "$script"
   sync_i3 "$target_ip"
   sync_polybar "$target_ip"
   sync_kitty "$target_ip"
   sync_rofi "$target_ip"
-  leave "$script v$version"
+  over_line "$script v$version"
+  exit
 }
 
 ## Execution ##
