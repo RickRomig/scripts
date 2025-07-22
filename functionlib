@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 20 Ju1 2025
+# Last updated : 22 Ju1 2025
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -244,26 +244,6 @@ debian_based() {
   local like_deb
   like_deb=$(grep -E 'ID|ID_LIKE' /etc/os-release | grep -w debian)
   [[ "$like_deb" ]] && return "$TRUE" || return "$FALSE"
-}
-
-###############################################################################
-# is_focal
-# Purpose: Returns true if distribution is based on Ubuntu 20.04 (i.e., Mint 20.x)
-# Arguments: none
-# Returns: True or False
-###############################################################################
-is_focal() {
-  [[ $(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release) == "focal" ]] && return "$TRUE" || return "$FALSE"
-}
-
-###############################################################################
-# is_jammy
-# Purpose: Returns true if distribution is based on Ubuntu 22.04 (i.e., Mint 21.x)
-# Arguments: none
-# Returns: True or False
-###############################################################################
-is_jammy() {
-  [[ $(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release) == "jammy" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
