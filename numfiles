@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Nov 2018
-# Updated      : 19 Jul 2025
+# Updated      : 23 Jul 2025
 # Comment      :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -40,22 +40,25 @@ fi
 ## Functions ##
 
 num_files() {
-	local ndirs nfiles size
+	local cur_dir ndirs nfiles size
+	cur_dir="${PWD//$\/}"
 	ndirs=$(find . -type d | wc -l)
 	nfiles=$(find . -type f | wc -l)
 	size=$(du -ch | awk '$2 == "total" {print $1}')
 
-	printf "%s contains:\n" "$PWD"
-	printf "%d " "$(( ndirs - 1 ))"
-	(( ndirs != 1 )) && printf "directories " || printf "directory "
-	printf "and %d " "$nfiles"
-	(( nfiles != 1 )) && printf "files.\n" || printf "file.\n"
-	printf "Disk spaced used: %s\n" "$size"
+	printf "Directory: %s\n" "$cur_dir"
+	printf "%'d " "$nfiles"
+	[[ "$nfiles" -eq "1" ]] && printf "file " || printf "files "
+	printf "in %'d " "$ndirs"
+	[[ "$ndirs" -eq "1" ]] && printf "directory " || printf "directories "
+	printf "using %s of disk space\n" "$size"
+	# printf "Disk space used: %s\n" "$size"
+	unset cur_dir ndirs nfiles size
 }
 
 main() {
 	local script="${0##*/}"
-	local version="3.1.25200"
+	local version="4.0.25204"
 	num_files
 	over_line "$script $version"
 	exit
