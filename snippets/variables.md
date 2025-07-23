@@ -85,8 +85,9 @@ Using the declare command in a function makes the variable local to the function
 Using `+` instead of `-` turns off the given attribute.
 #### Check if variable is all digits:
 ```bash
-[[ "$value" =~ ^[0-9]+$ ]] && return 0 # true if all digits
-[[ "${value//[0-9]/}" ]] || return 0	 # strips out digits and returns true if there's anything left
+[[ "$value" =~ ^[0-9]+$ ]] && echo "digits" || echo "non-digits"	# true if all digits
+[[ "$value" =~ [^[:digit:]] ]] && echo "non-digits" || echo "digits"
+[[ "${value//[0-9]/}" ]] || && echo "non-digits" || echo "digits"	# strips out digits and returns true if there's anything left
 ```
 #### Place commas in numbers:
 ```bash
