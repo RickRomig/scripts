@@ -83,8 +83,17 @@ Using the declare command in a function makes the variable local to the function
 	declare -x	# make the NAMEs export
 	```
 Using `+` instead of `-` turns off the given attribute.
-#### Check if variable is digits.
+#### Check if variable is all digits:
 ```bash
-[[ "$value" =~ ^[0-9]+$ ]] # returns true if all digits
-[[ "${value//[0-9]/}" ]] # strips out digits and returns true if there's anything left
- ```
+[[ "$value" =~ ^[0-9]+$ ]] && return 0 # true if all digits
+[[ "${value//[0-9]/}" ]] || return 0	 # strips out digits and returns true if there's anything left
+```
+#### Place commas in numbers:
+```bash
+printf "%'d\n" 123456789
+123,456,789
+echo "123456789" | awk '{printf "%\'d\n", $1}'
+123,456,789
+echo "123456789" | sed ':a;s/\B[0-9]\{3\}/,&/;ta'
+123,456,789
+```
