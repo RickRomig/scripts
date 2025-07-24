@@ -7,11 +7,22 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 17 Feb 2022
-# Updated      : 13 Jul 2025
+# Updated      : 24 Jul 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -29,7 +40,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.2.25194"
+readonly version="6.2.25205"
 localip="$(local_ip)"; readonly localip
 # path variables
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
@@ -48,7 +59,7 @@ help() {
 ${orange}$script${normal} $version, Updated: $updated
 Copies updated cron scripts to the appropriate directories.
 
-${green}Usage:${normal} $script [-abdfghmrstuvN]
+${green}Usage:${normal} $script [-abdfghmrstuv]
 
 ${orange}Available options:${normal}
   -a    Copy all applicable scripts.
@@ -67,14 +78,6 @@ ${orange}Available options:${normal}
   NOTE: Multiple arguments may be passed to the script.
 _HELP_
   exit "$errcode"
-}
-
-show_notice() {
-	printf "%s\n" "$script"
-	printf "Copies updated cron scripts to the appropriate directories.\n"
-	printf "Copyright (C) 2022, Richard B. Romig\n"
-	printf "Email: rick.romig@gmail.com\n\n"
-	cat "$files_dir/gpl_notice.txt"
 }
 
 cp_repo_backup() {
@@ -267,9 +270,6 @@ main() {
         sudo_login 1
         cp_zytdlpupdate
         ;;
-			N )
-				show_notice
-				;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
