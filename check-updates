@@ -7,13 +7,23 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 22 Jul 2025
+# Updated      : 24 Jul 2025
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 ###############################################################################
 
 ## Shellcheck Directives ##
@@ -33,7 +43,7 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.6.25203"
+readonly version="7.7.25205"
 SECONDS=0
 
 ## Functions ##
@@ -46,31 +56,20 @@ cleanup() {
 
 help() {
 	local errcode="${1:-2}"
-  local updated="12 Jul 2025"
+  local updated="24 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt or Nala.
 
-${green}Usage:${normal} $script [-ahnN]
+${green}Usage:${normal} $script [-ahn]
 ${orange}Available options:${normal}
   -a  Perform a system upgrade using apt-get
   -h  Show this help message and exit
   -n  Perform a system upgrade using nala
-  -N  Display GPL Terms & Conditions notice
 ${orange}Notes:${normal}
   If nala is not installed, -n defers to using apt-get
 _HELP_
   exit "$errcode"
-}
-
-show_notice() {
-	local script_dir
-	script_dir=$(dirname "$(readlink -f "${0}")")
-	printf "%s\n" "$script"
-	printf "Performs a system update using either Apt or Nala.\n"
-	printf "Copyright (C) 2018, Richard B. Romig\n"
-	printf "Email: rick.romig@gmail.com\n\n"
-	cat "$script_dir/files/gpl_notice.txt"
 }
 
 check_disk_space() {
@@ -270,7 +269,7 @@ _HEADER_
 main() {
   local noOpt opt optstr
 	noOpt=1
-	optstr=":ahnN"
+	optstr=":ahn"
 	while getopts "$optstr" opt; do
     case "$opt" in
       a )
@@ -297,10 +296,6 @@ main() {
           apt_update
         fi
         ;;
-			N )
-				show_notice
-        exit 0
-				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
