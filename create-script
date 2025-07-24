@@ -7,11 +7,22 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 11 Jul 2025
+# Last updated : 24 Jul 2025
 # Comments     : Creates the script in the current working directory.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ###############################################################################
 
 ## Shellcheck Directives ##
@@ -30,7 +41,7 @@ fi
 
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="4.4.25192"
+readonly version="4.5.25205"
 verbose_mode="$FALSE"
 
 ## Functions ##
@@ -42,7 +53,7 @@ help() {
 ${orange}$script${normal} $version ($updated)
 Creates a shell script with header comments (getopts optional)
 
-${green}Usage:${normal} $script [-hN] [-vb script-name] [-vg script-name]
+${green}Usage:${normal} $script [-h] [-vb script-name] [-vg script-name]
 
 ${orange}Available options:${normal}
   -b  Create a standard BASH script
@@ -52,17 +63,8 @@ ${orange}Available options:${normal}
       $script -g <script-name>
   -v  Enable verbose mode (Must precede -b or -g flags)
       $script -vb <script-name>
-  -N  Display GPL Terms & Conditions notice
 _HELP_
   exit "$errcode"
-}
-
-show_notice() {
-	printf "%s\n" "$script"
-	printf "Creates a shell script with header comments (getopts optional)\n"
-	printf "Copyright (C) 2023, Richard B. Romig\n"
-	printf "Email: rick.romig@gmail.com\n\n"
-	cat "$script_dir/files/gpl_notice.txt"
 }
 
 show_message() {
@@ -108,7 +110,7 @@ import_metadata() {
 main() {
 	local noOpt opt optstr script_name template_file
 	noOpt=1
-	optstr=":b:hg:vN"
+	optstr=":b:hg:v"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			b )
@@ -120,21 +122,17 @@ main() {
 			;;
 			h )
 				help 0
-			;;
+				;;
 			g )
 				script_name="$OPTARG"
 				[[ -f "$script_name" ]] && { printf "%s %s already exists\n" "$RED_ERROR" "$script_name" >&2; help 2; }
 				show_message "Script name: $script_name"
 				template_file="bash-getopts.txt"
 				show_message "Template: $template_file"
-			;;
+				;;
 			v )
 				verbose_mode="$TRUE"
 				show_message "Verbose mode enabled."
-			;;
-			N )
-				show_notice
-				exit 0
 				;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
