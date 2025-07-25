@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : i3kb
 # Description  : Displays i3 keybindings
-# Dependencies : curl
+# Dependencies : None
 # Arguments    : None
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -11,6 +11,17 @@
 # Comments     : Install with bindings.list in ~/.config/i3/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -33,26 +44,29 @@ readonly bindings="bindings.list"
 ## Functions ##
 
 copy_bindings() {
-	local repository="configs/raw/branch/main/"
-	check_package curl
-	curl -so "$i3_dir/$bindings" "$GITEA_URL/$repository/$bindings"
+	local repository
+	repository=$(assign_cfg_repo)
+	printf "Copying i3 keyboard bindings...\n"
+	cp -v "$repository/$bindings" "$i3_dir/$bindings"
 }
 
 show_bindings() {
 	[[ -f "$i3_dir/$bindings" ]] || copy_bindings
 	printf "i3wm keybindings:\n"
-	(printf "Binding|Action|Binding|Action\n"; less "$i3_dir/$bindings") | column -ts "|"
+	column -t -s "|" -N Binding,Action,Binding,Action "$i3_dir/$bindings"
 }
 
 main() {
-	local script version
-	script=$(basename "$0")
-	version="1.8.24305"
-
-	exists i3 || leave "i3wm is not installed."
-	clear
-	show_bindings
-	leave "$script v$version"
+	local -r script="${0##*/}"
+	local -r version="1.9.25205"
+	if exists i3; then
+		clear
+		show_bindings
+	else
+		printf "i3wm is not installed." >&2
+	fi
+	over_line "$script $version"
+	exit
 }
 
 ## Execution ##
