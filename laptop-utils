@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#####################################################################
+##########################################################################
 # Script Name  : laptop-utils
 # Description  : Installs laptop-specific utilities
 # Dependencies : None
@@ -7,12 +7,22 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 13 Jul 2025
+# Updated      : 25 Jul 2025
 # Comments     : Based on a script by Joe Collins.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-###############################################################################
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -28,38 +38,26 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.5.25194"
+readonly version="6.6.25206"
 
 ## Funtions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="13 Jul 2025"
+	local updated="25 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs laptop-specific utlities.
 
-${green}Usage:${normal} $script [-hissN]
+${green}Usage:${normal} $script [-hist]
 ${orange}Available options:${normal}
   -h  Show this help message and exit.
   -i  Install laptop utilities.
   -s  Display installed utilities.
   -t  Start TLP service.
-  -N  Display GPL Terms & Conditions notice.
-
 _HELP_
   intro
   exit "$errcode"
-}
-
-show_notice() {
-  local script_dir
-  script_dir=$(dirname "$(readlink -f "${0}")")
-	printf "%s\n" "$script"
-	printf "Installs laptop-specific utlities.\n"
-	printf "Copyright (C) 2023, Richard B. Romig\n"
-	printf "Email: rick.romig@gmail.com\n\n"
-	cat "$script_dir/files/gpl_notice.txt"
 }
 
 intro() {
@@ -168,7 +166,7 @@ main() {
   local lhost noOpt opt optstr
   lhost="${HOSTNAME:=-$(hostname)}"
   noOpt=1
-  optstr=":histN"
+  optstr=":hist"
   while getopts "$optstr" opt; do
     case "$opt" in
       h )
@@ -202,9 +200,6 @@ main() {
           printf "%s is not a laptop. Nothing to do.\n" "$lhost" >&2
         fi
         ;;
-			N )
-				show_notice
-				;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
