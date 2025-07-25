@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-###############################################################################
+##########################################################################
 # Script Name  : insert-license
 # Description  : Insert a license into a shell script or C source code.
 # Dependencies : bat, micro (nano)
@@ -7,13 +7,24 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 11 Jul 2025
+# Updated      : 25 Jul 2025
 # Comments     : Inserts the license immediately after the file's header.
 #              : Assumes the standard script or C/C++ header is present.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-###############################################################################
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -29,21 +40,19 @@ fi
 
 ## Global Variables ##
 
-script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="4.4.25192"
-verbose_mode="$FALSE"
+readonly version="4.5.25206"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="11 Jul 2025"
+  local updated="25 Jul 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts an Open Source license into a shell script or a C/C++ source code file.
 
-${green}Usage:${normal} $script [-hN] [-vc c-source-file] [-vp cpp-source-file] [-vs shell-script]
+${green}Usage:${normal} $script [-h] [-c c-source-file] [-p cpp-source-file] [-s shell-script]
 ${orange}Available options:${normal}
   -c  C code
       $script -c <c-source.c>
@@ -52,24 +61,8 @@ ${orange}Available options:${normal}
       $script -p <c-source.cpp>
   -s  Shell script
       $script -s <shell-script>
-  -v  Enable verbose mode (Must precede -c, -p, or -s flags)
-      $script -vs <shell-script>
-  -N  Display GPL Terms & Conditions notice
 _HELP_
   exit "$errcode"
-}
-
-show_notice() {
-	printf "%s\n" "$script"
-	printf "Inserts an Open Source license into a shell script or a C/C++ source code file.\n"
-	printf "Copyright (C) 2019, Richard B. Romig\n"
-	printf "Email: rick.romig@gmail.com\n\n"
-	cat "$script_dir/files/gpl_notice.txt"
-}
-
-show_message() {
-	local message="$1"
-	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
@@ -86,13 +79,14 @@ create_tmp_file() {
 }
 
 insert_license() {
-	local code_file code_type copy_holder cur_yr email_addr options lic_file lic_type template_dir
-	code_type="$1"
-	code_file="$2"
-	copy_holder="Richard B. Romig"
-	email_addr="rick.romig@gmail.com"
+	local cur_yr options script_dir
+	local code_type="$1"
+	local code_file="$2"
+	local copy_holder="Richard B. Romig"
+	local email_addr="rick.romig@gmail.com"
 	cur_yr=$(echo -e "\UA9 $(date +%Y)")
-	template_dir="$script_dir/Templates"
+	script_dir=$(dirname "$(readlink -f "${0}")")
+	local template_dir="$script_dir/Templates"
 
 	# Select license type
 	printf "\n%sLicense type:%s\n" "$orange" "$normal"
@@ -159,7 +153,7 @@ insert_license() {
 main() {
 	local noOpt opt optstr code_file code_type
 	noOpt=1
-	optstr=":c:hp:s:vN"
+	optstr=":c:hp:s:"
 	while getopts "$optstr" opt; do
 	case "$opt" in
 		c )
@@ -189,14 +183,6 @@ main() {
 			show_message "Code type: $code_type script"
 			create_tmp_file
 			;;
-		v )
-			verbose_mode="$TRUE"
-			show_message "Verbose mode enabled."
-			;;
-			N )
-				show_notice
-				exit 0
-				;;
 		: )
 			printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
 			help 2
