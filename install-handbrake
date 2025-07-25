@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#####################################################################
+##########################################################################
 # Script Name  : install-handbrake
 # Description  : Adds repository and installs handbrake
 # Dependencies : None
@@ -7,15 +7,26 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Feb 2019
-# Updated      : 04 Apr 2025
+# Updated      : 25 Jul 2025
 # Comment      : Handbrake rips DVD movies
 #              : Available as a flatpak via Flathub and Mint Software Manager
 #              : https://dl.flathub.org/repo/appstream/fr.handbrake.ghb.flatpakref
 #              : flatpak install fr.handbrake.ghb
 #              : flakpak may not be able to access certain codecs for DRM.
-# TODO (rick)  :
+# TODO (rick)  : Eliminate PPA? or find a different app?
 # License      : GNU General Public License, version 2.0
-###############################################################################
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -31,8 +42,8 @@ fi
 
 ## Global Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="3.11.25094"
+readonly script="${0##*/}"
+readonly version="3.11.25206"
 readonly handbrake_ppa="ppa:stebbins/handbrake-releases"
 
 ## Functions ##
@@ -63,15 +74,13 @@ remove_handbrake() {
 }
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="04 Apr 2025"
+	local errcode="${1:-2}"
+	local updated="25 Jul 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Install/Remove Handbrake video transcorder
 
 ${green}Usage:${normal} $script [OPTION]
-
 ${orange}Available options:${normal}
   -h  Show this help message and exit
   -i  Install Handbrake
@@ -88,15 +97,15 @@ main() {
     case "$opt" in
       h )
         help 0
-      ;;
+        ;;
       i )
         exists ghb && leave "Handbrake-GTK already installed."
         install_handbrake
-      ;;
+        ;;
       r )
         exists ghb || leave "Handbrake is not installed."
         remove_handbrake
-      ;;
+        ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
