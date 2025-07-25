@@ -46,21 +46,21 @@ readonly bindings="bindings.list"
 ## Functions ##
 
 copy_bindings() {
-	local repository="configs/raw/branch/main/"
-	check_package curl
-	curl -so "$kitty_dir/$bindings" "$GITEA_URL/$repository/$bindings"
+	local repository
+	repository=$(assign_cfg_repo)
+	printf "Cooying Kitty keyboard bindings...\n"
+	cp -v "$repository/$bindings" "$kitty_dir/$bindings"
 }
 
 show_bindings() {
 	[[ -f "$kitty_dir/$bindings" ]] || copy_bindings
 	printf "%sKitty keybindings:%s\n" "$green" "$normal"
-	(printf "%s%sBinding|Action|Binding|Action%s\n" "$underline" "$lightblue" "$normal"; less "$kitty_dir/$bindings") | column -ts "|"
+	column -t -s "|" -N Binding,Action,Binding,Action "$kitty_dir/$bindings"
 }
 
 main() {
-  local script version
-  script=$(basename "$0")
-  version="1.8.25200"
+	local -r script="${0##*/}"
+	local -r version="1.9.25205"
 	[[ "$TERM" != "xterm-kitty" ]] && die "Terminal emulater is not Kitty." 1
 	clear
 	show_bindings
