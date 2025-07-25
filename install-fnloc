@@ -6,11 +6,22 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Created      : 09 Feb 2021
-# Updated      : 04 Apr 2025
+# Created      : 09 Feb 2020
+# Updated      : 25 Jul 2025
 # Comments     :
 # TODO (Rick)  : clone from either repo
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -27,8 +38,8 @@ fi
 
 ## Variables ##
 
-script=$(basename "$0"); readonly script
-readonly version="2.6.25094"
+readonly script="${0##*/}"
+readonly version="2.6.25006"
 readonly package="fnloc_2.3.1_amd64.deb"
 readonly package_name="FnLoC"
 readonly packageversion="2.3.1"
@@ -46,15 +57,13 @@ _ABOUT_
 }
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="04 Apr 2025"
+	local errcode="${1:-2}"
+	local updated="04 Apr 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installes the Function Lines of Code (FnLoC) package.
 
 ${green}Usage:${normal} $script [OPTION]
-
 ${orange}OPTIONS:${normal}
 	-a  About FnLoC
 	-c	Clone FnLoC repo & install .deb package
@@ -100,26 +109,26 @@ main() {
     case "$opt" in
       a )
         about_fnloc
-      ;;
+        ;;
       c )
         show_header
         clone_fnloc_repo
         install_fnloc
-      ;;
+        ;;
       d )
         show_header
         dl_deb_pkg
         install_fnloc
-      ;;
+        ;;
       h )
         help 0
-      ;;
+        ;;
       r )
         sudo_login 2
         dpkg -l fnloc > /dev/null 2>&1 || leave "FnLoC is not installed."
         sudo dpkg -r fnloc
         printf "%s %s removed.\n" "$package_name" "$packageversion"
-      ;;
+        ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
