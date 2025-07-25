@@ -48,7 +48,7 @@ help() {
 	local updated="24 Jul 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
-Utility to convert DOS text files to Linux format by removing carriage returns.
+Convert DOS text files to Linux format by removing carriage returns.
 
 ${green}Usage:${normal} $script [OPTION]
 ${orange}Available options:${normal}
