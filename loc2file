@@ -5,24 +5,15 @@
 #              : redirects it to a file.
 # Dependencies : fnloc, lloc, tee
 # Arguments    : C/C++ source code or header file
-# Author       : Richard Romig, 26 January 2019
-# Email        : rick.romig@gmail.com
-# Comments     : Modified 01/26/19 to incorporate lloc and allow
-#              : .cc and .hh file extensions.
-#              : Modified 03/31/20 to improve checks for arguments and
-#              : processing of header files.
-# 09/24/20     : split processng of c source and
-#              : header files into separate functions in order to allow
-#              : procesing of header files without the C/C++ source.
-# 02/09/21     : Changed color of error messages.
-# 06/21/21     : double-bracket conditional statements
+# Author       : Copyright (C) 2019, Richard B. Romig
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
+# Created      : 29 Jan 2019
+# Updated      : 28 Jul 2025
+# Comments     : Processes one C/C++ source file and matching header.
 # TODO (rick)  : Process multiple source & header files in a project.
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 #####################################################################
-
-# Copyright (C) 2018-2021  Richard Romig
-# Email: rick.romig@gmail.com
-#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -32,62 +23,77 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program. If not, see <https://www.gnu.org/licenses/>.
+#####################################################################
 
-declare -r _version="2.3.4"
-declare -r COPYRIGHT="Copyright 2018-2021"
-declare -r AUTHOR="Richard B. Romig"
-_script=$(basename "$0"); declare -r _script
+readonly script="${0##*/}"
+readonly version="3.0.25209"
 
 usage() {
   local errcode="${1:-2}"
-  echo "Usage: $_script sourcefile.c"
-  echo "Acceptable extensions are: .c .cpp .cc .h .hh"
+  local updated="28 Jul 2025"
+  printf "%s %s, updated %s\n" "$script" "$version" "$updated"
+  printf "Usage: %s sourcefile\n" "$script"
+  printf "Acceptable file extensions are: .c .cpp .cc .h .hh\n"
   exit "$errcode"
 }
 
 process_source() {
-  # Process the source file with fnloc
-  fnloc "$CSOURCE" | tee "$LOCFILE"
+  local CSOURCE="$1"
+  local LOCFILE="$2"
+  local BASEFILE="${CSOURCE%%.*}"
+  /usr/local/bin/fnloc "$CSOURCE" | tee "$LOCFILE"
   # Process matching header file if it exists
-  [[ -f "$BASEFILE.h" || -f "$BASEFILE.hh" ]] && process_header
+  [[ -f "$BASEFILE.h" ]] && process_header "$BASEFILE.h" "$LOCFILE"
+  [[ -f "$BASEFILE.hh" ]] && process_header "$BASEFILE.hh" "$LOCFILE"
 }
 
 process_header() {
-  [[ -f "$BASEFILE.h" ]] && lloc "$BASEFILE.h" | tee -a "$LOCFILE"
-  [[ -f "$BASEFILE.hh" ]] && lloc "$BASEFILE.hh" | tee -a "$LOCFILE"
+  local HEADERFILE="$1"
+  local LOCFILE="$2"
+  /usr/local/bin/lloc "$HEADERFILE" | tee -a "$LOCFILE"
 }
 
-# Check for arguments
-if [[ -z "$1" ]]; then
-  echo -e "\e[91mError:\e[0m No argument provided." >&2
-  usage 2
-elif [[ ! -f "$1" ]]; then
-  echo -e "\e[91mError:\e[0m $1 not found." >&2
-  usage 2
-else
-  CSOURCE=$1
-fi
+print_header() {
+  local -r COPYRIGHT="Copyright 2018-2021"
+  local -r AUTHOR="Richard B. Romig"
+  printf "%s\n" "$script $version"
+  printf "%s\n" "$COPYRIGHT, $AUTHOR"
+  printf "%s\n" "====================================="
+}
 
-# Get base filename and create filename for LOC data
-BASEFILE=${CSOURCE%%.*}
-LOCFILE="$BASEFILE.loc"
-EXT="${CSOURCE##*.}"
+begin_process() {
+  local CSOURCE="$1"
+  local LOCFILE="${CSOURCE%%.*}.loc"
+  local EXT="${CSOURCE##*.}"
+  print_header
+  printf "Writing LOC data to %s...\n" "$LOCFILE"
+  case "$EXT" in
+    c|cc|cpp )
+      process_source "$CSOURCE" "$LOCFILE"
+      printf "Logical lines of code data for %s written to %s." "$CSOURCE" "$LOCFILE"
+      ;;
+    h|hh )
+      process_header "$CSOURCE" "$LOCFILE"
+      printf "Logical lines of code data for %s written to %s." "$CSOURCE" "$LOCFILE"
+      ;;
+    * )
+      printf "\e[91mError:\e[0m Invalid file extension." >&2; usage 2
+  esac
+}
 
-echo "$_script $_version"
-echo "$COPYRIGHT, $AUTHOR"
-echo "====================================="
-echo "Writing LOC data to $LOCFILE..."
-case $EXT in
-  c|cc|cpp )
-    process_source
-    echo "Logical lines of code data for $CSOURCE written to $LOCFILE." ;;
-  h|hh )
-    process_header
-    echo "Logical lines of code data for $CSOURCE written to $LOCFILE." ;;
-  * ) echo -e "\e[91mError:\e[0m Invalid file extension." >&2; usage ;;
-esac
+main() {
+  local CSOURCE
+  if [[ "$#" -eq 0 ]]; then
+    printf "\e[91mError:\e[0m No argument provided.\n" >&2
+    usage 1
+  elif [[ ! -f "$1" ]]; then
+    printf "\e[91mError:\e[0m %s not found.\n" "$1" >&2
+    usage 2
+  else
+    CSOURCE="$1"
+    begin_process "$CSOURCE"
+  fi
+  exit
+}
 
-exit
+main "$@"
