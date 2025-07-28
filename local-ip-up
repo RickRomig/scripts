@@ -7,13 +7,24 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Dec 2019
-# Updated      : 19 Jul 2025
+# Updated      : 28 Jul 2025
 # Comments     : Variables for IP range do not work, must be hard coded.
 #              : Local host will not respond to arping.
 #              : Local host will respond using arping in iputils-arping.
 #              : Installing arping will uninstall iputils-arping & sudo required.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+#############################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+## GNU General Public License for more details.
 #############################################################################
 
 ## Shellcheck Directives ##
@@ -31,7 +42,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.9.25200"
+readonly version="4.9.25209"
 SECONDS=0
 COUNT=0
 
@@ -39,7 +50,7 @@ COUNT=0
 
 help() {
 	local errcode="${1:-2}"
-	local updated="19 Jul 2025"
+	local updated="28 Jul 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Scans local network to see which addresses are active.
@@ -91,11 +102,11 @@ scan_static_addresses() {
           "192.168.0.14" ) printf "\thp-8300 (Network test)\n" ;;
           "192.168.0.15" ) printf "\tlenovo-m91p (Lenovo PC)\n" ;;
           "192.168.0.16" ) printf "\thp-8300-usdt (Gitea Server)\n" ;;
-          "192.168.0.17" ) printf "\thp-800-g1-usdt (Media PC)\n" ;;
+          "192.168.0.17" ) printf "\thp-800-g1-usdt (offline)\n" ;;
           "192.168.0.18" ) printf "\tunassigned ip\n" ;;
           "192.168.0.19" ) printf "\tunassigned ip\n" ;;
           "192.168.0.20" ) printf "\tprobook-6570\n" ;;
-          "192.168.0.21" ) printf "\thp-probook-6570 (Finance)\n" ;;
+          "192.168.0.21" ) printf "\thp-probook-6570 (HP laptop)\n" ;;
           "192.168.0.22" ) printf "\thp-850-g3 (i3)\n" ;;
           "192.168.0.23" ) printf "\thp-2560p (i3)\n" ;;
           "192.168.0.24" ) printf "\te-475m (Gateway laptop)\n" ;;
@@ -134,8 +145,8 @@ main() {
       a )
         check_dependencies
         tput civis
-        echo $'\n'$"Scanning  the network ..."
-        echo -e "${underline}${green}IP Address\tHostname${normal}"
+        printf "\nScannint the network...\n"
+        printf "%s%sIP Address\tHostname%s\n" "$underline" "$green" "$normal"
         scan_static_addresses
         scan_dhcp_addresses
         tput cnorm
@@ -143,8 +154,8 @@ main() {
       d )
         check_dependencies
         tput civis
-        echo $'\n'$"Scanning DHCP addresses on the network ..."
-        echo -e "${underline}${green}IP Address\tHostname${normal}"
+        printf "\nScanning DHCP addresses on the network...\n"
+        printf "%s%sIP Address\tHostname%s\n" "$underline" "$green" "$normal"
         scan_dhcp_addresses
         tput cnorm
         ;;
@@ -154,8 +165,8 @@ main() {
       s )
         check_dependencies
         tput civis
-        echo $'\n'$"Scanning static IP addresses on the network ..."
-        echo -e "${underline}${green}IP Address\tHostname${normal}"
+        printf "\nScanning static IP addresses on the network...\n"
+        printf "%s%sIP Address\tHostname%s\n" "$underline" "$green" "$normal"
         scan_static_addresses
         tput cnorm
         ;;
