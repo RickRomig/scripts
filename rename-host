@@ -12,7 +12,7 @@
 #              : Rules based on hostname(7) man page
 #              : Hostname length limited to 5-15 characters for NETBIOS compatibility.
 #              : old_host & new_host variables are global for convenience.
-#              : May get a “unable to resolve host” error after changing hostname in /etc/hosts. It will go away after reboting.
+#              : May get a “unable to resolve host” error after changing hostname in /etc/hosts. It will go away after rebooting.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -43,7 +43,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.0.25192"
+readonly version="6.0.25209"
 readonly old_host="${HOSTNAME:-$(hostname)}"
 declare -l new_host=""
 
@@ -117,7 +117,7 @@ change_hostname() {
   printf "\nChanging the hostname from %s to %s ...\n" "$old_host" "$new_host"
   sudo sed -i "s/$old_host/$new_host/" /etc/hosts
   sudo hostnamectl set-hostname "$new_host"
-  printf "Hostname successfully changed. Reboot to ensure the change takes effect.\n"
+  printf "Hostname changed. Reboot to ensure the change takes effect.\n"
   # sudo systemctl restart systemd-resolved.service
 }
 
