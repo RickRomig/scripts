@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #####################################################################
-# Script Name  : loc2file
+# Script Name  : loc2file.sh
 # Description  : Wrapper for fnloco/lloc. LOC data to stdout as it
 #              : redirects it to a file.
 # Dependencies : fnloc, lloc, tee
