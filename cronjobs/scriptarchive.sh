@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jan 2020
-# Updated      : 30 Jul 2025
-# Version      : 4.1.25211
+# Updated      : 31 Jul 2025
+# Version      : 4.2.25211
 # Comments     : Includes all subdirectories in ~/bin
 #              : Schedule with user's crontab from ~/.local/bin
 # TODO (Rick)  :
@@ -33,7 +33,8 @@ archive_scripts() {
   local log_dir="$2"
   local log_file="$3"
   local -r err_log="error.log"
-  archive="$(date +%y%m%d)-scripts.tar.gz"; local -r archive
+  local archive
+  archive="$(date +%y%m%d)-scripts.tar.gz"
   # Create archive and log directories if they don't exist
   [[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
   [[ -d "$log_dir" ]] || mkdir -p "$log_dir"
@@ -44,12 +45,12 @@ archive_scripts() {
     printf "%(%a|%F|%R)T|"
     if /usr/bin/tar --exclude='.git' -hcpzf "$arc_dir/$archive" -C "$HOME" bin 2> "$arc_dir/$err_log"; then
       printf "successful\n"
-      printf "Script Archive successful - %(%F)T" >> "$arc_dir/$err_log"
+      printf "Script Archive successful - %(%F)T\n" >> "$arc_dir/$err_log"
     else
       printf "had errors\n"
-      printf "Script Archive had errors  - %(%F)T" >> "$arc_dir/$err_log"
+      printf "Script Archive had errors  - %(%F)T\n" >> "$arc_dir/$err_log"
     fi
-  } >> "$log_dir/$log_file"
+  } >> "$log_dir/$log_file" 2> "$arc_dir/$err_log"
 }
 
 cleanup() {
@@ -65,9 +66,9 @@ cleanup() {
 }
 
 main() {
+  local -r arc_dir="$HOME/Downloads/archives/scripts"
   local -r log_dir="$HOME/.local/share/logs"
   local -r log_file="script-archive.log"
-  local -r arc_dir="$HOME/Downloads/archives/scripts"
   archive_scripts "$arc_dir" "$log_dir" "$log_file"
   cleanup "$arc_dir" "$log_dir" "$log_file"
   exit
