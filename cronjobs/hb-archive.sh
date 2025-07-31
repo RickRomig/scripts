@@ -6,8 +6,8 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Last updated : 21 Jul 2025
-# Version      : 4.3.25200
+# Last updated : 30 Jul 2025
+# Version      : 4.3.25211
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
@@ -56,7 +56,7 @@ archive_bak() {
 	{
 	  printf "%(%a|%F|%R)T|%s|" -1 "$arc_date"
 	    printf "$(%a|%F|%R)T|%s|" "$arc_date"
-  if zip -qmtt "$ref_date" "$arc_dir/$archive" "$hb_dir"/*.bak 2> "$arc_dir/$err_log"; then
+		if zip -qmtt "$ref_date" "$arc_dir/$archive" "$hb_dir"/*.bak 2> "$arc_dir/$err_log"; then
 	    printf "successful\n"
 	    printf "%(%F)T - HomeBank Archive successful.\n" > "$arc_dir/$err_log"
 	  else
