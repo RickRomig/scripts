@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jan 2020
 # Updated      : 30 Jul 2025
-# Version      : 4.0.25211
+# Version      : 4.1.25211
 # Comments     : Includes all subdirectories in ~/bin
 #              : Schedule with user's crontab from ~/.local/bin
 # TODO (Rick)  :
@@ -29,9 +29,9 @@
 set -eu
 
 archive_scripts() {
-  local log_dir="$1"
-  local log_file="$2"
-  local -r arc_dir=$HOME"/Downloads/archives/scripts"
+  local arc_dir="$1"
+  local log_dir="$2"
+  local log_file="$3"
   local -r err_log="error.log"
   archive="$(date +%y%m%d)-scripts.tar.gz"; local -r archive
   # Create archive and log directories if they don't exist
@@ -53,8 +53,9 @@ archive_scripts() {
 }
 
 cleanup() {
-  local log_dir="$1"
-  local log_file="$2"
+  local arc_dir="$1"
+  local log_dir="$2"
+  local log_file="$3"
   local log_len
   # Remove oldest log entry if more than 30 entries
   log_len=$(wc -l < "$log_dir/$log_file")
@@ -66,8 +67,9 @@ cleanup() {
 main() {
   local -r log_dir="$HOME/.local/share/logs"
   local -r log_file="script-archive.log"
-  archive_scripts "$log_dir" "$log_file"
-  cleanup "$log_dir" "$log_file"
+  local -r arc_dir="$HOME/Downloads/archives/scripts"
+  archive_scripts "$arc_dir" "$log_dir" "$log_file"
+  cleanup "$arc_dir" "$log_dir" "$log_file"
   exit
 }
 
