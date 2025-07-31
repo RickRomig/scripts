@@ -7,9 +7,9 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jan 2020
-# Updated      : 21 Jul 2025
-# Version      : 3.2.25202
-# Comments     : Includes all subdirectories
+# Updated      : 30 Jul 2025
+# Version      : 4.0.25211
+# Comments     : Includes all subdirectories in ~/bin
 #              : Schedule with user's crontab from ~/.local/bin
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,38 +28,47 @@
 
 set -eu
 
-## Variables ##
+archive_scripts() {
+  local log_dir="$1"
+  local log_file="$2"
+  local -r arc_dir=$HOME"/Downloads/archives/scripts"
+  local -r err_log="error.log"
+  archive="$(date +%y%m%d)-scripts.tar.gz"; local -r archive
+  # Create archive and log directories if they don't exist
+  [[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
+  [[ -d "$log_dir" ]] || mkdir -p "$log_dir"
+  # Remove old error log
+  [[ -f "$arc_dir/$err_log" ]] && rm -f "$arc_dir/$err_log" >/dev/null 2>&1
+  # Create archive of the ~/bin directory and write results to log file
+  {
+    printf "%(%a|%F|%R)T|"
+    if /usr/bin/tar --exclude='.git' -hcpzf "$arc_dir/$archive" -C "$HOME" bin 2> "$arc_dir/$err_log"; then
+      printf "successful\n"
+      printf "Script Archive successful - %(%F)T" >> "$arc_dir/$err_log"
+    else
+      printf "had errors\n"
+      printf "Script Archive had errors  - %(%F)T" >> "$arc_dir/$err_log"
+    fi
+  } >> "$log_dir/$log_file"
+}
 
-archive="$(date +%y%m%d)-scripts.tar.gz"
-arc_dir=$HOME"/Downloads/archives/scripts"
-log_dir=$HOME"/.local/share/logs"
-log_file="script-archive.log"
-err_log="error.log"
+cleanup() {
+  local log_dir="$1"
+  local log_file="$2"
+  local log_len
+  # Remove oldest log entry if more than 30 entries
+  log_len=$(wc -l < "$log_dir/$log_file")
+  [[ "$log_len" -gt 30 ]] && sed -i '1d' "$log_dir/$log_file"
+  # Remove archives older than two years (730 days).
+  find "$arc_dir"/ -maxdepth 1 -type f -mtime +730 -exec rm {} +
+}
 
-## Execution ##
+main() {
+  local -r log_dir="$HOME/.local/share/logs"
+  local -r log_file="script-archive.log"
+  archive_scripts "$log_dir" "$log_file"
+  cleanup "$log_dir" "$log_file"
+  exit
+}
 
-# Create archive and log directories if they don't exist
-[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
-[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
-[[ -f "$arc_dir/$err_log" ]] && rm -f "$arc_dir/$err_log" >/dev/null 2>&1
-
-# Create archive of the ~/bin directory and write results to log file
-{
-  printf "%(%a|%F|%R)T|"
-  if /usr/bin/tar --exclude='.git' -hcpzf "$arc_dir/$archive" -C "$HOME" bin 2> "$arc_dir/$err_log"; then
-    printf "successful\n"
-    echo "Script Archive successful - $(date +%F)" >> "$arc_dir/$err_log"
-  else
-    printf "had errors\n"
-    echo "Script Archive had errors - $(date +%F)" >> "$arc_dir/$err_log"
-  fi
-} >> "$log_dir/$log_file"
-
-## Clean up and exit ##
-
-# Remove oldest log entry if more than 30 entries
-log_len=$(wc -l < "$log_dir/$log_file")
-[[ "$log_len" -gt 30 ]] && sed -i '1d' "$log_dir/$log_file"
-# Remove archives older than two years (730 days).
-find "$arc_dir"/ -maxdepth 1 -type f -mtime +730 -exec rm {} +
-exit
+main "$@"
