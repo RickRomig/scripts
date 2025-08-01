@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 17 Feb 2022
-# Updated      : 31 Jul 2025
-# Comments     : For jobs needinng root access, check if repo script is
+# Updated      : 01 Aug 2025
+# Comments     : For jobs needinng root access, checks if repo script is
 #              : newer than the one run by anacron/cron
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -40,7 +40,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.0.25212"
+readonly version="7.0.25213"
 localip="$(local_ip)"; readonly localip
 # path variables
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
@@ -54,7 +54,7 @@ readonly sed_path="/usr/share/misc/"
 
 help() {
   local errcode="${1:-2}"
-  local updated="30 Jul 2025"
+  local updated="01 Aug 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Copies cronjob scripts to the appropriate directories.
@@ -246,38 +246,27 @@ main() {
         cp_zbackup
         ;;
 		  b )
-			  cp_zbackup
-		    ;;
+			  cp_zbackup ;;
       d )
-        cp_zdefrag
-        ;;
+        cp_zdefrag ;;
       f )
-        cp_finance_bu
-        ;;
+        cp_finance_bu ;;
       g )
-        cp_repo_backup
-        ;;
+        cp_repo_backup ;;
       h )
-        help 0
-        ;;
+        help 0 ;;
       m )
-        cp_main_bu
-        ;;
+        cp_main_bu ;;
       r )
-        cp_redshift_notify
-        ;;
+        cp_redshift_notify ;;
       s )
-        cp_scriptarchive
-        ;;
+        cp_scriptarchive ;;
       t )
-        cp_empty_trash
-        ;;
+        cp_empty_trash ;;
       u )
-        cp_zupdate
-        ;;
+        cp_zupdate ;;
       y )
-        cp_zytdlpupdate
-        ;;
+        cp_zytdlpupdate ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help 2
