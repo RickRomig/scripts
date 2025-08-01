@@ -147,7 +147,8 @@ backup() {
     printf "%sBackup completed.%s\n" "$green" "$normal"
     rm -f /"$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
     touch "$mount_point/BU_Backups/$host/BU Backup was successful: $(date '+%F')"
-  else
+		printf "Space available on BU_Drive: %s\n" "$(df -h "$mount_point" | tail -n1 | awk '{print $4}')"
+	else
     # Clear any accidental input during backup:
 		flush_kb_buffer
     rm -f "$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
