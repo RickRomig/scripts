@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-###############################################################################
+##########################################################################
 # Script Name  : cal-todo
 # Description  : Display calendar and ToDo list side by side.
 # Dependencies : ncal
@@ -7,14 +7,24 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Dec 2022
-# Updated      : 11 Jul 2025
+# Updated      : 02 Aug 2025
 # Comments     : base script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
 #              : Uses default editor ($EDITOR) to edit to-do list.
 #              : Limit to-do list to 7 items to maintain proper formating.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-###############################################################################
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -31,7 +41,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.2.25192"
+readonly version="3.3.25214"
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 calendar=$(mktemp -q) || die "Failed to create temporary file." 1
 
@@ -45,29 +55,20 @@ cleanup() {
 
 help() {
 	local errcode="${1:-2}"
-	local updated="11 Jul 2025"
+	local updated="02 Aug 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Creates/displays/edits a simple to-do list with a calendar.
 
-${green}Usage:${normal} $script [-13ehN]
+${green}Usage:${normal} $script [-e13h]
 ${orange}Available options:${normal}
 	-1  Display current month calendar and to-do list.
 	-3  Display 3-month calendar and to-do list.
 	-e  Edit/create to-do list.
 	-h  Show this help message and exit.
-	-N  Display GPL Terms & Conditions notice.
 	NOTE: To-do list should be limited to 7 short items to maintain format.
 _HELP_
 	exit "$errcode"
-}
-
-show_notice() {
-	printf "%s\n" "$script"
-	printf "Creates/displays/edits a simple to-do list with a calendar.\n"
-	printf "Copyright (C) 2022, Richard B. Romig\n"
-	printf "Email: rick.romig@gmail.com\n\n"
-	cat "$script_dir/files/gpl_notice.txt"
 }
 
 create_todo() {
@@ -79,25 +80,32 @@ create_todo() {
 	$EDITOR "$doc_dir/$todolist"
 }
 
+one_month() {
+	cal > "$calendar"
+	paste "$calendar" "$doc_dir/$todolist"
+}
+
+three_months() {
+	cal -3 > "$calendar"
+	paste "$calendar" "$doc_dir/$todolist"
+}
+
 main() {
 	local noOpt optstr opt doc_dir todolist
 	doc_dir="$HOME/.local/share/doc"
 	todolist="todo.lst"
 	noOpt=1
-	optstr=":13ehN"
+	optstr=":13eh"
+	check_package ncal
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			1 )
 				[[ -f "$doc_dir/$todolist" ]] || create_todo "$doc_dir" "$todolist"
-				check_package ncal
-				cal > "$calendar"
-				paste "$calendar" "$doc_dir/$todolist"
+				one_month
 				;;
 			3 )
 				[[ -f "$doc_dir/$todolist" ]] || create_todo "$doc_dir" "$todolist"
-				check_package ncal
-				cal -3 > "$calendar"
-				paste "$calendar" "$doc_dir/$todolist"
+				three_months
 				;;
 			e )
 				if [[ -f "$doc_dir/$todolist" ]]; then
@@ -110,9 +118,6 @@ main() {
 				;;
 			h )
 				help 0
-				;;
-			N )
-				show_notice
 				;;
 			? )
 				printf "%s Invalid option: -%s\n" >&2 "$RED_ERROR" "$OPTARG"
