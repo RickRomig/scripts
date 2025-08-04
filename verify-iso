@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 21 Jul 2025
+# Updated      : 04 Aug 2025
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
@@ -42,7 +42,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="10.1.25202"
+readonly version="11.0.25216"
 FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
@@ -60,10 +60,10 @@ FMENU="fzf --header=$script \
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="21 Jul 2025"
+	local -r updated="04 Aug 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
-Verifies SHA256/SHA512/MD5 checksums with ISO files.
+Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.
 
 ${green}Usage:${normal} $script [-h] [-v]
 ${orange}Available options:${normal}
@@ -111,68 +111,31 @@ select_checksum() {
 	printf "%s" "$selected_chksum"
 }
 
-check_sha1() {
-	local iso_sha src_sha iso_file sha_file
-	iso_file="$1"
-	sha_file="$2"
-  dots "."
-	iso_sha=$(/usr/bin/sha1sum "$iso_file" | awk '{print $1}')
-	src_sha=$(awk '{print $1}' "$sha_file")
+verify_checksums() {
+	local iso="$1"
+	local checksum="$2"
+	local ext="${checksum##*.}"
+	local iso_sum chk_sum
+	printf "Verifying checksums."
+	dots "."
+	case "$ext" in
+		md5 )
+			iso_sum=$(/usr/bin/md5sum "$iso" | awk '{print $1}') ;;
+		sha1 )
+			iso_sum=$(/usr/bin/sha1sum "$iso" | awk '{print $1}') ;;
+		sha256 )
+			iso_sum=$(/usr/bin/sha256sum "$iso" | awk '{print $1}') ;;
+		sha512 )
+			iso_sum=$(/usr/bin/sha512sum "$iso" | awk '{print $1}') ;;
+	esac
+	chk_sum=$(awk '{print $1}' "$checksum")
   kill "$!"; tput cnorm
   printf "done\n"
-  sleep 2
+  sleep 1
   printf '\e[A\e[K'
-	printf "ISO checksum: %s\n" "$iso_sha"
-	printf "SHA checksum: %s\n" "$src_sha"
-	[[ "$iso_sha" == "$src_sha" ]] && return "$TRUE" || return "$FALSE"
-}
-
-check_sha256() {
-	local iso_sha src_sha iso_file sha_file
-	iso_file="$1"
-	sha_file="$2"
-  dots "."
-	iso_sha=$(/usr/bin/sha256sum "$iso_file" | awk '{print $1}')
-	src_sha=$(awk '{print $1}' "$sha_file")
-  kill "$!"; tput cnorm
-  printf "done\n"
-  sleep 2
-  printf '\e[A\e[K'
-	printf "ISO checksum: %s\n" "$iso_sha"
-	printf "SHA checksum: %s\n" "$src_sha"
-	[[ "$iso_sha" == "$src_sha" ]] && return "$TRUE" || return "$FALSE"
-}
-
-check_sha512() {
-	local iso_sha src_sha iso_file sha_file
-  iso_file="$1"
-	sha_file="$2"
-  dots "."
-	iso_sha=$(/usr/bin/sha512sum "$iso_file" | awk '{print $1}')
-	src_sha=$(awk '{print $1}' "$sha_file")
-  kill "$!"; tput cnorm
-  printf "done\n"
-  sleep 2
-  printf '\e[A\e[K'
-	printf "ISO checksum: %s\n" "$iso_sha"
-	printf "SHA checksum: %s\n" "$src_sha"
-	[[ "$iso_sha" == "$src_sha" ]] && return "$TRUE" || return "$FALSE"
-}
-
-check_md5() {
-	local iso_md5 md5_file src_md5 iso_file
-  iso_file="$1"
-  md5_file="$2"
-  dots "."
-  iso_md5=$(/usr/bin/md5sum "$iso_file" | awk '{print $1}')
-  src_md5=$(awk '{print $1}' "$md5_file")
-  kill "$!"; tput cnorm
-  printf "done\n"
-  sleep 2
-  printf '\e[A\e[K'
-  printf "ISO checksum: %s\n" "$iso_md5"
-  printf "MD5 checksum: %s\n" "$src_md5"
-  [[ "$iso_md5" == "$src_md5" ]] && return "$TRUE" || return "$FALSE"
+	printf "ISO checksum:\n\t%s\n" "$iso_sum"
+	printf "%s checksum:\n\t%s\n" "${ext^^}" "$chk_sum"
+	[[ "$iso_sum" == "$chk_sum" ]] && return "$TRUE" || return "$FALSE"
 }
 
 status_msg() {
@@ -192,31 +155,11 @@ check_checksum() {
   [[ "$lines" -eq 1 ]] && return "$TRUE" || return "$FALSE"
 }
 
-compare_checksums() {
-	local iso="$1"
-	local checksum="$2"
-	local ext="${checksum##*.}"
-	printf "Comparing checksums."
-	case "$ext" in
-	  "md5" )
-	    check_md5 "$iso" "$checksum"
-	    status_msg "$?"
-			;;
-	  "sha1" )
-	    check_sha1 "$iso" "$checksum"
-	    status_msg "$?"
-			;;
-	  "sha256" )
-	    check_sha256 "$iso" "$checksum"
-	    status_msg "$?"
-			;;
-	  "sha512" )
-	    check_sha512 "$iso" "$checksum"
-	    status_msg "$?"
-			;;
-	  * )
-	    printf "\n"
-	    diehard "Invalid extension" "Checksum must be one of the following:" ".md5 .sha1 .sha256 .sha512" "$script $version"
+check_extension() {
+	local chksum_ext="${1##*.}"
+	case "$chksum_ext" in
+		md5|sha1|sha256|sha512 ) return "$TRUE" ;;
+		* ) return "$FALSE"
 	esac
 }
 
@@ -228,13 +171,15 @@ verify_iso() {
 	printf "\n%-18s %s\n" "Selected Distro:" "${iso_dir##*/}"
 	printf "%-18s %s\n" "Selected ISO:" "$isofile"
 	printf "%-18s %s\n\n" "Selected Checksum:" "$checksum"
+	check_extension "$checksum"  || diehard "Invalid checksum extension" "Checksum must be one of the following:" ".md5 .sha1 .sha256 .sha512" "$script $version"
 	check_checksum "$iso_dir/$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$script $version"
-	compare_checksums "$iso_dir/$isofile" "$iso_dir/$checksum"
+	verify_checksums "$iso_dir/$isofile" "$iso_dir/$checksum"
+	status_msg "$?"
 }
 
 check_verify() {
 	check_package fzf
-	printf "Verifies SHA1/SHA256/SHA512/MD5 checksums with ISO files.\n"
+	printf "Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.\n"
 	verify_iso
 }
 
