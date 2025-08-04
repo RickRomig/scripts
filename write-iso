@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 21 Jul 2025
+# Updated      : 03 Aug 2025
 # Comments     : Testing indicates USB drive need to be mounted.
 #              : Works with fuzzy finder (fzf) or zenity, if installed.
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
@@ -43,7 +43,7 @@ fi
 
 # script=$(basename "$0"); readonly script
 readonly script="${0##*/}"
-readonly version="7.1.25202"
+readonly version="7.2.25215"
 user=$(whoami); readonly user
 dryrun="$FALSE"
 FMENU="fzf --header=$script \
@@ -64,7 +64,7 @@ FMENU="fzf --header=$script \
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="21 Jul 2025"
+	updated="03 Aug 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
@@ -129,13 +129,13 @@ unmount_usb() {
 }
 
 list_usb_contents() {
-	local mount_name usbdevice usbpart
+	local drvlabel usbdevice usbpart
 	usbdevice="$1"
 	usbpart="${usbdevice}1"
-	mount_name=$(lsblk | grep "$usbpart" | cut -d'/' -f4- )
+	drvlabel=$(lsblk | grep "$usbpart" | cut -d'/' -f4- )
   printf "\nContents of /dev/%s:\n" "$usbpart"
-	printf "Disk label: %s\n" "$mount_name"
-  ls -F "/media/$user/$mount_name"
+	printf "Disk label: %s\n" "$drvlabel"
+  ls -F "/media/$user/$drvlabel"
 }
 
 simulate_dd() {
@@ -163,11 +163,12 @@ write_dd() {
 }
 
 write_iso() {
-	local isofile usbdevice usbpart mount_name
+	local isofile usbdevice usbpart usbsize mount_name
 	isofile="$1"
 	usbdevice="$2"
+	usbsize=$(lsblk | awk -v pat="$usbdevice" '$0~pat{print$4;exit}' )
 	printf "%-16s %s\n" "Selected ISO:" "${isofile##*/}"
-	printf "%-16s /dev/%s\n" "Selected device:" "$usbdevice"
+	printf "%-16s /dev/%s [%s]\n" "Selected device:" "$usbdevice" "$usbsize"
 
 	# Mount selected USB drive if not already mounted.
 	usbpart="${usbdevice}1"
@@ -215,7 +216,7 @@ main() {
 				check_usb_drive
 				iso_dir=$(select_directory)
 				iso_file=$(select_iso "$iso_dir")
-				usb_device=$(select_usb "$iso_dir")
+				usb_device=$(select_usb)
 				write_iso "$iso_dir/$iso_file" "$usb_device"
 				;;
 			? )
