@@ -42,7 +42,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="11.0.25216"
+readonly version="11.1.25216"
 FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
@@ -168,6 +168,7 @@ verify_iso() {
 	iso_dir=$(select_directory)
 	isofile=$(select_iso "$iso_dir")
 	checksum=$(select_checksum "$iso_dir")
+	printf "Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.\n"
 	printf "\n%-18s %s\n" "Selected Distro:" "${iso_dir##*/}"
 	printf "%-18s %s\n" "Selected ISO:" "$isofile"
 	printf "%-18s %s\n\n" "Selected Checksum:" "$checksum"
@@ -177,13 +178,8 @@ verify_iso() {
 	status_msg "$?"
 }
 
-check_verify() {
-	check_package fzf
-	printf "Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.\n"
-	verify_iso
-}
-
 main() {
+	check_package fzf
 	local noOpt optstr opt
 	noOpt=1
 	optstr=":hv"
@@ -192,14 +188,14 @@ main() {
 			h )
 				help 0 ;;
 			v )
-				check_verify ;;
+				verify_iso ;;
 			? )
 				printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && check_verify
+	[[ "$noOpt" = 1 ]] && verify_iso
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit
