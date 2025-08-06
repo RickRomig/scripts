@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : clone-repo
-# Description  : Clone a git repository from local Gitea server
+# Description  : Clone a git repository from local Gitea server or GitHub
 # Dependencies : git
 # Arguments    : None
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 16 Jul 2025
+# Updated      : 06 Aug 2025
 # Comments     : clone_repo() is part of functionlib
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,7 +38,33 @@ fi
 
 set -eu
 
+## Global Variables ##
+
+readonly script="${0##*/}"
+readonly version="4.0.25217"
+
 ## Functions ##
+
+help() {
+	local errcode="${1:-2}"
+	local -r updated="06 Aug 2025"
+	cat << _HELP_
+${orange}$script${normal} $version, Upated: $updated
+Clone a git repository from GitHub or the local Gitea server
+
+${green}Usage:${normal} $script [-cfghilsw]
+${orange}Available options:${normal}
+  -c  Clone configs repository
+  -f  Clone fnloc repository
+  -g  Clone gitea server repository
+  -h  Show this help message and exit
+  -i  Clone i3wm-debian repository
+  -l  Clone local homepage repository
+  -s  Clone scripts repository
+  -w  Clone fnloc-win repository
+_HELP_
+  exit "$errcode"
+}
 
 check_repo() {
   local -r git_repo="$1"
@@ -58,32 +84,38 @@ check_repo() {
 }
 
 main() {
-  local array_length index _repo repos script version
-  script="${0##*/}"
-  version="3.9.25197"
-
+  local noOpt opt optstr
+  noOpt=1
+  optstr=":cfghilsw"
   check_package git
-  printf "Clone a repository from the local Gitea server.\n\n"
-  printf "Available repositories:\n"
-  COLUMNS=40
-  PS3="Choose a repository to clone: "
-  repos=( scripts configs i3wm-debian homepage gitea-server fnloc fnloc-win )
-  select _repo in "${repos[@]}" "Exit"; do
-	  if (( REPLY == 1 + ${#repos[@]} )); then
-		  printf "Exiting. No repository selected or cloned.\n"
-		  break
-	  elif (( REPLY > 0 && REPLY <= ${#repos[@]} )); then
-      index=$(( REPLY - 1 ))
-      printf "Cloning the %s repository...\n" "${repos[index]}"
-		  check_repo "${repos[index]}"
-		  break
-	  else
-      array_length="${#repos[@]}"; array_length=$(( array_length + 1 ))
-		  printf "Invalid option. Choose 1 - %d\n" "$array_length"
-	  fi
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      c )
+        check_repo "configs" ;;
+      f )
+        check_repo "fnloc" ;;
+      g )
+        check_repo "gitea-server" ;;
+      h )
+        help 0 ;;
+      i )
+        check_repo "i3wm-debian" ;;
+      l )
+        check_repo "homepage" ;;
+      s )
+        check_repo "scripts" ;;
+      w )
+        check_repo "fnloc-win" ;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+    esac
+		noOpt=0
   done
-  over_line "$script $version"
-  exit
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+	exit
 }
 
 ## Execution ##
