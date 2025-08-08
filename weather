@@ -7,11 +7,10 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 21 Jul 2025
+# Updated      : 08 Aug 2025
 # Comments     : Based on a script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
-# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
 # This program is free software; you can redistribute it and/or modify
@@ -42,18 +41,17 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.16.25202"
+readonly version="6.16.25220"
 
 ## Functions ##
 
 help() {
-  local updated="21 Jul 2025"
+  local updated="08 Aug 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Displays current weather and 3-day forecast for a location.
 
 ${green}Usage:${normal} $script [location]
-
 ${orange}Examples:${normal}
 $script  # No argument uses default location
 $script Cincinnati
@@ -69,16 +67,6 @@ $script "Los Angeles"
 * For help: $script -h or $script --help or Choice 4 in the menu.
 
 _HELP_
-}
-
-show_notice() {
-  local script_dir
-  script_dir=$(dirname "$(readlink -f "${0}")")
-	printf "%s\n" "$script"
-	printf "Displays current weather and 3-day forecast for a location.\n"
-	printf "Copyright (C) 2021, Richard B. Romig\n"
-	printf "Email: rick.romig@gmail.com\n\n"
-	cat "$script_dir/files/gpl_notice.txt"
 }
 
 check_dependencies() {
@@ -112,7 +100,7 @@ wx_forecast() {
   trap cleanup EXIT
   clear
   center_text "$script $version"
-  if curl -so "$tmp_file" "$url/${wx_loc}?u"; then
+  if curl -so "$tmp_file" "$url/${wx_loc}?uA"; then
     sed '1d;/Follow/d' "$tmp_file"
   else
     timeout_exit "$wx_loc"
@@ -264,7 +252,6 @@ menu() {
       "3-day forecast"
       "Change location"
       "Usage/Help"
-      "GPL 2 Notice"
       "Quit"
     )
     PS3="Choice: "
@@ -293,15 +280,11 @@ menu() {
           break
           ;;
         5 )
-          show_notice
-          break
-          ;;
-        6 )
           printf "%sMOTD:%s " "$darkgray" "$normal"
           leave ""
           ;;
         * )
-          printf "%s Invalid choice. Choose 1, 2, 3, 4, 5 or 6\n" "$RED_ERROR" >&2
+          printf "%s Invalid choice. Choose 1, 2, 3, 4, or 5\n" "$RED_ERROR" >&2
       esac
     done
   done
@@ -309,7 +292,7 @@ menu() {
 
 main() {
   local location="${1:-Huber+Heights}"
-  local wx_url="http://wttr.in"
+  local wx_url="https://wttr.in"
   check_dependencies
   is_url_accessible "$wx_url" || diehard "$wx_url is not accessible." "Try again later."
   menu "$wx_url" "$location"
