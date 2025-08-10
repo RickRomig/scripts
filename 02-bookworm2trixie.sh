@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 21 Jul 2025
+# Last updated : 10 Aug 2025
 # Comments     : This scripts updates sources.list & backports.list.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -55,7 +55,7 @@ sources_list() {
 	local list_path="/etc/apt/"
 	local src_list="sources.list"
 	sudo_login 2
-	sudo sed -i.bak 's/http:/https:/;/ftp/s/https:/http:/;s/bookworm/trixie/' "$list_path/$src_list"
+	sudo sed -i.bak 's/http:/https:/g;/ftp/s/https:/http:/;s/bookworm/trixie/g' "$list_path/$src_list"
 }
 
 backports_list() {
@@ -64,8 +64,10 @@ backports_list() {
 	local old_name="bookworm-backports.list"
 	local new_name="trixie-backports.list"
 	sudo_login 2
+	sudo find /etc/apt/sources.list.d -name "*.list" -exec sed -i 's/bookworm/trixie/g' {} \;
 	if [[ -f "$list_path/$old_name" ]]; then
-		sudo sed -i.bak 's/http:/https:/;s/bookworm/trixie/' "$list_path/$old_name"
+		# sudo sed -i.bak 's/http:/https:/;s/bookworm/trixie/' "$list_path/$old_name"
+		sudo cp -v "$list_path/$old_name" "$list_path/$old_name.bak"
 		sudo mv -v "$list_path/$old_name" "$list_path/$new_name"
 	else
 		printf "%s/%s does not exist.\n" "$list_path" "$old_name"
@@ -82,8 +84,8 @@ upgrade_debian() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.2.25202"
-	local updated="21 Jul 2025"
+	local version="1.2.25222"
+	local updated="10 Aug 2025"
 	check_files || die "01-bookworm2trixie.sh must be run first." 1
 	check_package apt-transport-https
 	version_info
