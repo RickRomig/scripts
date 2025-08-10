@@ -98,3 +98,14 @@ echo "123456789" | awk '{printf "%\'d\n", $1}'
 echo "123456789" | sed ':a;s/\B[0-9]\{3\}/,&/;ta'
 123,456,789
 ```
+#### Base and directry names
+- Get the basename of a file:
+```bash
+$ echo "$(basename "$filepath")
+$ echo "${filepath##*/}"
+```
+- Get the directory path of a file:
+```bash
+$ echo "$(dirname "$filepath")
+$ echo "${filepath%/*}
+```
