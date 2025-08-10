@@ -1,0 +1,235 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : sync-repos.sh
+# Description  : Synchronixz Git repository directories
+# Dependencies : rsync
+# Arguments    : See help() function for available options.
+# Author       : Copyright © 2025 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail | rick.romig@mymetronet.net
+# Created      : 10 Aug 2025
+# Updated      : 10 Aug 2025
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+set -eu
+# set -euo pipefail
+
+## Global Variables ##
+
+readonly script="${0##*/}"
+readonly version="1.0.25222"
+
+## Functions ##
+
+help() {
+	local errcode="${1:-2}"
+	local -r updated="10 Aug 2025"
+	cat << _HELP_
+${orange}$script${normal} $version, Upated: $updated
+Synchronixe Git repository and work directories between the main PC, the main
+laptop, the Gitea server, and Network Attached Storage (NAS).
+
+${green}Usage:${normal} $script [-aghlmn]
+${orange}Available options:${normal}
+	-a	Synchronize main PC to main laptop, Gitea, and NAS.
+	-g	Synchronize main PC to Gitea server.
+	-h	Show this help message and exit.
+	-l	Synchronize main PC to main laptop.
+	-m	Synchronize main laptop to main PC.
+	-n	Synchronize main PC to NAS.
+_HELP_
+  exit "$errcode"
+}
+
+valid_host() {
+	local lhost="$1"
+	case "$lhost" in
+		hp-800g2-sff|hp-859-g3 )
+			return "$TRUE" ;;
+		* )
+			return "$FALSE"
+	esac
+}
+
+transfer_status() {
+  # Exit script if transfer fails.
+  local xfr_status="$1"
+  (( xfr_status != 0 )) && die "A transfer failed! Check network status." "$xfr_status"
+}
+
+transfer() {
+  local ip_addr host_ip
+  host_ip="$1"
+  # Skip local machine:
+  ip_addr="$(local_ip)"
+  if [[ "$ip_addr" == "$host_ip" ]]; then
+    printf "%sSkipping Machine %s (local client)%s\n\n" "$green" "$host_ip" "$normal"
+    return
+  fi
+  # Check for machines and sync if on-line:
+  printf "%sChecking for %s...%s\n" "$green" "$host_ip" "$normal"
+  if ping -c 3 "$LOCALNET.$host_ip" >/dev/null 2>&1; then
+    printf "...Syncing to Machine %s\n" "$host_ip"
+    sync_script "$host_ip"
+    printf "\n...Machine %s Synced!\n\n" "$host_ip"
+  else
+    printf "\n...Skipping %s! Not on network.\n\n" "$host_ip"
+  fi
+}
+
+sync_script() {
+	local exit_status=0
+	local hostip="$1"
+
+  printf "\n%sSyncing Git Repositories...%s\n" "$orange" "$normal"
+  rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+  printf "\n%sSyncing Projects Repositories...%s\n" "$orange" "$normal"
+  rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
+  exit_status="$?"
+  transfer_status "$exit_status"
+
+	printf "\n%sSyncing Deb Packages...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/debpkgs/  "$LOCALNET.$hostip":debpkgs/
+	exit_status="$?"
+	transfer_status "$exit_status"
+
+  printf "\n%sSyncing ~/Work ...%s\n" "$orange" "$normal"
+  rsync -avh --delete "$HOME"/Work/ "$LOCALNET.$hostip":Work/
+  exit_status="$?"
+  transfer_status "$exit_status"
+}
+
+sync_all() {
+	local lhost ip_addr ip_addresses mhost
+	ip_addresses=(4 10 16 22)
+	for ip_addr in "${ip_addresses[@]}"; do
+		transfer "$ip_addr"
+	done
+}
+
+sync_gitea() {
+	local ip_addr="16"
+	transfer "$ip_addr"
+}
+
+sync_laptop() {
+	local lhost="$1"
+	local mhost="hp-859-g3"
+	local ip_addr="22"
+	if [[ "$lhost" == "$mhost" ]]; then
+		printf "%s is the local client\nTransfer canceled.\n" "$lhost"
+	else
+		transfer "$ip_addr"
+	fi
+}
+
+sync_main() {
+	local lhost="$1"
+	mhost="hp-800g2-sff"
+	local ip_addr="10"
+	if [[ "$lhost" == "$mhost" ]]; then
+		printf "%s is the local client\nTransfer canceled.\n" "$lhost"
+	else
+		transfer "$ip_addr"
+	fi
+}
+
+sync_nas() {
+	local ip_addr="4"
+	transfer "$ip_addr"
+}
+
+main() {
+	local noOpt opt optstr ip_addr local_host
+  ip_addr="$(local_ip)"
+  local_host="${HOSTNAME:-$(hostname)}"
+	noOpt=1
+	optstr=":aghlmn"
+	check_package rsync
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			a )
+				if valid_host "$local_host"; then
+					sync_all
+				else
+					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
+					help 2
+				fi
+				;;
+			h )
+				help 0
+			;;
+			g )
+				if valid_host "$local_host"; then
+					sync_gitea
+				else
+					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
+					help 2
+				fi
+				;;
+			l )
+				if valid_host "$local_host"; then
+					sync_laptop "$local_host"
+				else
+					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
+					help 2
+				fi
+				;;
+			m )
+				if valid_host "$local_host"; then
+					sync_main "$local_host"
+				else
+					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
+					help 2
+				fi
+				;;
+			n )
+				if valid_host "$local_host"; then
+					sync_nas
+				else
+					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
+					help 2
+				fi
+				;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+	exit
+}
+
+## Execution ##
+
+main "$@"
