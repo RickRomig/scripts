@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jul 2020
-# Updated      : 16 Jul 2025
+# Updated      : 10 Aug 2025
 # Comments     : Uses data from /sys/class/power_supply/BAT*
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -142,7 +142,7 @@ hidpp_battery() {
   printf "\n%sHID++ Battery:%s\n" "$orange" "$normal"
   for hidpp_path in /sys/class/power_supply/hidpp_battery_?; do
     if [[ "$hidpp_path" != "/sys/class/power_supply/hidpp_battery_?" ]]; then
-      printf "\t%sDevice:%s %s\n" "$lightgreen" "$normal" "$(basename "$hidpp_path")"
+      printf "\t%sDevice:%s %s\n" "$lightgreen" "$normal" "${hidpp_path##*}"
       printf "\t%s%s %s:%s %s%%\n" "$lightgreen" "$(cat "$hidpp_path/manufacturer")" "$(cat "$hidpp_path/model_name")" "$normal" "$(cat "$hidpp_path/capacity")"
     else
       printf "\tHID++ battery not present.\n"
@@ -173,7 +173,7 @@ battery_check() {
 
 main() {
   local script="${0##*/}"
-  local version="7.0.25197"
+  local version="7.1.25222"
   clear
   check_package bc
   battery_check
