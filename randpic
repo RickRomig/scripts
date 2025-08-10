@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Jun 2019
-# Updated      : 19 Jul 2025
+# Updated      : 10 Aug 2025
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ##  Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.9.25200"
+readonly version="3.10.25222"
 readonly tmp_pics=$HOME"/tmp/journal"
 
 ## Functions ##
@@ -84,12 +84,12 @@ clear
 while true; do
   # Randomly select an image folder from ~/Pictures/
   pic_dir=$(find ~/Pictures -maxdepth 1 -type d | shuf -n1)
-  sel_dir=$(basename "$pic_dir")
+  sel_dir="${pic_dir##*/}"
   valid_folder "$sel_dir" || continue
 
   # Choose a random image file from the selected folder
   random_file=$(find "$pic_dir" -maxdepth 1 -type f | shuf -n1)
-  pic_file="$(basename "$random_file")"
+  pic_file="${random_file##*/}"
   valid_image "$pic_file" || continue
 
   # Accept or reject selected file
