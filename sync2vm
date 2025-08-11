@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022,Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com
 # Created      : 08 Feb 2022
-# Updated      : 11 Oct 2024
+# Updated      : 10 Aug 2025
 # Comments     : Run frmo KVM/QEMU VM on 192.168.122.0 network
 #              : Copy script to ~/.local/bin on virtual machine.
 # TODO (Rick)  :
@@ -41,8 +41,12 @@ fi
 
 transfer_status() {
   local xfr_status="$1"
-  # Exit script if transfer fails.
-  (( xfr_status != 0 )) && die "A transfer failed! Check network status." 1
+  if [[ "$xfr_status" -eq 0 ]]; then
+		printf "Transfer successful\n"
+	else
+		printf "%s A transfer failed. Code: %d. Check network status.\n" "$RED_ERROR" "$xfr_status" >&2
+		# die "A transfer failed! Check network status." "$xfr_status"
+	fi
 }
 
 sync_script() {
@@ -64,7 +68,7 @@ sync_script() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.1.25201"
+	local -r version="2.2.25222"
   [[ "$LOCALNET" != "192.168.122" && "$LOCALNET" != "10.0.2" ]] && die "Must be run from a KVM/QEMU virtual machine." 1
   check_package rsync
   SECONDS=0
