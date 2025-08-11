@@ -23,6 +23,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 ##########################################################################
+
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
 
@@ -36,12 +37,11 @@ else
 fi
 
 set -eu
-# set -euo pipefail
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.0.25222"
+readonly version="1.1.25222"
 
 ## Functions ##
 
@@ -68,7 +68,7 @@ _HELP_
 valid_host() {
 	local lhost="$1"
 	case "$lhost" in
-		hp-800g2-sff|hp-859-g3 )
+		hp-800g2-sff|hp-850-g3 )
 			return "$TRUE" ;;
 		* )
 			return "$FALSE"
@@ -76,9 +76,13 @@ valid_host() {
 }
 
 transfer_status() {
-  # Exit script if transfer fails.
   local xfr_status="$1"
-  (( xfr_status != 0 )) && die "A transfer failed! Check network status." "$xfr_status"
+  if [[ "$xfr_status" -eq 0 ]]; then
+		printf "Transfer successful\n"
+	else
+		printf "%s A transfer failed. Code: %d. Check network status.\n" "$RED_ERROR" "$xfr_status" >&2
+		# die "A transfer failed! Check network status." "$xfr_status"
+	fi
 }
 
 transfer() {
@@ -170,7 +174,7 @@ main() {
 	local noOpt opt optstr ip_addr local_host
   ip_addr="$(local_ip)"
   local_host="${HOSTNAME:-$(hostname)}"
-	noOpt=1
+	noOpt="1"
 	optstr=":aghlmn"
 	check_package rsync
 	while getopts "$optstr" opt; do
