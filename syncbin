@@ -6,7 +6,7 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Last updated : 20 Jul 2025
+# Last updated : 10 Aug 2025
 # Comments     : Can sync to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -44,14 +44,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.1.25201"
+readonly version="7.2.25222"
 SECONDS=0
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="20 Jul 2025"
+  local updated="10 Aug 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Synchrnizes ~/bin with remote hosts.
@@ -81,7 +81,13 @@ _HELP_
 transfer_status() {
   # Exit script if transfer fails.
   local xfr_status="$1"
-  (( xfr_status != 0 )) && die "A transfer failed! Check network status." "$xfr_status"
+  if [[ "$xfr_status" -eq 0 ]]; then
+		printf "Transfer successful\n"
+	else
+		printf "%s A transfer failed. Code: %d. Check network status.\n" "$RED_ERROR" "$xfr_status" >&2
+		# die "A transfer failed! Check network status." "$xfr_status"
+	fi
+	# set +x
 }
 
 transfer() {
