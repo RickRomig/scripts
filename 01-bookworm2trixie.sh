@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 21 Jul 2025
+# Last updated : 11 Aug 2025
 # Comments     : This script updates current Debian 12 before upgrade.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -57,14 +57,14 @@ version_info() {
 upgrade_packages() {
 	sudo_login 2
 	sudo apt update
-	sudo apt full upgrade -y
+	sudo apt full-upgrade -y
 	sudo apt autoremove --purge -y
 }
 
 main() {
 	local script="${0##*/}"
-	local version="1.1.25202"
-	local updated="21 Jul 2025"
+	local version="1.1.25223"
+	local updated="11 Aug 2025"
 	check_codename || die "This is not Debian 12 Bookworm" 1
 	check_files && die "This script has already been run." 1
 	version_info
