@@ -52,7 +52,7 @@ help() {
 ${orange}$script${normal} $version ($updated)
 Syncs directories with machines on the network via SSH
 
-${green}Usage:${normal} $script [-h|--help] [-a|--all] [ip1 ip2 ip3 ...] [-N]
+${green}Usage:${normal} $script [-h|--help] [-a|--all] [ip1 ip2 ip3 ...]
 ${orange}Available options:${normal}
   -h | --help  Show this help message and exit.
   -a | --all   Synchronize all designated machines on the network.
@@ -73,20 +73,14 @@ _HELP_
   exit "$errcode"
 }
 
-show_notice() {
-  local script_dir
-  script_dir=$(dirname "$(readlink -f "${0}")")
-	printf "%s\n" "$script"
-	printf "Syncs directories with machines on the network via SSH.\n"
-	printf "Copyright (C) 2020, Richard B. Romig\n"
-	printf "Email: rick.romig@gmail.com\n\n"
-	cat "$script_dir/files/gpl_notice.txt"
-}
-
 transfer_status() {
-  # Exit script if transfer fails.
   local xfr_status="$1"
-  (( xfr_status != 0 )) && die "A transfer failed! Check network status." "$xfr_status"
+  if [[ "$xfr_status" -eq 0 ]]; then
+		printf "Transfer successful\n"
+	else
+		printf "%s A transfer failed. Code: %d. Check network status.\n" "$RED_ERROR" "$xfr_status" >&2
+		# die "A transfer failed! Check network status." "$xfr_status"
+	fi
 }
 
 transfer() {
@@ -265,8 +259,6 @@ main() {
   elif [[ "$1" == "-a" || "$1" == "--all" ]]; then
     check_host
     sync_all
-  elif [[ "$1" == "-N" ]]; then
-    show_notice
   elif [[ "$#" -gt 1 ]]; then
     check_host
     sync_some "$@"
