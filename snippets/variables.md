@@ -98,14 +98,19 @@ echo "123456789" | awk '{printf "%\'d\n", $1}'
 echo "123456789" | sed ':a;s/\B[0-9]\{3\}/,&/;ta'
 123,456,789
 ```
-#### Base and directry names
+#### Base and directory names
 - Get the basename of a file:
 ```bash
 $ echo "$(basename "$filepath")
 $ echo "${filepath##*/}"
+$ script=$(basename "$0")
+$ script="${0##*/}"
 ```
 - Get the directory path of a file:
 ```bash
-$ echo "$(dirname "$filepath")
-$ echo "${filepath%/*}
+$ echo "$(dirname "$filepath")		# displays . or .. [/directory] (full path if not $PWD or subdirectory )
+$ echo "${filepath%/*}			# displays full path
+$ script_dir=$(dirname "$(readlink -f "${0}")")			# displays full path
+$ script_dir=$(dirname "$0")		# displays . or .. [/directory] (full path if not $PWD or subdirectory )
+$ script_dir="${0%/*}"		# displays . or .. [/directory] (full path if not $PWD or subdirectory )
 ```
