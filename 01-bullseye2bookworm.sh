@@ -57,7 +57,7 @@ version_info() {
 upgrade_packages() {
 	sudo_login 2
 	sudo apt update
-	sudo apt full upgrade -y
+	sudo apt full-upgrade -y
 	sudo apt autoremove --purge -y
 }
 
