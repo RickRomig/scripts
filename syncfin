@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com
 # Created      : 11 Mar 2022
-# Updated      : 14 Jul 2025
+# Updated      : 10 Aug 2025
 # Comments     : No longer in use.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -43,9 +43,13 @@ SECONDS=0
 ## Functions ##
 
 transfer_status() {
-  # Exit script if transfer fails.
   local xfr_status="$1"
-  (( xfr_status != 0 )) && die "A transfer failed! Check network status." "$xfr_status"
+  if [[ "$xfr_status" -eq 0 ]]; then
+		printf "Transfer successful\n"
+	else
+		printf "%s A transfer failed. Code: %d. Check network status.\n" "$RED_ERROR" "$xfr_status" >&2
+		# die "A transfer failed! Check network status." "$xfr_status"
+	fi
 }
 
 transfer_to_fin() {
@@ -148,7 +152,7 @@ check_host() {
 
 main() {
   local script="${0##*/}"
-  local version="4.2.25195"
+  local version="4.3.25222"
   box "$script $version" "*"
   check_host
   over_line "Syncronization completed in $(format_time $SECONDS)" "-"
