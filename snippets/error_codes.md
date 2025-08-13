@@ -16,6 +16,18 @@ BASH Error Codes
 130 Bash script terminated by Control-C
 255 Exit status out of range
 
+## BASH strict mode
+- `set -e`
+  - May fail with (( arithmetic-operation )) if variable or answer is 0
+  - Avoid using, add your own error checking.
+- `set -u`
+  - should only be used in development. In a production script, every variable should be bound and set.
+  - `echo "{foo?}" expands only if the variable is set.
+- `set -o pipefail`
+  - `cat /usr/share/dict/words | head =n1` will fail because once the first line is received by head, it closes the pipe while cat is still sending output to the pipe.
+
+## Error handling functions
+
 ```bash
 function error_exit() {
     echo "${_script}: ${1:-"Unknown Error"}" 1>&2
