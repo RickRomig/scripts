@@ -71,7 +71,7 @@ main() {
   local -r script="${0##*/}"
   local -r version="1.0.25225"
   check_package git
-  printf "Updating cloned repositories...\n"
+  printf "Updating cloned repositories...\n\n"
   pull_configs
   pull_scripts
   pull_i3wm_debian
