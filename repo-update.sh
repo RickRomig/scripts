@@ -47,7 +47,7 @@ pull_configs() {
 
 pull_i3wm_debian() {
 	local -r repo_dir="$HOME/i3wm-debian"
-	[[ -d "$repo_dir" ]] || repo_dir="$HOME//Downloadsi3wm-debian"
+	[[ -d "$repo_dir" ]] || repo_dir="$HOME/Downloads/i3wm-debian"
 	git_pull_repo "$repo_dir"
 }
 
