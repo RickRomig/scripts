@@ -60,7 +60,7 @@ git_pull_repo() {
 	if [[ -d "$repo_dir" ]]; then
 		pushd "$repo_dir" || die "pushd failed"
 		git pull
-		popd </dev/null 2>&1 || die "popd failed"
+		popd >/dev/null 2>&1 || die "popd failed"
 		printf "\n"
 	else
 		printf "%s repository has not been cloned to this computer.\n" "${repo_dir##*/}"
