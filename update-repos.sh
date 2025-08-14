@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : repo-update.sh
+# Script Name  : update-repos.sh
 # Description  : update cloned repositories using git pull
 # Dependencies : git
 # Arguments    : See help() function for available options.
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Aug 2025
-# Last updated : 13 Aug 2025
+# Last updated : 14 Aug 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,7 +36,7 @@ else
   exit 1
 fi
 
-set -eu
+# set -eu
 
 ## Functions ##
 
@@ -46,7 +46,7 @@ pull_configs() {
 }
 
 pull_i3wm_debian() {
-	local -r repo_dir="$HOME/i3wm-debian"
+	local repo_dir="$HOME/i3wm-debian"
 	[[ -d "$repo_dir" ]] || repo_dir="$HOME/Downloads/i3wm-debian"
 	git_pull_repo "$repo_dir"
 }
@@ -60,6 +60,7 @@ git_pull_repo() {
 	local -r repo_dir="$1"
 	if [[ -d "$repo_dir" ]]; then
 		pushd "$repo_dir" || die "pushd failed"
+		git checkout .
 		git pull
 		popd >/dev/null 2>&1 || die "popd failed"
 		printf "\n"
@@ -70,7 +71,7 @@ git_pull_repo() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.0.25225"
+  local -r version="1.1.25226"
   check_package git
   printf "Updating cloned repositories...\n\n"
   pull_configs
