@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 08 Aug 2025
+# Updated      : 16 Aug 2025
 # Comments     : Based on a script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -41,12 +41,12 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.16.25220"
+readonly version="6.17.25228"
 
 ## Functions ##
 
 help() {
-  local updated="08 Aug 2025"
+  local updated="16 Aug 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Displays current weather and 3-day forecast for a location.
@@ -91,6 +91,11 @@ is_url_accessible() {
   url="$1"
   result=$(curl --head --connect-timeout 8 --max-time 14 --silent --output /dev/null --write-out '%{http_code}' "$url")
   [[ "$result" -eq 200 ]] && return "$TRUE" || return "$FALSE"
+}
+
+exit_script() {
+  printf "%sMOTD:%s " "$darkgray" "$normal"
+  leave ""
 }
 
 wx_forecast() {
@@ -280,8 +285,7 @@ menu() {
           break
           ;;
         5 )
-          printf "%sMOTD:%s " "$darkgray" "$normal"
-          leave ""
+          exit_script
           ;;
         * )
           printf "%s Invalid choice. Choose 1, 2, 3, 4, or 5\n" "$RED_ERROR" >&2
@@ -294,7 +298,7 @@ main() {
   local location="${1:-Huber+Heights}"
   local wx_url="https://wttr.in"
   check_dependencies
-  is_url_accessible "$wx_url" || diehard "$wx_url is not accessible." "Try again later."
+  is_url_accessible "$wx_url" || { printf "%s is not accessible.\nTry again later.\n" "$wx_url" ; exit_script; }
   menu "$wx_url" "$location"
 }
 
