@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 09 Aug 2025
+# Last updated : 15 Aug 2025
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,8 +36,6 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly old_configs="$HOME/old-configs/"
@@ -52,13 +50,13 @@ link_dotfiles() {
 		.bash_aliases
 		.bashrc
 		.bash_logout
-		.curlrc
 		.face
 		.imwheelrc
 		.inputrc
 		.profile
-		.wgetrc
 	)
+	[[ -f "$HOME/.curlrc" ]] && rm .curlrc
+	[[ -f "$HOME/.wgetrc" ]] && rm .wgetrc
 	printf "\e[93m93mLinking dotfiles ...\e[0m\n"
 	for dot_file in "${dot_files[@]}"; do
 		printf "\e[93mLinking %s ...\e[0m\n" "$dot_file"
@@ -69,10 +67,10 @@ link_dotfiles() {
 
 # Link configuration files to directories in ~/.config
 link_configs() {
-	local file files
+	local cfg_file cfg_files
 	local repo_dir="$1"
 	local -r config_dir="$HOME/.config"
-	files=(
+	cfg_files=(
 		"bat/config"
 		"dunst/dunstrc"
 		"fastfetch/config.jsonc"
@@ -91,16 +89,16 @@ link_configs() {
 		"terminator/config"
 		"VSCodium/User/settings.json"
 	)
-	for file in "${files[@]}"; do
-		if [[ -f "$config_dir/$file" ]]; then
-			printf "\e[93mLinking %s to %s ...\e[0m\n" "$repo_dir/$file" "$config_dir"
-			if [[ "$file" == "redshift.conf" ]]; then
-				mv -v "$config_dir/$file" "$old_configs/"
+	for cfg_file in "${cfg_files[@]}"; do
+		if [[ -f "$config_dir/$cfg_file" ]]; then
+			printf "\e[93mLinking %s to %s ...\e[0m\n" "$repo_dir/$cfg_file" "$config_dir"
+			if [[ "$cfg_file" == "redshift.conf" ]]; then
+				mv -v "$config_dir/$cfg_file" "$old_configs/"
 			else
-				[[ -d "$old_configs/${file%/*}" ]] || mkdir -p "$old_configs/${file%/*}"
-				mv -v "$config_dir/$file" "$old_configs/${file%/*}/${file##*/}"
+				[[ -d "$old_configs/${cfg_file%/*}" ]] || mkdir -p "$old_configs/${cfg_file%/*}"
+				mv -v "$config_dir/$cfg_file" "$old_configs/${cfg_file%/*}/${cfg_file##*/}"
 			fi
-			ln -sv "$repo_dir/$file" "$config_dir/$file"
+			ln -sv "$repo_dir/$cfg_file" "$config_dir/$cfg_file"
 		fi
 	done
 	[[ -d "$HOME/.config/micro/plug/bookmark" ]] || micro -plugin install bookmark
@@ -108,12 +106,17 @@ link_configs() {
 
 # Add tweaks to /etc/sudoers.d directory and set swappiness
 set_system_tweaks() {
+	local repo_dir="$1"
 	printf "\e[93mApplying password feeback...\e[0m\n"
-	if [[ ! -f "/etc/sudoers.d/0pwfeedback" ]]; then
+	if [[ -f "/etc/sudoers.d/0pwfeedback" ]]; then
+		printf "Sudo password feedback is already enabled with 0pwfeedback\n"
+	else
 		sudo cp -v "$repo_dir/sudoers/0pwfeedback" /etc/sudoers.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
 		sudo chmod 440 /etc/sudoers.d/0pwfeedback
 	fi
-	if [[ ! -f "/etc/sudoers.d/10timeout" ]]; then
+	if [[ -f "/etc/sudoers.d/10timeout" ]]; then
+		printf "Sudo timeout has already been set.\n"
+	else
 		printf "\e[93mApplying sudo timeout...\e[0m\n"
 		sudo cp -v "$repo_dir/sudoers/10timeout" /etc/sudoers.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
 		sudo chmod 440 /etc/sudoers.d/10timeout
@@ -150,13 +153,13 @@ link_script_dir() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.0.25221"
+  local -r version="1.1.25227"
 	local repo_dir
 	repo_dir=$(assign_cfg_repo)
 	[[ -d "$old_configs" ]] || mkdir -p "$old_configs"
 	link_dotfiles "$repo_dir"
 	link_configs "$repo_dir"
-	set_system_tweaks
+	set_system_tweaks "$repo_dir"
 	link_script_dir
   over_line "$script $version"
   exit
