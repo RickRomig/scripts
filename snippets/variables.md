@@ -114,3 +114,40 @@ $ script_dir=$(dirname "$(readlink -f "${0}")")			# displays full path
 $ script_dir=$(dirname "$0")		# displays . or .. [/directory] (full path if not $PWD or subdirectory )
 $ script_dir="${0%/*}"		# displays . or .. [/directory] (full path if not $PWD or subdirectory )
 ```
+### Arrays
+1. Indexed arrays
+	- Declaring indexed arrays:
+```bash
+$ declare -a arr
+$ arr=()
+$ arr=(foo bar baz)
+```
+	- Accessing the array:
+```bash
+$ echo "${arr[*]}"
+foo bar baz
+$ echo "${arr[@]}"
+foo bar baz
+$ printf "<%s>\n" "${arr[*]}"	# '*' stringifies the elements of the array
+<foo bar baz>
+foo bar baz
+$ printf "<%s>\n" "${arr[@]}"	# '@' interates the elements of the array
+<foo>
+<bar>
+<baz>
+```
+	- Should always use quotes and {} brackets when accessing array elements.
+2. Associative arrays
+	- Declaring associative arrays:
+```bash
+$ declare -A arr
+$ declare -A arr || exit 1	# test to see if your version bash supports associative arrays
+```
+	- Assigning keys and elements to associative arrays:
+```bash
+
+```
+	- Accessing associative arrays:
+```bash
+
+```
