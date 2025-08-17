@@ -7,10 +7,10 @@
 # Author       : Copyright (C) 2022,Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com
 # Created      : 08 Feb 2022
-# Updated      : 10 Aug 2025
-# Comments     : Run frmo KVM/QEMU VM on 192.168.122.0 network
+# Updated      : 17 Aug 2025
+# Comments     : Run from KVM/QEMU VM on 192.168.122.0 network
 #              : Copy script to ~/.local/bin on virtual machine.
-# TODO (Rick)  :
+# TODO (Rick)  : Retire. No longer needed.
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
@@ -45,7 +45,6 @@ transfer_status() {
 		printf "Transfer successful\n"
 	else
 		printf "%s A transfer failed. Code: %d. Check network status.\n" "$RED_ERROR" "$xfr_status" >&2
-		# die "A transfer failed! Check network status." "$xfr_status"
 	fi
 }
 
@@ -61,14 +60,14 @@ sync_script() {
 	exit_status="$?"
 	transfer_status "$exit_status"
   printf "\n%sSyncing .local/share/doc...%s\n" "$orange" "$normal"
-  rsync -avzh --delete rick@"$gateway_ip":.local/share/doc/ "$HOME"/.local/share/doc/
+  rsync -avzh --delete --exclude 'leave.txt' rick@"$gateway_ip":.local/share/doc/ "$HOME"/.local/share/doc/
   exit_status="$?"
   transfer_status "$exit_status"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.2.25222"
+	local -r version="2.3.25229"
   [[ "$LOCALNET" != "192.168.122" && "$LOCALNET" != "10.0.2" ]] && die "Must be run from a KVM/QEMU virtual machine." 1
   check_package rsync
   SECONDS=0
