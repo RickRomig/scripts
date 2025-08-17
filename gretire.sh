@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 22 Jul 2025
+# Last updated : 17 Aug 2025
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
 # TODO (Rick)  :
@@ -37,8 +37,6 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Functions ##
 
 check_dependencies() {
@@ -47,22 +45,23 @@ check_dependencies() {
 }
 
 retire_script() {
-  local retired
   local filename="$1"
+  local retired_name
   local archive="retired-scripts.zip"
   local archive_d="$HOME//Downloads/archives"
-  retired="${filename}.$(date +'%y%j')"
-  git mv "$filename" "$retired"
-  git commit -m "$filename renamed to $retired for retirement and archiving." --no-verify
-  zip -u "$archive_d/$archive" "$retired"
-  git rm "$retired"
-  git commit -m "$retired was retired and archived." --no-verify
+  retired_name="${filename}.$(date +'%y%j')"
+  git mv "$filename" "$retired_name"
+  git commit -m "$filename renamed to $retired_name for retirement and archiving." --no-verify
+  zip -u "$archive_d/$archive" "$retired_name"
+  git rm "$retired_name"
+  git commit -m "$retired_name was retired and archived." --no-verify
   git push
 }
 
 main() {
   local script="${0##*/}"
-	local version="2.4.25203"
+	local version="2.5.25229"
+  local filename
   [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || die "You are not in a git repositiory." 1
   if [[ "$#" -eq "0" ]]; then
     read -rp "Enter the name of the script to be retired: " filename
