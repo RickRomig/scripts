@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 17 Jul 2025
+# Updated      : 18 Aug 2025
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,7 +41,7 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.6.25198"
+readonly version="2.7.25230"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
@@ -50,10 +50,10 @@ verbose_mode="$FALSE"
 
 help() {
 	local errcode="${1:-2}"
-	local updated="17 Jul 2025"
+	local updated="18 Aug 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
-Install/Removes VSCodium & applies settings
+Install/Remove VSCodium and apply settings
 
 ${green}Usage:${normal} $script [-h] [-va] [-vi] [-vr] [-vs]
 
@@ -78,23 +78,23 @@ codium_version() {
 	dpkg -l codium | awk '/ii/ {print $3}'
 }
 
-set_key() {
+set_gpg_key() {
 	local -r key_url="https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg"
 	wget "$key_url"
 	show_message "Setting the GPG key..."
 	sudo mv pub.gpg "$key_file"
 }
 
-set_src() {
+set_src_list() {
 	local -r src_url="https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main"
 	show_message "Creating the source list file..."
-	echo "deb [ signed-by=$key_file ] $src_url" | sudo tee "$src_list" > /dev/null
+	echo "deb [ signed-by=$key_file arch=amd64 ] $src_url" | sudo tee "$src_list" > /dev/null
 }
 
 install_vscodium() {
 	show_message "Installing VSCodium..."
-	set_key
-	set_src
+	set_gpg_key
+	set_src_list
 	sudo apt-get update
 	sudo apt-get install codium
 	apply_settings
@@ -143,8 +143,8 @@ main() {
 				# Set apt gpg key and source list
 				if exists codium; then
 					sudo_login 2
-					set_key
-					set_src
+					set_gpg_key
+					set_src_list
 				else
 					printf "VSCodium is not installed.\n" >&2
 				fi
