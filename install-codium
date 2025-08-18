@@ -36,14 +36,13 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.7.25230"
+readonly version="2.8.25230"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
+readonly settings_dir="$HOME/.config/VSCodium/User"
 verbose_mode="$FALSE"
 
 ## Functions ##
@@ -102,8 +101,7 @@ install_vscodium() {
 }
 
 apply_settings() {
-	local repository settings_dir
-	settings_dir="$1"
+	local repository
 	repository=$(assign_cfg_repo)
 	[[ -d "$settings_dir" ]] || mkdir -p "$settings_dir"
   show_message "Applying VSCodium settings..."
@@ -113,7 +111,6 @@ apply_settings() {
 }
 
 remove_vscodium() {
-	local	settings_dir="$1"
 	show_message "Removing VSCodium..."
 	sudo apt-get purge codium
 	show_message "Removing VSCodium GPG key ..."
@@ -133,8 +130,7 @@ show_message() {
 
 main() {
 	# check_dependencies
-  local noOpt opt optstr settings_dir
-	settings_dir="$HOME/.config/VSCodium/User"
+  local noOpt opt optstr
 	noOpt=1
 	optstr=":ahirsv"
 	while getopts "$optstr" opt; do
@@ -165,7 +161,7 @@ main() {
 				# Remove VSCodium
 				if exists codium; then
 					sudo_login 2
-					remove_vscodium "$settings_dir"
+					remove_vscodium
 				else
 					printf "VSCodium is not installed.\n" >&2
 				fi
@@ -173,7 +169,7 @@ main() {
 			s )
 				# Apply VSCodium settings
 				if exists codium; then
-					apply_settings "$settings_dir"
+					apply_settings
 				else
 					printf "VSCodium is not installed.\n" >&2
 				fi
