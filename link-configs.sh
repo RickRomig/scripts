@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : link-configs.sh
 # Description  : Create symbolic links for configuration files.
-# Dependencies : None
+# Dependencies : git
 # Arguments    : See help() function for available options.
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 15 Aug 2025
+# Last updated : 17 Aug 2025
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,14 +38,34 @@ fi
 
 ## Global Variables ##
 
+readonly script="${0##*/}"
+readonly version="2.0.25229"
 readonly old_configs="$HOME/old-configs/"
 
 ## Functions ##
 
+help() {
+	local errcode="${1:-2}"
+	local -r updated="17 Aug 2025"
+	cat << _HELP_
+${orange}$script${normal} $version, Upated: $updated
+Create symbolic links from configs and scripts repos.
+
+${green}Usage:${normal} $script [-cdhst]
+${orange}Available options:${normal}
+	-c	Symlink configuration files to ~/.config
+	-d	Symlink dot files to ~/
+	-h	Show this help message and exit
+	-s	Symlink scripts to ~/bin
+	-t	Apply tweaks to /etc/sudoers.d and /etc/sysctl.conf
+_HELP_
+  exit "$errcode"
+}
+
 # Create symbolic links to dotfiles in the home directory
-link_dotfiles() {
-	local dot_file dot_files
-	local repo_dir="$1"
+link_dot_files() {
+	local dot_file dot_files repo_dir
+	repo_dir=$(assign_cfg_repo)
 	dot_files=(
 		.bash_aliases
 		.bashrc
@@ -66,9 +86,9 @@ link_dotfiles() {
 }
 
 # Link configuration files to directories in ~/.config
-link_configs() {
-	local cfg_file cfg_files
-	local repo_dir="$1"
+link_config_files() {
+	local cfg_file cfg_files repo_dir
+	repo_dir=$(assign_cfg_repo)
 	local -r config_dir="$HOME/.config"
 	cfg_files=(
 		"bat/config"
@@ -106,7 +126,8 @@ link_configs() {
 
 # Add tweaks to /etc/sudoers.d directory and set swappiness
 set_system_tweaks() {
-	local repo_dir="$1"
+	local repo_dir
+	repo_dir=$(assign_cfg_repo)
 	printf "\e[93mApplying password feeback...\e[0m\n"
 	if [[ -f "/etc/sudoers.d/0pwfeedback" ]]; then
 		printf "Sudo password feedback is already enabled with 0pwfeedback\n"
@@ -122,7 +143,7 @@ set_system_tweaks() {
 		sudo chmod 440 /etc/sudoers.d/10timeout
 	fi
 	printf "\e[93mApplying swappiness...\e[0m\n"
-	grep -q 'vm.swappiness=10' || echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
+	grep -q 'vm.swappiness=10' /etc/sysctl.conf || echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
 }
 
 assign_scripts_repo() {
@@ -148,19 +169,35 @@ link_script_dir() {
 	script_repo=$(assign_scripts_repo)
 	printf "\e[93mLinking scripts repo to ~/bin...\e[0m\n"
 	[[ -d "$HOME/bin" ]] && rm -rf "${HOME:?}/bin"
-	ln -vs "$script_repo/" "$HOME/bin"
+	ln -sv "$script_repo/" "$HOME/bin"
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="1.1.25227"
-	local repo_dir
-	repo_dir=$(assign_cfg_repo)
-	[[ -d "$old_configs" ]] || mkdir -p "$old_configs"
-	link_dotfiles "$repo_dir"
-	link_configs "$repo_dir"
-	set_system_tweaks "$repo_dir"
-	link_script_dir
+	local noOpt opt optstr
+	noOpt=1
+	optstr=":cdhst"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			c )
+				[[ -d "$old_configs" ]] || mkdir -p "$old_configs"
+				link_config_files ;;
+			d )
+				[[ -d "$old_configs" ]] || mkdir -p "$old_configs"
+				link_dot_files ;;
+			h )
+				help 0 ;;
+			s )
+				link_script_dir ;;
+			t )
+				set_system_tweaks ;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   exit
 }
