@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 10 Aug 2025
-# Updated      : 10 Aug 2025
+# Updated      : 21 Aug 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,31 +36,27 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.1.25222"
+readonly version="2.0.25233"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="10 Aug 2025"
+	local -r updated="21 Aug 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Synchronixe Git repository and work directories between the main PC, the main
-laptop, the Gitea server, and Network Attached Storage (NAS).
+laptop, and the Gitea server,
 
-${green}Usage:${normal} $script [-aghlmn]
+${green}Usage:${normal} $script [-ghlm]
 ${orange}Available options:${normal}
-	-a	Synchronize main PC to main laptop, Gitea, and NAS.
-	-g	Synchronize main PC to Gitea server.
+	-g	Synchronize repositories to Gitea server.
 	-h	Show this help message and exit.
-	-l	Synchronize main PC to main laptop.
-	-m	Synchronize main laptop to main PC.
-	-n	Synchronize main PC to NAS.
+	-l	Synchronize repositories to HP 850 G3.
+	-m	Synchronize repositories to HP 800 G2.
 _HELP_
   exit "$errcode"
 }
@@ -81,27 +77,27 @@ transfer_status() {
 		printf "Transfer successful\n"
 	else
 		printf "%s A transfer failed. Code: %d. Check network status.\n" "$RED_ERROR" "$xfr_status" >&2
-		# die "A transfer failed! Check network status." "$xfr_status"
 	fi
 }
 
 transfer() {
-  local ip_addr host_ip
+  local ip_addr host_ip remote_host
   host_ip="$1"
+	remote_host="$2"
   # Skip local machine:
   ip_addr="$(local_ip)"
   if [[ "$ip_addr" == "$host_ip" ]]; then
-    printf "%sSkipping Machine %s (local client)%s\n\n" "$green" "$host_ip" "$normal"
+    printf "%sSkipping %s (local client)%s\n\n" "$green" "$remote_host" "$normal"
     return
   fi
   # Check for machines and sync if on-line:
-  printf "%sChecking for %s...%s\n" "$green" "$host_ip" "$normal"
+  printf "%sChecking for %s...%s\n" "$green" "$remote_host" "$normal"
   if ping -c 3 "$LOCALNET.$host_ip" >/dev/null 2>&1; then
-    printf "...Syncing to Machine %s\n" "$host_ip"
+    printf "...Syncing to %s\n" "$remote_host"
     sync_script "$host_ip"
-    printf "\n...Machine %s Synced!\n\n" "$host_ip"
+    printf "\n... %s Synced!\n\n" "$remote_host"
   else
-    printf "\n...Skipping %s! Not on network.\n\n" "$host_ip"
+    printf "\n...Skipping %s! Not on network.\n\n" "$remote_host"
   fi
 }
 
@@ -130,44 +126,22 @@ sync_script() {
   transfer_status "$exit_status"
 }
 
-sync_all() {
-	local lhost ip_addr ip_addresses mhost
-	ip_addresses=(4 10 16 22)
-	for ip_addr in "${ip_addresses[@]}"; do
-		transfer "$ip_addr"
-	done
+sync_to_gitea() {
+	local -r remote_host="hp-8300-usdt"
+	local -r ip_addr="16"
+	transfer "$ip_addr" "$remote_host"
 }
 
-sync_gitea() {
-	local ip_addr="16"
-	transfer "$ip_addr"
+sync_to_laptop() {
+	local -r remote_host="hp-850-g3"
+	local -r ip_addr="22"
+	transfer "$ip_addr" "$remote_host"
 }
 
-sync_laptop() {
-	local lhost="$1"
-	local mhost="hp-859-g3"
-	local ip_addr="22"
-	if [[ "$lhost" == "$mhost" ]]; then
-		printf "%s is the local client\nTransfer canceled.\n" "$lhost"
-	else
-		transfer "$ip_addr"
-	fi
-}
-
-sync_main() {
-	local lhost="$1"
-	mhost="hp-800g2-sff"
-	local ip_addr="10"
-	if [[ "$lhost" == "$mhost" ]]; then
-		printf "%s is the local client\nTransfer canceled.\n" "$lhost"
-	else
-		transfer "$ip_addr"
-	fi
-}
-
-sync_nas() {
-	local ip_addr="4"
-	transfer "$ip_addr"
+sync_to_main() {
+	local -r remote_host="hp-800g2-sff"
+	local -r ip_addr="10"
+	transfer "$ip_addr" "$remote_host"
 }
 
 main() {
@@ -175,13 +149,13 @@ main() {
   ip_addr="$(local_ip)"
   local_host="${HOSTNAME:-$(hostname)}"
 	noOpt="1"
-	optstr=":aghlmn"
+	optstr=":ghlm"
 	check_package rsync
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			a )
+			g )
 				if valid_host "$local_host"; then
-					sync_all
+					sync_to_gitea
 				else
 					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
 					help 2
@@ -190,17 +164,9 @@ main() {
 			h )
 				help 0
 			;;
-			g )
-				if valid_host "$local_host"; then
-					sync_gitea
-				else
-					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
-					help 2
-				fi
-				;;
 			l )
 				if valid_host "$local_host"; then
-					sync_laptop "$local_host"
+					sync_to_laptop "$local_host"
 				else
 					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
 					help 2
@@ -208,15 +174,7 @@ main() {
 				;;
 			m )
 				if valid_host "$local_host"; then
-					sync_main "$local_host"
-				else
-					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
-					help 2
-				fi
-				;;
-			n )
-				if valid_host "$local_host"; then
-					sync_nas
+					sync_to_main "$local_host"
 				else
 					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
 					help 2
