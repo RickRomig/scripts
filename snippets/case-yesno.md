@@ -23,7 +23,7 @@ done
 ```bash
 while true; do
   read -rp "Do you wish to continue? [yes/no]? " yesno
-  case "$yesno" in 
+  case "$yesno" in
     yes )
       echo "Continue..."
       break
@@ -82,4 +82,9 @@ askyn() {
 		esac
 	done
 }
+```
+#### Simple confirmation
+```bash
+read -rp "Do you want to continue (y/n) " confirm
+[[ ! "$confirm" =~ ^[Yy]$ ]] && { printf "Installation canceled.\n" >&2; exit; }
 ```
