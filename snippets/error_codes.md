@@ -30,7 +30,7 @@ BASH Error Codes
 
 ```bash
 function error_exit() {
-    echo "${_script}: ${1:-"Unknown Error"}" 1>&2
+    echo "${script}: ${1:-"Unknown Error"}" 1>&2
     exit 1
 }
 
@@ -77,4 +77,7 @@ error() {
 [[ "$1" ]] || error "Error message\nFurther information"
 [[ -f "$1" ]] || error "$1 - file does not exist."
 [[ "$2" ]] || (echo "Message 1";error "$1 exists";echo "Exiting script.")
+
+die() { echo -e "\e[91mERROR:$*\e[0m" >&2; exit 1; }
+msg() { echo -e "\e[93m$*\e[0m"; }
 ```
