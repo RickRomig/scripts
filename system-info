@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 20 Jul 2025
+# Updated:     : 25 Aug 2025
 # Comments     : Rewrite of version 2.5.0
 #              : Will not get desktop session info from an SSH connection. Run locally.
 # TODO (Rick)  :
@@ -184,15 +184,12 @@ graphics_info() {
 
 mac_mfgr() {
   local mac_addr mfgr oui_addr oui_file
-  mac_addr="$1"
-  oui_file="/usr/share/ieee-data/oui.txt"
-	oui_addr=$(echo "$mac_addr" | sed 's/:/-/g' | cut -d '-' -f1,2,3 | tr '[:lower:]' '[:upper:]')
-	mfgr=$(grep -m 1 -i "$oui_addr" "$oui_file" )
-	if [[ "$mfgr" ]]; then
-		echo "$mfgr" | awk '{$1=""; $2=""; gsub("^  ", ""); print $0}'
-	else
-		echo "Not found"
-	fi
+  mac_addr="${1^^}"
+  oui_file="/usr/share/ieee-data/oui.csv"
+	oui_addr=$(echo "$mac_addr" | cut -d ':' -f1,2,3 | sed 's/://g')
+  mfgr=$(grep -m 1 "$oui_addr" "$oui_file" | cut -d',' -f3 )
+  [[ "$mfgr" ]] || mfgr="Unknown"
+  echo "$mfgr"
 }
 
 wired_info() {
@@ -266,7 +263,7 @@ battery_info() {
     battery_serial=$(echo "$battery_data" | awk -F= '/SERIAL/ {print $NF}')
     [[ -z "$battery_serial" || "$battery_serial" == " " ]] && battery_serial="Not specified"
     printf "%s\n" "$battery_name"
-    printf "   %-15s%s\n" "Manufactuer:" "$(echo "$battery_data" | awk -F= '/MANUFACTURER/ {print $NF}' | sed 's/^ //')"
+    printf "   %-15s%s\n" "Manufacturer:" "$(echo "$battery_data" | awk -F= '/MANUFACTURER/ {print $NF}' | sed 's/^ //')"
     printf "   %-15s%s\n" "Model name:" "$(echo "$battery_data" | awk -F= '/MODEL/ {print $NF}')"
     printf "   %-15s%s\n" "Serial number:" "$battery_serial"
     printf "   %-15s%s\n" "Technology:" "$(echo "$battery_data" | awk -F= '/TECHNOLOGY/ {print $NF}')"
@@ -277,7 +274,7 @@ battery_info() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.12.25201"
+  local -r version="3.13.25237"
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r info_file="$HOME/$lhost.info"
 
