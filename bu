@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 29 Jul 2025
+# Last updated : 24 Aug 2025
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,15 +36,14 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.13.25217"
+readonly version="4.14.25236"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
+readonly logfile="$HOME/.local/share/logs/BU.log"
 exit_status=0
 SECONDS=0
 
@@ -52,11 +51,11 @@ SECONDS=0
 
 drive_test() {
 	printf "%sChecking Backup USB Drive%s\n" "$green" "$normal"
-  check_usb || die "No USB drive connected!" 1
-	bu_drive_label || die "Invalid partition label. Run 'bu -s' for drive setup information." 1
-  check_uuid || die "Incorrect drive to backup $host." 1
+	check_usb || dielog "No USB drive connected!" "$logfile" 1
+	bu_drive_label || dielog "Invalid partition label. Run 'bu -s' for drive setup information." "$logfile" 1
+  check_uuid || dielog "Incorrect drive to backup $host." "$logfile" 1
   # mount | grep -qw BU_Drive > /dev/null 2>&1 || mount_bu
-  bu_drive_fs || die "Drive must be formatted with EXT4 or XFS." 1
+  bu_drive_fs || dielog "Drive must be formatted with EXT4 or XFS." "$logfile" 1
 	printf "Space available on BU_Drive: %s\n" "$(df -h "$mount_point" | tail -n1 | awk '{print $4}')"
 	printf "USB Backup Drive is mounted and meets all criteria.\n"
 }
@@ -124,7 +123,7 @@ unmount_usb_drive() {
 		# [[ -d "$mount_point" ]] && rmdir "$mount_point"
 		printf "BU_Drive unmounted.\nIt is now safe to remove the USB drive.\n"
 	else
-		printf "%s %s failed to unmount.\n" "$RED_ERROR" "$mount_point"
+		log "$RED_ERROR $mount_point failed to unmount." "$logfile"
 		exit_status=10
 	fi
 }
@@ -143,7 +142,7 @@ backup() {
   if sudo rsync -aH --delete --exclude 'timeshift' --exclude '.local/share/libvirt/images' --exclude 'mnt' --exclude 'lost+found' --info=progress2 /etc /home "$mount_point"/BU_Backups/"$host"/; then
     # Clear any accidental input during backup:
 		flush_kb_buffer
-    printf "%sBackup completed.%s\n" "$green" "$normal"
+		log "${green}Backup successfully completed.${normal}" "$logfile"
     rm -f /"$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
     touch "$mount_point/BU_Backups/$host/BU Backup was successful: $(date '+%F')"
 		printf "Space available on BU_Drive: %s\n" "$(df -h "$mount_point" | tail -n1 | awk '{print $4}')"
@@ -152,7 +151,7 @@ backup() {
 		flush_kb_buffer
     rm -f "$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
     touch "$mount_point/BU_Backups/$host/BU Backup had some errors: $(date '+%F')"
-		printf "%s rsync exited with errors!\n" "$RED_ERROR" >&2
+		log "$RED_ERROR rsync exited with errors!" "$logfile"
 		printf "* Try reinserting the backup drive and running the command again to correct them.\n" >&2
     printf "* If errors persist then you may have corrupt files or failing hardware.\n" >&2
 		exit_status=42
@@ -171,12 +170,12 @@ restore() {
 			if sudo rsync -aH --delete --exclude 'timeshift' --info=progress2 "$mount_point"/BU_Backups/"$host"/home/ /home/; then
 				# Clear any accidental input during restore:
 				flush_kb_buffer
-				printf "%sRestoration Complete!%s\n" "$green" "$normal"
+				log "${green}Restoration successfully complete!${normal}" "$logfile"
 	      printf "Restart machine for all changes to take effect.\n"
 				else
 				# If rsync fails, clear any accidental input during restore:
 				flush_kb_buffer
-				printf "%s rsync exited with errors!\n" "$RED_ERROR" >&2
+				log "$RED_ERROR rsync exited with errors!" "$logfile"
 				printf "DO NOT DO ANYTHING UNTIL YOU:\n" >&2
 				printf "* Make sure BU_Drive USB is still plugged in.\n" >&2
 				printf "* Remount BU_Drive USB by unplugging it and plugging it back in.\n" >&2
@@ -185,10 +184,10 @@ restore() {
 	      exit_status=69
 			fi
 		else
-			printf "%Restoration canceled.%s\n" "$orange" "$normal"
+			log "${orange}Restoration canceled.${normal}" "$logfile"
 	  fi
 	else
-		printf "%s Cannot find valid backup directory for %s!\n" "$RED_ERROR" "$host" >&2
+		log "$RED_ERROR Cannot find valid backup directory for $host!" "$logfile"
     printf "* This drive may not have been used to backup this machine.\n" >&2
     printf "* BU_Backups/%s directory may have been moved or deleted.\n" "$host" >&2
     printf "* Hostname or username may have changed since last backup.\n" >&2
@@ -198,7 +197,7 @@ restore() {
 
 help() {
 	local errcode="${1:-2}"
-	local updated="29 Jul 2025"
+	local updated="24 Aug 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -260,6 +259,7 @@ _SETUP_
 
 main() {
 	local noOpt optstr opt
+	[[ -f "$logfile" ]] && rm "$log_file"
 	box "${script^^} -- USB Backup Tool (Version $version)"
 
 	noOpt=1
@@ -303,12 +303,12 @@ main() {
 	[[ "$noOpt" -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
 	case "$exit_status" in
-		0 ) printf "Backup/Restore operation successful.\n" ;;
-		10 ) printf "Failed to unmount BU_Drive.\n" ;;
-		13 ) printf "Unable to find backup directory for restore.\n" ;;
-		42 ) printf "Backup operation had errors.\n" ;;
-		69 ) printf "Restore operation had errors.\n" ;;
-		* ) printf "Unknown error.\n"
+		0 ) log "Backup/Restore operation successful." "$logfile" ;;
+		10 ) log "Failed to unmount BU_Drive." "$logfile" ;;
+		13 ) log "Unable to find backup directory for restore." "$logfile" ;;
+		42 ) log "Backup operation had errors." "$logfile" ;;
+		69 ) log "Restore operation had errors." "$logfile" ;;
+		* ) log "Unknown error." "$logfile" ;;
 	esac
 	over_line "Script completed in $(format_time $SECONDS)" "-"
 	exit "$exit_status"
