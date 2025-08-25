@@ -128,12 +128,12 @@ diehard() {
 #   $3 -> Exit status (optional, default is 1)
 ###############################################################################
 dielog() {
-  local -r message="$1"
-  local -r logfile="$2"
-  local -r errcode-"${3:-2}"
-  printf "%(%F %R)T: %s\n" -1 "$message" | tee -a "$logfile" >/dev/null
+  local message="$1"
+  local log_file="$2"
+  local err_code="${3:-1}"
+  printf "%(%F %R)T: \e[91mERROR:\e[0m %s\n" -1 "$message" >> "$log_file"
   printf "\e[91mERROR:\e[0m %s\n" "$message" >&2
-  exit "$errcode"
+  exit "$err_code"
 }
 
 ###############################################################################
@@ -160,9 +160,10 @@ error_handler() {
 #   $2 -> path/to/logfile
 ###############################################################################
 log() {
-  local -r message="$1"
-  local -f logfile="$2"
-  printf "%(%F %R)T: %s\n" -1 "$message" | tee -a "$logfile"
+  local message="$1"
+  local log_file="$2"
+  printf "%(%F %R)T: %s\n" -1 "$message" >> "$log_file"
+  printf "%s\n" "$message"
 }
 
 ###############################################################################
