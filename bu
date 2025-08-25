@@ -56,7 +56,7 @@ drive_test() {
   check_uuid || dielog "Incorrect drive to backup $host." "$logfile" 1
   # mount | grep -qw BU_Drive > /dev/null 2>&1 || mount_bu
   bu_drive_fs || dielog "Drive must be formatted with EXT4 or XFS." "$logfile" 1
-	printf "Space available on BU_Drive: %s\n" "$(df -h "$mount_point" | tail -n1 | awk '{print $4}')"
+	get_space_remaining
 	printf "USB Backup Drive is mounted and meets all criteria.\n"
 }
 
@@ -128,6 +128,12 @@ unmount_usb_drive() {
 	fi
 }
 
+get_space_remaining() {
+	local avail
+	avail="$(df -h "$mount_point" | awk 'NR == 2 {print $4}')"
+	printf "Space available on BU_Drive: %s\n" "$avail"
+}
+
 bu_prep() {
   printf "Changing ownership of BU_Drive to %s...\n" "$user"
 	sudo chown "$user" "$mount_point"
@@ -145,7 +151,7 @@ backup() {
 		log "${green}Backup successfully completed.${normal}" "$logfile"
     rm -f /"$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
     touch "$mount_point/BU_Backups/$host/BU Backup was successful: $(date '+%F')"
-		printf "Space available on BU_Drive: %s\n" "$(df -h "$mount_point" | tail -n1 | awk '{print $4}')"
+		get_space_remaining
 	else
     # Clear any accidental input during backup:
 		flush_kb_buffer
