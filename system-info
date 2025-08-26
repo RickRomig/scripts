@@ -217,12 +217,15 @@ wireless_info() {
 }
 
 ssd_hd_info() {
-  local disk hd_ff hd_rpm
+  local disk hd_ff hd_rpm model
 	printf "\nHard Disk Information:\n"
 	for disk in /dev/sd[a-z]; do
 		sudo hdparm -I "${disk}" 2>/dev/null | tee "$hd_data" > /dev/null
     printf "%s\n" "$(grep -w dev "$hd_data" | sed 's/\/dev\///;s/:$//')"
-    printf "   %-15s%s\n" "Model Number:" "$(awk -F: '/Model/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
+    model="$(awk -F: '/Model/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
+    vendor="$(get_vendor "$model")"
+    printf "   %-15s%s\n" "Vendor:" "$vendor"
+    printf "   %-15s%s\n" "Model Number:" "$model"
     printf "   %-15s%s\n" "Serial Number:" "$(awk -F: '/Serial N/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
     printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | tr -d '()')" # sed 's/[)(]//g')"
     hd_ff=$(awk -F: '/Form Factor/ {print $NF}' "$hd_data" | sed 's/^ //')
@@ -237,15 +240,39 @@ ssd_hd_info() {
 }
 
 nvme_info() {
-  local nvme_data devline
+  local nvme_data devline model
   printf "\nNVMe Information:\n"
   nvme_data=$(sudo /usr/sbin/nvme list | tail -n+3)
   for devline in "${nvme_data[@]}"; do
     printf "%s\n" "$(echo "$devline" | awk '/dev/ {print $1}' | cut -d'/' -f3)"
-    printf "   %-15s%s\n" "Model Number:" "$(echo "$devline" | awk '/dev/ {print $4,$5}' | sed 's/ [0-9].*$//')"
+    model="$(echo "$devline" | awk '/dev/ {print $4,$5}' | sed 's/ [0-9].*$//')"
+    printf "   %-15s%s\n" "Vendor:" "$(get_vendor "$model")"
+    printf "   %-15s%s\n" "Model Number:" "$model"
     printf "   %-15s%s\n" "Serial Number:" "$(echo "$devline" | awk '/dev/ {print $3}')"
     printf "   %-15s%s\n" "Capacity:" "$(echo "$devline" | awk '/dev/ {print $(NF-7),$(NF-6)}')"
   done
+}
+
+get_vendor() {
+  local model="${1// /}"
+  local vendor_id
+  # model="$(echo "$model" | sed 's/[[:space:]]*$//')"
+  # model="${model// /}"
+[[ "$model" =~ [[:space:]]+ ]] && model="$(echo "$model" | cut -d' ' -f2)"
+  vendor_id="$(echo "$model" | cut -c1-2)"
+  case "$vendor_id" in
+		CS ) vendor="PNY" ;;
+		CT ) vendor="Crucial" ;;
+		DT|HT ) vendor="HGST (Hitachi)" ;;
+		HD|MD|MG|MK|MQ ) vendor="Toshiba" ;;
+		HS ) vendor="Samsung" ;;
+		MT ) vendor="Micron" ;;
+		SD ) vendor="SanDisk" ;;
+		ST ) vendor="Seagate" ;;
+		WD ) vendor="Western Digital" ;;
+    * ) vendor="Unknown vendor"
+  esac
+  printf "%s" "$vendor"
 }
 
 partition_info() {
