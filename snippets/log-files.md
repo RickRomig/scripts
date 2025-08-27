@@ -11,7 +11,7 @@ $ your_command | tee -a logfile.txt
 LOGFILE="script_log_$(date +%Y%m%d_%H%M%S).log"
 
 # Redirect output and errors to the log file
-exec > "$LOGFILE" 2>&1	# >> appends to LOGFILE
+exec > "$LOGFILE" 2>&1    # >> appends to LOGFILE
 
 echo "Script started at $(date)"
 echo "Performing some operations..."
