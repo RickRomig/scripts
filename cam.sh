@@ -71,13 +71,17 @@ play_game() {
   while true; do
     clear
     unset cards
+    # Draw and dispaly the question card
     question_card=$(printf "%s\n" "${black_cards[@]}" | shuf -n 1)
+    # Draw and display the answer cards
     answer_cards=$(printf "%s\n" "${white_cards[@]}" | shuf -n 15)
 
+    # Select answer card(s)
     IFS=$'\n'
     while read -r line; do cards+=("$line"); done <<< "$answer_cards"
     choices=("$(fzf --header="$question_card" --layout=reverse --border=bold --border=rounded --margin=5% --multi --prompt "Choose cards" < <(printf "%s\n" "${cards[@]}"))")
 
+    # Display question card and selected answer cards
     box "Cards Against Muggles" "*"
     printf "\n%s\n" "$question_card"
     printf "%s\n\n" "${choices[@]}"
