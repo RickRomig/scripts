@@ -137,6 +137,10 @@ $ printf "<%s>\n" "${arr[@]}"	# '@' interates the elements of the array
 <baz>
 ```
 	- Should always use quotes and {} brackets when accessing array elements.
+	- Populating an array from a text file
+```bash
+$ mapfile -t my_array <<< input_file
+```
 2. Associative arrays
 	- Declaring associative arrays:
 ```bash
