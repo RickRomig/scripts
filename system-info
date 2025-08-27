@@ -253,12 +253,13 @@ nvme_info() {
   done
 }
 
+# shellcheck disable=SC2001
+# See if you can use ${variable//search/replace} instead. (This eliminates all whitespace in the string)
 get_vendor() {
-  local model="${1// /}"
+  local model="$1"
   local vendor_id
-  # model="$(echo "$model" | sed 's/[[:space:]]*$//')"
-  # model="${model// /}"
-[[ "$model" =~ [[:space:]]+ ]] && model="$(echo "$model" | cut -d' ' -f2)"
+  model="$(echo "model" | sed 's/[[:space:]]*$//')"
+  [[ "$model" =~ [[:space:]]+ ]] && model="$(echo "$model" | cut -d' ' -f2)"
   vendor_id="$(echo "$model" | cut -c1-2)"
   case "$vendor_id" in
 		CS ) vendor="PNY" ;;
