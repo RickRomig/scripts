@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 25 Aug 2025
+# Updated:     : 28 Aug 2025
 # Comments     : Rewrite of version 2.5.0
 #              : Will not get desktop session info from an SSH connection. Run locally.
 # TODO (Rick)  :
@@ -256,24 +256,28 @@ nvme_info() {
 # shellcheck disable=SC2001
 # See if you can use ${variable//search/replace} instead. (This eliminates all whitespace in the string)
 get_vendor() {
-  local model="$1"
-  local vendor_id
-  model="$(echo "model" | sed 's/[[:space:]]*$//')"
+  local model="${1^^}"
+  local id
+	declare -rA vendor_list=(
+		[CS]="PNY"
+		[CT]="Crucial"
+		[DT]="HGST (Hitachi)"
+		[HD]="Toshiba"
+		[MD]="Toshiba"
+		[MG]="Toshiba"
+		[MK]="Toshiba"
+		[MQ]="Toshiba"
+		[HS]="Samsung"
+		[HT]="HGST (Hitachi)"
+		[MT]="Micron"
+		[SD]="SanDisk"
+		[ST]="Seagate"
+		[WD]="Western Digital"
+	)
+  model="$(echo "$model" | sed 's/[[:space:]]*$//')"
   [[ "$model" =~ [[:space:]]+ ]] && model="$(echo "$model" | cut -d' ' -f2)"
-  vendor_id="$(echo "$model" | cut -c1-2)"
-  case "$vendor_id" in
-		CS ) vendor="PNY" ;;
-		CT ) vendor="Crucial" ;;
-		DT|HT ) vendor="HGST (Hitachi)" ;;
-		HD|MD|MG|MK|MQ ) vendor="Toshiba" ;;
-		HS ) vendor="Samsung" ;;
-		MT ) vendor="Micron" ;;
-		SD ) vendor="SanDisk" ;;
-		ST ) vendor="Seagate" ;;
-		WD ) vendor="Western Digital" ;;
-    * ) vendor="Unknown vendor"
-  esac
-  printf "%s" "$vendor"
+  id="$(echo "$model" | cut -c1-2)"
+	printf "%s" "${vendor_list[$id]}"
 }
 
 partition_info() {
@@ -302,7 +306,7 @@ battery_info() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.13.25237"
+  local -r version="4.0.25240"
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r info_file="$HOME/$lhost.info"
 
