@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Aug 2019
-# Updated      : 20 Aug 2025
+# Updated      : 27 Aug 2025
 # Comments     : sudo access required to view Timeshift snapshots
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,7 +36,7 @@ else
   exit 1
 fi
 
-set -eu
+# set -eu
 
 ## Global Variables ##
 
@@ -428,7 +428,7 @@ archive_logs() {
 main() {
 	local _opt options script version
   script="${0##*/}"
-  version="10.8.25232"
+  version="10.9.25239"
 	options=( "System logs" "Local logs" "Archive Logs" "Quit")
 	while true; do
 		show_header
@@ -450,15 +450,16 @@ main() {
 					break
 				  ;;
 				4 )
-					printf "\n%sMischief managed!%s\n" "$orange" "$normal"
-					over_line "$script $version" "-"
-					exit
+          break 2
 				  ;;
 				* )
 					printf "%sInvalid choice.%s Choose 1-%d.\n" "$lightred" "$normal" "${#options[@]}" >&2
 			esac
 		done
 	done
+	printf "\n%sMischief managed!%s\n" "$orange" "$normal"
+	over_line "$script $version" "-"
+	exit
 }
 
 ## Execution ##
