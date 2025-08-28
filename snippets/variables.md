@@ -149,9 +149,58 @@ $ declare -A arr || exit 1	# test to see if your version bash supports associati
 ```
 	- Assigning keys and elements to associative arrays:
 ```bash
-
+S declare -A vendor_list=(
+		[CS]="PNY"
+		[CT]="Crucial"
+		[DT]="HGST (Hitachi)"
+		[HD]="Toshiba"
+		[MD]="Toshiba"
+		[MG]="Toshiba"
+		[MK]="Toshiba"
+		[MQ]="Toshiba"
+		[HS]="Samsung"
+		[HT]="HGST (Hitachi)"
+		[MT]="Micron"
+		[SD]="SanDisk"
+		[ST]="Seagate"
+		[WD]="Western Digital"
+)
+S vendor_list["key1"]="value1"
 ```
 	- Accessing associative arrays:
 ```bash
+for key in "${!vendor_list[@]}; do
+	echo "Key: $key, Value: ${vendor_list[$key]}"
+done
 
+echo ${!example_array[@]}		# print all keys in the array
+echo ${example_array[@]}		# print all values in the array
+
+echo ${vendor_list["WD"]}		# print value for one key in the array
+Western Digital
 ```
+	- Finding the length of an associative array:
+```bash
+$ echo ${#vendor_list[@]}
+14
+```
+	- Append new values
+```bash
+S vendor_list["new_key"]="new_value"
+$ vendor_list+=(["new_key"]="new_value")
+```
+	- Check if a key exists:
+```bash
+if [[ -n "${vendor_list["key1"]}" ]]; then
+  echo "True"
+else
+  echo "False"
+fi
+```
+ - Clear an associative array:
+```bash
+unset vendor_list["key1"]	# single element
+declare -A vendor_list	# declare again to clear all elements
+unset vendor_list		# delete the entire array
+```
+
