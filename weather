@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 27 Aug 2025
+# Updated      : 28 Aug 2025
 # Comments     : Based on a script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -36,17 +36,18 @@ else
   exit 1
 fi
 
-set -eu
+# set -eu
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.18.25239"
+readonly version="6.19.25240"
 
 ## Functions ##
 
 help() {
-  local updated="16 Aug 2025"
+  local updated="28 Aug 2025"
+  clear
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Displays current weather and 3-day forecast for a location.
@@ -94,6 +95,7 @@ is_url_accessible() {
 }
 
 exit_script() {
+  over_line "$script $version"
   printf "%sMOTD:%s " "$darkgray" "$normal"
   leave ""
 }
@@ -104,9 +106,8 @@ wx_forecast() {
   tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
   trap cleanup EXIT
   clear
-  center_text "$script $version"
   if curl -so "$tmp_file" "$url/${wx_loc}?uA"; then
-    sed '1d;/Follow/d' "$tmp_file"
+    sed '1,7d;/Follow/d' "$tmp_file"
   else
     timeout_exit "$wx_loc"
   fi
@@ -152,7 +153,6 @@ current_wx() {
 
   # Display current conditions
   clear
-  box "$script $version"
   if [[ "$json" ]]; then
     printf "\n%sLocation:%s %s, %s\n" "$green" "$normal" "$city" "$state"
     printf "%sLat/Long:%s %s, %s\n\n" "$green" "$normal" "$latitude" "$longitude"
@@ -250,8 +250,7 @@ menu() {
   local _opt options
   while true; do
     clear
-    box "$script $version"
-    under_line "${location//[+_]/ }"
+    box "Local weather for ${location//[+_]/ }" "-"
     COLUMNS="40"
     options=(
       "Current conditions"
@@ -266,33 +265,29 @@ menu() {
         1 )
           current_wx "$url" "${location// /+}"
           anykey
-          break
-          ;;
+          break ;;
         2 )
           wx_forecast "$url" "${location// /+}"
           anykey
-          break
-          ;;
+          break ;;
         3 )
           printf "\nChange location.\n"
           printf "Replace any spaces with + or _\n"
           printf "Just pressing ENTER will use location based on public IP.\n"
           read -rp "New location: " location
-          break
-          ;;
+          break ;;
         4 )
           help
           anykey
-          break
-          ;;
+          break ;;
         5 )
-          break 2
-          ;;
+          break 2 ;;
         * )
           printf "%s Invalid choice. Choose 1, 2, 3, 4, or 5\n" "$RED_ERROR" >&2
       esac
     done
   done
+  return
 }
 
 main() {
