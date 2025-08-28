@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 16 Jul 2025
+# Last updated : 27 Aug 2025
 # Comment      : C template includes GNU GPL v2 license
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,12 +36,12 @@ else
   exit 1
 fi
 
-set -eu
+# set -eu
 
 ## Global Variables ##
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="4.2.25197"
+readonly version="4.2.25239"
 verbose_mode="$FALSE"
 
 ## Functions ##
@@ -109,24 +109,24 @@ main() {
 				show_message "Code file: $code_file"
 				template_file="c-template.txt"
 				show_message "Template: c-template.txt"
-			;;
+				;;
 			h )
 				help 0
-			;;
+				;;
 			p )
 				code_file="$OPTARG"
 				[[ -f "$code_file" ]] && { printf "%s %s already exists\n" "$RED_ERROR" "$code_file" >&2; help 2; }
 				show_message "Code file: $code_file"
 				template_file="cpp-template.txt"
-			;;
+				;;
 			v )
 				verbose_mode="$TRUE"
 				show_message "Verbose mode enabled."
-			;;
+				;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
-			;;
+				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
