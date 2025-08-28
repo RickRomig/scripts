@@ -4,10 +4,10 @@
 # Description  : menu for C programming
 # Dependencies : binutils, gcc
 # Arguments    : none
-# Author       : Richard Romig
-# Email        : rick.romig@gmail.com
-# Created      :
-# Updated      : 07 Aug 2025
+# Author       : Richard B. Romig, LudditeGeek@Mosfnet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : Unknown
+# Updated      : 27 Aug 2025
 # Comments     : Run from current working directory
 # TODO (rick)  :
 # License      : GNU General Public License, version 2
@@ -147,7 +147,7 @@ cleaning_up() {
 
 main() {
 	local script="${0##*/}"
-	local version="3.0.25218"
+	local version="3.1.25239"
 	local _opt options
 	check_dependencies
 	while true; do
@@ -180,13 +180,14 @@ main() {
 					cleaning_up
 					break ;;
 				8 )
-					over_line "$script $version"
-					exit ;;
+					break 2 ;;
 				* )
 					printf "%s Not a valid option. Please try again.\n" "$RED_ERROR" >&2
 			esac
 		done
 	done
+	over_line "$script $version"
+	exit
 }
 
 ## Execution ##
