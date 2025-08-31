@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Aug 2025
-# Last updated : 14 Aug 2025
+# Last updated : 31 Aug 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -56,6 +56,11 @@ pull_scripts() {
 	git_pull_repo "$repo_dir"
 }
 
+pull_homepage() {
+	local repo_dir="$HOME/Downloads/homepage"
+	git_pull_repo "$repo_dir"
+}
+
 git_pull_repo() {
 	local -r repo_dir="$1"
 	if [[ -d "$repo_dir" ]]; then
@@ -65,18 +70,19 @@ git_pull_repo() {
 		popd >/dev/null 2>&1 || die "popd failed"
 		printf "\n"
 	else
-		printf "%s repository has not been cloned to this computer.\n" "${repo_dir##*/}"
+		printf "The %s repository has not been cloned to this computer.\n" "${repo_dir##*/}"
 	fi
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.1.25226"
+  local -r version="1.2.25243"
   check_package git
   printf "Updating cloned repositories...\n\n"
   pull_configs
   pull_scripts
   pull_i3wm_debian
+	pull_homepage
   over_line "$script $version"
   exit
 }
