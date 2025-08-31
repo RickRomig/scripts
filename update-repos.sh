@@ -70,7 +70,7 @@ git_pull_repo() {
 		popd >/dev/null 2>&1 || die "popd failed"
 		printf "\n"
 	else
-		printf "The %s repository has not been cloned to this computer.\n" "${repo_dir##*/}"
+		printf "The %s repository has not been cloned to this computer.\n\n" "${repo_dir##*/}"
 	fi
 }
 
