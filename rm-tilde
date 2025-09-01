@@ -4,10 +4,10 @@
 # Description  : Remove backup files with trailing ~ (tilde)
 # Dependencies : find
 # Arguments    : None
-# Author       : Richard Romig, Mosfanet
+# Author       : Copyright © 2025 Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : unknown
-# Updated      : 19 Jul 2025
+# Updated      : 01 Sep 2025
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -23,17 +23,24 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-main() {
-	local nbu script version
-	script="${0##*/}"
-	version="2.1.25200"
-	nbu=$(find . -maxdepth 1 -type f -regex '\./.*~$'  | wc -l)
+## Functions ##
 
+remove_tilde() {
+	local nbu
+	nbu=$(find . -maxdepth 1 -type f -regex '\./.*~$'  | wc -l)
 	printf "Removing %d '~' backup " "$nbu"
 	(( nbu == 1 )) && printf "file.\n" || printf "files.\n"
-	(( nbu != 0 )) && find ./ -maxdepth 1 -type f -regex '\./.*~$' -print -exec rm {} \;
+	(( nbu != 0 )) && find . -maxdepth 1 -type f -regex '\./.*~$' -print -exec rm {} \;
+}
+
+main() {
+	local -r script="${0##*/}"
+	local -r version="3.0.25244"
+	remove_tilde
 	printf "%s %s\n" "$script" "$version"
 	exit
 }
+
+## Execution ##
 
 main "$@"
