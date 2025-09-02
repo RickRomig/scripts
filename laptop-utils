@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 25 Jul 2025
+# Updated      : 02 Sep 2025
 # Comments     : Based on a script by Joe Collins.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,13 +38,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.6.25206"
+readonly version="7.0.25245"
 
 ## Funtions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="25 Jul 2025"
+	local updated="02 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs laptop-specific utlities.
@@ -66,74 +66,51 @@ Installs laptop-specific utilities:
  * Thermald - monitors and controls temperature.
  * ACPI - checks the state of ACPI devices.
  * TLP - advanced power management to maximize battery life.
- * Touchpad Indicator - utility to enable/disable the touchpad.
-
+ * TLP-RDW - TLP radio device wizard.
 _INTRO_
 }
 
-installed() {
-  local package="$1"
-  dpkg -l "$package" > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
-}
-
 install_thermald() {
-  if installed thermald; then
+  if [[ -f /usr/sbin/thermald ]]; then
     printf "Thermald is already installed.\n"
-  elif in_repos thermald; then
+  else
     sudo apt-get install thermald -yy
     printf "Thermald installed.\n"
-  else
-    printf "Thermald was not installed.\n"
   fi
 }
 
 install_acpi() {
-  if installed acpi; then
+  if exists acpi; then
     printf "ACPI is already installed.\n"
-  elif in_repos acpi; then
+  else
     sudo apt-get install acpi -yy
     printf "ACPI installed.\n"
-  else
-    printf "ACPI was not installed.\n"
-  fi
-}
-
-install_touchpad_indicator() {
-  if installed touchpad-indicator; then
-    printf "Touchpad Indicator is already installed.\n"
-  elif in_repos touchpad-indicator; then
-    sudo apt-get install touchpad-indicator -yy
-    printf "Touchpad Indicator installed.\n"
-  else
-    printf "Touchpad Indicator was not available.\n"
   fi
 }
 
 install_tlp() {
-  if installed tlp && installed tlp-rdw; then
+  if [[ -f /usr/sbin/tlp ]]; then
     echo "TLP is already installed."
-  elif in_repos tlp; then
+  else
     sudo apt-get install tlp tlp-rdw -yy
     start_tlp_service
     printf "TLP installed.\n"
-  else
-    printf "TLP was not installed.\n"
   fi
 }
 
 tlp_status() {
   local status=1
-  installed tlp || leave "TLP is not installed."
-  if is_systemd; then
-    systemctl status tlp | grep -qw active && status=0
-  elif is_sysv; then
-    tlp-stat -s | grep -qw enabled && status=0
-  fi
-  if [[ "$status" -eq 1 ]]; then
-    printf "Starting TLP service\n"
-    start_tlp_service
+  if [[ -f /usr/sbin/tlp ]]; then
+    is_systemd && { systemctl status tlp | grep -qw active && status=0; }
+    is_sysv && { tlp-stat -s | grep -qw enabled && status=0; }
+    if [[ "$status" -eq 1 ]]; then
+      printf "Starting TLP service\n"
+      start_tlp_service
+    else
+      printf "TLP service is active and running.\n"
+    fi
   else
-    printf "TLP service is active and running.\n"
+    printf "TLP is not installed.\n"
   fi
 }
 
@@ -155,11 +132,10 @@ start_tlp_service() {
 
 installed_utils() {
   printf "Installed utilities:\n"
-  installed thermald && printf "%12s\n" "Thermald"
-  installed acpi && printf "%8s\n" "ACPI"
-  installed tlp && printf "%7s\n" "TLP"
-  installed tlp-rdw && printf "%11s\n" "TLP-RDW"
-  installed touchpad-indicator && printf "%22s\n" "Touchpad Indicator"
+  [[ -f /usr/sbin/thermald ]] && printf "%12s\n" "Thermald"
+  exists acpi && printf "%8s\n" "ACPI"
+  [[ -f /usr/sbin/tlp ]] && printf "%7s\n" "TLP"
+  exists tlp-rdw && printf "%11s\n" "TLP-RDW"
 }
 
 main() {
@@ -179,8 +155,7 @@ main() {
           install_thermald
           install_acpi
           install_tlp
-          install_touchpad_indicator
-          util_status
+          installed_utils
         else
           printf "%s is not a laptop. Nothing to do.\n" "$lhost" >&2
         fi
