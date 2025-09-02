@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : no-snaps
+# Script Name  : no-snaps.sh
 # Description  : Enable/disable Snaps in Debian/Ubuntu-based systems.
 # Dependencies : None
 # Arguments    : [-dehs] (See help function)
 # Author       : Copyright (C) 2020, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 30 Jun 2020
-# Updated      : 19 Jul 2025
+# Updated      : 01 Sep 2025
 # Comments     : See EZNix snapkill script
 #              : /home/rick/Downloads/Utilities/snapkill.d/snapkill
-# TODO (Rick)  : Figure out what remove_snaps() does.
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
@@ -40,14 +40,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.4.25200"
+readonly version="4.0.25244"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="19 Jul 2025"
+	local updated="01 Sep 2025"
 	cat << _HELP_
 ${green}Usage:${normal} $script [-dehs]
 ${orange}OPTIONS:${normal}
@@ -60,24 +60,27 @@ _HELP_
   exit "$errcode"
 }
 
-check_snap_installed() {
-  printf "Snap is "
-  if exists snap; then
-    printf "installed.\n"
-  else
-    printf "not installed.\n"
-  fi
+# Is snapd installed?
+snapd_installed() {
+  exists snapd && return "$TRUE" || return "$FALSE"
 }
 
+# Are any snap packages installed?
 snap_packages() {
-  [[ "$(snap list)" ]] && return "$TRUE" || return "$FALSE"
+  if snapd_installed; then
+    [[ "$(snap list)" ]] && return "$TRUE" || return "$FALSE"
+  else
+    return "$FALSE"
+  fi
 }
 
 snaps_enabled() {
   if [[ -f "$pref_file" ]]; then
     grep -q '^# Package:' "$pref_file" && return "$TRUE" || return "$FALSE"
-  else
+  elif systemctl status snapd 2>/dev/null | grep -q 'active'; then
     return "$TRUE"
+  else
+    return "$FALSE"
   fi
 }
 
@@ -86,27 +89,30 @@ enable_snaps() {
   if [[ -f "$pref_file" ]]; then
     if grep -q '^Package:' "$pref_file"; then
       sudo sed -i '/^Package/s/^/# /;/^Pin/s/^/# /' "$pref_file"
-      printf "\nInstallation of Snapd and Snap packages is now enabled.\n"
+      printf "Installation of Snapd and Snap packages is now enabled.\n"
     else
-      printf "\nInstallation of Snapd and Snap packages is already enabled by %s.\n" "$pref_file"
+      printf "Installation of Snapd and Snap packages is already enabled by %s.\n" "$pref_file"
     fi
   else
-    printf "\n%s does not exist. Installation of Snapd and Snap packages is enabled by default." "$pref_file"
+    printf "%s does not exist. Installation of Snapd and Snap packages is enabled by default.\n" "$pref_file"
   fi
 }
 
 disable_snaps() {
-  snap_packages && diehard "Snap packages are installed." "Remove all Snaps before disabling  Snap."
+  snap_packages && diehard "Snap packages are installed." "Remove all Snaps before disabling Snaps."
   if [[ -f "$pref_file" ]]; then
     if grep -q '^# Package:' "$pref_file"; then
+      sudo_login 1
       sudo sed -i '/Package/s/^# //;/Pin/s/^# //' "$pref_file"
-      printf "\nInstallation of Snapd and Snap packages is now disabled.\n"
+      printf "Installation of Snapd and Snap packages is now disabled.\n"
+      exists snapd && sudo apt=get purge snapd -qq
     else
-      printf "\nInstallation of Snapd and Snap packages is already disabled.\n"
+      printf "Installation of Snapd and Snap packages is already disabled.\n"
     fi
   else
     create_nosnaps
     printf "%s has been created. Installation of Snapd and Snap packages is now disabled.\n" "$pref_file"
+    exists snapd && sudo apt=get purge snapd -qq
   fi
 }
 
@@ -125,24 +131,25 @@ _NOSNAPS_
 main() {
   local noOpt opt optstr
   printf "Enables or disables the installation of Snapd and Snap packages.\n"
-  check_snap_installed
+  snapd_installed && printf "Snapd installed\n" || printf "Snapd is not installed.\n"
   noOpt=1
   optstr=":dehs"
   while getopts "$optstr" opt; do
     case "$opt" in
       d )
-        sudo_login 2
-        snaps_enabled && disable_snaps
-       ;;
+        disable_snaps
+        ;;
       e )
-        sudo_login 2
-        snaps_enabled || enable_snaps
-       ;;
+        if snapd_installed && snaps_enabled; then
+          printf "Snaps are already enabled.\n"
+        else
+          enable_snaps
+        fi
+        ;;
       h )
         help 0
-       ;;
+        ;;
       s )
-        printf "\nStatus of snapd and snap packages: "
         snaps_enabled && printf "Snaps are enabled.\n" || printf "Snaps are disabled.\n"
         ;;
       ? )
@@ -153,7 +160,8 @@ main() {
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
   shift "$(( OPTIND - 1 ))"
-  leave "$script v$version"
+  over_line "$script $version"
+  exit
 }
 
 ## Execution ##
