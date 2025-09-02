@@ -42,6 +42,7 @@ fi
 readonly script="${0##*/}"
 readonly version="4.0.25244"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
+script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
 ## Functions ##
 
@@ -110,22 +111,11 @@ disable_snaps() {
       printf "Installation of Snapd and Snap packages is already disabled.\n"
     fi
   else
-    create_nosnaps
+    sudo_login 1
+    sudo cp "$script_dir/files/${pref_file##*/}" "${pref_file%/*}/"
     printf "%s has been created. Installation of Snapd and Snap packages is now disabled.\n" "$pref_file"
     exists snapd && sudo apt=get purge snapd -qq
   fi
-}
-
-create_nosnaps() {
-  cat << _NOSNAPS_ sudo tee "$pref_file" > /dev/null
-# To prevent repository packages from triggering the installation of Snap,
-# this file forbids snapd from being installed by APT.
-# For more information: https://linuxmint-user-guide.readthedocs.io/en/latest/snap.html
-
-Package: snapd
-Pin: release a=*
-Pin-Priority: -10
-_NOSNAPS_
 }
 
 main() {
