@@ -41,6 +41,7 @@ fi
 readonly script="${0##*/}"
 readonly version="1.3.25244"
 readonly pref_file="/etc/apt/preferences.d/noflatpak.pref"
+script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
 ## Functions ##
 
@@ -98,20 +99,9 @@ disable_flatpak() {
     fi
   else
 		sudo_login 1
-    create_noflatpak
+    sudo cp "$script_dir/files/${pref_file##*/}" "${pref_file%/*}/"
     printf "%s has been created. Installation of Flatpak and Flatpak packages is now disabled.\n" "$pref_file"
   fi
-}
-
-create_noflatpak() {
-  cat << _NOFLATPAK_ sudo tee "$pref_file" > /dev/null
-# To prevent installation of flatpak packages,
-# this file forbids flatpak from being installed by APT.
-
-Package: flatpak
-Pin: release a=*
-Pin-Priority: -10
-_NOFLATPAK_
 }
 
 main() {
