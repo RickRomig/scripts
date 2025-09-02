@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 17 Aug 2025
+# Last updated : 02 Sep 2025
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.0.25229"
+readonly version="2.1.25245"
 readonly old_configs="$HOME/old-configs/"
 
 ## Functions ##
@@ -144,6 +144,11 @@ set_system_tweaks() {
 	fi
 	printf "\e[93mApplying swappiness...\e[0m\n"
 	grep -q 'vm.swappiness=10' /etc/sysctl.conf || echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
+	if [[ -f /etc/apt/preferences.d/nosnap.pref ]]; then
+		printf "Snap packages have already been diabled.\n"
+	else
+		sudo cp -v "$repo_dir/apt/nosnap.pref" /etc/apt/preferences.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
+	fi
 }
 
 assign_scripts_repo() {
