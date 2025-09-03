@@ -102,11 +102,13 @@ get_new_version() {
     # Extract latest version number from temp file, ignoring beta and release candidate releases.
   case "$package" in
     codium )
-      new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $8;exit}' | sed 's/^v//') ;;
+      new_ver=$(awk -F'/' '/download/ && /amd64.deb/ {print $8;exit}' "$tmp_file" | grep -Ev 'beta|-rc' | sed 's/^v//') ;;
     micro )
-      new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /linux/ {print $7;exit}' | sed 's/^v//') ;;
+      new_ver=$(awk -F'/' '/download/ && /linux/ {print $6;exit}' "$tmp_file" | grep -Ev 'beta|-rc' | sed 's/^v//') ;;
+    fastfetch )
+    new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6}' "$tmp_file") ;;
     * )
-      new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
+      new_ver=$(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$tmp_file" | grep -Ev 'beta|-rc' | sed 's/^v//')
   esac
   echo "$new_ver"
 }
