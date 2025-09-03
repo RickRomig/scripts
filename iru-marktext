@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 19 Jul 2025
+# Updated      : 03 Sep 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.15.25200"
+readonly version="4.16.25246"
 readonly gh_url="https://github.com/marktext/marktext/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="19 Jul 2025"
+	local -r updated="03 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, removes the Mark Text markdown editor.
@@ -75,7 +75,7 @@ marktext_version() {
 newest_version() {
   local new_ver
   wget -qO "$tmp_file" "$gh_url"
-  new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
+  new_ver=$(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$tmp_file" | grep -Ev 'beta|-rc' | sed 's/^v//')
   echo "$new_ver"
 }
 
