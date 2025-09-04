@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 02 Sep 2025
+# Last updated : 04 Sep 2025
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.1.25245"
+readonly version="2.1.25247"
 readonly old_configs="$HOME/old-configs/"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="17 Aug 2025"
+	local -r updated="04 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Create symbolic links from configs and scripts repos.
@@ -119,6 +119,8 @@ link_config_files() {
 				mv -v "$config_dir/$cfg_file" "$old_configs/${cfg_file%/*}/${cfg_file##*/}"
 			fi
 			ln -sv "$repo_dir/$cfg_file" "$config_dir/$cfg_file"
+		else
+			printf "%s/%s not present.\n" "$config_dir" "$cfg_file"
 		fi
 	done
 	[[ -d "$HOME/.config/micro/plug/bookmark" ]] || micro -plugin install bookmark
@@ -144,9 +146,10 @@ set_system_tweaks() {
 	fi
 	printf "\e[93mApplying swappiness...\e[0m\n"
 	grep -q 'vm.swappiness=10' /etc/sysctl.conf || echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
-	if [[ -f /etc/apt/preferences.d/nosnap.pref ]]; then
-		printf "Snap packages have already been diabled.\n"
+	if [[ -f "/etc/apt/preferences.d/nosnap.pref" ]]; then
+		printf "Snap packages have already been disabled.\n"
 	else
+		printf "Disabling installation of Snapd and Snap packages...\n"
 		sudo cp -v "$repo_dir/apt/nosnap.pref" /etc/apt/preferences.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
 	fi
 }
@@ -172,13 +175,19 @@ assign_scripts_repo() {
 link_script_dir() {
 	local script_repo
 	script_repo=$(assign_scripts_repo)
-	printf "\e[93mLinking scripts repo to ~/bin...\e[0m\n"
-	[[ -d "$HOME/bin" ]] && rm -rf "${HOME:?}/bin"
-	ln -sv "$script_repo/" "$HOME/bin"
+	if [[ -d "$HOME/gitea/scripts" ]]; then
+		printf "Script directory is already linked to repository.\n"
+	elif [[ -L "$HOME/bin" ]]; then
+		printf "Script directory is already linked to cloned repository.\n"
+	else
+		printf "\e[93mLinking scripts repo to ~/bin...\e[0m\n"
+		[[ -d "$HOME/bin" ]] && rm -rf "${HOME:?}/bin"
+		ln -sv "$script_repo/" "$HOME/bin"
+	fi
 }
 
 main() {
-	local noOpt opt optstr
+	local noOpt opt optstr OPTIND OPTARG
 	noOpt=1
 	optstr=":cdhst"
 	while getopts "$optstr" opt; do
