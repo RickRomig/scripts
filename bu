@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 24 Aug 2025
+# Last updated : 06 Sep 2025
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.14.25236"
+readonly version="5.0.25249"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -145,10 +145,10 @@ bu_prep() {
 backup() {
 	bu_prep
   printf "%sBacking up /etc and /home to BU_Drive/BU_Backups/%s/%s\n" "$green" "$host" "$normal"
-  if sudo rsync -aH --delete --exclude 'timeshift' --exclude '.local/share/libvirt/images' --exclude 'mnt' --exclude 'lost+found' --info=progress2 /etc /home "$mount_point"/BU_Backups/"$host"/; then
+  if sudo rsync -aH --delete --exclude 'timeshift' --exclude '.local/share/libvirt/images' --exclude 'mnt' --exclude 'lost+found' --info=progress2 /etc /home "$mount_point"/BU_Backups/"$host"/ 2>"$logfile"; then
     # Clear any accidental input during backup:
 		flush_kb_buffer
-		log "${green}Backup successfully completed.${normal}" "$logfile"
+		printf "%sBackup successfully completed.%s\n" "$green" "$normal"
     rm -f /"$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
     touch "$mount_point/BU_Backups/$host/BU Backup was successful: $(date '+%F')"
 		get_space_remaining
@@ -173,10 +173,10 @@ restore() {
 			printf "Close any running applications and press any key to continue.\n"
 			anykey
 			printf "\n%sRestoring /home... Please DO NOT open any applications.$s\n" "$green" "$normal"
-			if sudo rsync -aH --delete --exclude 'timeshift' --info=progress2 "$mount_point"/BU_Backups/"$host"/home/ /home/; then
+			if sudo rsync -aH --delete --exclude 'timeshift' --info=progress2 "$mount_point"/BU_Backups/"$host"/home/ /home/ 2>"$logfile"; then
 				# Clear any accidental input during restore:
 				flush_kb_buffer
-				log "${green}Restoration successfully complete!${normal}" "$logfile"
+				printf "%sRestoration successfully complete!%s\n" "$green" "$normal"
 	      printf "Restart machine for all changes to take effect.\n"
 				else
 				# If rsync fails, clear any accidental input during restore:
@@ -203,7 +203,7 @@ restore() {
 
 help() {
 	local errcode="${1:-2}"
-	local updated="24 Aug 2025"
+	local updated="06 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -264,8 +264,8 @@ _SETUP_
 }
 
 main() {
-	local noOpt optstr opt
-	[[ -f "$logfile" ]] && rm "$logfile"
+	local noOpt optstr opt OPTARG OPTIND loglen
+	[[ -f "$logfile" ]] || echo "${logfile##*/}" > "$logfile"
 	box "${script^^} -- USB Backup Tool (Version $version)"
 
 	noOpt=1
@@ -316,6 +316,8 @@ main() {
 		69 ) log "Restore operation had errors." "$logfile" ;;
 		* ) log "Unknown error." "$logfile" ;;
 	esac
+	loglen=$(wc -l < "$log_file")
+	[[ "$loglen" -gt 30 ]] && sed -i '2d' "$log_file"
 	over_line "Script completed in $(format_time $SECONDS)" "-"
 	exit "$exit_status"
 }
