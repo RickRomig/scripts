@@ -145,7 +145,7 @@ bu_prep() {
 backup() {
 	bu_prep
   printf "%sBacking up /etc and /home to BU_Drive/BU_Backups/%s/%s\n" "$green" "$host" "$normal"
-  if sudo rsync -aH --delete --exclude 'timeshift' --exclude '.local/share/libvirt/images' --exclude 'mnt' --exclude 'lost+found' --info=progress2 /etc /home "$mount_point"/BU_Backups/"$host"/ 2>"$logfile"; then
+  if sudo rsync -aH --delete --exclude 'timeshift' --exclude '.local/share/libvirt/images' --exclude 'mnt' --exclude 'lost+found' --info=progress2 /etc /home "$mount_point"/BU_Backups/"$host"/ 2>>"$logfile"; then
     # Clear any accidental input during backup:
 		flush_kb_buffer
 		printf "%sBackup successfully completed.%s\n" "$green" "$normal"
@@ -173,7 +173,7 @@ restore() {
 			printf "Close any running applications and press any key to continue.\n"
 			anykey
 			printf "\n%sRestoring /home... Please DO NOT open any applications.$s\n" "$green" "$normal"
-			if sudo rsync -aH --delete --exclude 'timeshift' --info=progress2 "$mount_point"/BU_Backups/"$host"/home/ /home/ 2>"$logfile"; then
+			if sudo rsync -aH --delete --exclude 'timeshift' --info=progress2 "$mount_point"/BU_Backups/"$host"/home/ /home/ 2>>"$logfile"; then
 				# Clear any accidental input during restore:
 				flush_kb_buffer
 				printf "%sRestoration successfully complete!%s\n" "$green" "$normal"
@@ -316,7 +316,7 @@ main() {
 		69 ) log "Restore operation had errors." "$logfile" ;;
 		* ) log "Unknown error." "$logfile" ;;
 	esac
-	loglen=$(wc -l < "$log_file")
+	loglen=$(wc -l < "$logfile")
 	[[ "$loglen" -gt 30 ]] && sed -i '2d' "$log_file"
 	over_line "Script completed in $(format_time $SECONDS)" "-"
 	exit "$exit_status"
