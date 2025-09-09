@@ -5,9 +5,9 @@
 # Dependencies : imagemagick
 # Arguments    : none
 # Author       : Copyright (c) 2022, Richard B. Romig, LudditeGeek@Mosfanet
-# Email        : rick.romig@gmail.com
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Jun 2022
-# Updated      : 19 Jul 2025
+# Updated      : 08 Sep 2025
 # Comments     : Must be run from the working directory.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,32 +36,34 @@ else
   exit 1
 fi
 
-set -eu
+# set -eu
 
 ## Functions ##
 
 find_images() {
   local images
-  images=$(find . -maxdepth 1 -type f -iname "*.jpg")
-  [[ "$images" ]] && return "$TRUE" || return "$FALSE"
+  images=$(find . -maxdepth 1 -type f -iname "*.jpg" | wc -l)
+  [[ "$images" -gt 0 ]] && return "$TRUE" || return "$FALSE"
 }
 
 resize_pics() {
-  local img
-  [[ -d ./modpics ]] || mkdir -p ./modpics
-  for img in *.jpg; do
-    convert "$img" -resize 800x800 modpics/"${img%}"
+  local size image
+  size="$1"
+  [[ -d ./resized ]] || mkdir -p ./resized
+  for image in *.jpg; do
+    convert "$image" -resize "$size"x"$size" resized/"${image%}"
   done
-  convert 'modpics/*.jpg[800x>]' -quality 90 -set filename:base "%[basename]" "modpics/%[filename:base].jpg"
 }
+
 
 main() {
 	local script="${0##*/}"
-  local version="1.3.25200"
+  local version="1.4.25251"
+	local size="${1:-800}"
   find_images || die "No JPEG images in current directory to process." 1
   check_package imagemagick
-  resize_pics
-  leave "$script v$version"
+  resize_pics "$size"
+  leave "$script $version"
 }
 
 ## Execution ##
