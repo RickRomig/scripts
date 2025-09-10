@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : checkinit
+# Script Name  : checkinit.sh
 # Description  : Checks what init system is being used.
 # Dependencies : None
 # Arguments    : None
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 07 Sep 2022
-# Updated      : 19 Jul 2025
-# Comments     : partially based on code by Jake@Linux <https://gitlab.com/jped>
+# Updated      : 10 Sep 2025
+# Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -24,47 +24,32 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
-
-set -eu
-
 ## Functions ##
 
-find_init() {
-	local file data
-	if is_systemd; then
-		printf "SystemD"
-	elif is_sysv; then
-		printf "SysV"
+get_init() {
+	local  init_sys
+	if [[ $(cat /proc/1/comm) == "systemd" ]] ; then
+		init_sys="SystemD"
+	elif [[ $(/sbin/init --version 2>/dev/null | awk '{print $1}') == "SysV" ]]; then
+		init_sys="SysV"
+	elif [[ $(cat /proc/1/comm) == "runit" ]] ; then
+		init_sys="Runit"
 	elif [[ -f /sbin/openrc ]]; then
-		printf "OpenRC"
+		init_sys="OpenRC"
+	elif /sbin/init --version 2>/dev/null | grep -q 'upstart'; then
+		init_sys="Upstart"
 	else
-		# will detect runit
-		file='/proc/1/comm'
-		if [[ -r "$file" ]]; then
-			read -r data < "$file"
-			printf '%s' "${data%% *}"
-	  else
-	 		printf '?'
-		fi
+		init_sys="Undetermined"
   fi
+	printf "%s" "$init_sys"
 }
 
 main() {
-	local script="${0##*/}"
-	local version="1.6.25200"
-	printf "Init System: %s\n" "$(find_init)"
-	over_line "$script $version"
+	local -r script="${0##*/}"
+	local -r version="2.0.25253"
+	local -r short_line="---"
+	printf "Init System: %s\n" "$(get_init)"
+	printf "%s\n%s %s\n" "$short_line" "$script" "$version"
 	exit
 }
 
