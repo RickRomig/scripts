@@ -16,7 +16,7 @@ is_runit && do something
 1. Systemd
 ```bash
 is_systemd() {
-  [[ "$(/usr/bin/ps -p 1 | awk '/1 ?/ {print $NF}')" == "systemd" ]] && return "$TRUE" || return "$FALSE"
+  [[ $(cat /proc/1/comm) == "systemd" ]] && return "$TRUE" || return "$FALSE"
 }
 ```
 2. SysV
