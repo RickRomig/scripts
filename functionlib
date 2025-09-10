@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 04 Sep 2025
+# Last updated : 10 Sep 2025
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -343,7 +343,7 @@ is_arch() {
 # Returns: True or False
 ###############################################################################
 is_systemd() {
-  [[ "$(/usr/bin/ps -p 1 | awk '/1 ?/ {print $NF}')" == "systemd" ]] && return "$TRUE" || return "$FALSE"
+  [[ $(cat /proc/1/comm) == "systemd" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
