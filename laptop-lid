@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : laptop-lid
 # Description  : allows laptop lid to be closed without suspend or sleep.
-# Dependencies : ~./bin/files/laptoplid.sed
+# Dependencies : ~/bin/files/laptoplid.sed
 # Arguments    : None
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Oct 2020
-# Updated      : 12 Jul 2025
+# Updated      : 12 Sep 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -48,23 +48,23 @@ modify_logind() {
     printf "Modifying %s and restarting the systemd-logind service.\n" "${logind_conf##*/}"
     sudo sed -i.bak -f "$sed_file" "$logind_conf"
     sudo systemctl restart systemd-logind.service
-    printf "%s modified and backup created.\n" "$logind_conf"
+    printf "%s modified, backup created, and service restarted.\n" "$logind_conf"
   else
-    printf  "A required file, %s, was not found. Operation canceled" "${sed_file##*/}" >&2
+    printf "A required file, %s, was not found. Operation canceled.\n" "${sed_file##*/}" >&2
   fi
 }
 
 main() {
-  local lhost="${HOSTNAME:=-$(hostname)}"
-  local script="${0##*/}"
-  local -r version="4.3.25193"
-  printf "Allows a laptop lid to be closed without going into suspend mode.\n"
+  local -r script="${0##*/}"
+  local -r version="4.3.25255"
+  local -r lhost="${HOSTNAME:=-$(hostname)}"
+  printf "Allows a laptop's lid to be closed without the system going into suspend mode.\n"
   if is_laptop; then
     modify_logind
   else
     printf "%s is not a laptop. Operation canceled.\n" "$lhost" >&2
   fi
-  over_line "$script $version"
+  over_line "$script $version" "-"
   exit
 }
 
