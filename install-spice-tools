@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Sep 2021
-# Updated      : 18 Jul 2025
+# Updated      : 11 Sep 2025
 # Comments     : Supports Arch and Debian-based operating systems.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -47,15 +47,16 @@ install_arch_spice() {
 install_debian_spice() {
   sudo_login 2
   sudo apt-get update
-  sudo apt-get install -y spice-vdagent spice-webdavd
+  in_repos spice-vdagent && sudo apt-get install -y spice-vdagent
+  in_repos spice-webdavd && sudo apt-get install -y spice-webdavd
 }
 
 main() {
   local script="${0##*/}"
-  local version="2.0.25199"
+  local version="2.1.25254"
   box "$script $version"
   [[ "$LOCALNET" != "192.168.122" && "$LOCALNET" != "10.0.2" ]] && die "This is not a virtual machine." 1
-  printf "Installs Spice Tools Guest Additions to a Virtual Machine.\n"
+  printf "Installs Spice Tools to a Virtual Machine.\n"
   if debian_based; then
     install_debian_spice
   elif is_arch; then
@@ -63,7 +64,7 @@ main() {
   else
     die "Operating system not supported by this script." 1
   fi
-  leave "Spice Tools Guest Additions installed."
+  leave "Spice Tools installed."
 }
 
 ## Execution ##
