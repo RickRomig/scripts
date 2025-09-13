@@ -81,36 +81,36 @@ scan_static_addresses() {
   for ip_addr in $LOCALNET.{1..25}; do
     if arping_check "$ip_addr"; then
       hname=$(avahi-resolve -a "$ip_addr" 2>/dev/null | awk '{print $NF}' | sed 's/\.local$//')
-      printf "%s" "$ip_addr"
-      if [[ -n "$hname" ]]; then
-        printf "\t%s\n" "$hname"
+      printf "%s\t" "$ip_addr"
+      if [[ "$hname" ]]; then
+        printf "%s\n" "$hname"
       else
         case $ip_addr in
-          "192.168.0.1" ) printf "\tGateway (TP Link AC1750)\n" ;;
-          "192.168.0.2" ) printf "\tD-Link AP\n" ;;
-          "192.168.0.3" ) printf "\tunassigned ip\n" ;;
-          "192.168.0.4" ) printf "\tNASD97167 (QNAP NAS)\n" ;;
-          "192.168.0.5" ) printf "\tunassigned ip\n" ;;
-          "192.168.0.6" ) printf "\tRaspberry Pi 4\n" ;;
-          "192.168.0.7" ) printf "\tunassigned ip\n" ;;
-          "192.168.0.8" ) printf "\tunassigned ip\n" ;;
-          "192.168.0.9" ) printf "\tunassigned ip\n" ;;
-          "192.168.0.10" ) printf "\thp-800g2-sff (Main PC)\n" ;;
-          "192.168.0.11" ) printf "\thp-6005 (Server)\n" ;;
-          "192.168.0.12" ) printf "\te6500-deb (Dell laptop)\n" ;;
-          "192.168.0.13" ) printf "\tprobook-6570b (HP laptop)\n" ;;
-          "192.168.0.14" ) printf "\thp-8300 (Network test)\n" ;;
-          "192.168.0.15" ) printf "\tlenovo-m91p (Lenovo PC)\n" ;;
-          "192.168.0.16" ) printf "\thp-8300-usdt (Gitea Server)\n" ;;
-          "192.168.0.17" ) printf "\thp-800-g1-usdt (offline)\n" ;;
-          "192.168.0.18" ) printf "\tunassigned ip\n" ;;
-          "192.168.0.19" ) printf "\tunassigned ip\n" ;;
-          "192.168.0.20" ) printf "\tprobook-6570\n" ;;
-          "192.168.0.21" ) printf "\thp-probook-6570 (HP laptop)\n" ;;
-          "192.168.0.22" ) printf "\thp-850-g3 (i3)\n" ;;
-          "192.168.0.23" ) printf "\thp-2560p (i3)\n" ;;
-          "192.168.0.24" ) printf "\te-475m (Gateway laptop)\n" ;;
-          "192.168.0.25" ) printf "\tunassigned ip\n" ;;
+          "192.168.0.1" ) printf "Gateway (TP Link AC1750)\n" ;;
+          "192.168.0.2" ) printf "D-Link AP\n" ;;
+          "192.168.0.3" ) printf "unassigned\n" ;;
+          "192.168.0.4" ) printf "NASD97167 (QNAP NAS)\n" ;;
+          "192.168.0.5" ) printf "unassigned\n" ;;
+          "192.168.0.6" ) printf "Raspberry Pi 4\n" ;;
+          "192.168.0.7" ) printf "unassigned\n" ;;
+          "192.168.0.8" ) printf "unassigned\n" ;;
+          "192.168.0.9" ) printf "unassigned\n" ;;
+          "192.168.0.10" ) printf "hp-800g2-sff (Mint)\n" ;;
+          "192.168.0.11" ) printf "hp-6005 (LMDE)\n" ;;
+          "192.168.0.12" ) printf "e6500-deb (i3)\n" ;;
+          "192.168.0.13" ) printf "probook-6570b (i3)\n" ;;
+          "192.168.0.14" ) printf "hp-8300 (Network test)\n" ;;
+          "192.168.0.15" ) printf "lenovo-m91p (LMDE)\n" ;;
+          "192.168.0.16" ) printf "hp-8300-usdt (Gitea Server)\n" ;;
+          "192.168.0.17" ) printf "hp-800-g1-usdt (Mint)\n" ;;
+          "192.168.0.18" ) printf "unassigned\n" ;;
+          "192.168.0.19" ) printf "unassigned\n" ;;
+          "192.168.0.20" ) printf "probook-6570 (Mint)\n" ;;
+          "192.168.0.21" ) printf "hp-probook-6570 (Mint)\n" ;;
+          "192.168.0.22" ) printf "hp-850-g3 (i3)\n" ;;
+          "192.168.0.23" ) printf "hp-2560p (i3)\n" ;;
+          "192.168.0.24" ) printf "e-475m (i3)\n" ;;
+          "192.168.0.25" ) printf "unassigned\n" ;;
           * )
             printf "\tUnknown host\n"
         esac
@@ -125,11 +125,11 @@ scan_dhcp_addresses() {
   for ip_addr in $LOCALNET.{100..250}; do
     if arping_check "$ip_addr"; then
       hname=$(avahi-resolve -a "$ip_addr" 2>/dev/null | awk '{print $NF}' | sed 's/\.local$//')
-      printf "%s" "$ip_addr"
+      printf "%s\t" "$ip_addr"
       if [[ -n "$hname" ]]; then
-        printf "\t%s\n" "$hname"
+        printf "%s\n" "$hname"
       else
-        printf "\tUnknown host\n"
+        printf "Unknown host\n"
       fi
       (( COUNT++ ))
     fi
@@ -145,7 +145,7 @@ main() {
       a )
         check_dependencies
         tput civis
-        printf "\nScannint the network...\n"
+        printf "\nScanning the network...\n"
         printf "%s%sIP Address\tHostname%s\n" "$underline" "$green" "$normal"
         scan_static_addresses
         scan_dhcp_addresses
