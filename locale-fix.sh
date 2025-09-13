@@ -6,8 +6,8 @@
 # Arguments    : none
 # Author       : Copyright © 2025 Richard Romig, Luddite Geek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Created      : unknown
-# Updated      : 19 Jul 2025
+# Created      : 01 Jan 2025
+# Updated      : 13 Sep 2025
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -35,23 +35,21 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.5.25200"
+readonly version="2.6.25256"
 
 ## Functions ##
 
 show_intro() {
-  local updated="19 Jul 2025"
+  local updated="13 Sep 2025"
   cat << _INTRO_
 $script changes the setting to store locales in individual locale direectories
 instead of a single archive file.
 
 During some updates the following warning may occur:
-  Warning: No support for locale: us_US.UTF-8
+  ${lightyellow}Warning: No support for locale: us_US.UTF-8${normal}
 The problem is that /usr/share/initramfs-tools/hooks/root_locale is expecting
 to see individual locale directories in /usr/lib/locale, but locale-gen is
 configured to generate an archive file by default.
@@ -60,18 +58,18 @@ Version: $version, last updated on $updated.
 _INTRO_
 }
 
-purge_update() {
+purge_and_update() {
   printf "\nPurging existing locales and changing the default setting\n"
   printf "to not store compiled locale data in a single archive.\n"
+  sudo_login 2
   sudo locale-gen --purge --no-archive
   printf "Updating the existing initramfs.\n"
-  sudo update-initramfs -u # -t (-t flag isn't listed in man page)
+  sudo update-initramfs -u
 }
 
 main() {
-  sudo_login 2
   show_intro
-  purge_update
+  purge_and_update
   over_line "$script $version"
   exit
 }
