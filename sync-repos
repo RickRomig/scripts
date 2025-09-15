@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : sync-repos
-# Description  : Synchronixz Git repository directories
+# Description  : Synchronixz local Git repositories
 # Dependencies : rsync
 # Arguments    : See help() function for available options.
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 10 Aug 2025
-# Updated      : 21 Aug 2025
+# Updated      : 15 Sep 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,13 +39,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.0.25233"
+readonly version="3.0.25258"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="21 Aug 2025"
+	local -r updated="15 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Synchronixe Git repository and work directories between the main PC, the main
@@ -53,22 +53,28 @@ laptop, and the Gitea server,
 
 ${green}Usage:${normal} $script [-ghlm]
 ${orange}Available options:${normal}
-	-g	Synchronize repositories to Gitea server.
+	-g	Synchronize git repositories to Gitea server.
 	-h	Show this help message and exit.
-	-l	Synchronize repositories to HP 850 G3.
-	-m	Synchronize repositories to HP 800 G2.
+	-l	Synchronize git repositories to HP 850 G3.
+	-m	Synchronize git repositories to HP 800 G2.
 _HELP_
   exit "$errcode"
 }
 
 valid_host() {
-	local lhost="$1"
-	case "$lhost" in
+	local local_host="$1"
+	case "$local_host" in
 		hp-800g2-sff|hp-850-g3 )
 			return "$TRUE" ;;
 		* )
 			return "$FALSE"
 	esac
+}
+
+sync_repos() {
+	local remote_host="$1"
+	local remote_ip="$2"
+	transfer "$remote_ip" "$remote_host"
 }
 
 transfer_status() {
@@ -126,28 +132,9 @@ sync_script() {
   transfer_status "$exit_status"
 }
 
-sync_to_gitea() {
-	local -r remote_host="hp-8300-usdt"
-	local -r ip_addr="16"
-	transfer "$ip_addr" "$remote_host"
-}
-
-sync_to_laptop() {
-	local -r remote_host="hp-850-g3"
-	local -r ip_addr="22"
-	transfer "$ip_addr" "$remote_host"
-}
-
-sync_to_main() {
-	local -r remote_host="hp-800g2-sff"
-	local -r ip_addr="10"
-	transfer "$ip_addr" "$remote_host"
-}
-
 main() {
-	local noOpt opt optstr ip_addr local_host
-  ip_addr="$(local_ip)"
-  local_host="${HOSTNAME:-$(hostname)}"
+	local noOpt opt optstr local_host
+	local_host="${HOSTNAME:-$(hostname)}"
 	noOpt="1"
 	optstr=":ghlm"
 	check_package rsync
@@ -155,7 +142,7 @@ main() {
 		case "$opt" in
 			g )
 				if valid_host "$local_host"; then
-					sync_to_gitea
+					sync_repos "hp-8300-usdt" "16"
 				else
 					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
 					help 2
@@ -166,7 +153,7 @@ main() {
 			;;
 			l )
 				if valid_host "$local_host"; then
-					sync_to_laptop "$local_host"
+					sync_repos "hp-850-g3" "22"
 				else
 					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
 					help 2
@@ -174,7 +161,7 @@ main() {
 				;;
 			m )
 				if valid_host "$local_host"; then
-					sync_to_main "$local_host"
+					sync_repos "hp-800g2-sff" "10"
 				else
 					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
 					help 2
