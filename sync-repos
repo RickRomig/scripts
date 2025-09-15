@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.0.25258"
+readonly version="3.1.25258"
 
 ## Functions ##
 
@@ -48,8 +48,7 @@ help() {
 	local -r updated="15 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
-Synchronixe Git repository and work directories between the main PC, the main
-laptop, and the Gitea server,
+Synchronixe Git repositories and work directories between local computers.
 
 ${green}Usage:${normal} $script [-ghlm]
 ${orange}Available options:${normal}
@@ -90,8 +89,8 @@ transfer() {
   local ip_addr host_ip remote_host
   host_ip="$1"
 	remote_host="$2"
-  # Skip local machine:
   ip_addr="$(local_ip)"
+  # Skip local machine:
   if [[ "$ip_addr" == "$host_ip" ]]; then
     printf "%sSkipping %s (local client)%s\n\n" "$green" "$remote_host" "$normal"
     return
@@ -137,36 +136,18 @@ main() {
 	local_host="${HOSTNAME:-$(hostname)}"
 	noOpt="1"
 	optstr=":ghlm"
+	valid_host "$local_host" || { printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2; help 1; }
 	check_package rsync
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			g )
-				if valid_host "$local_host"; then
-					sync_repos "hp-8300-usdt" "16"
-				else
-					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
-					help 2
-				fi
-				;;
+				sync_repos "hp-8300-usdt" "16" ;;
 			h )
-				help 0
-			;;
+				help 0 ;;
 			l )
-				if valid_host "$local_host"; then
-					sync_repos "hp-850-g3" "22"
-				else
-					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
-					help 2
-				fi
-				;;
+				sync_repos "hp-850-g3" "22" ;;
 			m )
-				if valid_host "$local_host"; then
-					sync_repos "hp-800g2-sff" "10"
-				else
-					printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2
-					help 2
-				fi
-				;;
+					sync_repos "hp-800g2-sff" "10" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
