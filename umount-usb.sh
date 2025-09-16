@@ -1,14 +1,14 @@
 #! /usr/bin/env bash
 ##########################################################################
-# Script Name  : umount-usb
+# Script Name  : umount-usb.sh
 # Description  : script to unmount a USB drive in the /media/<user> directory
 # Dependencies : fzf
 # Arguments    : none
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 12 Mar 2025
-# Last updated : 20 Jul 2025
-# Version      : 1.1.25201
+# Last updated : 16 Sep 2025
+# Version      : 1.2.25259
 # Comments     : Only unmounts devices belonging to the current user.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,7 +26,7 @@
 ##########################################################################
 
 user=$(whoami)
-usb_drive=$(find /media/"$user" -maxdepth 1 -type d -user "$user" | fzf --height 40% --reverse --prompt "Select the USB drive to write to unmount: ")
+usb_drive=$(find /media/"$user" -maxdepth 1 -type d -user "$user" | fzf --height 40% --reverse --prompt "Select the USB drive to unmount: ")
 
 umount -l "$usb_drive"
 printf "%s unmounted.\n" "$usb_drive"
