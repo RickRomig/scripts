@@ -56,8 +56,8 @@ update_clone() {
 main() {
 	local clone clones
   local -r script="${0##*/}"
-  local -r version="2.0.25259"
-  clones=(configs scripts i3wm_debian homepage)
+  local -r version="2.1.25259"
+  clones=(configs scripts i3wm-debian homepage)
   check_package git
   printf "Updating cloned repositories...\n\n"
   for clone in "${clones[@]}"; do
