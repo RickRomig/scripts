@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Aug 2025
-# Last updated : 31 Aug 2025
+# Last updated : 16 Sep 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -40,34 +40,13 @@ fi
 
 ## Functions ##
 
-pull_configs() {
-	local -r repo_dir="$HOME/Downloads/configs"
-	git_pull_repo "$repo_dir"
-}
-
-pull_i3wm_debian() {
-	local repo_dir="$HOME/i3wm-debian"
-	[[ -d "$repo_dir" ]] || repo_dir="$HOME/Downloads/i3wm-debian"
-	git_pull_repo "$repo_dir"
-}
-
-pull_scripts() {
-	local -r repo_dir="$HOME/Downloads/scripts"
-	git_pull_repo "$repo_dir"
-}
-
-pull_homepage() {
-	local repo_dir="$HOME/Downloads/homepage"
-	git_pull_repo "$repo_dir"
-}
-
-git_pull_repo() {
+update_clone() {
 	local -r repo_dir="$1"
 	if [[ -d "$repo_dir" ]]; then
-		pushd "$repo_dir" || die "pushd failed"
+		pushd "$repo_dir" || die "pushd failed" 1
 		git checkout .
 		git pull
-		popd >/dev/null 2>&1 || die "popd failed"
+		popd >/dev/null 2>&1 || die "popd failed" 1
 		printf "\n"
 	else
 		printf "The %s repository has not been cloned to this computer.\n\n" "${repo_dir##*/}"
@@ -75,14 +54,15 @@ git_pull_repo() {
 }
 
 main() {
+	local clone clones
   local -r script="${0##*/}"
-  local -r version="1.2.25243"
+  local -r version="2.0.25259"
+  clones=(configs scripts i3wm_debian homepage)
   check_package git
   printf "Updating cloned repositories...\n\n"
-  pull_configs
-  pull_scripts
-  pull_i3wm_debian
-	pull_homepage
+  for clone in "${clones[@]}"; do
+		update_clone "$HOME/Downloads/$clone"
+  done
   over_line "$script $version"
   exit
 }
