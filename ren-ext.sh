@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : ren-ext
+# Script Name  : ren-ext.sh
 # Description  : Renames file extensions in the current directory
 # Dependencies : rename
 # Arguments    : File extenstion to be changed
 # Author       : Copyright (C) 2017, Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 2017
-# Updated      : 04 Aug 2025
+# Updated      : 17 Sep 2025
 # Comments     : File extensions are not case sensitive, will change to lowercase.
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -40,13 +40,13 @@ set -eu
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.0.25216"
+readonly version="3.1.25260"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="04 Aug 2025"
+	local updated="17 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Bulk renames file extensions in the current diectory.
@@ -85,8 +85,11 @@ main() {
   local extension
   check_package rename
   if [[ "$#" -eq 0 ]]; then
-    printf "\%s Must provide a file extension to be renamed.\n" "$RED_ERROR" <&2
-    help 2
+    printf "Bulk renames file extensions in the current diectory.\n"
+    read -rp "Enter an extension to rename: " extension
+    rename_extension "$extension"
+  elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    help 0
   else
     extension="$1"
     printf "Bulk renames file extensions in the current diectory.\n"
