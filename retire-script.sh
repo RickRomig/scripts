@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : retire-scripts
-# Description  : send scripts to a retired archive
+# Script Name  : retire-script.sh
+# Description  : retire scripts to a zipped archive
 # Dependencies : git zip
-# Arguments    : none
+# Arguments    : -h or --help, optionally script-to-be-retired
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 19 Jul 2025
+# Last updated : 18 Sep 2025
 # Comments     : Do not use with scripts or files inside git repos. Use gretire instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,21 +36,27 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.2.25200"
+readonly version="2.0.252261"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="19 Jul 2025"
-	printf "%sUsage:%s %s file-to-retire\n" "$green" "$normal" "$script" >&2
-	printf "Do not use in a git repository (~/Projects or ~/gitea).\nUse gretire instead.\n" >&2
-	over_line "$script $version, $updated"
+	local updated=" 18 Sep 2025"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
+Retires a script by moving it to a zipped archive.
+
+${green}Usage:${normal} $script <script-name>
+${orange}Available options:${normal}
+  -h | --help  Show this help message and exit
+${bold}NOTES:${normal}
+1. Do not use to retire a script in a git repository such as ~/Projects or ~/gitea
+2. To properly retire a script in a git repository use gretire.sh
+_HELP_
 	exit "$errcode"
 }
 
@@ -72,22 +78,28 @@ retire_script() {
 main() {
 	local ret_script
 	check_dependencies
-	if [[ "$#" -eq 0 ]]; then
-		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+	if [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]; then
+		printf "%s %s is an invalid script here. This is a Git repository." "$RED_WARNING" "$script"  >&2
 		help 1
-	elif [[ "$1" == "-h" ]]; then
+	elif [[ "$#" -eq 0 ]]; then
+    read -rp "Enter a script to retire: " ret_script
+		if [[ -f "$ret_script" ]]; then
+			retire_script "$ret_script"
+		else
+			printf "%s %s not found.\n" "$RED_ERROR" "$ret_script" >&2
+			help 2
+		fi
+	elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
 		help 0
 	elif [[ ! -f "$1" ]]; then
 		printf "%s %s not found.\n" "$RED_ERROR" "$1" >&2
 		help 2
-	elif [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]; then
-		die "This is a git repository. Use the gretire script instead." 2
 	else
 		ret_script="$1"
 		retire_script "$ret_script"
-		over_line "$script $version"
-		exit 0
 	fi
+	over_line "$script $version"
+	exit 0
 }
 
 ## Execution ##
