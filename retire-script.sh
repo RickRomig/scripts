@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 18 Sep 2025
+# Last updated : 19 Sep 2025
 # Comments     : Do not use with scripts or files inside git repos. Use gretire instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,13 +39,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.0.252261"
+readonly version="2.1252262"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated=" 18 Sep 2025"
+	local updated=" 19 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Retires a script by moving it to a zipped archive.
@@ -83,23 +83,15 @@ main() {
 		help 1
 	elif [[ "$#" -eq 0 ]]; then
     read -rp "Enter a script to retire: " ret_script
-		if [[ -f "$ret_script" ]]; then
-			retire_script "$ret_script"
-		else
-			printf "%s %s not found.\n" "$RED_ERROR" "$ret_script" >&2
-			help 2
-		fi
 	elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
 		help 0
-	elif [[ ! -f "$1" ]]; then
-		printf "%s %s not found.\n" "$RED_ERROR" "$1" >&2
-		help 2
 	else
 		ret_script="$1"
-		retire_script "$ret_script"
 	fi
-	over_line "$script $version"
-	exit 0
+	[[ -f "$ret_script" ]] || { printf "%s %s not found.\n" "$RED_ERROR" "$ret_script" >&2; help 2; }
+	retire_script "$ret_script"
+	printf "%s retired and archived (simulated)\n" "$ret_script"
+	exit
 }
 
 ## Execution ##
