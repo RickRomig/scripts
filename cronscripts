@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 17 Feb 2022
-# Updated      : 01 Aug 2025
+# Updated      : 19 Sep 2025
 # Comments     : For jobs needinng root access, checks if repo script is
 #              : newer than the one run by anacron/cron
 # TODO (Rick)  :
@@ -40,7 +40,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.0.25213"
+readonly version="8.0.25262"
 localip="$(local_ip)"; readonly localip
 # path variables
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
@@ -54,7 +54,7 @@ readonly sed_path="/usr/share/misc/"
 
 help() {
   local errcode="${1:-2}"
-  local updated="01 Aug 2025"
+  local updated="19 Sep 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Copies cronjob scripts to the appropriate directories.
@@ -63,6 +63,7 @@ ${green}Usage:${normal} $script [-abdfghmrstuv]
 ${orange}Available options:${normal}
   -a    Copy all applicable scripts.
   -b    Copy local backup script.
+  -c    Copy cloned repo update script.
   -d    Copy defrag script.
   -f    Copy Finance backup scripts.
   -g    Copy Git repository backup scripts.
@@ -87,6 +88,16 @@ is_older() {
 no_copy() {
   local message="$1"
   printf "%s not applicable to this system and was not copied.\n" "$message"
+}
+
+cp_update_repos() {
+  case "$localip" in
+    10|16|22 )
+      no_copy "Cloned repository updates are" ;;
+    * )
+      [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
+      p -puv "$job_dir/repo-update.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+  esac
 }
 
 cp_repo_backup() {
@@ -131,34 +142,26 @@ cp_finance_bu() {
 
 cp_scriptarchive() {
   case "$localip" in
-    10|11|12|13|14|15|16|19|20|23 )
+    17|21|22|24 )
+      no_copy "scriptarchive.sh is" ;;
+    * )
       [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
       cp -puv "$job_dir/scriptarchive.sh" "$user_cron_path" | awk '{print "==> "$NF}'
-      ;;
-    * )
-      no_copy "scriptarchive.sh is"
   esac
 }
 
 cp_empty_trash() {
-  case "$localip" in
-    10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25 )
-      [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
-      cp -puv "$job_dir/empty-trash.sh" "$user_cron_path" | awk '{print "==> "$NF}'
-      ;;
-    * )
-      no_copy "empty-trash.sh is"
-  esac
+  [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
+  cp -puv "$job_dir/empty-trash.sh" "$user_cron_path" | awk '{print "==> "$NF}'
 }
 
 cp_redshift_notify() {
   case "$localip" in
-    11|12|13|14|15|16|17|18|19|20|21|22|23|24|25 )
+    10|11|17|20|21 )
+      no_copy "redshift-notify.sh is" ;;
+    * )
       [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
       cp -puv "$job_dir/redshift-notify.sh" "$user_cron_path" | awk '{print "==> "$NF}'
-      ;;
-    * )
-      no_copy "redshift-notify.sh is"
   esac
 }
 
@@ -231,7 +234,7 @@ cp_zytdlpupdate() {
 main() {
   local noOpt opt optstr
   noOpt=1
-  optstr=":abdfghmrstuy"
+  optstr=":abcdfghmrstuy"
   printf "Copying updated cron scripts...\n"
   while getopts "$optstr" opt; do
     case "$opt" in
@@ -240,6 +243,7 @@ main() {
         cp_repo_backup
         cp_scriptarchive
         cp_empty_trash
+        cp_update_repos
         cp_zupdate
         cp_zdefrag
         cp_zytdlpupdate
@@ -247,6 +251,8 @@ main() {
         ;;
 		  b )
 			  cp_zbackup ;;
+      c )
+        cp_update_repos ;;
       d )
         cp_zdefrag ;;
       f )
