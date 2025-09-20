@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Sep 2025
-# Last updated : 19 Sep 2025
-# Version      : 1.0.25262
+# Last updated : 20 Sep 2025
+# Version      : 1.1.25263
 # Comments     : Run as a daily cron job from ~/.local/bin/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,10 +30,10 @@
 update_clone() {
 	local -r repo_dir="$1"
 	if [[ -d "$repo_dir" ]]; then
-		pushd "$repo_dir" || die "pushd failed" 1
+		pushd "$repo_dir" >/dev/null 2>&1 || return 1
 		git checkout --quiet .
 		git pull --quiet
-		popd >/dev/null 2>&1 || die "popd failed" 1
+		popd >/dev/null 2>&1 || return 1
 	fi
 }
 
@@ -43,6 +43,8 @@ main() {
   for clone in "${clones[@]}"; do
 		update_clone "$HOME/Downloads/$clone"
   done
+	rm "$HOME"/.local/share/logs/repo-update* >/dev/null 2>&1
+	touch "$HOME"/.local/share/logs//repo-update-"$(date +'%y%m%d%H%M')" >/dev/null 2>&1
 }
 
 ## Execution ##
