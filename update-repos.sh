@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Aug 2025
-# Last updated : 16 Sep 2025
+# Last updated : 20 Sep 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,12 +41,14 @@ fi
 ## Functions ##
 
 update_clone() {
-	local -r repo_dir="$1"
+	local -r clone="$1"
+	local repo_dir="$HOME/Downloads/$clone"
+	[[ -d "$HOME/$clone" ]] && repo_dir="$HOME/$clone"
 	if [[ -d "$repo_dir" ]]; then
-		pushd "$repo_dir" || die "pushd failed" 1
+		pushd "$repo_dir" || return 1
 		git checkout .
 		git pull
-		popd >/dev/null 2>&1 || die "popd failed" 1
+		popd >/dev/null 2>&1 || return 1
 		printf "\n"
 	else
 		printf "The %s repository has not been cloned to this computer.\n\n" "${repo_dir##*/}"
@@ -56,12 +58,12 @@ update_clone() {
 main() {
 	local clone clones
   local -r script="${0##*/}"
-  local -r version="2.1.25259"
+  local -r version="2.2.25263"
   clones=(configs scripts i3wm-debian homepage)
   check_package git
   printf "Updating cloned repositories...\n\n"
   for clone in "${clones[@]}"; do
-		update_clone "$HOME/Downloads/$clone"
+		update_clone "$clone"
   done
   over_line "$script $version"
   exit
