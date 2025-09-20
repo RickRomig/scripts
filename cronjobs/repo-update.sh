@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Sep 2025
 # Last updated : 20 Sep 2025
-# Version      : 1.1.25263
+# Version      : 1.2.25263
 # Comments     : Run as a daily cron job from ~/.local/bin/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,9 @@
 ## Functions ##
 
 update_clone() {
-	local -r repo_dir="$1"
+	local -r clone="$1"
+	local repo_dir="$HOME/Downloads/$clone"
+	[[ -d "$HOME/$clone" ]] && repo_dir="$HOME/$clone"
 	if [[ -d "$repo_dir" ]]; then
 		pushd "$repo_dir" >/dev/null 2>&1 || return 1
 		git checkout --quiet .
@@ -41,7 +43,7 @@ main() {
 	local clone clones
   clones=(configs scripts i3wm-debian homepage)
   for clone in "${clones[@]}"; do
-		update_clone "$HOME/Downloads/$clone"
+		update_clone "$clone"
   done
 	rm "$HOME"/.local/share/logs/repo-update* >/dev/null 2>&1
 	touch "$HOME"/.local/share/logs//repo-update-"$(date +'%y%m%d%H%M')" >/dev/null 2>&1
