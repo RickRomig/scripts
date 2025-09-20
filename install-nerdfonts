@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Sep 2023
-# Last updated : 18 Jul 2025
+# Last updated : 20 Sep 2025
 # Comments     : system install directory = /usr/local/share/fonts
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -51,11 +51,13 @@ install_nerd_fonts() {
   local -r symbols_font="SymbolsNerdFontMono-Regular.ttf"
   local -r symbols_archive="NerdFontsSymbolsOnly.tar.xz"
   local -r font_dir="$HOME/.local/share/fonts"
-  local -r fonts=( "CascadiaCode" "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
+  local -r fonts=( "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
   local font
   [[ -d "$font_dir" ]] || mkdir -p "$font_dir"
   for font in "${fonts[@]}"; do
+    printf "\e[03mInstalling %s ...\e[0m\n" "$font"
     wget -P "$tmp_dir" "$font_repo/$font.tar.xz"
+    mkdir -p "$font_dir/$font/"
     tar xvf "$tmp_dir/$font.tar.xz" -C "$font_dir/$font/"
   done
   wget -P "$tmp_dir" "$font_repo/$symbols_archive"
@@ -66,7 +68,7 @@ install_nerd_fonts() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.6.25199"
+  local -r version="1.7.25263"
   sudo_login 2
   check_packages wget
   tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
