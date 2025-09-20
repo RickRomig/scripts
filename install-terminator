@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 18 Jul 2025
+# Updated      : 20 Sep 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,13 +41,13 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.17.25199"
+readonly version="6.18.25263"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="18 Jul 2025"
+	local -r updated="20 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Terminator terminal emulator
@@ -100,7 +100,7 @@ apply_config() {
   printf "Applying Terminator configuration...\n"
   if is_debian; then
     [[ -f "$term_cfg_d/config" ]] && rm "$term_cfg_d/config"
-    ln -s "$repository/terminator/config" "$term_cfg_d/config"
+    ln -s "$repository"/terminator/config "$term_cfg_d"/config
   else
     cp -v "$repository/terminator/config" "$$term_cfg_d/"
     sed -i '/login_shell/s/True/False/' "$term_cfg_d/config"
