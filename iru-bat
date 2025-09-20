@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 03 Sep 2025
+# Updated      : 20 Sep 2025
 # Comments     : Use install-batcat if distro version equals latest GitHub release.
 #              : Mint 22 installs version 0.24.0 with the Ubuntu version appended.
 #              : Debian 13 installs version 0.25.0 with the Debian version appended.
@@ -43,14 +43,14 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.3.25246"
+readonly version="6.4.25263"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="03 Sep 2025"
+	local -r updated="20 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Bat utililty.
@@ -125,7 +125,7 @@ bat_config() {
 	[[ -d "$HOME/.config/bat" ]] || mkdir -p "$HOME/.config/bat"
   printf "Applying Bat configuration...\n"
 	[[ -f "$HOME/.config/bat/config" ]] && rm "$HOME/.config/bat/config"
-	ln -s "$repository/bat/config" "$HOME/.config/bat/config"
+	ln -s "$repository"/bat/config "$HOME"/.config/bat/config
 	[[ -L "$HOME/.local/bin/bat" ]] && unlink "$HOME/.local/bin/bat"
   printf "Configuration applied to Bat %s.\n" "$(bat_version)"
 }
