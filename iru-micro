@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 03 Sep 2025
-# Comments     :
+# Updated      : 20 Sep 2025
+# Comments     : Debian 13 & LMDE 7 installs version 2.0.14 from repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -41,14 +41,14 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.11.25246"
+readonly version="6.11.25263"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="03 Sep 2025"
+	local -r updated="20 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -71,7 +71,7 @@ cleanup() {
 }
 
 micro_version() {
-  micro -version | awk '/Version/ {print $NF}'
+  micro -version | awk '/Version:/ {print $NF}'
 }
 
 newest_version() {
@@ -87,7 +87,7 @@ compare_versions() {
   if [[ ! "$new_ver" > "$cur_ver" ]]; then
     printf "%sMicro %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
   else
-    printf "%sInstalled version of Micro is %s, updating to %s...\n" "$lightyellow" "$cur_ver" "$normal"
+    printf "%sInstalled version of Micro is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
     install_micro
   fi
 }
@@ -104,7 +104,7 @@ install_micro() {
   tar -xzvf "$tmp_dir/$new_pkg" -C "$tmp_dir/"
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro /usr/bin/
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro.1 /usr/share/man/man1/
-  exist xclip || sudo apt-get install -y xclip
+  exists xclip || sudo apt-get install -y xclip
   printf "Micro %s installed.\n" "$(micro_version)"
 }
 
@@ -128,9 +128,9 @@ micro_configs() {
   [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
   printf "Applying Micro settings and bindings...\n"
   [[ -f "$"$cfg_d/settings.json"" ]] && rm "$cfg_d/settings.json"
-  ln -s "$repository/micro/settings.json" "$cfg_d/settings.json"
+  ln -s "$repository"/micro/settings.json "$cfg_d"/settings.json
   [[ -f "$"$cfg_d/bindings.json"" ]] && rm "$cfg_d/bindings.json"
-  ln -s "$repository/micro/bindings.json" "$cfg_d/bindings.json"
+  ln -s "$repository"/micro/bindings.json "$cfg_d"/bindings.json
   micro -plugin install bookmark
   printf "Micro setttings applied.\n"
 }
