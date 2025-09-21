@@ -46,7 +46,7 @@ main() {
 		update_clone "$clone"
   done
 	rm "$HOME"/.local/share/logs/repo-update* >/dev/null 2>&1
-	touch "$HOME"/.local/share/logs//repo-update-"$(date +'%y%m%d%H%M')" >/dev/null 2>&1
+	touch "$HOME"/.local/share/logs/repo-update-"$(date +'%y%m%d%H%M')" >/dev/null 2>&1
 }
 
 ## Execution ##
