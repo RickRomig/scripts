@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 23 Mar 2025
-# Last updated : 16 Jul 2025
+# Last updated : 22 Sep 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -85,7 +85,7 @@ play_game() {
     box "Cards Against Muggles" "*"
     printf "\n%s\n" "$question_card"
     printf "%s\n\n" "${choices[@]}"
-    read -rsn1 -p "Press q to quit." ans
+    read -rsn1 -p "Press any key to continue,  q to quit." ans
     [[ "${ans,}" == "q" ]] && break
   done
   printf '\e[A\e[K'
@@ -94,7 +94,7 @@ play_game() {
 
 main() {
   local script="${0##*/}"
-  local version="2.2.25197"
+  local version="2.3.25265"
   check_files
   play_game
   over_line "$script $version"
