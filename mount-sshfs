@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 19 Jul 2025
+# Updated      : 27 Sep 2025
 # Comments     : Mount points are at ~/mnt/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,21 +41,21 @@ set -eu
 ## Glonal Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.9.25200"
+readonly version="5.0.25270"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="19 Jul 2025"
+	local -r updated="27 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated $updated
 Mounts/Unmounts an SSHFS share.
 
 ${green}Usage:${normal} $script [-defghlmns]
 
-${orange}Availabel options:${normal}
-  -d  toggle mount/umount HP EliteDesk 800 G1 USDT (destop)
+${orange}Available options:${normal}
+  -d  toggle mount/umount HP EliteDesk 800 G1 USDT (desktop)
   -e  toggle mount/umount HP EliteBook 850 G3 (laptop)
   -f  toggle mount/umount HP ProBook 6570b (desk)
   -g  toggle mount/umount HP Compaq Elite 8300 USDT (Gitea Server)
@@ -101,13 +101,13 @@ mount_share() {
 
 unmount_share() {
   local share="$1"
-    cd "$HOME" || cd_fail "$share"
-    if fusermount -u "$HOME/mnt/$share/"; then
-      printf "%s has been unmounted.\n" "$share"
-    else
-      printf "%s %s has not been unmounted." >&2 "$RED_ERROR" "$share"
-      fail_msg "$share"
-    fi
+  cd "$HOME" || cd_fail "$share"
+  if fusermount -u "$HOME/mnt/$share/"; then
+		printf "%s has been unmounted.\n" "$share"
+  else
+		printf "%s %s has not been unmounted." >&2 "$RED_ERROR" "$share"
+		fail_msg "$share"
+  fi
 }
 
 mounted() {
@@ -116,8 +116,11 @@ mounted() {
 }
 
 handle_mount() {
-	local octet="$1"
-  local share="$2"
+	local ip octet share
+	octet="$1"
+  share="$2"
+	ip=$(local_ip)
+	[[ "$ip" == "$octet" ]] && die "Cannot mount/unmount local system."
   if mounted "$share"; then
 		if default_yes "Unmount $share?"; then
 			unmount_share "$share"
@@ -130,8 +133,7 @@ handle_mount() {
 }
 
 main() {
-  local noOpt opt optstr local_host
-	local_host="${HOSTNAME:-$(hostname)}"
+  local noOpt opt optstr share_name share_ip
 	check_package sshfs
 	printf "Mount or unmount an SSHFS share.\n"
 	noOpt=1
@@ -139,80 +141,39 @@ main() {
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			d )
-				share_name="EliteDesk-880"
-				ip_address=22
-				if [[ "$local_host" == "hp-800-g1-usdt" ]]; then
-					diehard "Cannot mount/unmount local system." "$script $version"
-				else
-					handle_mount "$ip_address" "$share_name"
-				fi
-				;;
+				share_name="EliteDesk-800"
+				share_ip=17
+				handle_mount "$share_ip" "$share_name" ;;
 			e )
 				share_name="EliteBook-850"
-				ip_address=22
-				if [[ "$local_host" == "hp-850-g3" ]]; then
-					diehard "Cannot mount/unmount local system." "$script $version"
-				else
-					handle_mount "$ip_address" "$share_name"
-				fi
-				;;
+				share_ip=22
+				handle_mount "$share_ip" "$share_name" ;;
 			f )
 				share_name="HP-ProBook-6570b"
-				ip_address=21
-				if [[ "$local_host" == "hp-probook-6570" ]]; then
-					diehard "Cannot mount/unmount local system." "$script $version"
-				else
-					handle_mount "$ip_address" "$share_name"
-				fi
-				;;
+				share_ip=21
+				handle_mount "$share_ip" "$share_name" ;;
 			g )
 				share_name="Gitea-Server"
-				ip_address=16
-				if [[ "$local_host" == "hp-8300-usdt" ]]; then
-					diehard "Cannot mount/unmount local system." "$script $version"
-				else
-					handle_mount "$ip_address" "$share_name"
-				fi
-				;;
+				share_ip=16
+				handle_mount "$share_ip" "$share_name" ;;
 			h )
-				help 0
-				;;
+				help 0 ;;
 			l )
 				share_name="Lenovo-M91p"
-				ip_address=15
-				if [[ "$local_host" == "lenovo-m91p" ]]; then
-					diehard "Cannot mount/unmount local system." "$script $version"
-				else
-					handle_mount "$ip_address" "$share_name"
-				fi
-				;;
+				share_ip=15
+				handle_mount "$share_ip" "$share_name" ;;
 			m )
 				share_name="HP-800-G2"
-				ip_address=10
-				if [[ "$local_host" == "hp-800g2-sff" ]]; then
-					diehard "Cannot mount/unmount local system." "$script $version"
-				else
-					handle_mount "$ip_address" "$share_name"
-				fi
-				;;
+				share_ip=10
+				handle_mount "$share_ip" "$share_name" ;;
 			n )
 				share_name="NASD97167"
-				ip_address=4
-				if [[ "$local_host" == "NASD97167" ]]; then
-					diehard "Cannot mount/unmount local system." "$script $version"
-				else
-					handle_mount "$ip_address" "$share_name"
-				fi
-				;;
+				share_ip=4
+				handle_mount "$share_ip" "$share_name" ;;
 			s )
 				share_name="HP-6005"
-				ip_address=11
-				if [[ "$local_host" == "hp-6005" ]]; then
-					diehard "Cannot mount/unmount local system." "$script $version"
-				else
-					handle_mount "$ip_address" "$share_name"
-				fi
-				;;
+				share_ip=11
+				handle_mount "$share_ip" "$share_name" ;;
 			?)
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
