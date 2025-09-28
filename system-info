@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 31 Aug 2025
+# Updated:     : 27 Sep 2025
 # Comments     : Rewrite of version 2.5.0
 #              : Will not get desktop session info from an SSH connection. Run locally.
 # TODO (Rick)  :
@@ -82,22 +82,18 @@ rename_mnt_pt() {
       1 )
         sed -i '/timeshift/s/run\/timeshift\/backup/home/' "$tmp_file"
         printf "%s mountpoint changed to /home\n" "$ts_drv"
-        break
-        ;;
+        break ;;
       2 )
         sed -i '/timeshift/s/run\/timeshift\/backup/data/' "$tmp_file"
         printf "%s mountpoint changed to /data\n" "$ts_drv"
-        break
-        ;;
+        break ;;
       3 )
         sed -i '/timeshift/s/run\/timeshift\/backup//' "$tmp_file"
         printf "%s mountpoint changed to /]n" "$ts_drv"
-        break
-        ;;
+        break ;;
       4 )
         printf "%s mountpoint left as is." "$ts_drv"
-        break
-        ;;
+        break ;;
       * )
         printf "%s Invalid choice! Select 1, 2, 3, or 4\n" >&2 "$RED_ERROR"
     esac
@@ -113,19 +109,16 @@ ff_fix() {
     case "$REPLY" in
       1 )
         hd_ff="2.5 inch"
-        break
-        ;;
+        break ;;
       2 )
         hd_ff="3.5 inch"
-        break
-        ;;
+        break ;;
       3 )
         hd_ff="less than 1.8 inch"
-        break
-        ;;
+        break ;;
       4 )
-        break
-        ;;
+        :
+        break ;;
       * )
         printf "%s Invalid choice! Choose 1, 2, 3, or 4\n" >&2 "$RED_ERROR"
     esac
@@ -150,7 +143,7 @@ os_info() {
   local desktop root_part created_date
   desktop="$DESKTOP_SESSION"
   [[ "$desktop" == "bunsenlabs" || "$desktop" == "lightdm-xsession" ]] && desktop=$(wmctrl -m | awk '/Name/ {print $2}')
-	root_part=$(df -P / | awk '/dev/ {print $1}')
+  root_part=$(df -P | awk '$NF == "/" {print $1}')
 	created_date=$(sudo /usr/sbin/tune2fs -l "$root_part" | awk '/created:/ {print $(NF-2),$(NF-3),$NF}')
 	printf "\n%-19s %s\n" "Operating System:" "$(uname -o)"
 	printf "%-19s %s\n" "Distribution:" "$(get_distribution)"
@@ -306,7 +299,7 @@ battery_info() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.1.25243"
+  local -r version="4.2.25270"
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r info_file="$HOME/$lhost.info"
 
