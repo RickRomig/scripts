@@ -222,7 +222,7 @@ grep -r term      # search recursively
 $ last reboot | head -1
 reboot   system boot  5.15.0-107-gener Tue May 14 11:18   still running
 $ who -b
-         system boot  2024-05-14 11:18
+system boot  2024-05-14 11:18
 $ uptime -s
 2024-05-14 11:17:58
 $ journalctl --list-boots | tail -1
@@ -237,4 +237,10 @@ $ sudo find /tmp/ -type f -name "tmp.*" -daystart -mtime -1 -delete
 ### Use column to copy password file into json format
 ```bash
 $ cat /etc/passwd | column -t -s ":" -N USERNAME,PW,UID,GUID,COMMENT,HOME,INTERPRETER, -J -n passwordfile > passwd.json
+```
+### Get root partition using `df -P`
+```bash
+df -P | awk '$NF == "/" {print $1}
+df -P / | awk '/dev/ {print $1}'
+df -P / | awk '{print $1}' | sed '1d'
 ```
