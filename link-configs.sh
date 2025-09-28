@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 04 Sep 2025
+# Last updated : 28 Sep 2025
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.1.25247"
+readonly version="2.2.25271"
 readonly old_configs="$HOME/old-configs/"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="04 Sep 2025"
+	local -r updated="0284 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Create symbolic links from configs and scripts repos.
@@ -126,6 +126,15 @@ link_config_files() {
 	[[ -d "$HOME/.config/micro/plug/bookmark" ]] || micro -plugin install bookmark
 }
 
+set_reserved_space() {
+	local home_part root_part
+	root_part=$(df -P | awk '$NF == "/" {print $1}')
+	home_part=$(df -P | awk '$NF == "/home" {print $1}')
+	sudo tune2fs -m 2 "$root_part"
+	[[ "$home_part" ]] && sudo tune2fs -m 0 "$home_part"
+	printf "Drive reserve space set.\n"
+}
+
 # Add tweaks to /etc/sudoers.d directory and set swappiness
 set_system_tweaks() {
 	local repo_dir
@@ -144,14 +153,15 @@ set_system_tweaks() {
 		sudo cp -v "$repo_dir/sudoers/10timeout" /etc/sudoers.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
 		sudo chmod 440 /etc/sudoers.d/10timeout
 	fi
-	printf "\e[93mApplying swappiness...\e[0m\n"
-	grep -q 'vm.swappiness=10' /etc/sysctl.conf || echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
 	if [[ -f "/etc/apt/preferences.d/nosnap.pref" ]]; then
 		printf "Snap packages have already been disabled.\n"
 	else
 		printf "Disabling installation of Snapd and Snap packages...\n"
 		sudo cp -v "$repo_dir/apt/nosnap.pref" /etc/apt/preferences.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
 	fi
+	printf "\e[93mApplying swappiness...\e[0m\n"
+	grep -q 'vm.swappiness=10' /etc/sysctl.conf || echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
+	set_reserved_space
 }
 
 assign_scripts_repo() {
