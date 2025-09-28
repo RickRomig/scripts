@@ -143,24 +143,24 @@ set_system_tweaks() {
 	if [[ -f "/etc/sudoers.d/0pwfeedback" ]]; then
 		printf "Sudo password feedback is already enabled with 0pwfeedback\n"
 	else
-		sudo cp -v "$repo_dir/sudoers/0pwfeedback" /etc/sudoers.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
+		sudo cp -v "$repo_dir"/sudoers/0pwfeedback /etc/sudoers.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
 		sudo chmod 440 /etc/sudoers.d/0pwfeedback
 	fi
 	if [[ -f "/etc/sudoers.d/10timeout" ]]; then
 		printf "Sudo timeout has already been set.\n"
 	else
 		printf "\e[93mApplying sudo timeout...\e[0m\n"
-		sudo cp -v "$repo_dir/sudoers/10timeout" /etc/sudoers.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
+		sudo cp -v "$repo_dir"/sudoers/10timeout /etc/sudoers.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
 		sudo chmod 440 /etc/sudoers.d/10timeout
 	fi
 	if [[ -f "/etc/apt/preferences.d/nosnap.pref" ]]; then
 		printf "Snap packages have already been disabled.\n"
 	else
 		printf "Disabling installation of Snapd and Snap packages...\n"
-		sudo cp -v "$repo_dir/apt/nosnap.pref" /etc/apt/preferences.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
+		sudo cp -v "$repo_dir"/apt/nosnap.pref /etc/apt/preferences.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
 	fi
 	printf "\e[93mApplying swappiness...\e[0m\n"
-	grep -q 'vm.swappiness=10' /etc/sysctl.conf || echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
+	grep 'vm.swappiness=10' /etc/sysctl.conf || echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
 	set_reserved_space
 }
 
