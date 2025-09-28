@@ -46,7 +46,7 @@ readonly old_configs="$HOME/old-configs/"
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="0284 Sep 2025"
+	local -r updated="28 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Create symbolic links from configs and scripts repos.
