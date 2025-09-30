@@ -271,9 +271,10 @@ is_debian() {
 # Returns: True or False
 ###############################################################################
 debian_based() {
-  local like_deb
-  like_deb=$(grep -E 'ID|ID_LIKE' /etc/os-release | grep -w debian)
-  [[ "$like_deb" ]] && return "$TRUE" || return "$FALSE"
+  # local like_deb
+  # like_deb=$(grep -E 'ID|ID_LIKE' /etc/os-release | grep -w debian)
+  # [[ "$like_deb" ]] && return "$TRUE" || return "$FALSE"
+  grep -E 'ID|ID_LIKE' /etc/os-release | grep -qw debian && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
