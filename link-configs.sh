@@ -130,6 +130,7 @@ set_reserved_space() {
 	local home_part root_part
 	root_part=$(df -P | awk '$NF == "/" {print $1}')
 	home_part=$(df -P | awk '$NF == "/home" {print $1}')
+	printf "e[93mSetting reserve space on root & home partitions...\e[0m\n"
 	sudo tune2fs -m 2 "$root_part"
 	[[ "$home_part" ]] && sudo tune2fs -m 0 "$home_part"
 	printf "Drive reserve space set.\n"
@@ -159,7 +160,7 @@ set_system_tweaks() {
 		printf "Disabling installation of Snapd and Snap packages...\n"
 		sudo cp -v "$repo_dir"/apt/nosnap.pref /etc/apt/preferences.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
 	fi
-	if [[ -f /etc/sysctl.d/0-swappiness.conf ]] || grep 'vm.swappiness=10' /etc/sysctl.conf; then
+	if [[ -f /etc/sysctl.d/90-swappiness.conf ]] || grep 'vm.swappiness' /etc/sysctl.conf; then
 		printf "Swappiness is already set.\n"
 	else
 		printf "\e[93mApplying swappiness...\e[0m\n"
