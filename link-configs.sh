@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 28 Sep 2025
+# Last updated : 30 Sep 2025
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.2.25271"
+readonly version="2.3.25273"
 readonly old_configs="$HOME/old-configs/"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="28 Sep 2025"
+	local -r updated="30 Sep 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Create symbolic links from configs and scripts repos.
@@ -140,27 +140,32 @@ set_system_tweaks() {
 	local repo_dir
 	repo_dir=$(assign_cfg_repo)
 	printf "\e[93mApplying password feeback...\e[0m\n"
-	if [[ -f "/etc/sudoers.d/0pwfeedback" ]]; then
+	if [[ -f /etc/sudoers.d/0pwfeedback ]]; then
 		printf "Sudo password feedback is already enabled with 0pwfeedback\n"
 	else
 		sudo cp -v "$repo_dir"/sudoers/0pwfeedback /etc/sudoers.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
 		sudo chmod 440 /etc/sudoers.d/0pwfeedback
 	fi
-	if [[ -f "/etc/sudoers.d/10timeout" ]]; then
+	if [[ -f /etc/sudoers.d/10timeout ]]; then
 		printf "Sudo timeout has already been set.\n"
 	else
 		printf "\e[93mApplying sudo timeout...\e[0m\n"
 		sudo cp -v "$repo_dir"/sudoers/10timeout /etc/sudoers.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
 		sudo chmod 440 /etc/sudoers.d/10timeout
 	fi
-	if [[ -f "/etc/apt/preferences.d/nosnap.pref" ]]; then
+	if [[ -f /etc/apt/preferences.d/nosnap.pref ]]; then
 		printf "Snap packages have already been disabled.\n"
 	else
 		printf "Disabling installation of Snapd and Snap packages...\n"
 		sudo cp -v "$repo_dir"/apt/nosnap.pref /etc/apt/preferences.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
 	fi
-	printf "\e[93mApplying swappiness...\e[0m\n"
-	grep 'vm.swappiness=10' /etc/sysctl.conf || echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
+	if [[ -f /etc/sysctl.d/0-swappiness.conf ]] || grep 'vm.swappiness=10' /etc/sysctl.conf; then
+		printf "Swappiness is already set.\n"
+	else
+		printf "\e[93mApplying swappiness...\e[0m\n"
+		sudo cp -v "$repo_dir"/90-swappiness.conf /etc/sysctl.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
+		# grep 'vm.swappiness=10' /etc/sysctl.conf || echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
+	fi
 	set_reserved_space
 }
 
