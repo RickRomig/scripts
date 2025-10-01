@@ -131,8 +131,7 @@ dielog() {
   local message="$1"
   local log_file="$2"
   local err_code="${3:-1}"
-  printf "%(%F %R)T: \e[91mERROR:\e[0m %s\n" -1 "$message" >> "$log_file"
-  printf "\e[91mERROR:\e[0m %s\n" "$message" >&2
+  printf "%(%F %R)T: \e[91mERROR:\e[0m %s\n" -1 "$message" | tee -a "$log_file"
   exit "$err_code"
 }
 
@@ -154,7 +153,7 @@ error_handler() {
 
 ###############################################################################
 # log
-# Purpose: write to a log file
+# Purpose: write a msssage to a log file
 # Arguments:
 #   $1 -> message to be logged
 #   $2 -> path/to/logfile
@@ -162,8 +161,7 @@ error_handler() {
 log() {
   local message="$1"
   local log_file="$2"
-  printf "%(%F %R)T: %s\n" -1 "$message" >> "$log_file"
-  printf "%s\n" "$message"
+  printf "%(%F %R)T: %s\n" -1 "$message" | tee -a "$log_file"
 }
 
 ###############################################################################
@@ -294,7 +292,7 @@ support_ppa() {
   local codename
   codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
-    jammy|noble|vanessa|vera|victoria|virginia|wilma|xia )
+    noble|wilma|xia|zara )
       return "$TRUE" ;;
     * )
       return "$FALSE"
@@ -575,8 +573,8 @@ anykey() {
 print_line() {
   local char width len
   char="${1:-=}"
-  width=$(tput cols)
-  if [[ "$#" -gt 1 ]]; then char="$1"; width="$2"; fi
+  width="$2"
+  [[ "$width" ]] || width=$(tput cols)
   len=${#char}
   (( len > 1 )) && char=${char::1}
   printf "%${width}s\n" | sed "s/ /$char/g"
@@ -653,11 +651,12 @@ over_line() {
 # Ouput: File contents displayed with lines centered.
 ###############################################################################
 center_file() {
-  local columns line
+  local columns line file
+  file="$1"
 	columns="$(tput cols)"
 	while IFS= read -r line; do
 		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
-	done < "$1"
+	done < "$file"
 }
 
 ###############################################################################
@@ -668,11 +667,12 @@ center_file() {
 # String displayed with lines centered.
 ###############################################################################
 center_text() {
-  local columns line
+  local columns line text_string
+  text_string="$1"
 	columns="$(tput cols)"
 	while IFS= read -r line; do
 		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
-	done <<< "$1"
+	done <<< "$text_string"
 }
 
 ###############################################################################
@@ -903,7 +903,7 @@ clone_repo() {
 
 ###############################################################################
 # assign_cfg_repo
-# Purpose: assign repoitory directiory for install scripts
+# Purpose: assign repository directory for configuration files
 # Argument: None
 # Output: path of repository or cloned repository
 ###############################################################################
@@ -940,7 +940,7 @@ dots() {
   local char len
   char="${1:-.}"
   len="${#char}"
-  (( len > 1 )) && char=${char::1}  # takes the firt character.
+  (( len > 1 )) && char=${char::1}  # takes the first character.
   tput civis  # removes cursor
   while true; do echo -n "."; sleep 0.5; done &
 }
@@ -1052,7 +1052,7 @@ default_no() {
 #   $1 -> URL to be checked
 # Returns: True or False
 ###############################################################################
-url_accessible() {
+url_reachable() {
   local url result
   url="$1"
   result=$(curl --head --connect-timeout 8 --max-time 14 --silent --output /dev/null --write-out '%{http_code}' "$url")
