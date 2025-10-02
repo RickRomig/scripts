@@ -1,10 +1,10 @@
 # exists
 ### Purpose
-Returns true if the program exists (is installed), false if it does not.
+Returns true if the program exists in the user's path, false if it does not.
 ### Arguments
 The program/command to be checked.
 ### Returns
-Returns TRUE if the command/program exists, FALSE if it does not.
+Returns TRUE (0) if the command/program exists in the user's path, FALSE (1) if it does not.
 ### Usage
 ```bash
 exists <command> && echo "Installed" || echo "Not installed."

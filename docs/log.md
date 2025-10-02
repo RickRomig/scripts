@@ -16,8 +16,7 @@ command ||dielog "An error occured" "$logfile"
 log() {
   local message="$1"
   local logfile="$2"
-  printf "%(%F %R)T: %s\n" -1 "$message" >> "$log_file"
-  printf "%s\n" "$message"
+  printf "%(%F %R)T: %s\n" -1 "$message" | tee -a "$log_file"
 }
 ```
 ### Notes

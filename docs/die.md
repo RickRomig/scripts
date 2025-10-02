@@ -6,14 +6,14 @@ Display an error message and exits with an error code.
 - $2 -> Exit status (optional, defaults to 1)
 ### Usage
 ```bash
-command -x || die "invalid option" 2
+command -x || die "Invalid option" 2
+ERROR: Invalid option
 ```
 ### Code
 ```bash
 die() {
-  local errmsg errcode
-  errmsg="${1:-Undefined error}"
-  errcode="${2:-1}"
+  local -r errmsg="${1:-Undefined error}"
+  local -r errcode="${2:-1}"
   printf "\e[91mERROR:\e[0m %s\n" "$errmsg" >&2
   exit "$errcode"
 }

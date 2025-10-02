@@ -12,7 +12,8 @@ Please check your spelling.
 ### Code
 ```bash
 diehard() {
-    printf "\e[91mERROR:\e[0m "
-    exec 2>&1; for line; do echo "$line"; done; exit 1
+  local line
+	printf "\e[91mERROR:\e[0m "
+	exec 2>&1; for line; do printf "%s\n" "$line"; done; exit 1
 }
 ```

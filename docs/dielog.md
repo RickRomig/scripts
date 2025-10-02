@@ -17,8 +17,7 @@ dielog() {
   local message="$1"
   local log_file="$2"
   local err_code="${3:-1}"
-  printf "%(%F %R)T: \e[91mERROR:\e[0m %s\n" -1 "$message" >> "$log_file"
-  printf "\e[91mERROR:\e[0m %s\n" "$message" >&2
+  printf "%(%F %R)T: \e[91mERROR:\e[0m %s\n" -1 "$message" | tee -a "$log_file"
   exit "$err_code"
 }
 ```
