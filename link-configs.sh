@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 30 Sep 2025
+# Last updated : 02 Oct 2025
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.3.25273"
-readonly old_configs="$HOME/old-configs/"
+readonly version="2.4.25275"
+readonly old_configs="$HOME"/old-configs
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="30 Sep 2025"
+	local -r updated="02 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Create symbolic links from configs and scripts repos.
@@ -65,6 +65,7 @@ _HELP_
 # Create symbolic links to dotfiles in the home directory
 link_dot_files() {
 	local dot_file dot_files repo_dir
+	[[ -d "$old_configs" ]] || mkdir -p "$old_configs"
 	repo_dir=$(assign_cfg_repo)
 	dot_files=(
 		.bash_aliases
@@ -77,10 +78,10 @@ link_dot_files() {
 	)
 	[[ -f "$HOME/.curlrc" ]] && rm .curlrc
 	[[ -f "$HOME/.wgetrc" ]] && rm .wgetrc
-	printf "\e[93m93mLinking dotfiles ...\e[0m\n"
+	printf "\e[93mLinking dotfiles ...\e[0m\n"
 	for dot_file in "${dot_files[@]}"; do
 		printf "\e[93mLinking %s ...\e[0m\n" "$dot_file"
-		[[ -f "$HOME/$dot_file" ]] && mv -v "$HOME/$dot_file" "$old_configs"
+		[[ -f "$HOME/$dot_file" ]] && mv -v "$HOME/$dot_file" "$old_configs/"
 		ln -sv "$repo_dir/$dot_file" "$HOME/$dot_file"
 	done
 }
@@ -88,8 +89,8 @@ link_dot_files() {
 # Link configuration files to directories in ~/.config
 link_config_files() {
 	local cfg_file cfg_files repo_dir
+	[[ -d "$old_configs" ]] || mkdir -p "$old_configs"
 	repo_dir=$(assign_cfg_repo)
-	local -r config_dir="$HOME/.config"
 	cfg_files=(
 		"bat/config"
 		"dunst/dunstrc"
@@ -110,17 +111,17 @@ link_config_files() {
 		"VSCodium/User/settings.json"
 	)
 	for cfg_file in "${cfg_files[@]}"; do
-		if [[ -f "$config_dir/$cfg_file" ]]; then
-			printf "\e[93mLinking %s to %s ...\e[0m\n" "$repo_dir/$cfg_file" "$config_dir"
+		if [[ -f "$HOME/.config/$cfg_file" ]]; then
+			printf "\e[93mLinking %s to %s ...\e[0m\n" "$repo_dir/$cfg_file" "$HOME/.config"
 			if [[ "$cfg_file" == "redshift.conf" ]]; then
-				mv -v "$config_dir/$cfg_file" "$old_configs/"
+				mv -v "$HOME/.config/$cfg_file" "$old_configs/"
 			else
 				[[ -d "$old_configs/${cfg_file%/*}" ]] || mkdir -p "$old_configs/${cfg_file%/*}"
-				mv -v "$config_dir/$cfg_file" "$old_configs/${cfg_file%/*}/${cfg_file##*/}"
+				mv -v "$HOME/.config/$cfg_file" "$old_configs/${cfg_file%/*}/${cfg_file##*/}"
 			fi
-			ln -sv "$repo_dir/$cfg_file" "$config_dir/$cfg_file"
+			ln -sv "$repo_dir/$cfg_file" "$HOME/.config/$cfg_file"
 		else
-			printf "%s/%s not present.\n" "$config_dir" "$cfg_file"
+			printf "%s/%s not present.\n" "$HOME/.config" "$cfg_file"
 		fi
 	done
 	[[ -d "$HOME/.config/micro/plug/bookmark" ]] || micro -plugin install bookmark
@@ -130,76 +131,58 @@ set_reserved_space() {
 	local home_part root_part
 	root_part=$(df -P | awk '$NF == "/" {print $1}')
 	home_part=$(df -P | awk '$NF == "/home" {print $1}')
-	printf "e[93mSetting reserve space on root & home partitions...\e[0m\n"
+	printf "e[93mSetting reserved space on root & home partitions...\e[0m\n"
 	sudo tune2fs -m 2 "$root_part"
 	[[ "$home_part" ]] && sudo tune2fs -m 0 "$home_part"
 	printf "Drive reserve space set.\n"
 }
 
+check_swappiness() {
+	if [[ -f /etc/sysctl.conf ]]; then
+		grep 'vm.swappiness' /etc/sysctl.conf && return "$TRUE"
+	fi
+	[[ -f /etc/sysctl.d/90-swappiness.conf ]] && return "$TRUE"
+	return "$FALSE"
+}
+
 # Add tweaks to /etc/sudoers.d directory and set swappiness
 set_system_tweaks() {
-	local repo_dir
-	repo_dir=$(assign_cfg_repo)
 	printf "\e[93mApplying password feeback...\e[0m\n"
 	if [[ -f /etc/sudoers.d/0pwfeedback ]]; then
 		printf "Sudo password feedback is already enabled with 0pwfeedback\n"
 	else
-		sudo cp -v "$repo_dir"/sudoers/0pwfeedback /etc/sudoers.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
+		sudo cp -v "$repo_dir"/sudoers/0pwfeedback /etc/sudoers.d/
 		sudo chmod 440 /etc/sudoers.d/0pwfeedback
 	fi
 	if [[ -f /etc/sudoers.d/10timeout ]]; then
 		printf "Sudo timeout has already been set.\n"
 	else
 		printf "\e[93mApplying sudo timeout...\e[0m\n"
-		sudo cp -v "$repo_dir"/sudoers/10timeout /etc/sudoers.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
+		sudo cp -v ~/Downloads/configs/sudoers/10timeout /etc/sudoers.d/
 		sudo chmod 440 /etc/sudoers.d/10timeout
 	fi
 	if [[ -f /etc/apt/preferences.d/nosnap.pref ]]; then
 		printf "Snap packages have already been disabled.\n"
 	else
 		printf "Disabling installation of Snapd and Snap packages...\n"
-		sudo cp -v "$repo_dir"/apt/nosnap.pref /etc/apt/preferences.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
+		sudo cp -v ~/Downloads/configs/apt/nosnap.pref /etc/apt/preferences.d/
 	fi
-	if [[ -f /etc/sysctl.d/90-swappiness.conf ]] || grep 'vm.swappiness' /etc/sysctl.conf; then
-		printf "Swappiness is already set.\n"
-	else
-		printf "\e[93mApplying swappiness...\e[0m\n"
-		sudo cp -v "$repo_dir"/90-swappiness.conf /etc/sysctl.d/ | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
-		# grep 'vm.swappiness=10' /etc/sysctl.conf || echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
-	fi
+	check_swappiness && sudo cp -v ~/Downloads/configs/90-swappiness.conf /etc/sysctl.d/
 	set_reserved_space
 }
 
-assign_scripts_repo() {
-	local local_host="${HOSTNAME:-$(hostname)}"
-	local repo_dir="$HOME/Downloads/scripts"
-	case "$local_host" in
-		hp-800g2-sff|hp-8300-usdt|hp-850-g3 )
-			repo_dir="$HOME/gitea/scripts" ;;
-		* )
-			if [[ -d "$repo_dir" ]]; then
-				pushd "$repo_dir" || die "pushd failed"
-				git pull --quiet
-				popd || die "popd failed"
-			else
-				git clone --quiet "$GITHUB_URL/scripts.git" "$repo_dir"
-			fi
-	esac
-	printf "%s" "$repo_dir"
-}
-
 link_script_dir() {
-	local script_repo
-	script_repo=$(assign_scripts_repo)
-	if [[ -d "$HOME/gitea/scripts" ]]; then
-		printf "Script directory is already linked to repository.\n"
-	elif [[ -L "$HOME/bin" ]]; then
+	if [[ -L "$HOME/bin" ]]; then
 		printf "Script directory is already linked to cloned repository.\n"
 	else
 		printf "\e[93mLinking scripts repo to ~/bin...\e[0m\n"
 		[[ -d "$HOME/bin" ]] && rm -rf "${HOME:?}/bin"
-		ln -sv "$script_repo/" "$HOME/bin"
+		ln -sv ~/Downloads/scripts/ "$HOME/bin"
 	fi
+}
+
+check_for_gitea() {
+	[[ -d "$HOME/gitea" ]] && return "$TRUE" || return "$FALSE"
 }
 
 main() {
@@ -209,17 +192,15 @@ main() {
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c )
-				[[ -d "$old_configs" ]] || mkdir -p "$old_configs"
-				link_config_files ;;
+				check_for_gitea || link_config_files ;;
 			d )
-				[[ -d "$old_configs" ]] || mkdir -p "$old_configs"
-				link_dot_files ;;
+				check_for_gitea || link_dot_files ;;
 			h )
 				help 0 ;;
 			s )
-				link_script_dir ;;
+				check_for_gitea || link_script_dir ;;
 			t )
-				set_system_tweaks ;;
+				check_for_gitea || set_system_tweaks ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
