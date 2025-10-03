@@ -169,7 +169,7 @@ syncscript() {
       exit_status="$?"
       transfer_status "$exit_status"
       ;;
-    11|12|13|14|15|20|23 )
+    11|12|13|14|15|19|20|23 )
       printf "\n%sSyncing ~/Documements/mosfanet ...%s\n" "$orange" "$normal"
       rsync -avh --delete "$HOME"/Documents/mosfanet/ "$LOCALNET.$hostip":Documents/mosfanet/
       exit_status="$?"
@@ -206,7 +206,7 @@ sync_some() {
     if [[ "$hostip" -eq "$hostip" ]] 2>/dev/null; then
       if [[ "$hostip" -gt 0 && "$hostip" -lt 255 ]]; then
         case "$hostip" in
-          1|2|3|4|5|6|7|8|9 )
+          1|2|3|4|5|6|7|8|9|19 )
             printf "%s %s is a restricted address. Access denied.\n" "$RED_WARNING" "$LOCALNET.$hostip"
           ;;
           * )
@@ -226,7 +226,7 @@ sync_some() {
 
 sync_all() {
   local hostip octets
-  octets=(11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)
+  octets=(11 12 13 14 15 16 17 18 20 21 22 23 24 25)
   for hostip in "${octets[@]}"; do
     transfer "$hostip"
   done
