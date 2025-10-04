@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 20 Sep 2025
+# Updated      : 04 Oct 2025
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,17 +39,16 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.9.25263"
+readonly version="2.10.25277"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
-readonly settings_dir="$HOME/.config/VSCodium/User"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="20 Sep 2025"
+	local updated="04 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
 Install/Remove VSCodium and apply settings
@@ -101,12 +100,10 @@ install_vscodium() {
 }
 
 apply_settings() {
-	local repository
-	repository=$(assign_cfg_repo)
-	[[ -d "$settings_dir" ]] || mkdir -p "$settings_dir"
+	[[ -d ~/.config/VSCodium/User/ ]] || mkdir -p ~/.config/VSCodium/User/
   show_message "Applying VSCodium settings..."
-	[[ -f "$settings_dir/settings.json" ]] && rm "$settings_dir/settings.json"
-	ln -s "$repository"/VSCodium/User/settings.json "$settings_dir"/settings.json
+	[[ -f ~/.config/VSCodium/User/settings.json ]] && rm ~/.config/VSCodium/User/settings.json
+	ln -sv ~/Downloads/configs/VSCodium/User/settings.json ~/.config/VSCodium/User/settings.json
   show_message "VSCodium settings applied."
 }
 
@@ -118,8 +115,8 @@ remove_vscodium() {
 	show_message "Removing VSCodium source list ..."
 	[[ -f "$src_list" ]] && sudo rm -v "$src_list"
 	show_message "Removing VSCodium configuration files ..."
-	[[ -L "$settings_dir/settings.json" ]] && unlink "$settings_dir/settings.json"
-	find "$HOME/.config" -maxdepth 2 -type d -name VSCodium -exec rm -rf {} \;
+	[[ -L ~/.config/VSCodium/User//settings.json ]] && unlink ~/.config/VSCodium/User/settings.json
+	find ~/.config -maxdepth 2 -type d -name VSCodium -exec rm -rf {} \;
 	printf "VSCodium has been removed.\n"
 }
 
