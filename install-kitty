@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 20 Sep 2025
+# Updated      : 04 Oct 2025
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,14 +41,13 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.17.25263"
-readonly kitty_cfg_d="$HOME/.config/kitty"
+readonly version="2.0.25277"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="20 Sep 2025"
+	local -r updated="04 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Kitty terminal emulator
@@ -75,22 +74,20 @@ install_kitty() {
 remove_kitty() {
   printf "Purging the Kitty terminal emulator %s\n" "$(kitty_version)"
   sudo apt-get purge kitty -yy
-  [[ -L "$kitty_cfg_d/kitty.conf" ]] && unlink "$kitty_cfg_d/kitty.conf"
-  [[ -L "$kitty_cfg_d//bindings.list" ]] && unlink "$kitty_cfg_d//bindings.list"
-  find "$HOME/.config" -maxdepth 2 -type d -name bat -exec rm -rf {} \;
+  [[ -L ~/.config/kitty/kitty.conf ]] && unlink ~/.config/kitty/kitty.conf
+  [[ -L ~/.config/kitty/bindings.list ]] && unlink ~/.config/kitty/bindings.list
+  find "$HOME/.config" -maxdepth 2 -type d -name kitty -exec rm -rf {} \;
   [[ -d "$$HOME/.cache/kitty" ]] && rm -rf "$$HOME/.cache/kitty"
   printf "The Kitty terminal emulator and configuration files have been removed.\n"
 }
 
 kitty_config() {
-  local repository
-	repository=$(assign_cfg_repo)
-  [[ -d "$kitty_cfg_d" ]] || mkdir -p "$kitty_cfg_d"
+  [[ -d ~/.config/kitty ]] || mkdir -p ~/.config/kitty
   printf "Applying configuration files ...\n"
-  [[ -f "$kitty_cfg_d/kitty.conf" ]] && rm "$kitty_cfg_d/kitty.conf"
-  ln -s "$repository"/kitty/kitty.conf "$kitty_cfg_d"/kitty.conf
-  [[ -f "$kitty_cfg_d//bindings.list" ]] && rm "$kitty_cfg_d/bindings.list"
-  ln -s "$repository"/kitty/bindings.list "$kitty_cfg_d"/bindings.list
+  [[ -f ~/.config/kitty/kitty.conf ]] && rm ~/.config/kitty/kitty.conf
+  ln -s ~/Downloads/configs/kitty/kitty.conf ~/.config/kitty/kitty.conf
+  [[ -f ~/.config/kitty/bindings.list ]] && rm ~/.config/kitty/bindings.list
+  ln -s ~/Downloads/configs/kitty/bindings.list ~/.config/kitty/bindings.list
   printf "kitty configuration files applied.\n"
 }
 
