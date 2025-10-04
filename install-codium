@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.10.25277"
+readonly version="2.11.25277"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
@@ -103,7 +103,8 @@ apply_settings() {
 	[[ -d ~/.config/VSCodium/User/ ]] || mkdir -p ~/.config/VSCodium/User/
   show_message "Applying VSCodium settings..."
 	[[ -f ~/.config/VSCodium/User/settings.json ]] && rm ~/.config/VSCodium/User/settings.json
-	ln -sv ~/Downloads/configs/VSCodium/User/settings.json ~/.config/VSCodium/User/settings.json
+	[[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/VSCodium/User/settings.json ~/.configVSCodium/User/settings.json
+	[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/VSCodium/User/settings.json ~/.configVSCodium/User/settings.json
   show_message "VSCodium settings applied."
 }
 
