@@ -41,7 +41,7 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.0.25277"
+readonly version="2.1.25277"
 
 ## Functions ##
 
@@ -85,9 +85,14 @@ kitty_config() {
   [[ -d ~/.config/kitty ]] || mkdir -p ~/.config/kitty
   printf "Applying configuration files ...\n"
   [[ -f ~/.config/kitty/kitty.conf ]] && rm ~/.config/kitty/kitty.conf
-  ln -sv ~/Downloads/configs/kitty/kitty.conf ~/.config/kitty/kitty.conf
   [[ -f ~/.config/kitty/bindings.list ]] && rm ~/.config/kitty/bindings.list
-  ln -sv ~/Downloads/configs/kitty/bindings.list ~/.config/kitty/bindings.list
+  if [[ -d ~/gitea/configs ]]; then
+    ln -sv ~/gitea/configs/kitty/kitty.conf ~/.config/kitty/kitty.conf
+	  ln -sv ~/gitea/configs/kitty/bindings.list ~/.config/kitty/bindings.list
+  elif [[ -d ~/Downloads/configs ]]; then
+    ln -sv ~/Downloads/configs/kitty/kitty.conf ~/.config/kitty/kitty.conf
+	  ln -sv ~/Downloads/configs/kitty/bindings.list ~/.config/kitty/bindings.list
+  fi
   printf "kitty configuration files applied.\n"
 }
 
