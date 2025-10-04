@@ -102,12 +102,11 @@ remove_glow() {
 }
 
 glow_config() {
-  local repository config_dir
-  repository=$(assign_cfg_repo)
   config_dir="$HOME/.config/glow"
-  [[ -d "$config_dir" ]] || mkdir -p "$config_dir"
-  [[ -f "$config_dir/glow.yml" ]] && rm "$config_dir/glow.yml"
-  ln -s "$repository"/glow/glow.yml "$config_dir"/glow.yml
+  [[ -d ~/.config/glow ]] || mkdir -p ~/.config/glow
+  [[ -f ~/.config/glow/glow.yml ]] && rm ~/.config/glow/glow.yml
+  [[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configsglow/glow.yml ~/.config/glow/glow.yml
+  [[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/glow/glow.yml ~/Downloads/configs/glow/glow.yml
   printf "Glow configuration applied.\n"
 }
 
