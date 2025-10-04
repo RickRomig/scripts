@@ -39,12 +39,10 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.4.25277"
+readonly version="2.5.25277"
 
 ## Functions ##
 
@@ -94,7 +92,8 @@ bat_config() {
 	[[ -d ~/.config/bat ]] || mkdir -p ~/.config/bat
   printf "Applying Bat configuration...\n"
 	[[ -f ~/.config/bat/config ]] && rm ~/.config/bat/config
-	ln -sv ~/Downloads/configs/bat/config ~/.config/bat/config
+	[[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/bat/config ~/.config/bat/config
+	[[ -d /Downloads/configs ]] && ln -sv ~/Downloads/configs/bat/config ~/.config/bat/config
 	if [[ -f /usr/bin/batcat ]]; then
 		[[ -d ~/.local/bin ]] || mkkdir -p ~/.local/bin
 		ln -sv /usr/bin/batcat ~/.local/bin/bat
@@ -122,6 +121,7 @@ main() {
 				if exists bat; then
 					printf "Bat %s is already installed.\n" "$(bat_version)"
 				else
+					grep '^13' /etc/debian_version || { printf "Install Bat with iru-bat.\n"; exit 1; }
 					sudo_login 2
 					install_bat
 				fi
