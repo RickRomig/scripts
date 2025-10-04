@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 20 Sep 2025
+# Updated      : 04 Oct 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,13 +41,13 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.18.25263"
+readonly version="7.0.25277"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="20 Sep 2025"
+	local -r updated="04 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Terminator terminal emulator
@@ -87,23 +87,22 @@ remove_terminator() {
   printf "Removing terminator %s and configuration files...\n" "$(terminator_version)"
   sudo_login 2
   sudo apt-get purge terminator
-  [[ -L "$HOME/.config/terminator/config" ]] && unlink "$HOME/.config/terminator/config"
-  find "$HOME/.config/" -maxdepth 2 -type d -name terminator -exec rm -rf {} \;
+  [[ -L ~/.config/terminator/config ]] && unlink ~/.config/terminator/config
+  find ~/.config/ -maxdepth 2 -type d -name terminator -exec rm -rf {} \;
   printf "Terminator and its configuration files have been removed.\n"
 }
 
 apply_config() {
-  local repository term_cfg_d
-  term_cfg_d="$HOME/.config/terminator"
-  repository=$(assign_cfg_repo)
-  [[ -d "$term_cfg_d" ]] && mkdir -p "$term_cfg_d"
+  [[ -d /.config/terminator ]] && mkdir -p /.config/terminator
   printf "Applying Terminator configuration...\n"
   if is_debian; then
-    [[ -f "$term_cfg_d/config" ]] && rm "$term_cfg_d/config"
-    ln -s "$repository"/terminator/config "$term_cfg_d"/config
+    [[ -f ~/.config/terminator/config ]] && rm ~/.config/terminator/config
+    [[ -d  ~/gitea/configs ]] && ln -s ~/gitea/configs/terminator/config ~/.config/terminator"/config
+    [[ -d  ~/Downloads/configs/ ]] && ln -sv ~/Downloads/configs/terminator/config ~/.config/terminator"/config
   else
-    cp -v "$repository/terminator/config" "$$term_cfg_d/"
-    sed -i '/login_shell/s/True/False/' "$term_cfg_d/config"
+    [[ -d  ~/gitea/configs ]] && cp -v ~/gitea/configs/terminator/config ~/.config/terminator
+    [[ -d  ~/Downloads/configs ]] && cp -v ~/Downloads/configs/terminator/config ~/.config/terminator
+    sed -i '/login_shell/s/True/False/' ~/.config/terminator/config
   fi
   printf "Terminator configuration file applied.\n"
 }
