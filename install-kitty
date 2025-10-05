@@ -84,14 +84,12 @@ remove_kitty() {
 kitty_config() {
   [[ -d ~/.config/kitty ]] || mkdir -p ~/.config/kitty
   printf "Applying configuration files ...\n"
-  [[ -f ~/.config/kitty/kitty.conf ]] && rm ~/.config/kitty/kitty.conf
-  [[ -f ~/.config/kitty/bindings.list ]] && rm ~/.config/kitty/bindings.list
   if [[ -d ~/gitea/configs ]]; then
-    ln -sv ~/gitea/configs/kitty/kitty.conf ~/.config/kitty/kitty.conf
-	  ln -sv ~/gitea/configs/kitty/bindings.list ~/.config/kitty/bindings.list
+    cp -v ~/gitea/configs/kitty/kitty.conf ~/.config/kitty/
+	  cp -v ~/gitea/configs/kitty/bindings.list ~/.config/kitty/
   elif [[ -d ~/Downloads/configs ]]; then
-    ln -sv ~/Downloads/configs/kitty/kitty.conf ~/.config/kitty/kitty.conf
-	  ln -sv ~/Downloads/configs/kitty/bindings.list ~/.config/kitty/bindings.list
+    cp -v ~/Downloads/configs/kitty/kitty.conf ~/.config/kitty/
+	  cp -v ~/Downloads/configs/kitty/bindings.list ~/.config/kitty/
   fi
   printf "kitty configuration files applied.\n"
 }
