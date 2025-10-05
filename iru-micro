@@ -148,7 +148,7 @@ main() {
         if  exists micro; then
           printf "Micro %s is already installed.\n" "$(micro_version)" >&2
         else
-          grep '^13' /etc/debian_version && { printf "Install Micro from Debian repository.\n"; exit 1; } # Comment line if Micro version > 2.0.14
+          grep -q '^13' /etc/debian_version && { printf "Install Micro from Debian repository.\n"; exit 1; } # Comment line if Micro version > 2.0.14
           tmp_file=$(mktemp) || die "Failed to create temporary file." 1
           tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
           trap cleanup EXIT
