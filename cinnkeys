@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 12 May 2021
-# Updated      : 16 Jul 2025
+# Updated      : 05 Oct 2025
 # Comments     : Backup of Cinnamon keybindings stored in ~/.config
 #              : Tested with Cinnamon DE on Mint 19.x & 20.x, 21.x, 22.x, LMDE 5/6, Debian 10/11/12
 # TODO (Rick)  :
@@ -37,52 +37,55 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Variables ##
 
-readonly  config_dir="$HOME/.config"
-readonly  bindings_bu="keybindings-backup.dconf"
+readonly script="${0##*/}"
+readonly version="4.0.25278"
+readonly config_dir="$HOME/.config"
+readonly bindings_bu="keybindings-backup.dconf"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local -r updated="16 Jul 2025"
+  local -r updated="05 Oct 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Creates a backup file of Cinnamon keybindings and restores from a backup file.
 
 ${green}Usage:${normal} $script [-vc] [-vd] [-h] [-vl]
 ${orange}Available options:${normal}
-  -c  Copy Cinnamon keybindings from GitHub repo to ~/.config.
-  -d  Dump Cinnamon keybindings to a backup file in ~/.config.
+  -c  Copy Cinnamon keybindings from GitHub repo to ~/.config and load keybindings.
+  -d  Dump Cinnamon keybindings to a file in ~/.config.
   -h  Show this help message and exit.
-  -l  Load Cinnamon keybindings from the backup file.
+  -l  Load Cinnamon keybindings from the ~/.config backup file.
   -v  Enable verbose mode. Must precede other flags.
 _HELP_
   exit "$errcode"
 }
 
-dump_to_backup() {
+dump_to_config() {
   show_message "Dumping keybindings to backup file."
   dconf dump /org/cinnamon/desktop/keybindings/ > "$config_dir/$bindings_bu"
   printf "Cinnamon Keybindings dumped to %s/%s\n" "$config_dir" "$bindings_bu"
 }
 
-load_from_backup() {
+load_from_config() {
   show_message "Loading keybindings from backup file."
   dconf load /org/cinnamon/desktop/keybindings/ < "$config_dir/$bindings_bu"
   printf "Cinnamon Keybindings loaded from %s/%s\n" "$config_dir" "$bindings_bu"
 }
 
 copy_from_repo() {
-  # local cinn_keys="configs/raw/branch/main/mint/keybindings-backup.dconf"   # Gitea server
-  local -r cinn_keys_url="https://raw.githubusercontent.com/RickRomig/configs/refs/heads/main/mint/keybindings-backup.dconf"
   show_message "Installing Cinnamon keybindings from repository.\n"
-  # curl -so "$config_dir/$bindings_bu" "$GITEA_URL/$cinn_keys"  # Gitea server
-  curl -so "$config_dir/$bindings_bu" "$cinn_keys_url"
+  if [[ -d ~/gitea/configs/mint ]];then
+    cp -v ~/gitea/configs/mint/keybindings-backup.dconf ~/.config/
+  elif [[ -d ~/Downloads/configs/mint ]]; then
+    cp -v ~/Downloads/configs/mint/keybindings-backup.dconf ~/.config/
+  else
+    curl -so ~/.config/keybindings-backup.dcon https://raw.githubusercontent.com/RickRomig/configs/refs/heads/main/mint/keybindings-backup.dconf
+  fi
   printf "Cinnamon keybindings copied from respository.\n"
 }
 
@@ -93,10 +96,6 @@ show_message() {
 
 main() {
   local noOpt optstr opt
-  local script version
-	local script="${0##*/}"
-  version="3.0.25197"
-
   if is_cinnamon; then
     noOpt=1
     optstr=":cdhlv"
@@ -104,17 +103,17 @@ main() {
       case "$opt" in
         c )
           copy_from_repo
-          load_from_backup
+          load_from_config
           ;;
         d )
-          dump_to_backup
+          dump_to_config
           ;;
         h )
           help 0
           ;;
         l )
           if [[ -f "$config_dir/$bindings_bu" ]]; then
-            load_from_backup
+            load_from_config
           else
             printf "Cinnamon Keybindings backup does not exist.\n" >&2
             printf "%s -c to download keybindings from repository or\n" "$script"
@@ -134,7 +133,7 @@ main() {
     [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
     shift "$(( OPTIND - 1 ))"
   else
-    pirntf "The desktop environment is not Cinnamon.\n" >&2
+    printf "The desktop environment is not Cinnamon.\n" >&2
   fi
   over_line "$script $version"
   exit
