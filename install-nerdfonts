@@ -43,7 +43,7 @@ set -eu
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
-    [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
 }
 
 install_nerd_fonts() {
@@ -56,12 +56,12 @@ install_nerd_fonts() {
   [[ -d "$font_dir" ]] || mkdir -p "$font_dir"
   for font in "${fonts[@]}"; do
     printf "\e[03mInstalling %s ...\e[0m\n" "$font"
-    wget -P "$tmp_dir" "$font_repo/$font.tar.xz"
+    wget -q -P "$tmp_dir" "$font_repo/$font.tar.xz"
     mkdir -p "$font_dir/$font/"
     tar xvf "$tmp_dir/$font.tar.xz" -C "$font_dir/$font/"
   done
-  wget -P "$tmp_dir" "$font_repo/$symbols_archive"
-  tar xvf "$tmp_dir/$symbols_archive" "$font_dir/$symbols_font"
+  wget -q -P "$tmp_dir" "$font_repo/$symbols_archive"
+  tar xvf "$tmp_dir/$symbols_archive" -C "$font_dir/$symbols_font"
   fc-cache
   printf "Nerd fonts installed.\n"
 }
