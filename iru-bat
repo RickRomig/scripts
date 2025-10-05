@@ -124,7 +124,7 @@ bat_config() {
   printf "Applying Bat configuration...\n"
 	[[ -f ~/.config/bat/config ]] && rm ~/.config/bat/config
   [[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/bat/config ~/.config/bat/config
-	[[ -d ~/Downloads/configs ]] && ln -s ~/Downloads/configs/bat/config ~/.config/bat/config
+	[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/bat/config ~/.config/bat/config
 	[[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
   printf "Configuration applied to Bat %s.\n" "$(bat_version)"
 }
@@ -142,7 +142,7 @@ main() {
         if exists bat; then
           printf "Bat %s is already installed.\n" "$(bat_version)" >&2
         else
-          grep '^13' /etc/debian_version && { printf "User install-batcat.\n"; exit 1; } # Comment line if bat version > 0.25.0
+          grep -q '^13' /etc/debian_version && { printf "Use install-batcat.\n"; exit 1; } # Comment line if bat version > 0.25.0
           check_dependencies
           tmp_file=$(mktemp) || die "Failed to create temporary file." 1
           tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
