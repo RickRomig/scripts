@@ -55,6 +55,7 @@ Installs, configures, updates, or removes the Micro CLI text editor.
 
 ${green}Usage:${normal} $script [-hiru]
 ${orange}Available options:${normal}
+  -c  Apply settings and bindings.
   -h  Show this help message and exit.
   -i  Installs the Micro CLI text editor.
   -r  Removes the Micro CLI text editor from the system.
@@ -138,14 +139,21 @@ micro_configs() {
 main() {
   local noOpt opt optstr new_ver
   noOpt=1
-  optstr=":hiru"
+  optstr=":chiru"
   while getopts "$optstr" opt; do
     case "$opt" in
+      c )
+        if exists micro; then
+          micro_configs
+        else
+          printf "Micro is not installed.\n" >&2
+        fi
+        ;;
       h )
         help 0
         ;;
       i )
-        if  exists micro; then
+        if exists micro; then
           printf "Micro %s is already installed.\n" "$(micro_version)" >&2
         else
           grep -q '^13' /etc/debian_version && { printf "Install Micro from Debian repository.\n"; exit 1; } # Comment line if Micro version > 2.0.14
