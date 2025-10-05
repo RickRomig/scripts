@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.11.25277"
+readonly version="2.12.25277"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
 
 ## Functions ##
@@ -129,14 +129,12 @@ fastfetch_config() {
 			cp -v ~/Downloads/configs/fastfetch/logo.txt ~/.local/share/fastfetch/logos/
 		fi
 	else
-		[[ -f ~.config/fastfetch/config.jsonc ]] && rm ~/.config/fastfetch/config.jsonc
-		[[ -f ~/.local/share/fastfetch/logos/logo.png ]] && rm ~/.local/share/fastfetch/logos/logo.png
 		if [[ -d ~/gitea/configs ]]; then
-			ln -sv ~/gitea/configs/fastfetch/config.jsonc ~/.config/fastfetch/config.jsonc
-			ln -sv ~/gitea/configs/fastfetch/logo.png ~/.local/share/fastfetch/logos/logo.png
+			cp -v ~/gitea/configs/fastfetch/config.jsonc ~/.config/fastfetch/
+			cp -v ~/gitea/configs/fastfetch/logo.png ~/.local/share/fastfetch/logos/
 		elif [[ -d ~/Downloads/configs ]]; then
-			ln -sv ~/Downloads/configs/fastfetch/config.jsonc ~/.config/fastfetch/config.jsonc
-			ln -sv ~/Downloads/configs/fastfetch/logo.png ~/.local/share/fastfetch/logos/logo.png
+			cp -v ~/Downloads/configs/fastfetch/config.jsonc ~/.config/fastfetch/
+			cp -v ~/Downloads/configs/fastfetch/logo.png ~/.local/share/fastfetch/logos/
 		fi
 	fi
 	printf "Fastfetch configuration applied.\n"
