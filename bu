@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 06 Sep 2025
+# Last updated : 06 Oct 2025
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.0.25249"
+readonly version="5.1.25279"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -203,7 +203,7 @@ restore() {
 
 help() {
 	local errcode="${1:-2}"
-	local updated="06 Sep 2025"
+	local updated="06 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -317,7 +317,7 @@ main() {
 		* ) log "Unknown error." "$logfile" ;;
 	esac
 	loglen=$(wc -l < "$logfile")
-	[[ "$loglen" -gt 30 ]] && sed -i '2d' "$log_file"
+	[[ "$loglen" -gt 30 ]] && sed -i '2d' "$logfile"
 	over_line "Script completed in $(format_time $SECONDS)" "-"
 	exit "$exit_status"
 }
