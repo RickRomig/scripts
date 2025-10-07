@@ -2,14 +2,14 @@
 ##########################################################################
 # Script Name  : cinnkeys
 # Description  : Backup/Restore Cinnamon keybindings to/from a file.
-# Dependencies : curl
+# Dependencies : curl (to download keyubindings from GitHub repo)
 # Arguments    : none
 # Author       : Copyright (C) 2021, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 12 May 2021
-# Updated      : 05 Oct 2025
-# Comments     : Backup of Cinnamon keybindings stored in ~/.config
-#              : Tested with Cinnamon DE on Mint 19.x & 20.x, 21.x, 22.x, LMDE 5/6, Debian 10/11/12
+# Updated      : 07 Oct 2025
+# Comments     : Cinnamon keybindings backup file stored in ~/.config
+#              : Tested with Cinnamon DE on Mint 19+, LMDE 5+, Debian 10+
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -37,19 +37,20 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.0.25278"
+readonly version="4.1.25280"
 readonly config_dir="$HOME/.config"
 readonly bindings_bu="keybindings-backup.dconf"
+readonly bindings_path="/org/cinnamon/desktop/keybindings/"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local -r updated="05 Oct 2025"
+  local -r updated="07 Oct 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Creates a backup file of Cinnamon keybindings and restores from a backup file.
@@ -67,23 +68,25 @@ _HELP_
 
 dump_to_config() {
   show_message "Dumping keybindings to backup file."
-  dconf dump /org/cinnamon/desktop/keybindings/ > "$config_dir/$bindings_bu"
+  dconf dump "$bindings_path" > "$config_dir/$bindings_bu"
   printf "Cinnamon Keybindings dumped to %s/%s\n" "$config_dir" "$bindings_bu"
 }
 
 load_from_config() {
   show_message "Loading keybindings from backup file."
-  dconf load /org/cinnamon/desktop/keybindings/ < "$config_dir/$bindings_bu"
+  dconf load "$bindings_path" < "$config_dir/$bindings_bu"
   printf "Cinnamon Keybindings loaded from %s/%s\n" "$config_dir" "$bindings_bu"
 }
 
 copy_from_repo() {
-  show_message "Installing Cinnamon keybindings from repository.\n"
-  if [[ -d ~/gitea/configs/mint ]];then
+  if [[ -d ~/gitea/configs/mint ]]; then
+    show_message "Copying Cinnamon keybindings from local repository.\n"
     cp -v ~/gitea/configs/mint/keybindings-backup.dconf ~/.config/
   elif [[ -d ~/Downloads/configs/mint ]]; then
+    show_message "Copying Cinnamon keybindings from cloned repository.\n"
     cp -v ~/Downloads/configs/mint/keybindings-backup.dconf ~/.config/
   else
+    show_message "Downloading Cinnamon keybindings from GitHub repository.\n"
     curl -so ~/.config/keybindings-backup.dcon https://raw.githubusercontent.com/RickRomig/configs/refs/heads/main/mint/keybindings-backup.dconf
   fi
   printf "Cinnamon keybindings copied from respository.\n"
@@ -95,8 +98,8 @@ show_message() {
 }
 
 main() {
-  local noOpt optstr opt
   if is_cinnamon; then
+    local noOpt optstr opt
     noOpt=1
     optstr=":cdhlv"
     while getopts "$optstr" opt; do
