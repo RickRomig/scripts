@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard Romig, 29 Sep 2020
 # Email        : rick.romig@gmail.com
 # Created      : 29 Sep 2020
-# Last updated : 04 Oct 2025
+# Last updated : 08 Oct 2025
 # Comments     : Can sync to one or all machines on the network.
 #              : LOCALNET is declared in functionlib
 # TODO (rick)  :
@@ -40,14 +40,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.3.25277"
+readonly version="4.4.25281"
 SECONDS=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="04 Oct 2025"
+	local updated="08 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Syncs directories with machines on the network via SSH
@@ -186,7 +186,7 @@ sync_some() {
     if [[ "$hostip" -eq "$hostip" ]] 2>/dev/null; then
       if [[ "$hostip" -gt 0 && "$hostip" -lt 255 ]]; then
         case "$hostip" in
-          1|2|3|4|5|6|7|8|9|19 )
+          1|2|3|4|5|6|7|8|9 )
             printf "%s %s is a restricted address. Access denied.\n" "$RED_WARNING" "$LOCALNET.$hostip"
           ;;
           * )
@@ -206,7 +206,7 @@ sync_some() {
 
 sync_all() {
   local hostip octets
-  octets=(11 12 13 14 15 16 17 18 20 21 22 23 24 25)
+  octets=(11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)
   for hostip in "${octets[@]}"; do
     transfer "$hostip"
   done
