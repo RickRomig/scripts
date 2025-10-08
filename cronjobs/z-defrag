@@ -37,37 +37,37 @@ over_line() {
 }
 
 main() {
-	local log_dir="/var/log"
-	local log_file="defrag.log"
+	local rootrota homerota datarota
+	local log_file="/var/log/defrag.log"
 	local host_name="${HOSTNAME:-$(hostname)}"
-  local script="${0##*/}"
-  local version="2.13.25281"
+	local script="${0##*/}"
+  local version="3.0.25281"
+	rootrota=$(lsblk -o ROTA,MOUNTPOINT| grep -w "/" | awk '{print $1}')
+	homerota=$(lsblk -o ROTA,MOUNTPOINT| grep -w "/home" | awk '{print $1}')
+	datarota=$(lsblk -o ROTA,MOUNTPOINT| grep -w "/data" | awk '{print $1}')
+
 	{
 		printf "Defrag Report for %s: %(%a %F %R)T\n\n" "$host_name" -1
-		case "$host_name" in
-			hp-800-g1-usdt|hp-probook-6570|e-475m )
-				printf "SSD - e4defrag not run.\n"
-				;;
-			hp-850-g3 )
-				printf "NVMe - e4defrag not run.\n"
-				printf "/dev/sda is an SSD, e4defrag not run.\n\n"
-				;;
-			hp-6005 )
-				/usr/sbin/e4defrag -c / /home /data
-				;;
-			hp-800g2-sff )
-				printf "/dev/sda is an SSD, e4defrag not run.\n\n"
-				/usr/sbin/e4defrag -c /home
-				;;
-			lenovo-m91p )
-				/usr/sbin/e4defrag -c /
-				;;
-			* )
-				/usr/sbin/e4defrag -c / /home
-		esac
+		if [[ "$rootrota" -eq 1 && "$homerota" -eq 1 && "$datarota" -eq 1 ]]; then
+			/usr/sbin/e4defrag -c / /home /data
+		elif [[ "$rootrota" -eq 1 && "$homerota" -eq 1 && "$datarota" -ne 1 ]]; then
+			/usr/sbin/e4defrag -c / /home
+		elif [[ "$rootrota" -eq 1 && "$homerota" -ne 1 && "$datarota" -eq 1 ]]; then
+			/usr/sbin/e4defrag -c / /data
+		elif [[ "$rootrota" -eq 1 && "$homerota" -ne 1 && "$datarota" -ne 1 ]]; then
+			usr/sbin/e4defrag -c /
+		elif [[ "$rootrota" -ne 1 && "$homerota" -eq 1 && "$datarota" -eq 1 ]]; then
+			/usr/sbin/e4defrag -c /home /data
+		elif [[ "$rootrota" -ne 1 && "$homerota" -eq 1 && "$datarota" -ne 1 ]]; then
+			/usr/sbin/e4defrag -c /home
+		elif [[ "$rootrota" -ne 1 && "$homerota" -ne 1 && "$datarota" -eq 1 ]]; then
+			/usr/sbin/e4defrag -c /data
+		else
+			printf "No spinning drives - e4defrag not run\n"
+		fi
 		over_line "$script $version"
-	} > "$log_dir/$log_file" 2>&1
-	[[ -f "$log_dir/$log_file" ]] && sed -i '/^e4defrag/d;/0-30/d;/^ Done/d' "$log_dir/$log_file"
+	} > "$log_file" 2>&1
+	[[ -f "$log_file" ]] && sed -i '/^e4defrag/d;/0-30/d;/^ Done/d' "$log_file"
 	exit
 }
 
