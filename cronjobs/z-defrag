@@ -41,10 +41,10 @@ main() {
 	local log_file="/var/log/defrag.log"
 	local host_name="${HOSTNAME:-$(hostname)}"
 	local script="${0##*/}"
-  local version="3.0.25281"
-	rootrota=$(lsblk -o ROTA,MOUNTPOINT| grep -w "/" | awk '{print $1}')
-	homerota=$(lsblk -o ROTA,MOUNTPOINT| grep -w "/home" | awk '{print $1}')
-	datarota=$(lsblk -o ROTA,MOUNTPOINT| grep -w "/data" | awk '{print $1}')
+  local version="3.1.25281"
+	rootrota=$(lsblk -o ROTA,MOUNTPOINT | awk '$NF == "/" {print $1}')
+	homerota=$(lsblk -o ROTA,MOUNTPOINT | awk '$NF == "/home" {print $1}')
+	datarota=$(lsblk -o ROTA,MOUNTPOINT | awk '$NF == "/data" {print $1}')
 
 	{
 		printf "Defrag Report for %s: %(%a %F %R)T\n\n" "$host_name" -1
