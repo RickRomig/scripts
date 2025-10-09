@@ -203,4 +203,32 @@ unset vendor_list["key1"]	# single element
 declare -A vendor_list	# declare again to clear all elements
 unset vendor_list		# delete the entire array
 ```
-
+### ~ Expansion
+```bash
+$ echo ~
+/home/rick			# user's home directory
+$ echo ~+
+/home/rick/Work	# current directory
+$ echo ~-
+/home/rick			# previous directory
+$ echo ~rick
+/home/rick			#	user's home directory, if user exists
+$ echo ~tina
+/home/tina			#	user's home directory, if user exists
+$echo ~dave
+~/dave					# dave user does not exist
+$ echo ~nobody
+/nonexistent
+$ foo=~/hello; echo $foo
+/home/rick/hello
+$ foo=~:/foo:~;echo $foo	# ~ after a colon (:)
+/home/rick:/foo:/home/rick
+$ name='rick';echo ~$name
+~rick
+$ name='rick';echo ~"$name"
+~rick
+$ name='rick';echo ~/"$name"
+/home/rick/rick
+$ d='foo/bar'; echo ~/"$d"
+/home/rick/foo/bar
+```
