@@ -7,9 +7,9 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Oct 2023
-# Last updated : 19 Jul 2025
-# Version      : 2.3.25200
-# Comments     : Run as a daily cron job on the main system.
+# Last updated : 09 Oct 2025
+# Version      : 2.4.25282
+# Comments     : Run as a local daily cron job on the main system & gitea server.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -25,8 +25,6 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-set -eu
-
 ## Functions ##
 
 monday_actions() {
@@ -36,15 +34,19 @@ monday_actions() {
 	find "$arc_dir" -mtime +91 -delete
 }
 
-main() {
+incremental_backup() {
 	local arc_dir archive day snar
-	arc_dir="$HOME/Downloads/archives/gitea-repo"
+	arc_dir=~/Downloads/archives/gitea-repo
 	archive="git-repos.$(date +'%y%m%d-%u').tar.gz"
 	snar="git-repos.snar"
 	day=$(date +%a)
 	[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
 	[[ "$day" == "Mon" ]] && monday_actions "$arc_dir" "$snar"
-	tar -cpzg "$arc_dir/$snar" -f "$arc_dir/$archive" "$HOME"/gitea "$HOME"/Projects
+	tar -cpzg "$arc_dir/$snar" -f "$arc_dir/$archive" ~/gitea ~/Projects
+}
+
+main() {
+	incremental_backup
 	exit
 }
 
