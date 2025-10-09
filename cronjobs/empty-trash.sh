@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 21 Jul 2025
+# Updated      : 09 Oct 2025
 # Comments     : Run as a user cron job.
 #              : Trash directory does not exist until a file is moved to the trash.
 # TODO (Rick)  :
@@ -24,6 +24,18 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 ##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
 
 trash_count() {
 	local count; count=$(/usr/bin/trash-list | wc -l)
@@ -48,23 +60,12 @@ empty_trash() {
 	fi
 }
 
-# shellcheck disable=SC2001
-over_line() {
-  local char len line title
-  title="$1"
-  char="${2:--}"
-  len=${#char}
-  (( len > 1 )) && char=${char::1}
-  line=$(echo "$title" | sed "s/./$char/g")
-  printf "%s\n%s\n"  "$line" "$title"
-}
-
 main() {
   local script="${0##*/}"
-  local version="4.6.25202"
+  local version="4.7.25282"
   local lhost="${HOSTNAME:-$(hostname)}"
-	local trash_dir="$HOME/.local/share/Trash"
-	local log_dir="$HOME/.local/share/logs"
+	local trash_dir=~/.local/share/Trash
+	local log_dir=~/.local/share/logs
 	local log_file="trash.log"
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 
