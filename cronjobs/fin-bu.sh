@@ -7,9 +7,9 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Oct 2023
-# Last updated : 19 Jul 2025
-# Version      : 2.3.25200
-# Comments     : Run as a daily cron job
+# Last updated : 09 Oct 2025
+# Version      : 2.5.25282
+# Comments     : Run as a local daily cron job
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -25,8 +25,6 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-set -eu
-
 ## Functions ##
 
 monday_actions() {
@@ -38,13 +36,13 @@ monday_actions() {
 
 main() {
 	local arc_dir archive day snar
-	arc_dir="$HOME/Downloads/archives/finance"
+	arc_dir=~/Downloads/archives/finance
 	archive="finance.$(date +'%y%m%d-%u').tar.gz"
 	snar="finance.snar"
 	day=$(date +%a)
 	[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
 	[[ "$day" == "Mon" ]] && monday_actions "$arc_dir" "$snar"
-	tar -cpzf "$arc_dir/$archive" -g "$arc_dir/$snar" "$HOME"/Documents/Finance "$HOME"/Documents/HomeBank
+	tar -cpzf "$arc_dir/$archive" -g "$arc_dir/$snar" ~/Documents/Finance ~/Documents/HomeBank
 	exit
 }
 
