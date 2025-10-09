@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Oct 2023
 # Last updated : 09 Oct 2025
-# Version      : 2.5.25282
+# Version      : 3.0.25282
 # Comments     : Run as a local daily cron job
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -34,7 +34,7 @@ monday_actions() {
 	find "$arc_dir" -mtime +91 -delete
 }
 
-main() {
+incremental_backup() {
 	local arc_dir archive day snar
 	arc_dir=~/Downloads/archives/finance
 	archive="finance.$(date +'%y%m%d-%u').tar.gz"
@@ -43,6 +43,10 @@ main() {
 	[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
 	[[ "$day" == "Mon" ]] && monday_actions "$arc_dir" "$snar"
 	tar -cpzf "$arc_dir/$archive" -g "$arc_dir/$snar" ~/Documents/Finance ~/Documents/HomeBank
+}
+
+main() {
+	incremental_backup
 	exit
 }
 
