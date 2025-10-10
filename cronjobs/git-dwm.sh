@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Jan 2024
-# Last updated : 27 Aug 2025
-# Version      : 2.2.25239
+# Last updated : 09 Oct 2025
+# Version      : 2.2.25282
 # Comments     : Includes both Gitea and GitHub repositories.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@
 create_snapshot() {
 	local archive
 	local interval="$1"
-	local -r archive_dir="$HOME/Downloads/archives/gitea"
+	local -r archive_dir=~/Downloads/archives/gitea
 	archive="git-snapshot-$(date +%y%m%d).tar.gz"
 	[[ -d "$archive_dir/$interval" ]] || mkdir -p "$archive_dir/$interval"
 	tar -czpf "$archive_dir/$interval/$archive" "$HOME"/gitea "$HOME"/Projects >/dev/null 2>&1
@@ -51,11 +51,10 @@ remove_old_snapshots() {
 main() {
 	local dom dow
 	dow=$(date +%a)		# day of week (Sun - Sat)
-	dom=$(date +%d)		# day of month (1-31)
-	local -r period=(daily weekly monthly)
-	create_snapshot "${period[0]}"
-	[[ "$dow" == "Sun" ]] && create_snapshot "${period[1]}"
-	[[ "$dom" -eq 1 ]] && create_snapshot "${period[2]}"
+	dom=$(date +%d)		# day of month (01-31)
+	create_snapshot "daily"
+	[[ "$dow" == "Sun" ]] && create_snapshot "weekly"
+	[[ "$dom" == "01" ]] && create_snapshot "monthly"
 	exit
 }
 
