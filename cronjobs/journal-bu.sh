@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 11 Mar 2024
-# Last updated : 19 Jul 2025
-# Version      : 2.3.25200
+# Last updated : 09 Oct 2025
+# Version      : 2.4.25282
 # Comments     : Run as a local cron job.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,10 +25,6 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-set -eu
-
-## Functions ##
-
 monday_actions() {
 	local arc_dir="$1"
 	local snar="$2"
@@ -36,19 +32,22 @@ monday_actions() {
 	find "$arc_dir" -mtime +91 -delete
 }
 
-main() {
+incremental_backup() {
 	local arc_dir archive day snar
-	arc_dir="$HOME/Downloads/archives/journals"
+	arc_dir=~/Downloads/archives/journals
 	archive="journals.$(date +'%y%m%d-%u').tar.gz"
 	snar="journals.snar"
 	day=$(date +%a)
 	[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
 	[[ "$day" == "Mon" ]] && monday_actions "$arc_dir" "$snar"
-	tar -cpzg "$arc_dir/$snar" -f "$arc_dir/$archive" --exclude='.~lock*' -C "$HOME/Documents" Journals
-	rsync -aq --delete "$HOME"/Downloads/archives/journals/ rick@192.168.0.11:/data/archives/journals/
-	exit
+	tar -cpzg "$arc_dir/$snar" -f "$arc_dir/$archive" --exclude='.~lock*' -C ~/Documents Journals
+	rsync -aq --delete ~/Downloads/archives/journals/ rick@192.168.0.11:/data/archives/journals/
+
 }
 
-## Execution ##
+main() {
+	incremental_backup
+	exit
+}
 
 main "$@"
