@@ -7,9 +7,9 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Aug 2020
-# Last updated : 21 Jul 2025
-# Version      : 4.16.25202
-# Comments     : run as a local daily cron job
+# Last updated : 09 Oct 2025
+# Version      : 5.0.25282
+# Comments     : run as a local daily cron job on main system
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -25,28 +25,36 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-set -euo pipefail
+trim_log() {
+  local log_len
+  local log_dir="$1"
+  local log_file="$2"
+  log_len=$(wc -l < "$log_dir/$log_file")
+  [[ "$log_len" -gt 30 ]] && sed -i '1d' "$log_dir/$log_file"
+}
 
-mstr_dir=$HOME"/Documents"
-dbox_dir=$HOME"/Dropbox"
-log_dir=$HOME"/.local/share/logs"
-log_file="password-db.log"
+sync_database() {
+  local log_dir=~/.local/share/logs
+  local log_file="password-db.log"
+  local mstr_dir=~/Documents
+  local dbox_dir=~/Dropbox
+  # Create the log directory if it doesn't already exist
+  [[ -d "$log_dir" ]] || mkdir -p "$log_dir"
+  {
+    printf "%(%F|%R)T|"
+    if [[ $(find "$mstr_dir/Passwords.kdbx" -newer "$dbox_dir/Passwords.kdbx" ) ]]; then
+      cp -p "$mstr_dir"/Passwords*.kdbx "$dbox_dir/"
+      printf "updated\n"
+    else
+      printf "unchanged\n"
+    fi
+  } >> "$log_dir/$log_file"
+  trim_log "$log_dir/$log_file"
+}
 
-# Create the log directory if it doesn't already exist
-[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
+main() {
+  sync_database
+  exit
+}
 
-{
-  printf "%(%F|%R)T|"
-  if [[ $(find "$mstr_dir/Passwords.kdbx" -newer "$dbox_dir/Passwords.kdbx" ) ]]; then
-    cp -p "$mstr_dir"/Passwords*.kdbx "$dbox_dir/"
-    printf "updated\n"
-  else
-    printf "unchanged\n"
-  fi
-} >> "$log_dir/$log_file"
-
-# If more than 30 entries, remove the oldest entry
-log_len=$(wc -l < "$log_dir/$log_file")
-[[ "$log_len" -gt 30 ]] && sed -i '1d' "$log_dir/$log_file"
-
-exit
+main "$@"
