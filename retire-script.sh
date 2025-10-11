@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 19 Sep 2025
-# Comments     : Do not use with scripts or files inside git repos. Use gretire instead.
+# Last updated : 11 Oct 2025
+# Comments     : Do not use with scripts or files inside git repos. Use gretire.sh instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -39,13 +39,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.1252262"
+readonly version="3.0.252284"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated=" 19 Sep 2025"
+	local updated=" 11 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Retires a script by moving it to a zipped archive.
@@ -54,8 +54,8 @@ ${green}Usage:${normal} $script <script-name>
 ${orange}Available options:${normal}
   -h | --help  Show this help message and exit
 ${bold}NOTES:${normal}
-1. Do not use to retire a script in a git repository such as ~/Projects or ~/gitea
-2. To properly retire a script in a git repository use gretire.sh
+1. Do not use to retire a script in a git repository.
+2. To properly retire a script in a git repository use 'gretire.sh'.
 _HELP_
 	exit "$errcode"
 }
@@ -65,32 +65,38 @@ check_dependencies() {
 	check_packages "${packages[@]}"
 }
 
+git_repo() {
+  [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]  && return "$TRUE" || return "$FALSE"
+}
+
 retire_script() {
-	local foo foobar archive_dir ret_archive
-	foo="$1"
+	local filename retname archive_dir ret_archive
+	filename="$1"
 	archive_dir="$HOME/Downloads/archives"
 	ret_archive="retired-scripts.zip"
-	foobar="${foo}.$(date +'%y%j')"
-	mv -v "$foo" "$foobar"
-	zip -um "$archive_dir/$ret_archive$" "$foobar"
+	retname="${filename}.$(date +'%y%j')"
+	mv -v "$filename" "$retname"
+	zip -um "$archive_dir/$ret_archive$" "$retname"
+	printf "%s has been retired and archived.\n" "$filename"
 }
 
 main() {
-	local ret_script
-	check_dependencies
-	if [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]; then
-		printf "%s %s is an invalid script here. This is a Git repository." "$RED_WARNING" "$script"  >&2
-		help 1
-	elif [[ "$#" -eq 0 ]]; then
-    read -rp "Enter a script to retire: " ret_script
-	elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
-		help 0
+	[[ "$1" == "-h" || "$1" == "--help" ]] && help 0
+	local filename
+	if git_repo; then
+		printf "%s This is a git repository.\n" "$RED_WARNING" >&2
+		printf "Use 'gretire.sh' to retire a script inside a git repository\n" >&2
 	else
-		ret_script="$1"
+		if [[ "$#" -eq 0 ]]; then
+			read -rp "Enter a script to retire: " filename
+		else
+			filename="$1"
+		fi
+		[[ -f "$filename" ]] || { printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2; help 2; }
+		check_dependencies
+		retire_script "$filename"
 	fi
-	[[ -f "$ret_script" ]] || { printf "%s %s not found.\n" "$RED_ERROR" "$ret_script" >&2; help 2; }
-	retire_script "$ret_script"
-	printf "%s retired and archived (simulated)\n" "$ret_script"
+  over_line "$script $version"
 	exit
 }
 
