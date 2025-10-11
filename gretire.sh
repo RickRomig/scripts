@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 17 Aug 2025
+# Last updated : 11 Oct 2025
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
 # TODO (Rick)  :
@@ -37,11 +37,36 @@ else
   exit 1
 fi
 
+## Global Variables ##
+
+readonly script="${0##*/}"
+readonly version="3.0.25284"
+
 ## Functions ##
+
+help() {
+	local errcode="${1:-2}"
+	local updated=" 11 Oct 2025"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
+Retires a script in a Git repo by moving it to a zipped archive.
+
+${green}Usage:${normal} $script <script-name>
+${orange}Available options:${normal}
+  -h | --help  Show this help message and exit
+${bold}NOTE:${normal}
+Do not use to retire a script not in a git repository. Use 'retire-script.sh' instead.
+_HELP_
+	exit "$errcode"
+}
 
 check_dependencies() {
   local packages=( git zip )
   check_packages "${packages[@]}"
+}
+
+git_repo() {
+  [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]  && return "$TRUE" || return "$FALSE"
 }
 
 retire_script() {
@@ -54,23 +79,26 @@ retire_script() {
   git commit -m "$filename renamed to $retired_name for retirement and archiving." --no-verify
   zip -u "$archive_d/$archive" "$retired_name"
   git rm "$retired_name"
-  git commit -m "$retired_name was retired and archived." --no-verify
+  git commit -m "$retired_name retired and archived." --no-verify
   git push
 }
 
 main() {
-  local script="${0##*/}"
-	local version="2.5.25229"
+	[[ "$1" == "-h" || "$1" == "--help" ]] && help 0
   local filename
-  [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || die "You are not in a git repositiory." 1
-  if [[ "$#" -eq "0" ]]; then
-    read -rp "Enter the name of the script to be retired: " filename
+  if git_repo; then
+    if [[ "$#" -eq "0" ]]; then
+      read -rp "Enter the name of the script to be retired: " filename
+    else
+      filename="$1"
+    fi
+    [[ -f "$filename" ]] || { printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2; help 2; }
+    check_dependencies
+    retire_script "$filename"
   else
-    filename="$1"
+    printf "%s This is not a git repositiory.\n" "$RED_WARNING" >&2
+    printf "Run 'retire-script.sh' to retire scripts outside of a git repository\n" >&2
   fi
-  [[ -f "$filename" ]] || die "$filename not found." 1
-  check_dependencies
-  retire_script "$filename"
   over_line "$script $version"
   exit
 }
