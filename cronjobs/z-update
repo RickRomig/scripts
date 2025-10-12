@@ -101,8 +101,7 @@ main() {
   local script="${0##*/}"
   local version="1.5.25285"
   local lhost="${HOSTNAME:-$(hostname)}"
-  local log_dir="/var/log"
-  local log_file="update.log"
+  local log_file="/var/log/update.log"
   local sed_file="/usr/share/misc/updatelog.sed"
   {
     printf "%s weekly update\n" "$lhost"
@@ -114,13 +113,14 @@ main() {
     /usr/bin/apt-get autoclean
     printf "\n*** Removing orphaned packages ***\n"
     autoremove_packages
+    printf "\n*** Flatpak updates ***\n"
     check_flatpaks
 	  check_disk_space
     printf "Update completed in %s\n" "$(format_time $SECONDS)"
     [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && printf "\nREBOOT REQUIRED\n"
     over_line "$script $version"
-  } > "$log_dir/$log_file" 2>&1
-  sed -i -f "$sed_file" "$log_dir/$log_file"
+  } > "$log_file" 2>&1
+  sed -i -f "$sed_file" "$log_file"
   exit
 }
 
