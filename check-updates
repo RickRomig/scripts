@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 05 Sep 2025
+# Updated      : 12 Oct 2025
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -44,7 +44,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.8.25248"
+readonly version="7.9.25285"
 SECONDS=0
 
 ## Functions ##
@@ -57,7 +57,7 @@ cleanup() {
 
 help() {
 	local errcode="${1:-2}"
-  local updated="05 Sep 2025"
+  local updated="12 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt or Nala.
@@ -149,16 +149,19 @@ defer_updates() {
 
 update_flatpak() {
   local fp_count
-  fp_count=$(flatpak list | wc -l)
-  printf "\n%sFlatpak:%s\n" "$orange" "$normal"
-  if [[ "$fp_count" -gt 0 ]]; then
-    printf "User installations...\n"
-    flatpak update --user --noninteractive --force-remove --assumeyes
-    printf "System-wide installations...\n"
-    sudo flatpak update --system --noninteractive --force-remove --assumeyes  2> /dev/null
-    # printf "\n"
+  if exists flatpak; then
+    fp_count=$(flatpak list | wc -l)
+    if [[ "$fp_count" -gt 0 ]]; then
+      printf "\n%sFlatpak updates:%s\n" "$orange" "$normal"
+      printf "User installations...\n"
+      flatpak update --user --noninteractive --force-remove --assumeyes | sed '/^$/d'
+      printf "System-wide installations...\n"
+      sudo flatpak update --system --noninteractive --force-remove --assumeyes  2> /dev/null | sed '/^$/d'
+    else
+      printf "No Flatpak packages installed.\n"
+    fi
   else
-    printf "No Flatpaks installed.\n"
+    printf "Flatpack is not installed.\n"
   fi
 }
 
@@ -306,7 +309,7 @@ main() {
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
   exists cinnamon-spice-updater && update_spices
-  if exists flatpak; then update_flatpak; else printf "\nFlatpak is not installed.\n"; fi
+  update_flatpak
   check_disk_space
   over_line "Update completed in $(format_time $SECONDS)"
   check_reboot_required
