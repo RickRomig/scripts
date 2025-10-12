@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 24 Sep 2025
+# Updated      : 12 Oct 2025
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -56,14 +56,18 @@ format_time() {
   printf "%02d:%02d:%02d\n" $h $m $s
 }
 
-check_flatpak() {
+check_flatpaks() {
   local fp_count
-  fp_count=$(flatpak list | wc -l)
-  printf "\n*** Flatpak ***\n"
-  if [[ "$fp_count" -gt 0 ]]; then
-    flatpak update --system --noninteractive --force-remove --assumeyes 2> /dev/null
+  if command -v flatpak > /dev/null 2>&1; then
+    fp_count=$(flatpak list | wc -l)
+    if [[ "$fp_count" -gt 0 ]]; then
+      printf "Flatpak updates:\n"
+      flatpak update --system --noninteractive --force-remove --assumeyes 2> /dev/null | sed '/^$/d'
+    else
+      printf "No Flatpak packages installed.\n\n"
+    fi
   else
-    printf "No Flatpak packages installed.\n\n"
+    printf "Flatpack is not installed.\n"
   fi
 }
 
@@ -95,7 +99,7 @@ autoremove_packages() {
 
 main() {
   local script="${0##*/}"
-  local version="1.4.25267"
+  local version="1.5.25285"
   local lhost="${HOSTNAME:-$(hostname)}"
   local log_dir="/var/log"
   local log_file="update.log"
@@ -110,7 +114,7 @@ main() {
     /usr/bin/apt-get autoclean
     printf "\n*** Removing orphaned packages ***\n"
     autoremove_packages
-    command -v flatpak > /dev/null 2>&1 && check_flatpak
+    check_flatpaks
 	  check_disk_space
     printf "Update completed in %s\n" "$(format_time $SECONDS)"
     [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && printf "\nREBOOT REQUIRED\n"
