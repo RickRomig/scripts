@@ -26,8 +26,6 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-set -eu
-
 archive_scripts() {
   local arc_dir="$1"
   local log_dir="$2"
