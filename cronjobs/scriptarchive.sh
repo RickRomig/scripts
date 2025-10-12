@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jan 2020
-# Updated      : 31 Jul 2025
-# Version      : 4.2.25211
+# Updated      : 11 Oct 2025
+# Version      : 4.3.25284
 # Comments     : Includes all subdirectories in ~/bin
 #              : Schedule with user's crontab from ~/.local/bin
 # TODO (Rick)  :
