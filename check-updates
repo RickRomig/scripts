@@ -149,10 +149,10 @@ defer_updates() {
 
 update_flatpak() {
   local fp_count
+  printf "\n%sFlatpak:%s\n" "$orange" "$normal"
   if exists flatpak; then
     fp_count=$(flatpak list | wc -l)
     if [[ "$fp_count" -gt 0 ]]; then
-      printf "\n%sFlatpak updates:%s\n" "$orange" "$normal"
       printf "User installations...\n"
       flatpak update --user --noninteractive --force-remove --assumeyes | sed '/^$/d'
       printf "System-wide installations...\n"
