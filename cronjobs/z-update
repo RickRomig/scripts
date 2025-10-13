@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 12 Oct 2025
+# Updated      : 13 Oct 2025
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -64,7 +64,7 @@ check_flatpaks() {
       printf "Flatpak updates:\n"
       flatpak update --system --noninteractive --force-remove --assumeyes 2> /dev/null | sed '/^$/d'
     else
-      printf "No Flatpak packages installed.\n\n"
+      printf "No Flatpak packages installed.\n"
     fi
   else
     printf "Flatpack is not installed.\n"
@@ -99,7 +99,7 @@ autoremove_packages() {
 
 main() {
   local script="${0##*/}"
-  local version="1.5.25285"
+  local version="1.5.25286"
   local lhost="${HOSTNAME:-$(hostname)}"
   local log_file="/var/log/update.log"
   local sed_file="/usr/share/misc/updatelog.sed"
