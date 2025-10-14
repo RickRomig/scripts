@@ -7,9 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 13 Oct 2025
-# Comments     : Geany does not write configuration files by default.
-#              : Need to set options from within the program.
+# Updated      : 14 Oct 2025
+# Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -40,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.7.25286"
+readonly version="2.8.25287"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="13 Oct 2025"
+	local updated="14 Oct 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes Geany text editor and themes
@@ -55,7 +54,7 @@ Installs/Removes Geany text editor and themes
 ${green}Usage:${normal} $script [-h] [-vi] [-vit] [-vr] [-vt]
 ${orange}Available options:${normal}
   -h  Show this help message and exit.
-  -i  Install Geany editor (use -it to install with themes).
+  -i  Install Geany editor.
   -r  Remove Geany editor.
   -t  Install Geany themes.
   -v  Enable verbose mode. If used, must precede other flags.
@@ -83,7 +82,19 @@ install_geany() {
   show_message "Installing Geany from repositories..."
   sudo apt-get install -y geany libvte9
   printf "Geany %s installed.\n" "$(geany_version)"
-  clone_themes
+}
+
+geany_config() {
+  [[ -d ~/.config/geany ]] || mkdir -p ~/.config/geany
+  show_message "Applying configuration files."
+  if [[ -d ~/gitea/configs ]]; then
+    cp -v ~/gitea/configs/geany/geany.conf ~/.config/geany/
+    cp -v /gitea/configs/geany/keybindings.conf ~/.config/geany/
+  elif [[ -d ~/Downloads/configs ]]; then
+    cp -v ~/Downloads/configs/geany/geany.conf ~/.config/geany/
+    cp -v /Downloads/configs/geany/keybindings.conf ~/.config/geany/
+  fi
+  printf "Geany configuration files applied.\n"
 }
 
 remove_geany() {
@@ -111,11 +122,12 @@ main() {
         ;;
       i )
         if exists geany; then
-          printf "Geany %s s already installed.\n" "$(geany_version)"
+          printf "Geany %s is already installed.\n" "$(geany_version)"
         else
           sudo_login 2
-          check_package git
           install_geany
+          clone_themes
+          geany_config
         fi
         ;;
       r )
