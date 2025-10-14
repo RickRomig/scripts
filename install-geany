@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 07 Oct 2025
+# Updated      : 13 Oct 2025
 # Comments     : Geany does not write configuration files by default.
 #              : Need to set options from within the program.
 # TODO (Rick)  :
@@ -42,14 +42,14 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.6.25280"
+readonly version="2.7.25286"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="07 Oct 2025"
+	local updated="13 Oct 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes Geany text editor and themes
@@ -83,7 +83,7 @@ clone_themes() {
   show_message "Cloning Geany themes..."
   git clone "$theme_url" "$tmp_dir"
   printf "Copying Geany colorschemes into %s\n" "$colorschemes_dir"
-  cp -v "$tmp_dir/colorschemes/*.conf" "$colorschemes_dir/" | awk -F"/" '{print "=> " $NF}' | sed "s/'//"
+  cp -v "$tmp_dir/geany-themes/colorschemes/*.conf" "$colorschemes_dir/" | awk -F"/" '{print "=> " $NF}' | sed "s/'//"
   printf "Geany themes installed.\n"
 }
 
