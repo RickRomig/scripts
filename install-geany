@@ -30,14 +30,12 @@
 
 ## Source function library ##
 
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
+if [[ -x ~/bin/functionlib ]]; then
+  source ~/bin/functionlib
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
-
-set -eu
 
 ## Global Variables ##
 
@@ -55,7 +53,6 @@ ${orange}$script${normal} $version ($updated)
 Installs/Removes Geany text editor and themes
 
 ${green}Usage:${normal} $script [-h] [-vi] [-vit] [-vr] [-vt]
-
 ${orange}Available options:${normal}
   -h  Show this help message and exit.
   -i  Install Geany editor (use -it to install with themes).
@@ -66,24 +63,19 @@ _HELP_
   exit "$errcode"
 }
 
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-cleanup() {
-  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
-}
-
 geany_version() {
   geany --version | cut -d' ' -f2
 }
 
 clone_themes() {
-  local -r theme_url="https://github.com/geany/geany-themes.git"
-  local -r colorschemes_dir="$HOME/.config/geany/colorschemes"
+  local -r themes_url="https://github.com/geany/geany-themes.git"
+  local -r colorschemes_dir=~/.config/geany/colorschemes
+  local -r cloned_dir=~/Downloads/geany-themes
   [[ -d "$colorschemes_dir" ]] || mkdir -p "$colorschemes_dir"
   show_message "Cloning Geany themes..."
-  git clone "$theme_url" "$tmp_dir"
-  printf "Copying Geany colorschemes into %s\n" "$colorschemes_dir"
-  cp -v "$tmp_dir/geany-themes/colorschemes/*.conf" "$colorschemes_dir/" | awk -F"/" '{print "=> " $NF}' | sed "s/'//"
+  git clone "$themes_url" "$cloned_dir"
+  show_message "Copying Geany colorschemes..."
+  cp -av "$cloned_dir"/colorschemes/. "$colorschemes_dir/" | awk -F"/" '{print "=> " $NF}' | sed "s/'//"
   printf "Geany themes installed.\n"
 }
 
@@ -91,13 +83,14 @@ install_geany() {
   show_message "Installing Geany from repositories..."
   sudo apt-get install -y geany libvte9
   printf "Geany %s installed.\n" "$(geany_version)"
+  clone_themes
 }
 
 remove_geany() {
   show_message "Removing Geany $(geany_version)..."
   sudo apt-get remove -y geany
   show_message "Removing Geany configuration files ..."
-  find "$HOME/.config" -type d -name geany -exec rm -rf {} \;
+  find ~/.config -type d -name geany -exec rm -rf {} \;
   printf "Geany and configuration files removed.\n"
 }
 
@@ -110,10 +103,10 @@ main() {
   local noOpt opt optstr
   noOpt=1
   optstr=":hirtv"
+  check_package git
   while getopts "$optstr" opt; do
     case "$opt" in
       h )
-        printf "%s help:\n" "$script"
         help 0
         ;;
       i )
@@ -135,9 +128,6 @@ main() {
         ;;
       t )
         if exists geany; then
-          tmp_dir=$(mktemp -d) || die "Failed to create temporary directiory" 1
-          trap cleanup EXIT
-          check_package git
           clone_themes
         else
           printf "Geany is not installed.\n"
