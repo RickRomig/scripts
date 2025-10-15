@@ -7,11 +7,11 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Last updated : 04 Oct 2025
+# Last updated : 14 Oct 2025
 # Comments     : executable and its manpage will be renamed from ‘bat’ to ‘batcat’
 #              : because of a file name clash with another Debian package.
 #              : Mint 22 installs version 0.24.0 with suffix.
-#              : Debian 13 & LMDE 7 installs version 0.25.0 with suffix.
+#              : Debian 13 & LMDE 7 installs version 0.25.0 or 0.22.1 (LMDE 7) with suffix.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -42,13 +42,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.5.25277"
+readonly version="2.6.25287"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="04 Oct 2025"
+	local updated="14 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Installs/removes/configures bat/batcat
@@ -65,7 +65,8 @@ _HELP_
 }
 
 bat_version() {
-	bat --version | cut -d' ' -f2
+	# bat --version | cut -d' ' -f2
+  dpkg -l bat | awk '/ii/ {print $3}'
 }
 
 install_bat() {
@@ -108,7 +109,7 @@ main() {
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c )
-				if exists bat; then
+				if exists bat || exists batcat; then
 					bat_config
 				else
 					printf "Bat is not installed.\n"
@@ -118,16 +119,16 @@ main() {
 				help 0
 				;;
 			i )
-				if exists bat; then
+				if exists bat || exists batcat; then
 					printf "Bat %s is already installed.\n" "$(bat_version)"
 				else
-					grep -q '^13' /etc/debian_version || { printf "Install Bat with iru-bat.\n"; exit 1; }
+					# grep -q '^13' /etc/debian_version || { printf "Install Bat with iru-bat.\n"; exit 1; }
 					sudo_login 2
 					install_bat
 				fi
 				;;
 			r )
-				if exists bat; then
+				if exists bat || exists batcat; then
 					printf "Bat is not installed.\n"
 				else
 					sudo_login 2
