@@ -3,11 +3,11 @@
 # Script Name  : package-filter.sh
 # Description  : Filters available packages with FZF
 # Dependencies : fzf
-# Arguments    :
+# Arguments    : none
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 15 Oct 2025
-# Last updated : 15 Oct 2025
+# Last updated : 16 Oct 2025
 # Comments     : Original script Copyright (C) 2025  Kris Occhipinti
 #              : Modified and adapted by Rick Romig
 # TODO (Rick)  :
@@ -41,6 +41,7 @@ else
 fi
 
 search_packages() {
+	# Code by Kris Occhipinti (with minor changes)
 	local packages do_it
 	package="$(
 		apt-cache pkgnames |
@@ -56,7 +57,7 @@ search_packages() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.0.25288"
+  local -r version="1.0.25289"
   check_package fzf
   search_packages
   over_line "$script $version"
