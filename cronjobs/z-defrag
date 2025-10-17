@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021-2025, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2021
-# Updated      : 08 Oct 2025
+# Updated      : 17 Oct 2025
 # Comments     : Do not run e4defrag on SSD or NVME drives.
 #              : anacron job: Copy to /etc/cron.monthly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
@@ -33,14 +33,14 @@ over_line() {
   len=${#char}
   (( len > 1 )) && char=${char::1}
   line=$(echo "$title" | sed "s/./$char/g")
-  printf "%s\n%s\n"  "$line" "$title"
+  printf "%s\n%s\n" "$line" "$title"
 }
 
 main() {
 	local log_file="/var/log/defrag.log"
 	local host_name="${HOSTNAME:-$(hostname)}"
 	local script="${0##*/}"
-  local version="3.2.25281"
+  local version="3.2.25290"
 	# Rotation values. 1 = spinning drive, 0 = NVME, SSD, or not present
 	local rootrota homerota datarota rotasum
 	rootrota=$(lsblk -o ROTA,MOUNTPOINT | awk '$NF == "/" {print $1}')
@@ -61,7 +61,7 @@ main() {
 			101 ) /usr/sbin/e4defrag -c / /data ;;
 			110 ) /usr/sbin/e4defrag -c / /home ;;
 			111 ) /usr/sbin/e4defrag -c / /home /data ;;
-			* ) printf "No root, home or data partitions on spinning drives detected - e4defrag not run/n"
+			* ) printf "No root, home or data partitions on spinning drives detected - e4defrag not run\n"
 		esac
 		over_line "$script $version"
 	} > "$log_file" 2>&1
