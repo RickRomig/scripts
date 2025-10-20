@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 20 Sep 2025
+# Updated      : 20 Oct 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,12 +36,10 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.2.25263"
+readonly version="5.2.25293"
 readonly charm_url="https://repo.charm.sh/apt"
 readonly src_list_d="/etc/apt/sources.list.d"
 readonly keyring_d="/etc/apt/keyrings"
@@ -50,13 +48,14 @@ readonly keyring_d="/etc/apt/keyrings"
 
 help() {
   local errcode="${1:-2}"
-  local updated="20 Sep 2025"
+  local updated="20 Oct 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removed Glow Markdown reader
 
 ${green}Usage:${normal} $script [-hir]
 ${orange}Available options:${normal}
+  -c  Apply Glow configuration.
   -h  Show this help message and exit.
   -i  Installs the glow markdown reader.
   -r  Removes the glow markdown reader from the system.
@@ -103,9 +102,10 @@ remove_glow() {
 
 glow_config() {
   config_dir="$HOME/.config/glow"
+  printf "Installing glow.yml...\n"
   [[ -d ~/.config/glow ]] || mkdir -p ~/.config/glow
   [[ -f ~/.config/glow/glow.yml ]] && rm ~/.config/glow/glow.yml
-  [[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configsglow/glow.yml ~/.config/glow/glow.yml
+  [[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/glow/glow.yml ~/.config/glow/glow.yml
   [[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/glow/glow.yml ~/Downloads/configs/glow/glow.yml
   printf "Glow configuration applied.\n"
 }
@@ -120,18 +120,25 @@ main() {
   optstr=":hir"
   while getopts "$optstr" opt; do
     case "$opt" in
+      c )
+        if installed glow; then
+          glow_config
+        else
+          printf "Glow is not installed.\n"
+        fi
+        ;;
       h )
         help 0
         ;;
       i )
-        if exists glow; then
+        if installed glow; then
           printf "Glow %s is already installed.\n" "$(glow_version)"
         else
           install_glow
         fi
         ;;
       r )
-        if exists glow; then
+        if installed glow; then
           remove_glow
         else
         printf "Glow is not installed.\n"
