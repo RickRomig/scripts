@@ -230,6 +230,17 @@ exists() {
 }
 
 ###############################################################################
+# installed
+# Purpose: Returns true if package is installed by apt, dpkg, or gdebi
+# Argument:
+#   $1 -> package to be checked.
+# Returns: True or False
+###############################################################################
+installed() {
+  dpkg -l "$1" > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
 # get_distribution
 # Purpose: Prints the full name of the current distribution.
 # Arguments: none
