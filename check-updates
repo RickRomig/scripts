@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 12 Oct 2025
+# Updated      : 20 Oct 2025
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -39,13 +39,12 @@ else
   exit 1
 fi
 
-# set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.9.25285"
+readonly version="7.10.25293"
 SECONDS=0
+system_reboot=1
 
 ## Functions ##
 
@@ -57,7 +56,7 @@ cleanup() {
 
 help() {
 	local errcode="${1:-2}"
-  local updated="12 Oct 2025"
+  local updated="20 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt or Nala.
@@ -83,14 +82,15 @@ check_disk_space() {
   printf "\nDisk space used (root): %s / %s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
 }
 
-check_reboot_required() {
-  if [[ -f /var/run/reboot-required || -f /run/reboot-required ]]; then
+reboot_notification() {
+  if [[ "$system_reboot" -eq 0 ]]; then
     cat /var/run/reboot-required.pkgs
-    printf "\n%sREBOOT REQUIRED%s\n" "$orange" "$normal"
+    printf "\n%s*** REBOOT REQUIRED ***%s\n" "$orange" "$normal"
     if default_no "Do you want to reboot now?"; then
-      sudo reboot
+      printf "Rebooting the system...\n"
+      sleep 10; sudo systemctl reboot
     else
-      printf "\n%s Please remember to reboot your system as soon as possible.\n" "$RED_WARNING"
+      printf "\n%s Please reboot your system as soon as possible.\n" "$RED_WARNING"
     fi
   fi
 }
@@ -114,6 +114,7 @@ update_apt_cache() {
 install_updates() {
   printf "\n%sInstalling updates...%s\n" "$orange" "$normal"
   sudo apt-get dist-upgrade -yy
+  [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && system_reboot=0
 }
 
 clean_apt_cache() {
@@ -173,6 +174,7 @@ update_spices() {
 nala_update() {
   printf "%sChecking for updates...%s\n" "$orange" "$normal"
   sudo nala upgrade
+  [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && system_reboot=0
   if default_no "Run autoremove/autopurge?"; then
     printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
     sudo nala autoremove
@@ -312,8 +314,8 @@ main() {
   update_flatpak
   check_disk_space
   over_line "Update completed in $(format_time $SECONDS)"
-  check_reboot_required
   over_line "$script $version"
+  reboot_notification
   exit
 }
 
