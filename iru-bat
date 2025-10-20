@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 14 Oct 2025
+# Updated      : 20 Oct 2025
 # Comments     : Use install-batcat if distro version equals latest GitHub release.
 #              : Mint 22 installs version 0.24.0 with the Ubuntu version appended.
 #              : Debian 13 installs version 0.25.0 with the Debian version appended.
@@ -42,7 +42,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.6.25287"
+readonly version="6.7.25293"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 
 ## Functions ##
@@ -107,6 +107,7 @@ install_bat() {
   kill "$!"; tput cnorm
   printf "done\nInstalling Bat %s...\n" "$new_ver"
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
+  [[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
   printf "Bat %s installed.\n" "$(bat_version)"
 }
 
@@ -125,7 +126,6 @@ bat_config() {
 	[[ -f ~/.config/bat/config ]] && rm ~/.config/bat/config
   [[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/bat/config ~/.config/bat/config
 	[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/bat/config ~/.config/bat/config
-	[[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
   printf "Configuration applied to Bat %s.\n" "$(bat_version)"
 }
 
@@ -142,7 +142,6 @@ main() {
         if exists bat || exists batcat; then
           printf "Bat %s is already installed.\n" "$(bat_version)" >&2
         else
-          # grep -q '^13' /etc/debian_version && { printf "Use install-batcat.\n"; exit 1; } # Comment line if bat version > 0.25.0
           check_dependencies
           tmp_file=$(mktemp) || die "Failed to create temporary file." 1
           tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
