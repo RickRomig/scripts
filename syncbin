@@ -6,7 +6,7 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Last updated : 03 Oct 2025
+# Last updated : 21 Oct 2025
 # Comments     : Can sync to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -44,14 +44,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.4.25276"
+readonly version="8.0.25294"
 SECONDS=0
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="03 Oct 2025"
+  local updated="21 Oct 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Synchrnizes ~/bin with remote hosts.
@@ -72,7 +72,7 @@ ${orange}Examples:${normal}
   $script 12 13 14 # Synchronizes with systems whose last octets are 12, 13, 14.
 ${orange}Notes:${normal}
   1. Multiple IP addresses can be entered.
-  2. This script is limited to the range of static IP addresses (1 - 25).
+  2. This script is limited to the range of static IP addresses (11 - 25).
   3. Certain addresses within that range have been marked as restricted and are not accessible.
 _HELP_
   exit "$errcode"
@@ -84,7 +84,6 @@ transfer_status() {
 		printf "Transfer successful\n"
 	else
 		printf "%s A transfer failed. Code: %d. Check network status.\n" "$RED_ERROR" "$xfr_status" >&2
-		# die "A transfer failed! Check network status." "$xfr_status"
 	fi
 }
 
@@ -112,17 +111,10 @@ syncscript() {
   local exit_status=0
   local hostip="$1"
 
-  printf "\n%sSyncing ~/.bashrc ...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/.bashrc "$LOCALNET.$hostip":
-  exit_status="$?"
-  transfer_status "$exit_status"
-
-  printf "\n%sSyncing ~/bash_aliases ...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/.bash_aliases "$LOCALNET.$hostip":
-  exit_status="$?"
-  transfer_status "$exit_status"
-
   case "$hostip" in
+    1|2|3|4|5|6|7|8|9|10 )
+      printf "%s %s is a restricted address. Access denied.\n" "$RED_WARNING" $"$LOCALNET.$hostip"
+      ;;
     16|22|153 )
       printf "\n%sSyncing Git Repositories...%s\n" "$orange" "$normal"
       rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
@@ -133,8 +125,21 @@ syncscript() {
       rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
       exit_status="$?"
       transfer_status "$exit_status"
-    ;;
+      ;;
+    15|19 )
+      printf "%s is updated through the Scripts Repository.\n" "$LOCALNET.$hostip"
+      ;;
    * )
+		  printf "\n%sSyncing ~/.bashrc ...%s\n" "$orange" "$normal"
+      rsync -avh --delete "$HOME"/.bashrc "$LOCALNET.$hostip":
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      printf "\n%sSyncing ~/bash_aliases ...%s\n" "$orange" "$normal"
+      rsync -avh --delete "$HOME"/.bash_aliases "$LOCALNET.$hostip":
+      exit_status="$?"
+      transfer_status "$exit_status"
+
       printf "\n%sSyncing ~/bin ...%s\n" "$orange" "$normal"
       rsync -avh --delete --exclude '.git' --exclude '.gitignore' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
       exit_status="$?"
@@ -145,44 +150,22 @@ syncscript() {
 sync_one() {
   local hostip
   hostip="$1"
-  if [[ "$hostip" -gt 0 && "$hostip" -lt 10 ]]; then
-    printf "%s %s is a restricted address. Access denied.\n" "$RED_WARNING" $"$LOCALNET.$hostip"
-    exit
-  elif valid_ip "$hostip"; then
-    printf "Synchronizing bin and template directories with %s:\n\n" "$LOCALNET.$hostip"
-    transfer "$hostip"
-    all_done
-  fi
+  valid_ip "$hostip" && transfer "$hostip"
+	all_done
 }
 
 sync_some() {
   local hostip
   hostip="$1"
   for hostip in "$@"; do
-    if [[ "$hostip" -eq "$hostip" ]] 2>/dev/null; then
-      if [[ "$hostip" -gt 0 && "$hostip" -lt 255 ]]; then
-        case "$hostip" in
-          1|2|3|4|5|6|7|8|9|19 )
-            printf "%s %s is a restricted address. Access denied.\n" "$RED_WARNING" "$LOCALNET.$hostip"
-          ;;
-          * )
-            transfer "$hostip"
-        esac
-      elif [[ "$hostip" -gt 254 ]]; then
-        printf "%s %s is outside the range of static addresses.\n\n" "$RED_WARNING" "$LOCALNET.$hostip"
-      else
-        printf "%s Invalid argument: %s\n\n" "$RED_ERROR" "$hostip" >&2
-      fi
-    else
-      printf "%sInteger argument expected.\n" "$RED_WARNING" >&2
-    fi
-  done
-  all_done
+    valid_ip "$hostip" && transfer "$hostip"
+		all_done
+	done
 }
 
 sync_all() {
   local octets hostip
-  octets=(11 12 13 14 15 16 17 18 20 21 22 23 24 25)
+  octets=(11 12 13 14 16 17 18 20 21 22 23 24 25)
   for hostip in "${octets[@]}"; do
     transfer "$hostip"
   done
