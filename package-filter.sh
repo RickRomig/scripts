@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 15 Oct 2025
-# Last updated : 16 Oct 2025
+# Last updated : 20 Oct 2025
 # Comments     : Original script Copyright (C) 2025  Kris Occhipinti
 #              : Modified and adapted by Rick Romig
 # TODO (Rick)  :
@@ -42,7 +42,7 @@ fi
 
 search_packages() {
 	# Code by Kris Occhipinti (with minor changes)
-	local packages do_it
+	local package do_it
 	package="$(
 		apt-cache pkgnames |
 			fzf -m --prompt="Enter Package Names: " \
@@ -50,14 +50,14 @@ search_packages() {
 				--preview-window 'top:75%' |
 				tr "\n" " "
 	)"
-	[[ "$packages" ]] && read -n1 -rp "Install ${packages}? [y/N]: " do_it
-	[[ "${do_it,,}" == "y" ]] && sudo apt install "$packages"
+	[[ "$package" ]] && read -n1 -rp "Install ${package}? [y/N]: " do_it
+	[[ "${do_it,,}" == "y" ]] && { sudo_login 1; sudo apt install "$package"; }
 	printf "\nDone\n"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.0.25289"
+  local -r version="1.1.25293"
   check_package fzf
   search_packages
   over_line "$script $version"
