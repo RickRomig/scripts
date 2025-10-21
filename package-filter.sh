@@ -40,6 +40,7 @@ else
   exit 1
 fi
 
+# shellcheck disable=SC2086
 search_packages() {
 	# Code by Kris Occhipinti (with minor changes)
 	local package do_it
@@ -51,7 +52,7 @@ search_packages() {
 				tr "\n" " "
 	)"
 	[[ "$package" ]] && read -n1 -rp "Install ${package}? [y/N]: " do_it
-	[[ "${do_it,,}" == "y" ]] && { sudo_login 1; sudo apt install "$package"; }
+	[[ "${do_it,,}" == "y" ]] && sudo apt install $package
 	printf "\nDone\n"
 }
 
