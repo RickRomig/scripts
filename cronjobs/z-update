@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 20 Oct 2025
+# Updated      : 22 Oct 2025
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -44,7 +44,7 @@ check_disk_space() {
 	r_used=$(echo "$df_stats" | cut -d ' ' -f2)
 	r_perc=$(echo "$df_stats" | cut -d ' ' -f4)
 	r_avail=$(echo "$df_stats" | cut -d ' ' -f3)
-  printf "Disk space used (root): %s/%s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
+  printf "\nDisk space used (root): %s/%s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
 }
 
 check_flatpaks() {
@@ -91,7 +91,7 @@ autoremove_packages() {
 
 main() {
   local script="${0##*/}"
-  local version="1.6.25293"
+  local version="1.6.25295"
   local lhost="${HOSTNAME:-$(hostname)}"
   local log_file="/var/log/update.log"
   local sed_file="/usr/share/misc/updatelog.sed"
