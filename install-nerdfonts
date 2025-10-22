@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Sep 2023
-# Last updated : 20 Sep 2025
+# Last updated : 22 Oct 2025
 # Comments     : system install directory = /usr/local/share/fonts
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,8 +36,6 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Functions ##
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
@@ -46,10 +44,8 @@ cleanup() {
   [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
 }
 
-install_nerd_fonts() {
+install_NerdFonts() {
   local -r font_repo="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0"
-  local -r symbols_font="SymbolsNerdFontMono-Regular.ttf"
-  local -r symbols_archive="NerdFontsSymbolsOnly.tar.xz"
   local -r font_dir="$HOME/.local/share/fonts"
   local -r fonts=( "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
   local font
@@ -60,20 +56,27 @@ install_nerd_fonts() {
     mkdir -p "$font_dir/$font/"
     tar xvf "$tmp_dir/$font.tar.xz" -C "$font_dir/$font/"
   done
-  wget -q -P "$tmp_dir" "$font_repo/$symbols_archive"
-  tar xvf "$tmp_dir/$symbols_archive" -C "$font_dir/$symbols_font"
-  fc-cache
   printf "Nerd fonts installed.\n"
+}
+
+install_SymbolNerdFonts() {
+  local -r font_dir="$HOME/.local/share/fonts"
+  local -r symbols_archive="NerdFontsSymbolsOnly.tar.xz"
+  [[ -d ~/Downloads/configs ]] && cp -v ~/Downloads/configs/local/NerdFontsSymbolsOnly.tar.xz "$font_dir/"
+  [[ -d ~/gitea/configs ]] && cp -v ~/gitea/configs/local/NerdFontsSymbolsOnly.tar.xz "$font_dir/"
+  tar xvf "$font_dir/$symbols_archive" -C "$font_dir/${symbols_archive%%.*}"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.7.25263"
+  local -r version="1.8.25295"
   sudo_login 2
   check_packages wget
   tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
   trap cleanup EXIT
-  install_nerd_fonts
+  install_NerdFonts
+  install_SymbolNerdFonts
+  fc-cache
   over_line "$script $version"
   exit
 }
