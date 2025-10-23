@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2011, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Feb 2021
-# Updated      : 18 Jul 2025
+# Updated      : 23 Oct 2025
 # Comments     : Based on Chris Titus video for installing virt-manager:
 #              : https://www.youtube.com/watch?v=ozYKkaVK0_A
 # TODO (Rick)  : Set up default image pool in home directory.
@@ -36,8 +36,6 @@ else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
-
-set -eu
 
 ## Functions ##
 
@@ -86,15 +84,15 @@ check_requirements() {
   check_kernel || virt_flag=1
   check_processor || virt_flag=1
   check_bios || virt_flag=1
-  if [[ "$virt_flag" -eq 1 ]]; then
+  if [[ "$virt_flag" -eq 0 ]]; then
+    printf "\nSystem meets all requirements to install KVM/QEMU.\n"
+    return 0
+  else
     printf "\nSystem does not meet all requirements to install KVM/QEMU.\n" >&2
 	  printf "KVM/QEMU requires a 64-bit kernel, a 64-bit processor,\n" >&2
 	  printf "and virtualization to be enabled in the BIOS.\n" >&2
     printf "Systemd is required to run background services.\n" >&2
     return 1
-  else
-	  printf "\nSystem meets all requirements to install KVM/QEMU.\n"
-    return 0
   fi
 }
 
@@ -118,8 +116,8 @@ add_to_libvirt() {
   # Add user to the libvirt group
   getent group libvirt || sudo groupadd libvirt > /dev/null 2>&1
   in_libvirt_grp=$(awk '/libvirt:/ && /'"$USER"'/' /etc/group)
-  printf "User %s " "$USER"
-  if [[ -n "$in_libvirt_grp" ]]; then
+  printf "%s " "$USER"
+  if [[ "$in_libvirt_grp" ]]; then
     printf "is already a member of "
   else
     sudo adduser "$USER" libvirt > /dev/null  # sudo usermod -aG libvirt "$USER"
@@ -171,7 +169,7 @@ install_packages() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.0.25199"
+  local -r version="3.1.25296"
   printf "Installs Virt-Manager and KVM/QEMU...\n\n"
   if check_requirements; then
     sudo_login 2
