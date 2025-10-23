@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 14 Oct 2025
+# Updated      : 23 Oct 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.8.25287"
+readonly version="3.0.25296"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="14 Oct 2025"
+	local updated="23 Oct 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes Geany text editor and themes
@@ -81,19 +81,21 @@ clone_themes() {
 install_geany() {
   show_message "Installing Geany from repositories..."
   sudo apt-get install -y geany libvte9
+  exists geany || die "Geany installation failed." 1
   printf "Geany %s installed.\n" "$(geany_version)"
 }
 
 geany_config() {
+  local repository=~/Downloads/configs/geany
+  [[ -d ~/gitea/configs/geany ]] && repository=~/gitea/configs/geany
+  if ! [[ -d "$repository" ]]; then
+    printf "%s Configs repository not found!\n" "$RED_WARNING" >&2
+    return
+  fi
   [[ -d ~/.config/geany ]] || mkdir -p ~/.config/geany
   show_message "Applying configuration files."
-  if [[ -d ~/gitea/configs ]]; then
-    cp -v ~/gitea/configs/geany/geany.conf ~/.config/geany/
-    cp -v /gitea/configs/geany/keybindings.conf ~/.config/geany/
-  elif [[ -d ~/Downloads/configs ]]; then
-    cp -v ~/Downloads/configs/geany/geany.conf ~/.config/geany/
-    cp -v ~/Downloads/configs/geany/keybindings.conf ~/.config/geany/
-  fi
+  cp -v "$repository"/geany.conf ~/.config/geany/
+  cp -v "$repository"/keybindings.conf ~/.config/geany/
   printf "Geany configuration files applied.\n"
 }
 
