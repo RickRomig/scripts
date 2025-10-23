@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Jan 2021
-# Updated      : 20 Oct 2025
+# Updated      : 23 Oct 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,18 +36,16 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.2.25293"
+readonly version="4.3.25296"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="20 Oct 2025"
+	local updated="23 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removed KeePassXC password manager
@@ -87,6 +85,7 @@ install_flathub_keepassxc() {
 install_distro_keepassxc() {
   sudo_login 2
   sudo apt-get install keepassxc -yy
+  exists keepassxc || die "KeePassXC installation failed." 1
   apply_keepassxc_ini
   printf "Keepassxc %s installed from distro repositories.\n" "$(keepass_version)"
 }
@@ -94,7 +93,7 @@ install_distro_keepassxc() {
 remove_flatpak_keepassxc() {
   printf "Removing the KeePassXC flatpak...\n"
   flatpak uninstall --noninteractive --assumeyes org.keepassxc.KeePassXC
-  rm -rf "$HOME/.var/app/org.keepassxc.KeePassXC"
+  rm -rf ~/.var/app/org.keepassxc.KeePassXC
   printf "KeePassXC flatpak removed.\n"
 }
 
@@ -102,20 +101,23 @@ remove_distro_keeepassxc() {
   sudo_login 2
   printf "Removing KeePassXC ...\n"
   sudo apt-get remove --purge keepassxc -yy
-  find "$HOME/.config/" -maxdepth 2 -type d -name keepassxc -exec rm -rf {} \;
-  [[ -d "$HOME/.cache/keepassxc" ]] && rm -rf "$HOME/.cache/keepassxc"
+  find ~/ -maxdepth 3 -type d -name keepassxc -exec rm -rf {} \;
   printf "KeePassXC removed.\n"
 }
 
 apply_keepassxc_ini() {
-	local cfg_dir ini_file
-  ini_file="keepassxc.ini"
-  cfg_dir="$HOME/.config/keepassxc"
-  flatpak_keepassxc && cfg_dir="$HOME/.var/app/org.keepassxc.KeePassXC/config"
+  local repository=~/Downloads/configs/keepassxc
+  [[ -d ~/gitea/configs/geany ]] && repository=~/gitea/configs/keepassxc
+  if ! [[ -d "$repository" ]]; then
+    printf "%s Configs repository not found!\n" "$RED_WARNING" >&2
+    return
+  fi
+  local -r ini_file="keepassxc.ini"
+  local cfg_dir=~/.config/keepassxc
+  flatpak_keepassxc && cfg_dir=~/.var/app/org.keepassxc.KeePassXC/config
   [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
   printf "Applying %s ...\n" "$ini_file"
-  [[ -d ~/gitea/configs/keepassxc ]] && cp -v ~/gitea/configs/keepassxc/"$ini_file" "$cfg_dir"
-  [[ -d ~/Downloads/configs/keepassxc ]] && cp -v ~/Downloads/configs/keepassxc/"$ini_file" "$cfg_dir"
+  cp -v "$repository/$ini_file" "$cfg_dir"
   printf "%s applied.\n" "$ini_file"
 }
 
@@ -131,19 +133,15 @@ main() {
         fi
         ;;
       d )
-        if exists keepassxc; then
-          printf "KeePassXC version %s is already installed from distro.\n" "$(keepass_version)"
-        elif flatpak_keepassxc; then
-          printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_version)"
+        if exists keepassxc || flatpak_keepassxc; then
+          printf "KeePassXC version %s is already installed.\n" "$(keepass_version)"
         else
           install_distro_keepassxc
         fi
         ;;
       f )
-        if exists keepassxc; then
-          printf "KeePassXC version %s is already installed from distro.\n" "$(keepass_version)"
-        elif  flatpak_keepassxc; then
-          printf "KeePassXC %s is already installed from flatpak.\n" "$(keepass_version)"
+        if exists keepassxc || flatpak_keepassxc; then
+          printf "KeePassXC version %s is already installed.\n" "$(keepass_version)"
         else
           install_flathub_keepassxc
         fi
