@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Nov 2018
-# Updated      : 25 Jul 2025
+# Updated      : 23 Oct 2025
 # Comments     : Available as a flatpak (preferred method)
 #              : https://flathub.org/apps/details/fr.free.Homebank
 #              : Linux Mint Sofware Manager
@@ -41,13 +41,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.0.25206"
+readonly version="6.1.25296"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="25 Jul 2025"
+	local updated="23 Oct 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes HomeBank Personal Finance Software.
@@ -97,6 +97,7 @@ remove_flatpak_homebank() {
 install_homebank() {
   sudo_login 2
   sudo apt-get install homebank -yyq
+  exists homebank || die "Homebank installation failed." 1
   apply_preferences
   printf "HomeBank %s installed.\n" "$(homebank_version)"
 }
@@ -110,12 +111,16 @@ remove_homebank() {
 }
 
 apply_preferences() {
-  local cfg_dir repository
-  repository=$(assign_cfg_repo)
-  cfg_dir="$HOME/.config"
-  flatpak_homebank && cfg_dir="$HOME/.var/app/fr.free.Homebank/config"
+  local repository=~/Downloads/configs/homebank
+  [[ -d ~/gitea/configs/homebank ]] && repository=~/gitea/configs/homebank
+  if ! [[ -d "$repository" ]]; then
+    printf "%s Configs repository not found!\n" "$RED_WARNING" >&2
+    return
+  fi
+  local cfg_dir=~/.config
+  flatpak_homebank && cfg_dir=~/.var/app/fr.free.Homebank/config
   [[ -d "$cfg_dir" ]] || mkdir -p "$cfg_dir"
-  cp -v "$repository/homebank/preferences" "$cfg_dir/homebank/"
+  cp -v "$repository"/homebank/preferences "$cfg_dir"/homebank/
   printf "HomeBank preferences applied.\n"
 }
 
@@ -124,7 +129,7 @@ remove_configs() {
   flatpak_homebank && cfg_dir="$HOME/.var/app/fr.free.Homebank/config"
   if default_no "Remove user configuration files?"; then
     printf "Removing user configuration files...\n"
-    [[ -d "$cfg_dir/homebank" ]] && rm -rf "$cfg_dir/homebank"
+    [[ -d ~/.config/homebank ]] && rm -rf ~/.config/homebank
     printf "User configuration files removed.\n"
   else
     printf "User configuations files left intact.\n"
@@ -138,17 +143,21 @@ main() {
   while getopts "$optstr" opt; do
     case "$opt" in
       f )
-        exists homebank && leave "HomeBank $(homebank_version) is already installed."
-        flatpak_homebank && leave "HomeBank $(homebank_version) (flatpak) is installed."
-        install_flatpak_homebank
+        if exists homebank || flatpak_homebank; then
+          printf "HomeBank %s is already installed.\n" "$(homebank_version)"
+        else
+          install_flatpak_homebank
+        fi
         ;;
       h )
         help 0
         ;;
       i )
-        exists homebank && leave "HomeBank $(homebank_version) is already installed."
-        flatpak_homebank && leave "HomeBank $(homebank_version) (flatpak) is installed."
-        install_homebank
+        if exists homebank || flatpak_homebank; then
+          printf "HomeBank %s is already installed.\n" "$(homebank_version)"
+        else
+          install_homebank
+        fi
         ;;
       r )
         if flatpak_homebank; then
@@ -156,7 +165,7 @@ main() {
         elif exists homebank; then
           remove_homebank
         else
-          leave "HomeBank is not installed.\n"
+          printf "HomeBank is not installed.\n"
         fi
         ;;
       ? )
