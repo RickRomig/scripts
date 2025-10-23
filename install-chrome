@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2019
-# Updated      : 22 Oct 2025
+# Updated      : 23 Oct 2025
 # Comments     : Google Chrome updates through apt from source list
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,16 +39,15 @@ fi
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.9.25295"
+readonly version="5.0.25296"
 readonly chrome_list="/etc/apt/sources.list.d/google-chrome.list"
-readonly keyring_dir="/usr/share/keyrings"
-readonly trusted_key="google-chrome.gpg"
+readonly trusted_key="/usr/share/keyrings/google-chrome.gpg"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="22 Oct 2025"
+	local -r updated="23 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updated, or removes Google Chrome.
@@ -67,12 +66,30 @@ chrome_version() {
   google-chrome-stable --version
 }
 
+set_gpg_key() {
+  local -r trusted_key_url="https://dl.google.com/linux/linux_signing_key.pub"
+  if [[ -f "$trusted_key" ]]; then
+    printf "%s already exists.\n" "${trusted_key##*/}"
+    return
+  fi
+  printf "Setting the trusted key...\n"
+  curl -fSsL "$trusted_key_url" | gpg --dearmor | sudo tee "$trusted_key"
+}
+
+set_src_list(){
+  local -r source_list="deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main"
+  if [[ -f "$chrome_list" ]]; then
+		printf "%s already exists.\n" "${chrome_list##*/}"
+		return
+  fi
+  printf "Creating the source list file...\n"
+  echo "$source_list" | sudo tee "$chrome_list"
+}
+
 install_chrome() {
-  local trusted_key_url source_list
-  trusted_key_url="https://dl.google.com/linux/linux_signing_key.pub"
-  source_list="deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main"
-  curl -fSsL "$trusted_key_url" | gpg --dearmor | sudo tee "$keyring_dir/$trusted_key" > /dev/null
-  echo "$source_list" | sudo tee "$chrome_list" > /dev/null
+  set_gpg_key
+  set_src_list
+  printf "Updating apt cache and installing Google Chrome...\n"
   sudo apt update -qq
   sudo apt-get install -y google-chrome-stable
   exists google-chrome-stable || die "Google Chrome installation failed." 1
@@ -80,9 +97,9 @@ install_chrome() {
 }
 
 purge_chrome() {
-  sudo_login 2
+  printf "Removing Google Chrome...\n"
   sudo apt purge google-chrome-stable
-  [[ -f "$keyring_dir/$trusted_key" ]] && sudo rm -v "$keyring_dir/$trusted_key"
+  [[ -f "$trusted_key" ]] && sudo rm -v "$trusted_key"
   [[ -f "$chrome_list" ]] && sudo rm -v "$chrome_list"
   find "$HOME/.*" -type d -name google-chrome -exec rm -rf {} \;
   printf "Google Chrome removed from this computer.\n"
@@ -99,7 +116,7 @@ main() {
         ;;
       i )
         if exists google-chrome-stable; then
-          printf "%s is already installed.\n" "$(chrome_version)" >&2
+          printf "%s is already installed.\n" "$(chrome_version)"
         else
           sudo_login 2
           check_package wget
@@ -108,9 +125,10 @@ main() {
         ;;
       r )
         if exists google-chrome-stable; then
+          sudo_login 2
           purge_chrome
         else
-          printf "Google Chrome is not installed.\n" >&2
+          printf "Google Chrome is not installed.\n"
         fi
         ;;
       ? )
