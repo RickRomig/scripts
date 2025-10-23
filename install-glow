@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 20 Oct 2025
+# Updated      : 23 Oct 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,10 +39,10 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.2.25293"
+readonly version="5.3.25296"
 readonly charm_url="https://repo.charm.sh/apt"
-readonly src_list_d="/etc/apt/sources.list.d"
-readonly keyring_d="/etc/apt/keyrings"
+readonly src_list="/etc/apt/sources.list.d/charm.list"
+readonly charm_key="/etc/apt/keyrings/charm.gpg"
 
 ## Functions ##
 
@@ -63,17 +63,29 @@ _HELP_
   exit "$errcode"
 }
 
+glow_version() {
+  glow --version | cut -d' ' -f3
+}
+
 add_gpg() {
+  if [[ -f "$charm_key" ]]; then
+    printf "%s already exists.\n" "${charm_key##*/}"
+    return
+  fi
   printf "Adding the Charm GPG key...\n"
-  [[ -d "$keyring_d" ]] || sudo mkdir -p "$keyring_d"
+  [[ -d /etc/apt/keyrings ]] || sudo mkdir -p /etc/apt/keyrings
   check_package curl
-  curl -fsSL "$charm_url/gpg.key" | sudo gpg --dearmor -o "$keyring_d/charm.gpg"
+  curl -fsSL "$charm_url/gpg.key" | sudo gpg --dearmor -o "$charm_key"
   printf "Charm GPG key applied.\n"
 }
 
 add_src_list() {
+  if [[ -f "$src_list" ]]; then
+    printf "%s already exists.\n" "${src_list##*/}"
+    return
+  fi
   printf "Creating the the Charm apt source list...\n"
-  echo "deb [signed-by=$keyring_d/charm.gpg] $charm_url/ * *" | sudo tee "$src_list_d/charm.list" > /dev/null
+  echo "deb [signed-by=$charm_key] $charm_url/ * *" | sudo tee "$src_list"
   printf "Charm apt source list created.\n"
 }
 
@@ -83,35 +95,29 @@ install_glow() {
   add_gpg
   add_src_list
   sudo apt update && sudo apt install -y glow
+  exists glow || die "Glow installation failed." 1
   glow_config
   printf "glow %s successfully installed.\n" "$(glow_version)"
 }
 
 remove_glow() {
-  local -r config_dir="$HOME/.config/glow"
-  local -r cache_dir="$HOME/.cache/glow"
   printf "Removing the Glow markdown reader...\n"
   sudo_login 2
   sudo apt-get -y remove glow
-  [[ -f "$src_list_d/charm.list" ]] && sudo rm -v "$src_list_d/charm.list"
-  [[ -f "$keyring_d/charm.gpg" ]] && sudo rm -v "$keyring_d/charm.gpg"
-  [[ -d "$config_dir" ]] && rm -rf "$config_dir"
-  [[ -d "$cache_dir" ]] && rm -rf "$cache_dir"
+  [[ -f "$src_list" ]] && sudo rm -v "$src_list"
+  [[ -f "$charm_key" ]] && sudo rm -v "$charm_key"
+  [[ -d ~/.config/glow ]] && rm -rf ~/.config/glow
+  [[ -d ~/.cache/glow ]] && rm -rf ~/.cache/glow
   printf "Glow markdown reader has been removed.\n"
 }
 
 glow_config() {
-  config_dir="$HOME/.config/glow"
   printf "Installing glow.yml...\n"
   [[ -d ~/.config/glow ]] || mkdir -p ~/.config/glow
   [[ -f ~/.config/glow/glow.yml ]] && rm ~/.config/glow/glow.yml
   [[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/glow/glow.yml ~/.config/glow/glow.yml
   [[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/glow/glow.yml ~/Downloads/configs/glow/glow.yml
   printf "Glow configuration applied.\n"
-}
-
-glow_version() {
-  glow --version | cut -d' ' -f3
 }
 
 main() {
