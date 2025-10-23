@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 04 Oct 2025
+# Updated      : 23 Oct 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,13 +41,13 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.0.25277"
+readonly version="7.1.25296"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="04 Oct 2025"
+	local -r updated="23 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Terminator terminal emulator
@@ -74,6 +74,7 @@ install_terminator() {
   sudo_login 2
   sudo apt-get -yq update
   sudo apt-get install -y terminator
+  exists terminator || die "Terminator installation failed." 1
   printf "Terminator %s installed.\n" "$(terminator_version)"
   if bunsenlabs; then
     printf "BunsenLabs uses its own profiles based on the version of the distribution.\n"
@@ -97,8 +98,8 @@ apply_config() {
   printf "Applying Terminator configuration...\n"
   if is_debian; then
     [[ -f ~/.config/terminator/config ]] && rm ~/.config/terminator/config
-    [[ -d  ~/gitea/configs ]] && ln -s ~/gitea/configs/terminator/config ~/.config/terminator"/config
-    [[ -d  ~/Downloads/configs/ ]] && ln -sv ~/Downloads/configs/terminator/config ~/.config/terminator"/config
+    [[ -d  ~/gitea/configs/terminator ]] && ln -s ~/gitea/configs/terminator/config ~/.config/terminator/config
+    [[ -d  ~/Downloads/configs/terminator ]] && ln -sv ~/Downloads/configs/terminator/config ~/.config/terminator/config
   else
     [[ -d  ~/gitea/configs ]] && cp -v ~/gitea/configs/terminator/config ~/.config/terminator
     [[ -d  ~/Downloads/configs ]] && cp -v ~/Downloads/configs/terminator/config ~/.config/terminator
