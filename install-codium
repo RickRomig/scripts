@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 04 Oct 2025
+# Updated      : 22 Oct 2025
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.11.25277"
+readonly version="2.12.25296"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
@@ -48,7 +48,7 @@ verbose_mode="$FALSE"
 
 help() {
 	local errcode="${1:-2}"
-	local updated="04 Oct 2025"
+	local updated="22 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
 Install/Remove VSCodium and apply settings
@@ -66,11 +66,6 @@ _HELP_
   exit "$errcode"
 }
 
-# check_dependencies() {
-# 	local packages=( git wget )
-# 	check_packages "${packages[@]}"
-# }
-
 codium_version() {
 	# codium --version | head -n 1
 	dpkg -l codium | awk '/ii/ {print $3}'
@@ -78,15 +73,25 @@ codium_version() {
 
 set_gpg_key() {
 	local -r key_url="https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg"
-	wget "$key_url"
-	show_message "Setting the GPG key..."
-	sudo mv pub.gpg "$key_file"
+	if [[ -f "$key_file" ]]; then
+		printf "%s already exists.\n" "${key_file##*/}"
+	else
+		wget "$key_url"
+		show_message "Setting the GPG key..."
+		sudo mv pub.gpg "$key_file"
+		show_message "GPG key is set."
+	fi
 }
 
 set_src_list() {
 	local -r src_url="https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main"
-	show_message "Creating the source list file..."
-	echo "deb [ signed-by=$key_file arch=amd64 ] $src_url" | sudo tee "$src_list" > /dev/null
+	if [[ -f "$src_list" ]]; then
+		printf "%s already exists.\n" "${src_list##*/}"
+	else
+		show_message "Creating the source list file..."
+		echo "deb [ signed-by=$key_file arch=amd64 ] $src_url" | sudo tee "$src_list" > /dev/null
+		show_message "${src_list##*/} has been created."
+	fi
 }
 
 install_vscodium() {
@@ -95,6 +100,7 @@ install_vscodium() {
 	set_src_list
 	sudo apt-get update
 	sudo apt-get install codium
+	exist codium || die "VSCodium installation failed." 1
 	apply_settings
 	printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 }
