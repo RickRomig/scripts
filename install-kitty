@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 04 Oct 2025
+# Updated      : 23 Oct 2025
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,13 +39,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.1.25277"
+readonly version="2.2.25296"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="04 Oct 2025"
+	local -r updated="23 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Kitty terminal emulator
@@ -66,6 +66,7 @@ kitty_version() {
 install_kitty() {
   printf "Installing the kitty terminal emulator.\n"
   sudo apt-get install -y kitty imagemagick
+  exists kitty || die "Kitty installation failed." 1
   printf "Kitty %s installed.\n" "$(kitty_version)"
 }
 
@@ -80,15 +81,15 @@ remove_kitty() {
 }
 
 kitty_config() {
+  local repository=~/Downloads/configs/kitty
+  [[ -d ~/gitea/configs/geany ]] && repository=~/gitea/configs/kitty
+  if ! [[ -d "$repository" ]]; then
+    printf "%s Configs repository not found!\n" "$RED_WARNING" >&2
+    return
+  fi
   [[ -d ~/.config/kitty ]] || mkdir -p ~/.config/kitty
   printf "Applying configuration files ...\n"
-  if [[ -d ~/gitea/configs ]]; then
-    cp -v ~/gitea/configs/kitty/kitty.conf ~/.config/kitty/
-	  cp -v ~/gitea/configs/kitty/bindings.list ~/.config/kitty/
-  elif [[ -d ~/Downloads/configs ]]; then
-    cp -v ~/Downloads/configs/kitty/kitty.conf ~/.config/kitty/
-	  cp -v ~/Downloads/configs/kitty/bindings.list ~/.config/kitty/
-  fi
+  cp -v "$repository"/kitty.conf "$repository"/bindings.list ~/.config/kitty/
   printf "kitty configuration files applied.\n"
 }
 
@@ -104,7 +105,7 @@ main() {
         ;;
       i )
         if exists kitty; then
-          printf "Kitty terminal emulator %s already installed.\n" "$(kitty_version)"
+          printf "Kitty %s already installed.\n" "$(kitty_version)"
         else
           sudo_login 2
           install_kitty
