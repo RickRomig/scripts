@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2020
-# Updated      : 25 Jul 2025
+# Updated      : 22 Oct 2025
 # Comments     : Does not support installation from Ubuntu PPAs or flatpak.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,18 +36,16 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.4.25206"
+readonly version="2.5.25295"
 
 ## Functions ##
 
 help() {
 	local -r errcode="${1:-2}"
-  local -r updated="25 Jul 2025"
+  local -r updated="22 Oct 2025"
 
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
@@ -55,9 +53,9 @@ Install or remove Audacious audio player
 
 ${green}Usage:${normal} $script [OPTION]
 ${orange}Available options:${normal}
-  -h  Show this help message and exit
-  -i  Install Audacious audio player
-  -r  Remove Audacious audio player
+  -h  Show this help message and exit.
+  -i  Install Audacious audio player.
+  -r  Remove Audacious audio player.
 _HELP_
   exit "$errcode"
 }
@@ -68,6 +66,7 @@ install_audacious() {
     printf "Installing Audacious audio player...\n"
     sudo apt update -qq
     sudo apt install audacious audacious-plugins -yy
+    exists audacious || die "Audacious failed to install." 1
     printf "Audacious audio player installed from distro repository.\n"
   else
     printf "Audacious is not in repositories. Audacious audio player not installed.\n"
