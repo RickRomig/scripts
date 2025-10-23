@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Mar 2020
-# Updated      : 17 Jul 2025
-# Comments     : Debian 10+, Ubuntu 18.04, Mint 19.x
+# Updated      : 23 Oct 2025
+# Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -36,51 +36,46 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Functions ##
 
+flatpak_version() {
+  flatpak --version
+}
+
 install_flatpak() {
-  local ver_code
   if exists flatpak; then
-    leave "Flatpak is already installed."  # Mint 18.3+, LMDE 3+, MX 19+
-  else
-    ver_code=$(lsb_release -c | awk '{print $2}')
-    case "$ver_code" in
-      bookworm|bullseye|trixie )
-        echo "Installing Flatpak on ${ver_code^}..."
-        sudo_login 2
-        sudo apt update -qq
-        sudo apt install -y flatpak
-        ;;
-      * )
-        die "Flatpak can't be installed on ${ver_code^} using this script." 1
-    esac
+    printf "%s is already installed.\n" "$(flatpak_version)"
+    return
   fi
+  echo "Installing Flatpak..."
+  sudo_login 2
+  sudo apt update -qq
+  sudo apt install -y flatpak
+  exists flatpak || die "Flatpak installation failed." 1
+  printf "%s installed.\n" "$(flatpak_version)"
+}
+
+install_flathub() {
+  printf "Installing Flathub repository ...\n"
+  sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  printf "Flatbhub installed.\n"
 }
 
 install_gnome_plugin() {
   # Install only if using Gnome Desktop or Gnome Software Store
-  echo "Installing the Gnome software plugin for Flatpak ..."
+  printf "Installing the Gnome software plugin for Flatpak ...\n"
   sudo apt install -y gnome-software-plugin-flatpak
   printf "Gnome software plugin installed.\n"
 }
 
-install_flathub() {
-  echo "Installing Flathub repository ..."
-  sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-}
-
 main() {
-  local script="${0##*/}"
-  local version="1.2.25198"
-  clear
-  echo "$script v$version"
-  echo "Installs Flatpak & Flathub repository."
+  local -r script="${0##*/}"
+  local -r version="1.4.25296"
+  printf "Installs Flatpak and Flathub repository.\n"
   install_flatpak
   exists gnome-software && install_gnome_plugin
   install_flathub
-  over_line "Flatpak and Flathub installed."
+  over_line "$script $version"
   exit
 }
 
