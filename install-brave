@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 17 Jul 2025
+# Updated      : 22 Oct 2025
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -40,7 +40,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.0.25198"
+readonly version="5.1.25295"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 readonly verbose_mode="FALSE"
@@ -49,7 +49,7 @@ readonly verbose_mode="FALSE"
 
 help() {
   local errcode="${1:-2}"
-  local updated="17 Jul 2025"
+  local updated="22 Oct 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: ($updated)
 Installs/Removes the Brave browser
@@ -86,6 +86,7 @@ install_brave() {
   show_message "Updating apt cache and isntalling the Brave browser"
   sudo apt-get update -qq
   sudo apt-get install brave-browser brave-keyring -yy
+  exists brave-browser || die "Brave browser installation failed" 1
   printf "%ssuccessfully installed.\n" "$(brave_ver)"
 }
 
@@ -136,21 +137,30 @@ main(){
         help 0
         ;;
       i )
-        exists brave-browser && leave "$(brave_ver)is already installed."
-        sudo_login 2
-        check_dependencies
-        install_brave
+        if exists brave-browser; then
+          printf "%s is already installed." "$(brave_ver)"
+        else
+          sudo_login 2
+          check_dependencies
+          install_brave
+        fi
         ;;
       p )
-        exists brave-browser || leave "Brave browser is not installed."
-        sudo_login 2
-        remove_brave
-        purge_configs
+        if exists brave-browser; then
+          sudo_login 2
+          remove_brave
+          purge_configs
+        else
+          printf "Brave Browser is not installed.\n"
+        fi
         ;;
       r )
-        exists brave-browser || leave "Brave browser is not installed."
-        sudo_login 2
-        remove_brave
+        if exists brave-browser; then
+          sudo_login 2
+          remove_brave
+        else
+          printf "Brave Browser is not installed.\n"
+        fi
         ;;
 			v )
 				verbose_mode="$TRUE"
