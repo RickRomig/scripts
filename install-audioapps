@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Mar 2019
-# Updated      : 17 Jul 2025
+# Updated      : 22 Oct 2025
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,18 +38,9 @@ fi
 
 ## Functions ##
 
-install_from_repo() {
+install_audio_apps() {
   printf "\nInstalling audio applications and utilities from repositories.\n"
-  sudo apt-get install -yy asunder lame easytag audacity
-}
-
-install_mp3gain() {
-  if in_repos mp3gain; then
-    printf "Installing mp3gain...\n"
-    sudo apt-get install -yy mp3gain
-  else
-    printf "mp3gain is not available in distribution repository.\n"
-  fi
+  sudo apt-get install -yy asunder audacity easytag  lame mp3gain
 }
 
 list_installed_apps() {
@@ -63,12 +54,11 @@ list_installed_apps() {
 
 main() {
   local script="${0##*/}"
-  local version="1.4.25198"
+  local version="1.5.25295"
   sudo_login 2
-  sudo apt update -qq
+  sudo apt-get update -qq
   printf "Installs audio applications on Debian/Ubuntu-based systems.\n"
-  install_from_repo
-  install_mp3gain
+  install_audio_apps
   list_installed_apps
   over_line "$script $version"
 }
