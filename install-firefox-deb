@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Updated      : 17 Jul 2025
+# Updated      : 23 Oct 2025
 # Comments     : Remove Distro, Flatpak, or Snap version before installing.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,19 +36,20 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.0.25198"
+readonly version="6.0.25296"
+readonly mozilla_list="/etc/apt/sources.list.d/mozilla.list"
+readonly mozilla_asc="/etc/apt/keyrings/packages.mozilla.org.asc"
+readonly mozilla_pref="/etc/apt/preferences.d/mozilla.pref"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="17 Jul 2025"
+	local -r updated="23 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/Removes Mozilla repository version of Firefox.
@@ -69,7 +70,7 @@ show_message() {
 }
 
 firefox_version() {
-	firefox --version | cut -d' ' -f3
+	firefox --version
 }
 
 mozilla_deb() {
@@ -77,49 +78,66 @@ mozilla_deb() {
 }
 
 other_firefox() {
-	dpkg -l firefox-esr | grep -q 'esr' && return "$TRUE"
-	dpkg -l firefox | grep -q 'linuxmint' && return "$TRUE"
+	dpkg -l firefox-esr > /dev/null 2>&1 | grep -q 'esr' && return "$TRUE"
+	dpkg -l firefox > /dev/null 2>&1 | grep -q 'linuxmint' && return "$TRUE"
+	if exist flatpak; then
+		flatpak list | grep -q firefox && return "$TRUE"
+	fi
 	return "$FALSE"
 }
 
-make_preference_file() {
+create_preference_file() {
 	# Preference file to prioritize packages from Mozilla repository
+	show_message "Creating preference file..."
 	echo '
 Package: *
 Pin: origin packages.mozilla.org
 Pin-Priority: 1000
-'| sudo tee /etc/apt/preferences.d/mozilla.pref
+'| sudo tee "$mozilla_pref"
+}
+
+set_gpg_key() {
+	local -r key_url="https://packages.mozilla.org/apt/repo-signing-key.gpg"
+	if [[ -f "$mozilla_asc" ]]; then
+		printf "%s already exists.\n" "${mozilla_asc##*/}"
+		return
+	fi
+	show_message "Installing keyrings directory..."
+	[[ -d /etc/apt/keyrings ]] || sudo install -d -m 0755 /etc/apt/keyrings
+	show_message "Importing Mozilla APT repository keys..."
+	wget -q "$key_url" -O- | sudo tee "$mozilla_asc"
+}
+
+set_sources_list() {
+	local -r list_url="https://packages.mozilla.org/apt"
+	if [[ -f "$mozilla_list" ]]; then
+		printf "%s already exists.\n" "${mozilla_list##*/}"
+		return
+	fi
+	show_message "Adding Mozilla APT repository to sources list..."
+	echo "deb [signed-by=$mozilla_asc] $list_url mozilla main" | sudo tee -a "$mozilla_list" > /dev/null
 }
 
 install_mozilla_deb() {
-	local -r keyrings_d="/etc/apt/keyrings"
-	local -r asc_file="packages.mozilla.org.asc"
-	local -r key_url="https://packages.mozilla.org/apt/repo-signing-key.gpg"
-	local -r list_url="https://packages.mozilla.org/apt"
-	local -r mozilla_list="/etc/apt/sources.list.d/mozilla.list"
-
+	if other_firefox; then
+		printf "Another version of Firefox is already installed.\n" >&2
+		printf "Remove before installing the Mozilla package.\n" >&2
+		return
+	fi
 	printf "Installing the Mozilla Firefox DEB package...\n"
-	show_message "Installing keyrings directory..."
-	[[ -d "$keyrings_d" ]] || sudo install -d -m 0755 "$keyrings_d"
-	show_message "Importing Mozilla APT repository keys..."
-	wget -q "$key_url" -O- | sudo tee "$keyrings_d/$asc_file" > /dev/null
-	show_message "Adding Mozilla APT repository to sources list..."
-	echo "deb [signed-by=$keyrings_d/$asc_file] $list_url mozilla main" | sudo tee -a "$mozilla_list" > /dev/null
-	show_message "Creating preference file..."
-	make_preference_file
+	set_gpg_key
+	set_sources_list
+	create_preference_file
 	show_message "Updating apt cache..."
 	sudo apt-get update
 	show_message "Installing Firefox..."
 	sudo apt-get install -y firefox
+	exists firefox || die "Firefox installation failed." 1
 	printf "%s installed.\n" "$(firefox_version)"
 }
 
 remove_mozilla_firefox() {
-	local -r mozilla_list="/etc/apt/sources.list.d/mozilla.list"
-	local -r mozilla_pref="/etc/apt/preferences.d/mozilla.pref"
-	local -r mozilla_asc="/etc/apt/keyrings/packages.mozilla.org.asc"
-	printf "Firefox version installed: %s\n" "$(firefox_version)"
-	show_message "Removing Firefox..."
+	printf "Removing %s..." "$(firefox_version)"
 	sudo apt-get remove -y firefox
 	show_message "Removing source.list..."
 	[[ -f "$mozilla_list" ]] && sudo rm "$mozilla_list"
@@ -128,7 +146,7 @@ remove_mozilla_firefox() {
 	show_message "Removing keyring..."
 	[[ -f "$mozilla_asc" ]] && sudo rm "$mozilla_asc"
 	show_message "Removing user configuration files..."
-	[[ -d "$HOME/.mozilla" ]] && rm -rf "$HOME/.mozilla"
+	find ~/ -type d -maxdepth 2 -name ".mozilla*" -exec rm -rf {} \;
 	printf "The Mozilla Firefox deb package has been removed.\n"
 }
 
@@ -142,11 +160,8 @@ main() {
 				help 0
 				;;
 			i )
-				if other_firefox; then
-					printf "Another version of Firefox is already installed.\n" >&2
-					printf "Remove before installing the Mozilla package.\n" >&2
-				elif mozilla_deb; then
-					printf "Mozilla Firefox %s is already installed.\n" "$(firefox_version)" >&2
+				if mozilla_deb; then
+					printf "%s DEB package is already installed.\n" "$(firefox_version)" >&2
 				else
 					install_mozilla_deb
 				fi
