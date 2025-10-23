@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Last updated : 18 Jul 2025
+# Last updated : 23 Oct 2025
 # Comments     : My default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,8 +36,6 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Functions ##
 
 get_home_uuid() {
@@ -49,39 +47,40 @@ get_home_uuid() {
 
 configure_timeshift() {
   local ts_uuid script_dir
+  ts_uuid=$(get_home_uuid)
   script_dir=$(dirname "$(readlink -f "${0}")")
   local -r ts_dir="/etc/timeshift"
   local -r ts_json="timeshift.json"
   local -r ts_sed="$script_dir/files/timeshift.sed"
-  ts_uuid=$(get_home_uuid)
-  if [[ -f "$ts_sed" ]]; then
-    printf "Configuring Timeshift...\n"
-    sudo cp -v "$ts_dir/default.json" "$ts_dir/$ts_json"  # copy default json file
-    sudo sed -i -f "$ts_sed" "$ts_dir/$ts_json" # apply settings
-    sudo sed -i "/backup_device_uuid/ s/\",/$ts_uuid\",/" "$ts_dir/$ts_json"  # insert UUID for snapshots
-    sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/$ts_json"  # to get leading spaces right in json file
-  else
-    printf "%s was not found. Configure using the GUI application.\n"  "${ts_sed##*/}"
+  if ! [[ -f "$ts_sed" ]]; then
+    printf "%s was not found. Configure using the GUI application.\n"  "${ts_sed##*/}" >&2
+    return
   fi
+  printf "Configuring Timeshift...\n"
+  sudo cp -v "$ts_dir/default.json" "$ts_dir/$ts_json"  # copy default json file
+  sudo sed -i -f "$ts_sed" "$ts_dir/$ts_json" # apply settings
+  sudo sed -i "/backup_device_uuid/ s/\",/$ts_uuid\",/" "$ts_dir/$ts_json"  # insert UUID for snapshots
+  sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/$ts_json"  # to get leading spaces right in json file
 }
 
 install_timeshift() {
   printf "Installing Timeshift...\n"
   sudo apt-get install -y timeshift
+  exists timeshift || die "Timeshift installation failed." 1
   configure_timeshift
   printf "%s installed and configured.\n" "$(timeshift --version)"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.3.25180"
+  local -r version="3.4.25296"
   if exists timeeshift; then
     printf "%s is already installed.\n" "$(timeshift --version)"
   elif in_repos timeshift; then
     sudo_login 2
     install_timeshift
   else
-    printf "Timeshift is not availabe in %s repositories.\n" "$(get_distribution)"
+    printf "Timeshift is not available in %s repositories.\n" "$(get_distribution)"
   fi
   over_line "$script $version"
   exit
