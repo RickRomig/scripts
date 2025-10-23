@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 22 Oct 2025
+# Updated      : 23 Oct 2025
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -48,7 +48,7 @@ verbose_mode="$FALSE"
 
 help() {
 	local errcode="${1:-2}"
-	local updated="22 Oct 2025"
+	local updated="23 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
 Install/Remove VSCodium and apply settings
@@ -75,29 +75,30 @@ set_gpg_key() {
 	local -r key_url="https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg"
 	if [[ -f "$key_file" ]]; then
 		printf "%s already exists.\n" "${key_file##*/}"
-	else
-		wget "$key_url"
-		show_message "Setting the GPG key..."
-		sudo mv pub.gpg "$key_file"
-		show_message "GPG key is set."
+		return
 	fi
+	wget "$key_url"
+	show_message "Setting the GPG key..."
+	sudo mv pub.gpg "$key_file"
+	show_message "GPG key is set."
 }
 
 set_src_list() {
 	local -r src_url="https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main"
 	if [[ -f "$src_list" ]]; then
 		printf "%s already exists.\n" "${src_list##*/}"
-	else
-		show_message "Creating the source list file..."
-		echo "deb [ signed-by=$key_file arch=amd64 ] $src_url" | sudo tee "$src_list" > /dev/null
-		show_message "${src_list##*/} has been created."
+		return
 	fi
+	show_message "Creating the source list file..."
+	echo "deb [ signed-by=$key_file arch=amd64 ] $src_url" | sudo tee "$src_list"
+	show_message "${src_list##*/} has been created."
 }
 
 install_vscodium() {
 	show_message "Installing VSCodium..."
 	set_gpg_key
 	set_src_list
+	show_message "Updating apt cache and installing VSCodium..."
 	sudo apt-get update
 	sudo apt-get install codium
 	exist codium || die "VSCodium installation failed." 1
