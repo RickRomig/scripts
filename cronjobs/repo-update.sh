@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Sep 2025
-# Last updated : 20 Sep 2025
-# Version      : 1.2.25263
+# Last updated : 24 Oct 2025
+# Version      : 1.3.25263
 # Comments     : Run as a daily cron job from ~/.local/bin/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -40,13 +40,14 @@ update_clone() {
 }
 
 main() {
-	local clone clones
+	local clone clones flag_file
+	flag_file=~/.local/share/logs/repo-update-"$(date +'%y%m%d_%H:%M')"
   clones=(configs scripts i3wm-debian homepage)
   for clone in "${clones[@]}"; do
 		update_clone "$clone"
   done
-	rm "$HOME"/.local/share/logs/repo-update* >/dev/null 2>&1
-	touch "$HOME"/.local/share/logs/repo-update-"$(date +'%y%m%d%H%M')" >/dev/null 2>&1
+	rm ~/.local/share/logs/repo-update* >/dev/null 2>&1
+	touch "$flag_file" >/dev/null 2>&1
 }
 
 ## Execution ##
