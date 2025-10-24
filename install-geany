@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 23 Oct 2025
+# Updated      : 24 Oct 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.0.25296"
+readonly version="3.1.25297"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="23 Oct 2025"
+	local updated="24 Oct 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes Geany text editor and themes
@@ -94,8 +94,7 @@ geany_config() {
   fi
   [[ -d ~/.config/geany ]] || mkdir -p ~/.config/geany
   show_message "Applying configuration files."
-  cp -v "$repository"/geany.conf ~/.config/geany/
-  cp -v "$repository"/keybindings.conf ~/.config/geany/
+  cp -av "$repository"/. ~/.config/geany/
   printf "Geany configuration files applied.\n"
 }
 
@@ -103,7 +102,7 @@ remove_geany() {
   show_message "Removing Geany $(geany_version)..."
   sudo apt-get remove -y geany
   show_message "Removing Geany configuration files ..."
-  find ~/.config -type d -name geany -exec rm -rf {} \;
+  find ~/.config -maxdepth 2 -type d -name geany -exec rm -rf {} \;
   printf "Geany and configuration files removed.\n"
 }
 
