@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Last updated : 04 Oct 2025
+# Last updated : 24 Oct 2025
 # Comments     : .png logo does not work with Terminator.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.12.25277"
+readonly version="3.0.25297"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="04 Oct 2025"
+	local -r updated="24 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, removes, updates FastFetch
@@ -101,6 +101,7 @@ install_fastfetch(){
   kill "$!"; tput cnorm
   printf "done\nInstalling FastFetch %s...\n" "$new_ver"
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
+	exist fastfetch || die "Fastfetch installation failed." 1
   printf "%sFastFetch %s installed.%s\n" "$lightyellow" "$(ff_version)" "$normal"
 }
 
@@ -108,34 +109,25 @@ remove_fastfetch() {
 	sudo_login 2
 	printf "Removing FastFetch %s ...\n" "$(ff_version)"
 	sudo dpkg --purge fastfetch
-	[[ -L ~/.config/fastfetch/config.jsonc ]] && unlink ~/.config/fastfetch/config.jsonc
-	[[ -L ~/.local/share/fastfetch/logos/logo.png ]] && unlink ~/.local/share/fastfetch/logos/logo.png
-	find ~/.config -type d -name fastfetch -exec rm -rf {} \;
-	[[ -d ~/.local/share/fastfetch ]] && rm -rf ~/.local/share/fastfetch
-	[[ -d ~/.cache/fastfetch ]] && rm -rf ~/.cache/fastfetch
-	printf "Fastfetch and its configuration files have been removed.\n"
+	find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name fastfetch -exec rm -rf {} \;	printf "Fastfetch and its configuration files have been removed.\n"
 }
 
 fastfetch_config() {
+	local repository=~/Downloads/ccnfigs/fastfetch
+	[[ -d ~/gitea/configs/fastfetch ]] && repository=~/gitea/configs/fastfetch/
+	 if ! [[ -d "$repository" ]]; then
+    printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+		return
+  fi
 	[[ -d ~/.config/fastfetch ]] || mkdir -p ~/.config/fastfetch
 	[[ -d ~/.local/share/fastfetch/logos ]] || mkdir -p ~/.local/share/fastfetch/logos
 	printf "Installing configuration and logo files...\n"
 	if lspci | grep -q 'GM965|GL960'; then
-		if [[ -d ~/gitea/configs ]]; then
-			cp -v ~/gitea/configs/fastfetch/config.jsonc.ascii ~/.config/fastfetch/config.jsonc
-			cp -v ~/gitea/configsy/fastfetch/logo.txt ~/.local/share/fastfetch/logos/
-		elif [[ -d ~/Downloads/configs ]]; then
-			cp -v ~/Downloads/configs/fastfetch/config.jsonc.ascii ~/.config/fastfetch/config.jsonc
-			cp -v ~/Downloads/configs/fastfetch/logo.txt ~/.local/share/fastfetch/logos/
-		fi
+		cp -v "$repository"/config.jsonc.ascii ~/.config/fastfetch/config.jsonc
+		cp -v /logo.txt ~/.local/share/fastfetch/logos/
 	else
-		if [[ -d ~/gitea/configs ]]; then
-			cp -v ~/gitea/configs/fastfetch/config.jsonc ~/.config/fastfetch/
-			cp -v ~/gitea/configs/fastfetch/logo.png ~/.local/share/fastfetch/logos/
-		elif [[ -d ~/Downloads/configs ]]; then
-			cp -v ~/Downloads/configs/fastfetch/config.jsonc ~/.config/fastfetch/
-			cp -v ~/Downloads/configs/fastfetch/logo.png ~/.local/share/fastfetch/logos/
-		fi
+		cp -v "$repository"/config.jsonc ~/.config/fastfetch/
+		cp -v ~"$repository"/logo.png ~/.local/share/fastfetch/logos/
 	fi
 	printf "Fastfetch configuration applied.\n"
 }
