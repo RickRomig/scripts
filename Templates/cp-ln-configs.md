@@ -2,7 +2,7 @@
 ### Function for copying config.confs from cloned repositories
 ``` bash
 application_config() {
-local repository=~/Downloads/ccnfigs/config_dir/
+local repository=~/Downloads/ccnfigs/config_dir
 [[ -d ~/gitea/configs/config_dir ]] && repository=~/gitea/configs/config_dir/
   if ! [[ -d "$repository" ]]; then
     printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
@@ -28,4 +28,9 @@ application_config() {
 	[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/config_dir/config.conf ~/.config/config_dir/config.conf
   printf "Application configuration files applied.\n"
 }
+```
+### Remove app directories
+Remove application sudirectories in .config/, .cache/. .local/
+```bash
+find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name application -exec rm -rf {} \;
 ```
