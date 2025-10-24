@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 20 Oct 2025
+# Updated      : 24 Oct 2025
 # Comments     : Use install-batcat if distro version equals latest GitHub release.
 #              : Mint 22 installs version 0.24.0 with the Ubuntu version appended.
 #              : Debian 13 installs version 0.25.0 with the Debian version appended.
@@ -42,14 +42,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.7.25293"
+readonly version="6.8.25297"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="04 Oct 2025"
+	local -r updated="24 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Bat utililty.
@@ -77,7 +77,6 @@ check_dependencies() {
 }
 
 bat_version() {
-  # bat --version | cut -d' ' -f2
   dpkg -l bat | awk '/ii/ {print $3}'
 }
 
@@ -107,6 +106,7 @@ install_bat() {
   kill "$!"; tput cnorm
   printf "done\nInstalling Bat %s...\n" "$new_ver"
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
+  dpkg -l bat >/dev/null 2>&1 | grep 'ii' || die "Bat installation failed." 1
   [[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
   printf "Bat %s installed.\n" "$(bat_version)"
 }
@@ -116,7 +116,8 @@ remove_bat() {
   printf "Removing Bat %s...\n" "$(bat_version)"
   sudo dpkg --remove bat
   [[ -L ~/.config/bat/config ]] && unlink ~/.config/bat/config
-  find ~/.config/ -type d -name bat -exec rm -rf {} \;
+  [[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
+  find ~/.config -type d -name bat -exec rm -rf {} \;
   printf "Bat and its configuration files have been removed.\n"
 }
 
@@ -126,6 +127,7 @@ bat_config() {
 	[[ -f ~/.config/bat/config ]] && rm ~/.config/bat/config
   [[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/bat/config ~/.config/bat/config
 	[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/bat/config ~/.config/bat/config
+  [[ -f /usr/bin/batcat ]] && ln -sv /usr/bin/batcat ~/.local/bin/bat
   printf "Configuration applied to Bat %s.\n" "$(bat_version)"
 }
 
