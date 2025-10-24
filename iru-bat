@@ -123,12 +123,16 @@ remove_bat() {
 
 bat_config() {
 	[[ -d ~/.config/bat ]] || mkdir -p ~/.config/bat
+	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
+		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+		return
+	fi
   printf "Applying Bat configuration...\n"
 	[[ -f ~/.config/bat/config ]] && rm ~/.config/bat/config
   [[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/bat/config ~/.config/bat/config
 	[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/bat/config ~/.config/bat/config
   [[ -f /usr/bin/batcat ]] && ln -sv /usr/bin/batcat ~/.local/bin/bat
-  printf "Configuration applied to Bat %s.\n" "$(bat_version)"
+  printf "Bat %s configuration applied.\n" "$(bat_version)"
 }
 
 main() {
