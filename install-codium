@@ -107,6 +107,10 @@ install_vscodium() {
 }
 
 apply_settings() {
+	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
+		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+		return
+	fi
 	[[ -d ~/.config/VSCodium/User/ ]] || mkdir -p ~/.config/VSCodium/User/
   show_message "Applying VSCodium settings..."
 	[[ -f ~/.config/VSCodium/User/settings.json ]] && rm ~/.config/VSCodium/User/settings.json
