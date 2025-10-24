@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2019
-# Updated      : 23 Oct 2025
+# Updated      : 24 Oct 2025
 # Comments     : Google Chrome updates through apt from source list
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.0.25296"
+readonly version="5.1.25297"
 readonly chrome_list="/etc/apt/sources.list.d/google-chrome.list"
 readonly trusted_key="/usr/share/keyrings/google-chrome.gpg"
 
@@ -47,7 +47,7 @@ readonly trusted_key="/usr/share/keyrings/google-chrome.gpg"
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="23 Oct 2025"
+	local -r updated="24 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updated, or removes Google Chrome.
@@ -101,7 +101,7 @@ purge_chrome() {
   sudo apt purge google-chrome-stable
   [[ -f "$trusted_key" ]] && sudo rm -v "$trusted_key"
   [[ -f "$chrome_list" ]] && sudo rm -v "$chrome_list"
-  find "$HOME/.*" -type d -name google-chrome -exec rm -rf {} \;
+  find ~/ -type d -maxdepth 2 -name google-chrome -exec rm -rf {} \;
   printf "Google Chrome removed from this computer.\n"
 }
 
