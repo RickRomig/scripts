@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 23 Oct 2025
+# Updated      : 24 Oct 2025
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -40,7 +40,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.0.25296"
+readonly version="6.1.25297"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 readonly verbose_mode="FALSE"
@@ -49,7 +49,7 @@ readonly verbose_mode="FALSE"
 
 help() {
   local errcode="${1:-2}"
-  local updated="23 Oct 2025"
+  local updated="24 Oct 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: ($updated)
 Installs/Removes the Brave browser
@@ -129,7 +129,7 @@ remove_brave() {
 
 purge_configs() {
   show_message "Removing local configuration and cache files"
-  find ~/ -type d -name BraveSoftware -exec rm -rf {} \;
+  find ~/ -type d -maxdepth 2 -name BraveSoftware -exec rm -rf {} \;
   printf "Brave local configuration and cache files have been removed.\n"
 }
 
