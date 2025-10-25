@@ -106,13 +106,16 @@ remove_glow() {
   sudo apt-get -y remove glow
   [[ -f "$src_list" ]] && sudo rm -v "$src_list"
   [[ -f "$charm_key" ]] && sudo rm -v "$charm_key"
-  [[ -d ~/.config/glow ]] && rm -rf ~/.config/glow
-  [[ -d ~/.cache/glow ]] && rm -rf ~/.cache/glow
+  find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name glow -exec rm -rf {} \;
   printf "Glow markdown reader has been removed.\n"
 }
 
 glow_config() {
-  printf "Installing glow.yml...\n"
+  if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
+		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+		return
+	fi
+ printf "Installing glow.yml...\n"
   [[ -d ~/.config/glow ]] || mkdir -p ~/.config/glow
   [[ -f ~/.config/glow/glow.yml ]] && rm ~/.config/glow/glow.yml
   [[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/glow/glow.yml ~/.config/glow/glow.yml
