@@ -60,12 +60,12 @@ install_NerdFonts() {
 }
 
 install_SymbolNerdFonts() {
+  local repository=~/Downloads/configs/local
+  [[ -d ~/gitea/configs ]] && repository=~/gitea/configs/local
   if ! [[ -d "$repository" ]]; then
     printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
     return
   fi
-  local repository=~/Downloads/configs/local
-  [[ -d ~/gitea/configs ]] && repository=~/gitea/configs/local
   local -r font_dir="$HOME/.local/share/fonts"
   local -r symbols_archive="NerdFontsSymbolsOnly.tar.xz"
   cp -v "$repository/$symbols_archive"/ "$font_dir/"
