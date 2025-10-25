@@ -32,5 +32,9 @@ application_config() {
 ### Remove app directories
 Remove application sudirectories in .config/, .cache/. .local/
 ```bash
-find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name application -exec rm -rf {} \;
+remove_cfg_folers() {
+  find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name application -exec rm -rf {} \;
+  # test command
+  find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name application -print
+}
 ```
