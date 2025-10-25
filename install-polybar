@@ -36,13 +36,16 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Functions ##
 
 copy_polybar_config() {
   local repository polybar_d
-	repository=$(assign_cfg_repo)
+	repository=~/Downloads/configs/polybar
+	[[ -d ~/gitea/configs/polybar ]] && repository=~/Downlgiteaoads/configs/polybar
+	if ! [[ -d "$repository" ]]; then
+    printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+    return
+  fi
 	polybar_d="$1"
 	[[ -d "$polybar_d" ]] || mkdir -p "$polybar_d"
 	printf "Copying the Polybar configuration file ...\n"
@@ -55,7 +58,7 @@ copy_polybar_config() {
 }
 
 configure_polybar() {
-	local cfg_file b_name e_name w_name polybar_d
+	local polybar_d cfg_file b_name e_name w_name
 	polybar_d="$1"
 	cfg_file="config.ini"
 	# Get device names from system.
@@ -81,17 +84,17 @@ configure_polybar() {
 }
 
 install_polybar() {
-	local polybar_d="$HOME/.config/polybar"
+	local polybar_d=~/.config/polybar
 	sudo_login 2
 	sudo apt-get install -y polybar
+	exists polybar || die "Polybar installation failed!" 1
 	copy_polybar_config "$polybar_d"
 	configure_polybar "$polybar_d"
 }
 
 main() {
-  check_package git
   local script="${0##*/}"
-  local version="2.6.25199"
+  local version="2.7.25298"
 	printf "Installs Polybar on Debian with i3wm.\n"
 	exists polybar && leave "Polybar is already installed."
 	install_polybar
