@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Sep 2023
-# Last updated : 22 Oct 2025
+# Last updated : 25 Oct 2025
 # Comments     : system install directory = /usr/local/share/fonts
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -60,16 +60,21 @@ install_NerdFonts() {
 }
 
 install_SymbolNerdFonts() {
+  if ! [[ -d "$repository" ]]; then
+    printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+    return
+  fi
+  local repository=~/Downloads/configs/local
+  [[ -d ~/gitea/configs ]] && repository=~/gitea/configs/local
   local -r font_dir="$HOME/.local/share/fonts"
   local -r symbols_archive="NerdFontsSymbolsOnly.tar.xz"
-  [[ -d ~/Downloads/configs ]] && cp -v ~/Downloads/configs/local/NerdFontsSymbolsOnly.tar.xz "$font_dir/"
-  [[ -d ~/gitea/configs ]] && cp -v ~/gitea/configs/local/NerdFontsSymbolsOnly.tar.xz "$font_dir/"
+  cp -v "$repository/$symbols_archive"/ "$font_dir/"
   tar xvf "$font_dir/$symbols_archive" -C "$font_dir/${symbols_archive%%.*}"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.8.25295"
+  local -r version="1.9.25298"
   sudo_login 2
   check_packages wget
   tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
