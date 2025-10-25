@@ -94,6 +94,12 @@ remove_terminator() {
 }
 
 apply_config() {
+  local repository=~/Downloads/ccnfigs/config_dir
+  [[ -d ~/gitea/configs/config_dir ]] && repository=~/gitea/configs/config_dir/
+  if ! [[ -d "$repository" ]]; then
+    printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+    return
+  fi
   [[ -d /.config/terminator ]] && mkdir -p /.config/terminator
   printf "Applying Terminator configuration...\n"
   if is_debian; then
@@ -101,8 +107,7 @@ apply_config() {
     [[ -d  ~/gitea/configs/terminator ]] && ln -s ~/gitea/configs/terminator/config ~/.config/terminator/config
     [[ -d  ~/Downloads/configs/terminator ]] && ln -sv ~/Downloads/configs/terminator/config ~/.config/terminator/config
   else
-    [[ -d  ~/gitea/configs ]] && cp -v ~/gitea/configs/terminator/config ~/.config/terminator
-    [[ -d  ~/Downloads/configs ]] && cp -v ~/Downloads/configs/terminator/config ~/.config/terminator
+    cp -v "$repository"/config ~/.config/terminator
     sed -i '/login_shell/s/True/False/' ~/.config/terminator/config
   fi
   printf "Terminator configuration file applied.\n"
