@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Feb 2019
-# Updated      : 25 Jul 2025
+# Updated      : 25 Oct 2025
 # Comment      : Handbrake rips DVD movies
 #              : Available as a flatpak via Flathub and Mint Software Manager
 #              : https://dl.flathub.org/repo/appstream/fr.handbrake.ghb.flatpakref
@@ -43,7 +43,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.11.25206"
+readonly version="3.12.25298"
 readonly handbrake_ppa="ppa:stebbins/handbrake-releases"
 
 ## Functions ##
@@ -63,6 +63,7 @@ install_handbrake() {
   sudo_login 2
   support_ppa && add_ppa
   sudo apt install handbrake-gtk handbrake-cli -yy
+  exists ghb || die "Handbrake installation failed!" 1
   echo "Handbrake installed."
 }
 
@@ -75,7 +76,7 @@ remove_handbrake() {
 
 help() {
 	local errcode="${1:-2}"
-	local updated="25 Jul 2025"
+	local updated="25 Oct 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Install/Remove Handbrake video transcorder
