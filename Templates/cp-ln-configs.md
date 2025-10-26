@@ -2,8 +2,8 @@
 ### Function for copying config.confs from cloned repositories
 ``` bash
 application_config() {
-local repository=~/Downloads/ccnfigs/config_dir
-[[ -d ~/gitea/configs/config_dir ]] && repository=~/gitea/configs/config_dir/
+  local repository=~/Downloads/ccnfigs/config_dir
+  [[ -d ~/gitea/configs/config_dir ]] && repository=~/gitea/configs/config_dir/
   if ! [[ -d "$repository" ]]; then
     printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
     return
@@ -17,12 +17,12 @@ local repository=~/Downloads/ccnfigs/config_dir
 ### Function for linking config.confs from cloned repositories
 ``` bash
 application_config() {
+  printf "Applying Bat configuration...\n"
 	[[ -d ~/.config/config_dir ]] || mkdir -p ~/.config/config_dir
 	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
 		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
 		return
 	fi
-  printf "Applying Bat configuration...\n"
 	[[ -f ~/.config/config_dir/config.conf ]] && rm ~/.config/config_dir/config.conf
   [[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/config_dir/config.conf ~/.config/config_dir/config.conf
 	[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/config_dir/config.conf ~/.config/config_dir/config.conf
