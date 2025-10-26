@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.0.25299"
+readonly version="3.1.25299"
 readonly gh_url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -81,6 +81,7 @@ newest_version() {
 }
 
 compare_versions() {
+  local new_ver="$1"
   local cur_ver
   cur_ver=$(dpkg -l codium 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//')
   if [[ -z "$new_ver" ]]; then
@@ -91,10 +92,11 @@ compare_versions() {
     return
   fi
   printf "%sInstalled version of VSCodium is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-  install_vscodium
+  install_vscodium "$new_ver"
 }
 
 install_vscodium() {
+  local new_ver="$1"
   local new_pkg="codium_${new_ver}_amd64.deb"
   if [[ -z "$new_ver" ]]; then
     printf "No download available. Try again later." >&2
@@ -134,7 +136,7 @@ apply_settings() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr new_ver
   noOpt=1
   optstr=":hiru"
   while getopts "$optstr" opt; do
@@ -151,7 +153,7 @@ main() {
 			    trap cleanup EXIT
 			    new_ver="$(newest_version)"
           printf "%sInstalling VSCodium %s...%s\n" "$lightyellow" "$new_ver" "$normal"
-			    install_vscodium
+			    install_vscodium "$new_ver"
           apply_settings
         fi
         ;;
@@ -168,7 +170,7 @@ main() {
 			    tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 			    trap cleanup EXIT
 			    new_ver="$(newest_version)"
-			    compare_versions
+			    compare_versions "$new_ver"
         else
           printf "VSCodium is not installed.\n" >&2
         fi
