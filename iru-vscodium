@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2022
-# Updated      : 04 Oct 2025
+# Updated      : 26 Oct 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,12 +36,10 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.10.25277"
+readonly version="3.0.25299"
 readonly gh_url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -49,7 +47,7 @@ readonly gh_url="https://github.com/VSCodium/vscodium/releases"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="04 Oct 2025"
+	updated="26 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates,  removes the VSCodium editor.
@@ -85,23 +83,31 @@ newest_version() {
 compare_versions() {
   local cur_ver
   cur_ver=$(dpkg -l codium 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//')
-  if [[ ! "$new_ver" > "$cur_ver" ]]; then
+  if [[ -z "$new_ver" ]]; then
+    printf "No download available. Try again later." >&2
+    return
+  elif [[ ! "$new_ver" > "$cur_ver" ]]; then
     printf "%sVSCodium %s is the latest version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
-  else
-    printf "%sInstalled version of VSCodium is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-    install_vscodium
+    return
   fi
+  printf "%sInstalled version of VSCodium is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
+  install_vscodium
 }
 
 install_vscodium() {
   local new_pkg="codium_${new_ver}_amd64.deb"
+  if [[ -z "$new_ver" ]]; then
+    printf "No download available. Try again later." >&2
+    return
+  fi
   printf "Downloading VSCodium %s from the VSCodium GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
-  kill "$!";printf "done\n";tput cnorm
+  kill "$!"; printf "done\n"; tput cnorm
   printf "Installing VSCodium %s...\n" "$new_ver"
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
+  exists codium || die "VSCodium installation failed!" 1
   printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 }
 
@@ -115,8 +121,12 @@ remove_vscodium() {
 }
 
 apply_settings() {
-  [[ -d ~/.config/VSCodium/User ]] && mkdir -p ~/.config/VSCodium/User
   printf "Applying VSCodium settings...\n"
+  [[ -d ~/.config/VSCodium/User ]] && mkdir -p ~/.config/VSCodium/User
+	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
+		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+		return
+	fi
   [[ -f ~/.config/VSCodium/User/settings.json ]] && rm ~/.config/VSCodium/User/settings.json
 	[[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/VSCodium/User/settings.json ~/.configVSCodium/User/settings.json
 	[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/VSCodium/User/settings.json ~/.configVSCodium/User/settings.json
@@ -140,8 +150,7 @@ main() {
 			    tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 			    trap cleanup EXIT
 			    new_ver="$(newest_version)"
-          [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
-          echo "${lightyellow}Installing VSCodium $new_ver...${normal}"
+          printf "%sInstalling VSCodium %s...%s\n" "$lightyellow" "$new_ver" "$normal"
 			    install_vscodium
           apply_settings
         fi
@@ -159,7 +168,6 @@ main() {
 			    tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 			    trap cleanup EXIT
 			    new_ver="$(newest_version)"
-          [[ "$new_ver" ]] || die "No download available. Try again later." 1
 			    compare_versions
         else
           printf "VSCodium is not installed.\n" >&2
