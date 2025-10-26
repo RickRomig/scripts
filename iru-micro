@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 15 Oct 2025
+# Updated      : 26 Oct 2025
 # Comments     : Debian 13 & LMDE 7 installs version 2.0.14 from repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,14 +41,14 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.12.25288"
+readonly version="6.12.25299"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="15 Oct 2025"
+	local -r updated="26 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -96,16 +96,16 @@ compare_versions() {
 install_micro() {
   local new_pkg="micro-${new_ver}-linux64.tar.gz"
   sudo_login 2
-  check_package wget
   printf "Downloading Micro %s from the zyedidia GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
-  kill "$!";printf "done\n";tput cnorm
+  kill "$!"; printf "done\n"; tput cnorm
   printf "Installing Micro %s...\n" "$new_ver"
   tar -xzvf "$tmp_dir/$new_pkg" -C "$tmp_dir/"
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro /usr/bin/
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro.1 /usr/share/man/man1/
   exists xclip || sudo apt-get install -y xclip
+  exist micro || die "Micro installation failed!" 1
   printf "Micro %s installed.\n" "$(micro_version)"
 }
 
@@ -113,7 +113,12 @@ remove_micro() {
   cur_ver=$(micro_version)
   sudo_login 2
   printf "Removing the Micro CLI text editor...\n"
-  sudo dpkg --remove micro
+  # dpkg -l micro > /dev/null 2>&1 | grep '^ii' && sudo apt-get remove micro
+  # sudo dpkg --remove micro
+  if [[ -x /usr/bin/micro ]]; then
+    sudo rm -v /usr/bin/micro
+    sudo rm -v /usr/share/man/man1/micro.1
+  fi
   [[ -L  ~/.config/micro/settings.json ]] && unlink ~/.config/micro/settings.json
   [[ -L  ~/.config/micro/bindings.json ]] && unlink ~/.config/micro/bindings.json
   find ~/.config -type d -name micro -exec rm -rf {} \;
@@ -121,9 +126,13 @@ remove_micro() {
 }
 
 micro_configs() {
-  [[ -d  ~/.config/micro ]] || mkdir -p  ~/.config/micro
   printf "Applying Micro settings and bindings...\n"
-  [[ -f  ~/.config/micro/settings.json ]] && rm ~/.config/micro/settings.json
+  [[ -d  ~/.config/micro ]] || mkdir -p  ~/.config/micro
+	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
+		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+		return
+	fi
+ [[ -f  ~/.config/micro/settings.json ]] && rm ~/.config/micro/settings.json
   [[ -f ~/.config/micro/bindings.json ]] && rm  ~/.config/micro/bindings.json
   if [[ -d ~/gitea/configs ]]; then
     ln -sv ~/gitea/configs/micro/settings.json  ~/.config/micro/settings.json
