@@ -7,7 +7,7 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 23 Oct 2025
+# Updated      : 26 Oct 2025
 # Comments     : Install & remove for Deian-based systems only.
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
@@ -42,13 +42,13 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.17.25296"
+readonly version="1.18.25299"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="23 Oct 2025"
+	local -r updated="26 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs UFW on Debian, BunsenLabs, and MX Linux systems.
@@ -134,17 +134,6 @@ ufw_version() {
   /usr/sbin/ufw version | awk '/ufw/ {print $NF}'
 }
 
-debian_system() {
-  local codename
-  codename=$(lsb_release --codename --short)
-  case "$codename" in
-    bookworm|bullseye|trixie|boron )
-      return "$TRUE" ;;
-    * )
-      return "$FALSE"
-  esac
-}
-
 main() {
   local noOpt opt optstr
   noOpt=1
@@ -186,18 +175,14 @@ main() {
         help 0
         ;;
       i )
-        if debian_system; then
-          if dpkg -l | grep -qw ufw; then
-            printf "UFW %s is already installed.\n" "$(ufw_version)" >&2
-          else
-            sudo_login 2
-            install_ufw
-            add_rules
-            enable_ufw
-            printf "UFW %s installed and configured.\n" "$(ufw_version)"
-          fi
+        if dpkg -l | grep -qw ufw; then
+          printf "UFW %s is already installed.\n" "$(ufw_version)" >&2
         else
-          printf "Not a Debian system.\n" >&2
+          sudo_login 2
+          install_ufw
+          add_rules
+          enable_ufw
+          printf "UFW %s installed and configured.\n" "$(ufw_version)"
         fi
         ;;
       n )
