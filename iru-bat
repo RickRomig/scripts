@@ -97,8 +97,8 @@ compare_versions() {
     printf "%s Bat %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
     return
   fi
-    printf "%sInstalled version of Bat is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-    install_bat
+  printf "%sInstalled version of Bat is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
+  install_bat "$new_ver"
 }
 
 install_bat() {
@@ -116,6 +116,7 @@ install_bat() {
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
   dpkg -l bat >/dev/null 2>&1 | grep 'ii' || die "Bat installation failed." 1
+  bat_config
   [[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
   printf "Bat %s installed.\n" "$(bat_version)"
 }
