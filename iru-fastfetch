@@ -89,8 +89,8 @@ compare_versions() {
   elif [[ ! "$new_ver" > "$cur_ver" ]]; then
 		printf "%sFastFetch %s is the lastest version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
 	fi
-		printf "%sThe installed version of FastFetch is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-    install_fastfetch "$new_ver"
+	printf "%sThe installed version of FastFetch is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
+	install_fastfetch "$new_ver"
 }
 
 install_fastfetch(){
@@ -107,7 +107,8 @@ install_fastfetch(){
   kill "$!"; tput cnorm
   printf "done\nInstalling FastFetch %s...\n" "$new_ver"
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
-	exist fastfetch || die "Fastfetch installation failed." 1
+	exists fastfetch || die "Fastfetch installation failed." 1
+	fastfetch_config
   printf "%sFastFetch %s installed.%s\n" "$lightyellow" "$(ff_version)" "$normal"
 }
 
@@ -158,7 +159,6 @@ main() {
 					new_ver="$(newest_version)"
 					printf "%sInstalling Fastfetch version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
 					install_fastfetch "$new_ver"
-					fastfetch_config
 				fi
 				;;
 			r )
