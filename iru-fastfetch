@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Last updated : 24 Oct 2025
+# Last updated : 27 Oct 2025
 # Comments     : .png logo does not work with Terminator.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.0.25297"
+readonly version="3.9.25300"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="24 Oct 2025"
+	local -r updated="27 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, removes, updates FastFetch
@@ -83,17 +83,23 @@ compare_versions() {
 	local cur_ver new_ver
 	new_ver="$1"
   cur_ver="$(ff_version)"
-  if [[ ! "$new_ver" > "$cur_ver" ]]; then
+  if [[ -z "$new_ver" ]]; then
+    printf "No download available. Try again later." >&2
+    return
+  elif [[ ! "$new_ver" > "$cur_ver" ]]; then
 		printf "%sFastFetch %s is the lastest version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
-  else
+	fi
 		printf "%sThe installed version of FastFetch is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
     install_fastfetch "$new_ver"
-  fi
 }
 
 install_fastfetch(){
 	local new_ver="$1"
   local -r new_pkg="fastfetch-linux-amd64.deb"
+  if [[ -z "$new_ver" ]]; then
+    printf "No download available. Try again later." >&2
+    return
+  fi
 	sudo_login 2
   printf "Downloading FastFetch %s from the fastfetch-cli GitHub repository..." "$new_ver"
   dots "."
@@ -150,7 +156,6 @@ main() {
 					tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 					trap cleanup EXIT
 					new_ver="$(newest_version)"
-					[[ "$new_ver" ]] || die "No download available. Try again later." 1
 					printf "%sInstalling Fastfetch version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
 					install_fastfetch "$new_ver"
 					fastfetch_config
@@ -170,7 +175,6 @@ main() {
 					tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 					trap cleanup EXIT
 					new_ver="$(newest_version)"
-					[[ "$new_ver" ]] || die "No download available. Try again later." 1
 					compare_versions "$new_ver"
 				else
 					printf "Fastfetch is not installed.\n" >&2
