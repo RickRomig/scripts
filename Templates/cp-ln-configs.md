@@ -38,3 +38,11 @@ remove_cfg_folers() {
   find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name application -print
 }
 ```
+### IRU scripts
+```bash
+# check if new_ver is an empty string in compare_versions or install functions
+  if [[ -z "$new_ver" ]]; then
+    printf "No download available. Try again later." >&2
+    return
+  fi
+```
