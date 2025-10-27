@@ -10,6 +10,7 @@
 # Last updated : 11 Oct 2025
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
+#              : If file has been changed, commit the change before retiring.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -76,7 +77,7 @@ retire_script() {
   local archive_d="$HOME//Downloads/archives"
   retired_name="${filename}.$(date +'%y%j')"
   git mv "$filename" "$retired_name"
-  git commit -m "$filename renamed to $retired_name for retirement and archiving." --no-verify
+  # git commit -m "$filename renamed to $retired_name for retirement and archiving." --no-verify
   zip -u "$archive_d/$archive" "$retired_name"
   git rm "$retired_name"
   git commit -m "$retired_name retired and archived." --no-verify
