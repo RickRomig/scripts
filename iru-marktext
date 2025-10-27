@@ -109,6 +109,7 @@ install_marktext() {
   printf "Installing Mark Text %s...\n" "$new_ver"
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
   exist markktext || die "Marktext installation failed!" 1
+  marktext_config
   printf "Mark Text %s installed.\n" "$(marktext_version)"
 }
 
@@ -154,7 +155,6 @@ main() {
           new_ver="$(newest_version)"
           printf "%sInstalling MarkText version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
           install_marktext "$new_ver"
-          marktext_config
         fi
         ;;
       r )
