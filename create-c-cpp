@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 27 Aug 2025
+# Last updated : 27 Oct 2025
 # Comment      : C template includes GNU GPL v2 license
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,19 +36,17 @@ else
   exit 1
 fi
 
-# set -eu
-
 ## Global Variables ##
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="4.2.25239"
+readonly version="4.3.25300"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="16 Jul 2025"
+  local updated="27 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Creates a C/C++ source code file with descriptive comments (GPL v2.0 license)
@@ -76,10 +74,6 @@ import_metadata() {
 	local code_file cur_yr template_dir template_file today
 	code_file="$1"
 	template_file="$2"
-	copy_holder="Richard B. Romig"
-	email_addr="rick.romig@gmail"
-	email_addr1="rick.romig@mymetronet.net"
-	work_org="Mosfanet"
 	template_dir="$script_dir/Templates"
 	today=$(date +"%d %b %Y")
 	cur_yr=$(echo -e "\UA9 $(date +%Y)")
@@ -89,10 +83,6 @@ import_metadata() {
 	sed -e '1d' \
 		-e "s/<PROGNAME>/$code_file/" \
 		-e "s/<YEAR>/$cur_yr/" \
-		-e "s/<AUTHOR>/$copy_holder/" \
-		-e "s/<ORG>/$work_org/" \
-		-e "s/<EMAIL>/$email_addr/" \
-		-e "s/<EMAIL1>/$email_addr1/" \
 		-e "s/<TODAY>/$today/"  "$template_dir/$template_file" > "$code_file"
 	printf "%s has been created." "$code_file"
 }
