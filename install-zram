@@ -41,7 +41,6 @@ fi
 find_current_swap() {
   local swap_dev
   swap_dev=$(awk '/file/ || /partition/ {print $1}' /proc/swaps)
-  # swap_dev=$(sudo swapon --show | awk 'NR != 1 {print $1}')
   echo "$swap_dev"
 }
 
@@ -49,7 +48,7 @@ disable_swap() {
   local swap_dev="$1"
   sudo_login 2
   sudo sed -i.bak '/swap/s/^UUID=/# UUID=/' /etc/fstab
-  sudo swapoff "$swap_dev"
+  sudo /usr/sbin/swapoff "$swap_dev"
   printf "%s is disabled as swap.\n" "$swap_dev"
 }
 
@@ -90,10 +89,10 @@ check_for_swap() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.0.25301"
+  local -r version="4.1.25301"
   check_for_swap
   printf "Active swap devices:\n"
-  sudo swapon --show
+  /usr/sbin/swapon --show
   over_line "$script $version"
   exit
 }
