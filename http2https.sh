@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 20 Jul 2025
-# Last updated : 21 Jul 2025
+# Last updated : 28 Oct 2025
 # Comments     : Intended for use on Debian Bullseye, Bookworm, and Trixie
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -35,8 +35,6 @@ else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
-
-set -eu
 
 ## Functions ##
 
@@ -73,12 +71,12 @@ convert_backports_list() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.2.25202"
+	local -r version="1.3.25301"
 	local distro
 	distro=$(debian_distro)
+	check_package apt-transport-https
 	case "$distro" in
-		bookworm|bullseye|trixie )
-			check_package apt-transport-https
+		bookworm|trixie )
 			convert_sources_list
 			convert_backports_list "$distro"
 			;;
