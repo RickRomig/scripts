@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 11 Oct 2025
+# Last updated : 28 Oct 2025
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
 #              : If file has been changed, commit the change before retiring.
@@ -41,13 +41,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.0.25284"
+readonly version="4.0.25301"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated=" 11 Oct 2025"
+	local updated=" 28 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Retires a script in a Git repo by moving it to a zipped archive.
@@ -55,8 +55,9 @@ Retires a script in a Git repo by moving it to a zipped archive.
 ${green}Usage:${normal} $script <script-name>
 ${orange}Available options:${normal}
   -h | --help  Show this help message and exit
-${bold}NOTE:${normal}
+${bold}NOTES:${normal}
 Do not use to retire a script not in a git repository. Use 'retire-script.sh' instead.
+If no argument is passed, user will be prompted for the name of the script to be retired.
 _HELP_
 	exit "$errcode"
 }
@@ -72,34 +73,32 @@ git_repo() {
 
 retire_script() {
   local filename="$1"
-  local retired_name
-  local archive="retired-scripts.zip"
-  local archive_d="$HOME//Downloads/archives"
-  retired_name="${filename}.$(date +'%y%j')"
-  git mv "$filename" "$retired_name"
-  # git commit -m "$filename renamed to $retired_name for retirement and archiving." --no-verify
-  zip -u "$archive_d/$archive" "$retired_name"
-  git rm "$retired_name"
-  git commit -m "$retired_name retired and archived." --no-verify
+  if [[ ! -f "$filename" ]]; then
+    printf "%s %s not found.\n" "$RED_WARNING" "$filename" >&2
+    return
+  fi
+  zip -u ~/Downloads/archives/retired-scripts.zip "$filename"
+  git rm "$filename"
+  git commit -m "$filename retired and archived." --no-verify
   git push
+}
+
+check_args() {
+  local filename="$1"
+  if ! git_repo; then
+    printf "%s This is not a git repositiory.\n" "$RED_WARNING" >&2
+    printf "Run 'retire-script.sh' to retire scripts outside of a git repository.\n" >&2
+    return
+  fi
+  [[ "$filename" ]] || read -rp "Enter the name of the script to be retired: " filename
+  check_dependencies
+  retire_script "$filename"
 }
 
 main() {
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help 0
-  local filename
-  if git_repo; then
-    if [[ "$#" -eq "0" ]]; then
-      read -rp "Enter the name of the script to be retired: " filename
-    else
-      filename="$1"
-    fi
-    [[ -f "$filename" ]] || { printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2; help 2; }
-    check_dependencies
-    retire_script "$filename"
-  else
-    printf "%s This is not a git repositiory.\n" "$RED_WARNING" >&2
-    printf "Run 'retire-script.sh' to retire scripts outside of a git repository\n" >&2
-  fi
+  local filename="$1"
+  check_args "$filename"
   over_line "$script $version"
   exit
 }
