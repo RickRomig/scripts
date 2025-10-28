@@ -1,6 +1,6 @@
 /ALGO/ {
 	s/^#//
-	s/lz4$/zstd
+	s/lz4$/zstd/
 }
 /PERCENT/ {
 	s/^#//
