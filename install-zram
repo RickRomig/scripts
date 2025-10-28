@@ -60,7 +60,6 @@ install_zram() {
   sudo_login 2
 	sudo apt install -y zram-tools
   dpkg -l zram-tools | grep -q '^ii' || die "zram-tools installation failed!" 1
-	# sudo sed -i.bak '/ALGO/s/^#//;/PERCENT/s/^#//;s/50$/25/' /etc/default/zramswap
   sudo sed -i.bak -f "$script_dir/files/$sed_file" /etc/default/zramswap
   sudo systemctl restart zramswap.service
 	printf "Zram-tools installed and configured.\n"
