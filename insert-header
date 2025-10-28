@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 20 Jul 2025
+# Updated      : 27 Oct 2025
 # Comments     : Assumes first line of the target file is either a hash-bang or a C/C++ comment
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,19 +36,17 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="4.4.25201"
+readonly version="4.5.25300"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="20 Jul 2025"
+  local updated="27 Oct 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts a header into a shell script or a C/C++ source file.
@@ -78,16 +76,10 @@ create_tmp_file() {
 }
 
 insert_header() {
-	local coder code_file code_type cur_yr copy_holder email_addr email_addr1 work_org today license template_dir template_file
+	local code_file code_type cur_yr today template_dir template_file
 	code_file="$1"
 	code_type="$2"
 	template_file="$3"
-	coder="Rick"
-	copy_holder="Richard B. Romig"
-	email_addr="rick.romig@gmail.com"
-	email_addr1="rick.romig@mymetronet.com"
-	work_org="Mosfanet"
-	license="GNU General Public License, version 2.0"
 	today=$(date +"%d %b %Y")
 	cur_yr=$(echo -e "\UA9 $(date +%Y)")
 	template_dir="$script_dir/Templates"
@@ -97,25 +89,14 @@ insert_header() {
       sed -e '1d' \
         -e "s/<PROGNAME>/$code_file/" \
         -e "s/<YEAR>/$cur_yr/" \
-        -e "s/<AUTHOR>/$copy_holder/" \
-        -e "s/<ADDR>/$email_addr/" \
-        -e "s/<ADDR1>/$email_addr1/" \
-        -e "s/<ORG>/$work_org/" \
-        -e "s/<TODAY>/$today/" \
-        -e "s/<LICENSE>/$license/" "$template_dir/$template_file" > "$tmp_file"
+        -e "s/<TODAY>/$today/" "$template_dir/$template_file" > "$tmp_file"
       sed -i -e "1r ${tmp_file}" "$code_file"
       ;;
     "Shell" )
 	    sed -e '1d' \
         -e "s/<FILE>/$code_file/" \
         -e "s/<YEAR>/$cur_yr/" \
-        -e "s/<AUTHOR>/$copy_holder/" \
-        -e "s/<EMAIL>/$email_addr/" \
-        -e "s/<EMAIL1>/$email_addr1/" \
-        -e "s/<ORG>/$work_org/" \
-        -e "s/<TODAY>/$today/" \
-        -e "s/<CODER>/$coder/" \
-        -e "s/<LICENSE>/$license/" "$template_dir/$template_file" > "$tmp_file"
+        -e "s/<TODAY>/$today/" "$template_dir/$template_file" > "$tmp_file"
       sed -i -e "1r ${tmp_file}" "$code_file"
       ;;
     * )
@@ -144,7 +125,7 @@ main() {
 				code_file="$OPTARG"
 				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
         code_type="C++"
-        template_file="cppset-header.txt"
+        template_file="cpp-header.txt"
         create_tmp_file
         ;;
       s )
