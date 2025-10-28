@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 15 Oct 2025
+# Updated      : 27 Oct 2025
 # Comments     : Inserts the license immediately after the file's header.
 #              : Assumes the standard script or C/C++ header is present.
 # TODO (rick)  :
@@ -41,13 +41,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.5.25288"
+readonly version="4.6.25300"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="15 Oct 2025"
+  local updated="27 Oct 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts an Open Source license into a shell script or a C/C++ source code file.
@@ -95,20 +95,16 @@ insert_license() {
 		case $REPLY in
     1 )
       lic_file="gpl_v1.txt"
-      break
-			;;
+      break ;;
     2 )
       lic_file="gpl_v2.txt"
-      break
-			;;
+      break ;;
     3 )
       lic_file="gpl_v3.txt"
-      break
-			;;
+      break ;;
     4 )
       lic_file="mit_lic.txt"
-      break
-			;;
+      break ;;
     * )
       printf "%sInvalid option. Try again.%s\n" "$lightred" "$normal" >&2
 		esac
@@ -124,7 +120,7 @@ insert_license() {
 			-e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
 			-e "s/<EMAIL>/$email_addr/" \
 			-e "s/^/ * /" "$template_dir/$lic_file" > "$tmp_file"
-		sed -i -e "21r ${tmp_file}" "$code_file"
+		sed -i -e "22r ${tmp_file}" "$code_file"
 		;;
 	"C++" )
 		sed -e '1d' \
@@ -132,7 +128,7 @@ insert_license() {
 			-e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
 			-e "s/<EMAIL>/$email_addr/" \
 			-e "s/^/\/\/ /" "$template_dir/$lic_file" > "$tmp_file"
-		sed -i -e "20r ${tmp_file}" "$code_file"
+		sed -i -e "23r ${tmp_file}" "$code_file"
 		;;
 	"Shell" )
 		sed -e '1d' \
