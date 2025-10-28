@@ -52,7 +52,7 @@ help() {
 ${orange}$script${normal} $version ($updated)
 Retires a script in a Git repo by moving it to a zipped archive.
 
-${green}Usage:${normal} $script <script-name>
+${green}Usage:${normal} $script [script-name] [OPTION]
 ${orange}Available options:${normal}
   -h | --help  Show this help message and exit
 ${bold}NOTES:${normal}
