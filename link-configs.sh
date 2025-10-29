@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 02 Oct 2025
+# Last updated : 29 Oct 2025
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.4.25275"
+readonly version="3.0.25302"
 readonly old_configs="$HOME"/old-configs
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="02 Oct 2025"
+	local -r updated="29 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Create symbolic links from configs and scripts repos.
@@ -64,9 +64,8 @@ _HELP_
 
 # Create symbolic links to dotfiles in the home directory
 link_dot_files() {
-	local dot_file dot_files repo_dir
+	local dot_file dot_files
 	[[ -d "$old_configs" ]] || mkdir -p "$old_configs"
-	repo_dir=$(assign_cfg_repo)
 	dot_files=(
 		.bash_aliases
 		.bashrc
@@ -82,15 +81,15 @@ link_dot_files() {
 	for dot_file in "${dot_files[@]}"; do
 		printf "\e[93mLinking %s ...\e[0m\n" "$dot_file"
 		[[ -f "$HOME/$dot_file" ]] && mv -v "$HOME/$dot_file" "$old_configs/"
-		ln -sv "$repo_dir/$dot_file" "$HOME/$dot_file"
+		[[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/"$dot_file" ~/"$dot_file"
+		[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/"$dot_file" ~/"$dot_file"
 	done
 }
 
 # Link configuration files to directories in ~/.config
 link_config_files() {
-	local cfg_file cfg_files repo_dir
+	local cfg_file cfg_files
 	[[ -d "$old_configs" ]] || mkdir -p "$old_configs"
-	repo_dir=$(assign_cfg_repo)
 	cfg_files=(
 		"bat/config"
 		"dunst/dunstrc"
@@ -112,14 +111,15 @@ link_config_files() {
 	)
 	for cfg_file in "${cfg_files[@]}"; do
 		if [[ -f "$HOME/.config/$cfg_file" ]]; then
-			printf "\e[93mLinking %s to %s ...\e[0m\n" "$repo_dir/$cfg_file" "$HOME/.config"
+			printf "\e[93mLinking config files...\e[0m\n"
 			if [[ "$cfg_file" == "redshift.conf" ]]; then
 				mv -v "$HOME/.config/$cfg_file" "$old_configs/"
 			else
 				[[ -d "$old_configs/${cfg_file%/*}" ]] || mkdir -p "$old_configs/${cfg_file%/*}"
 				mv -v "$HOME/.config/$cfg_file" "$old_configs/${cfg_file%/*}/${cfg_file##*/}"
 			fi
-			ln -sv "$repo_dir/$cfg_file" "$HOME/.config/$cfg_file"
+			[[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/"$cfg_file" ~/.config/"$cfg_file"
+			[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/"$cfg_file" ~/.config/"$cfg_file"
 		else
 			printf "%s/%s not present.\n" "$HOME/.config" "$cfg_file"
 		fi
@@ -128,12 +128,13 @@ link_config_files() {
 }
 
 set_reserved_space() {
-	local home_part root_part
+	local home_part root_part data_part
 	root_part=$(df -P | awk '$NF == "/" {print $1}')
 	home_part=$(df -P | awk '$NF == "/home" {print $1}')
-	printf "e[93mSetting reserved space on root & home partitions...\e[0m\n"
+	data_part=$(df -P | awk '$NF == "/data" {print $1}')
 	sudo tune2fs -m 2 "$root_part"
 	[[ "$home_part" ]] && sudo tune2fs -m 0 "$home_part"
+	[[ "$data_part" ]] && sudo tune2fs -m 0 "$data_part"
 	printf "Drive reserve space set.\n"
 }
 
@@ -147,6 +148,9 @@ check_swappiness() {
 
 # Add tweaks to /etc/sudoers.d directory and set swappiness
 set_system_tweaks() {
+	local repo_dir=~/Downloads/configs
+	[[ -d ~/gitea/configs ]] && repo_dir=~/gitea/configs
+
 	printf "\e[93mApplying password feeback...\e[0m\n"
 	if [[ -f /etc/sudoers.d/0pwfeedback ]]; then
 		printf "Sudo password feedback is already enabled with 0pwfeedback\n"
@@ -158,31 +162,32 @@ set_system_tweaks() {
 		printf "Sudo timeout has already been set.\n"
 	else
 		printf "\e[93mApplying sudo timeout...\e[0m\n"
-		sudo cp -v ~/Downloads/configs/sudoers/10timeout /etc/sudoers.d/
+		sudo cp -v "$repo_dir"/sudoers/10timeout /etc/sudoers.d/
 		sudo chmod 440 /etc/sudoers.d/10timeout
 	fi
 	if [[ -f /etc/apt/preferences.d/nosnap.pref ]]; then
 		printf "Snap packages have already been disabled.\n"
 	else
 		printf "Disabling installation of Snapd and Snap packages...\n"
-		sudo cp -v ~/Downloads/configs/apt/nosnap.pref /etc/apt/preferences.d/
+		sudo cp -v "$repo_dir"/apt/nosnap.pref /etc/apt/preferences.d/
 	fi
-	check_swappiness && sudo cp -v ~/Downloads/configs/90-swappiness.conf /etc/sysctl.d/
+	printf "Setting swappiness...\n"
+	check_swappiness && sudo cp -v "$repo_dir"/90-swappiness.conf /etc/sysctl.d/
+	printf "Setting sleep, hibernation, and suspend atributes...\n"
+	sudo cp -v "$repo_dir"/99-sleep.conf /etc/systemd/sleep.conf.d/
+	printf "e[93mSetting reserved space on root, home, data partitions...\e[0m\n"
 	set_reserved_space
 }
 
 link_script_dir() {
-	if [[ -L "$HOME/bin" ]]; then
+	if [[ -L ~/bin ]]; then
 		printf "Script directory is already linked to cloned repository.\n"
-	else
-		printf "\e[93mLinking scripts repo to ~/bin...\e[0m\n"
-		[[ -d "$HOME/bin" ]] && rm -rf "${HOME:?}/bin"
-		ln -sv ~/Downloads/scripts/ "$HOME/bin"
+		return
 	fi
-}
-
-check_for_gitea() {
-	[[ -d "$HOME/gitea" ]] && return "$TRUE" || return "$FALSE"
+	printf "\e[93mLinking scripts repo to ~/bin...\e[0m\n"
+	[[ -d ~/bin ]] && rm -rf "${HOME:?}/bin"
+	[[ -d ~/gitea/scripts ]] && ln -sv ~/gitea/scripts/ ~/bin
+	[[ -d ~/Downloads/scripts ]] && ln -sv ~/Downloads/scripts/ ~/bin
 }
 
 main() {
@@ -192,15 +197,15 @@ main() {
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c )
-				check_for_gitea || link_config_files ;;
+				link_config_files ;;
 			d )
-				check_for_gitea || link_dot_files ;;
+				link_dot_files ;;
 			h )
 				help 0 ;;
 			s )
-				check_for_gitea || link_script_dir ;;
+				link_script_dir ;;
 			t )
-				check_for_gitea || set_system_tweaks ;;
+				set_system_tweaks ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
