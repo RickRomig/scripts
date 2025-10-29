@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021-2025, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2021
-# Updated      : 17 Oct 2025
+# Updated      : 29 Oct 2025
 # Comments     : Do not run e4defrag on SSD or NVME drives.
 #              : anacron job: Copy to /etc/cron.monthly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
@@ -36,24 +36,22 @@ over_line() {
   printf "%s\n%s\n" "$line" "$title"
 }
 
-main() {
-	local log_file="/var/log/defrag.log"
-	local host_name="${HOSTNAME:-$(hostname)}"
-	local script="${0##*/}"
-  local version="3.2.25290"
+find_rhd() {
 	# Rotation values. 1 = spinning drive, 0 = NVME, SSD, or not present
-	local rootrota homerota datarota rotasum
+	local rootrota homerota datarota
 	rootrota=$(lsblk -o ROTA,MOUNTPOINT | awk '$NF == "/" {print $1}')
 	[[ "$rootrota" ]] || rootrota=0
 	homerota=$(lsblk -o ROTA,MOUNTPOINT | awk '$NF == "/home" {print $1}')
 	[[ "$homerota" ]] || homerota=0
 	datarota=$(lsblk -o ROTA,MOUNTPOINT | awk '$NF == "/data" {print $1}')
 	[[ "$datarota" ]] || datarota=0
-	rotasum="$rootrota$homerota$datarota"
+	echo "$rootrota$homerota$datarota"
+}
 
-	{
-		printf "Defrag Report for %s: %(%a %F %R)T\n\n" "$host_name" -1
-		case "$rotasum" in
+defrag_report() {
+	local rhd
+	rhd=$(find_rhd)
+		case "$rhd" in
 			001 ) /usr/sbin/e4defrag -c /data ;;
 			010 ) /usr/sbin/e4defrag -c /home ;;
 			011 ) /usr/sbin/e4defrag -c /home /data ;;
@@ -63,6 +61,16 @@ main() {
 			111 ) /usr/sbin/e4defrag -c / /home /data ;;
 			* ) printf "No root, home or data partitions on spinning drives detected - e4defrag not run\n"
 		esac
+}
+
+main() {
+	local log_file="/var/log/defrag.log"
+	local host_name="${HOSTNAME:-$(hostname)}"
+	local script="${0##*/}"
+  local version="3.3.25302"
+	{
+		printf "Defrag Report for %s: %(%a %F %R)T\n\n" "$host_name" -1
+		defrag_report
 		over_line "$script $version"
 	} > "$log_file" 2>&1
 	[[ -f "$log_file" ]] && sed -i '/^e4defrag/d;/0-30/d;/^ Done/d' "$log_file"
