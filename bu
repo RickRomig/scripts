@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.2.25303"
+readonly version="5.3.25303"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -244,7 +244,7 @@ show_description() {
  directories and files are accidentally removed from /home.
 
 _DESCRIPTION_
-	exit
+	exit_status=100
 }
 
 drive_setup() {
@@ -262,7 +262,7 @@ drive_setup() {
  systems like FAT32 or NTFS will cause the script to exit with an error.
 
 _SETUP_
-	exit
+	exit_status=100
 }
 
 main() {
@@ -271,7 +271,7 @@ main() {
 	box "${script^^} -- USB Backup Tool (Version $version)"
 
 	noOpt=1
-	optstr=":bdhirs"
+	optstr=":bhirs"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			b )
@@ -283,7 +283,6 @@ main() {
 				unmount_usb_drive
 				;;
 			h )
-				mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
 				help 0
 				;;
 			i )
@@ -314,6 +313,7 @@ main() {
 		13 ) log "Unable to find backup directory for restore." "$logfile" ;;
 		42 ) log "Backup operation had errors." "$logfile" ;;
 		69 ) log "Restore operation had errors." "$logfile" ;;
+		100 ) printf "Thanks for stopping by.\n" ;;
 		* ) log "Unknown error." "$logfile" ;;
 	esac
 	loglen=$(wc -l < "$logfile")
