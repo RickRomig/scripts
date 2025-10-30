@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 06 Oct 2025
+# Last updated : 30 Oct 2025
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.1.25279"
+readonly version="5.2.25303"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -203,7 +203,7 @@ restore() {
 
 help() {
 	local errcode="${1:-2}"
-	local updated="06 Oct 2025"
+	local updated="30 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -244,6 +244,7 @@ show_description() {
  directories and files are accidentally removed from /home.
 
 _DESCRIPTION_
+	exit
 }
 
 drive_setup() {
@@ -261,6 +262,7 @@ drive_setup() {
  systems like FAT32 or NTFS will cause the script to exit with an error.
 
 _SETUP_
+	exit
 }
 
 main() {
@@ -286,7 +288,6 @@ main() {
 				;;
 			i )
 				show_description
-				mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
 				;;
 			r )
 				sudo_login 2
@@ -298,7 +299,6 @@ main() {
 				;;
 			s )
 				drive_setup
-				mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
