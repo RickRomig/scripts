@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 29 Oct 2025
+# Last updated : 31 Oct 2025
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.0.25302"
+readonly version="3.1.25304"
 readonly old_configs="$HOME"/old-configs
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="29 Oct 2025"
+	local -r updated="31 Oct 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Create symbolic links from configs and scripts repos.
@@ -128,14 +128,17 @@ link_config_files() {
 }
 
 set_reserved_space() {
-	local home_part root_part data_part
+	local home_part root_part data_part rbc blk_cnt res_pct
 	root_part=$(df -P | awk '$NF == "/" {print $1}')
 	home_part=$(df -P | awk '$NF == "/home" {print $1}')
 	data_part=$(df -P | awk '$NF == "/data" {print $1}')
-	sudo tune2fs -m 2 "$root_part"
+	rbc=$(sudo /usr/sbin/tune2fs -l "$root_part" | awk '/Reserved block count/ {print $NF}')
+	blk_cnt=$(sudo /usr/sbin/tune2fs -l "$root_part" | awk '/Block count/ {print $NF}')
+	res_pct="$(bc <<< "${rbc} * 100 / ${blk_cnt}")"
+	[[ "$res_pct" -ne 5 ]] && sudo tune2fs -m 5 "$root_part"
 	[[ "$home_part" ]] && sudo tune2fs -m 0 "$home_part"
 	[[ "$data_part" ]] && sudo tune2fs -m 0 "$data_part"
-	printf "Drive reserve space set.\n"
+	printf "Partition reserved space set.\n"
 }
 
 check_swappiness() {
