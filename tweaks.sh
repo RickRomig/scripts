@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : link-configs.sh
+# Script Name  : tweaks.sh
 # Description  : Create symbolic links for configuration files.
 # Dependencies : git
 # Arguments    : See help() function for available options.
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 31 Oct 2025
+# Last updated : 01 Nov 2025
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,32 +39,36 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.1.25304"
-readonly old_configs="$HOME"/old-configs
+readonly version="4.0.25305"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="31 Oct 2025"
+	local -r updated="01 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
-Create symbolic links from configs and scripts repos.
+Create symbolic links from configs and scripts repos and add tweaks to system settings.
 
 ${green}Usage:${normal} $script [-cdhst]
 ${orange}Available options:${normal}
 	-c	Symlink configuration files to ~/.config
 	-d	Symlink dot files to ~/
 	-h	Show this help message and exit
+	-n	Disable snap packages
+	-p	Diable sleep, hibrnation, suspend
+	-r	Adjust Reserve Space on partitions
 	-s	Symlink scripts to ~/bin
 	-t	Apply tweaks to /etc/sudoers.d and /etc/sysctl.conf
+	-w	Set swappiness
 _HELP_
   exit "$errcode"
 }
 
 # Create symbolic links to dotfiles in the home directory
 link_dot_files() {
-	local dot_file dot_files
+	local dot_file dot_files old_configs
+	old_configs="$1"
 	[[ -d "$old_configs" ]] || mkdir -p "$old_configs"
 	dot_files=(
 		.bash_aliases
@@ -88,7 +92,8 @@ link_dot_files() {
 
 # Link configuration files to directories in ~/.config
 link_config_files() {
-	local cfg_file cfg_files
+	local cfg_file cfg_files old_configs
+	old_configs="$1"
 	[[ -d "$old_configs" ]] || mkdir -p "$old_configs"
 	cfg_files=(
 		"bat/config"
@@ -135,25 +140,47 @@ set_reserved_space() {
 	rbc=$(sudo /usr/sbin/tune2fs -l "$root_part" | awk '/Reserved block count/ {print $NF}')
 	blk_cnt=$(sudo /usr/sbin/tune2fs -l "$root_part" | awk '/Block count/ {print $NF}')
 	res_pct="$(bc <<< "${rbc} * 100 / ${blk_cnt}")"
+	printf "e[93mSetting reserved space on root, home, data partitions...\e[0m\n"
 	[[ "$res_pct" -ne 5 ]] && sudo tune2fs -m 5 "$root_part"
 	[[ "$home_part" ]] && sudo tune2fs -m 0 "$home_part"
 	[[ "$data_part" ]] && sudo tune2fs -m 0 "$data_part"
 	printf "Partition reserved space set.\n"
 }
 
-check_swappiness() {
-	if [[ -f /etc/sysctl.conf ]]; then
-		grep 'vm.swappiness' /etc/sysctl.conf && return "$TRUE"
+set_swappiness() {
+	local repo_dir="$1"
+	if grep 'vm.swappiness' /etc/sysctl.conf >/dev/null 2>&1 || [[ -f /etc/sysctl.d/90-swappiness.conf ]]; then
+		printf "Swappiness has already been set.\n"
+		return
 	fi
-	[[ -f /etc/sysctl.d/90-swappiness.conf ]] && return "$TRUE"
-	return "$FALSE"
+	printf "Setting swappiness...\n"
+	sudo cp -v "$repo_dir"/90-swappiness.conf /etc/sysctl.d/
+}
+
+set_sleep() {
+	local repo_dir="$1"
+	if [[ -f /etc/systemd/sleep.conf.d/99-sleep.conf ]]; then
+		printf "Sleep settings already set.\n"
+		return
+	fi
+	printf " Disabling sleep, hibrnation, suspend settings.\n"
+	[[ -d /etc/systemd/sleep.conf.d ]] || sudo mkdir -p /etc/systemd/sleep.conf.d
+	sudo cp -v "$repo_dir"/99-sleep.conf /etc/systemd/sleep.conf.d/
+}
+
+no_snaps() {
+	local repo_dir="$1"
+	if [[ -f /etc/apt/preferences.d/nosnap.pref ]]; then
+		printf "Snap packages have already been disabled.\n"
+		retunn
+	fi
+		printf "Disabling installation of Snapd and Snap packages...\n"
+		sudo cp -v "$repo_dir"/apt/nosnap.pref /etc/apt/preferences.d/
 }
 
 # Add tweaks to /etc/sudoers.d directory and set swappiness
-set_system_tweaks() {
-	local repo_dir=~/Downloads/configs
-	[[ -d ~/gitea/configs ]] && repo_dir=~/gitea/configs
-
+sudoers_tweaks() {
+	local repo_dir=~"$1"
 	printf "\e[93mApplying password feeback...\e[0m\n"
 	if [[ -f /etc/sudoers.d/0pwfeedback ]]; then
 		printf "Sudo password feedback is already enabled with 0pwfeedback\n"
@@ -168,18 +195,6 @@ set_system_tweaks() {
 		sudo cp -v "$repo_dir"/sudoers/10timeout /etc/sudoers.d/
 		sudo chmod 440 /etc/sudoers.d/10timeout
 	fi
-	if [[ -f /etc/apt/preferences.d/nosnap.pref ]]; then
-		printf "Snap packages have already been disabled.\n"
-	else
-		printf "Disabling installation of Snapd and Snap packages...\n"
-		sudo cp -v "$repo_dir"/apt/nosnap.pref /etc/apt/preferences.d/
-	fi
-	printf "Setting swappiness...\n"
-	check_swappiness && sudo cp -v "$repo_dir"/90-swappiness.conf /etc/sysctl.d/
-	printf "Setting sleep, hibernation, and suspend atributes...\n"
-	sudo cp -v "$repo_dir"/99-sleep.conf /etc/systemd/sleep.conf.d/
-	printf "e[93mSetting reserved space on root, home, data partitions...\e[0m\n"
-	set_reserved_space
 }
 
 link_script_dir() {
@@ -195,20 +210,31 @@ link_script_dir() {
 
 main() {
 	local noOpt opt optstr OPTIND OPTARG
+	local old_configs=~/old-configs
+	local repo_dir=~/Downloads/configs
+	[[ -d ~/gitea/configs ]] && repo_dir=~/gitea/configs
 	noOpt=1
-	optstr=":cdhst"
+	optstr=":cdhnprstw"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c )
-				link_config_files ;;
+				link_config_files "$old_configs" ;;
 			d )
-				link_dot_files ;;
+				link_dot_files "$old_configs" ;;
 			h )
 				help 0 ;;
+			n )
+				no_snaps "$repo_dir" ;;
+			p )
+				set_sleep "$repo_dir" ;;
+			r )
+				set_reserved_space ;;
 			s )
 				link_script_dir ;;
 			t )
-				set_system_tweaks ;;
+				sudoers_tweaks "$repo_dir" ;;
+			w )
+				set_swappiness "$repo_dir" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
