@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 28 Oct 2025
-# Last updated : 28 Oct 2025
+# Last updated : 05 Nov 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -61,7 +61,7 @@ install_multimedia_keyring() {
 	local -r keyring_deb="deb-multimedia-keyring_2024.9.1_all.deb"
 	[[ "$distro" != "bookworm " && "$distro" != "trixie " ]] && return
 	# download multimedia keyring
-	wget -P "$tmp_dir"  "$keyring_url/$keyring_deb"
+	wget -P "$tmp_dir" "$keyring_url/$keyring_deb"
 	# install multimedia keyring
 	sudo dpkg -i "$tmp_dir/$keyring_deb"
 }
@@ -81,7 +81,7 @@ set_multimedia_sources() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.0.25301"
+  local -r version="1.0.25309"
 	local distro
 	distro=$(debian_distro)
 
