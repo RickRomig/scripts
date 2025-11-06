@@ -7,8 +7,7 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 05 Nov 2025
-# Last updated : 05 Nov 2025
-# Version      : 1.0.25309
+# Last updated : 06 Nov 2025
 # Comments     : Based on instructions provided by Andrea Borman
 #              : YouTube - https://www.youtube.com/watch?v=-Q_U5lLTxmU
 # TODO (Rick)  :
@@ -49,6 +48,14 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
+check_codename() {
+  codename=$(/usr/bin/lsb_release -cs | awk 'NR = 1 {print}')
+  case "$codename" in
+    trixie|gigi ) return "$TRUE" ;;
+    * ) return "$FALSE"
+  esac
+}
+
 # shellcheck disable=SC2317
 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
@@ -56,20 +63,8 @@ cleanup() {
 	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
 }
 
-install_package() {
-  local url="$1"
-  local pkg="$2"
-  printf "Installing %s...\n" "$pkg"
-  wget -P "$tmp_dir" "$url/$pkg"
-  sudo gdebi -n "$tmp_dir/$pkg"
-  printf "%s installed.\n" "$pkg"
-}
-
-main() {
-  sudo_login 2
-  check_dependencies
-  local -r script="${0##*/}"
-  local -r version="1.0.25309"
+install_packages() {
+	local idx
   local urls=(
     "http://packages.linuxmint.com/pool/main/m/mint-info"
     "http://packages.linuxmint.com/pool/main/m/mintsystem"
@@ -84,9 +79,23 @@ main() {
     "ubuntu-drivers-common_0.9.7.6_amd64.deb"
     "mintdrivers_1.8.4_all.deb"
   )
-  for (( i=0; i <= 4; i++ )); do
-    install_package "${urls[i]}" "${pkgs[i]}"
+  for (( idx=0; idx <= 4; idx++ )); do
+	  printf "Installing %s...\n" "${pkgs[idx]}"
+    wget -q -P "$tmp_dir" "${urls[idx]}/${pkgs[idx]}"
+    sudo gdebi -n "$tmp_dir/${pkgs[idx]}"
+    # sudo dpkg -i "$tmp_dir/${pkgs[idx]}"; sudo apt-get install --fix-broken
+    printf "%s installed.\n" "${pkgs[idx]}"
   done
+  printf "Mint Driver Manager installed.\n"
+}
+
+main() {
+  check_codename || leave "Only Debian 13 and LMDE 7 are supported."
+  sudo_login 2
+  check_dependencies
+  local -r script="${0##*/}"
+  local -r version="1.1.25310"
+	install_packages
   over_line "$script $version"
   exit
 }
