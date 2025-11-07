@@ -769,17 +769,17 @@ check_package() {
 # NOTE: if set -o pipefail is used in script, function will try to install package even if already installed.
 ###############################################################################
 check_packages() {
-	local pkg pkgs
-  pkgs=("$@")
-	for pkg in "${pkgs[@]}"; do
-		if dpkg -l | grep -qw "$pkg"; then
-		  printf "%s [OK]\n" "$pkg"
+	local package packages
+  packages=("$@")
+	for pkg in "${packages[@]}"; do
+		if dpkg -l | grep -qw "$package"; then
+		  printf "%s [OK]\n" "$package"
       sleep 1
       pr0intf '\e[A\e[K'
 		else
-			printf "Installing %s ...\n" "$pkg"
+			printf "Installing %s ...\n" "$package"
       sudo_login 1
-			sudo apt-get install "$pkg" -yyq
+			sudo apt-get install "$package" -yyq
 		fi
 	done
 }
