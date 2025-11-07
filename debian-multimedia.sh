@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 28 Oct 2025
-# Last updated : 07 Nov 2025
+# Last updated : 05 Nov 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -57,11 +57,12 @@ debian_distro() {
 
 install_multimedia_keyring() {
 	local distro="$1"
-	[[ "$distro" != "bookworm " && "$distro" != "trixie " ]] && { notify-send -t 2000 "${distro^} is not supported"; return; }
 	local -r keyring_url="https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring"
 	local -r keyring_deb="deb-multimedia-keyring_2024.9.1_all.deb"
-	# download and install multimedia keyring
+	[[ "$distro" != "bookworm " && "$distro" != "trixie " ]] && return
+	# download multimedia keyring
 	wget -P "$tmp_dir" "$keyring_url/$keyring_deb"
+	# install multimedia keyring
 	sudo dpkg -i "$tmp_dir/$keyring_deb"
 }
 
@@ -74,13 +75,13 @@ set_multimedia_sources() {
 		trixie )
 			sudo cp -v "$script_dir"/files/trixie-dmo.sources "$source_list" ;;
 		* )
-			printf "%s is not supported by this script.\n" "${distro^}" >&2
+			printf "%s is not supported by this script.\n" "${distro^}"
 	esac
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.1.25311"
+  local -r version="1.0.25309"
 	local distro
 	distro=$(debian_distro)
 
