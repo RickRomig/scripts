@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Sep 2023
-# Last updated : 25 Oct 2025
+# Last updated : 07 Nov 2025
 # Comments     : system install directory = /usr/local/share/fonts
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -45,10 +45,10 @@ cleanup() {
 }
 
 install_NerdFonts() {
+  local -r font_dir="$1"
+  local font fonts
   local -r font_repo="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0"
-  local -r font_dir="$HOME/.local/share/fonts"
-  local -r fonts=( "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
-  local font
+  fonts=( "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
   [[ -d "$font_dir" ]] || mkdir -p "$font_dir"
   for font in "${fonts[@]}"; do
     printf "\e[03mInstalling %s ...\e[0m\n" "$font"
@@ -60,27 +60,29 @@ install_NerdFonts() {
 }
 
 install_SymbolNerdFonts() {
+  local -r font_dir="$1"
   local repository=~/Downloads/configs/local
   [[ -d ~/gitea/configs ]] && repository=~/gitea/configs/local
   if ! [[ -d "$repository" ]]; then
     printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
     return
   fi
-  local -r font_dir="$HOME/.local/share/fonts"
   local -r symbols_archive="NerdFontsSymbolsOnly.tar.xz"
   cp -v "$repository/$symbols_archive"/ "$font_dir/"
   tar xvf "$font_dir/$symbols_archive" -C "$font_dir/${symbols_archive%%.*}"
+  rm -v "$font_dir/$symbols_archive"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.9.25298"
+  local -r version="1.10.25311"
+  local -r font_dir="$HOME/.local/share/fonts"
   sudo_login 2
   check_packages wget
   tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
   trap cleanup EXIT
-  install_NerdFonts
-  install_SymbolNerdFonts
+  install_NerdFonts "$font_dir"
+  install_SymbolNerdFonts "$font_dir"
   fc-cache
   over_line "$script $version"
   exit
