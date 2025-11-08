@@ -244,3 +244,8 @@ df -P | awk '$NF == "/" {print $1}
 df -P / | awk '/dev/ {print $1}'
 df -P / | awk '{print $1}' | sed '1d'
 ```
+### Rename extensions on multiple files
+```bash
+$ find . -name "*.ext" - exec rename -v 's/\.ext$/\.nex/' {}\;
+$ find . -name "*.ext" | rename -v 's/\.ext$/\.nex/'
+```
