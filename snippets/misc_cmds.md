@@ -246,6 +246,11 @@ df -P / | awk '{print $1}' | sed '1d'
 ```
 ### Rename extensions on multiple files
 ```bash
-$ find . -name "*.ext" - exec rename -v 's/\.ext$/\.nex/' {}\;
-$ find . -name "*.ext" | rename -v 's/\.ext$/\.nex/'
+$ find . -name "*.ext" - exec rename -v 's/\.ext$/\.new/' {}\;
+$ find . -name "*.ext" | rename -v 's/\.ext$/\.new/'
+```
+
+### Ceate directory
+```bash
+[[ -e "$dir" ]] || { notify-send -t 2000 "Creating directory $dir..."; mkdir -p "$dir"; }
 ```
