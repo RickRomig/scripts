@@ -66,8 +66,10 @@ cp /etc/nanorc .config/nano/nanorc; sed -i -f bin/files/nano.sed .config/nano/na
 ### Remove whitespace
 ```bash
 sed -e 's/^[ \t]*//g' filename		# remove leading whitespace
-sed -e 's/\ *//g' filename				# remove trailing whitespace
+sed -e 's/\ *$//g' filename				# remove trailing whitespace
 sed 's/  */ /g' filename					# replace whitespace with a single space
+sed 's/^[[:space:]]*//'						# remove leading whitespace
+sed 's/[[:space;]]*$//' 					# remove trailing whitespace
 ```
 ### Swap word
 ```bash
