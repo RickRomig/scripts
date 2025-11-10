@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 30 Oct 2025
+# Last updated : 09 Nov 2025
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.3.25303"
+readonly version="5.4.25313"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -143,9 +143,12 @@ bu_prep() {
 }
 
 backup() {
-	bu_prep
+	local item
+	local excluded=('timeshift' 'lost+found' 'mnt' '.local/share/libvirt/' '.local/share/gnome-boxes/' '.cache/' '.local/share/Trash/' 'Downloads/ISO/')
+	local exclude_opts=()
+	for item in "${excluded[@]}"; do exclude_opts+=( --exclude="$item" ); done
   printf "%sBacking up /etc and /home to BU_Drive/BU_Backups/%s/%s\n" "$green" "$host" "$normal"
-  if sudo rsync -aH --delete --exclude 'timeshift' --exclude '.local/share/libvirt/images' --exclude 'mnt' --exclude 'lost+found' --info=progress2 /etc /home "$mount_point"/BU_Backups/"$host"/ 2>>"$logfile"; then
+  if sudo rsync -aH --delete "${exclude_opts[@]}" --info=progress2 /etc /home "$mount_point"/BU_Backups/"$host"/ 2>>"$logfile"; then
     # Clear any accidental input during backup:
 		flush_kb_buffer
 		printf "%sBackup successfully completed.%s\n" "$green" "$normal"
@@ -278,6 +281,7 @@ main() {
 				sudo_login 2
 				drive_test
 				check_package rsync
+				bu_prep
 				backup
 				sync_drives
 				unmount_usb_drive
