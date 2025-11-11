@@ -9,3 +9,4 @@ $*	=	all arguments as a string
 $@	=	all arguments as an array
 $$	= PID of the script
 $?	=	exit status
+$!  = PID of the last background command that was executed
