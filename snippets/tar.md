@@ -27,9 +27,9 @@ tar -xf archive_file.tar.xz -C /path/to/directory
 ### More examples
 ```bash
  tar --create \
-				--file=archive.tar \
-				--listed-incremental=arcive.snar \
-				source-directory
+	--file=archive.tar \
+	--listed-incremental=archive.snar \
+	source-directory
 
 tar -czf archive.tar.gz -C ~/Downloads dir1 -C ~/Documnts dir2 -C ~/dir3/dir4 dir5
 
