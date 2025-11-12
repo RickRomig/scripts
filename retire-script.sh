@@ -65,8 +65,13 @@ check_dependencies() {
 	check_packages "${packages[@]}"
 }
 
-git_repo() {
-  [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]  && return "$TRUE" || return "$FALSE"
+check_git_repo() {
+  if [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]; then
+		printf "%s This is a git repository.\n" "$RED_WARNING" >&2
+		printf "Use 'gretire.sh' to retire a script inside a git repository\n" >&2
+		over_line "$script $version"
+		exit
+	fi
 }
 
 retire_script() {
@@ -82,20 +87,12 @@ retire_script() {
 
 main() {
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help 0
-	local filename
-	if git_repo; then
-		printf "%s This is a git repository.\n" "$RED_WARNING" >&2
-		printf "Use 'gretire.sh' to retire a script inside a git repository\n" >&2
-	else
-		if [[ "$#" -eq 0 ]]; then
-			read -rp "Enter a script to retire: " filename
-		else
-			filename="$1"
-		fi
-		[[ -f "$filename" ]] || { printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2; help 2; }
-		check_dependencies
-		retire_script "$filename"
-	fi
+	local filename="$1"
+	check_git_repo
+	[[ "$#" -eq 0 ]] && read -rp "Enter a script to retire: " filename
+	[[ -f "$filename" ]] || { printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2; help 2; }
+	check_dependencies
+	retire_script "$filename"
   over_line "$script $version"
 	exit
 }
