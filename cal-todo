@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Dec 2022
-# Updated      : 02 Aug 2025
+# Updated      : 13 Nov 2025
 # Comments     : base script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
 #              : Uses default editor ($EDITOR) to edit to-do list.
 #              : Limit to-do list to 7 items to maintain proper formating.
@@ -41,7 +41,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.3.25214"
+readonly version="3.3.25317"
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 calendar=$(mktemp -q) || die "Failed to create temporary file." 1
 
@@ -55,7 +55,7 @@ cleanup() {
 
 help() {
 	local errcode="${1:-2}"
-	local updated="02 Aug 2025"
+	local updated="13 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Creates/displays/edits a simple to-do list with a calendar.
@@ -91,7 +91,7 @@ three_months() {
 }
 
 main() {
-	local noOpt optstr opt doc_dir todolist
+	local noOpt optstr opt doc_dir todolist OPTARG OPTIND
 	doc_dir="$HOME/.local/share/doc"
 	todolist="todo.lst"
 	noOpt=1
