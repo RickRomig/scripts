@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 17 Feb 2022
-# Updated      : 12 Oct 2025
+# Updated      : 14 Nov 2025
 # Comments     : For jobs needinng root access, checks if repo script is
 #              : newer than the one run by anacron/cron
 # TODO (Rick)  :
@@ -40,7 +40,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="9.0.25285"
+readonly version="9.0.25318"
 localip="$(local_ip)"; readonly localip
 # path variables
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
@@ -54,7 +54,7 @@ readonly sed_path="/usr/share/misc/"
 
 help() {
   local errcode="${1:-2}"
-  local updated="12 Oct 2025"
+  local updated="14 Nov 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Copies cronjob scripts to the appropriate directories.
@@ -227,7 +227,7 @@ cp_zytdlpupdate() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr OPTARG OPTIND
   noOpt=1
   optstr=":abcdfghmrstuy"
   printf "Copying updated cron scripts...\n"
