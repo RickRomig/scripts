@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 12 May 2021
-# Updated      : 07 Oct 2025
+# Updated      : 14 Nov 2025
 # Comments     : Cinnamon keybindings backup file stored in ~/.config
 #              : Tested with Cinnamon DE on Mint 19+, LMDE 5+, Debian 10+
 # TODO (Rick)  :
@@ -40,7 +40,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.1.25280"
+readonly version="4.1.25318"
 readonly config_dir="$HOME/.config"
 readonly bindings_bu="keybindings-backup.dconf"
 readonly bindings_path="/org/cinnamon/desktop/keybindings/"
@@ -50,7 +50,7 @@ verbose_mode="$FALSE"
 
 help() {
   local errcode="${1:-1}"
-  local -r updated="07 Oct 2025"
+  local -r updated="14 Nov 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Creates a backup file of Cinnamon keybindings and restores from a backup file.
@@ -99,7 +99,7 @@ show_message() {
 
 main() {
   if is_cinnamon; then
-    local noOpt optstr opt
+    local noOpt optstr opt OPTARG OPTIND
     noOpt=1
     optstr=":cdhlv"
     while getopts "$optstr" opt; do
