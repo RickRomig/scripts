@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 20 Oct 2025
+# Updated      : 14 Nov 2025
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -42,7 +42,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.10.25293"
+readonly version="7.10.25318"
 SECONDS=0
 system_reboot=1
 
@@ -56,7 +56,7 @@ cleanup() {
 
 help() {
 	local errcode="${1:-2}"
-  local updated="20 Oct 2025"
+  local updated="14 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt or Nala.
@@ -273,7 +273,7 @@ _HEADER_
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr OPTARG OPTIND
 	noOpt=1
 	optstr=":ahn"
 	while getopts "$optstr" opt; do
