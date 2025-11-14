@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 27 Oct 2025
+# Last updated : 14 Nov 2025
 # Comments     : Creates the script in the current working directory.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,14 +41,14 @@ fi
 
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="4.6.25300"
+readonly version="4.6.25318"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="27 Oct 2025"
+	local updated="14 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Creates a shell script with header comments (getopts optional)
@@ -96,9 +96,9 @@ import_metadata() {
 }
 
 main() {
-	local noOpt opt optstr script_name template_file
-	noOpt=1
-	optstr=":b:hg:v"
+	local opt script_name template_file OPTARG OPTIND
+	local noOpt=1
+	local optstr=":b:hg:v"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			b )
