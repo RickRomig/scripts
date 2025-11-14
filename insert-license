@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 27 Oct 2025
+# Updated      : 14 Nov 2025
 # Comments     : Inserts the license immediately after the file's header.
 #              : Assumes the standard script or C/C++ header is present.
 # TODO (rick)  :
@@ -41,19 +41,19 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.6.25300"
+readonly version="4.6.25318"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="27 Oct 2025"
+  local updated="14 Nov 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts an Open Source license into a shell script or a C/C++ source code file.
 
 ${green}Usage:${normal} $script [-h] [-c c-source-file] [-p cpp-source-file] [-s shell-script]
-${orange}Available options:${normal}
+${orange}Available licenses:${normal}
   -c  C code
       $script -c <c-source.c>
   -h  Show this help message and exit
@@ -78,7 +78,7 @@ create_tmp_file() {
 }
 
 insert_license() {
-	local cur_yr options script_dir
+	local cur_yr licenses script_dir
 	local code_type="$1"
 	local code_file="$2"
 	local copy_holder="Richard B. Romig"
@@ -89,9 +89,9 @@ insert_license() {
 
 	# Select license type
 	printf "\n%sLicense type:%s\n" "$orange" "$normal"
-	options=("GPL v1" "GPL v2" "GPL v3" "MIT")
+	licenses=("GPL v1" "GPL v2" "GPL v3" "MIT")
 	PS3="Select the type of license: "
-	select lic_type in "${options[@]}"; do
+	select lic_type in "${licenses[@]}"; do
 		case $REPLY in
     1 )
       lic_file="gpl_v1.txt"
@@ -146,9 +146,9 @@ insert_license() {
 }
 
 main() {
-	local noOpt opt optstr code_file code_type
-	noOpt=1
-	optstr=":c:hp:s:"
+	local opt code_file code_type OPTARG OPTIND
+	local noOpt=1
+	local optstr=":c:hp:s:"
 	while getopts "$optstr" opt; do
 	case "$opt" in
 		c )
