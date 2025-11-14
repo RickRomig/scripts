@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 27 Oct 2025
+# Last updated : 14 Nov 2025
 # Comment      : C template includes GNU GPL v2 license
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="4.3.25300"
+readonly version="4.3.25318"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="27 Oct 2025"
+  local updated="14 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Creates a C/C++ source code file with descriptive comments (GPL v2.0 license)
@@ -88,9 +88,9 @@ import_metadata() {
 }
 
 main() {
-	local code_file noOpt opt optstr template_file
-	noOpt=1
-	optstr=":c:hp:v"
+	local code_file opt template_file OPTARG OPTIND
+	local noOpt=1
+	local optstr=":c:hp:v"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c )
