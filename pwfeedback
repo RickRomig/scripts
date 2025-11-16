@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com
 # Created      : 27 Sep 2020
-# Updated      : 19 Jul 2025
+# Updated      : 16 Nov 2025
 # Comments     : Preferred (default) method is /etc/sudoers.d/0pwfeedback.
 #              : 'set -e' halts script with unknown error when assigning pwfb variable.
 # TODO (Rick)  :
@@ -40,7 +40,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.7.25200"
+readonly version="4.7.25320"
 readonly sudoers_file="/etc/sudoers"
 readonly pwfb_dir="/etc/sudoers.d"
 readonly pwfb_file="0pwfeedback"
@@ -49,7 +49,7 @@ readonly pwfb_file="0pwfeedback"
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="19 Jul 2025"
+	local -r updated="16 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Enable/Disable password feedback in the terminal.
@@ -108,7 +108,7 @@ disable_pwfeedback() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr OPTARG OPTIND
   noOpt=1
   optstr=":edhs"
   while getopts "$optstr" opt; do
