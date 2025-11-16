@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : install-handbrake
-# Description  : Adds repository and installs handbrake
+# Description  : Installs handbrake
 # Dependencies : None
 # Arguments    : None
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Feb 2019
-# Updated      : 25 Oct 2025
+# Updated      : 16 Nov 2025
 # Comment      : Handbrake rips DVD movies
 #              : Available as a flatpak via Flathub and Mint Software Manager
 #              : https://dl.flathub.org/repo/appstream/fr.handbrake.ghb.flatpakref
 #              : flatpak install fr.handbrake.ghb
 #              : flakpak may not be able to access certain codecs for DRM.
-# TODO (rick)  : Eliminate PPA? or find a different app?
+# TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
@@ -36,47 +36,20 @@
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.12.25298"
-readonly handbrake_ppa="ppa:stebbins/handbrake-releases"
+readonly version="3.13.25320"
 
 ## Functions ##
 
-add_ppa() {
-  echo "Adding Handbrake PPA..."
-  sudo add-apt-repository "$handbrake_ppa"
-  sudo apt update -qq
-}
-
-remove_ppa() {
-  echo "Rmoving Handbake PPA..."
-  sudo add-apt-repository --remove "$handbrake_ppa"
-}
-
-install_handbrake() {
-  sudo_login 2
-  support_ppa && add_ppa
-  sudo apt install handbrake-gtk handbrake-cli -yy
-  exists ghb || die "Handbrake installation failed!" 1
-  echo "Handbrake installed."
-}
-
-remove_handbrake() {
-  sudo_login 2
-  support_ppa && remove_ppa
-  sudo apt autoremove handbrake-gtk handbrake-cli -yy
-  echo "Handbrake removed from system."
-}
-
 help() {
 	local errcode="${1:-2}"
-	local updated="25 Oct 2025"
+	local updated="16 Nov 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Install/Remove Handbrake video transcorder
@@ -90,8 +63,21 @@ _HELP_
   exit "$errcode"
 }
 
+install_handbrake() {
+  sudo_login 2
+  sudo apt install handbrake-gtk handbrake-cli -yy
+  exists ghb || die "Handbrake installation failed!" 1
+  echo "Handbrake installed."
+}
+
+remove_handbrake() {
+  sudo_login 2
+  sudo apt autoremove handbrake-gtk handbrake-cli -yy
+  echo "Handbrake removed from system."
+}
+
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr OPTARG OPTIND
   noOpt=1
   optstr=":hir"
   while getopts "$optstr" opt; do
