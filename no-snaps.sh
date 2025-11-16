@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 30 Jun 2020
-# Updated      : 01 Sep 2025
+# Updated      : 16 Nov 2025
 # Comments     : See EZNix snapkill script
 #              : /home/rick/Downloads/Utilities/snapkill.d/snapkill
 # TODO (Rick)  :
@@ -40,7 +40,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.0.25244"
+readonly version="4.0.25320"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
@@ -48,7 +48,7 @@ script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
 help() {
 	local errcode="${1:-2}"
-	local updated="01 Sep 2025"
+	local updated="16 Nov 2025"
 	cat << _HELP_
 ${green}Usage:${normal} $script [-dehs]
 ${orange}OPTIONS:${normal}
@@ -119,7 +119,7 @@ disable_snaps() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr OPTARG OPTIND
   printf "Enables or disables the installation of Snapd and Snap packages.\n"
   snapd_installed && printf "Snapd installed\n" || printf "Snapd is not installed.\n"
   noOpt=1
