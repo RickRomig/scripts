@@ -3,11 +3,11 @@
 # Script Name  : install-glow
 # Description  : Installs and removes the Glow markdown reader.
 # Dependencies : curl
-# Arguments    : [-h] [-i] [-r] [-s] (See help function)
+# Arguments    : See help function
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 23 Oct 2025
+# Updated      : 15 Nov 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.3.25296"
+readonly version="5.3.25319"
 readonly charm_url="https://repo.charm.sh/apt"
 readonly src_list="/etc/apt/sources.list.d/charm.list"
 readonly charm_key="/etc/apt/keyrings/charm.gpg"
@@ -48,7 +48,7 @@ readonly charm_key="/etc/apt/keyrings/charm.gpg"
 
 help() {
   local errcode="${1:-2}"
-  local updated="20 Oct 2025"
+  local updated="15 Nov 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removed Glow Markdown reader
@@ -124,7 +124,7 @@ glow_config() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr OPTARG OPTIND
 	noOpt=1
   optstr=":chir"
   while getopts "$optstr" opt; do
