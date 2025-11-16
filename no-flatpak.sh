@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2024, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Mar 2024
-# Updated      : 01 Sep 2025
+# Updated      : 16 Nov 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.3.25244"
+readonly version="1.3.25320"
 readonly pref_file="/etc/apt/preferences.d/noflatpak.pref"
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
@@ -47,7 +47,7 @@ script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
 help() {
 	local errcode="${1:-2}"
-	local updated="01 Sep 2025"
+	local updated="16 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated $updated
 Disables/Enables Flatpak support.
@@ -105,7 +105,7 @@ disable_flatpak() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr OPTARG OPTIND
 	printf "Flatpack is "
 	flatpak_installed && printf "installed.\n" || printf "not installed.\n"
 	noOpt=1
