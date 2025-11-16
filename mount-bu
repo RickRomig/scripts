@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, 04 Jul 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2022
-# Updated      : 19 Jul 2025
+# Updated      : 16 Nov 2025
 # Comments     : For use with BU backup script.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.19.25200"
+readonly version="2.19.25320"
 readonly mount_point="/media/$USER/BU_Drive"
 
 ## Functions ##
@@ -47,7 +47,7 @@ readonly mount_point="/media/$USER/BU_Drive"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="19 Jul 2025"
+	updated="16 Nov 2025"
 	cat << _HELP_
   ${orange}$script${normal} $version, Updated $updated
   Mounts/Unmounts USB backup drive for the BU script.
@@ -101,7 +101,7 @@ bu_status() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr OPTARG OPTIND
   [[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || die "BU_Drive not attached."
   noOpt=1
   optstr=":hmsu"
