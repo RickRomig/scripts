@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Feb 2020
-# Updated      : 25 Jul 2025
+# Updated      : 15 Nov 2025
 # Comments     :
 # TODO (Rick)  : clone from either repo
 # License      : GNU General Public License, version 2.0
@@ -36,10 +36,10 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.6.25006"
+readonly version="2.6.25319"
 readonly package="fnloc_2.3.1_amd64.deb"
 readonly package_name="FnLoC"
 readonly packageversion="2.3.1"
@@ -58,7 +58,7 @@ _ABOUT_
 
 help() {
 	local errcode="${1:-2}"
-	local updated="04 Apr 2025"
+	local updated="15 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installes the Function Lines of Code (FnLoC) package.
@@ -102,7 +102,7 @@ _HEADER_
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr OPTARG OPTIND
   noOpt=1
   optstr=":acdhr"
   while getopts "$optstr" opt; do
