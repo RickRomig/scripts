@@ -7,7 +7,7 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 26 Oct 2025
+# Updated      : 16 Nov 2025
 # Comments     : Install & remove for Deian-based systems only.
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
@@ -42,13 +42,13 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.18.25299"
+readonly version="1.18.25320"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="26 Oct 2025"
+	local -r updated="16 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs UFW on Debian, BunsenLabs, and MX Linux systems.
@@ -135,7 +135,7 @@ ufw_version() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr OPTARG OPTIND
   noOpt=1
   optstr=":adehinrs"
   while getopts "$optstr" opt; do
