@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Dec 2019
-# Updated      : 28 Jul 2025
+# Updated      : 16 Nov 2025
 # Comments     : Variables for IP range do not work, must be hard coded.
 #              : Local host will not respond to arping.
 #              : Local host will respond using arping in iputils-arping.
@@ -42,7 +42,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.9.25209"
+readonly version="4.9.25320"
 SECONDS=0
 COUNT=0
 
@@ -50,7 +50,7 @@ COUNT=0
 
 help() {
 	local errcode="${1:-2}"
-	local updated="28 Jul 2025"
+	local updated="16 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Scans local network to see which addresses are active.
@@ -137,7 +137,7 @@ scan_dhcp_addresses() {
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr OPTARG OPTIND
   noOpt=1
   optstr=":adhs"
   while getopts "$optstr" opt; do
