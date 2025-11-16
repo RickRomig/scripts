@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
 # Created      : 09 Apr 2019
-# Updated      : 19 Jul 2025
+# Updated      : 16 Nov 2025
 # Comment      : Should be run from the project's main directory.'
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -40,14 +40,14 @@ fi
 
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="3.1.25200"
+readonly version="3.1.25320"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="19 Jul 2025"
+  local updated="16 Nov 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, updated: $updated
 Creates a README file for a project.
@@ -96,7 +96,7 @@ create_readme() {
 }
 
 main() {
-  local noOpt opt optstr project_name
+  local noOpt opt optstr project_name OPTARG OPTIND
   noOpt=1
   optstr=":c:hv"
   while getopts "$optstr" opt; do
