@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 23 Oct 2025
+# Updated      : 15 Nov 2025
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.12.25296"
+readonly version="2.12.25319"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
@@ -48,7 +48,7 @@ verbose_mode="$FALSE"
 
 help() {
 	local errcode="${1:-2}"
-	local updated="23 Oct 2025"
+	local updated="15 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
 Install/Remove VSCodium and apply settings
@@ -139,7 +139,7 @@ show_message() {
 
 main() {
 	# check_dependencies
-  local noOpt opt optstr
+  local noOpt opt optstr OPTARG OPTIND
 	noOpt=1
 	optstr=":ahirsv"
 	while getopts "$optstr" opt; do
@@ -162,7 +162,7 @@ main() {
 				if exists codium; then
 					printf "VSCodium %s is already installed.\n" "$(codium_version)"
 				else
-					sudo_login 2
+					sudo_login 2OPTARG
 					install_vscodium
 				fi
 				;;
