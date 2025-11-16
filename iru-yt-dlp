@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 25 Jul 2025
+# Updated      : 16 Nov 2025
 # Comments     : Removes distro repo version if installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -42,13 +42,13 @@ set -eu
 
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="2.6.25206"
+readonly version="2.6.25320"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="19 Jul 2025"
+	local updated="16 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, removes, updates YouTube-dlp.
@@ -196,7 +196,7 @@ END_INTRO
 }
 
 main() {
-  local noOpt opt optstr
+  local noOpt opt optstr OPTARG OPTIND
 	noOpt=1
 	optstr=":hirux"
 	while getopts "$optstr" opt; do
