@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Mar 2023
-# Updated      : 21 Aug 2025
+# Updated      : 18 Nov 2025
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -111,7 +111,7 @@ syncscript() {
   transfer_status "$exit_status"
 
   printf "\n%sSyncing Journals directory...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Documents/Journals/ "$LOCALNET.$hostip":Documents/Journals/
+  rsync -avh --delete --exclude='.~lock*' "$HOME"/Documents/Journals/ "$LOCALNET.$hostip":Documents/Journals/
   exit_status="$?"
   transfer_status "$exit_status"
 
@@ -189,7 +189,7 @@ check_host() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.7.25233"
+  local -r version="4.8.25322"
   box "$script $version" "-"
   check_host
   over_line "Syncronization completed in $(format_time $SECONDS)" "-"
