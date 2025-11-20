@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 16 Nov 2025
+# Updated      : 20 Nov 2025
 # Comments     : Use install-batcat if distro version equals latest GitHub release.
 #              : Mint 22 installs version 0.24.0 with the Ubuntu version appended.
 #              : Debian 13 installs version 0.25.0 with the Debian version appended.
@@ -42,14 +42,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.8.25320"
+readonly version="6.8.25324"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="16 Nov 2025"
+	local -r updated="20 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Bat utililty.
@@ -105,7 +105,7 @@ install_bat() {
   local new_ver="$1"
   local new_pkg="bat_${new_ver}_amd64.deb"
   if [[ -z "$new_ver" ]]; then
-    printf "No download available. Try again later." >&2
+    printf "No download available. Try again later.\n" >&2
     return
   fi
   printf "Downloading Bat %s from the sharkdp GitHub repository..." "$new_ver"
@@ -116,7 +116,6 @@ install_bat() {
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
   dpkg -l bat >/dev/null 2>&1 | grep 'ii' || die "Bat installation failed." 1
-  bat_config
   [[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
   printf "Bat %s installed.\n" "$(bat_version)"
 }
