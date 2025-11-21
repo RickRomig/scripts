@@ -115,7 +115,7 @@ install_bat() {
   printf "done\nInstalling Bat %s...\n" "$new_ver"
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
-  dpkg -l bat >/dev/null 2>&1 | grep 'ii' || die "Bat installation failed." 1
+  dpkg -l bat | grep -qw '^ii' >/dev/null 2>&1 || die "Bat installation failed." 1
   [[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
   printf "Bat %s installed.\n" "$(bat_version)"
 }
@@ -161,6 +161,7 @@ main() {
           tmp_file=$(mktemp) || die "Failed to create temporary file." 1
           tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
           trap cleanup EXIT
+					new_ver="$(newest_version)"
           printf "%sInstalling Bat version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
           install_bat "$new_ver"
           bat_config
