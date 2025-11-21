@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 17 Feb 2022
-# Updated      : 14 Nov 2025
+# Updated      : 20 Nov 2025
 # Comments     : For jobs needinng root access, checks if repo script is
 #              : newer than the one run by anacron/cron
 # TODO (Rick)  :
@@ -40,7 +40,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="9.0.25318"
+readonly version="9.1.25324"
 localip="$(local_ip)"; readonly localip
 # path variables
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
@@ -179,11 +179,11 @@ cp_zbackup() {
 cp_zdefrag() {
   local -r anacron_path="/etc/cron.monthly/"
   case "$localip" in
-    10|12|13|15|17|19|20|21|22|23|24 )
+    10|12|13|14|15|17|19|20|21|22|23|24 )
       [[ -f "$anacron_path/z-defrag" ]] || { sudo_login 1; sudo cp -v "$job_dir/z-defrag" "$anacron_path" | awk '{print "==> "$NF}'; }
       is_older "z-defrag" "$anacron_path" && { sudo_login 1; sudo cp -v "$job_dir/z-defrag" "$anacron_path" | awk '{print "==> "$NF}'; }
       ;;
-    11|14|16 )
+    11|16 )
       [[ -d "$opt_cron_path" ]] || { sudo_login 1; sudo mkdir -p "$opt_cron_path"; }
       [[ -f "$opt_cron_path/z-defrag" ]] || { sudo_login 1; sudo cp -v "$job_dir/z-defrag" "$opt_cron_path" | awk '{print "==> "$NF}'; }
       is_older "z-defrag" "$opt_cron_path" && { sudo_login 1; sudo cp -v "$job_dir/z-defrag" "$opt_cron_path" | awk '{print "==> "$NF}'; }
@@ -197,11 +197,11 @@ cp_zupdate() {
   local -r sed_file="updatelog.sed"
   local -r anacron_path="/etc/cron.weekly/"
   case "$localip" in
-    10|12|13|15|17|19|20|21|22|23|24|25 )
+    10|12|13|14|15|17|19|20|21|22|23|24|25 )
 			[[ -f "$anacron_path/z-update" ]] || { sudo_login 1; sudo cp -v "$job_dir/z-update" "$anacron_path" | awk '{print "==> "$NF}'; }
 			is_older "z-update" "$anacron_path" && { sudo_login 1; sudo cp -v "$job_dir/z-update" "$anacron_path" | awk '{print "==> "$NF}'; }
       ;;
-    11|14|16 )
+    11|16 )
       [[ -d "$opt_cron_path" ]] || { sudo_login 1; sudo mkdir -p "$opt_cron_path"; }
 			[[ -f "$opt_cron_path/z-update" ]] || { sudo_login 1; sudo cp -v "$job_dir/z-update" "$opt_cron_path" | awk '{print "==> "$NF}'; }
       is_older "z-update" "$opt_cron_path" && { sudo_login 1; sudo cp -v "$job_dir/z-update" "$opt_cron_path" | awk '{print "==> "$NF}'; }
