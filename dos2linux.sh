@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 #####################################################################
 # Script Name  : dos2linux.sh
-# Description  : converts DOS text files to Linux format
+# Description  : converts DOS text file to Linux format
 # Dependencies : none
 # Arguments    : file to be converted
-# Author       : Copyright (C) 2019, Richard Romig, 24 Jan 2019
+# Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2019
-# Updated      : 24 Jul 2025
+# Updated      : 21 Nov 2025
 # TODO (Rick)  :
 # Comment      : removes DOS carriage return ('\r') characters
+#              : Similar in function to dos2unix.
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
@@ -36,27 +37,7 @@ else
   exit 1
 fi
 
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="1.2.25205"
-
 ## Functions ##
-
-help() {
-	local errcode="${1:-2}"
-	local updated="24 Jul 2025"
-  cat << _HELP_
-${orange}$script${normal} $version, Updated: $updated
-Convert DOS text files to Linux format by removing carriage returns.
-
-${green}Usage:${normal} $script [OPTION]
-${orange}Available options:${normal}
-  -h | --help  Show help
-NOTE: Converts files in the current working directory.
-_HELP_
-  exit "$errcode"
-}
 
 convert_file() {
   local filename="$1"
@@ -66,19 +47,15 @@ convert_file() {
 }
 
 main() {
-  local filename
-
-  if [[ "$#" -eq 0 ]]; then
-    printf "%s No argument passed.\n" "$RED_ERROR" >&2
-    help 1
-  elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
-    help 0
-  elif [[ ! -f "$1" ]]; then
-    printf "%s %s not found.\n" "$RED_ERROR" "$1" >&2
-    help 2
-  else
-    filename="$1"
+  local script="${0##*/}"
+  local version="2.0.25325"
+  local filename="$1"
+  printf "Converts DOS text file to Linux format by removing carriage returns.\n"
+  [[ "$#" -eq 0 ]] && read -rp "Enter a DOS text file to process: " filename
+  if [[ -f "$filename" ]]; then
     convert_file "$filename"
+  else
+    printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
   fi
   over_line "$script $version"
   exit
