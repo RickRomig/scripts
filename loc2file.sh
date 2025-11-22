@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 29 Jan 2019
-# Updated      : 28 Jul 2025
+# Updated      : 21 Nov 2025
 # Comments     : Processes one C/C++ source file and matching header.
 # TODO (rick)  : Process multiple source & header files in a project.
 # License      : GNU General Public License, version 2.0
@@ -26,11 +26,11 @@
 #####################################################################
 
 readonly script="${0##*/}"
-readonly version="3.0.25209"
+readonly version="3.1.25325"
 
-usage() {
+help() {
   local errcode="${1:-2}"
-  local updated="28 Jul 2025"
+  local updated="21 Nov 2025"
   printf "%s %s, updated %s\n" "$script" "$version" "$updated"
   printf "Usage: %s sourcefile\n" "$script"
   printf "Acceptable file extensions are: .c .cpp .cc .h .hh\n"
@@ -38,60 +38,60 @@ usage() {
 }
 
 process_source() {
-  local CSOURCE="$1"
-  local LOCFILE="$2"
-  local BASEFILE="${CSOURCE%%.*}"
-  /usr/local/bin/fnloc "$CSOURCE" | tee "$LOCFILE"
+  local cSource="$1"
+  local locFile="$2"
+  local baseFile="${cSource%%.*}"
+  /usr/local/bin/fnloc "$cSource" | tee "$locFile"
   # Process matching header file if it exists
-  [[ -f "$BASEFILE.h" ]] && process_header "$BASEFILE.h" "$LOCFILE"
-  [[ -f "$BASEFILE.hh" ]] && process_header "$BASEFILE.hh" "$LOCFILE"
+  [[ -f "$baseFile.h" ]] && process_header "$baseFile.h" "$locFile"
+  [[ -f "$baseFile.hh" ]] && process_header "$baseFile.hh" "$locFile"
 }
 
 process_header() {
-  local HEADERFILE="$1"
-  local LOCFILE="$2"
-  /usr/local/bin/lloc "$HEADERFILE" | tee -a "$LOCFILE"
+  local headerFile="$1"
+  local locFile="$2"
+  /usr/local/bin/lloc "$headerFile" | tee -a "$locFile"
 }
 
 print_header() {
-  local -r COPYRIGHT="Copyright 2018-2021"
-  local -r AUTHOR="Richard B. Romig"
+  local -r copyright="Copyright 2018-2021"
+  local -r author="Richard B. Romig"
   printf "%s\n" "$script $version"
-  printf "%s\n" "$COPYRIGHT, $AUTHOR"
+  printf "%s\n" "$copyright, $author"
   printf "%s\n" "====================================="
 }
 
 begin_process() {
-  local CSOURCE="$1"
-  local LOCFILE="${CSOURCE%%.*}.loc"
-  local EXT="${CSOURCE##*.}"
+  local cSource="$1"
+  local locFile="${cSource%%.*}.loc"
+  local ext="${cSource##*.}"
   print_header
-  printf "Writing LOC data to %s...\n" "$LOCFILE"
-  case "$EXT" in
+  printf "Writing LOC data to %s...\n" "$locFile"
+  case "$ext" in
     c|cc|cpp )
-      process_source "$CSOURCE" "$LOCFILE"
-      printf "Logical lines of code data for %s written to %s." "$CSOURCE" "$LOCFILE"
+      process_source "$cSource" "$locFile"
+      printf "Logical lines of code data for %s written to %s." "$cSource" "$locFile"
       ;;
     h|hh )
-      process_header "$CSOURCE" "$LOCFILE"
-      printf "Logical lines of code data for %s written to %s." "$CSOURCE" "$LOCFILE"
+      process_header "$cSource" "$locFile"
+      printf "Logical lines of code data for %s written to %s." "$cSource" "$locFile"
       ;;
     * )
-      printf "\e[91mError:\e[0m Invalid file extension." >&2; usage 2
+      printf "\e[91mError:\e[0m Invalid file extension." >&2; help 2
   esac
 }
 
 main() {
-  local CSOURCE
+  local cSource
   if [[ "$#" -eq 0 ]]; then
     printf "\e[91mError:\e[0m No argument provided.\n" >&2
-    usage 1
+    help 1
   elif [[ ! -f "$1" ]]; then
     printf "\e[91mError:\e[0m %s not found.\n" "$1" >&2
-    usage 2
+    help 2
   else
-    CSOURCE="$1"
-    begin_process "$CSOURCE"
+    cSource="$1"
+    begin_process "$cSource"
   fi
   exit
 }
