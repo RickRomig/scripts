@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Feb 2020
-# Updated      : 15 Nov 2025
+# Updated      : 22 Nov 2025
 # Comments     :
 # TODO (Rick)  : clone from either repo
 # License      : GNU General Public License, version 2.0
@@ -39,11 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.6.25319"
-readonly package="fnloc_2.3.1_amd64.deb"
-readonly package_name="FnLoC"
-readonly packageversion="2.3.1"
-readonly package_dir="$HOME/Downloads/fnloc"
+readonly version="3.0.25326"
 
 ## Functions ##
 
@@ -58,10 +54,10 @@ _ABOUT_
 
 help() {
 	local errcode="${1:-2}"
-	local updated="15 Nov 2025"
+	local updated="1225 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
-Installes the Function Lines of Code (FnLoC) package.
+Installs the Function Lines of Code (FnLoC) package.
 
 ${green}Usage:${normal} $script [OPTION]
 ${orange}OPTIONS:${normal}
@@ -75,21 +71,35 @@ _HELP_
 }
 
 clone_fnloc_repo() {
-  local repo_path="fnloc.git"
-  git clone "$GITEA_URL/$repo_path" "$package_dir"
+  local package_dir="$1"
+  local repo_name="fnloc.git"
+  git clone "$GITEA_URL/$repo_name" "$package_dir"  # http://192.168.0.16:3000/Nullifidian/fnloc.git
 }
 
 dl_deb_pkg() {
+  local package="$1"
+  local package_dir="$2"
   local repo_path="fnloc/raw/branch/main"
   [[ -d "$package_dir" ]] || mkdir -p "$package_dir"
   curl -so "$package_dir/$package" "$GITEA_URL/$repo_path/$package"
 }
 
 install_fnloc() {
+  local package="$1"
+  local package_name="$2"
+  local package_dir="$3"
   sudo_login 2
-  dpkg -l | grep -qw fnloc && { printf "%s %s already installed." "$package_name" "$packageversion"; exit; }
+  dpkg -l fnloc | grep -q '^ii' 2>/dev/null && { printf "%s already installed.\n" "$package_name"; return; }
   sudo dpkg -i "$package_dir/$package"
-  printf "%s %s installed.\n" "$package_name" "$packageversion"
+  printf "%s installed.\n" "$package_name"
+}
+
+remove_fnloc() {
+  local package_name="$1"
+  sudo_login 2
+  dpkg -l fnloc | grep -q '^ii' 2>/dev/null || { printf "FnLoC is not installed.\n"; return; }
+  sudo dpkg -r fnloc
+  printf "%s removed.\n" "$package_name"
 }
 
 show_header() {
@@ -102,6 +112,9 @@ _HEADER_
 }
 
 main() {
+  local package="fnloc_2.3.1_amd64.deb"
+  local package_name="FnLoC 2.3.1"
+  local package_dir="$HOME/Downloads/fnloc"
   local noOpt opt optstr OPTARG OPTIND
   noOpt=1
   optstr=":acdhr"
@@ -112,22 +125,19 @@ main() {
         ;;
       c )
         show_header
-        clone_fnloc_repo
-        install_fnloc
+        clone_fnloc_repo "$package_dir"
+        install_fnloc "$package" "$package_name" "$package_dir"
         ;;
       d )
         show_header
-        dl_deb_pkg
-        install_fnloc
+        dl_deb_pkg  "$package""$package_dir"
+        install_fnloc "$package" "$package_name" "$package_dir"
         ;;
       h )
         help 0
         ;;
       r )
-        sudo_login 2
-        dpkg -l fnloc > /dev/null 2>&1 || leave "FnLoC is not installed."
-        sudo dpkg -r fnloc
-        printf "%s %s removed.\n" "$package_name" "$packageversion"
+        remove_fnloc "$package_name"
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
