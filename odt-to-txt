@@ -7,9 +7,9 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 May 2019
-# Updated      : 19 Jul 2024
+# Updated      : 25 Nov 2024
 # Comments     : Run from a directory containing .odt files to be converted.
-#              : Leaves orginial .odt files intact.
+#              : Leaves original .odt files intact.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -36,6 +36,7 @@ else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
   exit 1
 fi
+
 ## Functions ##
 
 check_dependencies() {
@@ -43,29 +44,29 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
-convert2txt() {
+convert_2_txt() {
   local odt_file=$1
   local txt_file="${odt_file%%.*}.txt"
   /usr/bin/odt2txt "$odt_file" > "$txt_file"
   echo "$odt_file -> $txt_file"
 }
 
-convert2md() {
+convert_2_md() {
   local odt_file=$1
   local md_file="${odt_file%%.*}.md"
   /usr/bin/odt2txt "$odt_file" > "$md_file"
   echo "$odt_file -> $md_file"
 }
 
-find_odt_files() {
+odt_files_found() {
   local num_files
   num_files=$(find . -maxdepth 1 -type f -iname "*.odt" | wc -l)
-  if (( num_files > 0 )); then
-    printf ".odt filse in %s:\n\n" "$PWD"
-    find ./ -maxdepth 1 -type f -name "*.odt" | sed 's/\.\///' | sort
-  else
-    die "No .odt files found."
-  fi
+  (( num_files > 0 )) && return "$TRUE" || return "$FALSE"
+}
+
+list_odt_files() {
+  printf ".odt filse in %s:\n\n" "$PWD"
+  find ./ -maxdepth 1 -type f -name "*.odt" | sed 's/^\.\///' | sort
 }
 
 select_odt_file() {
@@ -77,11 +78,9 @@ select_odt_file() {
 main() {
   local options _opt ofile
   local script="${0##*/}"
-  local version="3.0.25200"
+  local version="3.1.25329"
 
   check_dependencies
-  # Disable Crtl+C
-  trap '' 2
 
   while true; do
     clear
@@ -102,31 +101,46 @@ main() {
         1 )
           ofile=$(select_odt_file)
           printf "Converting %s to text.\n" "$ofile"
-          convert2txt "$ofile"
-          anykey; break
+          convert_2_txt "$ofile"
+          anykey
+          break
           ;;
         2 )
           ofile=$(select_odt_file)
           printf "Converting %s to markdown.\n" "$ofile"
-          convert2md "$ofile"
-          anykey; break
+          convert_2_md "$ofile"
+          anykey
+          break
           ;;
         3 )
-          find_odt_files
-          printf "Converting .odt files in %s to text...\n\n" "$PWD"
-          for ofile in *.odt; do convert2txt "$ofile"; done
-          anykey; break
+          if odt_files_found; then
+            list_odt_files
+            printf "Converting .odt files in %s to text...\n\n" "$PWD"
+            for ofile in *.odt; do
+              convert_2_txt "$ofile"
+            done
+          else
+            printf "No .odt files found.\n"
+          fi
+          anykey
+          break
           ;;
         4 )
-          find_odt_files
-          printf "Converting .odt files in %s to markdown...\n\n" "$PWD"
-          for ofile in *.odt; do convert2md "$ofile"; done
-          anykey; break
+          if odt_files_found; then
+            list_odt_files
+            printf "Converting .odt files in %s to markdown...\n\n" "$PWD"
+            for ofile in *.odt; do
+              convert_2_md "$ofile"
+            done
+          else
+            printf "No .odt files found.\n"
+          fi
+          anykey
+          break
           ;;
         5 )
-          trap 2
           printf "All done! Exiting the script.\n"
-          over_line "$script v$version"
+          over_line "$script $version"
           exit
           ;;
         * )
