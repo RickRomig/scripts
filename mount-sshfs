@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 16 Nov 2025
+# Updated      : 25 Nov 2025
 # Comments     : Mount points are at ~/mnt/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,24 +36,21 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Glonal Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.0.25320"
+readonly version="5.0.25329"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="16 Nov 2025"
+	local -r updated="25 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated $updated
 Mounts/Unmounts an SSHFS share.
 
 ${green}Usage:${normal} $script [-defghlmns]
-
 ${orange}Available options:${normal}
   -d  toggle mount/umount HP EliteDesk 800 G1 USDT (desktop)
   -e  toggle mount/umount HP EliteBook 850 G3 (laptop)
@@ -143,37 +140,46 @@ main() {
 			d )
 				share_name="EliteDesk-800"
 				share_ip=17
-				handle_mount "$share_ip" "$share_name" ;;
+				handle_mount "$share_ip" "$share_name"
+				;;
 			e )
 				share_name="EliteBook-850"
 				share_ip=22
-				handle_mount "$share_ip" "$share_name" ;;
+				handle_mount "$share_ip" "$share_name"
+				;;
 			f )
 				share_name="HP-ProBook-6570b"
 				share_ip=21
-				handle_mount "$share_ip" "$share_name" ;;
+				handle_mount "$share_ip" "$share_name"
+				;;
 			g )
 				share_name="Gitea-Server"
 				share_ip=16
-				handle_mount "$share_ip" "$share_name" ;;
+				handle_mount "$share_ip" "$share_name"
+				;;
 			h )
-				help 0 ;;
+				help 0
+				;;
 			l )
 				share_name="Lenovo-M91p"
 				share_ip=15
-				handle_mount "$share_ip" "$share_name" ;;
+				handle_mount "$share_ip" "$share_name"
+				;;
 			m )
 				share_name="HP-800-G2"
 				share_ip=10
-				handle_mount "$share_ip" "$share_name" ;;
+				handle_mount "$share_ip" "$share_name"
+				;;
 			n )
 				share_name="NASD97167"
 				share_ip=4
-				handle_mount "$share_ip" "$share_name" ;;
+				handle_mount "$share_ip" "$share_name"
+				;;
 			s )
 				share_name="HP-6005"
 				share_ip=11
-				handle_mount "$share_ip" "$share_name" ;;
+				handle_mount "$share_ip" "$share_name"
+				;;
 			?)
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
