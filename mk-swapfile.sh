@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jan 2025
-# Last updated : 01 Oct 2025
+# Last updated : 14 Nov 2025
 # Comments     : creates swap file if no other swap exists.
 #              : Disable old swap and comment out in /etc/fstab
 # TODO (Rick)  :
@@ -39,10 +39,6 @@ fi
 
 ## Functions ##
 
-append_fstab() {
-	echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab
-}
-
 swap_exists() {
   local myswap
   myswap=$(awk '/file/ || /partition/ {print $1}' /proc/swaps)
@@ -52,18 +48,19 @@ swap_exists() {
 create_swapfile() {
 	printf "Creating swap file in the root directory...\n"
 	# create a 1GB swap file (multiply count by number of gigabyes needed)
-	sudo dd if=/dev/zero of=/swapfile bs=1024 count=1048576	# 4 x count = 4194304
+	# sudo dd if=/dev/zero of=/swapfile bs=1024 count=1048576	# 4 x count = 4194304, 8 x count = 8388608
+	sudo dd if=/dev/zero of=/swapfile bs=1024 count=4194304	# 4GB swapfile
 	ls -lh /swapfile  # see the file in the root directory
-	sudo e4defrag /swapfile	# defrag swapfile (1 contigous file)
+	sudo e4defrag /swapfile	# defrag swapfile so it's 1 contigous file
 	sudo mkswap /swapfile # prepare swap file
 	sudo chmod 600 /swapfile  # set permissions
 	sudo swapon /swapfile # activate the swap file
-	append_fstab
+	echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab
 }
 
 main() {
 	local script="${0##*/}"
-	local version="1.2.25274"
+	local version="1.3.25328"
 	sudo_login 2
 	if swap_exists; then
 		printf "A swap device exists and is enabled.\n"
