@@ -195,17 +195,10 @@ user_exists() {
 ###############################################################################
 sudo_login() {
   local delay="${1:-2}"
-  if id -nG "$USER" | grep -qw sudo; then
-    if ! sudo -vn 2>/dev/null; then
-      sudo ls > /dev/null 2>&1
-      if [[ "$delay" -gt 0 ]]; then
-        sleep "$delay"
-        printf '\e[A\e[K'
-      fi
-    fi
- else
-    die "$USER is not a member of the sudo group. Access denied."
-  fi
+  grep -qw sudo <(id -nG "$USER") || die "$USER is not a member of the sudo group. Access denied." 1
+	sudo -vn 2>/dev/null && return
+	sudo ls >/dev/null 2>&1
+	[[ "$delay" -gt 0 ]] && { sleep "$delay"; printf '\e[A\e[K'; }
 }
 
 ###############################################################################
@@ -226,7 +219,7 @@ bin_in_path() {
 # Returns: True or False
 ###############################################################################
 exists() {
-  command -v "$1" > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
+  command -v "$1" &>/dev/null && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -237,7 +230,7 @@ exists() {
 # Returns: True or False
 ###############################################################################
 installed() {
-  dpkg -l "$1" > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
+  grep -q '^ii' <(dpkg -l "$1" &>/dev/null) && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -749,7 +742,7 @@ check_for_file() {
 ###############################################################################
 check_package() {
   local package="$1"
-  if dpkg -l "$package" | grep -qw '^ii'; then
+  if grep -q '^ii' <(dpkg -l "$1" &>/dev/null); then
     printf "%s [OK]\n" "$package"
     sleep 1
     printf '\e[A\e[K'
@@ -772,7 +765,7 @@ check_packages() {
 	local package packages
   packages=("$@")
 	for package in "${packages[@]}"; do
-		if dpkg -l "$package" | grep -qw '^ii'; then
+		if grep -q '^ii' <(dpkg -l "$1" &>/dev/null); then
 		  printf "%s [OK]\n" "$package"
       sleep 1
       printf '\e[A\e[K'
