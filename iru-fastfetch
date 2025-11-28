@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Last updated : 27 Nov 2025
+# Last updated : 28 Nov 2025
 # Comments     : .png logo does not work with Terminator.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.11.331"
+readonly version="3.12.332"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="27 Nov 2025"
+	local -r updated="28 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, removes, updates FastFetch
@@ -129,7 +129,7 @@ fastfetch_config() {
 	[[ -d ~/.config/fastfetch ]] || mkdir -p ~/.config/fastfetch
 	[[ -d ~/.local/share/fastfetch/logos ]] || mkdir -p ~/.local/share/fastfetch/logos
 	printf "Installing configuration and logo files...\n"
-	if lspci | grep -q 'GM965|GL960'; then
+	if grep -q -E 'GM965|GL960' <(lspci); then
 		cp -v "$repository"/config.jsonc.ascii ~/.config/fastfetch/config.jsonc
 		cp -v /logo.txt ~/.local/share/fastfetch/logos/
 	else
