@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 07 Sep 2025
+# Last updated : 29 Nov 2025
 # Comments     : This script updates current Debian 12 before upgrade.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,8 +36,6 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Functions ##
 
 check_files() {
@@ -45,7 +43,7 @@ check_files() {
 }
 
 check_codename() {
-	lsb_release --codename | grep -q bookworm && return "$TRUE" || return "$FALSE"
+	grep -qw bookworm <(lsb_release --codename) && return "$TRUE" || return "$FALSE"
 }
 
 version_info() {
@@ -64,8 +62,8 @@ upgrade_packages() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.2.25250"
-	local updated="07 Sep 2025"
+	local version="1.3.25333"
+	local updated="29 Nov 2025"
 	check_codename || die "This is not Debian 12 Bookworm" 1
 	check_files && die "This script has already been run." 1
 	version_info
