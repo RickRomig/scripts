@@ -41,7 +41,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="8.0.25333"
+readonly version="8.1.25333"
 SECONDS=0
 
 ## Functions ##
@@ -119,7 +119,7 @@ clean_apt_cache() {
 
 remove_orphans() {
   local npkgs
-  npkgs=$(apt-get autoremove -s | awk '$2 == "upgraded," {print $6}')
+  npkgs=$(awk '$2 == "upgraded," {print $6}' <(apt-get autoremove -s))
   printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
   if [[ "$npkgs" -gt 0 ]]; then
     sudo apt-get autoremove --purge -yy
