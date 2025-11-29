@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 07 Sep 2022
-# Updated      : 10 Nov 2025
+# Updated      : 29 Nov 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,13 +29,13 @@
 get_init() {
 	if [[ $(cat /proc/1/comm) == "systemd" ]] ; then
 		echo "SystemD"
-	elif [[ $(/sbin/init --version 2>/dev/null | awk '{print $1}') == "SysV" ]]; then
+	elif [[ $(awk '{print $1}' <(/sbin/init --version 2>/dev/null)) == "SysV" ]]; then
 		echo "SysV"
 	elif [[ $(cat /proc/1/comm) == "runit" ]] ; then
 		echo "Runit"
 	elif [[ -f /sbin/openrc ]]; then
 		echo "OpenRC"
-	elif /sbin/init --version 2>/dev/null | grep -q 'upstart'; then
+	elif grep -q 'upstart' <(/sbin/init --version 2>/dev/null); then
 		echo "Upstart"
 	else
 		echo "Undetermined"
@@ -44,7 +44,7 @@ get_init() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.0.25314"
+	local -r version="2.1.25333"
 	local -r short_line="---"
 	printf "Init System: %s\n" "$(get_init)"
 	printf "%s\n%s %s\n" "$short_line" "$script" "$version"
