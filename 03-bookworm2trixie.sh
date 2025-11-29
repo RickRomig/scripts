@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 13 Aug 2025
+# Last updated : 29 Nov 2025
 # Comments     : Final cleanup after upgrade to Debian 12.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,8 +36,6 @@ else
   exit 1
 fi
 
-# set -eu
-
 ## Functions ##
 
 check_files() {
@@ -61,20 +59,25 @@ clean_up() {
 	rm "$HOME/01-upgrade" "$HOME/02-sources"
 }
 
-main() {
-	local script="${0##*/}"
-	local version="1.2.25225"
-	local updated="13 Aug 2025"
-	check_files || die "01-bookworm2trixie.sh and 02-bookworm2trixie.sh must be run first." 1
-	version_info
-	if [[ "$(lsb_release --codename --short | awk 'NR = 1 {print}')" == "trixie" ]]; then
-		printf "Debian inplace upgrade was successful!\n"
-	else
-		printf "Debian inplace upgrade failed.\nBackup the home directory and any important files, then install from the ISO.\n" >&2
-	fi
-	clean_up
+modernize_sources() {
 	printf "Modernizing sources...\n"
 	[[ -d "/etc/apt/sources.list.d/debian.sources" ]] || sudo apt modernize-sources
+}
+
+main() {
+	local script="${0##*/}"
+	local version="1.3.25333"
+	local updated="29 Nov 2025"
+	check_files || die "01-bookworm2trixie.sh and 02-bookworm2trixie.sh must be run first." 1
+	version_info
+	if [[ $(awk 'NR = 1 {print}' <(lsb_release --codename --short)) == "trixie" ]]; then
+		printf "Debian inplace upgrade was successful!\n"
+		clean_up
+		modernize_sources
+	else
+		printf "Debian inplace upgrade failed.\n" >&2
+		printf "Backup the home directory and any important files, then install from the ISO.\n" >&2
+	fi
 	over_line "$script $version ($updated)"
 	exit
 }
