@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 09 Nov 2025
+# Last updated : 29 Nov 2025
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.4.25313"
+readonly version="5.5.25333"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -61,13 +61,14 @@ drive_test() {
 }
 
 check_usb() {
-	[[ $(lsblk -S -o  TRAN | grep 'usb') = *usb* ]] && return "$TRUE" || return "$FALSE"
+	[[ $(grep 'usb' <(lsblk -S -o TRAN)) = *usb* ]] && return "$TRUE" || return "$FALSE"
+
 }
 
 bu_drive_label() {
 	local bu_label
-	bu_label="$(lsblk -o label | grep -w BU_Drive)"
-	[[ -n "$bu_label" ]] && return "$TRUE" || return "$FALSE"
+	bu_label="$(grep -w BU_Drive <(lsblk -o label))"
+	[[ "$bu_label" ]] && return "$TRUE" || return "$FALSE"
 }
 
 check_uuid() {
@@ -206,7 +207,7 @@ restore() {
 
 help() {
 	local errcode="${1:-2}"
-	local updated="30 Oct 2025"
+	local updated="29 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
