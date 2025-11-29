@@ -7,13 +7,12 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 14 Nov 2025
+# Updated      : 29 Nov 2025
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
-# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
 # This program is free software; you can redistribute it and/or modify
@@ -42,9 +41,8 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.10.25318"
+readonly version="8.0.25333"
 SECONDS=0
-system_reboot=1
 
 ## Functions ##
 
@@ -56,7 +54,7 @@ cleanup() {
 
 help() {
 	local errcode="${1:-2}"
-  local updated="14 Nov 2025"
+  local updated="29 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt or Nala.
@@ -74,24 +72,22 @@ _HELP_
 
 check_disk_space() {
 	local df_stats r_size r_used r_perc r_avail
-	df_stats=$(df -h / | awk 'NR==2 {print $2,$3,$4,$5}')
-	r_size=$(echo "$df_stats" | cut -d ' ' -f1)
-	r_used=$(echo "$df_stats" | cut -d ' ' -f2)
-	r_perc=$(echo "$df_stats" | cut -d ' ' -f4)
-	r_avail=$(echo "$df_stats" | cut -d ' ' -f3)
+	df_stats=$(awk 'NR==2 {print $2,$3,$4,$5}' <(df -h /))
+	r_size=$(cut -d ' ' -f1 <(echo "$df_stats"))
+	r_used=$(cut -d ' ' -f2 <(echo "$df_stats"))
+	r_avail=$(cut -d ' ' -f3 <(echo "$df_stats"))
+	r_perc=$(cut -d ' ' -f4 <(echo "$df_stats"))
   printf "\nDisk space used (root): %s / %s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
 }
 
-reboot_notification() {
-  if [[ "$system_reboot" -eq 0 ]]; then
-    cat /var/run/reboot-required.pkgs
-    printf "\n%s*** REBOOT REQUIRED ***%s\n" "$orange" "$normal"
-    if default_no "Do you want to reboot now?"; then
-      printf "Rebooting the system...\n"
-      sleep 10; sudo systemctl reboot
-    else
-      printf "\n%s Please reboot your system as soon as possible.\n" "$RED_WARNING"
-    fi
+reboot_system() {
+  cat /var/run/reboot-required.pkgs
+  printf "\n%s*** REBOOT REQUIRED ***%s\n" "$orange" "$normal"
+  if default_no "Do you want to reboot now?"; then
+    printf "Rebooting the system...\n"
+    sleep 10; sudo systemctl reboot
+  else
+    printf "\n%s Please reboot your system as soon as possible.\n" "$RED_WARNING"
   fi
 }
 
@@ -114,7 +110,6 @@ update_apt_cache() {
 install_updates() {
   printf "\n%sInstalling updates...%s\n" "$orange" "$normal"
   sudo apt-get dist-upgrade -yy
-  [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && system_reboot=0
 }
 
 clean_apt_cache() {
@@ -124,7 +119,6 @@ clean_apt_cache() {
 
 remove_orphans() {
   local npkgs
-  # npkgs=$(apt-get autoremove -s | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f6)
   npkgs=$(apt-get autoremove -s | awk '$2 == "upgraded," {print $6}')
   printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
   if [[ "$npkgs" -gt 0 ]]; then
@@ -148,21 +142,25 @@ defer_updates() {
   printf " deferred.%s\n" "$normal"
 }
 
-update_flatpak() {
+update_flatpaks() {
   local fp_count
   printf "\n%sFlatpak:%s\n" "$orange" "$normal"
-  if exists flatpak; then
-    fp_count=$(flatpak list | wc -l)
-    if [[ "$fp_count" -gt 0 ]]; then
-      printf "User installations...\n"
-      flatpak update --user --noninteractive --force-remove --assumeyes | sed '/^$/d'
-      printf "System-wide installations...\n"
-      sudo flatpak update --system --noninteractive --force-remove --assumeyes  2> /dev/null | sed '/^$/d'
-    else
-      printf "No Flatpak packages installed.\n"
-    fi
+  fp_count=$(flatpak list | wc -l)
+  if [[ "$fp_count" -gt 0 ]]; then
+    printf "User installations...\n"
+    flatpak update --user --noninteractive --force-remove --assumeyes | sed '/^$/d'
+    printf "System-wide installations...\n"
+    sudo flatpak update --system --noninteractive --force-remove --assumeyes  2> /dev/null | sed '/^$/d'
   else
-    printf "Flatpack is not installed.\n"
+    printf "No Flatpak packages installed.\n"
+  fi
+}
+
+check_flatpak() {
+  if exists flatpak; then
+    update_flatpaks
+  else
+    printf "Flatpak is not installed.\n"
   fi
 }
 
@@ -174,7 +172,6 @@ update_spices() {
 nala_update() {
   printf "%sChecking for updates...%s\n" "$orange" "$normal"
   sudo nala upgrade
-  [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && system_reboot=0
   if default_no "Run autoremove/autopurge?"; then
     printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
     sudo nala autoremove
@@ -311,11 +308,11 @@ main() {
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
   exists cinnamon-spice-updater && update_spices
-  update_flatpak
+  check_flatpak
   check_disk_space
   over_line "Update completed in $(format_time $SECONDS)"
   over_line "$script $version"
-  reboot_notification
+  [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && reboot_system
   exit
 }
 
