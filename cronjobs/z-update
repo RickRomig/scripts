@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 22 Oct 2025
+# Updated      : 29 Nov 2025
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -24,8 +24,6 @@
 # GNU General Public License for more details.
 ###############################################################################
 
-system_reboot=1
-
 # shellcheck disable=SC2001
 over_line() {
   local char len line title
@@ -39,11 +37,11 @@ over_line() {
 
 check_disk_space() {
   local df_stats r_size r_used r_perc r_avail
-	df_stats=$(df -h / | awk 'NR==2 {print $2,$3,$4,$5}')
-	r_size=$(echo "$df_stats" | cut -d ' ' -f1)
-	r_used=$(echo "$df_stats" | cut -d ' ' -f2)
-	r_perc=$(echo "$df_stats" | cut -d ' ' -f4)
-	r_avail=$(echo "$df_stats" | cut -d ' ' -f3)
+	df_stats=$(awk 'NR==2 {print $2,$3,$4,$5}' <(df -h /))
+	r_size=$(cut -d ' ' -f1 <(echo "$df_stats"))
+	r_used=$(cut -d ' ' -f2 <(echo "$df_stats"))
+	r_avail=$(cut -d ' ' -f3 <(echo "$df_stats"))
+	r_perc=$(cut -d ' ' -f4 <(echo "$df_stats"))
   printf "\nDisk space used (root): %s/%s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
 }
 
@@ -65,15 +63,14 @@ check_flatpaks() {
 get_updates() {
   local nupd fields field1 field2 field3
   /usr/bin/apt-get update
-  fields=$(apt-get dist-upgrade -s | awk '$2 == "upgraded," {print $1,$3,$6,$(NF-2)}')
-  field1=$(echo "$fields" | cut -d' ' -f1)
-  field2=$(echo "$fields" | cut -d' ' -f2)
-  field3=$(echo "$fields" | cut -d' ' -f3)
+  fields=$(awk '$2 == "upgraded," {print $1,$3,$6,$(NF-2)}' <(apt-get dist-upgrade -s))
+  field1=$(cut -d' ' -f1 <(echo "$fields"))
+  field2=$(cut -d' ' -f2 <(echo "$fields"))
+  field3=$(cut -d' ' -f3 <(echo "$fields"))
   nupd=$((field1 + field2 + field3))
   if [[ "$nupd" -gt 0 ]]; then
     printf "\n*** Installing updates ***\n"
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get dist-upgrade -yy
-    [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && system_reboot=0
   else
     printf "\nPackages are up to date\n"
   fi
@@ -81,7 +78,7 @@ get_updates() {
 
 autoremove_packages() {
   local npkgs
-  npkgs=$(apt-get autoremove -s | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f6)
+  npkgs=$(awk '$2 == "upgraded," {print $6}' <(apt-get autoremove -s))
   if [[ "$npkgs" -gt 0 ]]; then
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove --purge -yy
   else
@@ -89,9 +86,14 @@ autoremove_packages() {
   fi
 }
 
+system_reboot() {
+  cat /var/run/reboot-required.pkgs
+  printf "\n*** REBOOT REQUIRED ***\n"
+}
+
 main() {
   local script="${0##*/}"
-  local version="1.6.25295"
+  local version="2.0.25333"
   local lhost="${HOSTNAME:-$(hostname)}"
   local log_file="/var/log/update.log"
   local sed_file="/usr/share/misc/updatelog.sed"
@@ -108,7 +110,7 @@ main() {
     printf "\n*** Flatpak updates ***\n"
     check_flatpaks
 	  check_disk_space
-    [[ "$system_reboot" -eq 0 ]] && printf "\n*** REBOOT REQUIRED ***\n"
+    [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && system_reboot
     over_line "$script $version"
   } > "$log_file" 2>&1
   sed -i -f "$sed_file" "$log_file"
