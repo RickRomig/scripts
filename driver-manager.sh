@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : driver-manager.sh
-# Description  : Installs Mint Driver Manager on LMDE 7 (Gigi) & Debian 13 (Trixie)
+# Description  : Installs the Linu Mint Driver Manager on LMDE 7 (Gigi) & Debian 13 (Trixie)
 # Dependencies : gdebi wget
 # Arguments    : None
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 05 Nov 2025
-# Last updated : 06 Nov 2025
+# Last updated : 29 Nov 2025
 # Comments     : Based on instructions provided by Andrea Borman
 #              : YouTube - https://www.youtube.com/watch?v=-Q_U5lLTxmU
 # TODO (Rick)  :
@@ -49,7 +49,7 @@ check_dependencies() {
 }
 
 check_codename() {
-  codename=$(/usr/bin/lsb_release -cs | awk 'NR = 1 {print}')
+  codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
     trixie|gigi ) return "$TRUE" ;;
     * ) return "$FALSE"
@@ -79,6 +79,7 @@ install_packages() {
     "ubuntu-drivers-common_0.9.7.6_amd64.deb"
     "mintdrivers_1.8.4_all.deb"
   )
+  sudo_login 2
   for (( idx=0; idx <= 4; idx++ )); do
 	  printf "Installing %s...\n" "${pkgs[idx]}"
     wget -q -P "$tmp_dir" "${urls[idx]}/${pkgs[idx]}"
@@ -89,18 +90,22 @@ install_packages() {
   printf "Mint Driver Manager installed.\n"
 }
 
-main() {
-  check_codename || leave "Only Debian 13 and LMDE 7 are supported."
-  sudo_login 2
-  check_dependencies
+exit_script() {
   local -r script="${0##*/}"
-  local -r version="1.1.25310"
-	install_packages
+  local -r version="1.2.25333"
   over_line "$script $version"
   exit
 }
 
+main() {
+  trap cleanup EXIT
+  printf "Installs the Linux Mint Driver Manager on LMDE 7 (Gigi) & Debian 13 (Trixie)\n"
+  check_codename || { printf "Only Debian 13 and LMDE 7 are supported at this time.\n"; exit_script; }
+  check_dependencies
+	install_packages
+  exit_script
+}
+
 ## Execution ##
 
-trap cleanup EXIT
 main "$@"
