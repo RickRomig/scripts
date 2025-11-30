@@ -60,7 +60,7 @@ _HELP_
 }
 
 kitty_version() {
-  kitty --version | cut -d' ' -f2
+  cut -d' ' -f2 <(kitty --version)
 }
 
 install_kitty() {
@@ -89,6 +89,7 @@ kitty_config() {
   [[ -d ~/.config/kitty ]] || mkdir -p ~/.config/kitty
   printf "Applying configuration files ...\n"
   cp -v "$repository"/kitty.conf "$repository"/bindings.list ~/.config/kitty/
+  [[ "$DESKTOP_SESSION" != "i3" ]] && sed -i.bak '/hide_window_decorations/s/yes/no/' ~/.config/kitty/kitty.conf
   printf "kitty configuration files applied.\n"
 }
 
