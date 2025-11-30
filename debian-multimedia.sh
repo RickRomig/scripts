@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : debian-multimedia.sh
 # Description  : adds multimedia repository to Debian
-# Dependencies : none
+# Dependencies : wget
 # Arguments    : See help() function for available options.
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 28 Oct 2025
-# Last updated : 05 Nov 2025
+# Last updated : 29 Nov 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,7 +38,6 @@ fi
 
 ## Global Variables ##
 
-script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." 1
 
 ## Functions ##
@@ -49,49 +48,46 @@ cleanup() {
 	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
 }
 
-debian_distro() {
-	local codename
-	codename=$(/usr/bin/lsb_release --codename --short | awk 'NR = 1 {print}')
-	printf "%s" "$codename"
-}
-
 install_multimedia_keyring() {
-	local distro="$1"
 	local -r keyring_url="https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring"
 	local -r keyring_deb="deb-multimedia-keyring_2024.9.1_all.deb"
-	[[ "$distro" != "bookworm " && "$distro" != "trixie " ]] && return
-	# download multimedia keyring
+	printf "Downloading and installed Debian Multimedia Keyring...\n"
 	wget -P "$tmp_dir" "$keyring_url/$keyring_deb"
-	# install multimedia keyring
 	sudo dpkg -i "$tmp_dir/$keyring_deb"
 }
 
 set_multimedia_sources() {
 	local distro="$1"
+	local script_dir
 	local -r source_list=/etc/apt/sources.list.d/dmo.sources
+	script_dir=$(dirname "$(readlink -f "${0}")")
+	printf "Setting multimeda sources...\n"
 	case "$distro" in
 		bookworm )
 			sudo cp -v "$script_dir"/files/bookworm-dmo.sources "$source_list" ;;
 		trixie )
 			sudo cp -v "$script_dir"/files/trixie-dmo.sources "$source_list" ;;
 		* )
-			printf "%s is not supported by this script.\n" "${distro^}"
+			# Should not be necessary
 	esac
 }
 
-main() {
+exit_script() {
   local -r script="${0##*/}"
-  local -r version="1.0.25309"
-	local distro
-	distro=$(debian_distro)
-
-  trap cleanup EXIT
-
-	install_multimedia_keyring "$distro"
-	set_multimedia_sources "$distro"
-
-  over_line "$script $version"
+  local -r version="2.0.25333"
+	over_line "$script $version"
   exit
+}
+
+main() {
+	local distro
+	distro="$(/usr/bin/lsb_release --codename --short)"
+	check_package wget
+  trap cleanup EXIT
+	[[ "$distro" != "bookworm " && "$distro" != "trixie " ]] && { printf "%s is not supported by this script.\n" "${distro^}"; exit_script; }
+	install_multimedia_keyring
+	set_multimedia_sources "$distro"
+	exit_script
 }
 
 ## Execution ##
