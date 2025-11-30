@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Jan 2021
-# Updated      : 16 Nov 2025
+# Updated      : 30 Nov 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,13 +39,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.3.25320"
+readonly version="4.4.25334"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="16 Nov 2025"
+	local updated="30 Nov 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removed KeePassXC password manager
@@ -68,9 +68,9 @@ flatpak_keepassxc() {
 
 keepass_version() {
   if exists keepassxc; then
-    dpkg -l keepassxc | awk '/ii/ {print $3}' | sed 's/[+-].*//'
+    awk '{print $NF}' <(keepassxc --version)
   elif flatpak_keepassxc; then
-    flatpak list | awk '/KeePassXC/ {print $3}'
+    awk '/KeePassXC/ {print $3}' <(flatpak list)
   fi
 }
 
