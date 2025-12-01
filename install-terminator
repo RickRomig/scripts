@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 16 Nov 2025
+# Updated      : 01 Dec 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,13 +41,13 @@ set -eu
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.2.25320"
+readonly version="7.2.25335"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="24 Oct 2025"
+	local -r updated="01 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Terminator terminal emulator
@@ -66,7 +66,7 @@ _HELP_
 }
 
 terminator_version() {
-  dpkg -l terminator | awk '/ii/ {print $3}' | sed 's/-.*//'
+  awk '/^ii/ {print $3}' <(dpkg -l terminator)
 }
 
 install_terminator() {
@@ -78,10 +78,10 @@ install_terminator() {
   printf "Terminator %s installed.\n" "$(terminator_version)"
   if bunsenlabs; then
     printf "BunsenLabs uses its own profiles based on the version of the distribution.\n"
-  else
-    apply_config
-    printf "Terminator %s configured.\n" "$(terminator_version)"
+    return
   fi
+  apply_config
+  printf "Terminator %s configured.\n" "$(terminator_version)"
 }
 
 remove_terminator() {
