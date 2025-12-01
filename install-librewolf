@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 01 Mar 2025
-# Updated      : 16 Nov 2025
+# Updated      : 01 Dec 2025
 # Comments     : instructions from https://librewolf.net/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.3.25320"
+readonly version="1.4.25335"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="24 Oct 2025"
+	local -r updated=" 01 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/removes LibreWolf browser.
@@ -63,7 +63,7 @@ _HELP_
 
 lw_version() {
 	# librewolf --version | awk '{print $NF}'
-	dpkg -l librewolf | awk '/ii/ {print $3}'
+	awk '/ii/ {print $3}' <(dpkg -l librewolf)
 }
 
 show_message() {
@@ -74,8 +74,6 @@ show_message() {
 check_extrepo() {
 	if exists extrepo; then
 		printf "extrepo [OK]\n"
-		# sleep 2
-		# printf '\e[A\e[K'
 	else
 		show_message "Updating cache and checking/installing extrepo..."
 		sudo apt update && sudo apt install extrepo -y
@@ -91,7 +89,7 @@ install_librewolf() {
 	check_extrepo
 	show_message "Installing LibreWolf..."
 	sudo apt update && sudo apt install librewolf -y
-	exist librewolf || die "LibreWolf installation failed." 1
+	exists librewolf || die "LibreWolf installation failed." 1
 	printf "LibreWolf browser version %s installed.\n" "$(lw_version)"
 }
 
