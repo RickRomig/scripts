@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Last updated : 01 Dec 2025
+# Last updated : 02 Dec 2025
 # Comments     : My default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,16 +38,17 @@ fi
 
 ## Functions ##
 
-get_home_uuid() {
+get_target_uuid() {
   local target_uuid
-  target_uuid=$(lsblk -f | awk '/home/ {print $4}')
-  [[ "$target_uuid" ]] || target_uuid=$(lsblk -f | awk '$NF ~ /\/$/ {print $4}')  # root partition if no /home partition
+  target_uuid=$(awk '/data/ {print $(NF-3)}' <(lsblk -f))
+  [[ "$target_uuid" ]] || target_uuid=$(awk '/home/ {print $(NF-3)}' <(lsblk -f)) # home partition if no data partition
+  [[ "$target_uuid" ]] || target_uuid=$(awk '/\/$/ {print $NF-3}' <(lsblk -f))  # root partition if no /home partition
   printf "%s" "$target_uuid"
 }
 
 configure_timeshift() {
   local ts_uuid script_dir
-  ts_uuid=$(get_home_uuid)
+  ts_uuid=$(get_target_uuid)
   script_dir=$(dirname "$(readlink -f "${0}")")
   local -r ts_dir="/etc/timeshift"
   local -r ts_json="timeshift.json"
@@ -73,7 +74,7 @@ install_timeshift() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.4.25296"
+  local -r version="3.4.25336"
   if exists timeeshift; then
     printf "%s is already installed.\n" "$(timeshift --version)"
   elif in_repos timeshift; then
