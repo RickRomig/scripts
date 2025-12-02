@@ -7,7 +7,7 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 16 Nov 2025
+# Updated      : 02 Dec 2025
 # Comments     : Install & remove for Deian-based systems only.
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
@@ -37,25 +37,22 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.18.25320"
+readonly version="1.19.25336"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="16 Nov 2025"
+	local -r updated="02 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs UFW on Debian, BunsenLabs, and MX Linux systems.
 UFW/GUFW is installed by default in Linux Mint, LMDE, and Ubuntu.
 
 ${green}Usage:${normal} $script [-adehinrs]
-
 ${orange}Available options:${normal}
   -a  Add rules for CUPS and SSH (XRDP if installed)
   -d  Delete rules
@@ -70,14 +67,16 @@ _HELP_
 }
 
 exists_xrdp() {
-  dpkg -l xrdp > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
+  grep -q '^ii' <(dpkg -l xrdp 2>/dev/null) && return "$TRUE" || return "$FALSE"
 }
 
 install_ufw() {
   printf "Installing UFW (Uncomplicated Firewall)...\n"
   sudo apt-get install ufw -yy
-  exists ufw || die "UFW installation failed." 1
-  printf "UFW installed.\n"
+  exists ufw || { printf "UFW installation failed.\n"; return; }
+  add_rules
+  enable_ufw
+  printf "UFW %s installed and configured.\n" "$(ufw_version)"
 }
 
 remove_ufw() {
@@ -141,7 +140,7 @@ main() {
   while getopts "$optstr" opt; do
     case "$opt" in
       a )
-        if dpkg -l | grep -qw ufw; then
+        if grep -q '^ii' <(dpkg -l ufw 2>/dev/null); then
           sudo_login 2
           add_rules
           ufw_active || enable_ufw
@@ -159,7 +158,7 @@ main() {
         fi
         ;;
       e )
-        if dpkg -l | grep -qw ufw; then
+        if grep -q '^ii' <(dpkg -l ufw 2>/dev/null); then
           sudo_login 2
           if ufw_active; then
             printf "UFW %s is enabled.\n" "$(ufw_version)"
@@ -175,18 +174,15 @@ main() {
         help 0
         ;;
       i )
-        if dpkg -l | grep -qw ufw; then
+        if grep -q '^ii' <(dpkg -l ufw 2>/dev/null); then
           printf "UFW %s is already installed.\n" "$(ufw_version)" >&2
         else
           sudo_login 2
           install_ufw
-          add_rules
-          enable_ufw
-          printf "UFW %s installed and configured.\n" "$(ufw_version)"
         fi
         ;;
       n )
-        if dpkg -l | grep -qw ufw; then
+        if grep -q '^ii' <(dpkg -l ufw 2>/dev/null); then
           sudo_login 2
           new_rules
         else
@@ -195,7 +191,7 @@ main() {
         ;;
       r )
         if debian_system; then
-          if dpkg -l | grep -qw ufw; then
+          if grep -q '^ii' <(dpkg -l ufw 2>/dev/null); then
             sudo_login 2
             remove_ufw
           else
@@ -206,7 +202,7 @@ main() {
         fi
         ;;
       s )
-        if dpkg -l | grep -qw ufw; then
+        if grep -q '^ii' <(dpkg -l ufw 2>/dev/null); then
           sudo_login 2
           printf "UFW %s\n" "$(ufw_version)"
           sudo ufw status numbered
