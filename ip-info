@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Feb 2019
-# Updated      : 05 Jul 2025
+# Updated      : 03 dec 2025
 # Comments     : Some systems require toot access to get ssid & signal strength.
 #              : If necesary, add applicable hostnames to requires_sudo().
 # TODO (rick)  : format printf statements for devices.
@@ -75,12 +75,12 @@ show_public() {
 show_wired() {
   # Assumes only one active ethernet wired interface in the system.
   local eth_int eth_state eth_ip eth_mac
-  eth_int=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
+  eth_int=$(awk '/ethernet/ {print $1}' <(/usr/bin/nmcli dev))
   if [[ "$eth_int" ]]; then
     # interface data
     eth_state=$(cat "/sys/class/net/$eth_int/operstate")
-    eth_ip=$(/usr/bin/nmcli dev show "$eth_int" | awk '/IP4.ADDRESS/ {print $NF}' | sed 's/\/24//')
-    eth_mac=$(/usr/bin/nmcli dev show "$eth_int" | awk '/GENERAL.HWADDR/ {print $NF}')
+    eth_ip=$(awk '/IP4.ADDRESS/ {print $NF}' <(/usr/bin/nmcli dev show "$eth_int") | sed 's/\/24//')
+    eth_mac=$(awk '/GENERAL.HWADDR/ {print $NF}' <(/usr/bin/nmcli dev show "$eth_int"))
     # display status
     printf "\t%sEthernet:%s " "$darkgray" "$normal"
     case "$eth_state" in
@@ -108,18 +108,18 @@ show_wired() {
 show_wireless() {
   # Assumes only one active wireless interface in the system.
   local wifi_int wifi_state wifi_ip wifi_mac wifi_ssid wifi_sig
-  wifi_int=$(/usr/bin/nmcli dev | awk '/wifi / {print $1}')
+  wifi_int=$(awk '/wifi / {print $1}' <(/usr/bin/nmcli dev))
   if [[ "$wifi_int" ]]; then
     # interface data
     wifi_state=$(cat "/sys/class/net/$wifi_int/operstate")
-    wifi_ip=$(/usr/bin/nmcli dev show "$wifi_int" | awk '/IP4.ADDRESS/ {print $NF}' | sed 's/\/24//')
-    wifi_mac=$(/usr/bin/nmcli dev show "$wifi_int" | awk '/GENERAL.HWADDR/ {print $NF}')
+    wifi_ip=$(awk '/IP4.ADDRESS/ {print $NF}' <(/usr/bin/nmcli dev show "$wifi_int") | sed 's/\/24//')
+    wifi_mac=$(awk '/GENERAL.HWADDR/ {print $NF}' <(/usr/bin/nmcli dev show "$wifi_int"))
     if requires_sudo; then
-      wifi_ssid=$(sudo /sbin/iw dev "$wifi_int" link | awk '/SSID/ {print $2}')
-      wifi_sig=$(sudo /sbin/iw dev "$wifi_int" link | awk '/signal/ {print $2,$3}')
+      wifi_ssid=$(awk '/SSID/ {print $2}' <(sudo /sbin/iw dev "$wifi_int" link))
+      wifi_sig=$(awk '/signal/ {print $2,$3}' <(sudo /sbin/iw dev "$wifi_int" link))
     else
-      wifi_ssid=$(/sbin/iw dev "$wifi_int" link | awk '/SSID/ {print $2}')
-      wifi_sig=$(/sbin/iw dev "$wifi_int" link | awk '/signal/ {print $2,$3}')
+      wifi_ssid=$( awk '/SSID/ {print $2}' <(/sbin/iw dev "$wifi_int" link))
+      wifi_sig=$(awk '/signal/ {print $2,$3}' <(/sbin/iw dev "$wifi_int" link))
     fi
     [[ "$wifi_ssid" ]] || wifi_ssid="Not available"
     [[ "$wifi_sig" ]] || wifi_sig="Not available"
@@ -151,13 +151,13 @@ show_wireless() {
 
 show_bridge() {
   local br_int br_state br_ip br_mac br_route
-	br_int=$(/usr/bin/nmcli dev | awk '/bridge / {print $1}')
+	br_int=$(awk '/bridge / {print $1}' <(/usr/bin/nmcli dev))
 	if [[ "$br_int" ]]; then
     # interface data
     br_state=$(cat "/sys/class/net/$br_int/operstate")
-    br_ip=$(ip addr show | awk '/vir/ && /brd/ {print $2}')
+    br_ip=$(awk '/vir/ && /brd/ {print $2}' <(ip addr show))
     br_mac=$(cat "/sys/class/net/$br_int/address")
-    br_route=$(ip route show | awk '/vir/ && /kernel/ {print $1}')
+    br_route=$(awk '/vir/ && /kernel/ {print $1}' <(ip route show))
     # display status
     printf "\t%sBridge:%s   " "$darkgray" "$normal"
     case "$br_state" in
@@ -185,25 +185,25 @@ show_bridge() {
 
 show_network() {
   local network_addr
-  network_addr=$(/sbin/ip route show | grep -w kernel -m 1 | cut -d' ' -f1)
+  network_addr=$(grep -w kernel -m 1 <(ip route show) | cut -d' ' -f1)
   printf "%sLocal Network:%s\n" "$orange" "$normal"
   printf "\t%s\n" "$network_addr"
 }
 
 show_gateway() {
   printf "%sDefault Gateway:%s\n" "$orange" "$normal"
-  /sbin/ip route get 1.2.3.4 | awk 'NR==1 {print "\t"$3}'
+  awk 'NR==1 {print "\t"$3}' <(ip route get 1.2.3.4)
 }
 
 show_dns() {
   printf "%sDNS Servers:%s\n" "$orange" "$normal"
-  /usr/bin/nmcli dev show | awk '/IP4.DNS/ {print "\t"$NF}' | sort -u
+  awk '/IP4.DNS/ {print "\t"$NF}' <(/usr/bin/nmcli dev show) | sort -u
 }
 
 main() {
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r script="${0##*/}"
-  local -r version="2.20.25194"
+  local -r version="3.0.25337"
   requires_sudo "$lhost" && sudo_login 2
   check_dependencies
   clear
