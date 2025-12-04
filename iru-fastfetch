@@ -97,10 +97,7 @@ compare_versions() {
 install_fastfetch(){
 	local new_ver="$1"
   local -r new_pkg="fastfetch-linux-amd64.deb"
-  if [[ -z "$new_ver" ]]; then
-    printf "No download available. Try again later." >&2
-    return
-  fi
+	[[ -z "$new_ver" ]] && die "No download available. Try again later." 1
 	sudo_login 2
   printf "Downloading FastFetch %s from the fastfetch-cli GitHub repository..." "$new_ver"
   dots "."
