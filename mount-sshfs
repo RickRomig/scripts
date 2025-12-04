@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 25 Nov 2025
+# Updated      : 04 Dec 2025
 # Comments     : Mount points are at ~/mnt/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,13 +39,13 @@ fi
 ## Glonal Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.0.25329"
+readonly version="5.1.25338"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="25 Nov 2025"
+	local -r updated="04 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated $updated
 Mounts/Unmounts an SSHFS share.
@@ -109,7 +109,7 @@ unmount_share() {
 
 mounted() {
 	local share="$1"
-	mount | grep -q "$share" && return "$TRUE" || return "$FALSE"
+	grep -q "$share" <(mount) && return "$TRUE" || return "$FALSE"
 }
 
 handle_mount() {
