@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 20 Nov 2025
+# Updated      : 03 Dec 2025
 # Comments     : Debian 13 & LMDE 7 installs version 2.0.14 from repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,19 +36,17 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.13.25324"
+readonly version="6.14.25337"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="20 Nov 2025"
+	local -r updated="03 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -72,54 +70,43 @@ cleanup() {
 }
 
 micro_version() {
-  micro -version | awk '/Version:/ {print $NF}'
+  awk '/Version:/ {print $NF}' <(micro -version)
 }
 
 newest_version() {
-  # check_package wget
   wget -qO "$tmp_file" "$gh_url"
-  # set -x
   new_ver=$(awk -F'/' '/download/ && /linux/ {print $6;exit}' "$tmp_file" | grep -Ev 'beta|-rc' | sed 's/^v//')
   echo "$new_ver"
-  # set +x
 }
 
 compare_versions() {
-	# set -x
   local new_ver="$1"
   local cur_ver
   cur_ver=$(micro_version)
   if [[ -z "$new_ver" ]]; then
-    printf "No download available. Try again later." >&2
+    printf "No download available. Try again later.\n" >&2
     return
   elif [[ ! "$new_ver" > "$cur_ver" ]]; then
     printf "%sMicro %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
     return
   fi
   printf "%sInstalled version of Micro is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-  # set +x
   install_micro "$new_ver"
 }
 
 install_micro() {
   local new_ver="$1"
   local new_pkg="micro-${new_ver}-linux64.tar.gz"
-  if [[ -z "$new_ver" ]]; then
-    printf "No download available. Try again later." >&2
-    return
-  fi
+  [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
   sudo_login 2
   printf "Downloading Micro %s from the zyedidia GitHub repository..." "$new_ver"
-  # dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
-  # kill "$!"; printf "done\n"; tput cnorm
   printf "Installing Micro %s...\n" "$new_ver"
   tar -xzvf "$tmp_dir/$new_pkg" -C "$tmp_dir/"
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro /usr/bin/
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro.1 /usr/share/man/man1/
   exists xclip || sudo apt-get install -y xclip
   exists micro || die "Micro installation failed!" 1
-  micro_configs
   printf "Micro %s installed.\n" "$(micro_version)"
 }
 
@@ -127,8 +114,6 @@ remove_micro() {
   cur_ver=$(micro_version)
   sudo_login 2
   printf "Removing the Micro CLI text editor...\n"
-  # dpkg -l micro > /dev/null 2>&1 | grep '^ii' && sudo apt-get remove micro
-  # sudo dpkg --remove micro
   if [[ -x /usr/bin/micro ]]; then
     sudo rm -v /usr/bin/micro
     sudo rm -v /usr/share/man/man1/micro.1
@@ -185,17 +170,18 @@ main() {
           new_ver="$(newest_version)"
           printf "%sInstalling Micro version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
           install_micro "$new_ver"
+          micro_configs
         fi
         ;;
       r )
-        if  exists micro; then
+        if exists micro; then
           remove_micro
         else
           printf "Micro is not installed.\n" >&2
         fi
         ;;
       u )
-        if  exists micro; then
+        if exists micro; then
           tmp_file=$(mktemp) || die "Failed to create temporary file." 1
           tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
           trap cleanup EXIT
