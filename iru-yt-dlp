@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 16 Nov 2025
+# Updated      : 03 Dec 2025
 # Comments     : Removes distro repo version if installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -42,13 +42,13 @@ set -eu
 
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="2.6.25320"
+readonly version="2.7.25337"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="16 Nov 2025"
+	local updated="03 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, removes, updates YouTube-dlp.
@@ -70,7 +70,7 @@ check_dependencies() {
 }
 
 ytdlp_deb() {
-	dpkg -l yt-dlp 2>/dev/null && return "$TRUE" || return "$FALSE"
+	grep -q '^ii' <(dpkg -l yt-dlp 2>/dev/null) && return "$TRUE" || return "$FALSE"
 }
 
 ytdlp_bin() {
@@ -82,7 +82,7 @@ ytdlp_version() {
 }
 
 deb_version() {
-	ytdlp_deb && dpkg -l yt-dlp | awk '/ii/ {print $3}' | sed 's/[+-].*//'
+	ytdlp_deb && awk '/^ii/ {print $3}' <(dpkg -l yt-dlp)
 }
 
 update_ytdlp() {
