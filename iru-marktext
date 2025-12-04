@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 16 Nov 2025
+# Updated      : 03 Dec 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.19.320"
+readonly version="4.20.25337"
 readonly gh_url="https://github.com/marktext/marktext/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="16 Nov 2025"
+	local -r updated="03 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, removes the Mark Text markdown editor.
@@ -69,7 +69,7 @@ cleanup() {
 }
 
 marktext_version() {
-  dpkg -l marktext | awk '/ii/ {print $3}'
+  awk '/^ii/ {print $3}' <(dpkg -l marktext)
 }
 
 newest_version() {
@@ -84,7 +84,7 @@ compare_versions() {
   new_ver="$1"
   cur_ver=$(marktext_version)
   if [[ -z "$new_ver" ]]; then
-    printf "No download available. Try again later." >&2
+    printf "No download available. Try again later.\n" >&2
     return
   elif [[ ! "$new_ver" > "$cur_ver" ]]; then
     printf "%sMarktext %s is the latest version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
@@ -97,10 +97,7 @@ compare_versions() {
 install_marktext() {
   local new_ver="$1"
   local -r new_pkg="marktext-amd64.deb"
-  if [[ -z "$new_ver" ]]; then
-    printf "No download available. Try again later." >&2
-    return
-  fi
+  [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
   printf "Downloading Mark Text markdown editor (v %s) from the marktext GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
@@ -108,8 +105,7 @@ install_marktext() {
   sudo_login 2
   printf "Installing Mark Text %s...\n" "$new_ver"
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
-  exist markktext || die "Marktext installation failed!" 1
-  marktext_config
+  exists markktext || die "Marktext installation failed!" 1
   printf "Mark Text %s installed.\n" "$(marktext_version)"
 }
 
@@ -155,6 +151,7 @@ main() {
           new_ver="$(newest_version)"
           printf "%sInstalling MarkText version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
           install_marktext "$new_ver"
+          marktext_config
         fi
         ;;
       r )
