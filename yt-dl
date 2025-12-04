@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 22 Jul 2025
+# Updated      : 04 Dec 2025
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to selected directory under ~/Videos/
 # TODO (Rick)  :
@@ -40,8 +40,8 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.1.25203"
-readonly updated="22 Jul 2025"
+readonly version="7.2.25338"
+readonly updated="04 Dec 2025"
 FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
@@ -112,7 +112,7 @@ check_dependencies() {
 extract_domain() {
   local domain fullurl
   fullurl="$1"
-  domain=$(echo "$fullurl" | sed 's|^[^/]*//||;s|^www\.||;s|/.*$||;s|\..*$||')
+  domain=$(sed 's|^[^/]*//||;s|^www\.||;s|/.*$||;s|\..*$||' <(echo "$fullurl"))
   printf "%s" "$domain"
 }
 
