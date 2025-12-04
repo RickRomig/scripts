@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 16 Nov 2025
+# Updated      : 04 Dec 2025
 # Comments     : Based on a script by Joe Collins.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,13 +38,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.0.25320"
+readonly version="7.1.25338"
 
 ## Funtions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="16 Nov 2025"
+	local updated="04 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs laptop-specific utlities.
@@ -71,44 +71,44 @@ _INTRO_
 }
 
 install_thermald() {
-  if [[ -f /usr/sbin/thermald ]]; then
+  if grep -q '^ii' <(dpkg -l thermald 2>/dev/null); then
     printf "Thermald is already installed.\n"
-  else
-    sudo apt-get install thermald -yy
-    printf "Thermald installed.\n"
+    return
   fi
+  sudo apt-get install thermald -yy
+  printf "Thermald installed.\n"
 }
 
 install_acpi() {
   if exists acpi; then
     printf "ACPI is already installed.\n"
-  else
-    sudo apt-get install acpi -yy
-    printf "ACPI installed.\n"
+    return
   fi
+  sudo apt-get install acpi -yy
+  printf "ACPI installed.\n"
 }
 
 install_tlp() {
-  if [[ -f /usr/sbin/tlp ]]; then
+  if grep -q '^ii' <(dpkg -l tlp 2>/dev/null); then
     echo "TLP is already installed."
-  else
-    sudo apt-get install tlp tlp-rdw -yy
-    start_tlp_service
-    printf "TLP installed.\n"
+    return
   fi
+  sudo apt-get install tlp tlp-rdw -yy
+  start_tlp_service
+  printf "TLP installed.\n"
 }
 
 tlp_status() {
   local status=1
-  if [[ -f /usr/sbin/tlp ]]; then
-    is_systemd && { systemctl status tlp | grep -qw active && status=0; }
-    is_sysv && { tlp-stat -s | grep -qw enabled && status=0; }
-    if [[ "$status" -eq 1 ]]; then
-      printf "Starting TLP service\n"
-      start_tlp_service
-    else
+  if grep -q '^ii' <(dpkg -l tlp 2>/dev/null); then
+    is_systemd && { grep -qw active <(systemctl status tlp) && status=0; }
+    is_sysv && {  grep -qw enabled <(tlp-stat -s) && status=0; }
+    if [[ "$status" -eq 0 ]]; then
       printf "TLP service is active and running.\n"
+      return
     fi
+    printf "Starting TLP service\n"
+    start_tlp_service
   else
     printf "TLP is not installed.\n"
   fi
@@ -132,9 +132,9 @@ start_tlp_service() {
 
 installed_utils() {
   printf "Installed utilities:\n"
-  [[ -f /usr/sbin/thermald ]] && printf "%12s\n" "Thermald"
+  grep -q '^ii' <(dpkg -l thermald 2>/dev/null) && printf "%12s\n" "Thermald"
   exists acpi && printf "%8s\n" "ACPI"
-  [[ -f /usr/sbin/tlp ]] && printf "%7s\n" "TLP"
+  grep -q '^ii' <(dpkg -l tlp 2>/dev/null) && printf "%7s\n" "TLP"
   exists tlp-rdw && printf "%11s\n" "TLP-RDW"
 }
 
