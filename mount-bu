@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, 04 Jul 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2022
-# Updated      : 16 Nov 2025
+# Updated      : 04 Dec 2025
 # Comments     : For use with BU backup script.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.19.25320"
+readonly version="2.20.25338"
 readonly mount_point="/media/$USER/BU_Drive"
 
 ## Functions ##
@@ -47,7 +47,7 @@ readonly mount_point="/media/$USER/BU_Drive"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="16 Nov 2025"
+	updated="04 Dec 2025"
 	cat << _HELP_
   ${orange}$script${normal} $version, Updated $updated
   Mounts/Unmounts USB backup drive for the BU script.
@@ -68,7 +68,7 @@ _HELP_
 
 mount_bu() {
   local usbdrv
-  usbdrv="$(lsblk -fs | awk '/BU_Drive/ {print $1}')"
+  usbdrv="$(lsblk -fs | awk '/BU_Drive/ {print $1}')" # do not use process substitution
   sudo_login 2
   printf "Mounting backup drive: /dev/%s to %s ...\n" "$usbdrv" "$mount_point"
   [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
@@ -79,7 +79,7 @@ mount_bu() {
 
 umount_bu() {
   local usbdrv
-  usbdrv=$(mount | awk '/BU_Drive/ {print $1}')
+  usbdrv=$(awk '/BU_Drive/ {print $1}' <(mount))
   sudo_login 2
   printf "Unmounting USB Backup drive at %s ...\n" "$mount_point"
   sudo umount "$mount_point"
