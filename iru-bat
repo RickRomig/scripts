@@ -104,10 +104,7 @@ compare_versions() {
 install_bat() {
   local new_ver="$1"
   local new_pkg="bat_${new_ver}_amd64.deb"
-  if [[ -z "$new_ver" ]]; then
-    printf "No download available. Try again later.\n" >&2
-    return
-  fi
+  [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
   printf "Downloading Bat %s from the sharkdp GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
