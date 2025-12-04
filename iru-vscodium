@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2022
-# Updated      : 16 Nov 2025
+# Updated      : 03 Dec 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.1.25320"
+readonly version="3.2.25337"
 readonly gh_url="https://github.com/VSCodium/vscodium/releases"
 
 ## Functions ##
@@ -47,7 +47,7 @@ readonly gh_url="https://github.com/VSCodium/vscodium/releases"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="16 Nov 2025"
+	updated="03 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates,  removes the VSCodium editor.
@@ -70,7 +70,7 @@ cleanup() {
 }
 
 codium_version() {
-	dpkg -l  codium | awk '/ii/ {print $3}'
+	awk '/^ii/ {print $3}' <(dpkg -l  codium)
 }
 
 newest_version() {
@@ -85,7 +85,7 @@ compare_versions() {
   local cur_ver
   cur_ver=$(dpkg -l codium 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//')
   if [[ -z "$new_ver" ]]; then
-    printf "No download available. Try again later." >&2
+    printf "No download available. Try again later.\n" >&2
     return
   elif [[ ! "$new_ver" > "$cur_ver" ]]; then
     printf "%sVSCodium %s is the latest version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
@@ -98,10 +98,7 @@ compare_versions() {
 install_vscodium() {
   local new_ver="$1"
   local new_pkg="codium_${new_ver}_amd64.deb"
-  if [[ -z "$new_ver" ]]; then
-    printf "No download available. Try again later." >&2
-    return
-  fi
+  [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
   printf "Downloading VSCodium %s from the VSCodium GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
@@ -110,7 +107,6 @@ install_vscodium() {
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
   exists codium || die "VSCodium installation failed!" 1
-  apply_settings
   printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 }
 
