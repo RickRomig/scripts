@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Nov 2018
-# Updated      : 23 Jul 2025
+# Updated      : 04 Dec 2025
 # Comment      :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -44,7 +44,7 @@ num_files() {
 	cur_dir="${PWD//$\/}"
 	ndirs=$(find . -type d | wc -l)
 	nfiles=$(find . -type f | wc -l)
-	size=$(du -ch | awk '$2 == "total" {print $1}')
+	size=$(awk '$2 == "total" {print $1}' <(du -ch))
 
 	printf "Directory: %s\n" "$cur_dir"
 	printf "%'d " "$nfiles"
@@ -58,7 +58,7 @@ num_files() {
 
 main() {
 	local script="${0##*/}"
-	local version="4.0.25204"
+	local version="4.1.25338"
 	num_files
 	over_line "$script $version"
 	exit
