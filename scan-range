@@ -75,7 +75,7 @@ scan_range() {
 	ip1="$1"
 	ip2="$2"
 	for (( ip=ip1; ip<=ip2; ip++ )); do
-		if arping -c 1 "$LOCALNET.$ip" | grep -E "0 response|0 packets received" > /dev/null; then
+		if grep -E "0 response|0 packets received" <(arping -c 1 "$LOCALNET.$ip") > /dev/null; then
 			printf "%s.%s didn't respond.\n" "$LOCALNET" "$ip"
 		else
 			printf "%s.%s responded.\n" "$LOCALNET" "$ip"
