@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 01 Nov 2025
+# Last updated : 05 Dec 2025
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,13 +39,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.0.25305"
+readonly version="4.0.25339"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="01 Nov 2025"
+	local -r updated="05 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Create symbolic links from configs and scripts repos and add tweaks to system settings.
@@ -174,8 +174,8 @@ no_snaps() {
 		printf "Snap packages have already been disabled.\n"
 		retunn
 	fi
-		printf "Disabling installation of Snapd and Snap packages...\n"
-		sudo cp -v "$repo_dir"/apt/nosnap.pref /etc/apt/preferences.d/
+	printf "Disabling installation of Snapd and Snap packages...\n"
+	sudo cp -v "$repo_dir"/apt/nosnap.pref /etc/apt/preferences.d/
 }
 
 # Add tweaks to /etc/sudoers.d directory and set swappiness
