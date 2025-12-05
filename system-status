@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018,Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Nov 2018
-# Updated      : 18 Nov 2025
+# Updated      : 05 Dec 2025
 # Comments     : Inspired by Joe Collins and Luke Smith
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -127,7 +127,7 @@ sata_temperature() {
 
 disk_usage() {
 	printf "\n%sDisk usage:%s\n" "$orange" "$normal"
-  /usr/bin/df -hT -x fuse.portal | sed -n '1p;/^\//p'
+  sed -n '1p;/^\//p' <(/usr/bin/df -hT -x fuse.portal)
   # '-x fuse.portal' to eliminate 'df: /run/user/1000/doc: Operation not permitted' error
 }
 
@@ -141,8 +141,8 @@ show_header() {
 
 show_footer() {
   local script="${0##*/}"
-  local -r version="6.11.25322"
-  printf "\n%sUp since:%s %s (%s)\n" "$orange" "$normal" "$(/usr/bin/who -b | awk '{print $(NF-1),$NF}')" "$(/usr/bin/uptime -p | cut -d' ' -f2-)"
+  local -r version="6.12.25339"
+  printf "\n%sUp since:%s %s (%s)\n" "$orange" "$normal" "$(awk '{print $(NF-1),$NF}' <(/usr/bin/who -b))" "$(cut -d' ' -f2- <(/usr/bin/uptime -p))"
   over_line "$script $version"
   exit
 }
