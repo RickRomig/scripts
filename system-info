@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 08 Nov 2025
+# Updated:     : 04 Dec 2025
 # Comments     : Should be run locally, not remotely.
 #              : Will not get desktop session info in an SSH connection.
 # TODO (Rick)  :
@@ -74,7 +74,8 @@ send_to_main() {
 
 rename_mnt_pt() {
   local ts_drv _opt
-  ts_drv=$(mount | awk '/timeshift/ {print $3}' | cut -d' ' -f1)
+  # ts_drv=$(mount | awk '/timeshift/ {print $3}' | cut -d' ' -f1)
+  ts_drv=$(awk '/timeshift/ {print $3}' <(mount))
   printf "\nRename the mountpoint for %s to:\n" "$ts_drv"
   PS3="Select the appropriate mountpoint: "
   select _opt in "/home" "/data" "/ (root)" "/run/timeshift/backup"; do
@@ -89,7 +90,7 @@ rename_mnt_pt() {
         break ;;
       3 )
         sed -i '/timeshift/s/run\/timeshift\/backup//' "$tmp_file"
-        printf "%s mountpoint changed to /]n" "$ts_drv"
+        printf "%s mountpoint changed to /\n" "$ts_drv"
         break ;;
       4 )
         printf "%s mountpoint left as is." "$ts_drv"
@@ -143,7 +144,7 @@ os_info() {
   local desktop root_part created_date
   desktop="$DESKTOP_SESSION"
   [[ "$desktop" == "bunsenlabs" || "$desktop" == "lightdm-xsession" ]] && desktop=$(wmctrl -m | awk '/Name/ {print $2}')
-  root_part=$(df -P | awk '$NF == "/" {print $1}')
+  root_part=$(awk '$NF == "/" {print $1}' <(df -P))
 	created_date=$(sudo /usr/sbin/tune2fs -l "$root_part" | awk '/created:/ {print $(NF-2),$(NF-3),$NF}')
 	printf "\n%-19s %s\n" "Operating System:" "$(uname -o)"
 	printf "%-19s %s\n" "Distribution:" "$(get_distribution)"
@@ -153,9 +154,9 @@ os_info() {
 
 cpu_info() {
   local arch model threads
-  model=$(/usr/bin/lscpu | awk -F: '/Model name:/ {print $NF}' | sed 's/^[[:space:]]//g;s/([^)]*)//g')
-  arch=$(/usr/bin/lscpu | awk '/Architecture:/ {print $NF}')
-  threads=$(/usr/bin/lscpu | awk 'NR == 5 {print $NF}')
+  model=$(awk -F: '/Model name:/ {print $NF}' <(/usr/bin/lscpu) | sed 's/^[[:space:]]*//g;s/([^)]*)//g')
+  arch=$(awk '/Architecture:/ {print $NF}' <(/usr/bin/lscpu))
+  threads=$(awk 'NR == 5 {print $NF}' <(/usr/bin/lscpu))
 	printf "\n%-9s %s, %s, %s threads \n" "CPU:" "$model" "$arch" "$threads"
 }
 
@@ -170,7 +171,7 @@ memory_info() {
 }
 
 graphics_info() {
-	printf "%-9s %s\n" "Graphics:" "$(/usr/bin/lspci | awk -F: '/VGA/ {print $NF}' | sed 's/^ //')"
+	printf "%-9s %s\n" "Graphics:" "$( awk -F: '/VGA/ {print $NF}' <(/usr/bin/lspci) | sed 's/^ //')"
 }
 
 mac_mfgr() {
@@ -187,7 +188,7 @@ wired_info() {
   local eth_int ethernet_dev e_mac e_man
 	eth_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: e/ {print $NF}')
 	if [[ "$eth_int" ]]; then
-		ethernet_dev=$(/usr/bin/lspci | awk -F: '/Ethernet controller/ {print $NF}' | sed 's/^ //')
+		ethernet_dev=$(awk -F: '/Ethernet controller/ {print $NF}' <(/usr/bin/lspci) | sed 's/^ //')
 		e_mac=$(< /sys/class/net/"${eth_int}"/address)
 		e_man=$(mac_mfgr "$e_mac")
 		printf "\nEthernet: %s\n" "$ethernet_dev"
@@ -199,7 +200,7 @@ wireless_info() {
   local wifi_int wireless_dev w_mac w_man
 	wifi_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: w/ {print $NF}')
 	if [[ "$wifi_int" ]]; then
-		wireless_dev=$(/usr/bin/lspci | awk -F: '/Network controller/ {print $NF}' | sed 's/^ //')
+		wireless_dev=$(awk -F: '/Network controller/ {print $NF}' <(/usr/bin/lspci) | sed 's/^ //')
 		w_mac=$(< /sys/class/net/"${wifi_int}"/address)
 		w_man=$(mac_mfgr "$w_mac")
 		printf "\nWireless: %s\n" "$wireless_dev"
@@ -212,17 +213,17 @@ ssd_hd_info() {
 	printf "\nHard Disk Information:\n"
 	for disk in /dev/sd[a-z]; do
 		sudo hdparm -I "${disk}" 2>/dev/null | tee "$hd_data" > /dev/null
-    printf "%s\n" "$(grep -w dev "$hd_data" | sed 's/\/dev\///;s/:$//')"
-    model="$(awk -F: '/Model/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
+    printf "%s\n" "$(sed 's/\/dev\///;s/:$//' <(grep -w dev "$hd_data"))"
+    model="$(sed 's/^ *//g' <(awk -F: '/Model/ {print $NF}' "$hd_data"))"
     vendor="$(get_vendor "$model")"
     printf "   %-15s%s\n" "Vendor:" "$vendor"
     printf "   %-15s%s\n" "Model Number:" "$model"
-    printf "   %-15s%s\n" "Serial Number:" "$(awk -F: '/Serial N/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
+    printf "   %-15s%s\n" "Serial Number:" "$(sed 's/^ *//g' <(awk -F: '/Serial N/ {print $NF}' "$hd_data"))"
     printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | tr -d '()')" # sed 's/[)(]//g')"
-    hd_ff=$(awk -F: '/Form Factor/ {print $NF}' "$hd_data" | sed 's/^ //')
+    hd_ff=$(sed 's/^ //' <(awk -F: '/Form Factor/ {print $NF}' "$hd_data"))
     [[ "$hd_ff" ]] || hd_ff=$(ff_fix)
     printf "   %-15s%s" "Form Factor:" "$hd_ff"
-    hd_rpm=$(awk -F: '/Rotation/ {print $NF}' "$hd_data" | sed 's/^ //')
+    hd_rpm=$(sed 's/^ //' <(awk -F: '/Rotation/ {print $NF}' "$hd_data"))
     case "$hd_rpm" in
       [0-9]* ) printf " %s-rpm Hard Disk Drive\n" "$hd_rpm" ;;
       * ) printf " %s\n" "$hd_rpm"
@@ -265,9 +266,9 @@ get_vendor() {
 		[ST]="Seagate"
 		[WD]="Western Digital"
 	)
-  model="$(echo "$model" | sed 's/[[:space:]]*$//')"
-  [[ "$model" =~ [[:space:]]+ ]] && model="$(echo "$model" | cut -d' ' -f2)"
-  id="$(echo "$model" | cut -c1-2)"
+  model="$(sed 's/[[:space:]]*$//' <(echo "$model"))"
+  [[ "$model" =~ [[:space:]]+ ]] && model="$(cut -d' ' -f2 <(echo "$model"))"
+  id="$(cut -c1-2 <(echo "$model"))"
 	printf "%s" "${vendor_list[$id]}"
 }
 
@@ -283,13 +284,13 @@ battery_info() {
   if [[ "$battery_name" ]]; then
     battery_path="/sys/class/power_supply/$battery_name"
     battery_data=$(< "$battery_path"/uevent)
-    battery_serial=$(echo "$battery_data" | awk -F= '/SERIAL/ {print $NF}')
+    battery_serial=$(awk -F= '/SERIAL/ {print $NF}' <(echo "$battery_data"))
     [[ -z "$battery_serial" || "$battery_serial" == " " ]] && battery_serial="Not specified"
     printf "%s\n" "$battery_name"
-    printf "   %-15s%s\n" "Manufacturer:" "$(echo "$battery_data" | awk -F= '/MANUFACTURER/ {print $NF}' | sed 's/^ //')"
-    printf "   %-15s%s\n" "Model name:" "$(echo "$battery_data" | awk -F= '/MODEL/ {print $NF}')"
+    printf "   %-15s%s\n" "Manufacturer:" "$(awk -F= '/MANUFACTURER/ {print $NF}' <(echo "$battery_data") | sed 's/^ //')"
+    printf "   %-15s%s\n" "Model name:" "$(awk -F= '/MODEL/ {print $NF}' <(echo "$battery_data"))"
     printf "   %-15s%s\n" "Serial number:" "$battery_serial"
-    printf "   %-15s%s\n" "Technology:" "$(echo "$battery_data" | awk -F= '/TECHNOLOGY/ {print $NF}')"
+    printf "   %-15s%s\n" "Technology:" "$(awk -F= '/TECHNOLOGY/ {print $NF}' <(echo "$battery_data"))"
   else
     printf "No battery detected\n"
   fi
@@ -297,7 +298,7 @@ battery_info() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.3.25312"
+  local -r version="5.0.25338"
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r info_file="$HOME/$lhost.info"
 
