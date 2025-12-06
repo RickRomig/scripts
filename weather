@@ -120,7 +120,7 @@ current_wx() {
   local wx_loc="$2"
   local url="$url/${wx_loc}?format=j1"
   json=$(curl -s "$url")
-  echo "$json" | grep -q 'Unknown location' && { echo "Location data not available from http://wttr.in. Try again later."; return 1; }
+  grep -q 'Unknown location' <(echo "$json") && { echo "Location data not available from http://wttr.in. Try again later."; return 1; }
 
   # Location data
   city=$(echo "$json"|jq -r ."nearest_area[0]|(.areaName[0].value)")
@@ -158,8 +158,8 @@ current_wx() {
     printf "%sLat/Long:%s %s, %s\n\n" "$green" "$normal" "$latitude" "$longitude"
     printf "%sCurrent conditions:%s\n" "$green" "$normal"
     printf "%15s: %s\n" "Atomosphere" "$description"
-    printf "%15s: %s%s\U2109 / %s\U2103 %s\n" "Temperature" "$tcolor" "$temp_F" "$temp_C" "$normal"
-    printf "%15s: %s%s\U2109 / %s\U2103 %s\n" "Feels like" "$fcolor" "$feels_F" "$feels_C" "$normal"
+    printf "%15s: %s%s\U2109 /%s\U2103 %s\n" "Temperature" "$tcolor" "$temp_F" "$temp_C" "$normal"
+    printf "%15s: %s%s\U2109 /%s\U2103 %s\n" "Feels like" "$fcolor" "$feels_F" "$feels_C" "$normal"
     printf "%15s: %s%s - %s%s\n" "UV index" "$ucolor" "$uv_index" "$uvwarn" "$normal"
     printf "%15s: %s%%\n" "Humidity" "$humidity"
     printf "%15s: %s inches\n" "Barometer" "$pressure"
