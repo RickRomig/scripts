@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 09 Oct 2025
+# Updated      : 06 Oct 2025
 # Comments     : Run as a user cron job.
 #              : Trash directory does not exist until a file is moved to the trash.
 # TODO (Rick)  :
@@ -62,7 +62,7 @@ empty_trash() {
 
 main() {
   local script="${0##*/}"
-  local version="4.7.25282"
+  local version="4.8.25340"
   local lhost="${HOSTNAME:-$(hostname)}"
 	local trash_dir=~/.local/share/Trash
 	local log_dir=~/.local/share/logs
