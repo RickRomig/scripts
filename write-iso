@@ -2,14 +2,14 @@
 ##########################################################################
 # Script Name  : write-iso
 # Description  : Copies an ISO file to a USB drive using dd
-# Dependencies : fzf (optional), zenity (optional)
+# Dependencies : fzf
 # Arguments    : see help function
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 16 Nov 2025
+# Updated      : 06 Dec 2025
 # Comments     : Testing indicates USB drive need to be mounted.
-#              : Works with fuzzy finder (fzf) or zenity, if installed.
+#              : Works with fuzzy finder (fzf).
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
 #              : After a dryrun, USB drive will remain unmounted.
 # TODO (Rick)  :
@@ -42,7 +42,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.3.25320"
+readonly version="7.4.25340"
 user=$(whoami); readonly user
 dryrun="$FALSE"
 FMENU="fzf --header=$script \
@@ -63,7 +63,7 @@ FMENU="fzf --header=$script \
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="16 Nov 2025"
+	updated="06 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
@@ -131,7 +131,7 @@ list_usb_contents() {
 	local drvlabel usbdevice usbpart
 	usbdevice="$1"
 	usbpart="${usbdevice}1"
-	drvlabel=$(lsblk | grep "$usbpart" | cut -d'/' -f4- )
+	drvlabel=$(grep "$usbpart" <(lsblk) | cut -d'/' -f4- )
   printf "\nContents of /dev/%s:\n" "$usbpart"
 	printf "Disk label: %s\n" "$drvlabel"
   ls -F "/media/$user/$drvlabel"
@@ -171,8 +171,8 @@ write_iso() {
 
 	# Mount selected USB drive if not already mounted.
 	usbpart="${usbdevice}1"
-	if mount | grep -q "$usbpart" > /dev/null 2>&1; then
-		mount_name=$(lsblk | grep "$usbpart" | cut -d'/' -f4- )
+	if grep -q "$usbpart" <(mount) > /dev/null 2>&1; then
+		mount_name=$(grep "$usbpart" <(lsblk) | cut -d'/' -f4- )
 	else
 		sudo_login 2
 		mount_name="$(date +%y%b%d)"
@@ -188,7 +188,7 @@ write_iso() {
 		if yes_or_no "Write ${isofile##*/} to /dev/$usb_device?"; then
 			sudo_login 2
 			write_dd "$isofile" "$usbdevice" "$mount_name"
-			mount | grep -q "/dev/$usbpart" > /dev/null 2>&1 && unmount_usb "$mount_name" "$usbpart"
+			grep -q "/dev/$usbpart" <(moundt) > /dev/null 2>&1 && unmount_usb "$mount_name" "$usbpart"
 		else
 			printf "Operation canceled. No action taken.\n"
 		fi
