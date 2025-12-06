@@ -7,7 +7,7 @@
 # Author       : Copyright © 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Jan 2022
-# Updated      : 21 Jul 2025
+# Updated      : 06 Dec 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,42 +36,45 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Functions ##
 
 get_wifi_interface() {
   local wifi_int
-  wifi_int=$(ip addr show | awk '/: wl/ {print $2}' | sed 's/:$//')
+  wifi_int=$(awk -F: '/wl/ {print $2}' <(ip addr show))
   echo "$wifi_int"
 }
 
 get_ip_address() {
   local wifi_ip wifi_int
-  wifi_int="$1"
-  wifi_ip=$(/sbin/ip -o -4 addr show | awk -v name="$wifi_int" '$0~name {print $4}')
+  wifi_ip=$(awk '/wl/ {print $4}' <(ip -o -4 addr show) | cut -d'/' -f1)
   echo "$wifi_ip"
+}
+
+wifi_down() {
+  local wifi_int wifi_ip
+  wifi_int="$1"
+  printf "No wireless IP address found. Is %s up?\n" "$wifi_int"
+  printf "Checking if interface is down and trying to bring it up if not.\n"
+  grep 'DOWN' <(/sbin/ip link show "$wifi_int") && sudo /sbin/ip link set "$wifi_int" up
+  printf "Checking again. If down, check if device is toggled on.\n"
+  grep 'DOWN' <(/sbin/ip link show "$wifi_int") && printf "Make sure WiFi is toggled on.\n" >&2
+  wifi_ip=$(get_ip_address)
+  if [[ "$wifi_ip" ]]; then
+    printf "Wireless IP - %s\n" "$wifi_ip"
+  else
+    printf "No IP address found. Begin troubleshooting.\n" >&2
+  fi
 }
 
 show_wifi_ip() {
   local wifi_int wifi_ip
   wifi_int=$(get_wifi_interface)
   if [[ "$wifi_int" ]]; then
-    wifi_ip=$(get_ip_address "$wifi_int")
+    wifi_ip=$(get_ip_address)
     if [[ "$wifi_ip" ]]; then
       printf "Wireless IP - %s\n" "$wifi_ip"
     else
-      printf "No wireless IP address found. Is %s up?\n" "$wifi_int"
-      printf "Checking if interface is down and trying to bring it up if not.\n"
-      /sbin/ip link show "$wifi_int" | grep 'DOWN' && sudo /sbin/ip link set "$wifi_int" up
-      printf "Checking again. If down, check if device is toggled on.\n"
-      /sbin/ip link show "$wifi_int" | grep 'DOWN' && printf "Make sure WiFi is toggled on.\n" >&2
-      wifi_ip=$(get_ip_address "$wifi_int")
-      if [[ "$wifi_ip" ]]; then
-        printf "Wireless IP - %s\n" "$wifi_ip"
-      else
-        printf "No IP address found. Begin troubleshooting.\n" >&2
-      fi
+      wifi_down "$wifi_int"
     fi
   else
     printf "No wireless interface found.\n"  >&2
@@ -80,7 +83,7 @@ show_wifi_ip() {
 
 main() {
   local script="${0##*/}"
-  local -r version="3.0.25202"
+  local -r version="3.1.25340"
   show_wifi_ip
   over_line "$script $version" "-"
   exit
