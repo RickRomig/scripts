@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Last updated : 21 Jul 2025
+# Last updated : 06 Dec 2025
 # Comments     : copy as root to /etc/cron.daily
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -23,14 +23,12 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-set -eu
-
 main() {
 	local update_status
 	local log_dir="/var/log"
 	local log_file="ytdlpup.log"
 	# local sed_file="/usr/share/misc/ytdlp-uplog.sed"
-	update_status=$(/usr/local/bin/yt-dlp --update | awk '/Latest version/ {print $3}' | sed 's/stable@//')
+	update_status=$(awk '/Latest version/ {print $3}' <(/usr/local/bin/yt-dlp --update) | sed 's/stable@//')
 	[[ "$update_status" ]] || update_status="unavailable"
 	printf "%(%F|%R)T|%s\n" -1 "$update_status" >> "$log_dir/$log_file" 2>&1
 	# sed -i -f "$sed_file" "$log_dir/$log_file"
