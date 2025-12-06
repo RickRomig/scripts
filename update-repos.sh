@@ -36,8 +36,6 @@ else
   exit 1
 fi
 
-# set -eu
-
 ## Functions ##
 
 update_clone() {
@@ -58,7 +56,7 @@ update_clone() {
 main() {
 	local clone clones
   local -r script="${0##*/}"
-  local -r version="2.2.25263"
+  local -r version="2.2.25339"
   clones=(configs scripts i3wm-debian homepage)
   check_package git
   printf "Updating cloned repositories...\n\n"
