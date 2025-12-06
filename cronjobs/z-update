@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 29 Nov 2025
+# Updated      : 06 Dec 2025
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ over_line() {
   char="${2:--}"
   len=${#char}
   (( len > 1 )) && char=${char::1}
-  line=$(echo "$title" | sed "s/./$char/g")
+  line=$(sed "s/./$char/g" <(echo "$title"))
   printf "%s\n%s\n"  "$line" "$title"
 }
 
@@ -93,7 +93,7 @@ system_reboot() {
 
 main() {
   local script="${0##*/}"
-  local version="2.0.25333"
+  local version="2.1.25340"
   local lhost="${HOSTNAME:-$(hostname)}"
   local log_file="/var/log/update.log"
   local sed_file="/usr/share/misc/updatelog.sed"
