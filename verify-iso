@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 16 Nov 2025
+# Updated      : 06 Dec 2025
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
@@ -42,7 +42,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="11.1.25320"
+readonly version="11.2.25340"
 FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
@@ -60,7 +60,7 @@ FMENU="fzf --header=$script \
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="16 Nov 2025"
+	local -r updated="06 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.
@@ -120,13 +120,13 @@ verify_checksums() {
 	dots "."
 	case "$ext" in
 		md5 )
-			iso_sum=$(/usr/bin/md5sum "$iso" | awk '{print $1}') ;;
+			iso_sum=$(awk '{print $1}' <(/usr/bin/md5sum "$iso")) ;;
 		sha1 )
-			iso_sum=$(/usr/bin/sha1sum "$iso" | awk '{print $1}') ;;
+			iso_sum=$(awk '{print $1}' <(/usr/bin/sha1sum "$iso")) ;;
 		sha256 )
-			iso_sum=$(/usr/bin/sha256sum "$iso" | awk '{print $1}') ;;
+			iso_sum=$(awk '{print $1}' <(/usr/bin/sha256sum "$iso")) ;;
 		sha512 )
-			iso_sum=$(/usr/bin/sha512sum "$iso" | awk '{print $1}') ;;
+			iso_sum=$(awk '{print $1}' <(/usr/bin/sha512sum "$iso")) ;;
 	esac
 	chk_sum=$(awk '{print $1}' "$checksum")
   kill "$!"; tput cnorm
