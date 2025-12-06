@@ -80,7 +80,7 @@ main() {
 			printf "\nTrash directory does not exist.\nWill be created when a file is moved to the trash.\n"
 		fi
 		over_line "$script $version"
-		} > "$log_dir/$log_file" 2>&1
+	} > "$log_dir/$log_file" 2>&1
 	exit
 }
 
