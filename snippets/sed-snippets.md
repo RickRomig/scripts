@@ -73,9 +73,13 @@ sed 's/[[:space;]]*$//' 					# remove trailing whitespace
 ```
 ### Swap word
 ```bash
-sed -E "s/^([[:alnum:]]+)([[:spacee:]])([[;alnum;]])S/\3\2\1/"	# Swaps first word with last word
+sed -E "s/^([[:alnum:]]+)([[:space:]])([[;alnum;]])S/\3\2\1/"	# Swaps first word with last word
 ```
 ### Append text to the end of a line
 ```bash
 sed '/^pattern / s/$/text-to-be-appended/' filename.txt
+```
+### Print tree indentations with whitespace only
+```bash
+tree | sed 's/├\|─\|│\|└/ /g'
 ```
