@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 29 Nov 2025
+# Last updated : 06 Dec 2025
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.5.25333"
+readonly version="5.7.25340"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -62,7 +62,6 @@ drive_test() {
 
 check_usb() {
 	[[ $(grep 'usb' <(lsblk -S -o TRAN)) = *usb* ]] && return "$TRUE" || return "$FALSE"
-
 }
 
 bu_drive_label() {
@@ -92,14 +91,14 @@ check_uuid() {
 
 # mount_bu() {
 #   local usbdrv
-#   usbdrv="$(lsblk -fs | awk '/BU_Drive/ {print $1}')"
+#   usbdrv="$(awk '/BU_Drive/ {print $1}' <(lsblk -fs))"
 #   [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
 #   sudo mount /dev/"$usbdrv" "$mount_point"
 # }
 
 bu_drive_fs() {
   local fs_type
-	fs_type="$(lsblk -f | awk '/BU_Drive/ {print $2}')"
+	fs_type="$(awk '/BU_Drive/ {print $2}' <(lsblk -f))"
 	[[ "$fs_type" == "ext4" || "$fs_type" == "XFS" ]] && return "$TRUE" || return "$FALSE"
 }
 
@@ -131,7 +130,7 @@ unmount_usb_drive() {
 
 get_space_remaining() {
 	local avail
-	avail="$(df -h "$mount_point" | awk 'NR == 2 {print $4}')"
+	avail="$(awk 'NR == 2 {print $4}' <(df -h "$mount_point"))"
 	printf "Space available on BU_Drive: %s\n" "$avail"
 }
 
