@@ -250,7 +250,11 @@ $ find . -name "*.ext" - exec rename -v 's/\.ext$/\.new/' {}\;
 $ find . -name "*.ext" | rename -v 's/\.ext$/\.new/'
 ```
 
-### Ceate directory
+### Create directory notification
 ```bash
 [[ -e "$dir" ]] || { notify-send -t 2000 "Creating directory $dir..."; mkdir -p "$dir"; }
+```
+### Print tree indentations with whitespace only
+```bash
+tree | sed 's/├\|─\|│\|└/ /g'
 ```
