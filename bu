@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 06 Dec 2025
+# Last updated : 08 Dec 2025
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.7.25340"
+readonly version="5.8.25342"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -132,6 +132,16 @@ get_space_remaining() {
 	local avail
 	avail="$(awk 'NR == 2 {print $4}' <(df -h "$mount_point"))"
 	printf "Space available on BU_Drive: %s\n" "$avail"
+}
+
+trim_log() {
+	local loglen
+	loglen=$(wc -l < "$logfile")
+	[[ "$loglen" -le 30 ]] && return
+	while [[ "$loglen" -gt 30 ]]; do
+		sed -i '2d' "$logfile"
+		(( loglen-- ))
+	done
 }
 
 bu_prep() {
@@ -320,9 +330,8 @@ main() {
 		100 ) printf "Thanks for stopping by.\n" ;;
 		* ) log "Unknown error." "$logfile" ;;
 	esac
-	loglen=$(wc -l < "$logfile")
-	[[ "$loglen" -gt 30 ]] && sed -i '2d' "$logfile"
-	over_line "Script completed in $(format_time $SECONDS)" "-"
+	trim_log
+	over_line "Backup completed in $(format_time $SECONDS)" "-"
 	exit "$exit_status"
 }
 
