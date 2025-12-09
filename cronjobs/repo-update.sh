@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Sep 2025
-# Last updated : 08 Dec 2025
+# Last updated : 09 Dec 2025
 # Comments     : Run as a daily cron job from ~/.local/bin/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -46,9 +46,9 @@ update_clone() {
 main() {
 	local clone clones
 	local -r script="${0##*/}"
-	local -r version="2.0.25342"
+	local -r version="2.1.25343"
 	local -r log_dir="$HOME/.local/share/logs"
-	local -r repo_log="$log_dir/repo=updated.log"
+	local -r repo_log="$log_dir/repo-update.log"
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 	printf "%s %s\n" "$script" "$version" > "$repo_log"
   clones=(configs scripts i3wm-debian homepage)
