@@ -50,7 +50,7 @@ main() {
 	local -r log_dir="$HOME/.local/share/logs"
 	local -r repo_log="$log_dir/repo-update.log"
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
-	printf "%s %s\n" "$script" "$version" > "$repo_log"
+	printf "%(%F %R)T (%s %s)\n" -1 "$script" "$version" > "$repo_log"
   clones=(configs scripts i3wm-debian homepage)
   for clone in "${clones[@]}"; do
 		update_clone "$clone" "$repo_log"
