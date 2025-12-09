@@ -7,8 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Sep 2025
-# Last updated : 24 Oct 2025
-# Version      : 1.3.25263
+# Last updated : 08 Dec 2025
 # Comments     : Run as a daily cron job from ~/.local/bin/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,25 +28,33 @@
 
 update_clone() {
 	local -r clone="$1"
+	local -r repo_log="$2"
 	local repo_dir="$HOME/Downloads/$clone"
 	[[ -d "$HOME/$clone" ]] && repo_dir="$HOME/$clone"
-	if [[ -d "$repo_dir" ]]; then
-		pushd "$repo_dir" >/dev/null 2>&1 || return 1
-		git checkout --quiet .
-		git pull --quiet
-		popd >/dev/null 2>&1 || return 1
-	fi
+	{
+		if [[ -d "$repo_dir" ]]; then
+			pushd "$repo_dir" || return 1
+			git checkout .
+			git pull
+			popd || return 1
+		else
+			printf "%s has not been cloned to this computer.\n" "$clone"
+		fi
+	} >> "$repo_log"
 }
 
 main() {
-	local clone clones flag_file
-	flag_file=~/.local/share/logs/repo-update-"$(date +'%y%m%d_%H:%M')"
+	local clone clones
+	local -r script="${0##*/}"
+	local -r version="2.0.25342"
+	local -r log_dir="$HOME/.local/share/logs"
+	local -r repo_log="$log_dir/repo=updated.log"
+	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
+	printf "%s %s\n" "$script" "$version" > "$repo_log"
   clones=(configs scripts i3wm-debian homepage)
   for clone in "${clones[@]}"; do
-		update_clone "$clone"
+		update_clone "$clone" "$repo_log"
   done
-	rm ~/.local/share/logs/repo-update* >/dev/null 2>&1
-	touch "$flag_file" >/dev/null 2>&1
 }
 
 ## Execution ##
