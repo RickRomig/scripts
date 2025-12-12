@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 12 May 2021
-# Updated      : 14 Nov 2025
+# Updated      : 12 Dec 2025
 # Comments     : Cinnamon keybindings backup file stored in ~/.config
 #              : Tested with Cinnamon DE on Mint 19+, LMDE 5+, Debian 10+
 # TODO (Rick)  :
@@ -40,17 +40,16 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.1.25318"
+readonly version="4.1.25346"
 readonly config_dir="$HOME/.config"
-readonly bindings_bu="keybindings-backup.dconf"
+readonly bindings_file="keybindings-backup.dconf"
 readonly bindings_path="/org/cinnamon/desktop/keybindings/"
-verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local -r updated="14 Nov 2025"
+  local -r updated="12 Dec 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Creates a backup file of Cinnamon keybindings and restores from a backup file.
@@ -61,47 +60,40 @@ ${orange}Available options:${normal}
   -d  Dump Cinnamon keybindings to a file in ~/.config.
   -h  Show this help message and exit.
   -l  Load Cinnamon keybindings from the ~/.config backup file.
-  -v  Enable verbose mode. Must precede other flags.
 _HELP_
   exit "$errcode"
 }
 
 dump_to_config() {
-  show_message "Dumping keybindings to backup file."
-  dconf dump "$bindings_path" > "$config_dir/$bindings_bu"
-  printf "Cinnamon Keybindings dumped to %s/%s\n" "$config_dir" "$bindings_bu"
+  printf "Dumping keybindings to backup file.\n"
+  dconf dump "$bindings_path" > "$config_dir/$bindings_file"
+  printf "Cinnamon Keybindings dumped to %s/%s\n" "$config_dir" "$bindings_file"
 }
 
 load_from_config() {
-  show_message "Loading keybindings from backup file."
-  dconf load "$bindings_path" < "$config_dir/$bindings_bu"
-  printf "Cinnamon Keybindings loaded from %s/%s\n" "$config_dir" "$bindings_bu"
+  printf "Loading keybindings from backup file.\n"
+  dconf load "$bindings_path" < "$config_dir/$bindings_file"
+  printf "Cinnamon Keybindings loaded from %s/%s\n" "$config_dir" "$bindings_file"
 }
 
 copy_from_repo() {
-  if [[ -d ~/gitea/configs/mint ]]; then
-    show_message "Copying Cinnamon keybindings from local repository.\n"
-    cp -v ~/gitea/configs/mint/keybindings-backup.dconf ~/.config/
-  elif [[ -d ~/Downloads/configs/mint ]]; then
-    show_message "Copying Cinnamon keybindings from cloned repository.\n"
-    cp -v ~/Downloads/configs/mint/keybindings-backup.dconf ~/.config/
+  local -r gh_url="https://raw.githubusercontent.com/RickRomig/configs/refs/heads/main/mint"
+  local dl_dir="$HOME/Downloads/configs/mint"
+  [[ -d ~/gitea/configs/mint ]] && dl_dir="$HOME/gitea/configs/mint"
+  printf "Copying Cinnamon keybindings from repository...\n"
+  if [[ -d "$dl_dir" ]]; then
+    cp -v "$dl_dir/$bindings_file" "$config_dir/"
   else
-    show_message "Downloading Cinnamon keybindings from GitHub repository.\n"
-    curl -so ~/.config/keybindings-backup.dcon https://raw.githubusercontent.com/RickRomig/configs/refs/heads/main/mint/keybindings-backup.dconf
+    curl -so "$config_dir/$bindings_file" "$gh_url/$bindings_file"
   fi
   printf "Cinnamon keybindings copied from respository.\n"
-}
-
-show_message() {
-	local message="$1"
-	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
 
 main() {
   if is_cinnamon; then
     local noOpt optstr opt OPTARG OPTIND
     noOpt=1
-    optstr=":cdhlv"
+    optstr=":cdhl"
     while getopts "$optstr" opt; do
       case "$opt" in
         c )
@@ -115,17 +107,13 @@ main() {
           help 0
           ;;
         l )
-          if [[ -f "$config_dir/$bindings_bu" ]]; then
+          if [[ -f "$config_dir/$bindings_file" ]]; then
             load_from_config
           else
             printf "Cinnamon Keybindings backup does not exist.\n" >&2
             printf "%s -c to download keybindings from repository or\n" "$script"
-            printf "%s -d to dump current keybindings to %s/%s.\n" "$script" "${config_dir##*/}" "$bindings_bu"
+            printf "%s -d to dump current keybindings to %s/%s.\n" "$script" "${config_dir##*/}" "$bindings_file"
           fi
-          ;;
-        v )
-          verbose_mode="$TRUE"
-          show_message "Verbose mode enabled."
           ;;
         ? )
           printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
