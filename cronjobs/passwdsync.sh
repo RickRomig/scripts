@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Aug 2020
-# Last updated : 09 Oct 2025
-# Version      : 5.0.25282
+# Last updated : 14 Dec 2025
+# Version      : 5.1.25348
 # Comments     : run as a local daily cron job on main system
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,11 +26,14 @@
 ##########################################################################
 
 trim_log() {
-  local log_len
   local log_dir="$1"
   local log_file="$2"
+  local log_len
   log_len=$(wc -l < "$log_dir/$log_file")
-  [[ "$log_len" -gt 30 ]] && sed -i '1d' "$log_dir/$log_file"
+  while [[ "$log_len" -gt 30 ]]; do
+    sed -i '1d' "$log_dir/$log_file"
+    (( log_len-- ))
+  done
 }
 
 sync_database() {
@@ -49,7 +52,7 @@ sync_database() {
       printf "unchanged\n"
     fi
   } >> "$log_dir/$log_file"
-  trim_log "$log_dir/$log_file"
+  trim_log "$log_dir" "$log_file"
 }
 
 main() {
