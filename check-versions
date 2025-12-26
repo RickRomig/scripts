@@ -54,7 +54,7 @@ installed_version() {
     firefox )
       cur_ver=$(cut -d' ' -f3 <(firefox --version 2>/dev/null)) ;;
     fresh-editor )
-      cur_ver=$(cut -d' ' -f2 <(fresh --version)) ;;
+      cur_ver=$(awk '/^ii/ {print $3}' <(dpkg -l "$package" 2>/dev/null) | sed 's/[-~+ud].*//') ;;
     gitea )
       cur_ver=$(cut -d' ' -f3 <(gitea --version 2>/dev/null)) ;;
     micro )
