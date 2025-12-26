@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2025
-# Updated      : 25 Dec 2025
+# Updated      : 26 Dec 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.0.25359"
+readonly version="1.1.25360"
 readonly gh_url="https://github.com/sinelaw/fresh/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="25 Dec 2025"
+	local -r updated="26 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Fresh Editor.
@@ -74,7 +74,7 @@ check_dependencies() {
 }
 
 fresh_version() {
-  awk '/^ii/ {print $3}' <(dpkg -l fresh-editor)
+  cut -d' ' -f2 <(fresh --version)
 }
 
 newest_version() {
@@ -160,7 +160,7 @@ main() {
         if exist fresh; then
           remove_fresh
         else
-          printf "Fresh-editor is not installed.\n" >&2
+          printf "Fresh-editorcheck is not installed.\n" >&2
         fi
         ;;
       u )
