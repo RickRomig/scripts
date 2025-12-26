@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 25 Dec 2025
+# Last updated : 26 Dec 2025
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 #              : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
@@ -51,14 +51,16 @@ installed_version() {
   local package="$1"
   local cur_ver
   case "$package" in
-    micro )
-      cur_ver=$(micro -version 2>/dev/null | awk '/Version:/ {print $NF}') ;;
-    gitea )
-      cur_ver=$(gitea --version 2>/dev/null | cut -d' ' -f3) ;;
     firefox )
-      cur_ver=$(firefox --version 2>/dev/null | cut -d' ' -f3) ;;
+      cur_ver=$(cut -d' ' -f3 <(firefox --version 2>/dev/null)) ;;
+    fresh-editor )
+      cur_ver=$(cut -d' ' -f2 <(fresh --version)) ;;
+    gitea )
+      cur_ver=$(cut -d' ' -f3 <(gitea --version 2>/dev/null)) ;;
+    micro )
+      cur_ver=$(awk '/Version:/ {print $NF}' <(micro -version 2>/dev/null)) ;;
     * )
-      cur_ver=$(dpkg -l "$package" 2>/dev/null | awk '/^ii/ {print $3}' | sed 's/[~+ud].*//')
+      cur_ver=$(awk '/^ii/ {print $3}' <(dpkg -l "$package" 2>/dev/null) | sed 's/[~+ud].*//')
   esac
   echo "$cur_ver"
 }
@@ -99,7 +101,7 @@ get_new_version() {
 	local new_ver
 	local -r github_url="https://github.com"
   curl -s -o "$tmp_file" "$github_url/$release_path"
-    # Extract latest version number from temp file, ignoring beta and release candidate releases.
+    # Extract latest version number from temp file, ignoring beta and release candidates.
   case "$package" in
     codium )
       new_ver=$(awk -F'/' '/download/ && /amd64.deb/ {print $8;exit}' "$tmp_file" | grep -Ev 'beta|-rc' | sed 's/^v//') ;;
@@ -172,7 +174,7 @@ browsers() {
 
 main() {
   local script="${0##*/}"
-  local version="15.5.25359"
+  local version="15.6.25360"
   clear
   box "$script $version"
   printf "\n"
