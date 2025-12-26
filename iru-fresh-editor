@@ -1,0 +1,192 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : iru-fresh-editor
+# Description  : Installs, updates, and removes the Fresh Editor.
+# Dependencies : gdebi, wget git
+# Arguments    : See the help function for details.
+# Author       : Copyright (C) 2025, Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 25 Dec 2025
+# Updated      : 25 Dec 2025
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+##########################################################################
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+##########################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+readonly script="${0##*/}"
+readonly version="1.0.25359"
+readonly gh_url="https://github.com/sinelaw/fresh/releases"
+
+## Functions ##
+
+help() {
+	local errcode="${1:-2}"
+	local -r updated="25 Dec 2025"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
+Installs, updates, or removes the Fresh Editor.
+
+${green}Usage:${normal} $script [-hiru]
+${orange}Available options:${normal}
+  -h  Show this help message and exit
+  -i  Installs the Fresh Editor.
+  -r  Removes the Fresh Editor from the system.
+  -u  Updates the Fresh Editor to the latest GitHub release.
+_HELP_
+  exit "$errcode"
+}
+
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+cleanup() {
+  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+}
+
+check_dependencies() {
+  local packages=( git wget )
+  check_packages "${packages[@]}"
+}
+
+fresh_version() {
+  awk '/^ii/ {print $3}' <(dpkg -l bat)
+}
+
+newest_version() {
+  wget -qO "$tmp_file" "$gh_url"
+  new_ver=$(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$tmp_file" | sed 's/^v//')
+  echo "$new_ver"
+}
+
+compare_versions() {
+  local new_ver="$1"
+  local cur_ver
+  cur_ver="$(fresh_version)"
+  if [[ -z "$new_ver" ]]; then
+    printf "No download available. Try again later.\n" >&2
+    return
+  elif [[ ! "$new_ver" > "$cur_ver" ]]; then
+    printf "%s Fresh-editor %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
+    return
+  fi
+  printf "%sInstalled version of Fresh-editor is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
+  install_fresh "$new_ver"
+}
+
+install_fresh() {
+  local new_ver="$1"
+  local new_pkg="fresh-editor_${new_ver}-1_amd64.deb"
+  [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
+  printf "Downloading Fresh-editor %s from the sinelaw GitHub repository..." "$new_ver"
+  dots "."
+  wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
+  kill "$!"; tput cnorm
+  printf "done\nInstalling Fresh-editor %s...\n" "$new_ver"
+  sudo_login 2
+	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
+  dpkg -l fresh-editor | grep -qw '^ii' >/dev/null 2>&1 || die "Bat installation failed." 1
+  [[ -L /usr/bin/fresh ]] || ln -sf /usr/share/fresh-editor/fresh /usr/bin/fresh
+  printf "Fresh-editor %s installed.\n" "$(fresh_version)"
+}
+
+remove_fresh() {
+  sudo_login 2
+  printf "Removing Fresh-editor %s...\n" "$(fresh_version)"
+  sudo dpkg --remove fresh-editor
+  find ~/.config -type d -name fresh -exec rm -rf {} \;
+  [[ -L /usr/bin/fresh ]] && sudo rm -f /usr/bin/fresh
+  printf "Fresh-editor and its configuration files have been removed.\n"
+}
+
+fresh_config() {
+  repository=~/Downloads/configs
+  [[ -d ~/gitea/configs ]] && repository=~/gitea/configs
+  [[ -d "$repository" ]] || { printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2; return; }
+	[[ -d ~/.config/fresh ]] || mkdir -p ~/.config/fresh
+  printf "Applying Fresh-editor configuration...\n"
+  cp -v "$repository/fresh/config.json" ~/.config/fresh/
+  printf "Fresh-editor %s configuration applied.\n" "$(fresh_version)"
+}
+
+main() {
+  local noOpt opt optstr new_ver OPTARG OPTIND
+  noOpt=1
+  optstr=":hiru"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      h )
+        help 0
+        ;;
+      i )
+        if exists fresh; then
+          printf "Fresh-editor %s is already installed.\n" "$(fresh_version)" >&2
+        else
+          check_dependencies
+          tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+          trap cleanup EXIT
+					new_ver="$(newest_version)"
+          printf "%sInstalling Bat version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
+          install_fresh "$new_ver"
+          fresh_config
+        fi
+        ;;
+      r )
+        if exist fresh; then
+          remove_fresh
+        else
+          printf "Fresh is not installed.\n" >&2
+        fi
+        ;;
+      u )
+        if exists fresh; then
+          check_dependencies
+          tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+          trap cleanup EXIT
+          new_ver="$(newest_version)"
+          compare_versions "$new_ver"
+        else
+          printf "Fresh-editor is not installed.\n" >&2
+        fi
+        ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+	  noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+  exit
+}
+
+## Execution ##
+
+main "$@"
