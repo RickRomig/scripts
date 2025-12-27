@@ -8,10 +8,10 @@
 # Author       : Copyright (C) 2020, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 07 Jun 2020
-# Updated      : 15 Dec 2025
-# Version      : 2.0.25349
+# Updated      : 27 Dec 2025
+# Version      : 2.1.25361
 # Comment      : Automatically limits log size to 30 entries.
-# TODO (Rick)  : Consider new foremat for log file to include errors
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 #####################################################################
@@ -45,15 +45,16 @@ local_backup() {
 
   [[ -d "$backup_dir" ]] || mkdir -p "$backup_dir"
   [[ -d "$log_dir" ]] || mkdir -p "$log_dir"
+  [[ -f "$backup_dir/$error_log" ]] && rm "$backup_dir/$error_log"
 
   {
     printf "%(%a|%F|%R)T|"
-    if rsync -aH --delete --exclude="/backup/backup/" /etc /home /data "$backup_dir/" 2> "$backup_dir/$error_log"; then
+    if rsync -aH --delete --exclude="/backup/backup/" /etc /home /data "$backup_dir/" 2>> "$backup_dir/$error_log"; then
       printf "successful\n"
-      printf "%(%a, %F %R)T - Local Backup was successful.\n" > "$backup_dir/$error_log"
+      printf "%(%a, %F %R)T - Local Backup was successful.\n" >> "$backup_dir/$error_log"
     else
       printf "had errors (%d)\n" "$?"
-      printf "%(%a, %F %R)T - Local Backup had errors.\n" > "$backup_dir/$error_log"
+      printf "%(%a, %F %R)T - Local Backup had errors.\n" >> "$backup_dir/$error_log"
     fi
     sync
   } >> "$log_dir/$log_file"
