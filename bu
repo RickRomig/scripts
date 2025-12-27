@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 08 Dec 2025
+# Last updated : 27 Dec 2025
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.8.25342"
+readonly version="5.9.25361"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -216,7 +216,7 @@ restore() {
 
 help() {
 	local errcode="${1:-2}"
-	local updated="08 Dec 2025"
+	local updated="27 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -275,7 +275,19 @@ drive_setup() {
  systems like FAT32 or NTFS will cause the script to exit with an error.
 
 _SETUP_
-	exit_status=100
+	exit_status=108
+}
+
+log_status() {
+	case "$exit_status" in
+		0 ) log "Backup/Restore operation successful." "$logfile" ;;
+		10 ) log "Failed to unmount BU_Drive." "$logfile" ;;
+		13 ) log "Unable to find backup directory for restore." "$logfile" ;;
+		42 ) log "Backup operation had errors." "$logfile" ;;
+		69 ) log "Restore operation had errors." "$logfile" ;;
+		108 ) printf "Thanks for stopping by.\n" ;;
+		* ) log "Unknown error." "$logfile" ;;
+	esac
 }
 
 main() {
@@ -321,15 +333,7 @@ main() {
 	done
 	[[ "$noOpt" -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-	case "$exit_status" in
-		0 ) log "Backup/Restore operation successful." "$logfile" ;;
-		10 ) log "Failed to unmount BU_Drive." "$logfile" ;;
-		13 ) log "Unable to find backup directory for restore." "$logfile" ;;
-		42 ) log "Backup operation had errors." "$logfile" ;;
-		69 ) log "Restore operation had errors." "$logfile" ;;
-		100 ) printf "Thanks for stopping by.\n" ;;
-		* ) log "Unknown error." "$logfile" ;;
-	esac
+	log_status
 	trim_log
 	over_line "Backup completed in $(format_time $SECONDS)" "-"
 	exit "$exit_status"
