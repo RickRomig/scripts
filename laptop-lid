@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Oct 2020
-# Updated      : 12 Sep 2025
+# Updated      : 28 Dec 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -43,20 +43,20 @@ modify_logind() {
   script_dir=$(dirname "$(readlink -f "${0}")")
   local logind_conf="/etc/systemd/logind.conf"
   local sed_file="$script_dir/files/laptoplid.sed"
-  if [[ -f "$sed_file" ]]; then
-    sudo_login 2
-    printf "Modifying %s and restarting the systemd-logind service.\n" "${logind_conf##*/}"
-    sudo sed -i.bak -f "$sed_file" "$logind_conf"
-    sudo systemctl restart systemd-logind.service
-    printf "%s modified, backup created, and service restarted.\n" "$logind_conf"
-  else
+  if [[ ! -f "$sed_file" ]]; then
     printf "A required file, %s, was not found. Operation canceled.\n" "${sed_file##*/}" >&2
+    return
   fi
+  sudo_login 2
+  printf "Modifying %s and restarting the systemd-logind service.\n" "${logind_conf##*/}"
+  sudo sed -i.bak -f "$sed_file" "$logind_conf"
+  sudo systemctl restart systemd-logind.service
+  printf "%s modified, backup created, and service restarted.\n" "$logind_conf"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.3.25255"
+  local -r version="4.4.25362"
   local -r lhost="${HOSTNAME:=-$(hostname)}"
   printf "Allows a laptop's lid to be closed without the system going into suspend mode.\n"
   if is_laptop; then
