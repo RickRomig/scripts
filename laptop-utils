@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 04 Dec 2025
+# Updated      : 28 Dec 2025
 # Comments     : Based on a script by Joe Collins.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,13 +38,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.1.25338"
+readonly version="8.0.25262"
 
 ## Funtions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="04 Dec 2025"
+	local updated="28 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs laptop-specific utlities.
@@ -70,37 +70,23 @@ Installs laptop-specific utilities:
 _INTRO_
 }
 
-install_thermald() {
-  if grep -q '^ii' <(dpkg -l thermald 2>/dev/null); then
-    printf "Thermald is already installed.\n"
-    return
-  fi
-  sudo apt-get install thermald -yy
-  printf "Thermald installed.\n"
-}
-
-install_acpi() {
-  if exists acpi; then
-    printf "ACPI is already installed.\n"
-    return
-  fi
-  sudo apt-get install acpi -yy
-  printf "ACPI installed.\n"
-}
-
-install_tlp() {
-  if grep -q '^ii' <(dpkg -l tlp 2>/dev/null); then
-    echo "TLP is already installed."
-    return
-  fi
-  sudo apt-get install tlp tlp-rdw -yy
-  start_tlp_service
-  printf "TLP installed.\n"
+install_packages() {
+  local package
+  local packages=(acpi thermald tlp tlp-rdw)
+  for package in "${packages[@]}"; do
+    if installed "$package"; then
+      printf "%s installed.\n" "${package^^}"
+    else
+      sudo_login 2
+      sudo apt-get install -y "$package"
+      printf "%s installed.\n" "${package^^}"
+    fi
+  done
 }
 
 tlp_status() {
   local status=1
-  if grep -q '^ii' <(dpkg -l tlp 2>/dev/null); then
+  if installed tlp; then
     is_systemd && { grep -qw active <(systemctl status tlp) && status=0; }
     is_sysv && {  grep -qw enabled <(tlp-stat -s) && status=0; }
     if [[ "$status" -eq 0 ]]; then
@@ -115,6 +101,7 @@ tlp_status() {
 }
 
 start_tlp_service() {
+  sudo_login 2
   if is_systemd; then
     sudo systemctl enable tlp.service > /dev/null 2>&1
     sudo systemctl start tlp.service > /dev/null 2>&1
@@ -130,14 +117,6 @@ start_tlp_service() {
   fi
 }
 
-installed_utils() {
-  printf "Installed utilities:\n"
-  grep -q '^ii' <(dpkg -l thermald 2>/dev/null) && printf "%12s\n" "Thermald"
-  exists acpi && printf "%8s\n" "ACPI"
-  grep -q '^ii' <(dpkg -l tlp 2>/dev/null) && printf "%7s\n" "TLP"
-  exists tlp-rdw && printf "%11s\n" "TLP-RDW"
-}
-
 main() {
   local lhost noOpt opt optstr OPTARG OPTIND
   lhost="${HOSTNAME:=-$(hostname)}"
@@ -151,25 +130,20 @@ main() {
       i )
         if is_laptop; then
           intro
-          sudo_login 2
-          install_thermald
-          install_acpi
-          install_tlp
-          installed_utils
+          install_packages
         else
           printf "%s is not a laptop. Nothing to do.\n" "$lhost" >&2
         fi
         ;;
       s )
         if is_laptop; then
-          installed_utils
+          install_packages
         else
           printf "%s is not a laptop. Nothing to do.\n" "$lhost" >&2
         fi
         ;;
       t )
         if is_laptop; then
-          sudo_login 2
           tlp_status
         else
           printf "%s is not a laptop. Nothing to do.\n" "$lhost" >&2
