@@ -188,12 +188,12 @@ sudoers_tweaks() {
 		sudo cp -v "$repo_dir"/sudoers/0pwfeedback /etc/sudoers.d/
 		sudo chmod 440 /etc/sudoers.d/0pwfeedback
 	fi
-	if [[ -f /etc/sudoers.d/10timeout ]]; then
+	if [[ -f /etc/sudoers.d/10-timeout ]]; then
 		printf "Sudo timeout has already been set.\n"
 	else
 		printf "\e[93mApplying sudo timeout...\e[0m\n"
-		sudo cp -v "$repo_dir"/sudoers/10timeout /etc/sudoers.d/
-		sudo chmod 440 /etc/sudoers.d/10timeout
+		sudo cp -v "$repo_dir"/sudoers/10-timeout /etc/sudoers.d/
+		sudo chmod 440 /etc/sudoers.d/10-timeout
 	fi
 }
 
