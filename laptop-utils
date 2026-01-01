@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 28 Dec 2025
+# Updated      : 31 Dec 2025
 # Comments     : Based on a script by Joe Collins.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,13 +38,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="8.0.25262"
+readonly version="8.1.25365"
 
 ## Funtions ##
 
 help() {
 	local errcode="${1:-2}"
-	local updated="28 Dec 2025"
+	local updated="31 Dec 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs laptop-specific utlities.
@@ -80,6 +80,19 @@ install_packages() {
       sudo_login 2
       sudo apt-get install -y "$package"
       printf "%s installed.\n" "${package^^}"
+    fi
+  done
+}
+
+installed_packages() {
+  local package
+  local packages=(acpi thermald tlp tlp-rdw)
+  for package in "${packages[@]}"; do
+    printf "%s is " "${package^^}"
+    if installed "$package"; then
+      printf "installed.\n"
+    else
+      printf "not installed.\n"
     fi
   done
 }
@@ -137,7 +150,7 @@ main() {
         ;;
       s )
         if is_laptop; then
-          install_packages
+          installed_packages
         else
           printf "%s is not a laptop. Nothing to do.\n" "$lhost" >&2
         fi
