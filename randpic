@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Jun 2019
-# Updated      : 29 Dec 2025
+# Updated      : 02 Jan 2026
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,15 +36,7 @@ else
   exit 1
 fi
 
-##  Variables ##
-
-readonly script="${0##*/}"
-readonly version="3.11.25363"
-readonly tmp_pics=$HOME"/tmp/journal"
-
 ## Functions ##
-
-# check_package and leave functions and colors declared in functionlib
 
 valid_folder() {
   local folder="$1"
@@ -69,86 +61,98 @@ valid_image() {
 }
 
 all_done() {
+  local script="$1"
+  local version="$2"
   printf "\nFinished selecting images.\n"
   over_line "$script $version"
   leave ""
 }
 
+select_images() {
+  local script="${0##*/}"
+  local version="4.0.26002"
+  local pic_dir pic_file pic_pid options _opt random_file sel_dir tmp_pics
+  tmp_pics=~/Work/images
+  [[ -d "$tmp_pics" ]] || mkdir -p "$tmp_pics"
+  clear
+  while true; do
+    # Randomly select an image folder from ~/Pictures/
+    pic_dir=$(find ~/Pictures -maxdepth 1 -type d | shuf -n1)
+    sel_dir="${pic_dir##*/}"
+    valid_folder "$sel_dir" || continue
+
+    # Choose a random image file from the selected folder
+    random_file=$(find "$pic_dir" -maxdepth 1 -type f | shuf -n1)
+    pic_file="${random_file##*/}"
+    valid_image "$pic_file" || continue
+
+    # Accept or reject selected file
+    clear
+    box "Random Image Selector ($script v$version)"
+    printf "Selects a random image from ~/Pictures\n"
+    printf "%sSelected image: %s%s/%s%s\n" "$blue" "$orange" "$sel_dir" "$pic_file" "$normal"
+    cp -p "$pic_dir/$pic_file" "$tmp_pics"
+    # /usr/bin/display -geometry +600+20 "$tmp_pics/$pic_file" &
+    /usr/bin/display -geometry +1000+20 -resize 800x600 "$tmp_pics/$pic_file" &
+    # kitten icat --clear --place 60x30@80x1 --scale-up "$tmp_pics/$pic_file"
+    pic_pid="$!"
+    printf "\n%sOptions:%s\n" "$blue" "$normal"
+    COLUMNS=12
+    options=( "Accept the selected image and select another image." \
+      "Accept the selected image and exit." \
+      "Reject the selected image and select another image." \
+      "Reject the selected image and exit." \
+      "Delete the selected image and select another image." )
+    PS3="Chose an option: "
+    select _opt in "${options[@]}"; do
+      case $REPLY in
+        1 )
+          printf "\n%sAccepted image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
+          printf "\nSelecting another random image...\n"
+          kill $pic_pid
+          sleep 2
+          break
+          ;;
+        2 )
+          printf "\n%sAccepted image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
+          kill $pic_pid
+          all_done "$script" "$version"
+          ;;
+        3 )
+          printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
+          printf "\nSelecting another random image...\n"
+          kill $pic_pid
+          rm "$tmp_pics/$pic_file"
+          sleep 2
+          break
+          ;;
+        4 )
+          printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
+          kill $pic_pid
+          rm "$tmp_pics/$pic_file"
+          all_done "$script" "$version"
+          ;;
+        5 )
+          printf "\n%sImage deleted:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
+          printf "\nSelecting another random image...\n"
+          # kill $pic_pid
+          rm "$tmp_pics/$pic_file"
+          rm "$pic_dir/$pic_file"
+          sleep 2
+          break
+          ;;
+        * )
+          printf "\n%sInvalid option. Try again.%s\n" "$lightred" "$normal"
+      esac
+    done
+  done
+}
+
+main () {
+  check_package imagemagick
+  select_images
+}
+
 ## Execution ##
 
-# Create temporary picture directory if it doesn't already exist
-[[ -d "$tmp_pics" ]] || mkdir -p "$tmp_pics"
-
-check_package imagemagick
-clear
-while true; do
-  # Randomly select an image folder from ~/Pictures/
-  pic_dir=$(find ~/Pictures -maxdepth 1 -type d | shuf -n1)
-  sel_dir="${pic_dir##*/}"
-  valid_folder "$sel_dir" || continue
-
-  # Choose a random image file from the selected folder
-  random_file=$(find "$pic_dir" -maxdepth 1 -type f | shuf -n1)
-  pic_file="${random_file##*/}"
-  valid_image "$pic_file" || continue
-
-  # Accept or reject selected file
-  clear
-  box "Random Image Selector ($script v$version)"
-  printf "Selects a random image from ~/Pictures\n"
-  printf "%sSelected image: %s%s/%s%s\n" "$blue" "$orange" "$sel_dir" "$pic_file" "$normal"
-  cp -p "$pic_dir/$pic_file" "$tmp_pics"
-  # /usr/bin/display -geometry +600+20 "$tmp_pics/$pic_file" &
-  /usr/bin/display -geometry +1000+20 -resize 800x600 "$tmp_pics/$pic_file" &
-  # kitten icat --clear --place 60x30@80x1 --scale-up "$tmp_pics/$pic_file"
-  pic_pid="$!"
-  printf "\n%sOptions:%s\n" "$blue" "$normal"
-  COLUMNS=12
-  options=( "Accept the selected image and select another image." \
-    "Accept the selected image and exit." \
-    "Reject the selected image and select another image." \
-    "Reject the selected image and exit." \
-    "Delete the selected image and select another image." )
-  PS3="Chose an option: "
-  select _opt in "${options[@]}"; do
-    case $REPLY in
-      1 )
-        printf "\n%sAccepted image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
-        printf "\nSelecting another random image...\n"
-        kill $pic_pid
-        sleep 2
-        break
-        ;;
-      2 )
-        printf "\n%sAccepted image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
-        kill $pic_pid
-        all_done
-        ;;
-      3 )
-        printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
-        printf "\nSelecting another random image...\n"
-        kill $pic_pid
-        rm "$tmp_pics/$pic_file"
-        sleep 2
-        break
-        ;;
-      4 )
-        printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
-        kill $pic_pid
-        rm "$tmp_pics/$pic_file"
-        all_done
-        ;;
-      5 )
-        printf "\n%sImage deleted:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
-        printf "\nSelecting another random image...\n"
-        # kill $pic_pid
-        rm "$tmp_pics/$pic_file"
-        rm "$pic_dir/$pic_file"
-        sleep 2
-        break
-        ;;
-      * )
-        printf "\n%sInvalid option. Try again.%s\n" "$lightred" "$normal"
-    esac
-  done
-done
+main "$@"
