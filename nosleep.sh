@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2023
-# Last updated : 25 Nov 2025
+# Last updated : 01 Jan 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,9 +41,6 @@ fi
 set_nosleep() {
   local script_dir
   script_dir=$(dirname "$(readlink -f "${0}")")
-  local -r sleep_dir="/etc/systemd/sleep.conf.d"
-  local -r sysd_dir="/etc/systemd"
-  local -r sleep_file="sleep.conf"
   local -r sed_file="$script_dir/files/nosleep.sed"
   if [[ ! -f "$sed_file" ]]; then
     printf "A required file (%s) was not found.\n" "${sed_file##*/}" >&2
@@ -51,16 +48,16 @@ set_nosleep() {
     return 1
   fi
   sudo_login 2
-  [[ -d "$sleep_dir" ]] || sudo mkdir -p "$sleep_dir"
-  sudo cp -v "$sysd_dir/$sleep_file" "$sleep_dir/"
-  sudo sed -i.bak -f "$sed_file" "$sleep_dir/$sleep_file"
-  printf "%s modified. Backup (%s.bak) created.\n" "$sleep_file" "${sleep_file##*/}"
+  [[ -d /etc/systemd/sleep.conf.d ]] || sudo mkdir -p /etc/systemd/sleep.conf.d
+  sudo cp -v /etc/systemd/sleep.conf /etc/systemd/sleep.conf.d/99-sleep.conf
+  sudo sed -i -f "$sed_file" /etc/systemd/sleep.conf.d/99-sleep.conf
+  printf "99-sleep.conf created.\n"
   return 0
 }
 
 main() {
   local script="${0##*/}"
-  local -r version="2.0.25329"
+  local -r version="2.1.26001"
   printf "Disables sleep and hiberation on Debian-based systems.\n"
   set_nosleep; code="$?"
   over_line "$script $version"
