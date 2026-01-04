@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : resize-pics
-# Description  : Resizes and changes the compression of images/
+# Description  : Resizes and changes the compression of images in the current directory.
 # Dependencies : imagemagick
-# Arguments    : none
+# Arguments    : size in pixels to be resized to. Default is 800 pixels (long side of image)
 # Author       : Copyright (c) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Jun 2022
-# Updated      : 15 Sep 2025
-# Comments     : Must be run from the working directory.
+# Updated      : 04 Jan 2025
+# Comments     : Must be run from the current working directory.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -40,7 +40,7 @@ fi
 
 find_images() {
   local images
-  images=$(find . -maxdepth 1 -type f -iname "*.jpg" | wc -l)
+  images=$(find . -maxdepth 1 -type f -iname "*.jp*g" | wc -l)
   [[ "$images" -gt 0 ]] && return "$TRUE" || return "$FALSE"
 }
 
@@ -48,20 +48,30 @@ resize_pics() {
   local size image
   size="$1"
   [[ -d ./resized ]] || mkdir -p ./resized
+  printf "Creating resized images in ./resized...\n"
   for image in *.jpg; do
     convert "$image" -resize "$size"x"$size" resized/"${image%}"
   done
 }
 
+rename_extensions() {
+  # rename *.JPG, *.JPEG, *.jpeg to *.jpg
+  find . -maxdepth 1 -type f -iname "*.jp*g" -exec rename 's/\.JPE?G$/\.jpg/i' {}  \;
+}
 
 main() {
 	local script="${0##*/}"
-  local version="1.5.25258"
+  local version="1.6.26004"
 	local size="${1:-800}"
-  find_images || die "No JPEG images in current directory to process." 1
-  check_package imagemagick
-  resize_pics "$size"
+  if find_images; then
+    check_package imagemagick
+    rename_extensions
+    resize_pics "$size"
+  else
+    printf "No JPEG images in current directory to process.\n"
+  fi
   over_line "$script $version"
+  exit
 }
 
 ## Execution ##
