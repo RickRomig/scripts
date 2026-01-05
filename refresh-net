@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2025, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : Unknown
-# Updated      : 04 Dec 2025
+# Updated      : 05 Jan 2026
 # Comment      :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,6 +41,7 @@ fi
 restart_network() {
   local init_sys
   init_sys=$(awk 'match($0, /(systemd|sysvinit)/) { print toupper(substr($0, RSTART, RLENGTH));exit; }' <(strings /sbin/init))
+  printf "Restarting network...\n"
   case "$init_sys" in
     "SYSTEMD" )
       sudo systemctl restart NetworkManager.service ;;
@@ -49,16 +50,15 @@ restart_network() {
     * )
       die "Init system is undetermined." 1
   esac
+  sleep 3
 }
 
 main() {
 	local script="${0##*/}"
-  local version="2.10.25338"
+  local version="2.1.26005"
   sudo_login 2
   check_package strings
-  printf "Restarting network...\n"
   restart_network
-  sleep 3
   over_line "$script $version"
   exit
 }
