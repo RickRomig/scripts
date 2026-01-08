@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Last updated : 03 Dec 2025
+# Last updated : 08 Jan 2026
 # Comments     : .png logo does not work with Terminator.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,15 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.12.337"
+readonly version="3.13.26008"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
+DOTS_PID=
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="03 Dec 2025"
+	local -r updated="08 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, removes, updates FastFetch
@@ -100,10 +101,11 @@ install_fastfetch(){
 	[[ -z "$new_ver" ]] && die "No download available. Try again later." 1
 	sudo_login 2
   printf "Downloading FastFetch %s from the fastfetch-cli GitHub repository..." "$new_ver"
-  dots "."
+   dots "." &
+	DOTS_PID="$!"
   wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
-  kill "$!"; tput cnorm
-  printf "done\nInstalling FastFetch %s...\n" "$new_ver"
+	kill_dots
+  printf "Installing FastFetch %s...\n" "$new_ver"
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
 	exists fastfetch || die "Fastfetch installation failed." 1
   printf "%sFastFetch %s installed.%s\n" "$lightyellow" "$(ff_version)" "$normal"
