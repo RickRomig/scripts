@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : mk-swapfile.sh
-# Description  : creates a swap file (/swapfile) in root directory
-# Dependencies : none
+# Description  : creates /swapfile using dd or fallocate
+# Dependencies : dd fallocate
 # Arguments    : none
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jan 2025
-# Last updated : 14 Nov 2025
-# Comments     : creates swap file if no other swap exists.
+# Last updated : 07 Jan 2026
+# Comments     : creates a swap file if no other swap exists.
 #              : Disable old swap and comment out in /etc/fstab
+#              : User is prompted to provide size of swap file in GB (integer value)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -46,27 +47,60 @@ swap_exists() {
 }
 
 create_swapfile() {
+	local _opt size
+	read -rp "Enter size of swap file in GB: " size
+	PS3="Choose creation method: "
+	select _opt in dd fallocate cancel; do
+		case "$REPLY" in
+			1 )
+				dd_swapfile "$size"
+				break ;;
+			2 )
+				fallocate_swapfile "$size"
+				break ;;
+			3 )
+				printf "Swap file creation canceled.\n"
+				break ;;
+			* )
+				printf "%sInvalid choice. Try again.%s\n" "$orange" "$normal" >&2
+		esac
+	done
+}
+
+dd_swapfile() {
+	local size=$(($1 * 1048576))
 	printf "Creating swap file in the root directory...\n"
-	# create a 1GB swap file (multiply count by number of gigabyes needed)
-	# sudo dd if=/dev/zero of=/swapfile bs=1024 count=1048576	# 4 x count = 4194304, 8 x count = 8388608
-	sudo dd if=/dev/zero of=/swapfile bs=1024 count=4194304	# 4GB swapfile
+	sudo dd if=/dev/zero of=/swapfile bs=1024 count="$size"
+	process_swapfile
+}
+
+fallocate_swapfile() {
+	local size="$1"
+	printf "Creating swap file in the root directory...\n"
+	sudo fallocate -l "$size"G /swapfile
+	process_swapfile
+}
+
+process_swapfile() {
 	ls -lh /swapfile  # see the file in the root directory
 	sudo e4defrag /swapfile	# defrag swapfile so it's 1 contigous file
-	sudo mkswap /swapfile # prepare swap file
-	sudo chmod 600 /swapfile  # set permissions
-	sudo swapon /swapfile # activate the swap file
-	echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab
+	sudo chmod 600 /swapfile	# set file permissions
+	sudo mkswap /swapfile	# set up swap area
+	sudo swapon /swapfile	# enable swap file
+	echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab	# add to /etc/fstab
 }
 
 main() {
 	local script="${0##*/}"
-	local version="1.3.25328"
+	local version="2.0.26007"
 	sudo_login 2
 	if swap_exists; then
-		printf "A swap device exists and is enabled.\n"
+		printf "A swap file or partition already exists and is enabled.\n"
+		printf "Disable current swap before creating swap file.\n"
 	else
 		create_swapfile
 	fi
+	printf "Current Swap:\n"
 	sudo swapon --show
   over_line "$script $version"
   exit
