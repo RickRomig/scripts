@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.11.26008"
+readonly version="5.12.26008"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -55,7 +55,7 @@ drive_test() {
 	check_usb || dielog "No USB drive connected!" "$logfile" 1
 	bu_drive_label || dielog "Invalid partition label. Run 'bu -s' for drive setup information." "$logfile" 1
   check_uuid || dielog "Incorrect drive to backup $host." "$logfile" 1
-  # mount | grep -qw BU_Drive > /dev/null 2>&1 || mount_bu
+  is_deb13 && mount_bu
   bu_drive_fs || dielog "Drive must be formatted with EXT4 or XFS." "$logfile" 1
 	get_space_remaining
 	printf "USB Backup Drive is mounted and meets all criteria.\n"
@@ -90,12 +90,29 @@ check_uuid() {
 	fi
 }
 
-# mount_bu() {
-#   local usbdrv
-#   usbdrv="$(awk '/BU_Drive/ {print $1}' <(lsblk -fs))"
-#   [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
-#   sudo mount /dev/"$usbdrv" "$mount_point"
-# }
+is_deb13() {
+	local deb13
+	deb13=$(cut -d'.' -f1 </etc/debian_version)
+	(( deb13 >= 13 )) && return "$TRUE" || return "$FALSE"
+}
+
+mount_bu() {
+  local usbdrv
+  usbdrv="$(awk '/BU_Drive/ {print $1}' <(lsblk -fs))"
+  [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
+  sudo mount /dev/"$usbdrv" "$mount_point"
+}
+
+unmount_usb_drive() {
+	printf "Unmounting %s...\n" "$mount_point"
+	if is_deb13; then
+		sudo umount "$mount_point" || exit_status=10
+	elif umount "$mount_point"; then
+		printf "BU_Drive unmounted.\nIt is now safe to remove the USB drive.\n"
+		exit_status=10
+fi
+	(( exit_status = 10 )) && log "$RED_ERROR $mount_point failed to unmount." "$logfile"
+}
 
 bu_drive_fs() {
   local fs_type
@@ -115,17 +132,6 @@ sync_drives() {
 	SPIN_PID="$!"
 	sync
 	kill_spin
-}
-
-unmount_usb_drive() {
-	printf "Unmounting %s...\n" "$mount_point"
-	if umount "$mount_point"; then	# sudo ?
-		# [[ -d "$mount_point" ]] && rmdir "$mount_point"
-		printf "BU_Drive unmounted.\nIt is now safe to remove the USB drive.\n"
-	else
-		log "$RED_ERROR $mount_point failed to unmount." "$logfile"
-		exit_status=10
-	fi
 }
 
 get_space_remaining() {
