@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2025
-# Updated      : 26 Dec 2025
+# Updated      : 08 Jan 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,15 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.1.25360"
+readonly version="1.2.26008"
 readonly gh_url="https://github.com/sinelaw/fresh/releases"
+DOTS_PID=
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="26 Dec 2025"
+	local -r updated="08 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Fresh Editor.
@@ -103,10 +104,11 @@ install_fresh() {
   local new_pkg="fresh-editor_${new_ver}-1_amd64.deb"
   [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
   printf "Downloading Fresh-editor %s from the sinelaw GitHub repository..." "$new_ver"
-  dots "."
+   dots "." &
+	DOTS_PID="$!"
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
-  kill "$!"; tput cnorm
-  printf "done\nInstalling Fresh-editor %s...\n" "$new_ver"
+	kill_dots
+  printf "Installing Fresh-editor %s...\n" "$new_ver"
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
   dpkg -l fresh-editor | grep -qw '^ii' >/dev/null 2>&1 || die "Bat installation failed." 1
