@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 06 Jan 2026
+# Last updated : 08 Jan 2026
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,13 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.10.26006"
+readonly version="5.11.26008"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
 readonly logfile="$HOME/.local/share/logs/BU.log"
 exit_status=0
 SECONDS=0
+SPIN_PID=
 
 ## Functions ##
 
@@ -109,12 +110,11 @@ flush_kb_buffer() {
 }
 
 sync_drives() {
-	printf "Syncing Drives"
-	dots "."
+	printf "Syncing Drives\n"
+	spin &
+	SPIN_PID="$!"
 	sync
-	kill "$!"
-	printf "done\n"
-  tput cnorm
+	kill_spin
 }
 
 unmount_usb_drive() {
