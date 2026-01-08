@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 03 Dec 2025
+# Updated      : 08 Jan 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,15 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.20.25337"
+readonly version="4.21.26008"
 readonly gh_url="https://github.com/marktext/marktext/releases"
+DOTS_PID=
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="03 Dec 2025"
+	local -r updated="08 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, removes the Mark Text markdown editor.
@@ -99,9 +100,10 @@ install_marktext() {
   local -r new_pkg="marktext-amd64.deb"
   [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
   printf "Downloading Mark Text markdown editor (v %s) from the marktext GitHub repository..." "$new_ver"
-  dots "."
+  dots "." &
+  DOTS_PID="$!"
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
-  kill "$!";printf "done\n";tput cnorm
+	kill_dots
   sudo_login 2
   printf "Installing Mark Text %s...\n" "$new_ver"
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
