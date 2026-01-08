@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.12.26008"
+readonly version="5.13.26008"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -106,12 +106,16 @@ mount_bu() {
 unmount_usb_drive() {
 	printf "Unmounting %s...\n" "$mount_point"
 	if is_deb13; then
-		sudo umount "$mount_point" || exit_status=10
-	elif umount "$mount_point"; then
-		printf "BU_Drive unmounted.\nIt is now safe to remove the USB drive.\n"
+		sudo umount "$mount_point"
+	else
+		umount "$mount_point"
+	fi
+	if grep -q 'BU_Drive' <(mount); then
+		log "$RED_ERROR $mount_point failed to unmount." "$logfile"
 		exit_status=10
-fi
-	(( exit_status = 10 )) && log "$RED_ERROR $mount_point failed to unmount." "$logfile"
+	else
+		printf "BU_Drive unmounted.\nIt is now safe to remove the USB drive.\n"
+	fi
 }
 
 bu_drive_fs() {
