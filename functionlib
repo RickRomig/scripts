@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 18 Nov 2025
+# Last updated : 08 Jan 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -932,21 +932,70 @@ assign_cfg_repo() {
 
 ###############################################################################
 # dots
-# Purpose: Display a series of dots to indicate a running process.
+# Purpose: Display a continuing series of dots as a background process while waiting for an action to complete.
 # Argument:
 #   $1 -> optional character to be repeated. Default is '.' (period)
 # NOTES:
-# Character argument, if present, needs to be in double quotes, i.e., "-".
+# Character argument, if present, needs to be in double quotes, i.e., "-". Recommend always including it in the call to it.
 # dots "."; command; kill "$!"; tput cnorm; printf "\n"
 # Refer to ~/bin/functions/dots-spin.md for usage instructions.
 ###############################################################################
 dots() {
-  local char len
-  char="${1:-.}"
-  len="${#char}"
-  (( len > 1 )) && char=${char::1}  # takes the first character.
-  tput civis  # removes cursor
-  while true; do echo -n "."; sleep 0.5; done &
+	local char="${1:-.}"
+	local char_len="${#char}"
+	(( char_len > 1 )) && char="${char::1}"
+	tput civis
+	while true; do
+		printf '%s' "$char"
+		sleep .5
+	done
+}
+
+###############################################################################
+# kill_dots
+# Purpose: kill the dots background process and restores the cursor.
+# Call function after calling the command running in the foreground.
+# DOTS_PID needs to be declared as a global variable in the calling script.
+###############################################################################
+kill_dots() {
+	if [[ -n "$DOTS_PID" ]]; then
+		kill "$DOTS_PID"
+		printf "done\n"
+	fi
+	tput cnorm
+}
+
+###############################################################################
+# spin
+# Purpose: Display a serios of spinngng characters to indicate a running process.
+# Refer to ~/bin/functions/dots-spin.md for usage instructions.
+###############################################################################
+spin() {
+	local c
+	local chars=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
+	tput civis
+	while true; do
+		for c in "${chars[@]}"; do
+			# print ' %s \r' "$c"
+			echo -ne " $c \r"
+			sleep .2
+		done
+	done
+}
+
+###############################################################################
+# kill_spin
+# Purpose: kill the dots background process and restores the cursor.
+# Call function after calling the command running in the foreground.
+# SPIN_PID needs to be declared as a global variable in the calling script.
+###############################################################################
+kill_spin() {
+	if [[ -n "$SPIN_PID" ]]; then
+		kill "$SPIN_PID"
+	fi
+	printf "\n"
+	printf '\e[A\e[K'
+	tput cnorm
 }
 
 ###############################################################################
