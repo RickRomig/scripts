@@ -1,30 +1,37 @@
 # dots-spin
 ## dots
 ### Purpose
-Display dots as a background process while waiting for an action to complete.
+Display a continuing series of dots as a background process while waiting for an action to complete.
 ### Arguments
 optional character to be repeated. Default is '.' (period)
-2. **Function**
-
-
 ### Usage
    ```bash
-   echo -n "Downloading update..."
-   dots
+   DOTS_PID=
+   printf "Downloading update..."
+   dots "." &
+	DOTS_PID="$!"
    wget -q -P "$tmp_dir" "$url/$package"
-   kill "$!"
-   echo ""
-   tput cnorm
+	kill_dots
    ```
 ### Code
 ```bash
 dots() {
-  local char len
-  char="${1:-.}"
-  len="${#char}"
-  (( len > 1 )) && char=${char::1}  # takes the firt character.
-  tput civis  # rempves cursor
-  while true; do echo -n "."; sleep 0.5; done &
+	local char="${1:-.}"
+	local char_len="${#char}"
+	(( char_len > 1 )) && char="${char::1}"
+	tput civis
+	while true; do
+		printf '.'
+		sleep .5
+	done
+}
+
+kill_dots() {
+	if [[ -n "$DOTS_PID" ]]; then
+		kill "$DOTS_PID"
+		printf "done\n"
+	fi
+	tput cnorm
 }
 ```
 ## spin
@@ -34,19 +41,38 @@ Display a spinning character as a background process while waiting for an action
 None
 ### Usage
 ```bash
+SPIN_PID=
 echo "Downloading update."
-spin
+spin &
+SPIN_PID="$!"
 wget -q -P "$tmp_dir" "$url/$package"
-kill "$!"
-echo ""
-tput cnorm
+kill_spin
 ```
 ### Code
 ```bash
 spin() {
-   spinner=( '|' '/' '-' '\' )
-   while true; do for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.2; done; done &
+	local c
+	local chars=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
+	tput civis
+	while true; do
+		for c in "${chars[@]}"; do
+			# print ' %s \r' "$c"
+			echo -ne " $c \r"
+			sleep .2
+		done
+	done
 }
+
+kill_spin() {
+	if [[ -n "$SPIN_PID" ]]; then
+		kill "$SPIN_PID"
+	fi
+	printf "\n"
+	printf '\e[A\e[K'
+	tput cnorm
+}
+
 ```
 ### Notes
-Spin function has been removed from functionlib because it's problematic and I rarely used it.
+- Spin function based on code by Deve Eddy, URL: https://github.com/bahamas10/ysap/raw/refs/heads/main/code/2026-01-07-spinner/spinner
+- Dots function adapted From Dave Eddy's spinner code.
