@@ -7,11 +7,11 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 06 Dec 2025
+# Updated      : 08 Jan 2025
 # Comments     : Testing indicates USB drive need to be mounted.
 #              : Works with fuzzy finder (fzf).
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
-#              : After a dryrun, USB drive will remain unmounted.
+#              : After a dryrun, USB drive will remain mounted.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -42,7 +42,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.4.25340"
+readonly version="7.5.26008"
 user=$(whoami); readonly user
 dryrun="$FALSE"
 FMENU="fzf --header=$script \
@@ -57,13 +57,14 @@ FMENU="fzf --header=$script \
            --header-first \
            --bind change:top \
            --prompt"
+DOTS_PID=
 
 ## Functions ##
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="06 Dec 2025"
+	updated="08 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
@@ -141,12 +142,12 @@ simulate_dd() {
 	local iso="$1"
 	local usb="$2"
 	local mount_name="$3"
-  printf "\nWriting %s to /dev/%s (SIMULATED) ...\n" "${iso##*/}" "$usb"
-  dots "."
-  sleep 10
-  kill "$!"
-  tput cnorm
-  printf "done\n%s written to /dev/%s (SIMULATED)\n"  "${iso##*/}" "$usb"
+  printf "\nWriting %s to /dev/%s (SIMULATED) ..." "${iso##*/}" "$usb"
+  dots "." &
+	DOTS_PID="$!"
+  sleep 15
+  kill_dots
+  printf "%s written to /dev/%s (SIMULATED)\n"  "${iso##*/}" "$usb"
 }
 
 write_dd() {
