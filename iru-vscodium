@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2022
-# Updated      : 03 Dec 2025
+# Updated      : 08 Jan 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,15 +39,16 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.2.25337"
+readonly version="3.3.26008"
 readonly gh_url="https://github.com/VSCodium/vscodium/releases"
+DOTS_PID=
 
 ## Functions ##
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="03 Dec 2025"
+	updated="08 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates,  removes the VSCodium editor.
@@ -100,9 +101,10 @@ install_vscodium() {
   local new_pkg="codium_${new_ver}_amd64.deb"
   [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
   printf "Downloading VSCodium %s from the VSCodium GitHub repository..." "$new_ver"
-  dots "."
+  dots "." &
+  DOTS_PID="$!"
   wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
-  kill "$!"; printf "done\n"; tput cnorm
+  kill_dots
   printf "Installing VSCodium %s...\n" "$new_ver"
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
