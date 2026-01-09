@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 08 Jan 2026
+# Last updated : 09 Jan 2026
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.13.26008"
+readonly version="5.14.26009"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
 readonly logfile="$HOME/.local/share/logs/BU.log"
 exit_status=0
 SECONDS=0
-SPIN_PID=
+DOTS_PID=
 
 ## Functions ##
 
@@ -134,11 +134,11 @@ flush_kb_buffer() {
 }
 
 sync_drives() {
-	printf "Syncing Drives\n"
-	spin &
-	SPIN_PID="$!"
+	printf "Syncing Drives..."
+	dots "." &
+	DOTS_PID="$!"
 	sync
-	kill_spin
+	kill_dots
 }
 
 get_space_remaining() {
@@ -229,7 +229,7 @@ restore() {
 
 help() {
 	local errcode="${1:-2}"
-	local updated="06 Jan 2026"
+	local updated="09 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
