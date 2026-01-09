@@ -92,8 +92,11 @@ check_uuid() {
 
 is_deb13() {
 	local deb13
-	deb13=$(cut -d'.' -f1 </etc/debian_version)
-	(( deb13 >= 13 )) && return "$TRUE" || return "$FALSE"
+	if is_debian; then
+		deb13=$(cut -d'.' -f1 </etc/debian_version)
+		(( deb13 >= 13 )) 2>/dev/null && return "$TRUE" || return "$FALSE"
+	fi
+	return "$FALSE"
 }
 
 mount_bu() {
