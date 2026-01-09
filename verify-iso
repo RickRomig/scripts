@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 08 Jan 2026
+# Updated      : 09 Jan 2026
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
@@ -42,7 +42,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="11.3.26008"
+readonly version="11.4.26009"
 FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
@@ -55,13 +55,13 @@ FMENU="fzf --header=$script \
            --header-first \
            --bind change:top \
            --prompt"
-DOTS_PID=
+SPIN_PID=
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="08 Jan 2026"
+	local -r updated="09 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.
@@ -117,9 +117,8 @@ verify_checksums() {
 	local checksum="$2"
 	local ext="${checksum##*.}"
 	local iso_sum chk_sum
-	printf "Verifying checksums."
-	dots "." &
-	DOTS_PID="$!"
+	printf "Verifying checksums.\n"
+  SPIN_PID="$!"
 	case "$ext" in
 		md5 )
 			iso_sum=$(awk '{print $1}' <(/usr/bin/md5sum "$iso")) ;;
@@ -131,9 +130,9 @@ verify_checksums() {
 			iso_sum=$(awk '{print $1}' <(/usr/bin/sha512sum "$iso")) ;;
 	esac
 	chk_sum=$(awk '{print $1}' "$checksum")
-  kill_dots
+  kill_spin
   sleep 1
-  printf '\e[A\e[K'
+  printf '\e[A\e[K'	# removes 'Verifying checksums' line
 	printf "ISO checksum:\n\t%s\n" "$iso_sum"
 	printf "%s checksum:\n\t%s\n" "${ext^^}" "$chk_sum"
 	[[ "$iso_sum" == "$chk_sum" ]] && return "$TRUE" || return "$FALSE"
