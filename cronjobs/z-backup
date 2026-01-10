@@ -8,8 +8,8 @@
 # Author       : Copyright (C) 2020, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 07 Jun 2020
-# Updated      : 27 Dec 2025
-# Version      : 2.1.25361
+# Updated      : 10 Jan 2026
+# Version      : 3.0.26010
 # Comment      : Automatically limits log size to 30 entries.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -47,9 +47,15 @@ local_backup() {
   [[ -d "$log_dir" ]] || mkdir -p "$log_dir"
   [[ -f "$backup_dir/$error_log" ]] && rm "$backup_dir/$error_log"
 
+  # Create an array of excluded files and directories
+	local item
+	local excluded=('timeshift' 'lost+found' 'backup/' '.cache/' '.local/share/Trash/')
+	local exclude_opts=()
+	for item in "${excluded[@]}"; do exclude_opts+=( --exclude="$item" ); done
+
   {
     printf "%(%a|%F|%R)T|"
-    if rsync -aH --delete --exclude="/backup/backup/" /etc /home /data "$backup_dir/" 2>> "$backup_dir/$error_log"; then
+    if rsync -aH --delete "${exclude_opts[@]}" /etc /home /data "$backup_dir/" 2>> "$backup_dir/$error_log"; then
       printf "successful\n"
       printf "%(%a, %F %R)T - Local Backup was successful.\n" >> "$backup_dir/$error_log"
     else
