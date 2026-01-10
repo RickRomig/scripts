@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 15 Oct 2025
-# Last updated : 20 Oct 2025
+# Last updated : 10 Jan 2026
 # Comments     : Original script Copyright (C) 2025  Kris Occhipinti
 #              : Modified and adapted by Rick Romig
 # TODO (Rick)  :
@@ -41,8 +41,9 @@ else
 fi
 
 # shellcheck disable=SC2086
+# Expressions don't expand in single quotes, use double quotes for that.
 search_packages() {
-	# Code by Kris Occhipinti (with minor changes)
+	# Based on code by Kris Occhipinti (with minor changes)
 	local package do_it
 	package="$(
 		apt-cache pkgnames |
@@ -51,14 +52,21 @@ search_packages() {
 				--preview-window 'top:75%' |
 				tr "\n" " "
 	)"
+	package="${package// /}"	# remove trailing whitespace
 	[[ "$package" ]] && read -n1 -rp "Install ${package}? [y/N]: " do_it
-	[[ "${do_it,,}" == "y" ]] && sudo apt install $package
+	printf '\n'
+	if [[ "${do_it,,}" != "y" ]]; then
+		printf "%s installation declined.\n" "$package"
+		return
+	fi
+	sudo login 2
+	sudo apt install "$package"
 	printf "\nDone\n"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.1.25293"
+  local -r version="1.2.26010"
   check_package fzf
   search_packages
   over_line "$script $version"
