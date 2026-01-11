@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 15 Oct 2025
-# Last updated : 10 Jan 2026
+# Last updated : 11 Jan 2026
 # Comments     : Original script Copyright (C) 2025  Kris Occhipinti
 #              : Modified and adapted by Rick Romig
 # TODO (Rick)  :
@@ -40,8 +40,6 @@ else
   exit 1
 fi
 
-# shellcheck disable=SC2086
-# Expressions don't expand in single quotes, use double quotes for that.
 search_packages() {
 	# Based on code by Kris Occhipinti (with minor changes)
 	local package do_it
@@ -66,7 +64,7 @@ search_packages() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.2.26010"
+  local -r version="1.2.26011"
   check_package fzf
   search_packages
   over_line "$script $version"
