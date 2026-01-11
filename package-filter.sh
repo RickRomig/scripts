@@ -57,7 +57,7 @@ search_packages() {
 		printf "%s installation declined.\n" "$package"
 		return
 	fi
-	sudo login 2
+	sudo_login 2
 	sudo apt install "$package"
 	printf "\nDone\n"
 }
