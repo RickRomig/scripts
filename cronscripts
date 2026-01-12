@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 17 Feb 2022
-# Updated      : 20 Nov 2025
+# Updated      : 12 Jan 2026
 # Comments     : For jobs needinng root access, checks if repo script is
 #              : newer than the one run by anacron/cron
 # TODO (Rick)  :
@@ -40,7 +40,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="9.1.25324"
+readonly version="9.2.26012"
 localip="$(local_ip)"; readonly localip
 # path variables
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
@@ -54,7 +54,7 @@ readonly sed_path="/usr/share/misc/"
 
 help() {
   local errcode="${1:-2}"
-  local updated="14 Nov 2025"
+  local updated="12 Jan 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Copies cronjob scripts to the appropriate directories.
@@ -62,7 +62,6 @@ Copies cronjob scripts to the appropriate directories.
 ${green}Usage:${normal} $script [-abdfghmrstuv]
 ${orange}Available options:${normal}
   -a    Copy all applicable scripts.
-  -b    Copy local backup script.
   -c    Copy cloned repo update script.
   -d    Copy defrag script.
   -f    Copy Finance backup scripts.
@@ -164,18 +163,6 @@ cp_redshift_notify() {
   esac
 }
 
-cp_zbackup() {
-	case "$localip" in
-		11 )
-		  [[ -d "$opt_cron_path" ]] || { sudo_login 1; sudo mkdir -p "$opt_cron_path"; }
-      [[ -f "$opt_cron_path/z-backup" ]] || { sudo_login 1; sudo cp -v "$job_dir/z-backup" "$opt_cron_path" | awk '{print "==> "$NF}'; }
-      is_older "z-backup" "$opt_cron_path" && { sudo_login 1; sudo cp -v "$job_dir/z-backup" "$opt_cron_path" | awk '{print "==> "$NF}'; }
-      ;;
-		* )
-			no_copy "z-backup is"
-	esac
-}
-
 cp_zdefrag() {
   local -r anacron_path="/etc/cron.monthly/"
   case "$localip" in
@@ -229,7 +216,7 @@ cp_zytdlpupdate() {
 main() {
   local noOpt opt optstr OPTARG OPTIND
   noOpt=1
-  optstr=":abcdfghmrstuy"
+  optstr=":acdfghmrstuy"
   printf "Copying updated cron scripts...\n"
   while getopts "$optstr" opt; do
     case "$opt" in
@@ -242,10 +229,7 @@ main() {
         cp_zupdate
         cp_zdefrag
         cp_zytdlpupdate
-        cp_zbackup
         ;;
-		  b )
-			  cp_zbackup ;;
       c )
         cp_repo_update ;;
       d )
