@@ -103,7 +103,7 @@ DEFAULT=$(echo -en "\e[49m")
 die() {
   local -r errmsg="${1:-You screwed up}"
   local -r errcode="${2:-1}"
-  printf "\e[91mERROR:\e[0m %s ($errcode)\n" "$errmsg" >&2
+  printf "\e[91mERROR:\e[0m %s (%d)\n" "$errmsg" "$errcode" >&2
   exit "$errcode"
 }
 
@@ -131,7 +131,7 @@ dielog() {
   local message="${1:-You screwed up}"
   local log_file="$2"
   local err_code="${3:-1}"
-  printf "%(%F %R)T: \e[91mERROR:\e[0m %s (%s)\n" -1 "$message" "$err_code" | tee -a "$log_file"
+  printf "%(%F %R)T: \e[91mERROR:\e[0m %s (%d)\n" -1 "$message" "$err_code" | tee -a "$log_file"
   exit "$err_code"
 }
 
