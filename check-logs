@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Aug 2019
-# Updated      : 10 Dec 2025
+# Updated      : 12 Jan 2026
 # Comments     : sudo access required to view Timeshift snapshots
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -130,28 +130,6 @@ ytdlpupdate_log() {
     printf "%sThe yt-dlp update log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
     if [[ -x "/etc/cron.daily/z-ytdlp-update" ]]; then
-      printf " scheduled but has not run.\n"
-    else
-      printf " not scheduled to run.\n"
-    fi
-  fi
-}
-
-local_backup_log() {
-  local log_dir log_file entries
-  log_dir="/var/log"
-  log_file="backup.log"
-  if [[ -f "$log_dir/$log_file" ]]; then
-    clear
-    printf "%s%s - Local Backup Log:%s\n" "$lightgreen" "$lhost" "$normal"
-    column -t -s "|" -N DAY,DATE,TIME,RESULT "$log_dir/$log_file"
-    print_line "-" "34"
-    entries=$(wc -l < "$log_dir/$log_file")
-    (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
-  else
-    printf "%sThe local backup log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
-    printf "The job is"
-    if [[ -x "/etc/cron.daily/z-backup" || -x "/opt/bin/z-backup" ]]; then
       printf " scheduled but has not run.\n"
     else
       printf " not scheduled to run.\n"
@@ -350,7 +328,7 @@ system_logs() {
 
 local_logs() {
 	local _opt options
-	options=( "Password Databases" "Local Trash" "Repo Update" "Local Backup" "Main Menu" )
+	options=( "Password Databases" "Local Trash" "Repo Update" "Main Menu" )
 	while true; do
 		show_header
 		COLUMNS=40
@@ -371,10 +349,6 @@ local_logs() {
 					anykey
 					break ;;
 				4 )
-					local_backup_log
-					anykey
-					break ;;
-				5 )
 					main
 					break ;;
 				* )
@@ -431,7 +405,7 @@ archive_logs() {
 main() {
 	local _opt options script version
   script="${0##*/}"
-  version="10.12.25344"
+  version="10.13.26012"
 	options=( "System logs" "Local logs" "Archive Logs" "Quit")
 	while true; do
 		show_header
