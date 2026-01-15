@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 08 Jan 2026
+# Updated      : 15 Jan 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.21.26008"
+readonly version="4.22.26015"
 readonly gh_url="https://github.com/marktext/marktext/releases"
 DOTS_PID=
 
@@ -47,7 +47,7 @@ DOTS_PID=
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="08 Jan 2026"
+	local -r updated="15 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, removes the Mark Text markdown editor.
@@ -168,6 +168,7 @@ main() {
           tmp_file=$(mktemp) || die "Failed to create temporary file." 1
           tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
           trap cleanup EXIT
+					printf "Marktext: Comparing current and newest versions...\n"
           new_ver="$(newest_version)"
           compare_versions "$new_ver"
         else
