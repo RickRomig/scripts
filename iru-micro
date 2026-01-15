@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 03 Dec 2025
+# Updated      : 15 Jan 2025
 # Comments     : Debian 13 & LMDE 7 installs version 2.0.14 from repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.14.25337"
+readonly version="6.15.26015"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="03 Dec 2025"
+	local -r updated="15 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -185,6 +185,7 @@ main() {
           tmp_file=$(mktemp) || die "Failed to create temporary file." 1
           tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
           trap cleanup EXIT
+					printf "Micro: Comparing current and newest versions...\n"
           new_ver="$(newest_version)"
           compare_versions "$new_ver"
         else
