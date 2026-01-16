@@ -1,3 +1,4 @@
+-CHANGELOG.md: initial commit - Changelog from git log
 -functionlib: remove_tilde() - removed variables, just runs find command
 -iru-vscodium: added printf to indicate version comparision taking place
 -iru-micro: added printf to indicate version comparision taking place
