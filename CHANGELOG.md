@@ -1,0 +1,4134 @@
+-functionlib: remove_tilde() - removed variables, just runs find command
+-iru-vscodium: added printf to indicate version comparision taking place
+-iru-micro: added printf to indicate version comparision taking place
+-iru-marktext: added printf to indicate version comparision taking place
+-iru-fresh-editor: added printf to indicate version comparision taking place
+-iru-bat: added printf to indicate version comparision taking place
+-iru-fastfetch: added printf to indicate version comparision taking place
+-cronscripts: removed cp_zbackup()
+-functionlib: die() - corrected printf syntax
+-functionlib: added to comments for dots() and spin()
+-check-logs: removed local_backup_log()
+-verify-iso: verify_checksum() - added missing call to 'spin &', removed 'sleep 1' before blanking 'Verifying checksums' line
+-package-filter.sh: search_packages() - correctd call to sudo_login
+-package-filter.sh: search_packages() - removed ShellCheck directive SC2086
+-package-filter.sh: search_packages() - added line to remove trailing space from package var, modified choice routine
+-cronjobs/z-backup: local_backup() - added array of excluded directories & files
+-verify-iso: verify_checksums() - indicate progress with spin() instead of dots
+-functionlib: spin() - precede spinner characters with 'Processing:'
+-bu: sync_drives() - changed back to dots() from spin()
+-bu: is_deb13() - added call to is_debian() and send test stderr to /dev/null
+-functionlib: is_debian() - removed BunsenLabs codenames
+-write-iso: modified for new dots() function
+-verify-iso: modified for new dots() function
+-iru-vscodium: modified for new dots() function
+-iru-marktext: modified for new dots() function
+-iru-fresh-editor: modified for new dots() function
+-iru-fastfetch: modified for new dots() function
+-iru-bat: modified for new dots() function
+-bs-meter: modified for new dots() function
+-bu: fixed unmount_usb_drive()
+-bu: added code to check if Debian 13 or later (Trixie or LMDE 7)
+-bu: replaced dots() with spin() and added kill_spin() call to sync_drives()
+-functionlib: reworked dots() and added new spin() function
+-docs/dots-spin.md: new usage example and new code
+-mk-swapfile.sh: added functions to use dd or fallocate to create swap file; prompts for swap file size
+-bu: main() - added clear command at beginning
+-refresh-net: moved printf and sleep commands from main() to restart_network()
+-resize-pics: added rename_extensions() to rename UC extension or JPEG to .jpg
+-randpic: valid_folder() - added SLIDES to invalid list
+-randpic: implemented main() and select_images()
+-nosleep.sh: set_nosleep() - hardcoded nosleep.conf paths
+-laptop-utils: added install_packages() to list installed utilities
+-tweaks.sh: updated sudoers timeout
+-install-nerdfonts: copies *.ttf files to fonts directory instead of extracting from tarball
+-randpic: valid_folder() - corrected syntax in case
+-randpic: valid_folder() - added ~/Pictures/backgrounds to invalid folder list
+-laptop-utils: replaced individual install functions with install_packages(), uses an array to install packages
+-laptop-lid: modify_logind() - function returns if sed file not found
+-bu: show_description() - updated exit_status
+-bu: log_status() - displays and logs exit-status
+-cronjobs/z-backup: removes old error log from backup directory; appends errors to error log
+-check-versions: installed_version() - modified dpkg -l to get version number
+-iru-fresh-editor: fresh_version() - process substitution
+-check-versions: installed_versions() - reordered case & implemented process substitution
+-iru-fresh-editor: corrected minor copy/paste errros
+-iru-fresh-editor: iniitial commit - installs/removes/updates Fresh-editor
+-check-versions: added Fresh-editor to GitHub packages
+-snippets/PS1_prompts.md: iniitial commit - code and information for Bash PS1 prompt.
+-cronjobs/z-backup: created trim_log() and local_backup()
+-cronjobs/scriptarchive.sh: cleanup() - while loop to remove old entries
+-cronjobs/z-ytdlp-update: added trim_log() and update_ytdlp()
+-cronjobs/passwdsync.sh: trim_log() - added while loop to trim file to 30 entries; sync_database() - fixed args to trim_log()
+-install-polybar: changed module locations in the bar
+-cinnkeys: removed verbose mode; simplified copy_from_repo
+-check-logs: added repo-update.log to local logs menu
+-cronjobs/repo-update.sh: main() - added time to first line of log file
+-cronjobs/repo-update.sh: corrected repo_log variable
+-cronjobs/repo-update.sh: writes clone update operations to log file
+-bu: updated version info
+-bu: added trim_log() to trim the log file down to 30 most recent entries
+-snippets/sed-snippets.md: tree with whitespace
+-snippets/misc_cmds.md: tree with whitespace
+-grevert.sh: removed 'set -eu'
+-greset.sh: removed 'set -eu'
+-bu: bu_drive_fs() & get_space_remaining() - process substitution
+-functionlib: added error code to die() & dielog();process substitution to line and box functions
+-cronjobs/z-defrag: over_line() & find_rhd() - implemented process substitution
+-cronjobs/empty-trash.sh: updated version info
+-cronjobs/z-update: implemented process substitution
+-cronjobs/z-ytdlp-update: implemented process substitution for update_status
+-cronjobs/zz-clean: autoremove_packages() & over_line() - implemented process substitution
+-cronjobs/empty-trash.sh: main() fixed white space
+-umount-usb.sh: fixed messages in unmount_usb()
+-weather: current_weather() - process substitution for location data not available; spacing in printf for temperatures
+-write-iso: list_usb_contents() & write_iso() - implemented process substitution
+-write-iso: list_usb_contents() & write_iso() - implemented process substitution
+-verify-iso: verify_checksum() - process substitution in case statement
+-wifi-up.sh: implemented process substitution; added wifi_down()
+-webcam-check: main() - implemented process substitution
+-upper2lower: removed 'set -eu'
+-update-repos.sh: removed 'set -eu'
+-umount-usb.sh: created functions;checks if USB connected/mounted.
+-tweaks.sh: fixed code alignment in no_snaps()
+-system-status: disk_usage() & show_footer() - implementd process substitution
+-system-info: apply process substitution where practical (does not work well with wc and tr)
+-scan-range: scan_range() - process substitution to check ip address response
+-rm-tilde: removed extra white space
+-refresh-net: restart_network() - init_sys assignment uses process substitution
+-purge-rc: list_rc_packages() - rpkgs assignment used process substitution
+-yt-dl: extract_domain() - domain assignment uses process substitution
+-porn-dl: extract_domain() - domain assignment uses process substitution
+-numfiles: num_files() - process substitution for size assignment
+-mount-sshfs: mounted() - process substitution
+-mount-bu: unmount-bu() - process substitution for usbdrv assignment
+-meditation-timer: is_valid_integer() & get_volume() - incorporated process substitution
+-local-ip-up: implented process substituion
+-laptop-utils: implemented process substitution for installation status
+-iru-yt-dlp: ytdlp_deb() & deb_version() - changed to process substitution
+-iru-vscodium: codium_version() - process substitution; install_vscodium() - die if no empty new_ver or failed install
+-iru-micro: micro_version() - process substitution; install_micro() - die if no empty new_ver or failed install
+-iru-marktext: marktext_version() - process substitution; install_marktext() - die if no empty new_ver or failed install
+-iru-bat: bat_version() - process substitution
+-iru-bat: install_bat() - die if new_ver is empty string
+-iru-fastfetch: install_fastfetch() - die if new_ver is empty string
+-ip-info: implemented process substitution where applicable
+-iru-fastfetch: compare_versions() - newline to 'No download...' line
+-install-zram: install_zram() - process substitution & print error message
+-install-xrdp: removed 'set -eu'
+-check-updates: apt_update() - added 'Packages are up to date' to else'
+-iru-bat: compare_versions() - added newline to 'No download available
+-install-ufw: replaced dpkg ... | grep ...with process substitution
+-install-timeshift: get_target_uuid() - renamed, added data partition, & used process substitution
+-install-timeshift: configure_timeshift() - updated check for sed script
+-install-terminator: terminator_version() - process substitution; install_terminator() - return if bunsenlabs
+-install-polybar: copy_polybar_config() - updated check for repository directory
+-install-librewolf: lw_version() - proess substitution; install_librewolf() - exist -> exists
+-functionlib: is_i3wm() - check if i3 exists in user path
+-install-kitty: kitty_version() - process substitution; kitty_config() - if not i3 do not hide window_decorations
+-install-keepassxc: keepass_version() - process substitution for version numbers
+-install-firefox-deb: other_firefox() - process substitution to check for ESR & Linux Mint versions
+-install-chrome: corrected update in header comments
+-install-brave: removed 'readonly' from verbose_mode declaration
+-install-boxes: install_boxes() - fixed call to exists()
+-driver-manager.sh: added exit_script(); changed variable assignment in check_codename()
+-disable-swap.sh: separated operations into individual functions: check_swap_device() & disable_swap_deivice()
+-debian-multimedia.sh: added exist_script(); checks distro at beginning of script
+-checkinit.sh: get_init() - changed pipes to process substituion
+-cronjobs/z-update: replaced pipes with process substitution
+-check-updates: remove_orphans() - replaced pipe with process substitution
+-check-updates: modified check_disk_space(), reboot_system(), update_flatpaks(); check_flatpak()
+-bu: check_usb() & bu_drive_label() - replaced pipes with process substituion
+-03-bookworm2trixie.sh: created moderinize_sources(); main() - uses process substitution & awk to find codename
+-02-bookworm2trixie.sh: backports_list() - returns to main() if backports list does not exist
+-01-bookworm2trixie.sh: check_codename() - used process substitution instead of pipe
+-functionlib: installed(), check_package(), check_packages() - fixed dpkg commands
+-functionlib: updated several functions to use process substitution instead of command | grep; sudo_login() - eliminated if statements
+-iru-fastfetch: fastfetch_config() - using process substitution with lspci
+-iru-fastfetch: fastfetch_config() - if LMDE 7 (gigi), change kitty-direct to kitty in config.jsconc
+-functionlib: updated error functions
+-nosleep.sh: fixed update info
+-odt-to-txt: changed functions to list available odt files
+-nosleep.sh: set_nosleep() - copies sleep.conf to sleep.conf.d and configures with sed file
+-mount-sshfs: main() - updated getopts options
+-mk-swapfile.sh: create_swapfile() - default file is 4 GB
+-meditation-timer: usage() - fixed tab spacing
+-install-fnloc: made variables local and passed to functions
+-loc2file.sh: renamed usage() to help(); changed variables from all caps to camel-case
+-cronscripts: cp_redshift_notify() - added IP 14 to no_copy
+-dos2linux.sh: removed help(); prompts for filename if none passed
+-dos2linux-c.sh: renamed from '-sh' to '.sh'
+-dos2linux-c-sh: convert_files() - added text describing actions
+-install-codium: fixed exist to exists
+-cronscripts: treating IP 14 as desktop machine, not server
+-iru-bat: main() - inserted new_version assingment; fixed check for failed install
+-iru-bat: corrented syntax in install_bat()
+-iru-micro: install_micro() - replaced exist with exists
+-system-status: main() - removed clear command
+-functionlib: check_packages() - changed pkgs to package
+-functionlib: check_package() & check_packages() - grep for '^ii'
+-syncrick: exclude locked odt files
+-sync-repos: removed sync_repos() - redundant, ip and hostname passed directly to transfer()
+-write-iso: main() - OPTARG & OPTIND declared as local variables
+-verify-iso: main() - OPTARG & OPTIND declared as local variables
+-sync-repos: main() - OPTARG & OPTIND declared as local variables
+-pwfeedback: main() - OPTARG & OPTIND declared as local variables
+-no-snaps.sh: main() - OPTARG & OPTIND declared as local variables
+-no-flatpak.sh: main() - OPTARG & OPTIND declared as local variables
+-mount-sshfs: main() - OPTARG & OPTIND declared as local variables
+-mount-bu: main() - OPTARG & OPTIND declared as local variables
+-mk-readme: main() - OPTARG & OPTIND declared as local variables
+-mk-changelog: main() - OPTARG & OPTIND declared as local variables
+-local-ip-up: main() - OPTARG & OPTIND declared as local variables
+-laptop-utils: main() - OPTARG & OPTIND declared as local variables
+-iru-micro: corrected version number
+-iru-vscodium: corrected version number
+-iru-yt-dlp: main() - OPTARG & OPTIND declared as local variables
+-iru-vscodium: main() - OPTARG & OPTIND declared as local variables
+-iru-micro: main() - OPTARG & OPTIND declared as local variables
+-iru-fastfetch: corrected latest update
+-iru-marktext: main() - OPTARG & OPTIND declared as local variables
+-iru-fastfetch: main() - OPTARG & OPTIND declared as local variables
+-iru-bat: main() - OPTARG & OPTIND declared as local variables
+-install-ufw: main() - OPTARG & OPTIND declared as local variables
+-install-terminator: main() - OPTARG & OPTIND declared as local variables
+-install-librewolf: main() - OPTARG & OPTIND declared as local variables
+-install-kitty: main() - OPTARG & OPTIND declared as local variables
+-install-keepassxc: main() - OPTARG & OPTIND declared as local variables
+-install-homebank: remove_configs() - fixed cfg_dir assignment; main() - OPTARG & OPTIND declared as local variables
+-install-handbrake: removed PPA support; main() - OPTARG & OPTIND declared as local variables
+-install-glow: main() - OPTARG & OPTIND declared as local variables
+-install-geany: main() - OPTARG & OPTIND declared as local variables
+-install-fnloc: main() - OPTARG & OPTIND declared as local variables
+-install-codium: main() - OPTARG & OPTIND declared as local variables
+-install-cmatrix: main() - OPTARG & OPTIND declared as local variables
+-install-chrome: main() - OPTARG & OPTIND declared as local variables
+-install-brave: main() - OPTARG & OPTIND declared as local variables
+-install-boxes: OPTARGS & OPTIND local variables in main()
+-install-batcat: added OPTIND & OPTARG as local variables
+-install-audacious: added OPTIND & OPTARG as local variables
+-insert-license: added OPTIND & OPTARG as local variables
+-insert-header: added OPTIND & OPTARG as local variables
+-hidpp-battery: added OPTIND & OPTARG as local variables
+-cronscripts: added OPTIND & OPTARG as local variables
+-create-script: added OPTIND & OPTARG as local variables
+-create-c-cpp: added OPTIND & OPTARG as local variables
+-clone-repo: added OPTIND & OPTARG as local variables
+-cinnkeys: added OPTIND & OPTARG as local variables
+-check-updates: added OPTIND & OPTARG as local variables
+-catless: added OPTIND & OPTARG as local variables
+-ren-space: added OPTIND & OPTARG as local variables
+-cal-todo: added OPTIND & OPTARG as local variables
+-ren-space: removed no_space() & moved operation to else in replace_spaces()
+-retire-script.sh: added check_git_repo(); simplified file checks
+-ren-space: added no_spaces() & replace_spaces()
+-iru-yt-dlp: updated header comments
+-iru-fastfetch: compare_versions() - added 'return' to elif
+-iru-fastfetch: moved call to fastfetch_config() to main() option -i
+-snippets/tar.md: updated more examples code
+-snippets/qm-args.md: added ''
+-functionlib: check_packages() - correctd printf command
+-sync-installs retired and archived.
+-checkinit.sh: get_init() - replaced variable assilgnment with echoing output
+-bu: backup() - added arrays to hold excluded directories; expanded excluded directories
+-system-info: cpu_info() - changed sed command for eliminating leading spaces in model variable
+-snippets/sed-snippets.md: added removal of leading & trailing whitespace
+-snippets/misc_cmds.md: added new directory notification
+-snippets/misc_cmds.md: added snippet to change extensions on multiple files
+-install-nerdfonts: updated local variables
+-functionlib: renamed variables in check_packages()
+-functionlib: renamed variables in check_packages()
+-Revert "debian-multimedia.sh: send notification if distro is not bookwork or trixie"
+-debian-multimedia.sh: send notification if distro is not bookwork or trixie
+-driver-manager.sh: moved arrays into install_packages(); added check for Gigi and Trixie
+-driver-manager.sh: initial commit - installs Mint Driver Manager on LMDE 7 and Debian 13
+-debian-multimedia.sh: corrected spacing error
+-tweaks.sh: renamed from link-configs.sh; added getopts options for individual tweaks
+-check-logs: removed 'set -eu'
+-link-configs.sh: set_reserved_space() - Finds percentage and adjusts root partition accordingly
+-bu: show_description() & drive_setup() - changed exit to exit_status=100; added to case in main()
+-bu: show_description() & drive_setup() exit after displaying information
+-link-configs.sh: repo_dir only used in set_system_tweaks();added sleep.conf; link_script_dir() returns if already linked
+-cronjobs/z-defrag: defrag_report() - corrected tabs
+-cronjobs/z-defrag: added find_rhd() and defrag_report()
+-install-zram: added full path to swapon/swapoff commands
+-files/zramswap.sed: changed ALGO from lz4 to zstdcd ~
+-files/zramswap.sed: changed ALGO from lz4 to zstd
+-install-zram: added check for failed install; added check_for_swap()
+-install-zram: added check for failed install; added check_for_swap()
+-gretire.sh: updated help()
+-gretire.sh: file no longer renamed before adding it to archive; check_args() added; returns to main() if file not found or not a git repo
+-files/trixie-dmo.sources: initial commit; Debian mulitmedia repo sources list
+-files/bookworm-dmo.sources: initial commit; Debian mulitmedia repo sources list
+-debian-multimedia.sh: initial commit; adds multimedia repository to Debian
+-http2https.sh: main() - removed bullseye from case
+-insert-license: moved static template information to templates
+-insert-header: moved static template information to templates
+-create-script: moved static template information to C and C++ templates
+-create-c-cpp: moved static template information to C and C++ templates
+-Templates/c-header.txt: replaced placeholders with static information
+-Templates/cpp-header.txt: replaced placeholders with static information
+-Templates/cpp-template.txt: replaced placeholders with static information
+-Templates/c-template.txt: replaced placeholders with static information
+-Templates/bash-template.txt: replaced placeholders with static information
+-Templates/bash-header.txt: replaced placeholders with static information
+-Templates/bash-getopts.txt: replaced placeholders with static information
+-Templates/cp-ln-configs.md: added routine to check new version failure
+-gretire.sh: commented out commit after renaming file (not necessary)
+-iru-micro: reworked version
+-iru-micro.25300 retired and archived.
+-iru-micro: ready to retire
+-iru-micro renamed to iru-micro.25300 for retirement and archiving.
+-iru-micro: checks for empty 'new_ver' variable; moved micro_configs() call to install_micro()
+-iru-marktext: moved call to marktext_config() to install_marktext()
+-iru-fastfetch: moved call to fastfetch_config() to install_fastfetch()
+-iru-bat: moved call to bat_config() to install_bat()
+-iru-vscodium: moved call to apply_settings() to install_codium()
+-iru-marktext: added checks for empty new_version variable, function returns if empty
+-iru-fastfetch: added checks for empty new_version variable, function returns if empty
+-iru-bat: added checks for empty new_version variable, function returns if empty
+-Templates/cp-ln-configs.md: added check for empty new_ver variable
+-iru-vscodium: new_ver is a local variable passed to compare_versions and install_vscodium()
+-iru-vscodium: added checks for empty new_version variable in compare_versions() & install_vscodium(); added check for missing repo directory
+-iru-micro: added check for failed install; revised removal methods (untested)
+-iru-marktext: added check for failed install and check for missing configs repo directory
+-install-zram: install_zram() - added check for failed install
+-install-ufw: removed debian_system() - unnecessary
+-install-terminator: updated version info
+-install-terminator: apply_config() - added check if repo directory exists
+-install-polybar: copy_polybar_config() - added check for repo directory
+-install-nerdfonts: install_SymbolNerdFonts() - moved repository declaration to top of function
+-install-nerdfonts: install_SymbolNerdFonts() - added checks for repo directory
+-install-librewolf: find to remove LibreWolf config & cache directories
+-install-keepassxc: apply_keepassxc_ini() - corrected repo path
+-install-homebank: updated remove_configs()
+-install-handbrake: checks for failed install
+-Templates/cp-ln-configs.md: added routine to remove config directories
+-install-geany: using find to remove geany directories
+-install-glow: using find to remove glow directories; check for missing repo
+-config-bak: added glow.yml
+-install-geany: geany_config() - 'copy -av'; remove_geany() - limited find depth to 2 levels
+-install-codium: apply_settings() - check for missing repository directory
+-install-firefox-deb: updated find command to purge firefox files
+-install-chrome: purge_config() - limited find to 2 levels
+-install-brave: purge_config() - limited find to 2 levels
+-iru-fastfetch: check for failed install; find to remove config directories; check if no copy of rep
+-Templates/cp-ln-configs.md: moved from snippets to Templates
+-install-batcat: bat_config() - added check for config repositories
+-install-kitty: remove_kitty() - added find command to delete kitty configs and cache
+-snippets/cp-ln-configs.md: initial commit - template for copying/linking config files from repo
+-iru-bat: bat_config() - function returns if no repo directory found
+-iru-bat: checks for failed install; adds checks for batcat symlink
+-cronjobs/repo-update.sh: changed date format for flag file; added flag_file variable
+-ip-info: corrected spelling error
+-install-zram: removed 'set -eu'
+-files/zramswap.sed: comment SIZE; uncomment PRIORITY
+-install-ufw: checks for failed UFW install
+-install-virtmgr: removed 'set -eu'
+-install-timeshift: added check for failed install; configure_timeshift returns if sed file is missing
+-install-terminator: added check for failed installation; fixed errors in apply_config()
+-install-librewolf: install_librewolf() - added check for failed installation
+-install-kitty: install_kitty() - checks for failed installation; kitty_config() - changed repo assignment
+-install-keepassxc: install_distro_keepassxc() - checks for failed installation; apply_keepassxc_ini() - changed repo assignment
+-install-homebank: install_homebank() - checks for failed installation; apply_preferences() - changed repo assignment
+-install-glow: add_gpg() & add_src_list() - returns if file exists; install_glow() - checks for install success
+-install-geany: install_geany() - check for successful install; geany_config() - changed repo dir assignment process
+-check-versions: apt_tools() - added flatpak to packages array
+-install-flatpak: added flatpak_version(); install_flatpak() returns if already installed; checks for successful installation
+-install-firefox-deb: separate functions for gpp key and source list generation; added flatpak to other_firefox(); check for installation success
+-install-codium: updated set_gpg_key() & set_src_list() to return if files already exist
+-install-chrome: moved key & source list generation to separate functions
+-install-brave: moved key & source list generation to separate functions
+-install-codium: added check if installation successful and checks for key and source list files
+-install-cmatrix: install_cmatrix() - added check if installation successful
+-install-chrome: install_chrome() - added check if installation successful
+-install-brave: install_brave() - added check if installation successful
+-install-boxes: install_boxe() - added check if installation successful
+-install-batcat: install_bat() - added check if installation successful
+-install-audioapps: removed install_mp3gain(), it's in current repos
+-install-audacious: install_audacious() - added check if install successful
+-install-boxes: install_boxes() - removed libvert-bin (not in trixie repos)
+-config-restore: res_cinnamon_keybindings() - added newline to a printf cmd
+-install-nerdfonts: added install_SymbolNerdFonts()
+-cronjobs/z-update: check_disk_space() - added newline to beginning of printf statement
+-install-brave: declared verbose_mode as a global variable
+-install-brave: install_brave() - correct local -r flag
+-syncbin: Placed restrictions in syncscript(); simplified sync_one() & sync_some() functions
+-install-glow: fixed getopts option to apply configuration file
+-install-keepassxc: added getopts option to apply config file; updated apply_keepassxc_ini()
+-package-filter.sh: search_packages() - removed quotes around package variable after apt install
+-package-filter.sh: search_packages() - corrected variable names; added call to sudo_login()
+-functionlib: added installed() to check if package was installed using apt, dpkg, or gdebi
+-install-glow: added getopts option to apply configuration file
+-check-updates: checks for reboot-required immediately after update; shows notification after all updates completed
+-iru-bat: moved cmd to unlink batcat from bat_config() to install_bat()
+-cronjobs/z-update: removed format_time(); added 'system_reboot' global variable set in get_updates()
+-cronjobs/z-defrag:
+-package-filter.sh: updated comments
+-iru-micro: removed check for Debian 13
+-insert-license: replaced show_message calls with printf commands
+-package-filter.sh: initial commit - review and select packages to install using fzf
+-iru-bat: checks for batcat and bat; uses dpkg -l to get version number
+-install-batcat: checks for batcat and bat; uses dpkg -l to get version number
+-install-geany: geany_config() - corrected keybindings path
+-install-geany: added geany_config() - copies config files from repo/clone
+-install-kitty: removed 'set -eu'
+-install-geany: clone-themes() - changed download directory; changed copy command to use '-a' flag
+-install-geany: clone-themes() - corrected path to cloned colorschemes
+-cronjobs/z-update: check-flatpaks() - removed extra newline
+-cronscripts: added is_older() to each job and sudo_login() to jobs requiring root priveleges
+-cronjobs/z-update: combined log_dir & log_file variables
+-check-updates: update_flatpack() - moved Flatpak header line to beginning of function
+-cronjobs/z-update: updated check_flatpaks()
+-check-updates: updated update_flatpack()
+-cronjobs/scriptarchive.sh: removed set -eu
+-cronjobs/scriptarchive.sh: removed set -eu
+-retire-script.sh: made check for git repo a function; reworked file checks
+-gretire.sh: made check for git repo a function; reworked file checks
+-cronjobs/zz-clean: added '--purge' to autoremove_packages() & removed purge_configs()
+-cronjobs/z-clean-tmp.25284 was retired and archived.
+-cronjobs/z-clean-tmp renamed to cronjobs/z-clean-tmp.25284 for retirement and archiving.
+-cronjobs/z-backup: removed 'set -eu'
+-cronjobs/passwdsync.sh: moved operations into functions; implmented main()
+-cronjobs/journal-bu.sh: moved backup operation into incremental_backup()
+-cronjobs/hb-archive.sh: moved path variables to archive_bak()
+-cronjobs/git-dwm.sh: main() - changed dom check to string comparison
+-cronjobs/git-bu.sh: moved backup operation into incremental_backup()
+-cronjobs/fin-bu.sh: moved backup operation into incremental_backup()
+-cronjobs/fin-bu.sh: removed 'set -eu'; updated path variables
+-cronjobs/empty-trash.sh: sourced functionlib; modified directory variables
+-snippets/variables.md: added block on tilde expansion
+-cronjobs/z-defrag: replaced if-elif-else with a case statement; set default value for rotation variables to 0
+-cronjobs/z-defrag: removed grep and added ' == mountpoint to awk command
+-syncmosfa: sync_some() - removed IP 19 from restriced addresses
+-cronjobs/z-defrag: checks for root, home, & data partitions and select appropriate e4defrag arguments
+-cronscripts: cp_zdefrag() - all systems
+-cronjobs/z-defrag: added case for lenovo-m91p
+-install-geany: correct spelling in help()
+-cinnkeys: updated comments and verbosity messages; added variable for keybindings path
+-bu: main() - corrected logfile variable used to delete lines from file
+-cinnkeys: added checks for repository to download/copy keybindings file
+-iru-micro: added option to sym-link config files to getopts
+-install-nerdfonts: added '-q' flag to wget cmd & '-C' to tar cmd
+-install-kitty: changed sym-links to copy files
+-iru-fastfetch: changed sym-links to copy files
+-iru-bat: main() - added quiet flag to grep cmd; bat_config() - corrected file path
+-iru-micro: main() - added quiet flag to grep cmd
+-install-batcat: bat_config() - corrected file path
+-iru-marktext: /home/rick
+-iru-fastfetch: /home/rick
+-iru-fastfetch: /home/rick
+-install-terminator: /home/rick
+-install-kitty: /home/rick
+-install-glow: checks for repo directory and assigns paths accordingly
+-install-codium: checks for repo directory and assigns paths accordingly
+-iru-vscodium: checks for repo directory and assigns paths accordingly
+-iru-micro: checks for repo directory and assigns paths accordingly; checks Debian version
+-iru-bat: checks for repo directory and assigns paths accordingly; checks Debian version
+-install-batcat: checks for repo directory and assigns paths accordingly; checks Debian version
+-install-codium: replaced file path variables with hard-coded paths
+-install-batcat: replaced file path variables with hard-coded paths
+-install-kitty: replaced '/home/rick' with '~'
+-install-kitty: kitty_config() - added verbose flag to 'ln' command
+-install-kitty: hard-coded file paths for sym-links
+-cronscripts: made adjustments for IP 19
+-syncmosfa: syncscript() - removed directories that are no longer sync'd
+-syncmosfa: removed IP 19 from sync, scripts linked to clone
+-syncbin: removed IP 19 from sync, scripts linked to clone
+-sshlocal: added hp-800-g1-dm to server array
+-link-configs.sh: hardcoded directory paths to avoid them getting garbled; new functions check_swappiness() & check_for_gitea()
+-snippets/heredoc.md: initial commit - heredoc and herestring examples
+-updated documentation
+-mk-swapfile.sh: create_swapfile() - added e4defrag to defrag swapfile
+-docs/alias-functions.md: updated and put in order of .bash_aliases
+-functionlib: updated functions
+-docs/functionlib.md: Updated function descriptions
+-functionlib: debian_based() - removed variable assingment
+-functionlib: debian_based() - removed variable assingment
+-docs/debian_based.md: updated to reflect modified function in functionlib
+-link-configs.sh: corrected spelling in commands
+-link-configs.sh: set swappiness by adding .conf file to /etc/sysctl.d
+-set-resume: print_message() - fixed spelling error in heredoc
+-set-resume: get_swap_uuid() - removed if antix-mx(); added sudo to blkid cmd (see header comments)
+-link-configs.sh: set_system_tweaks() - removed '-q' flag from grep command
+-link-configs.sh: added set_reserved_space()
+-link-configs.sh: added set_reserved_space()
+-snippets/misc_cmds.md: added routines for getting root partition
+-system-info: os_info() - changed root_part to get df -P line for root partition
+-mount-sshfs: Placed check if local system to handle_mount() and moved check from getopts loop
+-system-status: show_footer() - last boot time uses 'who -b'
+-purge-rc: corrected comment in header comments
+-cronscripts: fixed logic for copying sed files to copy when conditional returns false
+-cronscripts: fixed logic for copying sed files to copy when conditional returns false
+-cronjobs/z-update: removed commented references to purge_rc_packages()
+-cam.sh: updated
+-cronjobs/repo-update.sh: corrected touch command
+-cronjobs/repo-update.sh: update_clone() - takes clone as argument, check if in ~/
+-update-repos.sh: update_clone() - takes clone as argument, check if in ~/
+-functionlib: is_debian() - added gigi (LMDE 7) to case
+-iru-vscodium: removed extraneous char from apt-get option
+-iru-micro: fixed compare_versions(); fixed sym-links in micro_configs()
+-iru-vscodium: changed sym-link instructions, separating variable from the rest of the path
+-iru-marktext: changed sym-link instructions, separating variable from the rest of the path
+-iru-fastfetch: changed sym-link instructions, separating variable from the rest of the path
+-iru-bat: changed sym-link instructions, separating variable from the rest of the path
+-install-terminator: changed sym-link instructions, separating variable from the rest of the path
+-install-nerdfonts: removed CascadiaCode from array; add mkdir for each font directory
+-install-kitty: changed sym-link instructions, separating variable from the rest of the path
+-install-glow: changed sym-link instructions, separating variable from the rest of the path
+-install-codium: changed sym-link instructions, separating variable from the rest of the path
+-install-batcat: changed sym-link instructions, separating variable from the rest of the path
+-cronjobs/repo-update.sh: main() - added flag file to show last run time; update_clone() - changed die to return
+-cronjobs/repo-update.sh: initial commit; update cloned repos as a cron job
+-cronscripts: cp_update_repos() - fixed cp commmand
+-cronscripts: added cp_update_repos(); modified some functions to check for exceptions
+-retire-script.sh: main() - removed redundancy
+-retire-script.sh: renamed; updated help(); check for git repo first; prompt for script name if no args passed
+-ren-ext.sh: renamed; if no arguments, prompts for extension to be renamed
+-update-repos.sh: correctd spelling of element in closes array
+-update-repos.sh: replaced redundant functions and combined functions; main() uses for loop to traverse array of clones
+-umount-usb.sh: renamed
+-sync-repos: main() - removed a tab character
+-sync-repos: main() - check for valid host before getopts loop
+-sync-repos: replaced redundant functions with a single function
+-resize-pics: main() - replace leave with over_line
+-refresh-net: reverted to using string /sbin/init method to get init system
+-locale-fix.sh: renamed purge_update() to purge_and_update(); Add color to show_intro()
+-meditation-timer: added funtionlib for color; replaced check_alsa() with check_package(); added help option; uses default values if incorrect values entered
+-local-ip-up:
+-laptop-lid: revised printf commands
+-iru-fastfetch: fastfetch_config() - check for graphics controller instead of host name to implement ASCII logo
+-install-spice-tools: install_debian_space() - added check if in repositories
+-checkinit.sh: renamed; rmoved sourcing of functionlib; modified get_init()
+-docs/Init_checks.md: updated is_systemd()
+-functionlib: is_systemd() - changed command to get init system name
+-resize-pics: added cli argument for new size of images
+-system-status: show_footer(): changed format for up time information
+-01-bookworm2trixie.sh: upgrade_packages() - added 'apt autoclean'
+-bu: rsync errors appends log file; fixed logfile variable name in main()
+-bu: added logging of rsync errors during backup/restore operations
+-install-dsh: commented 'set -eu'
+-check-updates: commented out set -eu
+-link-configs.sh: set_system_tweaks() - added nosnap.pref; link_script_dir() - added code to check if scripts are already linked.
+-Templates/bash-getopts.txt: declared OPTARG & OPTIND as local variables in main()
+-functionlib: updated function comments
+-iru-vscodium: get_new_version() -  changed method for newest version to use '/' as awk delimiter
+-iru-micro: get_new_version() -  changed method for newest version to use '/' as awk delimiter
+-iru-marktext: get_new_version() -  changed method for newest version to use '/' as awk delimiter
+-iru-bat: get_new_version() -  changed method for newest version to use '/' as awk delimiter
+-check-versions: updated revision date and version number
+-iru-fastfetch:
+-check-versions: get_new_version() - added new method for fastfetch & changed other methods to use '/' as awk delimiter
+-laptop-utils: removed touchpad-indicator; removed installed(); fixed checks for applications
+-link-configs.sh: set_system_tweaks() - added nosnap.pref
+-no-snaps.sh: removed heredoc, copies no-pref file from ~/bin/files
+-no-flatpak.sh: removed heredoc, copies no-pref file from ~/bin/files
+-files/nosnap.pref: initial commit; disables installation of snapd & snap packages
+-files/noflatpak.pref: initial commit; disaables installation of flatpak & flatpak packages
+-no-flatpak.sh: renamed check_flatpak_installed() to flatpak_installed(); reworked some printf lines
+-no-snaps.sh: reworked checks for snaps and getopts options
+-rm-tilde: added remove_tilde() to remove ~ backup files
+-system-info: os_info() - capitlize desktop variable
+-syncmosfa: commented out sync to home page directory
+-update-repos.sh: git_pull_repo() - added newline to 'not cloned' line
+-update-repos.sh: added pull_homepage() to update homepage clone
+-cam-white.lst: sorted unique lines
+-cam-black.lst: sorted unique lines
+-syncbin: syncscript() - re-enabled rsync of .bashrc & .bash_aliases
+-check-logs: updated select loops
+-weather: wX_forecast() - sed to delete current condtions lines (1-7); menu() - added return to exit function
+-weather: menu() - declared _opt and options variables
+-snippets/variables.md: expanded associative arrays section
+-system-info: get_vendor() - changed from case to assoiciative array
+-create-c-cpp: updated getopts options format
+-config-restore: removed BunsenLabs configs; moved exit function out of main_menu() select option to after the loop
+-c-menu.sh: select menu - break 2 to exit
+-check-logs: main() - exit routne moved out of select loop to after while loop; Quit selection is break 2
+-weather: menu() - replaced exit_scrtipt() call with 'break 2' to break out of both loops; moved call to exit_script() from menu to main
+-cronjobs/git-dwm.sh: create_snapshot() - corrected path syntax
+-cam.sh: play_game() - added explanitory comments
+-snippets/variables.md: added mapfile to arrays info
+-snippets/log-files.md: edited entry for redirect output to log file
+-system-info: get_vendor() - removed brace expansion to remove whitespace & replace with sed to remove only trailing whitespace; added shellcheck directive to the function
+-system-info: added get_vendor() to determine HDD/SSD/NVMe vendor from model number
+-system-info: mac_mfgr() - modified to use /usr/share/ieee-data/oui.csv
+-bu: main() - corrected line to delete old log file
+-bu: added get_space_remaining() to show available drive space on backup drive
+-bu: added logging via calling dielog() or log() from functionlib
+-functionlib: dielog() & log() - redirects message with date/time to logfile & message without date/time to STDOUT
+-docs/log.md: updated code section
+-docs/dielog.md: updated code section
+-snippets/log-files.md: initial commit - log file snippets & info
+-snippets/case-yesno.md: added confirmation snippet
+-snippets/error_codes.md: added one-liner functions die() & msg()
+-functionlib: added log() to log messages; added dielog() to log error messages and exit script
+-functionlib: edit_view_quit() - edit option, if /usr/bin/micro not assigned, use nano
+-insert-license: cleanup() - removed call to show_message(), no longer in script
+-syncrick: main() - remove redundant variable declaration
+-sync-repos: removed sync_all(); revised messages to use host names instead of ip addresses
+-02-bookworm2trixie.sh: backport_list() - used find to run sed to change distro name in all .list files & create backup
+-check-logs: ytdlpupdate_log() - corrected header for column command
+-install-codium: settings_dir is now a global variable
+-install-codium: set_src_list() - added 'arch=amd64' to vscodium.list
+-Templates/bash-template.txt: commentd out 'set -eu'
+-Templates/bash-getopts.txt: commentd out 'set -eu'
+-link-configs.sh: implemented getopts; added help(); repo_dir is local variable in each function
+-gretire.sh: renamed some local variables
+-sync2vm renamed to sync2vm.25229 for retirement and archiving.
+-sync2vm: updated header comments, retiring
+-sync2vm renamed to sync2vm.25229 for retirement and archiving.
+-syncmosfa: syncscript() - excluded 'leave.txt' from '~/.local/share/doc' sync
+-syncrick: syncscript() - excluded 'leave.txt' from '~/.local/share/doc' sync
+-weather: added exit_script() - leaves script with MOTD message
+-link-configs.sh: link_dotfiles() - removed .curlrc & .wgetrc from array and home directory; link_configs() - renamed local variables; set_system_tweaks() - added local variable 'repo_dir'
+-snippets/variables.md: added block on arrays
+-update-repos.sh: renamed; pull_i3_debian() - removed '-r' flag from local var declaration; git_pull_repo() - added 'git checkout .' before 'git pull'
+-03-bullseye2bookworm.sh.25226 was retired and archived.
+-03-bullseye2bookworm.sh renamed to 03-bullseye2bookworm.sh.25226 for retirement and archiving.
+-02-bullseye2bookworm.sh.25226 was retired and archived.
+-02-bullseye2bookworm.sh renamed to 02-bullseye2bookworm.sh.25226 for retirement and archiving.
+-01-bullseye2bookworm.sh.25226 was retired and archived.
+-01-bullseye2bookworm.sh renamed to 01-bullseye2bookworm.sh.25226 for retirement and archiving.
+-03-bookworm2trixie.sh: main() - added 'apt modernize-sources'
+-snippets/error_codes.md: added BASH strict mode info
+-repo-update.sh: pull_i3wm_debian() - correct path of i3wm-debian repo
+-repo-update.sh: pull_i3wm_debian() - default directory now ~/i3wm-debian, alt is ~/Downloads
+-repo-update.sh: main() - added newline to printf command
+-repo-update.sh: git_pull_repo() - fixed popd redirection
+-repo-update.sh: git_pull_repo() - redirect popd to /dev/null, added blank line after popd to separate results
+-repo-update.sh: initial commit - Updates runs 'git pull' on cloned repositories
+-check-versions: added bash to apt_tools()
+-syncfin: updated transfer_status to print transfer status instead of dying on error.
+-bullseye2bookworm.tar.gz: initial commit - archive of scripts to upgrade Debian 11 to Debian 12
+-01-bullseye2bookworm.sh: corrected apt syntax error.
+-01-bookworm2trixie.sh: upgrade_packages(): fixed syntax error
+-sync2vm: transfer_status(): prints success/failure of xfr, not die
+-snippets/variables.md: more info on basename/dirname
+-syncrick: transfer_status(): success/failure messages, not die; removed .bashrc/.bash_aliases rsync
+-syncbin: transfer_status(): success/failure messages instead of die
+-syncmosfa: transfer_status(): success/failure msgs, not die; removed send_notice()
+-sync-repos: renamed
+-syncbin: modified transfer_status() to show messages, not kill script
+-sync-repos: renamed; fixed hostname in valid_host(); modified transfer_status() to show messages, not kill script
+-sync-repos.sh: initial commit; Sync Git repos & work directories on the local network
+-syncrick: commented out rsync of .bashrc & .bash_aliases
+-syncbin: commented out rsync of .bashrc & .bash_aliases
+-syncmosfa: commented out rsync of .bashrc & .bash_aliases
+-write-iso: replaced basename with brace expansion
+-syncmosfa: replaced basename with brace expansion
+-scan-range: replaced basename with brace expansion
+-randpic: replaced basename with brace expansion
+-hidpp-battery: sys_class_data(): replaced 'basename' with brace expansion
+-battery-check: hidpp_battery(): replaced 'basename' with brace expansion
+-02-bookworm2trixie.sh: backports_list(): using find to change bookworm to trixie in all .list files
+-snippets/variables.md: added snippets for basename & directory path of file variables
+-link-configs.sh: initial commit. Create symbolic links to dot files, config files, and ~/bin directory.
+-weather: main(): changed http to https in url; wx_forecast(): added 'A' flag to ignore curl User Agent
+-catless: removed show_notice() and added GPL statement under header comments
+-Revert "catless: GPL statement; if no option selected, default action is to display without line numbers"
+-catless: GPL statement; if no option selected, default action is to display without line numbers
+-c-menu.sh: placed individual operations into functions and implemented main() function
+-clone-repo: replaced select menu with getopts; added help function
+-Templates/bash-getopts.txt: removed extraneous lines from help function
+-bu: unmount_usb_drive(): corrected spelling error
+-ren-ext: rename_extension(): allows any file extension to be renamed, special cases for .htm, .jpeg, .mpeg extensions
+-speedtest.sh: updated header comments
+-verify-iso: removed check_verify() as redundant, calls verify_iso() directly
+-verify-iso: consolidated checksum checking functions; added check for valid checksum file extension
+-write-iso: write_iso(): added usb drive size to selected device line
+-files/cam-black.lst: spelling correction
+-cronjobs/hb-archive.sh: archive_bak(): removed extraneous printf command
+-cal-todo: added functions to display calendar & list; removed show_notice()
+-bu: removed duplicate license link
+-bu: backup(): added line to display space available on backup drive
+-cronscripts: updated getopts case statement
+-cronscripts: checks if job script is older than repo script
+-cronjobs/scriptarchive.sh: archive_scripts(): properly declared archive variable & added newline to print sueccess/failure to error log
+-cronjobs/hb-archive.sh: corrected tab in archive_bak()
+-cronjobs/scriptarchive.sh: corrected omissin of of 'arc_dir' in cleanup() and main()
+-cronscripts: removed -N option from help()
+-cronjobs/scriptarchive.sh: modularized script with main(), archive_scripts(), cleanup() functions
+-cronjobs/z-update: added GPL statement
+-bu: main(): changed ' = 1' to ' -eq 1'
+-bu: disabled mount_bu(); unmount_usb_drive(): disabled rmdir; added specific error codes displayed at exit
+-loc2file.sh: renamed to loc2file.sh
+-syncmosfa: added GPL statement
+-sync-home: fixed GPL statement
+-sshin: fixed GPL statement
+-rename-host: corrected spelling in header comments
+-local-ip-up: GPL statement; changed echo to printf
+-loc2file: implemented main(); made script more modular
+-laptop-utils: removed show_notice(); added GPL statement
+-kkb: changed copy_bindings() to copy from cloned configs repo; changed colum command to eliminated printf and pipe
+-iru-yt-dlp: added GPL statement
+-ip-info: corrected spelling in comment for requires_sudo()
+-install-homebank: added GPL statement
+-install-handbrake: updated local variables; added GPL statement
+-install-fnloc: updated local variables; added GPL statement
+-install-chrome: corrected date in help()
+-install-audacious: GPL statement
+-insert-license: removed show_notice() & verbose_mode(); added GPL statement
+-i3kb: added GPL statement; changed copy_binings() to get file from local confgs clone; main(): if-else-fi to check i3
+-dos2linux-c-sh: renamed and added GPL statement
+-dos2linux.sh: renamed; GPL statement
+-dos2linux.sh: renamed; GPL statement
+-dl-webpage: added last line to GPL statement
+-disable-swap.sh: added last line to GPL statement
+-devtoolinst: added GPL statement
+-devtoolchk: added GPL statement
+-Revert "devtoolchk: added GPL statement"
+-devtoolchk: added GPL statement
+-cronscripts: removed GPL notice function; added GPL statment to comments
+-create-script: removed GPL notice function; added GPL statment to comments
+-create-c-cpp: added last line to GPL statement
+-config-restore: added last line to GPL statement
+-clone-repo: added last line to GPL statement
+-clean-c: added last line to GPL statement
+-cinnkeys: added last line to GPL statement
+-check-updates: added last line to GPL statement
+-check-logs: added last line to GPL statement
+-bu: added last line to GPL statement
+-bs-meter: added last line to GPL statement
+-battery-check: added last line to GPL statement
+-apt-search: added last line to GPL statement
+-02-bookworm2trixie.sh: added last line to GPL statement
+-check-updates: removed GPL notice function and option; GPL statement in header comments.
+-snippets/variables.md: modified digit check methods
+-snippets/variables.md: added methods to determine if a value is all digits; added methods to place commas in numbers
+-snippets/check-digits.sh: added 3rd method for determining if argument is all digits
+-numfiles: num_files():added cur_dir variable, changed output format.
+-yt-dl: updated sricpt_info() heredoc
+-porn-dl: updated sricpt_info() heredoc
+-check-updates: added message when reverting to apt-get
+-check-updates: added tmp_file to getopts -n if nala is not installed
+-grevert.sh: renamed and added GPL statement
+-gretire.sh: renamed and added GPL statement
+-greset.sh: renamed and added GPL statement
+-README.md: updated info under Directories and  Function Library
+-functionlib: removed is_focal() & is_jammy(); functions archived.
+-sync-i3.25203 was retired and archived.
+-sync-i3 renamed to sync-i3.25203 to be retired and archived.
+-sync-i3: updated local variables; added GPL statement.
+-initial commit; scripts for in-place upgrade from Bookworm to Trixie
+-03-bullseye2bookworm.sh: updated check if successful upgrade
+-02-bullseye2bookworm.sh: updated sed command to change sources lists
+-01-bullseye2bookworm.sh: updated version check
+-http2https.sh: updated debian_distro() & convert_sources_list()
+-iru-fastfetch: corrected missing hashtag in header comments.
+-cronjobs/zz-clean: added GPL statement
+-cronjobs/z-ytdlp-update: added GPL statement
+-cronjobs/z-clean-tmp: added GPL statement
+-cronjobs/z-backup: added GPL statement
+-cronjobs/sync6005.sh: added GPL statement
+-cronjobs/sync-nas.sh: added GPL statement
+-cronjobs/scriptarchive.sh: added GPL statement
+-cronjobs/repo-backup.sh: added GPL statement
+-cronjobs/redshift-notify.sh: added GPL statement
+-cronjobs/passwdsync.sh: added GPL statement
+-cronjobs/hb-archive.sh: added GPL statement
+-cronjobs/empty-trash.sh: added GPL statement
+-yt-dl-playlist: added GPL statement
+-yt-dl-audio: added GPL statement
+-yt-dl: added GPL statement
+-write-iso: added GPL statement
+-wifi-up.sh: added GPL statement
+-webcam-check: shortened '#' lines
+-weather: added GPL statement
+-verify-iso: added GPL statement
+-upper2lower: GPL statement
+-syncbin: changed tests with != to == and commented out 'set -eu' to stop unknown fatal errors.
+-syncbin: fixed missing command error with shellcheck directives; added set -eu to script.
+-umount-usb: GPL statement
+-system-info: GPL statement; save_info(): replaced basename woth brace expansion
+-syncrick: GPL statement
+-syncbin: GPL statement
+-sync2vm: GPL statement; added 10.0.2 network to test if a VM
+-sync-installs: GPL statement
+-speedtest.sh: GPL statement
+-sftpin: GPL statement; updated variables
+-insert-header: removed verbosity
+-http2https.sh: split file conversions into 2 separate functions; added check to see if they are already converted.
+-http2https.sh: http_to_https(): added a newline to printf after changing sources.list
+-http2https.sh: http_to_https(): added confifmation text; main(): added Bullseye to case
+-Templates/bash-template.txt: added GPL statement below header comments & removed show_notict()
+-Templates/bash-getopts.txt: added GPL statement below header comments & removed show_notict()
+-http2https.sh: intial commit; changes http to https in Debian sources lists.
+-functionlib: is_debian(): added awk to remove 'No LSB modules...' line.
+-scan-range: GPL statement
+-rm-tilde: GPL statement
+-retire-scripts: GPL statement; added flag (-h) for help
+-resize-pics: added GPL statement
+-ren-space: added GPL statement
+-ren-ext: added GPL statement; removed shopt nocasematch, subsituted brace expansion
+-checkinit: correct GPL statement
+-refresh-net: added GPL statement; changed assignment of int_sys
+-randpic: added GPL statement
+-pwfeedback: added GPL statement
+-purge-rc: added GPL statement
+-porn-dl: added GPL statement
+-pingit: added GPL statement
+-odt-to-txt: added GPL statement
+-numfiles: added GPL statement
+-nosleep.sh: added GPL statement
+-no-snaps: added GPL statement
+-no-flatpak: added GPL statement
+-mount-sshfs: added GPL statement
+-mount-bu: added GPL statement
+-mk-swapfile.sh: added GPL statement
+-mk-readme: added GPL statement
+-mk-fortunes: added GPL statement
+-mk-changelog: added GPL statement
+-mint-fortune: added GPL statement
+-meditation-timer: added GPL statement
+-locale-fix.sh: added GPL statement
+-local-ip-up: added GPL statement
+-kkb: added GPL statement
+-iru-yt-dlp: added GPL statement
+-iru-vscodium: added GPL statement
+-iru-micro: added GPL statement
+-iru-marktext: added GPL statement
+-iru-fastfetch: added GPL statement
+-install-chrome: renamed from iru-chrome; removed update option (updates with apt)
+-iru-bat: added GPL statement
+-install-xrdp: check if UFW is enabled and if port 3389 is already allowed.
+-install-ufw: corrected call to default_no() in main()
+-cronjobs/journal-bu.sh: changed full backup day to Monday.
+-cronjobs/github-bu.sh: changed full backup day to Monday.
+-cronjobs/git-bu.sh: changed full backup day to Monday.
+-cronjobs/fin-bu.sh: changed full backup day to Monday.
+-02-bullseye2bookworm.sh: removed line to append 'non-free-firmware' to specific lines (didn't work correctly)
+-snippets/sed-snippets.md: added append to end of line snippet.
+-install-virtmgr: GPL statements; renamed check_cpu() to check_requiremints() and split system checks into separate functions.
+-install-ufw: added GPL statements
+-install-timeshift: added GPL statements; made script_dir variable local in configure_timeshift()
+-install-terminator: added GPL statements
+-install-spice-tools: added GPL statement
+-Revert "install-spice-tools: nerdfonts"
+-install-spice-tools: nerdfonts
+-install-polybar: added GPL statement
+-install-nerdfonts: added GPL statements
+-install-librewolf: added GPL statement
+-install-codium: help(): local variable declarations
+-install-kitty: added GPL statement
+-install-kitty: added GPL statement; main(): replaced calls to leave() with if-else-fi
+-install-keepassxc: added GPL statement; renamed keepassxc_ini() to apply_keepassxc_ini()
+-install-glow: added GPL statement; main(): replaced leave() with if-else
+-install-geany: added GPL statement; main(): replaced leave() with if-else
+-cronjobs/git-dwm.sh: moved archive directory creation to create_snapshot()
+-cronjobs/git-dwm.sh: created creat_snapshot() & remove_old_snapshots() to cover daily, weekly, & monthly snapshots.
+-install-flatpak: added GPL statement; edited local variable declarations
+-install-firefox-deb: added GPL statement
+-install-dsh: added GPL statements; edited local variables
+-install-batcat: replace calls to leave() with if-else-fi
+-install-codium: added GPL statements; replaced calls to leave() with if-else-fi
+-install-cmatrix: added GPL statements
+-install-brave: added GPL statements
+-install-boxes: added GPL statements
+-Revert "install-boxes: added GPL statements"
+-install-boxes: added GPL statements
+-install-batcat: added GPL statements
+-Revert "install-batcat: added GPL statements"
+-install-batcat: added GPL statements
+-install-audioapps: added GPL statements; updated local variables
+-cronjobs/z-defrag: corrected printf statement for date/time of log.
+-install-audacious: added GPL statement; changed exist checks
+-insert-header: GPL statement
+-i3deb-cleanup.25197 was retired and archived.
+-i3deb-cleanup renamed to i3deb-cleanup.25197 to be retired and archived.
+-i3configs.25197 was retired and archived.
+-i3configs renamed to i3configs.25197 to be retired and archived.
+-hidpp-battery: GPL info
+-hb-late.sh: corrected GPL info
+-webcam-check: corrected GPL notice
+-functionlib: correct GPL notice
+-hb-late.sh: GPL info; updated local variables
+-functionlib: added GPL terms
+-dl-webpage: GPL info
+-disable-swap.sh: GPL info
+-create-c-cpp: GPL info
+-config-restore: GPL info
+-clone-repo: GPL info
+-clean-c: clean_work_dir(): changed work_dir variable
+-cinnkeys: GPL info
+-checkinit: GPL info
+-check-logs: added GPL info & set -eu
+-check-battery: removed help()
+-battery-check: removed help(); batter_status(): fixed unbound variable 'warn'.
+-catless: added GPL notice
+-cam.sh: added GPL info
+-bu: updated help() to exit with error code; main(): removed call to leave()
+-bs-meter: added GPL info
+-battery-notify-install.sh: updated local variables; added GPL info
+-brasero-bug-fix.25197 was retired and archived.
+-brasero-bug-fix renamed to brasero-bug-fix.25197 to be retired and archived.
+-brasero-bug-fix: updated local variables
+-apt-search: added functionlib; added option to decline package installation.
+-webcam-check: removed webcam_present(), put command in if statement; added GPL notice.
+-sync-home: updated local variables; added GPL notice
+-sshin: removed one_char(), replaced brace expansion; updated help(); added GPL notice.
+-files/cam-white.lst: updated
+-files/cam-black.lst: updated
+-sshlocal: added GPL notice.
+-syncfin: zadded GPL notice; updated local variables
+-syncmosfa: added GPL notice
+-show-cron: added GPL notice
+-set-resume: added GPL notice
+-weather: added GPL2 notice and licensce url.
+-system-status: added GPL notice.
+-laptop-utils: GPL notice; changed getopts flags
+-keepass2main: added GPL notice;created copy_passwords() to copy password vaults to main.
+-keepass2main: added GPL notice;created copy_passwords() to copy password vaults to main.
+-ip-info: added GPL notice
+-install-zram: added GPL notice
+-config-bak: added GPL notice
+-README.md: updated functionlib information.
+-cronscripts: added GPL notice
+-snippets/variables-uc-lc.md: added check digits routines.
+-meditation-timer: input_value(): added usage; renamed volume variables
+-laptop-lid: added GPL 2 Notitice; script_dir now local variable in modify_logind()
+-check-versions: added GPL notice
+-check-updates: added GPL notice
+-bu: Added GPL link, T&C; removed disclaimer
+-create-script: added GPL notices
+-cal-todo: check_package ncal added
+-insert-license: GPL license terms & condtions
+-cal-todo: added GPL notice; made doc_dir & todolist local variables; removed edit_todo()
+-rename-host: added GPL2 info; updated variable declarations; fixed problems with get_new_hostname()
+-added GPL license info, terms & conditions.
+-README.md: added copyright
+-README.md: replaced Disclaimer with Terms and condtions; added license information.
+-Templates/bash-template.txt: added GPL terms and conditions function and information.
+-Templates/bash-getopts.txt: added GPL terms and conditions function and information.
+-battery-check: added License URL to header comments.
+-functionlib: added License URL to header comments.
+-files/gpl_notice.txt: file containing basic GPL 2 terms and condtions.
+-Templates/bash-header.txt: added URL for GPL license in GitHub repository.
+-check-versions: browsers(): reordered array elements.
+-cal-todo: added script_dir; updated help(); changed c & d options to 1 and 3; edit_todo(): uses /usr/bin/micro enviromental variable to select text editor.
+-cam.sh: made script_dir readonly
+-cam.sh: updated header comments - no arguments.
+-iru-micro: micro_configs(): added 'micro -plugin install bookmark.
+-z-ytdlp-update: updated header comments; log date uses prntf %T timestamp extension.
+-z-defrag: corrected update date in header comments.
+-z-update: updated header comments; log date uses prntf %T timestamp extension; added over_line().
+-z-defrag: updated header comments; log date uses prntf %T timestamp extension.
+-z-backup: updated header comments; log date uses prntf %T timestamp extension.
+-scriptarchive.sh: updated header comments; log date uses prntf %T timestamp extension.
+-passwdsync.sh: updated header comments; log date uses prntf %T timestamp extension.
+-hb-archive.sh: renamed del_old() to del_old_archives(); achive_bak(): log date uses printf %T timestamp extension.
+-hb-late.sh: corrected printf format string in update_log_file()
+-empty-trash.sh: renamed trash() to trash_count(); main(): using printf time format for date of log.
+-zz-clean: added over_line(); updated local variables; changed log_date to printf time format.
+-system-info: main(): changed today variabel to use printf time format.
+-hb-late.sh: changed update_log() to use printf for date.
+-hb-late.sh: renamed file; added functions to trim log file & delete archives older than 3 years.
+-grevert: changed script assignment to use brace expansion.
+-greset: changed script assignment to use brace expansion.
+-check-logs: changed exiting line from box to over_line.
+-README.md: added description for cronjobs directory.
+-moved cron jobs to cronjobs directory.
+-cronscripts: update path variables for cron job scripts and supporting sed files.
+-cinnkeys: updated variable declarations; updated help(), copy_from_repo(), & -l option in getopts loop.
+-checkinit: change script to use brace expansion.
+-ip-info: updated case statements.
+-check-versions: added show_versions() for apt-installed packages.
+-check-versions: added get_release_path() & get_new_version() from github_versions(); removed cur_ver from apt_tools(), browsers(), and terminals()
+-iru-vscodium: compare_versions(): changed test to '! new_ver > cur_ver'
+-iru-micro: compare_versions(): changed test to '! new_ver > cur_ver'
+-iru-marktext: compare_versions(): changed test to '! new_ver > cur_ver'
+-iru-fastfetch: compare_versions(): changed test to '! new_ver > cur_ver'
+-iru-bat: compare_versions(): changed test to '! new_ver > cur_ver'
+-check-versions: github_versions(): changed test to '! new_ver > cur_ver'
+-weather: updated local variables.
+-sync-installs: updated local variables.
+-sshlocal: updated version number.
+-sshlocal: updated variable declarations.
+-config-restore: updated variable declarations.
+-bs-meter: updated local variables
+-battery-notify-install.sh: updated local variables.
+-gretire: main(): udpated variable declarations; retire_script(): uncommented last git push
+-empty-trash.sh: added over_line() to replace dashes variable; updated local variable declarations.
+-upper2lower: updated variable declarations.
+-wifi-up.sh: move wifi information to show_wifi_ip()
+-webcam-check: simplified - prints lsusb webcam information.
+-yt-dl-audio: updated local variables.
+-porn-dl: udated script_info()
+-yt-dl: updated help() and script_info()
+-write-iso: updated local variables.
+-verify-iso: updated local variables.
+-system-status: updated local variables.
+-system-info:
+-check-versions: added firefox to installed_version() to cover Firefox ESR.
+-install-firefox-deb: Installs/removes Mozilla repository version of Firefox. Checks for other versions.
+-sync-home: removed elapsed time functionality.
+-set-resume: moved swap_uuid assignment to set_resume()
+-rm-tilde: changed printf format from string to digit.
+-randpic: updated script variable.
+-pwfeedback: updated script variable.
+-purge-rc: main(): updated local variables.
+-porn-dl: updated variables
+-pingit: updated variables.
+-cronscripts: moved help(); replaced script_path with script_dir
+-odt-to-txt: implemented main(); updated local variables.
+-files/xbindkey.sed.25180 was retired and archived.
+-files/xbindkey.sed renamed to files/xbindkey.sed.25180 to be retired and archived.
+-openbox-keys.25180 was retired and archived.
+-openbox-keys renamed to openbox-keys.25180 to be retired and archived.
+-mosfanet-configs.25180.25180 was retired and archived.
+-mosfanet-configs.25180 renamed to mosfanet-configs.25180.25180 to be retired and archived.
+-mosfanet-configs.25180: ready to retire
+-mosfanet-configs.25180:
+-mosfanet-configs renamed to mosfanet-configs.25180 to be retired and archived.
+-mk-readme: added script_dir variable; updated help(); updated getopts loop
+-mk-changelog: added script_dir variable; updated help(); updated getopts loop
+-meditation-timer: added script_dir variable
+-laptop-lid: added script_dir variable
+-iru-yt-dlp: added script_dir variable
+-install-zram: added script_dir variable
+-install-timeshift: added script_dir variable
+-insert-license: added script_dir variable
+-insert-header: added script_dir variable
+-create-script: added script_dir variable
+-create-c-cpp: added script_dir variable.
+-catless: adjusted ';;' in getopts loop
+-cam.sh: added script_dir variable to hold path to card_dir
+-battery-check: updated help()
+-nosleep.sh: added script_dir global variable.
+-added script_dir variable to Global Variables section.
+-nosleep.sh: added set_nosleep() to modify sleep.conf
+-no-snaps: updated variables; updated & moved help(); added check for installed snap packages.
+-no-flatpak: updated help()
+-no-flatpak: moved & updated help(); updated variables.
+-mount-bu: changed script variable to use brace expansion to get base name.
+-mount-sshfs: moved help() function; updated local variables.
+-mount-sshfs:
+-mount-bu: updated script variable, moved help() function.
+-syncrick: added password sync
+-mk-swapfile.sh: main(): updated local variables.
+-locale-fix.sh: updated script and version variables.
+-local-ip-up: updated header comments
+-local-ip-up: updated local and global variables.
+-laptop-utils: updated local variables; reorganized getopts loop.
+-laptop-lid: updated local variables in main()
+-meditation-timer: updated local variable declarations.
+-keepass2main: updated local variables.
+-iru-yt-dlp: updated help(); reorganized getopts loop
+-iru-vscodium: updated help() & reorganized getopts loop.
+-Templates/bash-getopts.txt: Updated getopts loop & help()
+-iru-micro: updated help() and main(); reorganized getopts loop.
+-iru-marktext: removed cfg_dir from main()
+-iru-marktext: updated help() and reorganized getopts loop.
+-iru-fastfetch: updated help(); main(): reorganized getopts loop.
+-iru-chrome:
+-iru-bat: updated help(); main(): reworked getopts loop
+-ip-info: show_gateway(): changed awk command; main(): udpated local variables.
+-install-xrdp: main(): updated local variables.
+-insert-header: edited header comments.
+-install-virtmgr: main(): updated local variables.
+-install-ufw: updated help(); restructured getopts loop using if-else-fi
+-install-terminator: updated help() variables.
+-install-terminator: updated help(); apply_config(): if login shell, use symlink to config, otherwise copy; updated main()
+-install-librewolf: updated help()
+-install-kitty: updated main() getopts loop
+-install-homebank: added apply_preferences(); updated remove_configs; removed PPA support
+-install-keepassxc: keepassxc_ini(): added call to flatpak_keepassxc()
+-install-keepassxc: added flatpak_keepassxc() to check if flatpak version is installed.
+-install-keepassxc: removed option -c (config file); created keeppassxc_ini()
+-install-glow: updated help(); remove_glow(): added removal of glow config & cache; added glow_config()
+-install-geany: updated help() & clone_themes()
+-install-flatpak: updated local variables; added trixie to supported distributions.
+-install-codium: updated help(); renamed config_d to settings_dir.
+-install-cmatrix: updated local variables and help()
+-install-brave: added verbosity mode; using find to remove configuration & cache files
+-install-boxes: updated help() options.
+-install-batcat: updated help(); remove_bat(): fixed find command.
+-install-spice-tools: added check if system is a VM; added functions to install Spice tools for Arch & Debian.
+-battery-notify-install.sh: updated variables.
+-apt-search: leave(): updated local variables.
+-insert-license: updated help(); added check for code file.
+-insert-header: updated help(); added check for code file.
+-Templates/bash-getopts.txt:
+-cronscripts: changed options for Git repo scripts and Redshift notification.
+-create-script: import_metadata(): updated verbose messages.
+-create-c-cpp: import_metadata(): updated verbose messages.
+-create-script: updated help() options; added check for script source file.
+-create-c-cpp: updated help() options; added check for C/C++ source file.
+-catless: updated help() options.
+-check-updates: updated help() options.
+-weather: updated local variables.
+-iru-fastfetch: compare_versions(): corrected printf syntax error.
+-check-updates: show_header(): added 'ip:' between local host and ip address.
+-install-firefox-deb: updated local variables.
+-install-kitty: updated local variables.
+-install-nerdfonts: updated local variables.
+-yt-dl: udpated local variables.
+-install-zram: updated local variables
+-install-timeshift: updated local variables.
+-cam.sh: udpated update information.
+-cam.sh: udpated update information.
+-bu: brace expansion for global script variable.
+-boxes-spice: brace expansion for local script variable.
+-disable-swap.sh: brace expansion for local script variable.
+-dl-webpage: updated download_page(); added print_status()
+-functionlib: updated local variables in die() & error_handler()
+-files/cam-black.lst: corrected grammar
+-cam.sh: changed script variable to brace expansion.
+-check-battery: removed version(); changed script variable to brace expansion.
+-battery-check: removed version(); changed script variable to brace expansion.
+-create-script:
+-iru-marktext: install_marktext(): correct 'fix-broken' flag
+-functionlib: updated comments
+-create-c-cpp: udpated script variable
+-functionlib: udated leave() variable assignment.
+-sync6005.sh: updated header comments.
+-config-bak: added '/etc/X11/xorg.conf.d/10-force-vga1.conf'
+-clone-repo: main(): script variable - brace expansion; renamed arr_len to array_length
+-Revert "clone-repo: main(): script variable - brace expansion; renamed arr_len to array_length"
+-clone-repo: main(): script variable - brace expansion; renamed arr_len to array_length
+-check-versions: main(): changed variable assignment for script with brace expansion.
+-check-updates: main(): changed variable assignment for script with brace expansion.
+-check-logs: main(): changed variable assignment for script with brace expansion.
+-catless: implemented getopts; added check_file() to check if file is a valid text file; linenumbers value is either 0 or 1
+-bu: change script variable assignment to use parameter expansion.
+-journal-bu.sh: renamed snar variable to 'journals.snar'
+-cronscripts: updated cp_repo_backup(), new file names.
+-git-dwm.sh: renamed script and archive name.
+-git-bu.sh: renamed script and archive files.
+-rename-host: commented out systemd-resolved.service line; added comment about 'unable to resolve host' erro.
+-rename-host: removed confirmation functions.
+-rename-host: renamed functions; added 'Enter to cancel' option.
+-rename-host: renamed functions; added 'Enter to cancel' option.
+-iru-yt-dlp: added local variables to functions; added deb_version()
+-bu: unmount_usb_drive(): added 'sudo' to umount command.
+-z-ytdlp-update: updated check if update_status is 'unavailable'.
+-sync-home: cleaned up print statements
+-sync-home: renamed cleanup_files() to remove_bu_files()
+-03-bullseye2bookworm.sh: removed 'shellcheck disable=SC1091'
+-02-bullseye2bookworm.sh: renamed deb_12_upgrade() to upgrade_debian(); source_list(): added check for non-free
+-01-bullseye2bookworm.sh: renamed upgrade_11_pkgs() to ugrade_packages()
+-01-bullseye2bookworm.sh: added check if distribution is Debian 11.
+-Scripts for in-place upgrade from Debian 11 to Debian 12.
+-iru-yt-dlp: replace global variable with actual values.
+-iru-vscodium: modified apply_settings() & remove_vscodium() to work with symlinks.
+-iru-micro: removed check_distro()
+-iru-micro: modified micro_configs() & remove_micro() to handle symlinks.
+-iru-fastfetch: fastfetch_config(): added code to replace config & logo files if replaced by symlinks.
+-install-terminator: script variable
+-install-kitty: script variable
+-install-keepassxc: script variable
+-install-glow: moved help() to top of script
+-install-geany: script variable method
+-install-batcat: remove_bat(): find to remove directories under ~/.config
+-iru-bat: changed script variable assignment method.
+-iru-marktext: updated marktext_config() & remove_marktext() to use symlinks.
+-iru-fastfetch: updated fastfetch_config() & remove_fastfetch() for symlinks and special cases.
+-iru-chrome: changed script variable to use parameter expansion.
+-iru-chrome: purge_chrome(): find to remove config directories.
+-install-rtorrent.25155 was retired and archived.
+-install-rtorrent renamed to install-rtorrent.25155 to be retired and archived.
+-install-polybar:
+-install-neofetch.25155 was retired and archived.
+-install-neofetch renamed to install-neofetch.25155 to be retired and archived.
+-install-neofetch:
+-install-kitty: updated kitty_config() & remove_kitty() to handle symlinks to config files.
+-install-keepassxc: remove_distro_keeepassxc(): use find to remove config directories.
+-install-geany: remove_geany(): used find to remove configuration directories.
+-install-dsh: changed script variable assignment method.
+-install-codium: updated apply_settings() & remove_vscodium() to handle symlinks to settings.json
+-install-terminator: updated apply_config() & remove_terminator()
+-iru-bat: remove_bat(): used find to remove config directories
+-functionlib: is_debian(): added trixie
+-functionlib: updated variable declarations.
+-iru-bat: updated bat_config() and remove_bat() to support symlinks.
+-install-batcat: Links bat/config to cloned configs repository.
+-iru-bat: added trixie to check_distro()
+-iru-fastfetch: added trixie to check-distro()
+-write-iso: replaced 'basename' commands with parameter expansion.
+-verify-iso: replaced 'basename' commands with parameter expansion; after checking checksums, blanks the progress line before printing results.
+-Templates/bash-template.txt: corrected quotes for script assignment.
+-Templates/bash-getopts.txt: corrected quotes for script assignment.
+-mount-bu: added notify-send with icon
+-redshift-notify.sh: added icons to notify-send
+-functionlib: leave() checks if passed argument is an empty string and makes random message the default.
+-docs/leave.md: updated source code and notes.
+-syncmosfa: corrected printf
+-config-restore: i3_cfgs(): added 'rules.conf'.
+-config-bak: bu_i3_cfgs(): added 'rules.conf'.
+-Templates/bash-template.txt: using parameter expansion to get basename of script.
+-Templates/bash-getopts.txt: using parameter expansion to get basename of script.
+-functionlib: local_ip(): removed cut command & used parameter expansion to get last octet from address.
+-install-neofetch: replaced 'exists neofetch' with neofetch_installed(), uses dpkg -l
+-iru-fastfetch: commented out append_bashr() since my default .bashrc already has the code.
+-install-neofetch: remove_neofetch(): added thumbnail directory & made sed statment case-sensitive.
+-docs/assign_cfg_repo.md: updated code section.
+-functionlib: modified assign_cfg_repo() to base repo directory assignment on hostname rather than IP address.
+-docs/assign_cfg_repo.md: updated code section.
+-functionlib: assign_cfg_repo(): removed 'repo' variable
+-functionlib: assign_cfg_repo(): added --quiet to git commands
+-syncmosfa: syncscript(): lined up tabs for default case.
+-syncmosfa: syncscript(): converted echo to printf
+-syncit.25137 was retired and archived.
+-syncit renamed to syncit.25137 to be retired and archived.
+-functionlib: valid_ip(): changed line 457.
+-syncit renamed to syncit.25137 to be retired and archived.
+-syncfin: added SFW wallpaper directory
+-syncfin: added check_host()
+-syncrick: moved print to state purpose to check_host.
+-syncmosfa: syncrcipt(): changed printf text.
+-syncbin: syncscript(): removed system 10 from case
+-syncbin: syncscript(): removed system 10 from case
+-syncmosfa: reorganized syncscript(); changed check-host to ensure syncing from main system.
+-syncbin: reorganized syncscript(); changed check-host to ensure syncing from main system.
+-syncrick: added check_host() to launch syncscript to appropriate system.
+-syncbin: sync_one() & sync_some() include all valid ip addresses.
+-install-dsh: install_dsh(): added 'mkdir -p /etc/dsh/groups'.
+-iru-vscodium: apply_settngs(): fixed spelling error.
+-install-homebank: homebank_version(): correctd spelling of HomeBank.
+-check-updates: removed commented variable 'summary'.
+-system-info: replaced 'cat' with '<'
+-git-branches.md: initial commit
+-snippets/git.md: changed some headers
+-files/cam-white.lst: correcte spelling
+-weather: wx_forecast(): replaced box() with center_text()
+-updated, deleted, moved
+-check-logs: removed logs for projects directory backup which has been combined with backup of gitea directory.
+-updated to new markdown format.
+-functionlib: mount_nas(): corrected syntax in mkdir command.
+-mount-bu: If no arguments, prints status and help.
+-install-nerdfonts: added SymbolsNerdFrontMono-Regular.ttf; change font directory to .local/share/fonts
+-Updated in new format.
+-udated to new format.
+-docs/assign_cfg_repo.md: initial commit.
+-Templates/fn_md_template.md: Updated.
+-renamed functions/ to docs/
+-porn-dl: incorporated center_text() into download_video()
+-yt-dl: incorporated center_text() into download_video()
+-bs-meter: renamed print_disclaimer() to print_title()
+-bs-meter: implemented center_text() for title.
+-snippets/symlinks.md: added example to symlink multiple folders.
+-iru-vscodium: replaced assign_repo() with assign_cfg_repo() from functionlib.
+-iru-micro: replaced assign_repo() with assign_cfg_repo() from functionlib.
+-iru-marktext: replaced assign_repo() with assign_cfg_repo() from functionlib.
+-install-ufw: removed extranious space in exists_xrdp()
+-install-terminator: replaced assign_repo() with assign_cfg_repo() from functionlib.
+-install-polybar: replaced assign_repo() with assign_cfg_repo() from functionlib.
+-install-neofetch: replaced assign_repo() with assign_cfg_repo() from functionlib.
+-install-kitty: replace assign_repo() with assign_cfg_repo(); removed getopts options for applying config files.
+-install-keepassxc: replace assign_repo() with assign_cfg_repo() from functionlib.
+-install-dsh: replace assign_repo() with assign_cfg_repo() from functionlib.
+-install-codium: remove_codium(): added check for symlink.
+-functionlib: added center_file() & center_text()
+-functionlib: added center_file() & center_text()
+-functions/center_text.md: function to center a string of text.
+-functions/center_file.md: function to center the contents of a text file.
+-iru-bat: changed to use symbolic links for config files.
+-iru-fastfetch: changed logo file names
+-snippets/symlinks.md: updated, added notes.
+-iru-fastfetch: changed fastfetch_config() to use symbolic link to cloned configs repo.
+-install-codium: changed apply_settings() to use symbolic link to cloned configs repo.
+-install-batcat: changed bat_config() to use symbolic link to cloned configs repo.
+-functionlib: added assign_cfg_repo() for use in installation scripts.
+-files/cam-white.lst: spelling corrections.
+-files/cam-black.lst: spelling corrections.
+-gitea-bu.sh: changed to backup both Gitea and Projects directories.
+-functionlib: changed git_repo variable for proper cloning into directory.
+-clone-repo: uses functionlib clone_repo()
+-syncmosfa: added exclude .gitignore to rsync of git repositories.
+-syncbin: added exclude .gitignore to rsync of git repositories.
+-.gitignore: initial commit
+-snippets/git.md: added steps to transer git repo to GitHub.
+-functionlib: updated clone_repo() to use either GitHub or Gitea URLs as needed.
+-functions/clone_repo.md: updated comments and source code.
+-cam.sh: adjusted tab spacing in play_game()
+-card files for cam.sh
+-cam.sh: created play_game() function; changed location of files to ~/bin/files
+-cam.sh: added check_files() to check for fzf and card files.
+-cam.sh: changed white cards drawn from 10 to 15.
+-snippets/list-installed.md: initial commit. List installed packages and install/reinstall from list.
+-functions/dots-spin.md: added note to spin section.
+-functionlib: removed spin() function.
+-functionlib: edited comments.
+-functionlib: dots() - changed sleep interval from 0.2 to 0.5; spin() - changed sleep interval from 0.2 to 0.1
+-cronscripts: changed delay for sudo_login from 2 to 1.
+-z-update: version number
+-z-update: autoremove_packages() - added '--purge' to autoremove; commented out purge_rc_packages()
+-check-updates: remove_orphans() - added '--purge' to autoremove; removed purge_rc_packages()
+-check-updates: replaced for loop with apt-get autopurge (loop commented out)
+-snippets/html_2_text.md: initial commit. Methods to convert html to text.
+-check-updates: moved 'apt-get dist-upgrade -s' to apt-upadate() after call to update_apt_cache()
+-check-updates: moved 'apt-get dist-upgrade -s' to apt-upadate() after call to update_apt_cache()
+-check-updates: main() - added dots to show actity during dist-upgrade simulation.
+-z-update: remove package_summary() as unnessary.
+-z-update: removed listing of packages to be upgraded/installed.
+-functionlib: removed extraneous blank line.
+-check-updates: added tmp file to hold output from 'apt-get dist-upgrade -s' to use for summary and package count.
+-system-info: ssd_hd_info() - removed colon from the end of device name.
+-system-info: ssd_hd_info() - removed '/dev/' from printf; nvme_info() - added a colon to title line.
+-install-nerdfonts: replaced check_dependencies() with 'check_package wget' since unzip is no longer needed.
+-check-updates: added color to some printf commands.
+-Templates/bash-getopts.txt: main(): corrected optstr variable spelling.
+-system-status: check_drivetemp(): corrected printf & changed sleep to 1
+-install-boxes: added getopts; updated add_to_kvm_group(); added flatpak install.
+-fin-bu.sh: removed exlusion of Archives directory from tar command.
+-syncrick: syncscript(): added SFW wallpaper directory.
+-syncmosfa: syncone(): updated list of restricted addresses in case statement.
+-syncbin: syncscript(): added SFW backgrounds.
+-check-updates - updated help()
+-functionlib - changed method to obtain local network address.
+-snippets/net-devices.md - added methods to obtain local network address.
+-catless - updated view_file(); main(): allowed use of leading dash for N|n argument.
+-retire-scripts - removed leading tabs under Global Variables
+-functionlib - check_package() & check_packages(): changed sleep and sudo_login arg from 2 to 1.
+-iru-yt-dlp - updated help()
+-iru-marktext - updated help()
+-iru-vscodium - updated help()
+-iru-micro - updated help()
+-iru-fastfetch - updated help()
+-iru-chrome - updated help()
+-iru-bat - updated help()
+-install-fnloc - updated help()
+-install-homebank - updated help()
+-install-handbrake - updated help()
+-install-audacious - updated help()
+-insert-license - updated help()
+-mount-sshfs - added 800-G1-USDT
+-install-batcat - udpated header comment.
+-greset - main(): changed wording of the error message.
+-grevert - main(): used 'git rev-parse' command to check if in a git repo.
+-gretire - main(): used 'git rev-parse' command to check if in a git repo.
+-greset - main(): used 'git rev-parse' command to check if in a git repo.
+-retire-scripts - main(): modified check if git repository elif statement.
+-system-status - check_drivetemp(): added square brackets to 'OK' for consistency.
+-retire-scripts - initial commit, retire old scripts (not in a repo) in a compressed archive.
+-config-bak - updated bu_cinnamon_keybindings()
+-empty-trash.sh - empty_trash(): changed to older that 6 days instead of 7 days.
+-snippets/git.md - added command to check if in a git repo.
+-z-update - get_updates(): changed to 'Packages are up to date'.
+-snippets//ssh-VM.md - added rsync command to backup virtual machine files to a backup drive.
+-check-updates - set 'summary' variable in apt_update() and pass it to count_updates & update_summary()
+-z-update - added list_upgradable() & update_summary() to list packages and provide a summary.
+-check-updates - apt_update(): removed options & _opt variables.
+-check-updates - moved select menu to apt_menu() & adjusted apt_update accordingly.
+-check-updates - cleaned up commented lines.
+-check-updates - added list_upgradable(); changed update_summary() and integrated into apt_update()
+-snippets/misc_cmds.md - added example for putting command output in json format with column command.
+-check-logs - Implemented 'column' command to format columnar logs.
+-check-logs - Implemented 'column' command to format columnar logs.
+-check-updates - replaced word options with getopts; updated help(); expanded check for flatpak.
+-cam.sh - added title in card display.
+-cam.sh - deleted FMENU line
+-cam.sh - cleaned up the script and added code to gracefully exit the script.
+-snippets/tar.md - added extract .tar.xz
+-syncrick - added Downloads/Code/ to syncscript()
+-cam.sh - initial commit; simple Cards Against Humanity game (Cards Against Muggles).
+-install-nerdfonts - updated version information.
+-install-nerdfonts - updated download URL, changed from zip to tar.xz
+-porn-dl - removed show_title(); combined download_video() and dl_2_video()
+-yt-dl - removed show_title(); combined download_video() and dl_2_video()
+-show-cron - changed formatting of user & root cron jobs.
+-install-nerdfonts - changed font directory to '/usr/local/share/fonts/'.
+-sshlocal - added line to select_server to show script name.
+-Revert "sshlocal -"
+-sshlocal -
+-sshlocal - main(): local_host is local variable passed to fuzzy_server/select_server.
+-install-firefox-deb - restored print statements to flatpak & snap remove functions.
+-install-firefox-deb - added list of installed Firefox packages; removal functions from one function, Moziall removal.
+-greset - main(): added y/n prompt to confirm action.
+-grevert - main(): added y/n prompt to confirm action.
+-porn-dl - updated header comments.
+-yt-dl - updated header comments.
+-pornhub-dl.25076 was retired and archived.
+-pornhub-dl renamed to pornhub-dl.25076 to be retired and archived.
+-redtube-dl.25076 was retired and archived.
+-redtube-dl renamed to redtube-dl.25076 to be retired and archived.
+-redtube-dl - incorporated FZF FMENU variable.
+-pornhub-dl - incorporated FZF FMENU variable.
+-porn-dl - incorporated FZF FMENU variable.
+-yt-dl - corrected updated date.
+-write-iso - changed if statements to [[ ... ]] in select functions.
+-verify-iso - changed if statements to [[ ... ]] in select functions.
+-yt-dl - incorporated FZF FMENU variable.
+-sshlocal - removed extra line from Global Variables block.
+-sshlocal - incorporated FMENU variable for fzf flags.
+-check-updates - updated comments; help(): errocode made local variable; apt_update(): updated select options.
+-check-updates - check_action(): checks argument and calls appropriated update function; updated help()
+-write-iso - Modified to select ISO directory, then ISO file and USB device.
+-verify-iso - Modified to select ISO directory, then ISO file and Checksum.
+-functionlib - added GitHub URL as a global variable.
+-install-timeshift - main(): reordered if-elif-else
+-install-terminator - apply_config(): replaced if-else with case-esac.
+-meditation-timer - corrected spelling is comment for screensaver_on()
+-sshlocal - corrected unbound variable in fuzzy_server()
+-sshlocal - Modified to use fzf (fuzzy finder) if installed, otherwise uses a select loop.
+-umount-usb - added line to remove mounting directory after unmounting.
+-bu - unmount_usb_drive(): removed 'sudo', unnecessary sincd mount point is owned by regular user.
+-umount-usb - initial commit; script to unmount USB drives in the /media/<user> directory.
+-insert-header - main(): corrected printf command.
+-devtoolinst - updated
+-devtoolchk - check_tools: removed mingw
+-devtoolchk - updated
+-battery-notify-install.sh - updated global variable section.
+-sync-home - main(): corrected argument passed to check_host()
+-sync-home - check_host(): returns True or False; main(): if-else base on check_host return value.
+-ren-space - added getopts options to replace spaces with hyphen, underscores, or dots.
+-Templates/bash-getopts.txt - main(): getopts variables are local in function; help(): variables set as local individually.
+-install-zram - added functions to find and disable current swap; prompts before replacing current swap with zram-tools.
+-install-librewolf - updated version function; updated check_extrepo()
+-disable-swap.sh - added yes/no prompt to confirm disabling of current swap file/partition.
+-check-versions - installed_version: changed default ver assignment; browsers(): added LibreWolf
+-README.md - upadated
+-randpic - changed parameters of display command resize selected image.
+-write-iso - added list_usb_contents(); removed listing of USB contents from simulate_dd() & write_dd().
+-install-librewolf - install_librewolf(): moved sudo_login() call to start of function.
+-install-kitty - assign_repo(): removed extra repo assignment.
+-install-keepassxc - combined functions to get KeePassXC version into keypass_version().
+-install-librewolf - install_librewolf(): removed 'set -x' & 'set +x'
+-install-librewolf - remove_librewolf(): updated files & directories to be removed.
+-install-librewolf - initial commit - install/remove LibreWolf browser
+-install-firefox-deb - make_preference_file(): updated; commented out verify_keys()
+-gitea-dwm-bu.sh - monthly_bu(): changed find to +364 days.
+-Templates/bash-getopts.txt - corrected app_version and calls in main()
+-cronscripts - removed count variable which was being incremented even if no file was copied, based on whether cp successfully ran.
+-passwdsync.sh - remove -n from the test if password file changed.
+-check-logs - changed 'wc -l' to use redirection instead of pipe to cut.
+-functionlib - viewtext(): changed 'wc -l' to use redirection instead of pipe to cut.
+-hb-archive.sh - changed 'wc -l' to use redirection instead of pipe to cut.
+-passwdsync.sh - changed 'wc -l' to use redirection instead of pipe to cut.
+-scriptarchive.sh - changed 'wc -l' to use redirection instead of pipe to cut.
+-z-backup - fixed udated date
+-z-backup - changed 'wc -l' to use redirection instead of pipe to cut.
+-z-ytdlp-update - changed 'wc -l' to use redirection instead of pipe to cut.
+-verify-iso - check_checksum(): changed 'wc -l' to use redirection instead of pipe to cut.
+-webcam-check - webcam_info(): changed 'wc -l' to use redirection instead of piping to cut.
+-catless - revamped help(); catmax calculated in over_max();view_file() calls over_max()
+-install-dsh - main(): added exit command
+-mk-fortunes - implemented main() & create_cookie_file(); updated help()
+-sshlocal - updated version number.
+-sshlocal - connect_local(): exits with error message if attempting to connect to local client.
+-mk-readme - eliminated script conf; implemented main() & create_readme
+-mk-changelog - added missing 'noOpt=0' to getops while loop.
+-mk-changelog - added more verbosity.
+-Templates/readme.txt - replaced Twitter info with local Gitea server.
+-mk-changelog - eliminated script conf; implemented main() & create_changelog
+-create-c-cpp - removed source script conf; implemented main() & import_metadata(); expanded verbose mode.
+-Templates/cpp-template.txt - updated compiler section.
+-Templates/c-template.txt - updated compiler section.
+-create-script - main(): added show_message to b option.
+-create-script - removed script conf calls; implementd main() & create_script(); updated help()
+-insert-license - implemented main() & insert-license(); removed sourcing of script conf; updated help()
+-insert-header - added noOpt, opt, optst to local variables.
+-insert-header - removed creating/sourcing script config file; added main() & insert_header()
+-insert-header - updated help()
+-install-glow - updated help()
+-install-geany - updated help()
+-install-cmatrix - updated help()
+-install-ufw - updated help()
+-install-terminator - updated help()
+-install-codium - updated help(); removed show_title()
+-install-brave - updated help()
+-install-batcat - updated help()
+-install-kitty - updated help function.
+-install-neofetch - updated help function.
+-iru-fastfetch - install_fastfetch(): correct '--fix-broken' flag.
+-bu - unmount_usb_drive(): removed call to default_yes(); USB drive will be unmounted and error message displayed on failure.
+-sshlocal - added 'exit' to end of main()
+-webcam-check - added function to extract webcam info from a temp file; supports multiple webcams.
+-snippets/misc_cmds.md - added routine to remove new temp files.
+-functionlib - added call to sudo_login() to check_package() & check_packages() if package is not already installed.
+-Templates/bash-template.txt - updated template
+-Templates/bash-getopts.txt - updated template
+-verify-iso - help(): updated -h option.
+-empty-trash.sh - updated header comments.
+-write-iso - updated help function.
+-sshlocal - added check_x11(); connect_local(): removed call to default_no() and added call to check_x11(); main(): added x11_arg to handle argument for X11 forwarding and pass to connect_local()
+-write-iso - modified help()
+-empty-trash.sh - main(): corrected title line.
+-hb-archive.sh - changed to keep the 12 most recent entries in the log.
+-z-defrag - changed host_name variable assignment; corrected a hostname in the case statement.
+-check-logs - removed extra newlines and print statements.
+-bs-meter - minor cosmetic changes.
+-clone-repo - added 'arr_len' variable to add 1 to array lenghth and show total number of choices.
+-sshlocal - initial commit. Shell script to connect to host on the LAN using the .local domain.
+-z-update - added hostname to log title.
+-z-defrag - added hostname to log title.
+-empty-trash.sh - main(): added line to print script name and version.
+-check-logs - cleaned up titles for log headings.
+-cal-todo - edit_todo(): added notify-send to notify of update to the list.
+-show-cron - show_user_cron()/show_root_cron(): removed sed command to remove redirect to /dev/null, changed awk print to use 6th field instead of NF
+-system-info - cpu_info(): changed awk command for threads; memory_info(): changed awk commands for mem_type & mem_max
+-iru-vscodium - install_vscodium(): changed gdebi to dpkg
+-iru-marktext - install_marktext(): changed gebi to dpkg
+-iru-fastfetch - install_fastfetch(): changed gdebi to dpkg
+-iru-bat - install_vscodium(): changed gdebi to dpkg
+-check-updates - corrected syntax error in check_reboot_required()
+-install-fonts.25041 was retired and archived.
+-install-fonts renamed to install-fonts.25041 to be retired and archived.
+-cronscripts - changed '||' to '&&' for count++
+-cronscripts - added a global variable to count updates made. If no updates, displays a message.
+-check-updates - added help() function; check_action(): updated; check_reboot_required(): updated
+-z-update - removed exists(); updated command to check if reboot required.
+-syncmosfa - syncscript(): added ~/Pictures/backgrounds to be synced.
+-hb-late - update_log_file(): updated local variables. main(): changed hostname.
+-hb-archive.sh - broke down into functions and implemented main()
+-gitea-dwm-bu.sh - declared archive variable as read only.
+-redtube-dl - check-dependencies(): added line to blank preceding line & check for ffmpeg
+-pornhub-dl - check-dependencies(): added line to blank preceding line & check for ffmpeg
+-porn-dl - check-dependencies(): added line to blank preceding line & check for ffmpeg
+-yt-dl-playlist - check-dependencies(): added line to blank preceding line & check for ffmpeg
+-yt-dl-audio - check-dependencies(): added line to blank preceding line & check for ffmpeg
+-catless - help(): added example usage and blurb about how to display line numbers.
+-catless - added capability to optionally display line numbers by placing 'n' or 'N' after the filename.
+-install-zoom.25038 was retired and archived.
+-install-zoom renamed to install-zoom.25038 to be retired and archived.
+-check-versions - apt_tools(): added zoom to packages array.
+-mount-bu - main(): replaced leave() with over_line()
+-bu - removed commented read commands from backup() and restore()
+-yt-dl - check-dependecies(): corrected packages array & added printf to blank 'yt-dlp [OK]' line.
+-yt-dl - check_dependencies(): added ffmpeg
+-gitea-dwm-bu.sh - daily_bu(): changed find -mtime to +6 to delete 7th previous day's snaptshot.
+-gitea-dwm-bu.sh - added '-daystart' to find commands & set for 7 days, 28 days, 366 days.
+-bu - added flush_kb_buffer() to flush keyboard buffer after backup/restore operation.
+-check-versions - installed_version(): redirected stderr to /dev/null; github_versions(): rearranged if-statements.
+-bu - updated Arguments line in header comments.
+-bu - udpated global variable.
+-syncit - sync_script(): added exclude .git & removed some directories; main(): added ip 3 to restricted IP addresses.
+-functionlib - updated local variables in error_handler()
+-iru-yt-dlp - install_ytdlp(): added check for symbolic link to .local/bin/yt-dlp
+-iru-micro - remove_micro(): removed -y flag from dpkg command.
+-install-dsh - copy_machines_list(): added check for symbolic link to /etc/dsh/group/all
+-install-brave - main(): corrected syntax in over_line() call.
+-check-versions - installed_version(): added '2>/dev/null' to micro case.
+-gitea-dwm-bu.sh - implemented main(); changed mtime to remove extraneous archives.
+-sync6005.sh - updated header comments.
+-yt-dl - select_directory: changed fzf --height from 60% to 75%
+-install-boxes - add_to_kvm_group(): changed user to whoami
+-clone-repo - removed unneeded printf lines.
+-clone-repo - clone_repo(): using find instead of ls to determine if target directory is empty.
+-clean-c - added functionlib
+-checkinit - main(): replaced printf at end with overline()
+-disable-swap.sh - initial commit; disables swap file/partition.
+-mk-swapfile.sh - initial commit; creates swap file in root (/) directory.
+-install-zram - replaced get_swap_type() with swap_exists()
+-files/kitty.sed - updated font_family
+-files/zramswap.sed - initial commit; configures /etc/default/zramswap and creates a backup of the original file.
+-install-zram - added functionlib; install_zram(): added call to sed file and restart service.
+-cinnkeys - actions contained in functions; add function to download backup file from Gitea configs repository.
+-catless - view_file(): added head command to show some context when less is used.
+-z-backup - implemented main()
+-zz-clean - added script-name and version to main()
+-z-ytdlp-update - implemented main()
+-z-defrag - implemented main()
+-z-update - main(): prints script-name and version to log file.
+-install-cmatrix - renamed global variables.
+-i3configs - updated assign_repo()
+-files/bashrc-head - extended hashmark line to the end of preceding line.
+-files/bashrc-head - replaced twitter name with tech blog url.
+-verify-iso - select_checksum(): removed sed command to remove './' from checksum path; renamed show_check_verify() to check_verify()
+-verify-iso - added check_sha1()
+-verify-iso - added check_sha1
+-system-status - check_drivetemp(): added line to blank previous line; main(): removed script & version variables.
+-install-zram - install_zram(): added sudo to sed command.
+-install-zram - installs ZRam swap file if no swap exists.
+-functionlib - removed unused variables from box(), under_line(), over_line()
+-cronscripts - no_copy(): renamed 'script' to 'cron_script' to avoid conflict with global script variable.
+-cronscripts - cp_finance_bu(): removed IP 21
+-iru-vscodium - assign_repo(): removed if-else-then.
+-iru-marktext - main(): removed references to repository variable.
+-iru-bat - main(): removed references to repository variable.
+-iru-marktext - assign_repo(): removed if-else-then.
+-iru-bat - main(): removed references to assign_repo()
+-iru-bat - assign_repo(): removed if-else-then.
+-install-keepassxc - create ini(): changed if to case.
+-iru-micro - assign_repo(): does not run a git pull if directory exists; repository variable local to function used in.
+-iru-fastfetch - assign_repo(): does not run a git pull if directory exists; repository variable local to function used in.
+-install-kitty - assign_repo(): does not run a git pull if directory exists; repository variable local to function used in.
+-clone-repo - clone_repo(): corrected spelling error.
+-syncbin - syncscript(): added 21 to case for SSD laptops.
+-set-resume - main(): moved script info to end of function.
+-system-info - changed version number and date.
+-no-snaps - remove_snaps(): commented out, don't understand the code.
+-system-info - memory_info: removed sed from mem_max variable assignment.
+-no-snapsremove_snaps(): commented out, don't understand the code. -
+-iru-micro - removed gdebi from dependencies.
+-install-glow - removed check_dependencies()
+-install-fnloc - removed gdebi from dependencies; added show_header() to main()
+-iru-fastfetch - check-distro(): added 'xia' to case...esac.
+-iru-bat - check-distro(): added 'xia' to case...esac.
+-functionlib - check-distro(): added 'xia' to case...esac.
+-write-iso - corrected indentation of else statements
+-write-iso - added '-F' flag to ls commands to display USB drive contents.
+-locale-fix.sh - main(): changed leave to over_line
+-iru-micro - changed echo to printf.
+-iru-fastfetch - install_fastfetch(): local variable new_version to first argument.
+-write-iso - write_dd(): corrected indentation.
+-write-iso - main(): defined iso_file & usb_device as local variables.
+-verify-iso - added show_check_verify(): calls show_title(), check_packages(), verify_iso()
+-verify-iso - made iso_d a local variable passed by verify_iso(); default action is to verify an ISO file.
+-write-iso - changed fzf height from 40% to 75%; added disk label to listing of disk contents.
+-verify-iso - changed fzf height from 40% to 75%
+-ip-info - changed IPv4 to IPv6 in commented out section of show_public()
+-iru-bat - main(): added over_line() to print script name and version
+-install-brave -
+-check-updates - added check_action() to confirm command line arguments to the script; main(): replace if statement with case.
+-meditation-timer - removed sourcing functionlib; added TRUE/FALSE global variables; renamed countdown() to prep_countdown().
+-battery-check - main(): moved operational commands into else of the if structure.
+-battery-check - main(): moved operational commands into else of the if structure.
+-check-battery - hidpp_battery(): correcting formating errors in printf statements.
+-check-battery - always checks for HID++ battery & displays battery info or not present.
+-battery-check - hidpp_battery(): added 'HID++ battery not present'.
+-sync-home - main() - added exit command.
+-sync-home - archive_homepage(): removed verbosity flag from tar command.
+-meditation-timer - sound_dir variable local in play_sound(); variables for audio files local in main() and meditation_timeer()
+-laptop-utils - main(): changed leave() to over_line()
+-iru-chrome - changed echo to printf; prints current version before updating.
+-iru-bat - corrected year portion of version number.
+-syncrick - corrected spelling errors.
+-write-iso - in write_iso() added listing of the contents of selected USB drive.
+-iru-bat - moved calls to sudo_login() to appropriate functions.
+-iru-bat - removed extaneous call to check-dependencies()
+-nosleep.sh - removed header comment; corrected spelling in die argument.
+-nosleep.sh - removed extraneious 'script' from script variable assignment line. Resolves issue.
+-nosleep.sh - script does not run.
+-nosleep.sh - renamed to nosleep.sh
+-config-restore - added i3/backgrounds.sh and i3/sxhkdrc.
+-config-bak - added i3/backgrounds.sh and i3/sxhkdrc.
+-yt-dl-audio - moved script name and version to end of main(); download_audio() changed leave & die to printf.
+-yt-dl-playlist - implemented main() & download_playlist()
+-weather - wx_forecast() - added '?u' to URL to force US measurements.
+-zz-clean - implemented main()
+-z-update - implemented main()
+-journal-bu.sh - changed tar command include exclude flag and correct path to directory.
+-cronscripts - corrected syntax error in cp_main_bu(), added '$' to script_path.
+-github-bu.sh - added line to create archive directory if it doesn't already exist.
+-gitea-bu.sh - added line to create archive directory if it doesn't already exist.
+-fin-bu.sh - added line to create archive directory if it doesn't already exist.
+-journal-bu.sh - implemented main() and sunday_actions()
+-insert-header - renamed script and version variables; placed purpose, license info and copyright in a function.
+-insert-license - renamed script and version variables; placed purpose, license info and copyright in a function.
+-i3configs - removed commented out global variables.
+-grevert - corrected missing tab in main()
+-github-bu.sh - implemented main() and sunday_actions()
+-gitea-bu.sh - implemented main() and sunday_actions()
+-fin-bu.sh - implemented main() and sunday_actions()
+-cronscripts - main() - changed call to leave() to over_line()
+-github-bu.sh - removed commented out instructions to copy archives to Gitea server.
+-gitea-dwm-bu.sh - removed commented out instructions to copy archives to Gitea server; changed code to create directories to use brace expansion.
+-gitea-bu.sh - removed commented out instructions to copy archives to Gitea server.
+-meditation-timer - added dpms_enabled() to check DPMS status (commented out); adde explanitory comments to screensaver functions.
+-install-homebank - uncommented line to install HomeBank in install_flatpak_homebank(); corrected spelling.
+-install-audioapps - replaced call to leave() with over_line(); removed extra call to sudo_login()
+-hidpp-battery - changed call to leave() to overline().
+-show-cron - added show_anacron(); renamed functions for anacron jobs.
+-rm-tilde - implemented main()
+-laptop-lid - renamed laptoplid to laptop-lid; added modify_logind() & main().
+-refresh-net - replaced leave() with over_line()
+-ren-ext - .img, .mkv. .webm extenstions supported.
+-numfiles - sourced functionlib; shows count of directories and files, and disk space used by the directory.
+-keepass2main - implemented main(); added is_main_host() to check hostname.
+-install-timeshift - added get_home_uuid() to extract the UUID for snapshots; added sed command to insert UUID into timeshift.json.
+-files/timeshift.sed - corrected spelling error.
+-install-timeshift -
+-install-timeshift - separated check if timeshift is in repos from the installation.
+-install-nerdfonts - changed order of variable assingments in install_nerd_fonts(); changed leave() to over_line()
+-meditation-timer - added function to check input volume; changed get_volume() & set_volume(); screensaver_on() called by trap on exit.
+-clone-repo - added check if target directory exists and is empty. If it contains files, runs git pull. If empty or non-existent, clones the selected repository.
+-functions/url_accessible.md - function to check if a URL is accessible. Replaces is_url_good.md
+-functionlib - replaced is_url_good() with url_accessible(); uses curl instead of wget --spider.
+-syncrick - changed over_line character in main()
+-syncrick - added sychronizing Downloades/cloned-repositories to syncscpript(); changed echos in syncscript() to printf
+-check-updates - experimented with update_spices() but left it the same.
+-kkb - removed commented line from main()
+-kkb - added color and underline to show_bindings()
+-ip-info - added show_bridge()
+-sshin - corrected version number.
+-ip-info - changed echo commands to printf; added show_network() to display network IP & CIDR.
+-Templates/weather.json - Removed file from repository.
+-functionlib - moved check_for_file() between format_time() and check_packages()
+-weather - removed extraneous 'local' from printf arguments in current_wx().
+-config-restore - added redshift.conf
+-config-bak - added redshift.conf
+-install-conky.24329 was retired and archived.
+-install-conky renamed to install-conky.24329 to be retired and archived.
+-functionlib - cleaned up distributions no longer in use.
+-install-homebank - fixed printf error in homebank_version(); fixed syntax error in install_flatpak_homebank()
+-hb-archive.sh - removed sync directories with main system.
+-fin-bu.sh - removed sync directories with main system.
+-cronscripts - added main system (IP 10) to cp_finance_bu()
+-iru-micro - corrected syntax errors and paths.
+-iru-micro - corrected spelling for copy of micro binary to /usr/bin
+-install-zoom - correct exists() call in zoom_version()
+-insert-license - changed opt variable to _opt, making it a throwaway variable.
+-i3configs - incorporated assign_repo()
+-iru-vscodium - incorporated assign_repositorty() and modified affected function.
+-iru-micro - incorporated assign_repositorty() and modified affected function.
+-iru-marktext - incorporated assign_repositorty() and modified affected function.
+-iru-fastfetch - incorporated assign_repositorty() and modified affected function.
+-iru-bat - incorporated assign_repositorty() and modified affected function.
+-iru-chrome - updated
+-install-kitty - remvoed extra check_package git.
+-functionlib - edited comments for check_for_file()
+-odt-to-txt - incorporated fzf to list/select files to be converted.
+-pornhub-dl - removed first 'Execution' comment.
+-redshift-notify.sh - renamed global variables.
+-clone-repo - replaced closing printf with over_line(); changed order in repos array.
+-functionlib - replaced echo commnds in box(), under_line(), & over_line() with a single printf command.
+-functionlib - replaced echo statemetns with a single printf in box(), under_line(), & over_line() functions.
+-clone-repo - added debiian-i3 repository to repos array.
+-zz-clean - added autoremove_packages()
+-sync-home - made the script more verbose, showing files modified, added, or deleted.
+-z-clean-tmp - add '2>/dev/null' to find command; removed 'u -o pipefail'
+-install-dsh - corrected download path in assign_repo()
+-install-batcat - added comment about Mint 22 installing version 0.24.0 with Ubuntu info appended.
+-install-codium - corrected download path in assign_repo() & apply_settigns()
+-install-conky - corrected download path in assign_repo() & in conky_desktop()
+-install-kitty - corrected download path in assign_repo()
+-install-neofetch - corrected download path in assign_repo()
+-install-polybar - corrected download path in assign_repo(); changed polybar_launcher to copy script to .config/i3/
+-install-batcat - corrected repo download path in assign_repo(); corrected copy path in bat_config().
+-iru-micro - corrected tar -xzf to extract to the temp directory.
+-iru-vscodium - newest_version() - added case for codium new version due to change in download url on GitHub; compare_versions() - changed syntax for dpkg command.
+-check-versions - github_versions() - added case for codium new version due to change in download url on GitHub.
+-system-status - memory_usage() - added sed command to remove 'i' from 'Mi or Gi' in free output.
+-check-updates - replaced grep & cut with awk & ' == upgraded'
+-files/updatelog.sed - added line to delete warnings about possible missing amdgpu firmware from update.log
+-system-status - added show_header() & show_footer(); chanved memory_usage() & cpu_usage() to show top 5 processes.
+-z-update - get_updates() - added 'Packages are up to date' line if no updates.
+-check-updates - remove_orphans() - replaced awk with grep & cut.
+-ip-info - removed lhost global variable; lhost is local to main() & req_sudo().
+-ip-info - made lhost local in main(), passed to req_sudo(); removed for loops in show_wired() & show_wireless(), assume only one interface.
+-check-updates - in apt_update(), changed 'Files to be upgraded' to 'Packages to be upgdraded'.
+-check-updates - added count_updates() to get the sum of upgradable & new packages.
+-z-update - update_summary() uses grep & cut; get_updates() gets number of upgradable & new packages.
+-check-updates -
+-z-update - added update_summary to show a summary of packages to be upgraded, installed, removed, and deferred.
+-check-updates - added update_summary to show a summary of packages to be upgraded, installed, removed, and deferred.
+-check-updates - check_disk_space() - added spaces either side of '/'
+-mount-sshfs - handle_mount() - added question mark to default_yes() prompt.
+-check-updates - updated remove_orphans to run autoremove only if packages to remove; updated check_disk_space()
+-z-update - added autoremove_packages() to run autoremove only if packages needing to be removed; updated check_disk_space()
+-redshift-notify.sh - updated modification date and version.
+-redshift-notify.sh - changed brightness assignment to use grep -m1 and cut instead of awk.
+-ip-info - in show_wireless() & show_bridge(), changed awk search criteria wifi_int/br_int assignments.
+-z-update - reverted to previous version, added check_disk_space(), format_time(), & check if reboot is needed.
+-z-update - work around for printf error, created a local dashes variable to be passed to printf.
+-z-update - replaced last printf in print_summary() with echo to prevent invalid option error.
+-functionlib - removed lowercase global variables except variables for text color and attributes.
+-local-ip-up - changed localnet variable to uppercase.
+-scan-range - changed localnet variable to uppercase.
+-syncmosfa - changed localnet variable to uppercase.
+-system-info - changed localnet & red_error variables to uppercase.
+-upper2lower - changed red_error variable to uppercase.
+-mk-c-src - changed red_error variable to uppercase.
+-mk-bash - changed red_error variable to uppercase.
+-insert-license - changed red_error variable to uppercase.
+-insert-header - changed red_error variable to uppercase.
+-c-menu.sh - changed red_error variable to uppercase.
+-bu - changed red_error variable to uppercase.
+-battery-check - changed red_error variable to uppercase.
+-kkb - changed Gitea URL variable to uppercase.
+-iru-vscodium - changed Gitea URL variable to uppercase.
+-iru-micro - changed Gitea URL variable to uppercase.
+-iru-marktext - changed Gitea URL variable to uppercase.
+-iru-fastfetch - changed Gitea URL variable to uppercase.
+-iru-bat - changed Gitea URL variable to uppercase.
+-install-terminator - changed Gitea URL variable to uppercase.
+-install-keepassxc - changed Gitea URL variable to uppercase.
+-install-fnloc - changed Gitea URL variable to uppercase.
+-i3kb - changed Gitea URL variable to uppercase.
+-i3configs - updated updated variable
+-i3configs - changed Gitea URL variable to uppercase.
+-z-update - added variables for number of new packages installed.
+-z-update - check_disk_space() displays all disk space stats instead of just percentaged used.
+-check-updates - check_disk_space() displays all disk space stats instead of just percentaged used.
+-z-update - added packages_udpated to hold count of packages updated; changed nupd to use aptitude search to get number of upgradeable  packages.
+-check-updates -
+-check-updates - apt_update() - changed method to get number of packages to be updated.
+-z-update - implemented main(); prints a summary to the log file rather than output from all the commands.
+-check-updates - added check_disk_space() & check_reboot_required() and calls to those functions.
+-redshift-notify.sh - added comments about if no display and about cron job.
+-show-cron - changed show_user_cron() & show_root_cron() to display entire crontab entry.
+-redshift-notify.sh - corrected touch command.
+-cronscripts - added redshift-notify.sh
+-redshift-notify.sh - initial commit. Simple notification script when Redshift changes between daytime and nighttime.
+-install-polybar - added assign_repo(), modified copy_polybar_config() & copy_polybar_launcher()
+-install-neofetch - added assign_repo()
+-install-kitty - moveed check_package git to main()
+-install-codium - placed check_packages() at beginning of main()
+-install-kitty - added assign_repo() & modified kitty_config() & kitty_bindings()
+-install-conky - added git as dependency, removed references to curl.
+-install-batcat - changed dependency from curl to git.
+-install-codium - added check_dependencies for git and wget
+-install-dsh - added assign_repo() to set source path for config files to either local mirror or clone of repo.
+-install-conky - added assign_repo() to set source path for config files to either local mirror or clone of repo.
+-install-codium - added assign_repo() to set source path for config files to either local mirror or clone of repo.
+-battery-notify-install.sh - renamed get_scripts() to install_scripts(), get_icons() to install_icons(), get_power_rules() to apply_power_rules()
+-install-batcat - added assign_repo() to determine local mirror or clone as source of config files.
+-bu - added hostname for Lenovo M91p & UUID for 1GB backup drive to check_uuid().
+-config-restore - added dunstrc to i3_cfgs()
+-config-bak - added dunstrc
+-functionlib - small change to check_for_file(), check_package(), & check_packages() - '- OK' to '[OK]'
+-battery-notify-install.sh - initial commit. Installs/removes scripts & power rules for battery notifications.
+-mark-down files for function is functionlib.
+-Templates/fn_md_template.md - initial commit; template for function mark-down files.
+-functions/check_packages.md - information for check_packages function.
+-functions/check_for_file.md - information for check_for_file function.
+-functions/functionlib.md - updated and added new functions.
+-functions/alias-functions.md - updated and added new functions.
+-functionlib - added check_for_file() to check if a file required by a script is present in the files subdirectory.
+-keepass2main - updated variables
+-sync-home - renamed functions; archive_homepage removes archives older than 6 months.
+-Templates/bash-template.txt - correct syntax error, missing single quote.
+-iru-fastfetch - new_ver made a local variable in main() & newest_version()
+-iru-marktext - made 'new_ver' a local variable in each function that uses it, and passing it to functions that use it; moved calls to sudo_login() from main() to install_marktext() and remove_marktext().
+-cinnkeys - removed verbose mode as local variable in main(), is global.
+-check-updates - added parenthesese around local ip
+-check-updates - apt_update() removed check if Debian-based; show_header() replaced multiple printf with a here-doc.
+-check-updates - apt_update() removed check if Debian-based; show_header() replaced multiple printf with a here-doc.
+-check-versions - updated variable
+-check-battery - updated variables
+-bu - removed commented printf line from main().
+-bu - added under_line() to display elapsped time before the leave() function.
+-randpic - replacee echo statements with printf; added all_done() to exit the script.
+-sshin - inplemented main(); added one_char() to limit argument for X11 forwarding to one character.
+-sftpin - fixed indentation error.
+-sftpin - implemented main()
+-syncrick - updated header comment
+-syncfin - removed script configuration function; implemented main(), transfer_to_fin(), transfer_to_main()
+-syncrick - removed script configuration function; implemented main(), sync_to_laptop(), sync_to_main()
+-yt-dl-audio - implemented main() and download_audio() functions.
+-weather - used variable in diehard argument instead of hard-coded URL.
+-syncit - implemented main()
+-syncbin - updated help(); UC's localnet
+-sync-installs - organized into functions, implementing main()
+-set-resume - removed newline from printf in get_swap_uuid()
+-pwfeedback - changed leave() call to over_line()
+-purge-rc - added color to printf statements
+-pingit - udpated localnet to LOCALNET
+-mount-sshfs - added share as local variable to cd_fail() & fail_msg(); updated LOCALNET global variable
+-check-versions - added fzf to apt_tools() array.
+-porn-dl - removed extraneous printf command from dl_2_video()
+-pornhub-dl - removed extraneous printf command from dl_2_video()
+-redtube-dl - removed extraneous printf command from dl_2_video()
+-yt-dl - removed extraneous printf command from dl_2_video()
+-porn-dl - uses fzf to select download directory with full path; extracts site name from URL.
+-pornhub-dl - uses fzf to select download directory with full path; extracts site name from URL.
+-redtube-dl - uses fzf to select download directory with full path; extracts site name from URL.
+-yt-dl - uses fzf to select download directory with full path; extracts site name from URL.
+-install-zoom - made variables in zoom_version() local
+-install-homebank - consolidated functions to get deb and flatpak versions.
+-install-zoom - added option and function to update Zoom deb package; combine version functions into one function.
+-hb-late - implemented functions; writes to archive directory error log and to HomeBank archive log.
+-hb-archive.sh - added status to error text sent to archive error log.
+-greset - replaced leave with over_line in main()
+-grevert - replaced leave with over_line in main()
+-gretire - replaced if-else in main(); commented git push line in retire_script(), is it needed?
+-dl-webpage - updated help()
+-config-bak - implemented functions for each category of configuration file; implemented main()
+-clone-repo - moved call to exist_git() to main()
+-clean-c - implemented functions.
+-check-versions - added '/bin/bash' to call to main()
+-catless - udpated variables
+-cal-todo - udpated variables
+-apt-search - implemented functions, including main()
+-system-status - removed references to Ezeellinux, since that entity no longer exists.
+-syncit - removed references to Ezeellinux, since that entity no longer exists.
+-sshin - removed references to Ezeellinux, since that entity no longer exists.
+-sftpin - removed references to Ezeellinux, since that entity no longer exists.
+-laptop-utils - removed references to Ezeellinux, since that entity no longer exists.
+-install-boxes - removed references to Ezeellinux, since that entity no longer exists.
+-bu - removed references to Ezeellinux, since that entity no longer exists.
+-verify-iso - fixed spelling error in help()
+-verify-iso - incorporated main()
+-system-status - added '' to call to main()
+-sync2vm - incorporated main()
+-sync-i3 - all variable local except functionlib global variables; added script_header() to capsulize header information.
+-sync-home - removed extra blank line at end of main()
+-rename-host - fixed hostname_rules() name; changed color from lightred to orange for better visibility; add minlen & maxlen variables to set limits on hostname length and changed if statement in get_new_hostname() to use them.
+-rename-host - incorporated main(); separated code into modular functions.
+-porn-dl - passes site variable to display_title to show site name in title box.
+-pornhub-dl - made site a global variable (static)
+-redtube-dl - added missing call to download_video(); made site a global variable (static)
+-pwfeedback - removed 'set -e' (causes script to exit on unknown error).
+-mosfanet-configs - incorporated main()
+-i3deb-cleanup - incorporated main(); split operations into separate functions.
+-i3configs - incorporated main(); moved checks for i3 and curl to check_dependencies()
+-hidpp-battery - incorporated main()
+-grevert - added check_package git to main()
+-gretire - incorporated main(); if no argument is passed, prompts for script to be retired.
+-greset - incorporated main(); created git_reset(); added check if in git repo.
+-grevert - incorporated main(); added check if main directory of a git repo, created git_revert()
+-checkinit - made file & data local variables in find_init()
+-check-versions - removed '_' from script and version variables; moved exit to main()
+-check-updates - moved call to sudo_login() to show_header()
+-functionlib - capitalized global variables except colors. Maintaining lowercase until scripts have been updated.
+-Templates/bash-template.txt - removed commented echo statements; capitalized red_error.
+-Templates/bash-getopts.txt - removed commented echo statements; capitalized red_error; updated help()
+-weather - added is_url_accessible() to check if weather site can be reached; made site URL a local variable to be passed to functions that need it; updated local variables.
+-functionlib - added is_url_good() to check if a URL is accessible.
+-yt-dl - moved call to check_dependencies() to top of main()
+-yt-dl - added missing call to download_video()
+-meditation-timer - added check for alsa-utils and warning message if not found.
+-yt-dl - incorporated main(); added download_video(); uddated local variables.
+-redtube-dl - fixed version number; modified if-else-then in dl_2_video()
+-redtube-dl - incorporated main(); added download_video(); updated local variables.
+-pornhub-dl - declared url local in main()
+-pornhub-dl - pornhub-dl
+-porn-dl - updated help(); removed commented out code.
+-install-ufw - fixed format errors in main()
+-syncmosfa - incorporated main(); hostip variable is local in all functions and passsed as needed.
+-write-iso - incorporated main()
+-weather - added main() and menu(); removed -h|--help for help.
+-vidcam-check - main() added
+-upper2lower - added main(); separate functions to convert one, all, or selected files.
+-system-status - changed json variable to sesnor_json and made it local to each function, passed to functions by calls in main()
+-system-info - incorporated main()
+-sync-home - updated main() and check_host()
+-set-resume - incorporated main()
+-scan-range - incorporated main(); changed check_arg_values to return TRUE or FALSE values.
+-resize-pics - added main()
+-ren-space - placed code in main()
+-pwfeedback -
+-ren-ext - main() checks for arguments, passes them to rename_extension.
+-refresh-net - placed Execution block in main()
+-pwfeedback - added main(); unknown error when 'set -e' is enabled.
+-purge-rc - added main(); added 'set -eu'.
+-porn-dl - added main() to check arguments & call download_video() to download.
+-pingit - added ping_ip() to ping validated ip address; added main() to check arguments.
+-openbox-keys - added main(); removed SC1091 shellcheck directive
+-nosleep - main() added.
+-no-snaps - getopts in main(); updated help()
+-no-flatpak - placed getopts in main(); updated help()
+-mount-sshfs - placed getopts in main(); updated help()
+-mount-bu - placed getopts in main(); updated help()
+-meditation-timer - placed main executable block in main(); fixed problems with get_volume() & set_volume()
+-locale-fix.sh - added main()
+-local-ip-up - added main() for getopts; updated help()
+-laptop-utils - getopts in main()
+-kkb - added main()
+-iru-yt-dlp - getopts in main(); updated local variables; set up symbolic link to binary version in install_ytdlp(); added ytdlp_deb() & ytdlp_bin()
+-iru-yt-dlp - getopts in main(); updated local variables; set up symbolic link to binary version in install_ytdlp(); added ytdlp_deb() & ytdlp_bin()
+-iru-vscodium - enclosed getopts in main(); updated help()
+-iru-micro - getopts actions in main(); updated help()
+-iru-marktext - getopts in main(); updated help()
+-iru-fastfetch - getopts actions in main(); updated install_fastfetch()
+-iru-chrome - getopts operations in main()
+-iru-bat - getopts in main(); updated help()
+-wifi-up.sh - added main()
+-ip-info - updated req_sudo() with placeholder hostname; uncommented 'sudo /sbin/iw' commands in show_wireless()
+-install-zoom - getopts in main(); updated help()
+-install-ufw - added /tcp for port 3389 in add_rules()
+-install-xrdp - separated operations into functions.
+-install-virtmgr - added main()
+-install-ufw - getopts in main(); added port 3389 (xdrp) if installed to add_rules()
+-install-timeshift - added main(); updated variables
+-install-terminator - getopts in main(); replaced echo commands with printf; udpated terminator_version()
+-install-rtorrent - added main()
+-install-polybar - added main()
+-install-nerdfonts - added main(); made font_dir a local variable in install_nerd_fonts()
+-install-neofetch - placed getopts in main()
+-install-kitty - getopts in main()
+-install-keepassxc - getopts in main()
+-install-homebank - added installation/removal of Flabhub HomeBank; getopts in main()
+-install-handbrake - getopts in main(); updated help()
+-install-glow - getopts in main()
+-install-geany - put getopts operations in main(); updated help()
+-install-codium - renamed codiumversion() to codium_version()
+-install-fnloc - main() function; added show_header(); updated help()
+-install-flatpak - incorporated main()
+-install-firefox-deb - added main() & firefox_version()
+-install-dsh - added main(); added for loop to add DSH groups; removed check_dependencies.
+-install-dsh - added main(); added for loop to add DSH groups; removed check_dependencies.
+-install-conky - getopts operations in main(); made variables to configugre conkyrc local.
+-install-codium - placed getopts functionality inside main()
+-install-cmatrix - placed getopts in main()
+-install-brave - placed getopts code in main()
+-install-boxes - added main(); fixed wrong code in check_bios(); updated local variables in add_to_kvm_group()
+-install-batcat - applied main()
+-install-audioapps - added main()
+-install-audacious - placed getiopts in main().
+-i3kb - added main()
+-dos2linux-c - organized into functions.
+-dos2linux - organized into functions.
+-Templates/bash-template.txt - updated help here_doc
+-devtoolinst - repackaged into functions
+-devtoolchk - repackaged into functions
+-cronscripts - getopts in main(); updated local variables.
+-clone-repo - incorporated variables into main(); cleand up Execution block.
+-clean-c - updated version format; added created/updated dates to header comments.
+-cinnkeys - incorporated main() function.
+-functionlib - capitalized red_error & red_warning global variables. Keeping lowercase until all scripts are updated.
+-checkinit - incorporated main() function.
+-check-updates - placed header info as here_doc in show_header(); created main() to initiate script; updated if statement for to evaluate action variable.
+-check-logs - changed show_header() to a HERE_DOC; renamed main_menu() to main()
+-check-battery - added main() and battery_check() to check arguments and run battery checks.
+-catless - corrected view_file() name
+-catless - incorporated main() function to check arguments; renamed old main() to view_file().
+-c-menu.sh - updated variable names
+-bu - updated help() & drive_setup(); moved getopts into new main() function.
+-battery-check - added main() & battery_check() to check arguments and run operations.
+-bs-meter - added main() function.
+-Renamed brasero-bug-fix and updated to used main() function.
+-boxes-spice - incorporated main() function; updated function calls.
+-functionlib - udpated in_repos(), added awk command.
+-Templates/bash-template.txt - updated to incorporate main() function.
+-Templates/bash-getopts.txt - updated to place getopts functionality in main() function.
+-cal-todo - moved getopts into main() function; updated help(); removed pipe to sed in 3-month option.
+-dl-webpage - placed all operational code in functions.
+-show-cron - replaced anacron functions with show_anacron(), jobs(), & print_jobs(); in main(), replaced calls to anacron functions with a for loop calling show_anacron() with appropriate interval.
+-empty-trash.sh - created main() for code previously outside functions.
+-show-cron - added jobs() to check for anacron jobs; changed functions for anacron jobs to call jobs(); replaced passwd_file with actual path.
+-empty-trash.sh - added trash() to determine if any trash files exist; moved last_week variable to empty_trash() as local variable; removed find and wc commands from empty_trash()
+-bu - updated local variables in check_uuid() function.
+-bcm-wifi.24268 was retired and archived.
+-bcm-wifi renamed to bcm-wifi.24268 to be retired and archived.
+-bcm-wifi - updated, prepared for retirement.
+-battery-check - updated help & version functions; changed 'Invalid argument' to show 'ERROR' in red.
+-check-battery - updated help & version functions; changed 'Invalid argument' to show 'ERROR' in red.
+-system-status - added 'Not available' line to gpu_temperature()
+-system-status - added check_drivetemp() to set drivetemp module for SATA drives. Called by check_dependencies().
+-mount-sshfs - udpated help(); udated local variables.
+-mount-bu - removed SC1091 shellcheck directive; updated help() function; new version format.
+-laptop-utils - updated tlp_status() to check if tlp installed & start service if not running; redirected systemctl output to /dev/null in start_tlp_service()
+-laptop-utils - rewrote function to check status of TLP service and start if necessary.
+-iru-fastfetch - updated version number
+-iru-fastfetch - updated ff_version() to use 'fastfetch --version-raw'.
+-install-neofetch - added missing asignment to localip in apply_config(); modified neofetch_version() to include full path to neofetch.
+-i3kb - added title line; moved name & version to end with leave()
+-kkb - moved 'check_package curl' to copy_bindings(); checks if 'xterm-kitty' is xterm-kitty
+-functionlib - made localnet a readonly global variable.
+-bu - updated hellp() function; credit to Joe Collins in header comments.
+-check-versions - added gitea to apt_tools() and installed_version()
+-i3kb - moved 'check_package curl' to copy_bindings()
+-empty-trash.sh - added -daystart to find command in empty_trash()
+-empty-trash.sh - correct find command in empty_trash(), -mtime 7 to -mtime +7 to count files older than 7 days.
+-install-xrdp - checks for UFW installation; changed 'allow 3389' to 'allow 3389/tcp' in UFW.
+-empty-trash.sh - only calls trash-empty if there is trash > 7 days; only lists remaining trash if any exists.
+-install-xrdp - initial commit. Installs and configures xrdp and sets up .xession or .xsessionrc for appropriate desktop environment.
+-iru-micro - changed micro_version() to use micro -version; changed newest_version() to look for 'linux' instead of 'amd64.deb'; downloads tar.gz then extracts and copies micro and micro.1 to /usr/bin/ and /usr/share/man/man1/, respectively.
+-check-versions - changed if-else-fi in installed_version() to case-esac.
+-check-versions - added case to github_versions() to get newest version of micro from its GitHub repository
+-empty-trash.sh - added new line before printed lines to separate diaglogs better.
+-scriptarchive.sh - correct typo in an echo statement to the error log.
+-z-backup - added check for log directory.
+-empty-trash.sh - added dialog and if-else to determin actions base on trash left behind.
+-empty-trash.sh - uses trash-list and trash-empty from trash-cli package.
+-empty-trash.sh - successfully tested '/usr/bin/trash-empty' using script as cron job.
+-empty-trash.sh - added comment about not removing hidden files in Trash/info
+-empty-trash.sh - added '/usr/bin/trash-empty' to empty-trash()
+-empty-trash.sh - added -f flag to rm command in empty_trash()
+-catless - removed '--mime' from file command, not all text files showed grep in grep results with that option.
+-empty-trash.sh - GIO commands not working properly in cron jobs. Replaced with find and rm. Added tree command to list trash contents before and after operation.
+-check-versions - moved micro to apt_tools() because with version 2.0.14, no deb packaged released; added check for micro in installed_version() to use 'micro -version' to get version number.
+-empty-trash.sh - fixed tab in if-else; change find to search info directory instead of files.
+-empty-trash.sh - changed empty_trash() to print 'Trash emptied' if 'gio trash --empty' is successful, 'Trash left behind.' if not.
+-empty-trash.sh - added function to check if libglib2.0-bin is installed. If not, error message is printed to log file. Added gio list to list files in trash & alt method if not supported.
+-install-xrdp - reviewed & updated commments.
+-install-xrdp - removed set -eu; changed order of desktop checks (i3, xfce, cinnamon); partially working with Cinnamon DE.
+-install-xrdp - added add_to_sslcert() function to check ssl-cert group and add xrdp user to it.
+-install-xrdp - initial commit, beta version. Installs xrdp and sets up .xsession for RDP.
+-functionlib - corrected function name for is_xfce()
+-functionlib - added is_i3wm() & is_xfce()
+-empty-trash.sh - added 'gio trash --empty' to replace rm commands in empty_trash().
+-install-ufw - updated new_rules() instructions; updated delete_rules() to show rules by number.
+-write-iso - removed comment in write_iso() about global variables
+-verify-iso - renamed verify() to verify_iso(); updated local variables.
+-system-info - udpated test statements
+-iru-micro - updated variables; changed method to obtain version number.
+-iru-marktext - udpated help(); updated variable names.
+-ren-ext - added 'shopt -s nocasematch' to default case.
+-install-glow - corrected printf statement in install_glow(), added newline.
+-functionlib - reverted sudo_login back to nested-if structure.
+-pwfeedback - updated function variables.
+-functionlib - sudo_login() one-line conditional statement; antix_mx() test if lsb_release exists.
+-functionlib - sudo_login() one-line conditional statement; antix_mx() test if lsb_release exists.
+-install-batcat - updated print statements.
+-install-codium - minor change
+-install-firefox-deb - added mk_preference_file(), verify_keys(), & is_mint_firefox(); updated local variables; new check to see if Mozilla Firefox is already installed.
+-functionlib - replaced color escapt sequences in edit_view_quit() with color variables.
+-functionlib - in valid_ip(), incorporated status messages with status assignments.
+-pingit - integrated display_status() into validip(); renames usage() to help() and put it in standardized format.
+-hb-late - updated version format.
+-gitea-monthly.sh.24232 was retired and archived.
+-gitea-monthly.sh renamed to gitea-monthly.sh.24232 to be retired and archived.
+-gitea-weekly.sh.24232 was retired and archived.
+-gitea-weekly.sh renamed to gitea-weekly.sh.24232 to be retired and archived.
+-gitea-daily.sh.24232 was retired and archived.
+-gitea-daily.sh renamed to gitea-daily.sh.24232 to be retired and archived.
+-config-restore - corrected PS3 variable value.
+-cronscripts - updated path variables & checks for paths.
+-hb-archive.sh - change format of success/error messages written to error log; changed find command to delete old archives.
+-corona-world.24232 was retired and archived.
+-corona-world renamed to corona-world.24232 to be retired and archived.
+-corona-us.24232 was retired and archived.
+-corona-us renamed to corona-us.24232 to be retired and archived.
+-corona-states.24232 was retired and archived.
+-corona-states renamed to corona-states.24232 to be retired and archived.
+-corona.24232 was retired and archived.
+-corona renamed to corona.24232 to be retired and archived.
+-system-info - in send_to_main() added test to compare local ip with main ip and only run scp if different.
+-system-info - removed ts_path from rename_mnt_pt()
+-config-restore - corrected date updated.
+-yt-dl - changed dummy variable from opt to _opt in choose_destination()
+-weather - changed dummy variable opt to _opt in select statement.
+-system-info - renamed dummy variable opt to _opt in select statements.
+-syncmosfa - removed shellcheck directive; renamed usage() to help()
+-redtube-dl - changed dummy variable opt to _opt in choose_destination.
+-randpic - removed shellcheck directive line; changed dummy variable opt to _opt; added empty string as argument to leave()
+-pornhub-dl - renamed dummy variable 'opt' to '_opt' in choose_destination().
+-porn-dl - renamed dummy variable 'opt' to '_opt' in choose_destination().
+-odt-to-txt - removed shellcheck directive line; changed 'opt' to '_opt' is select command (dummy variable).
+-mosfanet-configs - removed shellcheck directive line.
+-mk-c-src - removed SC2035 shellcheck directive, no longer needed.
+-install-fonts - renamed 'opt' to '_opt' in select menu, dummy variable.
+-config-restore - renamed 'opt' to '_opt' in select menu functions (dummy variable)
+-c-menu.sh - renamed 'opt' to '_opt' (dummy variable).
+-clone-repo - renamed 'repo' to '_repo' in main(), dummy variable.
+-check-logs - renamed 'opt' to '_opt' in select menu functions
+-functionlib - applied shellcheck directives (except SC2034) to applicable functions.
+-check-updates - changed opt variable to _opt in apt_update() to avoid Shellcheck error SC2034.
+-install-batcat - renamed variables; renamed dl_bat_config() to bat_config()
+-catless - added set -eu
+-install-batcat - updated variable names; changed option to install config to -c from -s; fixed lines to add/remove symlink.
+-install-codium - corrected spelling error in remove_vscodium()
+-iru-vscodium - removed check for vscodium.list
+-functionlib - fixed exists()
+-install-batcat - fixed unlink command in remove_bat()
+-functionlib - reverted exists() to not assign argument to a variable
+-functionlib - udpated local variables to prevent 'unbound variable' errors.
+-install-batcat - hard-coded path of bat sym link; moved removal of configs to purge_config().
+-functionlib - corrected 'unbound variable' errors in yes/no functions.
+-syncmosfa - removed 227 from restricted IP addressess.
+-syncbin - updated version number.
+-syncbin - removed IP 227 as a valid IP address.
+-check-updates - changed displayed message if declining to run Nala autoremove/autopurge.
+-functionlib - added sym-link to batcat to view option in edit_view_quit()
+-check-versions - added bat back to array github_versions()
+-check-updates - added header comment about apt option.
+-c-menu.sh - changed batcat to bat (bat is a symbolic link to batcat)
+-added symbolic link bat > /usr/bin/batcat in install-bat() and remove_bat()
+-iru-bat - renamed variables; cleansd up case statement in check_distro, removing old distro codenames.
+-iru-fastfetch - renamed some variables; added removal of config backup directory.
+-install-timeshift - renamed sed_file to ts_sed in configure_timeshift()
+-install-timeshift - fixed apt-get install line in install_timeshift()
+-install-timeshift - move installation commands to install_timeshift(); added checks for required files; added check if already installed.
+-install-timeshift - updated version number and date updated.
+-install-timeshift - modified sed command to add leading spaces to lines inserted by timeshift.sed
+-files/timeshift.sed - removed line to add leading spaces to date_format line which didn't work.
+-porn-dl - fixed choose_destination() variables; improved sed command in extract_domain and have it remove top-level domain; created subdirectories in dl_2_subdir() if they don't exist; removed mkdir in execution block.
+-pornhub-dl - fixed choose_destination() variables; created subdirectories in dl_2_subdir() if they don't exist; removed mkdir in execution block.
+-redtube-dl - fixed choose_destination() variables; created subdirectories in dl_2_subdir() if they don't exist; removed mkdir in execution block.
+-check-updates - corrected ' unbound variable' error by assigning a default value.
+-check-updates - corrected ' unbound variable' error by assigning a default value.
+-check-updates - added option force udated using apt-get if 'apt' is first argument.
+-check-updates - changed threshold in update_apt_cace() to 10800 (3hrs); fixed 'apt list --upgradable' in apt_update().
+-iru-fastfetch - added append_bashrc() to handle line to call Fastfetch in the .bashrc; removed -q flag from wget in fastfetch_config().
+-iru-fastfetch - added line to fastfetch_config() to rename config.json if it already exists.
+-iru-fastfetch - added code to copy/download PNG logo to fastfetch_config().
+-iru-fastfetch - removed unused distros from check_distro().
+-iru-fastfetch - corrected spelling in ff_version().
+-check-logs - change from one menu to nested menus.
+-check-logs - correcte spelling in timeshift_snapshots()
+-install-keepassxc - changed method in kpxc_ver()
+-check-versions - added KeepassXC to packages array in apt_tools()
+-install-codium - changed codium_version() to use dpkg -l to get version number.
+-iru-fastfetch - removed commented curl lines.
+-iru-fastfetch - changed ff_version() to use dpkg -l and awk instead of fastfetch --version.
+-gretire - changed retire_script() to push to repo at end of function instead of after each commit.
+-install-glow - changed glow_ver() to use dpkg -l to obtain version number.
+-Revert "install-bat - added line to create bat alias in install_bat()"
+-install-bat - added line to create bat alias in install_bat()
+-check-updates - added update_spices() to update Cinnamon Spices if present.
+-insert-header - corrected updated date
+-c-menu.sh - changed bat to batcat.
+-functionlib - changed bat to batcat in edit_view_quit() to accommodate bat from distro repo.
+-install-bat - changed bat_version() to use dpkg -l instead of batcat --version; corrected repository for #16.
+-check-versions - removed bat from github_versions()
+-check-versions - added bat/batcat to apt_tools() for repo-installed bat.
+-install-bat - initial commit. Installs bat from Debian/Ubuntuo repositories. Removes & add configuration file.
+-iru-bat - removed extraneous box _script _version line.
+-grevert - added 'git push' to push change to repository.
+-check-versions - added nala to packages array in apt_tools()
+-Revert "check-versions - added nala to packages array in apt_tools()"
+-check-versions - added nala to packages array in apt_tools()
+-functionlib - Added is_noble() to check if distro is based on Ubuntu 24.04.
+-iru-bat - udpated 'check_distro()' with noble and wilma codenames.
+-iru-fastfetch - updated 'check_distro()' with noble and wilma codenames.
+-functionlib - udated 'support_ppa()' with noble and wilma codenames.
+-Revert "iru-fastfetch - added 'noble' to check_distro()"
+-iru-fastfetch - added 'noble' to check_distro()
+-grevert - chanded head variable to hash to avoid confusion with head command.
+-greset - chanded head variable to hash to avoid confusion with head command.
+-yt-dl - Added missing category, Projects, to choose_destination() options array.
+-Updated local variables.
+-install-fnloc - updated version information; removed unneeded shellcheck directives
+-check-versions - renamed current_version() to installed_version(); kept case for only github_versions(); installed_versions() only called in one place in each function.
+-check-versions - one method for getting the installed version of a package using current_version() function; standardize variable names for packages.
+-system-info - udpated conditional statements
+-functionlib - updated comments and conditional statements.
+-grevert - updated comments; added printf to display action being taken.
+-greset - updated comments; added printf to display action being taken.
+-gretire - created retire_script() to handle actions to retire a script.
+-check-updates - added redirection to /dev/null to purge_rc_packages() to prevent echoing number of rc packages.
+-z-update - added redirection to /dev/null to purge_rc_packages() to prevent echoing number of rc packages.
+-iru-fastfetch - removed curl from check_dependencies.
+-iru-fastfetch - replaced curl with wget in fastfetch_conifg(); original curl commands commented.
+-clone-repo - moved select loop into main()
+-redtube-dl - added line in Execution block to create directories if they don't exist.
+-pornhub-dl - added line in Execution block to create directories if they don't exist.
+-porn-dl - added line in Execution block to create directories if they don't exist.
+-install-dsh - added copy_group_list() to download group IP lists and copy_conf_machines() to copy machines.list from Gitea server; added check_dependencies to check if curl and git are installed.
+-bs-meter - removed proc_time variable, used the command substituion directly with the sleep command in the execution block.
+-functionlib - remove ':' from yes/no prompt functions.
+-gretire - added argument checks; changed archive variable to archive and archive_d.
+-bu - replaced call to y_or_n() with default_yes() in unmount_usb_drive()
+-z-update - fixed test for rc packages in purge_rc_packages.
+-check-updates - changed purge_rc_packages() test for rc packages.
+-purge-rc - moved call to sudo_login() into purge_rc_packages(); added newlines to improve readability.
+-z-update - purge_configs() didn't run on 24-07-05 updates; change if to use brackets instead of parentheses.
+-gretire - initial commit - add retired script to archive and removes it from the repository.
+-iru-youtube-dl.24186 - -m
+-iru-youtube-dl - removed Julian date from file name
+-iru-youtube-dl - retired and archived.
+-lm20-chromium.sh - retired and archived script.
+-z-update - changed purge_configs() to count 'rc' files and act accordingly.
+-check-updates - changed purge_configs() to count 'rc' files and act accordingly.
+-functionlib - updated local variable declarations
+-system-info - added echo statement to ff_fix() to assign missing value to hd_ff
+-system-info - added check if desktop session is lightdm-xsession, run wmctrl -m
+-snippets/net-devices.md - added snippet to bring up/down a network interface.
+-system-info - corrected path in send_to_main()
+-iru-fastfetch - added boron (BunsenLabs 12) to check_distro()
+-iru-fastfetch - added boron (BunsenLabs 12) to check_distro()
+-iru-bat - added boron to compatible OS list in check_distro()
+-install-ufw - added boron (BunsenLabs 12) to debian_system()
+-hidpp-battery - fixed updated date
+-corona - updated local variable declarations, updated to new version format.
+-config-bak - updated local variable declarations.
+-check-versions - updated local variable declarations
+-snippets/shellcheck.md - corrected instances of shellcheck disable
+-bs-meter - renamed statement variable to _statement (shellcheck SC0234)
+-catless - updated version
+-catless - renamed filesize to filelines in main(); corrected a comment.
+-snippets/sed-snippets.md - added removing whitespace inside a string and swaping words.
+-catless - updated help(); changed main() to use less if filesize <= catmax
+-yt-dl-playlist - updated help(), argument checks, script title information.
+-yt-dl-audio - updated help() and checking arguments.
+-Templates/bash-template.txt - fixed spelling errors.
+-upper2lower - updated help(); renamed upper_lower() to upper_to_lower()
+-wifi-up.sh - created functions to get wifi interface and IP address; added conditional statements.
+-write-iso - udpated help(); updated local variables in functions.
+-verify-iso - updated local variables in functions; updated help()
+-weather - udpated help()
+-snippets/sed-snippets.md - added removal of leading/trailing whitespace.
+-snippets/shellcheck.md - corrected spelling errors.
+-rename-host - updated and cleaned up script.
+-z-update - added path for apt-get in purge-configs()
+-system-status - added gpu_temperature() to display GPU temp (only works with #10, #12, #22); arranged functions in order called.
+-system-status - added for-loops to nvme_temperature() & sata_temperature() to show device names with their respective temperatures.
+-sync2vm - made gateway_ip a local variable inside sync_script()
+-system-info - updated local variables in rename_mt_pt()
+-syncit - updated version format; made hostip a local variable in sync_script()
+-Templates/bash-template.txt - renamed usage() to help()
+-sync-installs - updated version format; added decoration
+-syncbin - destinatiion ip addresses are local variables in each function and passed to the function as needed; updated help()
+-syncbin - destinatiion ip addresses are local variables in each function and passed to the function as needed; updated help()
+-sync-i3 - updated version format;replaced sync_bumblee() with sync_polybar()
+-sync-home - made variables local and passed to functions; created main() to call other functions.
+-show-cron - updated local variable declarations.
+-sftpin - updated version format; renamed usaged() to help() and updated.
+-sshin - updated version format; renamed usaged() to help() and updated.
+-set-resume - updated version format; renamed get_uuid() to get_swap_uuid()
+-scan-range - updated local variables; changed order of command in Execution block.
+-rm-tilde - new version format; corrected nbu variable.
+-resize-pics - new versioning format; added check for JPEG images in current working directory.
+-ren-ext - updated help(); sourced functionlib
+-pwfeedback - updated help() to new format.
+-iru-micro - changed EOF to END_HELP in help()
+-config-bak - added back of rsa keys in .ssh
+-laptoplid - added local hostname to not a laptop message.
+-laptop-utils - updated help() to new format; added hostname to not a laptop error message.
+-iru-yt-dlp - udpated help() to new format.
+-iru-youtube-dl - updated help() with new format.
+-redtube-dl - updated help() to new format; added text show source site and destination directory.
+-pornhub-dl - updated help() to new format; added text show source site and destination directory.
+-porn-dl - updated help() to new format; added text show source site and destination directory.
+-yt-dl - updated help() function. moved calls to check_dependencies() and display_title() to after checking arguments.
+-yt-dl - added text to show destination directory.
+-iru-vscodium - updated help() function.
+-iru-micro - updated help() function.
+-iru-marktext - updated help()
+-iru-fastfetch - updated help()
+-iru-chrome - updated help()
+-iru-bat - updated help()
+-install-zoom - updated help()
+-snippets/sudo.md - added snippet for checking a user's sudo access and a note to use visudo to edit sudoers file.
+-install-ufw - updated help()
+-install-terminator - udpated help(); replaced calls to leave() with echo commands.
+-install-nerdfonts - updated local variable declarations in install_nerd_fonts()
+-install-neofetch - updated help(); added check for neofetch in repositories.
+-install-mint-fortune - removed, no longer used.
+-install-mint-fortune - updated commments to mark for removal from repositiory
+-purge-rc - updated Description in header comments.
+-purge-rc - changed list_headers() to show package name and version number in neat columns.
+-purge-rc - renamed to purge-rc; changed text in purge_rc_packages to reflect removal of all rc configs, not just kernels; declared local variables.
+-install-kitty - added copy bindings if local host is Gitea Server; updated help()
+-install-keepassxc - updated help() function.
+-install-homebank - updated help() function.
+-install-handbrake - updated help()
+-install-glow - updated help()
+-install-geany - udpated help()
+-install-conky - updated help() and getopts options
+-install-cmatrix - updated version number and date updated
+-install-codium - updated help(); added show_title(); updated getopts options
+-install-cmatrix - updated help()
+-insert-license - removed clear command
+-install-brave - udated help(); declared local variables in functions
+-install-audioapps - udpated list_installed_apps()
+-install-audacious - updated help()
+-insert-license - renamed usage() to help() & updated function; changed -u option to -h; renamed show_me() to show_message()
+-insert-header - updated version number & date updated
+-insert-header - renamed usage() to help() and update function; changed -u option to -h; renamed show_me() to show_message()
+-i3configs - removed check for Debian Bookworm; updated help() format.
+-hb-archive.sh - writes success/failure to error log.
+-zz-clean - added purge_configs() to purge config files in rc state.
+-z-ytdlp-update - removed set -o pipefail
+-z-update - cleaned up script
+-z-defrag - removed set -o pipefail
+-z-backup - writes success/failure to error log.
+-scriptarchive.sh - writes success/failure to error log.
+-hidpp-battery - udpated help()
+-cronscripts - updated help()
+-cinnkeys - renamed usage() to help() and updated the function.
+-check-battery - corrected version number and date updated.
+-bu - broke original help function into separate functions and included as options.
+-Templates/bash-template.txt - changed fornat of help()
+-Templates/bash-getopts.txt - changed fornat of help()
+-check-battery - changed fornat of help()
+-battery-check - changed fornat of help()
+-snippets/sudo.md - added block of coed to add pwfeedback & timeout via scripts.
+-snippets/sudo.md - added timestamp_timeout to /etc/sudoers.d/ piping echo into sudo tee.
+-syncmosfa - removed extraneous line at line 234
+-snippets/sudo.md -
+-check-logs - fixed local variable name in incremental_backups()
+-z-backup - removed empty status file; success/failure of backup appended to error.log.
+-install-ufw - added functions to toggle enable/disable of UFW, add and delete rules.
+-install-ufw - changed disable to reset in remove_ufw(), disables UFW and deletes all active rules.
+-check-updates - changed check for rc packages to simple if conditional using grep not awk; redirected STDERR to /dev/null in update_flatpak().
+-z-update - check_flatpak() - redirect STDERR to /dev/null; created get_updates() & purge_configs() functions.
+-check-updates - declared local variables in functions; changed check for rc packages to use grep -E; changed default_yes to default_no in nala_update().
+-install-chromium-u - archived
+-install-chromium-u - removed a space in version number
+-clone-repo - fixed spelling error.
+-clone-repo - declared repos as a readonly array.
+-snippets/select-snippets.md - added if-elif-else alternative to case.
+-clone-repo - replaced case-esac in select loop with if-elif-else-fi, replaced options array with repos array.
+-snippets/ip-addresses.md - added info for obtaining public IP addresses.
+-redtube-dl - fixed 'none' case in case subir
+-porn-dl - fixed 'none' case in case subir
+-config-bak - added backup for picom.conf
+-pornhub-dl - correcte options array in choose_destination()
+-pornhub-dl - corrected case for downloading to base directory
+-redtube-dl - functions to choose destination directory & to download to appropriate directory.
+-pornhub-dl - functions to choose destination directory & to download to appropriate directory.
+-porn-dl - functions to choose destination directory & to download to appropriate directory.
+-yt-dl - Removed extra blank lines.
+-yt-dl - created functions to select category/download destination, and to download videos
+-weather - removed extra space from printf statement in change location option.
+-yt-dl - updated heredoc functions and version format.
+-weather - changed option 3 (change location) to say 'user location based on public IP'
+-weather - color variables set by command substitution calling function. Temperature functions have approriate json variable values as arguments.
+-weather - change routines to set colors, assigning output of functions as contents.
+-vidcam-check - updated version format.
+-upper2lower - updated help() and variables.
+-system-status - updated local variables
+-system-info - updated local variables
+-rename-host - new version format
+-ren-space - version format
+-ren-ext - updated help(), version format
+-refresh-net - added check_package for strings, updated local variable, version format
+-pwfeedback - updated local variables, new version format
+-redtube-dl - version format
+-pornhub-dl - version format
+-porn-dl - version format
+-pingit - updated local variables
+-syncbin - git repos synced with Gitea server
+-syncmosfa - updated local variables, sync git repositories with Gitea server.
+-nosleep - new version format
+-no-snaps - Not sure what remove_snaps() function does or how it works?
+-mint-fortune - updated local variables
+-meditation-timer - updated local variables, updated version format.
+-locale-fix.sh - added Shellcheck directive and code to source funtionlib
+-local-ip-up - updated local variables, added scrilpt meta data to end of help()
+-laptoplid - removed 'shellcheck disable=2091', not needed with shellcheck -x
+-laptop-utils - formatted output in util_status() so app names are left-aligned.
+-iru-yt-dlp - updated local variables, changed to new version format.
+-iru-vscodium - updated local variables, added removal of codium config backup.
+-iru-micro - updated local variables, added removal of micro config backup.
+-iru-marktext - added deletion of marktext config backup files.
+-iru-marktext - updated local variable declarations, added deletion of marktext config backup files.
+-iru-chrome - fixed reference to source_list in install_chrome(), fixed config folder deletion in purge_chrome
+-iru-bat - changed bat_ver() to use cut instead of awk, added config bacup directory to remove_bat()
+-ip-info - revised variable declarations in functions.
+-install-zoom - revised variable declarations in functions, changed version format.
+-install-virtmgr - udpated variable declarations
+-install-ufw - updated comments and incorporated new version system.
+-install-timeshift - put configuration into configure_timeshift(), added dialog.
+-install-terminator - corrected updated dates
+-install-rtorrent - updated variable declarations, moved installation into install_rtorrent()
+-install-codium - added removal of VSCodium config backup, added verbose messages to functions
+-install-geany - added verbose mode, added removal of config backup
+-install-neofetch - added sed command deleting Neofetch lines in .bashrc to remove_neofetch().
+-iru-vscodium - added code to directly copy config files if installed on Gitea server.
+-iru-micro - added code to directly copy config files if installed on Gitea server.
+-iru-vscodium -
+-iru-micro - added code to directly copy config files if installed on Gitea server.
+-iru-marktext - added code to directly copy config files if installed on Gitea server.
+-iru-bat - removed apply_config()
+-iru-fastfetch - updated code in fastfetch_config()
+-iru-bat - added code to directly copy config files if installed on Gitea server.
+-install-terminator - added code to directly copy config files if installed on Gitea server.
+-install-polybar - added code to directly copy config files if installed on Gitea server.
+-install-neofetch - added code to directly copy config files if installed on Gitea server.
+-install-kitty - added code to directly copy config files if installed on Gitea server.
+-install-keepassxc - added code to directly copy config files if installed on Gitea server.
+-install-codium - added code to directly copy config files if installed on Gitea server.
+-iru-fastfetch - changed install_fastfetch() to install 2.7.1 on distros based on bullseye, added ability to copy config files if ip 16.
+-Revert "iru-fastfetch - changed install_fastfetch() to install 2.7.1 on distros based on bullseye, added ability to copy config files if ip 16."
+-iru-fastfetch - changed install_fastfetch() to install 2.7.1 on distros based on bullseye, added ability to copy config files if ip 16.
+-snippets/i3-configs.md - added demenu scripts for multiple monitors and prompt to quit i3
+-install-dsh - added 192.168.0.23 to i3wm_list()
+-snippets/i3-configs.md - added 1680x1050 to sreen resolution table.
+-snippets/i3-configs.md -
+-snippets/i3-configs.md - initial commit, miscellaneous info for i3 configurations
+-install-timeshift - added sourcing functionlib, fixed paths to timeshift .json files and .sed file
+-files/timeshift.sed - initial commit, configuration changes to timeshift.json
+-install-timeshift - initial commit, script to install and configure timeshift
+-show-cron - modified show_user_cron() and show_root_cron() to display time/date info with the script name.
+-functions/alias-functions.md - corrected spelling error in restore-trash()
+-install-terminator - removed reference to Cascadia Code in title line, added verbage to indicate what's happening.
+-install-terminator - corrected version number, 6.8.13- to 6.8.130
+-ip-info - commented lines requiring sudo, since update hp-2560p to Debian 12 i3, no longer requires sudo
+-Revert "ip-info - commented lines requiring sudo, since update hp-2560p to Debian 12 i3, no longer requires sudo"
+-ip-info - commented lines requiring sudo, since update hp-2560p to Debian 12 i3, no longer requires sudo
+-iru-fastfetch - added check for call to fastfetch in .bashrc
+-cronscripts - removed cp_passwdsync call in getopts options
+-i3configs - changed copy_polybar_launch() and copy_dmconf() to download from configs repo instead of i3debian.
+-weather - added set -eu, added conditional to check for -h or --help
+-weather - removed previously commented call to die() function in current_wx()
+-purge-image-rc - updated version format.
+-laptoplid - updated version format.
+-weather - change check for 'Unknown location' to exit the current_wx() function, not the script.
+-weather - added check for 'Unknown location' in json download and exit with error message if true.
+-weather - expanded show_help(), added check for -h & --help cli options.
+-up - removed from repository but archived elsewhere.
+-up - added nala autoremove & autopurge, add update_flatpak()
+-cronscripts - corrected missing option in opstr variable
+-cronscripts - created cp_main_bu() to run jobs for main system (10), added repo-backup.sh, git repo backups stay under cp_repo-backup()
+-github-bu.sh - commented out rsync to Gitea server (16)
+-gitea-bu.sh - commented out rsync to Gitea server (16)
+-gitea-dwm-bu.sh - commented out sync to Gitea server.
+-repo-backup.sh - renamed from gitea-backup.sh, rsync gitea & Projects directories with Gitea server (16).
+-gitea-dwm-bu.sh - removed commented code, expanded comments.
+-write-iso - removed unnecessary if statement in -w option.
+-verify-iso - declared local variables in functions and removed unnecessary if statement in -v option.
+-snippets/misc_cmds.md - removed a stray single quote.
+-install-conky - added check for i3wm, renamed bl_antix_mx() to bl_antix_mx_i3()
+-iru-fastfetch - removed redundant -c option (same function as -s option)
+-iru-fastfetch - added sed cmd to comment call to neofetch and added cmd to append call to fastfetch in .bashrc, moved call to check_distro() to follow call to newest_version().
+-verify-iso - removed selection of ISO directory, select loops, Zenity selections. Uses fzf (Fuzzy Finder) to select ISO and USB device.
+-write-iso - removed selection of ISO directory, select loops, Zenity selections. Uses fzf (Fuzzy Finder) to select ISO and USB device.
+-write-iso - fixed default case in select_iso_directory() and removed updated from diehard() argument in write_dd()
+-verify-iso - fixed default case in select_iso_directory()
+-write-iso - adapted to new version format, added option 10 to ISO directory in select_iso_directory()
+-verify-iso - adapted to new version format, added option 10 to ISO directory in select_iso_directory()
+-check-battery - adapted to new version format
+-battery-check - adapted to new version format
+-install-conky - added removal of conkyrc & conky.conf backups
+-config-restore - changed restore functions to print success after restore operation, added conky.conf to sys_cfgs()
+-mk-conkyrc - deleted, task now accomplished by install-conky
+-functionlib - updated
+-Templates/conky.desktop.txt - updated to use start-conky.sh script to launch on login
+-install-conky - major update. Broke tasks into separate functions, changed location of config file, added getopts with verbose option.
+-Templates/bash-getopts.txt - added verbose_mode= declaration to Global Variabes block, change show_message() and -v option to enable verbose mode with  instead of 1.
+-mk-c-src - declared variable verbose_mode=
+-mk-bash - declared variable verbose_mode=
+-Revert "mk-bash - declared variable verbose_mode="
+-mk-bash - declared variable verbose_mode=
+-install-codium - declared variable verbose_mode=
+-install-chromium-u - declared variable verbose_mode=
+-insert-license - removed readonly declarationg verbose_mode variable.
+-insert-header - declared variable verbose_mode=
+-cinnkeys - removed readonly declarationg verbose_mode variable.
+-mount-sshfs - updated to new version format.
+-grevert - initial commit. Script to revert a git commit to the previous version after it's been pushed to the repository.
+-greset - initial commit. Script to reset a git commit to the previous version before it's been pushed to the repository.
+-Templates/bash-template.txt - corrected commnted echo command at end of script.
+-check-logs - added '-CAhF --dirsfirst' to tree command in gitea_snapshots()
+-Revert "check-logs - added '-CAhF --dirsfirst' to tree command in gitea_snapshots()"
+-check-logs - added '-CAhF --dirsfirst' to tree command in gitea_snapshots()
+-iru-fastfetch - removed extaneious blank line.
+-iru-fastfetch - changed ff_version() to use cut instead of awk, corrected dpkg command in remove_fastfetch, added getopts option to install configuration files.
+-i3configs - modified to allow for local copy of files on local machine if Gitea server.
+-install-polybar - updated repo paths, streamlined configure_polybar(), removed requirement for Debian 11.
+-install-flatpak - updated to new version format
+-install-chromium-u - modified disto_check()
+-install-audioapps - updated to new version format.
+-install-audacious - changed to new version format, replaced leave with printf in functions.
+-functions/alias-functions.md - added new functions
+-README.md - updated function library information.
+-snippets/misc_cmds.md - added commands to get last reboot information.
+-system-status - added 'Last reboot' to main() after uptime info.
+-keepass2main - corrected kdbox_d variable in scp command.
+-system-status - updated to new version format.
+-install-nerdfonts - added CascadiaCode to fonts array, download changed from version 3.0.2 to 3.2.1
+-install-nerdfonts - placed code to download and install fonts into install_nerd_fonts()
+-kkb - changed path to repositiory from i3debian to configs, made bindings variable global.
+-i3kb - changed path to repositiory from i3debian to configs, made bindings variable global.
+-keepass2main - updated revision date.
+-system-info - updated revision date and number
+-snippets/misc_cmds.md - added Precedence of commands to the beginning of the file.
+-system-info - added function to optionally copy created file to main system using scp.
+-keepass2main - created variable for KeepPassXC directory (~/Documents).
+-i3configs - downloads config files from configs repo, uses for loops, renamed variables, etc. Major rewrite.
+-check-versions - added gedit to apt_tools()
+-check-versions - added featherpad to apt_tools(), default text edit for MX Linux.
+-install-geany - moved 'check_package git' to options -i and -t where it is needed.
+-install-neofetch - removed extra newline in title printf
+-install-neofetch - added neofetch to apt-get remove in remove_neofetch()
+-install-geany - removed {} from /home/rick in remove_geany.
+-install-geany - fixed printf in remove_geany()
+-install-geany - fixed printf in remove_geany()
+-install-keepassxc - removed move_vault() (no longer needed) and added create_ini() to copy keepassxc.ini from git server.
+-install-keepassxc - split remove_keepassxc() into separate functions to remove DEB/Flatpak, changed -d and -f install options to use if-elif-else to install package, changed -r remove options to use if-elif-else to remove package.
+-install-terminator - new version format.
+-install-terminator - corrected find command arguments in remove_terminator().
+-install-neofetch - added check for git, added warning for EOL Neofetch, new version format.
+-install-kitty - added check for git, new version format.
+-install-glow - new version format & renamed variables.
+-install-geany - new version format.
+-insert-license - new version format.
+-insert-header - new version format.
+-i3deb-cleanup - removed removal of cloned i3-gaps and geany themes repositories.
+-Templates/bash-template.txt - changed set command to set -eu (set -eou pipefail is commented). This is to prevent unexpected behavior with sourced functionlib.
+-Templates/bash-getopts.txt - changed set command to set -eu (set -eou pipefail is commented). This is to prevent unexpected behavior with sourced functionlib.
+-install-firefox-deb - removed set -o pipefail to prevent possible conflicts with functionlib
+-keepass2main - new version format, title displayed using box().
+-check-versions - in github_versions(), formatted 'Installed Version' column to 16 spaces, so 'Update available' will print at the same column for each application. Change format of 'GitHub Package' from 15 to 16 spaces.
+-functionlib - updated header comments.
+-syncrick - new version format
+-show-cron - using find instead of ls -1 to list anacron jobs and used awk to eliminate path names.
+-sync2vm - new version format. Changed host_ip to gateway_ip
+-randpic - new version format, removed _updated variable.
+-syncfin - changed to new version format. Removed _updated variable, no longer needed.
+-syncrick - removed _updated variable, no longer needed.
+-syncrick - changed to new version format.
+-install-codium - added verbose mode dialog, changed to new version format.
+-iru-yt-dlp - moved title ahead of getopts loop & new version format.
+-iru-vscodium - moved title ahead of getopts loop & new version format.
+-iru-marktext - moved title ahead of getopts loop & new version format.
+-iru-micro - moved title ahead of getopts loop & new version format.
+-iru-chrome - moved title ahead of getopts loop & new version format.
+-iru-bat - moved title ahead of getopts loop & new version format.
+-iru-fastfetch - moved title ahead of getopts loop.
+-functionlib - removed 'Checking dependencies...' from check_packages() for cleaner displays.
+-functionlib - added warnings about using 'set -o pipefail' in scripts using functionlib.
+-iru-fastfetch - uncommented variables and lines using them in dl_fastfetch_config(), commented lines with full paths. Removing 'set -o pipefail' appears to have fixed that problem as well.
+-iru-fastfetch - remove 'set o pipefail' to fix check_dependencies() running install by default.
+-config-restore - added fastfetch configuration to System Configuration Files.
+-config-bak - added fastfetch/config.jsonc
+-iru-fastfetch - in dl_fastfetch_config(), replace path variables with absolute paths to force it to download config & logo files from the Gitea server.
+-iru-fastfetch - correct spelling error in -u getopts option.
+-check-versions - added fastfetch to github_versions()
+-iru-fastfetch - initial commit. Install/configure/remove/update Fastfetch.
+-iru-bat - removed updated from leave() message.
+-functionlib - cleaned up comments
+-iru-bat - cleaned up script, new version format.
+-Templates/bash-getopts.txt - added shellcheck directive to cleanup()
+-functionlib - no change
+-functionlib - added debian_based() to check if a distribution is Debian or like Debian.
+-no-snaps - added remove_snaps() to remove snapd and snap packages.
+-checkinit - fixed header comments.
+-catless - fixed header comments.
+-hidpp-battery - new version format
+-checkinit - new version format
+-check-updates - new version format, changed method to obtain hostname.
+-check-logs - new version format
+-check-battery - new version format
+-catless - new version scheme, removed assiging  to a variable in check arguments test.
+-battery-check - new version format
+-cronscripts - new version format
+-clone-repo - changed to new version scheme.
+-snippets/ip-addresses.md - added more methods for obtaining IP address information.
+-ip-info - changed show_gateway() to use ip route get 1.2.3.4
+-functionlib - changed method for localnet global veraible to use ip route get 1.2.3.4
+-cal-todo - updated to new versioning scheme.
+-files/kitty.sed - changed font_family from Cascadia Code to JetBrainsMono Nerd Font
+-install-firefox-deb - cleaned up rm_firefox().
+-system-info - added wmctrl to check_dependencies().
+-system-info - added mac_mfgr() to get MAC manufacturer info from ieee-data, called by wired_info() and wireless_info(). Added check for ieee-data.
+-bu - updated displayed lines for error conditions, moved code from show_option() to ?) case and removed function.
+-snippets/bat-tips.md - made using bat with find more useful.
+-mosfanet-configs - renamed from new-configs, added nanorc_cfg() to be used in place of dl_nanorc(). This accomodates all versions of nano in use.
+-new-config - corrected the order of calls to dl_aliases and dl_bashrc, had been switched.
+-config-bak - added .inputrc
+-snippets/bat-tips.md - initial commit. Tips for using the bat utility.
+-no-snaps - removed updated date from final leave statement.
+-no-snaps - added function to check if snap is already installed and removed shellcheck directive to disable SC1091 (no longer needed).
+-no-flatpak - removed shellcheck directive to disable SC2019 (no longer needed)
+-no-flatpak - corrected date updated in global variables.
+-no-flatpak - Add function to check if flatpak is already installed.
+-config-bak - updated header comments.
+-config-restore - added code to copy  from backup directory to /etc/X11/xorg.conf.d
+-config-bak - added function to backup config files outside of home directory and added backup for multiple monitor configuration file.
+-zz-clean - reordered sequence of tasks and added routine to purge obselete configuration files.
+-z-ytdlp-update - shortened  to .
+-cinnkeys - removed redundant line printing version info in usage()
+-cinnkeys - expanded option to load keybindings to dump them if backup file doesn't exist.
+-new-config - removed  from copy of script to backup directory and added  to the copy.
+-new-config - added .inputrc
+-Templates/monitor.conf - initil commit. Template for configuring multiple monitors.
+-snippets/variables-uc-lc.md - corrected spelling errors.
+-check-versions - renamed vSCodium variable to codium & changed its order in packages array.
+-install-virtmgr - redirected incompatibility messages to STDERR.
+-install-brave - rearranged and corrected spelling in check_dependencies(), moved call to check_dependiess to getopts loop, edited help().
+-install-brave - added check for x86_64 to check_dependencies(). New version format.
+-files/nano.sed - corrected minibar setting.
+-snippets/sed-snippets.md - added commands to copy /etc/nanorc to ~/.config/nano/ and run sed script.
+-files/nano.sed - added minibar and saveonexit, unet tabstospaces.
+-install-boxes - added qemu-system-x86.conf modifications
+-bashrc-head.txt - removed, duplicate of file in files.
+-Windows10-KVM-QEMU.md - fixed URL markup
+-wipe-drives.md - renamed and converted to markdown.
+-Windows10-KVM-QEMU.md - renamed and converted to markdown.
+-WiFi-paswords.md - renamed and converted to markdown.
+-trusted_keys.md - renamed and converted to markdown.
+-user-admin.md - renamed and converted to markdown.
+-usage.md - renamed and converted to markdown.
+-tty-fonts.md - renamed and converted to markdown.
+-trusted_keys.mdrenamed and converted to markdown. -
+-trim-logs.md - renamed and converted to markdown.
+-timeshift.md - renamed and converted to markdown.
+-tfl_functions.md - renamed and converted to markdown.
+-symlinks.md - renamed and converted to markdown.
+-sudo-timeout.md - renamed and converted to markdown.
+-simple-passwd-gen.md - renamed and converted to mark down.
+-ssh-VM.md - renamed and converted to mark down.
+-select-snippets.md - combined select snippets and renamed.
+-sed-snippets.md - combined sed snippets into one markdown file and renamed.
+-install-dsh - correct syntax in sed command in install_dsh()
+-install-dsh - added  to sudo tee lines.
+-install-dsh - added functions to create machine lists.
+-install-dsh - initial commit. Install and configure DSH utility to send commands to multiple remote servers.
+-empty-trash.sh - removed dashes before  in empty_trash(). printf saw 1st dashes as an option.
+-snippets/sed-add-del-append.md - changed to markdown format and renamed.
+-snippets/args.md - renamed and combined all args-related snippets.
+-snippets/shellcheck.md - initial commit, useful Shellcheck information.
+-bu - changed to new version numbering, changed  variable to , removed shellcheck disabling of SC1092 & SC2034.
+-bs-meter - new version numbering scheme, updated header comments.
+-Templates/bash-template.txt - removed  as it is not required if using shellcheck -x
+-Templates/bash-getopts.txt - removed  as it is not required if using shellcheck -x
+-check-versions - changed to new version numbering. Changed shellcheck directive -  is not required.
+-functionlib - edited header comments for sourcing the script.
+-empty-trash.sh - added lines to separate trash contents from displayed messages. Changed to new version format.
+-bu - updated version number to new format with Juian date.
+-Templates/bash-template.txt - added placeholder for new version number format.
+-Templates/bash-getopts.txt - added placeholder for new version number format.
+-mk-bash - added init_ver variable to insert into appropriate template for new script's initial version number.
+-bu - corrected options display in show_options function.
+-install-firefox-deb - added check if snap is installed. Added statements to rm_firefox_flatpak and rm_firefox_snap if firefox is not installed as a snap or flatpak.
+-bu - changed to getopts format, streamlined backup and restore functions, added functions to show options and prepare USB drive for backup.
+-bu - added exit code of 0 to exit commands not errors.
+-snippets/misc_cmds.md - added grep command examples.
+-check-updates - updated threshold values comment.
+-install-keepassxc - updated version number from Friday's update.
+-install-keepassxc - added '--user' to 'flatpak install keepassxc'
+-system-info - added ROTA to lsblk command in partition_info().
+-snippets/variables-uc-lc.md - added info on declaring variables.
+-sync-home - excluded .git directory from rsync of homepage directory.
+-snippets/variables-uc-lc.md - renamed with .md extension. Added example of parameter expansion to manipulte variables.
+-pre-commit - removed exlusions from shellcheck command.
+-bu - correct formatting error in printf command (backup function).
+-functionlib - added SC2001 to shellcheck directives to disable error messages for some text manipulation functions.
+-weather - updated version number and last modified date.
+-weather - changed method to replace [+_] with space and space with + in location variables.
+-set-resume - added time delay to sudo_login.
+-rm-tilde - correctd variable placement in a printf statement.
+-rename-host - added time delay to sudo_login.
+-refresh-net - added time delay to sudo_login.
+-pwfeedback - added time delay to sudo_login.
+-porn-dl - changed method to capitalize name of download site name (i.e., Redtube).
+-nosleep - added time delay to sudo_login.
+-mount-bu - added time delay to sudo_login.
+-local-ip-up - corrected syntax error in case statement.
+-laptoplid - added time delay to sudo_login.
+-laptop-utils - added time delay to sudo_login.
+-iru-yt-dlp - added time delay to sudo_login.
+-iru-youtube-dl - added time delay to sudo_login.
+-iru-vscodium - added time delay to sudo_login.
+-iru-micro - added time delay to sudo_login.
+-iru-marktext - added time delay to sudo_login.
+-iru-chrome - added time delay to sudo_login.
+-iru-bat - added time delay to sudo_login.
+-ip-info - added time delay to sudo_login.
+-install-zoom - added time delay to sudo_login.
+-install-virtmgr - added time delay to sudo_login.
+-install-ufw - added time delay to sudo_login.
+-install-terminator - added time delay to sudo_login.
+-install-rtorrent - added time delay to sudo_login.
+-install-nerdfonts - added time delay to sudo_login.
+-install-neofetch - added time delay to sudo_login.
+-install-mint-fortune - added time delay to sudo_login.
+-install-kitty - added time delay to sudo_login.
+-install-homebank - added time delay to sudo_login.
+-install-handbrake - added time delay to sudo_login.
+-install-glow - added time delay to sudo_login.
+-install-fnloc - added time delay to sudo_login.
+-install-cmatrix - added time delay to sudo_login.
+-install-chromium-u - added time delay to sudo_login.
+-install-brave - added time delay to sudo_login.
+-install-audioapps - added time delay to sudo_login.
+-install-audacious - added time delay to sudo_login.
+-clean-c - corrected readonly variable declaration.
+-catless - declare function-specific variables as local.
+-bu - declared function-specfic variables as local.
+-empty-trash.sh - removed 'Trash log' header line.
+-empty-trash.sh - added find command to list files in Trash and added explanitory text to empty_trash() function.
+-empty-trash.sh - changed empty_trash() function to use find and wc instead of ls -A to determine if there is trash to empty.
+-check-battery - declared variables local to functions as local, eliminated capacity variable in warning_level(), and changed echo commands to printf.
+-battery-check - declared variables local to functions as local.
+-check-battery - changed call to hidpp_battery & removed if conditional from function. Changed 2 echo lines to printf.
+-snippets/swapfile.md - added sed command to configure zramswap
+-snippets/misc_cmds.md - added commands to get screen resolution and refresh rate.
+-check-logs - added Journal Incremental Backup to menu.
+-cronscripts - added journal-bu.sh to cp_repo_backup() function.
+-journal-bu.sh - initial commit. Incremental backup of personal journals.
+-install-firefox-deb - fixed detection and removal of firefox-locale-en in rm_firefox().
+-syncrick - changed title line to use box() instead of under_line().
+-bu - removed clear command from display_title() function and changed delay on sudo_login from 0 to 2.
+-weather - added option to change location, underscore (_) can be used as a space in location name, put options into an array variable.
+-system-info - add desktop information to os_info(). NOTE: will not give desktop session or window manager information if on an SSH connection. Should be run directly on the hardware.
+-no-flatpak - corrected spelling/punctuation error.
+-no-flatpak - uncommented calls to sudo_login() and removed check for systemd (unnecessary).
+-no-flatpak - fixed creation of noflatpak.pref.
+-no-flatpak - intitial commit. Enables/disables installation of flatpak and flatpak packages.
+-no-snaps - renamed from lm20-snaps. Shortened snap_status() function. Added check for systemd in enable_snaps() function. Removed check for Mint 20+.
+-keepass2main - added Tina-passwords.kdbx to scp command and replaced die with leave.
+-hb-late - changed fi condition to based on status of zip error code.
+-show-cron - corrected sed command for crontab.
+-show-cron - modified contab output to exclude lines beginngn with # and to not print redirection to /dev/null. Renamed functions to display anacron jobs.
+-sshin - edited comments and added semi-colon to Invalid option message.
+-snippets/ip-addresses.md - added revised ip route show function for extracting last octet of an ip address.
+-functions/local_ip.md - replaced original code with new code.
+-functionlib - removed commented code from local_ip()
+-check-versions - declared cur_ver as a local variable in github_versions() function.
+-functionlib - added check for no ip address to current method in local_ip()
+-functionlib - changed local_ip() to use ip route get to extract last octet of local ip address and commented modification of previous method using ip route show.
+-syncmosfa - changed variable name for local ip address in transfer() and check_host(). Changed hostname variables in check_host.
+-snippets/ip-addresses.md - added ip route get for getting local ip address and copied old functionlib routine.
+-z-update - added count of flatpaks installed. If no flatpak packages installed, does not run flatpak update.
+-check-updates - changed threshhold interval in update_apt_cache() to 6 hours.
+-check-updates - prints Abort if autoremove/autopurge prompt is no.
+-i3configs - corrected spacing in is_bookwork() function declaration.
+-i3configs - added code to blank out i3 installed line and commented out call to is_bookworm()
+-install-firefox-deb - commented out gpg key verification routine.
+-install-firefox-deb - fixed detection of distro install of firefox/firefox-esr with removal in separate functions.
+-install-geany - consolidated install_themes function into clone_themes function and added delay to sudo_login function call.
+-ytdlaudio - removed, near duplicate of yt-dl-audio
+-install-firefox-deb - verifies keys only if ~/.gnupg/pubring.kbx exists.
+-install-firefox-deb - consolidated repo deb package removal, check for ~/.gnupg/pubring.kbx (exit if not exist)
+-github-bu.sh - changed find conmand to delete files in archive directory older than 91 days (13 weeks).
+-gitea-bu.sh - changed find conmand to delete files in archive directory older than 91 days (13 weeks).
+-fin-bu.sh - changed find conmand to delete files in archive directory older than 91 days (13 weeks).
+-check-updates - adjusted newline characters.
+-check-updates - added/removed newline characters.
+-check-updates - added a check in update_flatpak() to see if flatpak packages are installed.
+-yt-dl - adjusted COLUMNS variable for select command to list choices in 1 column. Changed yt-dlp command to download best MP4/M4a format. File extension is .mp4
+-redtube-dl - adjusted COLUMNS variable for select command to list choices in 1 column. Changed yt-dlp command to download best MP4/M4a format. File extension is .mp4
+-pornhub-dl - adjusted COLUMNS variable for select command to list choices in 1 column. Changed yt-dlp command to download best MP4/M4a format. File extension is .mp4
+-porn-dl - adjusted COLUMNS variable for select command to list choices in 1 column. Changed yt-dlp command to download best MP4/M4a format. File extension is .mp4
+-config-restore - Adjusted COLUMNS variable for select commands to ensure single column of choices.
+-verify-iso - changed select COLUMNS to 40 to make selections a single column, started getting jagged columns with 60.
+-write-iso - added variable to hold initial working directory for popd at the end of the script. Fixed select menu for choosing ISO directory to select Utilities directory or remain in current directory.
+-verify-iso - added variable to hold initial working directory for popd at the end of the script. Fixed select menu for choosing ISO directory to select Utilities directory or remain in current directory.
+-i3configs - added code to remove battery/wlan from active module line if not present.
+-i3configs - added functions to copy rofi and dunts configuration files, along with dmconf.sh. Allows for LMDE 6 (faye).
+-check-logs - moved HomeBank Archive entry to follow Finance Incremental in list and changed text in gitea_snapshots to read Git instead of Gitea now that both repos are included.
+-check-logs - changed columns setting for select from 60 to 40 to place choices in a single column.
+-gitea-dwm-bu.sh - added Projects repsitories to daily, weekly, and monthly snapshots.
+-pre-commit - added file extension exceptions and changed for loop from single line to multiple lines.
+-check-updates - changed default_no to default_yes in nala_update() to match nala defaults.
+-install-firefox-deb - fixed check for mozilla.list from -d to -f.
+-install-firefox-deb - put operations into functions and added verification for package removal and installation.
+-install-firefox-deb - adjusted gen_key variable creation to not add newlines reinstated key comparison.
+-install-firefox-deb - fixed dkpg to dpkg (spelling error) and adjusted gen_key variable creation to not add newlines.
+-install-firefox-deb - added removal of Firefox (Mint version) and added removal confirmation.
+-write-iso - remove unnecessary commented lines.
+-verify-iso - added additional information to help().
+-functionlib - unkown change
+-snippets/misc_cmds.md - added xset command to check if Caps Lock is on.
+-weather - Moved tmp_file creation to weather_forecast() and fixed call to die(). Moved location variable to variables section.
+-write-iso - Made devfile an actual temporary file.
+-write-iso - select_iso_directory prints selected directory. Placed line to check for connected USB device in check_usb_drive() function which is called in -f, -s, and -z options. Formatted printf statements displaying selections.
+-verify-iso - select_iso_directory prints selected directory. exit_msg() renamed to status_msg() and exit command removed. pushd & popd output redirected to /dev/null. popd failure will print error message but will not exit script.
+-syncfin - Changed title line to use box function rather than underline.
+-verify-iso - Updated header comments.
+-write-iso - Added popd to return to starting directory.
+-write-iso - Separate functions for selecting ISO and USB drive with select menu, fuzzy finder (fzf), and zenity. Added getopts for options, including option for a dryrun where nothing is written to a drive. Added menu to select ISO diretory.
+-verify-iso - Added getopts with options for fzf, zenity, and select menu. Routines for selecting ISO and checksum files in their own functions. Routine to compare checksums in a function. Added functions to select ISO and checksum files using zenity file selection dialog.
+-Templates/bash-getopts.txt - Added shift command at the end of the getopts case structure.
+-verify-iso - Removed 'This may take a while' line.
+-bu - Added --exclude lost+found to rsync command in backup function.
+-install-firefox-deb - Added removal of Flatpak and Snap versions of Firefox.
+-lm20-snaps - Added victoria to case options in lm20_plus().
+-config-bak - Added $ to sed commands to indicate the single quote at the end of the string should be removed.
+-install-keepassxc - Added argument to call to sudo_login to sleep 2 seconds before blanking sudo login prompt.
+-install-codium - Removed settngs() function as it is no longer needed, settings.json is downloaded from local configs repository.
+-check-logs - Changed the order of the select menu with a more intuitive grouping.
+-syncfin - Underlined title information.
+-functions/alias-functions.md - Updated Alias for ssh in kitty.
+-functions/alias-functions.md - Updated. Removed obsolete functions, added new functions. Added parse_git_branch() and ssh alias for kitty in .bashrc
+-syncrick - Removed commented title line in Execution section.
+-Changed title line to be underlined.
+-Reverted routine ti purge rc packages to previous method.
+-Reverted purge_rc_packages to previous method. Updated routines to list linux images and headers.
+-Reverted purg_rc_packages to previous method. Additionally, function lists rc packages before deleting.
+-Hard-coded key2 variable (gpg key) instead of reading an external file (firefox-gpg.dat).
+-added .dat and .list extensions to list of shellcheck exceptions.
+-Added lines to print and compare GPG keys.
+-Initial commit. Mozilla GPG key for Firefox installation from Mozilla repository.
+-Initial commit. Script to replace Firefox ESR or Snap version with package from Mozilla.
+-Removed commented lines for copying old gitea backup scripts.
+-added -q option to rysnc command.
+-added -q option to rysnc command.
+-added -q option to rysnc command.
+-Corrected an instance of tmp_dir variable to tmp_pics.
+-Renamed tmp_dir variable to tmp_pics.
+-Fixed function name in header comment. Removed extraneous commented lines and unnecessary blank lines.
+-In update_apt_cache(), change threshold to 43200 (12 hrs).
+-Corrected display of username variable in show_user_cron(). Needs to be in brackets.
+-Corrected display of username variable in show_user_cron(). Needs to be in brackets.
+-Added update_apt_cache() to check if apt cache has been updated in the previous 24 hours. Does not apply to Nala updates.
+-Daily, weekly, monthly anacron jobs in separate functions. Conditional statements are now if-else statements. Replaced echo with printf.
+-Added Facebook, web-site-pics, and Zipped folders to valid_folders() as invalid folders.
+-Corrected path for arc_dir variable to point to Downloads.
+-Moved archive actions into functions and eliminated if statements. Changed dow variable to abbreviated day instead of a digit.
+-Added gitea-dwm-bu.sh to cp_repo_backup() and commented out the other scripts for the gitea snapshots.
+-Initial commit. Replaces gitea-backup.sh, gitea-daily.sh, gitea-weekly.sh, and gitea-monthly.sh. Encompasses all those backups and syncs to Gitea server.
+-Removed commented sngz to snar transistion lines.
+-Removed commented sngz to snar transistion lines.
+-Changed to check against hostname instead of IP addresss.
+-Corrected awk fields for nvme_info(). Added parameter to sudo_login call.
+-Corrected escape code for adjusting prompt position by two lines.
+-Added check to prevent sshfs connection to local system. Added HP 800 G2 SFF to available connections.
+-Added shift OPTIND to getopts routine.
+-Made changes to function comments.
+-Added call to default_no function to prevent accidental sync from laptop to main.
+-Corrected error with cp command in res_config().
+-Commented out sngz lines, appears transition from sngz to snar went well.
+-Commented out sngz lines, appears transition from sngz to snar went well.
+-Changed archive to github. Added code to ensure old snar file gets properly renamed with date.
+-Changed snar variable to snar and archive to github. Added code to ensure old snar file gets properly renamed with date.
+-Changed snar variable to snar. Added code to ensure old snar file gets properly renamed with date.
+-In the bu_drive_fs function, changed the method of finding the drive's file system type  to use lsblk -f
+-Changed number of days before archive deletion from 60 to 90 days.
+-Corrected snar variable to finance.snar from gitea.snar.
+-Changed .snar back to .sngz after realizing the change might cause file not found errors.
+-Changed .snar back to .sngz after realizing the change might cause file not found errors.
+-Changed fin-backup.sh to fin-bu.sh (renamed script). Added 2 as argument to call to sudo_login.
+-Changed archive variable to include day-of-week & removed dow variable. Changed snar file extension from sngz to .snar.
+-Changed archive variable to include day-of-week & removed dow variable. Changed snar file extension from sngz to .snar.
+-Renamed to fin-bu.sh. Changed archive variable to include day-of-week & removed dow variable. Changed snar file extension from sngz to .snar.
+-Corrected rsync in syncing Templates.
+-Corrected rsync to sync bin directory in systems other than 24, 25, 227.
+-Correct rsync command for syncing .local/share/doc directory.
+-Added a tab to printf displaying number of rc packages to help it stand out. Removed commented lines from purge_configs(), new routine works.
+-Changed rsync command to include *.kdbx files and exclude all other files in ~/Docuements directory. Replaced /home/rick/ with /home/rick.
+-Changed rsync command to include *.kdbx files and exclude all other files in ~/Docuements directory. Replaced /home/rick/ with /home/rick.
+-Changed rsync command to include *.kdbx files and exclude all other files in ~/Docuements directory. Replaced /home/rick/ with /home/rick.
+-Changed rsync command to include *.kdbx files and exclude all other files in ~/Docuements directory. Replaced /home/rick/ with /home/rick.
+-Changed scp command to copy only updated and 'old' vault files to main system. No need to copy dated backup files.
+-removed trailing whitespace in header comments.
+-Placed conditional statement for delay into an if..fi construct. The single line condition using just the brackets was causing errors in some scripts.
+-Removed --exclude '.git' from case 10|22|153
+-Updated with new features of the sudo_login function.
+-Updated comments for sudo_login().
+-Set sudo_login delay to 0, so no delay and line blanking.
+-Set sudo_login delay to 0, so no delay and line blanking.
+-Set sudo_login delay to 0, so no delay and line blanking.
+-Set sudo_login delay to 0, so no delay and line blanking.
+-Changed sudo_login() skip delay and blank line routine if delay is 0.
+-Set delay on sudo_login to 1 second before screen is cleared.
+-Removed clear command.
+-Removed clear command.
+-Added optional delay to sudo_login(). Default is 2 seconds.
+-Modified check_package() and check_packages() to print 'Installing <package>' before installing package.
+-Added rsync of Finance and HomeBank directories to main system.
+-In sync_to_main, removed --exclude .git from rsync command. Folder is not part of a git repo.
+-Added call to default_no to nala_updated() to make autoremove and autopurge optional.
+-Corrected spelling errors in yes-no functions. Corrected example comments to show correct function calls.
+-Added zgrep command to get status of latest package update.
+-Changed heading of GitHub packages to read GitHub Packages.
+-Changed capacity line in ssd_hd_info() to use tr to remove parentheses around hard drive size instead of sed.
+-Added code snippets to combine find and grep to search for files containing a specific pattern, and combind ps aux with grep to find a running process by name.
+-Added sudo_login to appropriate getopts options.
+-Added sudo_login to appropriate getopts options. Changed variable name for preferences json file.
+-Added sudo_login to appropriate getopts options. Changed directory info in remove_bat use previously delcared variable.
+-Added Shellcheck directive to ignore unreachable command errors in cleanup() function. Shellcheck may incorrectly report if command is invoked by trap builtin. Removed heredoc settings/bindings functions since they are download from Gitea server.
+-Added Shellcheck directive to ignore unreachable command errors in cleanup() function. Shellcheck may incorrectly report if command is invoked by trap builtin.
+-Corrected path to lscpu in cpu_info(). Added shellcheck disable=SC2317 before cleanup(). Shellcheck showed commands unreachable because the function is called by a trap. (Shellcheck 0.9.0, Debian 12)
+-Updated README with information specifically addressing functionlib.
+-Updated README
+-Modified file command to grep for json as well as text.
+-Added 'set -euo pipefail' to bash script templates.
+-Placed empty trash routine to a function.
+-modified timeshift_snapshots() to display message if timeshift is installed, but no snapshots are available.
+-Changed back of main copy of Passwords.kdbx to place date before extension instead after after.
+-Added --config flag to nala autopurge command to remove unneeded config files.
+-Added backup of Finance Archives.
+-Changed finance backup to include entire Finance directory, excluding the Archives directory.
+-Updated, added new information.
+-Corrected newline character in printf statement. Add -p flag to cp command to preserve file attributes.
+-Changed procedure to purge packages with only obsolete configs installed to work the same as check-updates and purge-image-rc scripts.
+-Replaced command substitution in purge function to use the array created to check for files to be purged.
+-Place listing of rc files into a function.
+-Print rc_img as an array.
+-Renamed script, removed .sh. Added check to rc_img is an empty variable. If empty, will not prompt to purge rc files. Placed purge routine and listing of image and header files into separate functions. Need to test if listing of rc files needs to be an array.
+-Removed buster from is_debian function.
+-Removed buster from supported distros.
+-Removed extaneous whitespace from printf in github_versions.
+-github_versions - added tab to 'Update available' message.
+-updated version number
+-Renamed from user_in_sudo.md. Updated code block to current version.
+-Changed designated systems for scriptarchive.sh
+-Replaced user_in_sudo with sudo_login.
+-Added call to sudo_login to initiate sudo session.
+-updated version and revision date.
+-added sudo_login to install and remove options.
+-added sudo_login to install and remove options.
+-Renamed user_in_sudo to sudo_login and applied to all applicable scripts.
+-In sync_to_fin, removed sync of homepage archive, unneccesary - can always be downloaded from server.
+-Modified user_in_sudo function by adding a condtion using sudo -nv to check if a sudo session is already active. If not, user is prompted for sudo password and after 2 seconds, the prompt line is removed.
+-Removed check-sudo function. Couldn't get it to work properly.
+-fixed tar command in backup_homepage. ~/Documents/homepage is a symbolic link. Changed source location to ~/gitea/homepage.
+-Added a function for determining sudo access in a script.
+-changed the order of some global varables. declared Gitea_URL a readonly variable.
+-changed github_versions to print 'Update available' at the end of the line if updatable.
+-Added appropriate code form pre-commit.sample. Added *.sed to shellcheck exceptions.
+-Removed rsync commands if hostip = 11 because it is now handled by the sync6005.sh script (cron job).
+-Added sync6005.sh to local repo backup scripts.
+-Initial commit. Syncs Downloads/archives with HP-6005 and current financnial directories to 6005 home directory.
+-Updated comments
+-corrected a spelling error in header comments.
+-Removed -q and -v flags from scp command to suppress debug messages and to show progress bar.
+-Updated README
+-Updated README
+-Changed temperature color ranges to match feels like color ranges. Removed the words latitude and longitude from location information.
+-Initial commit. README for Template directory.
+-Renamed template files to have .txt extensions.
+-Renamed template files with .txt extension to prevent shellcheck.
+-added other file extensions of files not to be checked by shellcheck.
+-Corrected misspelled echo command in show_me function.
+-Added color to display headings. Changed default location.
+-Script appears to be working well. Removed commented commands.
+-Consolidated multiple rsync commands for archives to one command. Added sync of Documents/mosfanet directory.
+-Reconsidering purpose of the script. Do I really want to sync i3 config files from various machines to the configs repository?
+-Removed is_text function, placing the functionality into the elif statement that originally called it. Added a check to determine if the selected file is empty.
+-Reverted back to using zip for the backup after the tar method backed up and deleted the source directory.
+-Correct the log path and the path for the executable script in the trash_log function.
+-Changed option -b to -d and -r to -l for dump and load keybindings. Set default for verbose_mode to FALSE.
+-Added color to denote specific operations. Placed title block in a separate function. Removed extraneous blank lines from displayed text.
+-Redirected 'not a text file' error to stderr.
+-Removed 'printf '\e[A\e[K'' In use, eliminated preceding line even if no sudo prompt.
+- Added printf '\e[A\e[K' after call to user_in_sudo function to clear the sudo prompt from the screen after the password is entered.
+- Added printf '\e[A\e[K' to user_in_sudo function to clear the sudo prompt from the screen after the password is entered.
+-Removed calls to 'user_in_sudo' because they were redundant.
+-Added 'set -euo pipefail' to cron scripts.
+-Added absolute paths to commands.
+-New method to remove leading white space when extracting CPU moden name.
+-Added variable to show number of last available option.
+-Added lines in exist_git to clear 'git [OK]' line. Added variable to show number of last available option.
+-Removed references to hb-bu archive of homebank contents which is now included in financial incremental backups.
+-Added command to make a backup copy of the current password vault via ssh before copying the updated vault via scp. Added verbose flag to scp command.
+-Removed  since scp is included in openssh-server package (installed on all systems)
+-Initial commit. Script running aptitude search with fuzzy finder to select and install multiple applications.
+-added #22 to empty_trash option.
+-Added empty-trash.sh
+-Initial commit. Script to empty user's trash folder. Run periodically as a local user cron job.
+-Added function to determine if file is a text file. Moved execution of viewing file to a function named main. Execution section is checking arguments before calling main function.
+-renamed kitty bindings list.
+-Commented out backup of current contents of HomeBank directory, since it's part of finance incremental backup.
+-Added sync-nas.sh to repo backsups.
+-Initial commit. Script using rsync to copy archives to NAS.
+-Added backup of HomeBank directory.
+-Changed order of -a option (all scripts) so that user scripts are copied before those run by root.
+-Removed from repository. Script is obsolete and no longer in use.
+-Changed shebang to bash.
+-Changed shebang to bash. Changed single bracket conditional statements to double brackets.
+-Changed ytdlpupdate_log to accommodate format change in yt-dlp update.
+-Changed update_status to accommodate new output format of yt-dlp update.
+-Added function to update Polybar config with network and battery device names. Added sed command to replace Bumblebee-status with Polybar in Neofetch config.
+-Correct curl command to use -so instead of -os. The latter caused an error and did not download the files.
+-Initiial commit. Script to add Polybar to an exist i3-gaps installation ona Debiana 11 (Bullseye) installation. Replaces but does not remove Bumblebee status bar.
+-renamed projects-bu.sh to github-bu-sh and changed in scripts that referenced it.
+-corrected spacing and agreement errors in incremental_backups function printf statement.
+-Added sync of Documents/Language.
+-check-logs 0.8.0 - added function to display last 7 backups and current snar file for incremental backups and added to select menu.
+-in req_sudo, made lhost a local variable.
+-Put routines to extract data and display status of network interfaces in a for loop to handle multiple ethernet and wireless devices.
+-Changed test for presence of bookworm from a case statement to a single line conditional statement.
+-Fixed minor text errors in remove_updater function. Expanded removal of sed file to print results.
+-Fixed minor text errors in remove_updater function. Expanded removal of sed file to print results.
+-Moved comments from body of script to header. Renamed mimeaps variable to mimapps & mimeaps_list_add function to mimeapps_list_add.
+-removed extra space is size declaration and changed help exit code if no argument passed from 2 to 1.
+-Added homepage repo. Renamed Debian 11 i3-gaps to Debian i3 WM in select options array.
+-removed IP 20 from cp_zytlpupdate, no longer needed.
+-changed header comment to read Run as daily cron jobe on finance system.
+-mount-sshfs 0.4.0 - Converted from select menu to getopts. Flags toggle between mounting and unmounting designated share. If the share is mounted, user will be asked to confirm unmounting. Cleaned up redundant code.
+-Took the conditional statement out of the for loop, used || to exit if shellcheck fails.
+-mount-sshfs 0.3.4 - Removed ProBook-6570 (20). Added Gitea Server and Lenovo (VM).
+-pre-commit - Runs shellcheck against a script before commmiting.
+-functionlib - corrected a spelling error in comments.
+-fixed spelling error.
+-Added markdown for is_openrc and is_runit functions.
+-functions/is_sysv.md - corrected spelling error.
+-functionlib - added functions to test if OpenRC or Runit init systems are being used.
+-added heading 4 to signature.
+-added heading 4 and heading 5 to last two lines.
+-updated and added signature
+-keepass2main 0.4.3 - renamed from pwfin2main. Script now uses scp to copy modified KeepassXC vault to main sys to keep master copy updated.
+-z-defrag 1.2.4 - added hp-800-gi-usdt to case SSD, defrag not run.
+-cronscripts 0.5.0 - Removed 800-Gi-USDT (17) from cp_zdefrag function because it now as an SSD.
+-iru-bat 0.5.3 - Removed old bat_config functions (here_doc) and calls to it.
+-install-fonts 0.3.8 - Fixed missing sudo in cascadia_code function. Added break commands to select cases.
+-hb-archive.sh 1.3.3 - Using find and tar to creat archive of .bak file from 2 months previous. Leaving older archive name and zip command until after script runs again. Tested well in test scripts.
+-scriptarchive.sh 0.3.0 - Changed from shell script to bash script. Replaced zip with tar to creat a tarball archive instead of a zip archive. Delete archives older than 2 years instead of 1.5
+-Removed case statements for 11 and 15 sync. Replaced with if-elif for 11 and 16. 11 syncs finance data while 16 syncs Git repositories and Deb packages. ISO file are no longer synced with 15.
+-changed text from Projects to GitHub for sync of Projects directory.
+-Added sync of Projects directory (GitHub repositories) to 10/22/153.
+-changes to comments.
+-write-iso 0.4.1 - changed order of lsblk arguments in select_usb to show device label, if available, to aid in identifying the correct drive.
+-write-iso 0.4.0 0 - Added functions to select ISO file and USB drive. If fzf is not installed, creates menus to make selections.
+-verify-iso 0.7.0 - Added functions to select ISO and checksum files. If fzf is not available, creates a menu to select files.
+-syncmosfa - commented out rsync of ISO files for IP 15.
+-checkinit 0.1.4 - confirmed script detects Runit.
+-Added the -p flag to the tar command to preserve permissions.
+-Moved removing empty arror log ahead of syncing to main system.
+-pwfin2main 0.4.2 - moved check_package ahead of printf statements and added -q flag to scp command for quiet mode.
+-Added comment: TODO: Check for runit
+-install-audacious 0.2.0 - Removed support for Ubuntu PPA. Converted to getopts.
+-Removed from repository. Applications seem to be no longer supported.
+-install-audacious 0.2.0 - Removed support for Ubuntu PPA. Converted to getopts.
+-Modified check_package and check_packages to sleep 2 seconds, then clear the line when printing that the package is OK.
+-Added --exclude .git to homepage sync.
+-Added --excluce .git to homepage sync
+-Added IP 22 (main laptop) to syncall array.
+-Removed IP 22 (main laptop) from syncall array.
+-Homepage archive file no longer synced with computers on the network. Sync-home uses gitea/homepage as homepage_dir. Shortened homepage archive name.
+-Added more tar examples.
+-Removed verbose flag from tar command. Removed extraneous forward slash for archive file path.
+-Changed shell from sh to bash and updated conitional brackets. Redirected stderr to append to error log. Added sync of HomeBank archive directory to main system.
+-added the quiet flag to the rsync command.
+-Commented out syncing of HomeBank archives to the main system since the fin-backup.sh script will do that when it runs.
+-Commented out the rsync Finance archive to main since this is already happening with the archive script.
+-Updated comment before tar & find commands to say 90 days rather that 60
+-Added sync of finance backup to main system and HP-6005, respectively.
+-Added fin-backup.sh and combined with homebank archive script. Combined sed scripts with update and yt-dlp update scripts. Change copy commands throughout to include the -u flag and only copy scripts if they've been updated.
+-Uncommented exit command.
+-Initial commit. Script to run incremental backups of directories for current and previous year financial data.
+-Corrected spelling errors in comments for default_yes function.
+-corrected spelling of alias function from exists to exist which is the actual alias on my system.
+-In the archive variable, changed the order of dow and arc_date, so the date comes before for the dow, making it easier to see which files belong in a backup cycle.
+-Corrected tar command and rsync commmand. Tested and runs correctly.
+-gitea-bu.sh & projects-bu.sh - Uncommented line to rsync directory to Gitea server.
+-snippets/tar.md - Examples of tar usage.
+-cronscripts 0.4.1 - Added gitea-bu.sh and projects-bu.sh to cp_repo_backup function.
+-passwdsync.sh 0.4.12 - changed conditional statements with single brackets to double brackets.
+-files/laptoplid.sed - Combined changes to 3 lines containing HandleLidSwitch to one command.
+-laptop-utils 1.5.6 - Fixed several syntax errors with starting and getting TLP status under SysV.
+-added imwheelrc to backup and restore.
+-lm20-snaps 0.2.9 - Removed SC2034 from Shellcheck directives (no longer using select). Changed the limit_string for here doc in create_nosnaps from EOT to NO_SNAPS.
+-write-iso 0.3.3 - removed elipse (...)
+-write-iso 0.3.3 - Corrected ls command and isofile variable in write_dd function.
+-write-iso 0.3.2 - Added functionality to mount an unmounted USB drive. Added sumulate_dd function for testing purposes.
+-Added prompt flag to fzf commands.
+-verify-iso & write-iso use fuzzy-finder (fzf), if installed, to seledt ISO and checksukm files. Selects USB drive as well.
+-functionlib - changed $* to $1 in yes/no functions, since only passing 1 string as an argument.
+-bu 3.12 - Excluded $HOME/mnt directory in backup rsync command.
+-snippets/misc_cmds.md - Added code snippets to add user and edit /etc/passwd. Added code snippets to detect unmounted drive.
+-insert-header 3.2.1 - corrected instances of filename to code_file.
+-functionlib - shortened is_focal, is_jammy, bunsenlabs, is_systemd, & is_sysv functions to one line per function.
+-Removed blank line
+-up 2.1.2 - Added shift OPTIND instruction.
+-verify-iso 0.5.6 - renamed check-iso to verify-iso.
+-show-cron 0.4.3 - Capitalize norm_user when displayed in show_user_cron.
+-Updated under_line.md. Created over_line.md for new over_line function.
+-functionlib - Added over_line function to print a line of characters over a line of text. Simplified viewtext function.
+-catless 0.3.0 - Removed cat_used function & dependency on viewtext. Replaced with 2 variables for percentage of lines and length of the file which are compared to determine if cat or less is used. Simplified help function.
+-insert-license 3.2.0 - changed insert license in shell script to 15 from 12 to allow for longer header.
+-gpl_v2 - no significant change.
+-bu-cinnkeys - Removed
+-ren-space 1.0.4
+-bu-cinnkeys - renamed to cinnkeys
+-cinnkeys 0.2.0 - Added getopts & verbose mode. Added restore of keybindins from backup file.
+-Updated C and C++ header templates with current gcc compiler information.
+-insert-license 3.2.0 - Added verbose option and verbose commentary. Code type is set in getopts case statements. License is still selected in a select menu.
+-insert-header 3.2.0 - Added verbose option and verbose commentary. Code type and header template are set in getopts case statements. Combined C and C++ template insertions into one case statement since they contained identical information.
+-mk-bash 3.1.5 - Replaced printf at begining of execution section with box function.
+-mk-c-src 3.0.6 - Added verbose mode. Added test to leave if filename variable is not set.
+-mk-bash 3.1.4 - Added verbose mode. Added test to leave if filename variable is not set.
+-snippets/getopts-template.md - updated verbose mode option.
+-Added shift OPTIND to remove arguments after use.
+-Added shift OPTIND to remove arguments after use.
+-Added shift OPTIND to remove arguments after use.
+-Added shift OPTIND to remove arguments after use.
+-install-terminator 0.6.8 - Added shift OPTIND to remove arguments after use. Replaced leave with echo in install and remove functions for a cleaner exit from the script.
+-install-codium 0.1.6 - Added shift OPTIND to remove arguments after use. Added verbose mode option.
+-install-cmatrix 1.2.1 - Replaced leave with printf in install_matrix and remove_matrix functions. Added shift OPTIND to remove arguments after use.
+-install-chromium-u 0.4.2 - beta - added shift OPTIND to remove arguments after use. Added verbose mode option.
+-set-resume 0.5.3 git_uuid - replaced nexted if-else-fi with condional and logical AND (&&).
+-syncrick 3.0.9 - Corrected error in spelling of Projects folder.
+-syncrick 3.0.9 - Added sync for ~/Projects directory.
+-hb-archive.sh 1.3.0 - Added backup (.tar.gz) of current contents of HomeBank directory after the .bak archive has completed. Keeps the backup for 90 days.Removes .bak archives older the 3 years (1095 days) from the archive directory, since log only goes back 3 years.
+-Initial commit. snippets/git.md - Information on connecting to GitHub via SSH.
+-install-fnloc 0.2.1 - Added option to just download the .deb package from the Gitea repo and install.
+-0.2.1 - Added sourcing of functionlib. Updated variables in clone_fnloc_repo.
+-1.0.0 - Relaced select case construct with getopts case construct.
+-0.8.0 - Configuration files are downloaded from Gitea server instead of the HP-6005. No need for a temporary directory.
+-0.1.5 - changed gitea urls and paths to use Gitea_URL global variable and renamed path variables.
+-0.1.3 - Updated paths to Gitea server.
+-0.1.2 - changed gitea urls and paths to use Gitea_URL global variable and renamed path variables.
+-2.0.8 - replaced : with . in update_complete and defer_updates.
+-Change url variables for GitHub and Gitea server. Using Gitea_URL global variable in functionlib.
+-v0.5.1 Changed url variables to incorporated Gitea_URL global variable in functionlib.
+-v0.4.1 - Changed url variables to incorporated Gitea_URL global variable in functionlib.
+-Added global variable Gitea_URL, url for Gitea server.
+-Corrected spelling error in help function.
+-ver 0.6.7 - Replaced find with rm -rf to remove terminator config folder and its backup.
+-version 0.1.9 - Replaced find with rm -rf in remove_neofetch to remove neofetch config and neofetch config backup.
+-ver 0.2.5 - replaced find with rm -rf in purge_kitty to remove kitty config and cache directories.
+-ver 0.2.1 - replaced find with rm -rf in remove_geany.
+-ver 0.1.4 - Replaced find in remove_vscodium with rm -rf
+-ver 0.4.5 - Replace find in remove_brave with rm -rf for .config and .cache
+-version 0.2.12 - Replaced find in remove_vscodium with rm -rf.
+-version 0.5.1 - Replace find in remove_micro to rm -rf.
+-Version 0.4.0 - Added function to download preferences.json from Gitea server. Replaced find command in remove_marktext with rm -rf the configuration folder. Added option to just install preferences.json.
+-Version 0.3.13 - Replaced find command in purge_chrome with rm -rf
+-Version 0.5.1 - Replaced find command in remove_bat to rm -rf ~/.config/bat. Noted there were 2 bat_config functions. Renamed one that downloads configuration file from Gitea server to dl_bat_config.
+-install-virtmgr 0.2.3 - Removed check functions that returned true/false and place the variables and tested conditions in the appropriate places in the check_cpu function. The check functions seemed to be redundant and inefficient.
+-Added if-else to call create_conf if conf file does not exist when selecting the option to edit it.
+-set-resume 0.5.2 - Moved first printf statement in get_uuid to execution section just before call to the function.
+-vidcam-check 0.2.1 - Added i and w flags to grep command in vid_cam function.
+-check-updates 2.0.7 - Added space in update_complete function so result of update would display correctly.
+-mk-c-src 3.0.3 - Added : ) case to display error message if no argument is supplied to an option requiring one.
+-mk-bash 3.1.1 - Added : ) case to display error message if no argument is supplied to an option requiring one.
+-insert-license 3.1.1 - Added : ) case to display error message if no argument is supplied to an option requiring one.
+-insert-header 3.1.1 - Added : ) case to display error message if no argument is supplied to an option requiring one.
+-install-fnloc 0.2.0 - Replaced select menu with getopts BASH builtin. Installs from cloned repositiory on Gitea Repository instead of the HP-6005 server. Added help function.
+-install-chromium-u 0.4.1 (beta) - Added LMDE 5 (elsie) to distro_check.
+-Added Downloads/archives/homepage directory to homepage synch.
+-syncfin 0.2.16 - Added sync of homepage archive directory with Finance Documents/homepage directory.
+-sync-home 0.6.0 - Creates a dated .tar.gz archive of homepage directory in ~/Downloads/archives/homepage. Checks to ensure script is run only from main machine. Synchronizes homepage directory and homepage archive with Dropbox directory.
+-Modified bash script templates to have script name, version, & date updated in the heredoc in the help/usage function. Put the same information in the leave function at the end of the script.
+-mk-c-src 3.0.2 Replaced check arguments routine with getopts. script flag sets the source type (C/C++) and the argument will set filename.
+-mk-bash 3.1.0 - fixed a minor type in usage function.
+-insert-license 3.1.0 - Replaced conditional statements to check arguments with getopts to set type of source code and name of target file. Added option to edit script configuration file. Updated usage function to accommodate changes. License is still selected using a select menu.
+-insert-header 3.1.0 - Replaced conditional statements to check arguments with getopts to set type of source code and name of target file. Added option to edit script configuration file. Updated usage function to accommodate changes.
+-insert-header 3.1.0 - Replaced check arguments routine with getopts. script flag sets the source type and the argument will set filename.
+-mk-bash 3.1.0 - Replaced select menu with getopts CLI options to select template, display help, and edit script config file.
+-install-fonts 0.3.7 - Rearranged order of fonts in the menu.
+-install-boxes 0.1.9 - Added add_to_kvm_group.
+-check-iso 0.5.6 - Added a default case to print an error message and exit if a checksum file with an invalid extension is entered.
+-check-iso 0.5.5 - Eliminated check_code variable. The exit_msg function takes the check function return value as its input.
+-check-iso 0.5.4 - moved exit_msg call to end of each case, after the if-else.
+-system-info added to battery_info condition if battery_serial equals a single space.
+-check-battery - added check to battery_specs if technology is emptys string, set it to Unknown.
+-battery-check - added to battery_specs condition if battery_serial equals a single space.
+- battery-check & check-battery - minor cosmetic changes to be consistent with one another.
+-check-battery 0.4.2 - moved ac_status & hidpp_battery out of the if-else under check for battery, so they are checked.
+-battery-check 0.6.2 - Corrected printf in main section - else printf No battery detected.
+-check-battery 0.4.1 fixed battery_data variable in battery_specs function.
+-check-battery 0.4.0 - Added battery specifications (manufacturer, model, serian number, and technology used. hid++ battery information only displayed if detected.
+-battery-check 0.6.1 - Added battery specifications (manufacturer, model, serian number, and technology used. hid++ battery information only displayed if detected.
+-mk-conkyrc 2.7.3 -Changed method to find battery name to use awk instead of cut. If there is no battery, cut will still result in a non-empty string, so testing for -z will not produce the desired result.
+-install-conky 0.5.8 - Changed method to find battery name to use awk instead of cut. If there is no battery, cut will still result in a non-empty string, so testing for -z will not produce the desired result.
+-system-info 3.4.0 - Renamed bat_info to battery info. Assumes at most one battery installed. Uses find command to deterimine battery name and appends result to /sys/class/power_supply/ to assign path to battery information.
+-battery-check 0.6.0 - Assumes no more than 1 battery in a laptop. Uses find command to determine battery name and appends it to /sys/class/power_supply/ to assign path to battery information files.
+-snippets/misc_cmds.md - Added routine to check for multiple batteries on a laptop using /sys/class/power_supply
+-install-fonts 0.3.6 - In nerd_fonts corrected wget command.
+-passwdsync.sh 0.4.11 - Corrected syntax in copy command. Moved source files (with *) outside of double-quotes.
+-install-fonts 0.3.5 - Place URLs and package names in variables.
+-pwfin2main 0.4.1 - using wildcard to copy .kdbx files.
+-passwdsync.sh 0.4.10 - using find cmd to check if current database is newer than dropbox copy. Changed shell from sh to bash.
+-battery-check 0.5.4 - in ac_power(), replace for loop. Set ac_path variable using find command.
+-mk-conkyrc 2.7.2 -Changed method to get battery name to use find in /sys/class/power_supply/ instead of upower. Removed upower as a dependency.
+-install-conky 0.5.7 - Changed method to get battery name to use find in /sys/class/power_supply/ instead of upower.
+-install-codium 0.1.3 - declared and incorporated varialbes to create codium source.list file.
+-dos2linux 1.0.11 - added license to header comments.
+-check-iso 0.5.3 - changed exit_msg to include success/failure messages.
+-functionlib - updated comments in the yes/no functions and change default response to y or n where an explicit yes or no is not required.
+-syncbin 1.5.8, syncrick 3.0.8, syncmosfa 1.3.9 - Removed Password Gorilla password vault from rsync command.
+-config-bak 0.5.11, config-restore 0.5.3. Removed backup and restore of .gorillarc. Password Gorilla is no longer in use.
+-check-logs 0.7.5 - No longer show status of Password Gorilla. PG information has been removed from the associated log file.
+-passwdsync.sh 0.4.9 - Removed logging and syning of Password Gorilla database files, since program is no longer used.
+-snippets/Mint-scroll-lock.md - Information to activate scroll-lock key in Linux Mint 21.x
+-syncfin 0.2.15 - Removed Password Gorilla password vault from Password Database rsync since it is not installed on Finance laptop.
+-pwfin2main 0.4.0 - Replaced rsync command with scp.
+-Converted files to markdown.
+-snippets/swapfile.md - Instructions for creating a swapfile using dd or Zram.
+-iru-vscodium 0.2.11 - removed cascadia-code installation.
+-install-terminator 0.6.6 - Removed cascadia-code installation.
+-install-neofetch 0.1.8 - apply_config downloads configuation file from Gitea server. Use of sed scripts eliminated.
+- install-kitty 0.2.4 - Removed installation of cascadia-code.
+-install-geany 0.2.9 - Removed installation of cascadia-code.
+-install-fonts 0.3.4 - Changed cascadia_code to download from last known version on GitHub. Added nerd_fonts.
+-install-codium 0.1.2 - Made Fira Code the default font.
+-iru-vscodium 0.2.11 - Added download settings from the Gitea server. Here-Doc method still available.
+-iru-micro 0.5.0 - Added download settings and bindings from the Gitea server. Here-Doc method still available.
+-iru-bat 0.5.0 - Added check for existence of config directory in bat_config
+-iru-bat 0.5.0 - Added bat_config to download configuration file from the Gitea server. Here_doc method remains in place for now.
+-iru-bat 0.4.14 - Added faye (LMDE 6) to approved distros in check_distro
+-install-nerdfonts 0.1.0 - initial commit. Installs Nerdfonts to the system.
+-check-updates 2.0.6 - Corrected syntax in defer_updates.
+-install-kitty 0.2.2
+-install-terminator 0.2.3 - Downloads config from Gitea configs repository. Here-Doc method still in place for now.
+-install-kitty 0.2.2 - added kitty.conf to curl command in kitty_config.
+-3.4.2 - Added album-art to ineligible folders in valid_folder.
+-install-kitty 0.2.2 - Downloads kitty.conf from Gitea configs repository. Original settings code retained for normal DE installs.
+-install-codium 0.1.2 - Downloads settings.json from Gitea configs repository. (original settings code retained for now.)
+-functionlib - corrected spelling in unmount_server & unmount_nas
+-randpic 3.4.1 - Cleaned up comments. Removed check to see if selected folder exists.
+-randpic 3.4.0 - Incorporated find command piped to shuf -n1 to select random folders and files.
+-randpic 3.4.0 - Added function to validate selected picture folder. Simplified validation of image file, since selected file will exist, do not need to test for its existence.
+-install-glow 0.4.16 - cosmetic change to getopts while loop.
+-Removed `/*` from find command. Testing showed it to be unnecessary.
+-gitea-backup.sh 1.0.1 - Replaced /home/rick with $HOME.
+-hidpp-battery 0.1.0 - initial commit. Displays status of hidpp battery using data from either /sys/class/power_supply/ or upower utility. User can select either using a command line option. Combined code from hidpp-s.sh and hidpp-u.sh.
+-clone-repo 0.2.9 - corrected systax error in an array index.
+-clone-repo 0.2.9 - Added gitea-server repositiory.
+-check-versions 0.11.5 - reformatted case statements.
+-check-logs 0.7.4 - corrected indentation in gitea_svr_backups function.
+-check-battery 0.3.3 - In warning_level function changed to echo capacity variable instead of returning the value. In battery_condition, set warning_level to be the output of the warning_level function.
+-check-logs 0.7.3 - Added function to use tree to show listing of Gitea Repository backups and add to select menu.
+-catless 0.2.8 - Removed commented lines from check arguments routine.
+-cal-todo 0.2.8 - changed localdoc global variable to docdir to make it more descriptive. Changed local variable for todo list template to templates. In opt cases, test for existence of todo.lst.
+-functionlib - updated comments for check_packages.
+-functionlib - Added faye (LMDE6) to is_debian function.
+-functionlib - Changed antix_mx from case statement to test conditional.
+-syncmosfa 1.3.8 - fixed format error, removed extraneous leading space.
+-sync-home 0.5.2 - changed update_zip_file to recurse directories due to moving image files to images directory. Move sync with Dropbox to its own function.
+-check-updates 2.0.5 - moved code for nala autoremove & nala autopurge to nala_update instead of having their own functions.
+-check-updates 2.0.4 - modified printf statements to include %d in first statement in update_complete and defer_updates. Changed Update Options: line from echo to printf
+-check-updates 2.0.3 - Corrected printf statements in update_complete & defer_updates. Declared variables local in purge_configs and apt_update.
+-snippets/misc_cmds - Added basic tar commands for creating and extracting tar.gz archives.
+-gitea-daily, gitea-weekly, gitea-monthly 1.0.1 - variables for archive directory and archive file.
+-weather 0.6.0 - Created a function to display message when curl times out when trying to connect.
+-Initial commit. Scripts for daily, weekly, and monthly backups of gitea repositories. getea-backup.sh is script to copy backups to Gitea server using rsynch.
+-cronscripts 0.4.0 - Added function and option to copy gitea backup scripts.
+-snippets/net-devices - added variations on finding SSID and signal level.
+-ip-info 2.6.5 - Changed displayed header line show hostname on the same line as IP Information.
+-ip-info 2.6.4 - Added SC2317 to shellcheck directives to ignore unreachable code errors in the show_bridge function. The commands in the function are unreachable because the call to the function is commented out.
+-ip-info 2.6.3 - Reverted req_sudo to use a local variable for hostname. Went back to using uname -n to get hostname in main.
+-snippets/net-devices - Added methods to obtain SSID and signal level on wireless connections.
+-ip-info 2.6.3 - Change methods for obtaining SSID and Signal on Wireless. Using iw. Both require sudo with #23. Eliminates if condition checking for iwgetid.
+- 2.6.1 - Changed the wifi_ssid conditional to run iwgetid if it is installed, then nmcli. Replaced the hardcoded wireless device name with the wifi_int variable.
+- 2.6.0 - Remove conditional test for existence of nmcli (assume network-manager installed). Wireless SSID obtained from iwgetid (nmcli if iwgetid is not installed). Wireless signal strength obtained froem /proc/net/wireless (sudo required for host hp-2560p). Created a local_host global variable used in displayed header and passed to req_sudo function.
+-upper2lower 3.2.2 - added a space to `Invalide argument` line.
+-upper2lower 3.2.2 - Added print statments to indicate the operation taking place. Added sed command to remove `./` when renaming all files.
+-upper2lower 3.2.1 - Removed the double quotes around --* in the case construct to respond to invalid arguments beging with 2 hyphens. With the double quotes it was looking for the literal string --*
+-write-iso 0.2.12 - Removed ShellCheck directive SC2012, no longer needed since ls is no longer used to find/display .iso files.
+-upper2lower 3.2.1 - In the --all option using find in conjunction with rename to prevent subdirectories from being converted to lowercase. Previously, the rename command acted on ./* which caused it to run recursively and converted sudirectories and their files.
+-check-updates 2.0.2 - Corrected printf commands in apt_update to display correct agreement with number of updates.
+-write-iso 0.2.12 - Replace ls to display ISO files with find and du commands.
+-upper2lower 3.2.0 - Placed routine to convert filenames from upper to lower case in a function called in the execution portion of the script. Revised the conditional statements for checking the passed arguments. If one argument is passed, a case statement determines the action taken.
+-check-iso - 0.5.2 - corrected minor format error in case/esac structure.
+-check-iso - 0.5.2 - eliminated duplicate displayed lines by placing them before and after the case-esac structure.
+-write-iso 0.2.11 - Changed method to count number of ISO files in the current directory to use find instead of ls.
+-check-iso 0.5.1 - Changed method to count number of ISO files in the current directory to use find instead of ls.
+-check-iso 0.5.0 - No longer takes command line arguments. Script list files and user is prompted to enter the appropriate file. Script runs the appropriate checksum program based on the checksum file extension.
+-check-updates 2.0.1 - Changed nala_autopurge, elimated check for rc files. Nala will do that.
+-check-updates 2.0.0 - Added nala_autoremove & nala_autopurge functions. Replaced echo with printf. Cleaned up select menus.
+-Updated check_dependencies to indicate either yt-dlp is installed or not installed. Removed instructions for installation.
+-yt-dl 2.3.4 - Removed ;; from last case response in case statements.
+-sftpin, sshin - Expanded argument checking. Rewrote usage function as a heredoc.
+-scan-range 0.2.1 - Renamed from scan-range.sh to scan-range. Fixed error in printf statement in check_arg_values. Updated header comments.
+-scan-range.sh 0.2.0 - created functions for each check and operation.
+-randpic 3.3.6 - replaced shopt nocasematch with making ext variable lowercase.
+-pwfeedback 0.4.3 - created variable for /etc/sudoers and employed it in functions.
+-snippets/misc_cmds - added trap builtin that disables Ctrl+C in a script.
+-odt-to-txt 1.1.3 - moved routine to list .odt files to a function, exits with error message if no .odt files found in the directory. Cleaned up select do-loop. No longer need to check if .odt files are present.
+-numfiles 0.2.0 - changed display output to use singular and plural of file depending on the number of files found.
+-meditation-timer 0.4.2 - updated header comments.
+-snippets/misc_cmds - Added trap builtin to clear the screen when a script exits.
+-ip-info 2.5.7 - Changed assignment to lhost to ${HOSTNAME:-$(hostname)}.
+-install-zoom 0.3.0 - Changed some function names to be more descriptive. Added function to determine if flatpak version is installed. Added function to extract flatpak version number. Modified install_zoom_flatpak to install flathub if not already installed. Modified remove_zoom to remove deb package and/or flatpak. webcam_info no longer exits if no attached webcam found. Changed option to install deb package from i to d since f is for flatpak. Revised r (remove) option with an or condition, if either or both versions are installed remove_zoom will run.
+-install-ufw 0.1.9 - Cleaned up some minor cosmetic things that do not affect performance.
+-install-ufw 0.1.8 - Changed conditional statement to enabel IPV6 to a sed command and moved to add_rules. Removed redundant command to enable UFW from install_ufw function.
+-install-kitty 0.2.1 - added imagemagick to install_kitty.
+-install-keepassxc 0.3.7 - Removed sudo from flatpak instructions (should be a user install). Removed PPA references, no longer using PPA for KeepassXC.
+-install-homebank 0.4.1 - changed echo in add_ppa to printf
+-install-homebank 0.4.0 - Added functions to check if flatpak version is installed and provide version number.
+-install-audioapps 1.3.0 - Moved installation of apps to functions. Removed PPA for easymp3gain. List of installed apps moved to a function that uses an array and a for-loop.
+-fixed check_dependencies function, correcting spelling of yt-dlp. Changed test from exists to testing for the executable file yt-dlp.
+-install-neofetch 0.1.7 - if neofetch places config in .config/neofetch, applies sed script and renames to config.conf.
+-config-bak 0.5.10 - removed line to backup .config/neofetch/config. None of my systems have that file.
+-files/neofetch.sed - updated to fix versioff to read as verion.
+-files/neofetch.sed - Changed neofetch configuation settings. Changed separator from : to ->.
+-install-flatpak 0.2.2 - Added echo to display what distro flatpak being installed on.
+-install-flatpak 0.2.1 - Changed if flatpak exists from echo to leave.
+-install-flatpak 0.2.0 - moved flatpak installation to install_flatpak function and removed instructions for Ubuntu versions prior to 20.04.
+-install-geany 0.2.8 - replaced dl_dir with tmp_dir (temporary directory). Creates temp directory for geany themes and removes it when script exits. Replaced printf statement containing script name and version info with leave function.
+-sync-installs 0.2.16 -set lhost variable with a default value.
+-hb-late 0.2.2 - set lhost variable with a default value.
+-refresh-net 2.0.4 - merged upstart refresh function into the restart_network function. Reformat case structure.
+-i3deb-cleanup 0.1.1 - Added removal of configs clone if it exists.
+-kkb 0.1.4 - Added check to see if i3 is installed on the system.
+-i3kb 0.1.4 - Added check to see if i3 is installed on the system.
+-system-status - removed extraneous spaces and blank lines.
+-system-status 0.5.8 - added overall CPU usage to cpu_usage function. Borrowed code from Neofetch.
+-Cleaned up yt-dlp scripts. Rmoved references and calls to temporary directory for format information. Expanded check_dependencies to display confirmation that yt-dlp is installed and error message if not installed.
+-yt-dl - 2.3.2 - Removed commented routine to select and display best format.
+-Updated scripts using yt-dlp to download videos to get best video and best audio (if not included with video) by default. Removed code to fetch and display available formats, since yt-dlp will be choosing best formats automatically.
+-bu 3.11 - In check-uuid() added else since last return statement is the default.
+-bu & up - Added Joe Collins GitHub URL and his header comments. Added copyright line to displayed header in up.
+-system-info 3.3.1 - Changed methods for getting CPU information from lscpu. Location in the json data of the CPU model name varies from system to system. Returned to the old method of piping lscpu through awk to get CPU information. Since json data is no longer being used, no need to see of jq is installed. Changed save_info function to use default_yes from functionlib.
+-functionlib - Capitalized default response in default_yes and default_no.
+-i3configs 0.1.1 - Added polybar/config.ini and polybar-i3 script with functions to download from Gitea server.
+-Changed prompt to save Corona data to use default_no instead of y_or_n function.
+-bcm-wifi 1.1.7 - replaced read prompt to download and install drivers with default_no function where N is the default response if the Enter or Return key is pressed.
+-functionlib - fixed something.
+-Added default_yes & default_no functions to functionlib. Responses default to either Y or N when Enter/Return key is pressed. Added/corrected documentation for yes/no functions.
+-catless 0.2.7 - Changed display is cat is used to display file, printing a 30-character line befor the script information.
+-bu 3.10 - corrected minor typos in displayed text.
+-bu 3.10 - replaced read command prompt in restore with y_or_n function. Added copyright under title box.
+-syncmosfa 1.3.8 - Replaced read command in check_host with yes_or_no function.
+-syncbin 1.5.7 - Replaced read command in check_host with yes_or_no function.
+-Changed call to yes_or_no to y_or_n function in functionlib.
+-y_or_no, yes_or_no.md - function documentation
+-Appended case-yn and added code for prompt requiring a response.
+-write-iso 0.2.10 - Replaced while loop for confirmation prompt with an if-else using the yes_or_no function.
+-functionlib - Added y_or_n and yes_or_no functions to provide yes/no prompts requiring a response.
+-Updated snippets.
+-Removed snippets no longer needed and renamed use_getopts to getopts-template.
+-snippets/make-dirs - creating multiple directories example.
+-snippets/config-conf - renamed from create-config. Guide for creating a script configuration file.
+-cronscripts 0.3.8 - when a file is copied, displays `==>` and full target path.
+-install-ufw 0.1.7 - Added getopts option to add CUPS and SSH rules. Updated help menu.
+-write-iso 0.2.7 - Changed method to display available ISO files from find to ls -lh in order to display file size. Changed order of device information for available USB devices. Changed wording of some displayed messages.
+-Removed snippets/atom-versions - no longer applicable since atom editor has been sunsetted and no longer installed on mosfanet. Added snippets/de-wm-info - commands to get desktop environment and window manager names from the command line. Neither command works in a remote session, must be physically on the machine.
+-config-bak 0.5.9 & config-restore 0.5.2 - Added polybar/config.ini to backup and restore.
+-config-restore - 0.5.1 - Rnameed res_bluefish_cfg to res_misc_cfg and changed it to restore files in directories in the root of the home folder not in .config. Removed unneed restores from misc configs.
+-config-bak 0.5.8 - removed unnessary target files.
+-config-restore 0.5.0 - Created modular general purpose functions to restore files, eliminating most of the file-specific functions. Added files to the menu that are backed up by config-bak, but had not been included in the previous version.
+-config-bak 0.5.7 - Added a second refi theme to be backed up.
+-config-bak 0.5.6 - Modified lines to print backed up files to include path after /home/$USER/.config/backup/
+-config-bak 0.5.5 - bu_sshpwd_file & bu_bluefish_cfg were identical funtions. Renamed bu_sshpwd_file to bu_misc_cfg & removed bu_bluefish_cfg. Changed sshpwd_file and Bluefish backups to use the renamed function.
+-config-bak 0.5.4 - Modified bu_sshpwd_file function because I changed the file location in my directory structure. Directory and filename are now passed to the function as variables.
+-config-bak 0.5.3 - Recreated Bluefish config backup as a special case function. Using the bu_home_config function caused the file to be copied without the display and incremented the count.
+-config-bak 0.5.2 - Changed backup for nanorc, git-config, git-creditenials to use regular backup functions, elimating 3 special-case functions.
+-config-bak - 0.5.1 - Added backup of i3 autostart.sh and logout scripts.
+-config-bak 0.5.0 - Organized backups into categories. Added polybar configs. Changed neofetch to use bu_config_cfg function. Eliminated special functions for neofetch and bluefish.
+-snippets/net-devices - added code to list and connect to wireless networks.
+-pwfin2main 0.3.1 - Added check_package rsync.
+-pwfin2main 0.3.0 - Removed script configuration file functionality. Variables now hardcoded in the script. For some reason, script was not reading mhost variable from the config file.
+- iru-bat 0.4.13, iru-marktext 0.3.11, iru-micro 0.4.12 - Added line in update option to exit with a message if new_ver variable is empty (No latest version is availabel on GitHub repo.
+-install-codium 0.1.1 - Added option to set GPG key file and source list file to updated versions installed from the GitHub repo.
+-iru-vscodium 0.2.10 - In update option, added to check for source list file. If it exists, the script exits immediately.
+-install-codium 0.1.0 - Installs/Removes VSCodium using Paul Carroty repository.
+-iru-vscodium 0.2.10 - Added a check for empty new_ver string. If new_ver is empty, exits with error message.
+-check-iso 0.4.4 - Changed messages if passed files cannot be found in the current directory.
+-write-iso 0.2.6 - Changed check if USB drive is inserted to add instruction to insert and mount drive. Added check to check if USB drive is mounted. Changed lsblk list to show only removable media (USB drives) and to not show HOTPLUG status.
+-check-iso 0.4.3 - Renamed script for consistency with the write-iso script.
+-checkiso 0.4.3 - Changed should to must in  usage function.
+-write-iso 0.2.5 - corrected email address in header comments.
+-write-iso 0.2.5 - Corrected order of variables passed to write_dd(). Added conditional statement to display failure message if dd fails.
+-files/neofetch.sed - escaped forward slashed in imaage_source path.
+-files/nosleep.sed - Adde `=` to search expressions.
+-install-glow 0.4.15 - Updated getopts -s option, replacing add_src_gpg with add_gpg and add_src_list.
+-nosleep 0.1.0, files/nosleep.sed - script to disable sleep/hiberation for Debian-based systems, using a sed script to modify /etc/systemd/sleep.conf and making a backup copy of the file.
+-snippets/Debian-disable-suspend - information on disabling suspend and hibernation on Debian systems.
+-laptoplid 0.3.2 - Added commend to restart systemd-logind.service.
+-files/laptoplid.sed - Updated to include HandleLidSwitch and HandleLidSwitchDocked to uncomment and set to ignore.
+-install-keepassxc 0.3.6 - commented out sudo for flatpack install and remove. Should be a user install, not system install.
+-install-zoom 0.2.0 - Added installation of flatpak version.
+-clone-repo 0.2.8 - Added Debian 12 window manager and dotfile repositories.
+-checkiso 0.4.2 - added text to dialog for dots which checksums are compared.
+-install-neofetch 0.1.6 - Made thumbnail_dir local to install_neofetch function.
+-functionlib - expanded example in check_packages comments.
+-install-glow 0.4.14 - Split add_src_gpg into two functions. Replaced exists_glow function with functionlib exists function. Changed glow_ver function to use cut instead of awk & sed. Replaced printf & exit after getopts loop with leave function.
+-install-conky 0.5.6 - Added conky_ver function to extract conky version. Replaced exit with leave function.
+-set-resume 0.5.1 - moved code for update-initramfs into a new function.
+-set-resume 0.5.0 - Placed routine to set RESUME in set_resume function.
+-system-status 0.5.7 - Removed if statement to check lm-sensors package, replaced with check_packages function. Added line to show confirmation of drivetemp module.
+-yt-dl - changed die message in check_dependencies.
+-config-bak 0.5.3 - Fixed bu_neofetch_config $$ error.
+-files/neofetch.sed - Added cpu_temp and changed image_source to point to neo-atheist.txt ascii image.
+-install-ufw 0.1.6 - Added bookworm to valid codenames is debian_system function. added `;;` to s getopts case.
+-install-glow 0.4.13 - Removed redundant printf statement for install.
+-install-neofetch 0.1.5 - Added function for neofetch version. Updated install and remove functions. Updated getops instructions.
+-install-virtmgr 0.2.2 - Moved package installation to its own function. Added modprobe vhost_net.
+-install-zoom 0.1.9 Combined two lines in webcam_info into one.
+-Removed -z option from rsync commands. Option unnecessary on local network.
+-syncmosfa 1.3.8 - removed -z option from rsynch commands.
+-sync-i3 0.1.4 - changed lhost declaration. removed -z option from rsynch commands.
+-install-homebank 0.3.7 - updated help function. Redundant script.
+-mount-bu 0.2.12 Changed default action for when noOpt = 1 to run status function. Made usbdrv a local variable in mount_bu adn umount_bu functions.
+-install-cmatrix 1.2.0 - Placed installation routine in a function. Added remove/uninstall function. Added help function. Added getopts functionality.
+-install-flatpak 0.1.12 - updated comments. Installs gnome-plugin only if gnome-software is already installed.
+-checkiso 0.4.1 - Added check_checksum function to ensure checksum file consists of only one line. Be sure there are no extraneous blank lines in checksum file. Function is called before select command. Script will exit with error message if function returns FALSE (0).
+-functionlib - general cleanup of structures and syntax.
+-BU 3.9 - In check_uuid function, replaced individual UUID and hostname variables with arrays.
+-bu 3.8 - Changed exit messages in drive_test() to use die function.
+-bu 3.7 - Corrected pb_host variable in check_uuid().
+-bu 3.7 - Added check_uuid function to ensure main backup drives are paired with the correct systems by checking the drive UUID.
+-syncmosfa 1.3.7 - Commented out clear command in Execution section.
+-check-logs 0.7.2 - corrected capitalization error in header display.
+-check-logs 0.7.1 - removed extraneous line from ytdlpupdate_log().
+-check-logs 0.7.0 - Replace echo with printf. Assigned lhost with default if $HOSTNAME is empty.
+-catless 0.2.5 - adjusted cat_limit() to limit using cat at 87% of availabe screen lines.
+-functionlib - adjusted viewtext() to limit using cat at 87% of availabe screen lines.
+-check-logs 0.6.9 - replaced youtube-dl with yt-dlp in printf statement.
+-check-logs 0.6.8 - changed Youtube-dl to yt-dlp.
+-YouTube download scripts - replaced youtube-dl with yt-dlp. May need further testing in case command line options differ in format.
+-files/ytdlp-uplog.sed - added routine to format successful update entry.
+-iru-youtube-dl 0.2.2 - fixed missing newline character in last printf in remove_youtubedl.
+-z-ytdlp-update - Removed -q flag from grep in update_status. Modified sed script and removed routines for error conditons pending occurrence of errors.
+-cronscripts 0.3.7 - Corrected file names to be copied in cp_zytdlpupdate and cp_ytdlpuplogsed.
+-z-ytdlp-update - correct script name in header comments.
+-cronscripts 0.3.7 - Updated to work with yt-dlp scripts. Updated help.
+-yt-dlp 0.1.0 - install/remove/update script for yt-dlp. Update scripts to run as a cron job, and sed script to clean up the log file.
+-iru-youtube-dl 0.2.2 - Corrected sed_location variable in install_youtubedl function.
+-check-logs 0.6.7 - Changed variables for log directories and log file to be standard in all functions that display logs.
+-write-iso 0.2.4 - Tested write_dd function. USB drive should be mounted. Removed code to check mountpoint and unmount USB drive.
+-write-iso 0.2.3 - removed grep from the end of printf line write_dd function.
+-write-iso 0.2.3 - write_dd function determines mountpoint if mounted, and unmounts device before writing the iso to the device.
+-write-iso 0.2.2 - Replaced select loop with while-loop using read and case to choose whether to write the ISO file. User must type `yes` or `no`.
+-purge-image-rc.sh 0.3.0 - Changed removal routine to a for-loop ensure all rc files are removed.
+-corona - changed select loop for yes or no response to saving data file to a simple yes or no. In US and world, to remove last 9 lines of temp file from being displayed.
+-functionlib - added yes_or_no function. Displays question passed to the function and return true or false (yes or no).
+-files/bookworm-backports.list - sources-list file for bookworm backports to be copied to /etc/apt/sources.list.d/
+-write-iso 0.2.1 - Removed commented out commands that were no longer applicable.
+-write-iso 0.2.1 - in dd command, changed bs=4M to bs=16M in accordance with instructions on debian.org web site.
+-files/deb-11-12.sed - sed script to update Debian 11 source.list file for upgrade to Debian 12.
+-write-iso 0.2.1 - Added line to display error message and exit if no ISO files found in the current directory.
+-write-iso 0.2.0 - utility to write *.iso files to a USB drive using the dd command. Exits if no USB device is connected. Indicates if a drive is removable or not.
+-checkiso 0.4.0 - Added function to check SHA512 checksums and added it to select loop.
+-bullseye-backports.list - renamed file.
+-files/backports.list - to be added to /etc/apt/sources.list.d on Debian 11 systems.
+-install-flatpak 0.1.11 - Commented out function and call to install gnome plugin. Added bookworm to acceptable version codenames.
+-install-mint-fortune 0.2.11 - Added victoria to is_mint.
+-lm20-snaps 0.2.7 - Added victoria to lm20_plus.
+-iru-bat 0.4.12 - Added victoria to check_distro.
+-functionlib - Added vanessa to support_ppa.
+-install-glow 0.4.12 - moved call to check_dependencies to -i and -s options in getopts.
+-iru-vscodium 0.2.9: Uses the find command to remove user configuration directories when VSCodium is removed from the system.
+-iru-micro 0.4.11: Uses find command to remove user configuration directory. Added code to remove root user configuration directory.
+-iru-marktext 0.3.10: uses find command to purge user configuration directory and files.
+-iru-chrome 0.3.12: Add find command to purge user configuration files in purge_chrome function.
+-iru-bat 0.4.11: Added bookworm to compatible distros in check_distro. Using find command to remove user configuration files when removing bat from the system.
+-install-terminator 0.6.4:Removes user configuration files using the find command.
+-install-neofetch 0.1.4: Removes user configuration files using the find command.
+-install-geany 0.2.7: Removes user configuration files using the find command.
+-install-brave 0.4.7: Using find command to locate and delete user configuration directories and files.
+-install-brave 0.4.7: Using find command to locate and delete user configuration directories and files.
+-install-kitty 0.2.0: remove_kitty now retains user configuration files. Created purge_kitty to purge kitty installation, including user config files.
+-install-kitty 0.1.11: Changed bindings variable in kitty_bindings from kitty-bindings.list to bindings.list to conform to changes in kitty configuration files.
+-bu 3.6: Fixed unmount_usb_drive to remove mount point if it exists. Previous tried to remove it if it did not exist. Oops.
+-bu 3.5: Calls mount_bu only if USB drive is not mounted. Added line to unmount_usb_drive to remove mount point if it still exists.
+-config-bak 0.5.2:change kitty-bindings.list to bindings.list
+-saved changes.
+-kkb 0.1.3: Renamed keybinding filename.
+-config-bak 0.5.2: Added backup for i3 and kitty keybindings lists.
+-functionlib - updated comments.
+-scriptarchive.sh 0.2.17: removed alternate locations for crontab in header comments.
+-scriptarchive.sh 0.2.17: Replaced log_date with date command substitution.
+-functionlib - Added bookworm to is_debian function.
+-up 2.1.1: fixed line in opening text display.
+-up 2.1.1: Fixed spelling & spacing errors. Remove brackets from color variables. Added action if no args to help.
+-i3kb 0.1.3: Renamed to i3kb from i3kb.sh. Corrected script header info.
+-i3kb - renamed from i3kb.sh to i3kb
+-install-kitty 0.1.10: Added function to install keybindings list.
+-kkb 0.1.2 renamed kkb
+-kbb - renamed from kitty-kb.sh
+-sync-installs 0.2.15: Removed references to Atom, added, kitty config.
+-install-kitty 0.1.9: Added link and code to download keybindings list.
+-sshin - removed path from ssh command.
+-kitty-kb.sh 0.1.2: Expanded to 4 columns from two.
+-mount-bu 0.2.11: Corrected declarlation for mount_point variable.
+-pwfin2main 0.2.4: Changed lhost variable declaration.
+-rename-host 0.4.3: Added line rule check case to indicated a valid hostname. Correct conversion of new hostname to lowercase.
+-install-keepassxc 0.3.5: Added space in Invalid option statement.
+-install-glow 0.4.11: Added charm_url variable to add_src_gpg function. Added sudo to rm commands in remove_glow.
+-hidpp-u.sh 0.2.1: Removed cleanup function since temp file no longer used. Removed is_hidpp; command is in if statement.
+-bu 3.4 - Rewrote checking of command line arguments. If no arguments, run backup, else use case to check arguments. Replaces if-elif...else construct. Added function to unmount USB drive and inform user that it is safe to remove it.
+-system-info 3.3.0: cpu_info uses json output from lscpu. added -quiet to lshw for network interfaces. Corrected bat_serial variable for cases when battery serial number is not provide.
+-install-zoom 0.1.8: Added function to display attached webcams. Exits installation if no webcam found.
+-vidcam-check 0.2.0: Added function to check if web is present on the system. Lists webcams found. Added functionlib.
+-kitty-kb.sh 0.1.1: Added function to copy kitty-bindings.list from i3debian repository if not present.
+-i3kb.sh 0.1.2: Added function to copy bindings.list from i3debian repository if not present.
+-i3kb.sh 0.1.1: Removed leading space from closing brace in show_bindings function.
+-i3deb-cleanup 0.1.0: renamed from cleanup-i3deb to i3deb-cleanup.
+-clone-repo 0.2.7: Expanded select loop case statements.
+-check-battery - removed trap to delete hidpp_data temp file.
+-check-battery 0.3.2: rewrote hidpp battery function to use variable instead of a temp file.
+-hidpp-u.sh 0.2.0: data held in a variable instead of a temp file.
+-catless 0.2.6: Updated error messages with printf and red_error.
+-bu 3.3: Minor cosmetic changes.
+-bs-meter 0.5.1: minor cosmetic changes; no effect on performance or operation.
+-boxes-spice 0.1.4: Removed `user_in_sudo` because function is not compatible with Arch Linux.
+-battery-check 0.5.3: Updated help function. Corrected minor spelling, formatting.
+-system-info - removed a blank line in bat_info function.
+-syncmosfa 1.3.6: Restrict IP addresses 153 and 227 (DHCP reservations) in sync_one and synch_some functions.
+-syncbin 1.5.5: Allow IP addresses 153 and 227 (DHCP reservations)
+-system-info 3.2.8: cleaned up functions and select cases. Nothing that affects performance or display of data.
+-syncrick 3.0.6: Changedd local_host variable.
+-syncrick - removed extraneous space at the beginning of a line.
+-0001-syncrick-3.0.6-Changed-variable-declaration-for-loca.patch
+-install-zoom 0.1.7: dots function starts on same line as Downloading zoom... and finishes with done.
+-Changed install functions to have dots print on same line during application download and printing done when download is finished.
+-system-status 0.5.6: Changed cpu_temperature to be similar format to nvme and sata temperatures.
+-system-status 0.5.5: in temperature functions, changed calls to sensosrs to echo the json variable and pipe it through grep.
+-system-status 0.5.4: Uncommented sensors | grep line so a reboot is not necessary after adding drivetemp to /etc/modules.
+-meditation-timer 0.4.2: Commented out wood-block sound at 5-minute intervals
+-system-status 0.5.4: Moved declaration to the execution portion of the script since it will be used globally by 3 functions. Rewrote NVMe and SSD/HDD functions to extract temperature data from json variable. This provides for consistency in how the script's output is displayed.
+-Updated cronscripts and z-defrag to exclude hp-probook-6570 since it has only an SSD.
+-cronscripts 0.5.6: Removed systems with no spinnning drives from case for z-defrag. Renamed variable for sed file location. Moved declaration for localip variable to global variables section.
+-z-defrag 1.2.2: Reverted to old script using case statements based on hostnames. New version using nested if statements did not work properly with systems with multiple spinning drives. It would follow the first nested if statement even if it wasn't true.
+-system-status 0.5.3: Added `jq` as a dependency. Modififed cpu_temperature function to extract CPU temperture data from a variable containing json output from sensors using jq -r. Known possibilities for CPU temperature data is tested for and uses the appropriate jq command to extract the data.
+-Changed chost to declare a default hostname if HOSTNAME is empty.
+-system-status 0.5.2: Formatted text in printf statements in displayed header.
+-system-status 0.5.1: Changed awk in cpu_temperature to search for temp1: and (high. Was giving 3 temperature for CPU because `temp1:` appears 3 times in the HP-6005 sensors output.
+-system-status 0.5.0: Changed check_dependencies to be more in line with similar functionlib functions. Replaced echo with printf. NVMe and SSD/HDD temperatures are now dipslayed in a single row if there are multiple devices. Moved check_dependencies and clear out of the main function to the Execution portion of the script.
+-system-status 0.4.2: Added function to get hard-drive/SSD temperature from sensors. Changed format of temperature listing to accomodate change.
+-system-info 3.2.7: Changed lhost declaration. removed `;;` from default case in case-statements.
+-syncfin 0.2.13: Removed sync to .local/share/doc/leave.txt from sync_to_main to avoid accidentally overwriting on main. Only needs to update financial data and files.
+-bu 3.2: Changed sync_drives function. Removed newline from first printf and ... from printf lines, so printed text will be on same line.
+-Applied patch
+-install-chromium-u 0.4.0-beta: Made it a getopts script and added function to remove ungoogled-chromium. Modified function to determine if distribution is compatible. Will need to be modified if there are other URLs for gpg keys or source list. A work in progress.
+-cronscripts 0.3.5: Cleaned up case statements. Changed cp_passwdsync and cp_hbarchive from if statements to case statements to conform with other copy functions.
+-checkiso 0.3.9: minor syntax and format adjustments; no change in operation or performance.
+-laptop-utils 1.5.4: Added function and option to enable/start tlp service in Systemd or SysV.
+-config-restore 0.4.4: Added res_bash_logut function and added it to sys_cfgs function. Removed function to restore Atom configurations and calls to the function, since Atom has been sunsetted and is no longer used.
+-config-bak 0.5.1: Added backup for ~/.bash_logout
+-sync-home 0.5.1: Updated comments. Renamed rm_bu_files to remove_bu_files.
+-sync-home 0.5.0: Added functions to remove backup files and update zip archive. Uses absolute paths to homepage and dropbox directories, eliminating calls to pushd and popd.
+-Changed homepage location from ~/homepage to ~/Documents/homepage
+-kitty-kb.sh 0.1.0: Script to display kitty keybindings.
+-i3kb.sh 0.1.1: Correct script name in header commments.
+-functions/dots-spin.md: Moved `tput civis` just before while loop.
+-functionlib, dots function: Moved `tput civis` out of the while-loop to just before the loop. Command only needs to run once in the function.
+-rename-host 0.4.2: Added comments. Set default value for old_host variable.
+-bu 3.1: Added `> /dev/null 2>&1` to mount_bu if condtional to keep output from being printed. Added `tput cnorm` to restore cursor after dot function is killed.
+-bu 3.1: added -q flag to grep in mount_bu().
+-bu, mount-bu: Changed method to extract drive device name, straight to a variable instead of cat tmp_file. Eliminated temp file and cleanup function. In bu script, moved the check for mount-point into mount_bu function. In a DE that auto mounts USB drives, the mount-point is created.
+-bu 3.1: Removed check_mount function, replaced with mount_bu. If backup drive is attached, has the right label, but is not mounted, mount_bu will find the correct device name and mount the drive.
+-mount-bu 0.2.9: Double-quoted $tmp_file" in mount_bu() function (to prevent globbing).
+-mount-bu 0.2.8: Changed mount_point variable to use $USER instead of hardcoded username.
+-mount-bu 0.2.8: Used lsblk -fs instead of -fp & eliminated second pipe to awk.
+-mount-bu 0.2.7: Automated mounting of backup drive by piping the output through awk to extract the last field of the usb device name and redirecting it to a temporary file. Then used command substition to place the file contents into a variable to use in the mount command.
+-mount-bu 0.2.6: Changed method to get name of usb device. Usigs lsblk -fp to print the device name of the drive labeled BU_Drive. User enters name at the read prompt. Now uses mount and awk to diplay mount location of the drive after it's been mounted.
+-bu 3.0 - Broke drive_test down to call individual functions to test backup drive attributes. Made sync routine a function. Placed default action in the command line arguments check as the else condition if no arguments are passed.
+-bu 2.3: Clean up comments.
+-bu 2.3: Added dots() to run during sync command.
+-Removed trap for SIGTERM SIGKILL. (SIGKILL cannot be trapped.) Function seems to work fine without it.
+-Updated documentation for dots() & spin() functions.
+-Updated format of getopts case statements.
+-Changed if [ $noOpt = 1 ] to [[ $noOpt = 1 ]] to eliminate if statement.
+-snippets/use_getopts: changed case format and made printf default instead of echo.
+-Templates/bash-getopts: changed case format and made printf default instead of echo.
+-syncfin 0.2.11: Renmamed rsync scripts to be more descriptive. Changed lhost declaration.
+-cal-todo 0.2.6: format case statement.
+-bcm-wifi 1.1.6: format case statement.
+-Changed shebang back to #!/usr/bin/env bash
+-Changed shebang back to #!/usr/bin/env bash
+-Changed shebang back to #!/usr/bin/env bash
+-Changed shebang back to #!/usr/bin/env bash
+-Changed shebang back to #!/usr/bin/env bash
+-Changed shebang back to #!/usr/bin/env bash
+-Changed shebang back to #!/usr/bin/env bash
+-Changed shebang back to #!/usr/bin/env bash
+-cal-todo 0.2.6 - corrected order of arguments for invalid option error message.
+-scriptarchive.sh 0.2.16: returned to version 0.2.15 state.
+-config-bak 0.5.0: Created 2 functions to backup most configuration files. Backup for others placed in functions.
+-config-bak 0.4.14: Added pipe to awk to display ==> folder/file when copying files to backup ~/.config/backup
+-i3configs 0.1.0: Script to copy default i3wm configuration files from the Gitea server.
+-z-defrag 1.2.1: Added extra newline to Defrag Report line to separate from defrag report.
+-i3kb.sh - script to display i3 keybindings. bindings.list in ~/.config/i3
+-iru-vscodium 0.2.6: Modified settings(). Changed theme to Default High Contrast. Added autoClosingQuotes: always.
+-z-defrag 1.2.0: Will only run e4defrag on sd(x) devices that are spinning drives. Removed checks for NVMe and SSD drives to avoid unnecessary writes, especially if the data is not changing.
+-clone-repo: 0.2.6: Renamed & rewrote function to check if git installed.
+-lm20-snaps 0.2.5: Redirect tee stdout to /dev/null
+-lm20-chromium.sh 0.3.2: Redirect tee stdout to /dev/null
+-install-glow 0.4.9: Redirect tee stdout to /dev/null
+-install-chromium-u 0.3.4: Redirect tee stdout to /dev/null
+-install-brave 0.4.5: Redirect tee stdout to /dev/null
+-set-resume 0.4.1: fixed redirection in writing swap_uuid to RESUME file. Placed code to extract swap UUID in a function.
+-set-resume 0.4.1: fixed redirection in writing swap_uuid to RESUME file. Placed code to extract swap UUID in a function.
+-system-info 3.2.6: Modified hd_info() to write hdparm output to a temporary file, then extract the data from that file for each sd(x) device found, resulting in fewer calls to hdparm.
+-system-info 3.2.5: Modified nvme_info() to account for two string model (manufacter model).
+-randpic 3.3.5: Cosmetic change to image options.
+-system-info 3.2.4: New bat_info function. Extracts battery information from /sys/class/power_supply/BAT?/uevent. Functions only if script detects it's running on a laptop. Designed to work with multiple batteries.
+-bash templates - removed emoji unicode.
+-system-info 3.2.3: Modified nvme_info() to place info for all NVMe devices into an array and extract data from the array using a for loop.
+-system-info 3.2.2: minor cosmetic changes.
+-system-info 3.2.1: Can now fix drive form factor info before writing to disk.
+-system-info 3.2.1: removed leading space in battery info display.
+-z-defrag 1.0.2: changed message if SSD is detected.
+-z-defrag 1.0.1: changed check for sd(x) devices. Corrected syntax in tr statements. No need for elif (commented out).
+-system-info 3.2.1: fixed check for NVMe drive.
+-system-info 5.2.0: check_dependencies() checks each dependency individually. bat_info() uses a for loop to get device names for laptop batteries. No longer needs upower installed and will support mulitiple batteries.
+-z-defrag 1.0.0: Updated comments and removed line for hostname.
+-z-defrag 0.9.9: added line to print a newline before writing log file.
+-cronscripts 0.3.3: removed 25/227 from list for z-defrag. Technical issues with 110-mini.
+-cronscripts 0.3.3: z-defrag will copy to all computers on the network to run new z-defrag script.
+-z-defrag 0.9.9: Checks for existence of SDx devices. Checks if SSD. Only runs e4defrag -c if a spinning drive.
+-Changed templates to allow unicode copyright symbol. Modified scripts to include unicode copyright in cur_yr variable. Added line to add organization to info inserted into template.
+-insert-license 3.0.3: added copyright unicode.
+-install-kitty 0.1.7: corrected tab spacing in getopts loop (cosmetic).
+-iru-youtube-dl 0.2.0: Removed script config file & added those variables to the script. Removed check for update script and sed file in check_dependencies. Removed break commands from getopts while-loop.
+-battery-check 0.5.2: added check for bc package, not default on BunsenLabs Beryllium.
+-check-battery 0.3.1: reinstated emojis for warnings.
+-battery-check 0.5.1: reinstated emojis for warnings.
+-Removed break statements from getopts while-loop, break prevents noOpt variable from being changed.
+-ip-info 2.5.6 - fixed title echo statement.
+-ytdlaudio 0.1.10: replaced line() with box().
+-yt-dl-playlist 0.1.7 replaced line() with box().
+-yt-dl-audio - removed color emoji. replaced line() with box().
+-wifi-up.sh - removed color emoji.
+-system-info 3.1.4 - removed color emoji.
+-resize-pics 0.1.1 - removed color emoji.
+-pwfin2main 0.2.3 - fixed lhost variable declaration and removed color emoji.
+-pingit 2.4.3 - removed color emoji.
+-meditation-timer 0.4.1 Replace Om unicode for dharma wheel unicode. dhamrm wheel prints okay.
+-iru-bat 0.4.8 - removed color emoji
+-ip-info 2.5.6 removed color emoji
+-install-zoom 0.1.5 - removed break from getopts loop and emoji from title line.
+-install-terminator 0.6.3 - removed check_dependencies since there are no dependencies.
+-install-rtorrent 0.1.5 - removed color emoji.
+-install-fonts 0.3.3 - check for dependencies in appropriate functions, removed break from getopts loop.
+-install-chromium-u 0.3.3 - updated Bullseye source list and trusted key urls. Removed install for other distros.
+-install-boxes 0.1.8 - moved enable_libvirt() to Functions section.
+-config-restore - 0.4.3 - removed color emojis.
+-checkiso 0.3.8 - changed error_code to check_code to clarify the meaning of the variable.
+-checkinit 0.1.4 - removed color emoji.
+-check-updates 1.8.0: Placed main apt update code in a function. Made number of updates completed or deferred local variables in their functions. Cleaned up nala function. If nala is installed, nala is run, otherwise apt/apt-get is run.
+-check-cron - renoved emoji from title line.
+-functionlib - removed ; local line from under_line(), caused function to not work.
+-check-battery 0.3.0 - removed emojis.
+-battery-check 0.5.0 - removed color emojis.
+-install-terminator 0.6.2 - Removed comment about getting config & fonts from server. Edit help heredoc.
+-install-ufw 0.1.4 - removed break statements from getopts case; they were exiting the while loop prematurely.
+-check-logs 0.6.6 - Added title line for sysinfo().
+-mount-bu 0.2.4 - added check to see if a USB drive is connected.
+-bu 2.2 - corrected numerous syntax errors.
+-syncfin 0.2.10 - synce .local/share/doc in both directions.
+-syncrick 3.0.4 - sync entire ~/.local/share/doc directory.
+-removed files/leave.txt. New location is ~/.local/share/doc
+-functionlib - moved location of leave.txt to ~/.local/share/doc
+-syncmosfa 1.3.3 - syncs entire .local/share/doc directory.
+-sync2vm 0.1.6 - added sync for .local/share/doc
+-syncfin 0.2.10 - syncs entire ~/.local/share/doc directory
+-syncbin 1.5.2 - syncs entire ~/.local/share/doc directory for 24, 25, 227
+-laptoplid 0.3.1 - removed excess header comments.
+-laptoplid 0.3.1 - removed emoji from printf statements. Not all my systems support emojis in the terminal.
+-locale-fix.sh 0.2.3 - updated & removed -t flag from update-initramfs cmd as it is not shown in man page.
+-files/leave.txt - add a new phrase.
+-pwfeedback 0.4.1 - modified getopts routine.
+-Modified templates to add coder organizaiton.
+-cronscripts 0.3.2 - modified getopts routine.
+-cal-todo 0.2.5 - modified getopts routine.
+-Updated script with modified getopts procedures.
+-up 2.0 - Updated and cleaned up script.
+-up 2.0 - Updated and cleaned up script.
+-Replaced if-else for getopts witn noOpt flag variable. Displays help function if no argument passed.
+-Replaced if-else for getopts with noOpt variable. Displays help and exits if no argument passed.
+-install-homebank 0.3.5 - Replaced if-else for getopts with noOpt variable. Displays help and exits if no argument passed.
+-install-homebank 0.3.5 - Replaced if-else for getopts with noOpt variable. Displays help and exits if no argument passed.
+-install-handbrake 0.3.6 - Replaced if-else for getopts with noOpt variable. Displays help and exits if no argument passed.
+-install-glow 0.4.8 - Replaced if-else for getopts with noOpt variable. Displays help and exits if no argument passed.
+-install-geany 0.2.5 - Replaced if-else for getopts with noOpt variable. Displays help and exits if no argument passed.
+-snippets/use_getopts Replaced if-else for getopts with noOpt variable. Displays help and exits if no argument passed.
+-snippets/use_getopts Replaced if-else for getopts with noOpt variable. Displays help and exits if no argument passed.
+-install-brave 0.4.4 - Replaced if-else for getopts with noOpt variable. Displays help and exits if no argument passed.
+-check-updates 1.7.1 - removed --assume-yes from run_nala() to give the option to defer updates.
+-files/leave.txt - removed a phrase.
+-weather 0.5.11 - Option 4 calls leave() function to display random phrase.
+-files/leave.txt - added new phrases.
+-weather 0.5.10 - Added exit message to option 4 (Quit).
+-cronscripts 0.3.1 - Removed IP 3 from lists. Changed cp_ytdluplogsed() to copy updatelog.sed to all systems.
+-files/updatelog.sed - added line to clean up apt warnings if nala is installed on the system.
+-z-update - Changed to use updatelogsed file to clean up log file in all cases.
+-check-updates 1.7.0 - Added functionality to use nala if installed instead of apt.
+-weather 0.5.9 - in wx_forecast, flipped then and else instructions, removed anykey from show_help, added to menu choice 3. Does not clear screen on exit.
+-weather 0.5.9 - Changed processing of input location. Locations with spaces can either have a plus sign (+) in place of the spaces or be enclosed in double quotes. Example: New+York or "New York". The script adds or deletes the plus sign as necessary.
+-netlog.js - removed because I have no idea why it is here or what it does.
+-Mint install scripts no longer needed. Have not used in years.
+-No longer needed, timeshift installed from repos.
+-No longer needed. Nala is in Debian 12 and sid, Ubuntu 22.04 repos.
+-Atom sunset by GitHub 15 Dec 2022.
+-Removed obsolete scripts.
+-syncbin 1.5.1 - fixed _version declaration.
+-syncbin 1.5.1, syncmosfa 1.3.2 - removed IP 3 from eligible addresses, re-added it to restricted addresses.
+-check-versions 0.11.5 - Added comment about Chromium not creating config directory until Chromium is run for the first time.
+-check-versions 0.11.4 - added quotes to chromium version check. Removed sub-headings.
+-snippets/use_getopts - updated error messages.
+-snippets/symlinks - updated with additional examples.
+-laptop-utils 1.5.0 - getopts added, help added.
+-laptop-utils 1.5.0 - getopts added, help added.
+-Templates/bash-getopts & Templates/bash-temeplate - changed shebang to #!/bin/bash for greater compatibility. Removed emoji from title line since emoji not support on all my systems.
+-snippets/symlinks - short symlink reference.
+-cleanup-i3deb 0.1.0 - Script to clean up cloned directories after i3 Debian installation.
+-syncmosfa 1.3.1 - changed printf at the end of the case statement in sync_script() to just a new-line character, a do-nothing line.
+-check-versions - updated header comments.
+-cronscripts 0.3.0 - renmed sed_path and made it a global variable outside calling function.
+-Changed all instances of create_config, config_dir, and config_file to create_conf, conf_dir, and conf_file to avoid confusion wiht installed programs configuration directories and files. Naming is also more accurate since these functions and variables actually create .conf files.
+-iru-youtube-dl 0.1.4 - renamed create_config to create_conf to match conf_dir and conf_file.
+-iru scrilpts - displays installing line.
+-files/leave.txt - added phrases.
+-bs-meter 0.5.0 - Added disclaimer. Expanded for loops. Replaced some echo statements with printf.
+-check-versions 0.11.3 - removed old commented method for chromium version.
+-check-versions 0.11.2 - changed check for chromium version.
+-bs-meter 0.3.9 - changed spaces varible to space_42 and used for loop to form a string of space characters.
+-functionlib - Added SIGKILL to dots() & spin().
+-functions/dots-spin.md - updated to incorporate changes to dots and spin functions.
+-functionlib - dots() - removed tput cnorm since it did not do anything.
+-Modified dots() in functionlib to hide cursor. Changed scripts to restore cursor after dots bg process is killed.
+-checkiso 0.3.7 - moved dots() functionality to check_sha256() and check_md5() functions.
+-functionlib - modified dots() to hide cursor. need to restore in calling script.
+-weather 0.5.8 - removed redirect from sed line wx_forecast(). It was unnecessary.
+-passwdsync.sh 0.4.8 - changed #!/usr/bin/env sh to #!/bin/sh for better compatibility between systems.
+-zz-clean - changed #!/usr/bin/env sh to #!/bin/sh for better compatibility between systems.
+-z-ytdlupdate - changed #!/usr/bin/env sh to #!/bin/sh for better compatibility between systems.
+-z-update - changed #!/usr/bin/env sh to #!/bin/sh for better compatibility between systems.
+-z-defrag - changed #!/usr/bin/env sh to #!/bin/sh for better compatibility between systems.
+-z-clean-tmp - changed #!/usr/bin/env sh to #!/bin/sh for better compatibility between systems.
+-z-backup 1.1.1 -changed #!/usr/bin/env sh to #!/bin/sh for better compatibility between systems.
+-scriptarchive.sh 0.2.15 - changed #!/usr/bin/env sh to #!/bin/sh for better compatibility betwween systems.
+-passwdsync.sh 0.4.8 - changed #!/usr/bin/env sh to #!/bin/sh for better compatibility betwween systems.
+-snippets/curl-wget - added progress bar flags for curl.
+-snippets/curl-wget - changed #!/usr/bin/env sh to #!/bin/sh for greater compatibility.
+-iru-bat 0.4.5 - added user_in_sudo() prompt for sudo password.
+-install-brave 0.4.3 - changed apt to apt-get for consistency.
+-install-zoom 0.1.3 - added dots() to install_zoom() to provide progress bar for file download.
+-iru-bat 0.4.5 - added dots() to install_bat() to provide a progress bar for file download.
+-iru-marktext 0.3.4 - added dots() to install_marktext to provide a progress bar for file download.
+-iru-micro 0.4.5 - added dots() to install_micro() to provide a progress bar for file download.
+-iru-micro 0.4.5 - added dots() to install_micro() to provide a progress bar for file download.
+-iru-youtube-dl 0.1.3 - added -# to curl cmd in install_youtubedl function to provide progress bar.
+-iru-vscodium 0.2.2 - added dots to install_vscodium to provide a progress bar for file download.
+-iru-vscodium 0.2.1 - Moved user_in_sudo to immediately precede commans requiring sudo. Replaced some echo commands with printf where convenient. Incorporated red_error variable into error messaged.
+-check-versions 0.11.1 - Removed check_dependencies() because it was redundant. Moved check_package curl out of main() to Execution block.
+-check-versions 0.11.6 - added xed to apt_tools().
+-syncfin 0.2.8 - added check_package rysnc
+-weather 0.5.7 - correct curl command to download forecast, fixed cleanup function.
+-weather 0.5.7 - added responses if site not responding, temp file for forecast data.
+-Added wood block sounds to files for meditation-timer.
+-meditation-timer 0.4.0 - sound file is passed to play_sound, plays sound at 5-min intervals.
+-files/leave.txt - added phrases.
+-syncbin 1.5.0 - included hp-850-g3 (22), added 10/22 to case in sync-script.
+-syncrick 3.0.2 - added check for lap_host and invalid client message.
+-syncfin 0.2.7 - change shebang to bin/bash, fixed local_host variable declaration.
+-snippets/create-config - example to create script config files.
+-files/leave.txt - added phrase.
+-syncrick 3.0.1 - Added local variable to sync_script() for hostip.
+-syncfin 0.2.6 - removed backslash in title line.
+-syncrick 3.0.1 - removed localip variable, not needed.
+-syncrick 3.0.0 - total rewrite to sync files between main PC and main laptop.
+-syncmosfa removed sync to #22
+-syncfin 0.2.6 - removed emoji from title line.
+-files/leave.txt - added phrase.
+-syncbin 1.4.11 -- changed hashbang to /bin/bash, excluded hp-850-g3 (22) from sync operations.
+-weather 0.5.6 - changed hashbang to /bin/bash
+-dos2linux-c 1.0.3 - changed hashbang to /bin/bash
+-dos2linux 1.0.11 - changed hashbang to /bin/bash
+-dl-webpage 0.1.9 - changed hashbang to /bin/bash
+-dl-scripts 0.2.9 - changed hashbang to /bin/bash and retired.
+-devtoolinst 0.1.4 - changed hashbang to /bin/bash
+-devtoolchk 0.1.6 - changed hashbang to /bin/bash
+-cronscripts 0.2.18 - changed hashbang to /bin/bash
+-corona-world 0.1.9 - changed hashbang to /bin/bash
+-corona-us 0.1.10 - changed hashbang to /bin/bash
+-corona-states 0.3.7 - changed hashbang to /bin/bash
+-corona 0.3.7 - changed hashbang to /bin/bash
+-config-restore 0.4.2 - changed hashbang to /bin/bash
+-config-bak 0.4.13 - changed hashbang to /bin/bash
+-cmp-bin-repo - changed hashbang to /bin/bash
+-clone-repo 0.2.5 - changed hashbang to /bin/bash
+-clean-c 0.1.1 - changed hashbang to /bin/bash
+-clean-bin 2.2.3 -changed hashbang to /bin/bash
+-checkinit 0.1.3 - changed hashbang to /bin/bash
+-check-versions 0.11.5 removed sleep from check_dependencies.
+-check-updates 1.6.3 - changed hashbang to /bin/bash
+-check-logs 0.6.6 - hanged hashbang to /bin/bash
+-check-cron 0.4.2 - changed hashbang to /bin/bash
+-check-battery 0.2.16 - changed hashbang to /bin/bash
+-catless 0.2.5 - changed hashbang to /bin/bash
+-cal-todo 0.2.4 - changed hashbang to /bin/bash
+-c-menu.sh 0.2.2 - changed hashbang to /bin/bash
+-bu-cinnkeys 0.1.7 - changed hashbang to /bin/bash
+-bu - 2.1 - changed hashbang to /bin/bash
+-bs-meter 0.3.7 - changed hashband to /bin/bash
+-boxes-spice 0.1.3 - changed hashband to /bin/bash
+-bcm-wifi - 1.1.5 - changed hashband to /bin/bash
+-battery-check 0.4.10 - changed hashband to /bin/bash
+-Brasero-bug-fix 0.2.1 - changed hashband to /bin/bash
+-removed red_error declaration from scripts since it is included in functionlib.
+-functionlib - Added red_error as a global variable. Added sleep 2 to check_package & check_packages.
+-lm20-snaps 0.2.3 - changed rederrror to red_error
+-install-keepassxc 0.3.2 - changed rederror to red_error, removed sleep after check_dependencies.
+-c-menu.sh 0.2.2 - fixed red_error and printf in select loop.
+-functionlib - Corrected comment block in format_time function.
+-functionlib - updated comments, unmount_sshfs, umount_nas
+-check-versions 0.11.4 - changed method to get kitty version (dpkg -l), added sleep 1 to check_dependencies.
+-randpic 3.3.4 - checks for imagemagick
+-check-versions 0.11.3 - changed method to get chromium version.
+-check-versions 0.11.2 - added shellcheck and sed for firefox ESR version.
+-check-versions 0.11.1 - expanded section titles.
+-check-versions 0.11.0 - added functions to get installed versions of browsers and terminals.
+-pwfin2main 0.2.1 - correctd variables in create_config and pwfin2main.conf
+-checkiso 0.3.6 - added exit_msg function with version and update info for use in case choices.
+-lm20-chromium.sh 0.3.1  - fixed local _script variable assignment.
+-laptop-utils 1.4.2 - fixed local _script variable assignment.
+-ip-info - fixed local _script variable assignment.
+-check-cron 0.4.1 fixed local _script variable assignment.
+-check-versions 0.10.1 - fixed _script variable.
+-check-versions 0.10.0 - added other terminal emulators to apt_versions function.
+-files/leave.txt - corrected a phrase
+-rename-host 0.4.1 - placed command to remove hostname backup files on one line, added descriptive comments.
+-files/leave.txt - removed a phrase.
+-syncmosfa 1.2.9 - added gitea directory to sync to #22
+-weather - reduced sleep after check_dependencies to 2 seconds.
+-files/leave.txt - added/deleted phrases.
+-check-versions 0.9.1 - fixed date in _updated variable.
+-files/leave.txt - added new phrase.
+-check-versions 0.9.1 - changed error messages for invalid package names, no longer exits with error. Instead continues to end.
+-files/leave.txt - added phrase.
+-files/leave.txt - added/removed phrases
+-snippets/qm-args - list of the question-mark arguments used in scripts.
+-files/leave.txt - added/deleted phrases.
+-randpic 3.3.3 - fixed directory to remove image from ~/Pictures
+-files/leave.txt - added new phrase.
+-functionlib - added check to restrict to 1 character to be repeated.
+-randpic 3.3.2 - added option to reject selected file and delete file from selected directory.
+-randpic 3.3.2 - added option to reject selected file and delete file from selected directory.
+-files/leave.txt - added a phrase.
+-files/leave.txt - added a new phrase.
+-lm20-chromium.sh 0.3.0 - renamed is_lm20 to valid_version. Replaced echo with printf. Added all Mint 20 codenames.
+-lm20-snaps 0.2.2 - renamed is_lm20 to lm20_plus and added vanessa & vera to case.
+-clone-repo 0.2.4 - removed rederror variable because functionlib is not sourced.
+-clone-repo 0.2.4 - added rederror variable.
+-clone-repo 0.2.4 - added rederror variable.
+-snippets/copy-iso-usb - added another dd command line.
+-snippets/case-yesno - corrected spelling and syntax errors.
+-functionlib - optional character in dots function
+-files/profile-append - XDG_DATA_DIRS
+-syncbin 1.4.10 - correct ip variable for syncing wallpapers.
+-syncbin 1.4.10 - added sync of wallpaper files.
+-misc_cmds - added commands to find init system.
+-checkinit 0.1.2 - uses is_systemd and is_sysv functions from functionlib.
+-cateless 0.2.4 - cat_used returns true if less than cat_limit.
+-catless 0.2.4 - modified if statement in cat_used to correspond with viewtext function
+-functionlib - viewtext - modified if-statement to use bracket test instead of parentheses
+-functionlib - renamed variables in viewtext, declared some variables as local
+-cal-todo 0.2.3 - deletes line with year if 3-month calendar, defaults to current month and todo list if no argument passed, added program description to help.
+-catless 0.2.3 - expanded help function
+-catless 0.2.2 - corrected syntax error in _version assignment
+-sync-i3 0.1.3
+-rename-host 0.4.0 - if hostname is associated with 127.0.0.1, changes 2nd instance to 127.0.1.1
+-functionlib - removed bionic and Mint 19.x from support_ppa() function
+-install-mint-fortune 0.2.10 - modified check_dependencies, added is_mint function
+-install-audacious 0.1.6 - removed local ppa_file="", served no purpose
+-config-restore 0.4.1 - fixed _script declaration and assignment
+-c-menu.sh 0.2.1 - check_dependencies, added glibc and build-essential
+-corona 0.3.6 - corrected typo in _version declaration
+-check-battery 0.2.15 - removed extraneous blank line from ac_status function
+-bu 2.1 - updated.
+-install-timeshift 0.1.5 replaced echo with printf
+-mk-fortunes 1.2.10 - added check for fortune-mod package
+-ren-ext 2.0.5 - updated header info and comments
+-weather 0.5.6 - changed show_help to heredoc format
+-randpic 3.3.1 - check for imagemagick
+-install-zoom 0.1.2 - added check_packages to check_dependencies
+-updated header comments, fixed _script variable assignment and declaration
+-bs-meter 0.3.7 - updated header info, corrected _scripts assignment
+-Brasero-bug-fix 0.2.0 updated header info, corrected _scripts assignment
+-boxes-spice 0.1.2 - updated header info, corrected _scripts assignment
+-bcm-wifi 1.1.4 updated header info, moved bcm_url to download_driver function
+-battery-check 0.4.10 - updated header info, added -v flag for version info
+-man-templat - rewritten for use with troff (Jake@Linux)
+-z-update - added --system flag to flatpak update
+-system-info 3.1.3 - updated check_dependencies to use new check_package in functionlib
+-functionlib - modified check_package to match format of check_packages
+-system-info 3.1.2 - corrected error in check_dependencies.
+-weather 0.5.5 - fixed sleep command after check_dependencies.
+-weather 0.5.5 - updated check_dependencies function, added 3 second sleep after check_dependencies.
+-system-status 0.4.1 - removed hddtemp as dependency from header comments.
+-system-info 3.1.2 - updated check_dependencies function.
+-bash-getops, bash-template - updated with new check_dependencies function and _script variable assignment.
+-local-ip-up 0.4.3 - updated check_dependencies function.
+-iru-youtube-dl 0.1.3 - added script config file and updated check_dependencies function.
+-iru-vscodium 0.2.0 - updated check_dependencies function
+-iru-micro 0.4.4 - updated check_dependencies function
+-iru-marktext 0.3.3 - updated check_dependencies function
+-iru-bat 0.4.4 - updated check_dependencies function
+-ip-info 0.2.5 - updated check_dependencies function.
+-install-glow 0.4.7 - updated check_dependencies function.
+-bash-template - changed _script global variable by assigning variable then declaring it readonly.
+-install-fnloc 0.1.8 - updated check-dependencies function.
+-install-conky 0.5.5 - new check-dependencies functions to incorporate new function in functionlib
+-functionlib - added check_packages function to check if mulitiple packages are installed.
+-install-brave 0.4.2 declared _script variable, then made readonly
+-install-brave 0.4.2 revised get_dependencies() to use new function.
+-randpic 3.3.0 - version number.
+-randpic 3.3.0 - returns to loop if unsorted or wallpaper folders selected, added -geometry option to display command.
+-randpic 3.2.15 - move check for unsorted folder after assinging sel_dir
+-check-battery 0.2.14 added -q to grep in hidpp_battery
+-config-bak 0.4.11 - fixed syntax error in copy command
+-config-bak 0.4.11 - added i3/workspaces.conf
+-check-updates 1.6.1 - corrected spelling error in update_flatpak verbage.
+-check-updates 1.6.1 - added dialoge to denote user and system-wide flatpak updates in update_flatpak()
+-check-updates 1.6.0 - added updates to system-wide flatpak updates after user flatpak updates in update_flatpak()
+-randpic 3.2.14 - renamed is_valid_image to valid_image
+-check-updates 1.5.13 - updated version number & modification date.
+-randpic 3.2.14 - continue while loop if  ~/Picutres/unsorted directory
+-check-updates - removes Fragmentation score explanation.
+-check-updates 1.5.13 - added --user to flatpak update
+-syncfin 0.2.6 - added sync todo.lst to sync_fin()
+-check-updates 1.5.12 - removed sudo from update_flatpack() to prevent error in flatpak updates.
+-check-logs 0.6.3 - add newline to beginning of message when timeshift is running.
+-check-logs 0.6.2 - Clears screen only if dipslaying log file.
+-install-ufw 0.1.2 - changed verbose status to numbered status in status option.
+-check-versions 0.8.5 - changed color of packages in deb_versions() to dark gray
+-mount-bu 0.2.2 Added sudo to mkdir in mount_bu function.
+-cronscripts 0.2.17 - added IP 3 (hp-8300).
+-syncmosfa 1.2.8 - Added HP-8500 (#3) to be synchronized.
+-syncit 1.2.8 - removed hp-8300 (#3) from restriced list, okay to sync.
+-syncbin 1.4.9 - added IP 3 (hp-8300) to synchronization.
+-ip-info 2.5.3 - Modified show_dns for cases when nmcli does not exist or does not return DNS information.
+-config-bak 0.4.10 - added back for .rasi files & bar.conf
+-sync-i3 0.1.3 - added sync_bumblebee & main functions.
+-check-versions 0.4.8 Removed Atom and Pulsar from array in get_versions function.
+-passwdsync.sh 0.4.7 - moved pipe symbol from before 2nd if-statement to in front of updated and unchanged.
+-install-keepassxc 0.3.0 - added function to uninstall; added checks for installed versions.
+-syncfin 0.2.5 - corrected ip variable to sync todo.lst.
+-system-status 0.4.1 - removed hddtemp.
+-system-status 0.4.0 - renamed, dded NVMe & HDD temperatures & moved routines into functions.
+-syncbin 0.4.8 - correct text in sync for todo list.
+-z-defrag removed utility name from log display.
+-laptop-utils 1.4.1 - added toxt to tlp_service, corrected util_status.
+-laptop-utils 1.4.0 - created main function, renamed is_installed to installed.
+-config-bak 0.4.9 - added sxhkdrc
+-profile-append - removed ATOM_HOME environmental variable
+-cal-todo 0.2.1 - fixed if statement in getopts option e (edit).
+-added sync of todo.lst
+-cal-todo 0.2.1 - created template file, new create_todo & -e option.
+-install-keepassxc 0.2.3 - added command to install KeePassXC from distribution repo. Added check if flatpak installed.
+-install-keepassxc 0.2.2 - correct flatpak install & flatpak list commands.
+-cronscripts 0.2.10 updated comments in cp_updatelogsed function.
+-check-updates 1.5.11 removed -y from update_flatpak, redundant
+-system-info 3.1.1 - changed grep -qw to grep -q to fix errant function calls.
+-install-keepassxc 0.2.2 - removed call to move_vault from -d and -f options.
+-check-updates 1.5.11 - removed extra new-line from update_flatpak function.
+-check-logs 0.6.1 - adjusted print_line argument to fit columns.
+-z-defrag - remove Done. lines.
+-check-updates 1.5.10 - re-enabled update_flatpak.
+-iru-vscodium 0.1.13 - changed Current to Installed  in compare_versions
+-iru-micro 0.4.3 - changed Current to Installed  in compare_versions
+-iru-marktext 0.3.2 - changed Current to Installed  in compare_versions
+-iru-bat 0.4.3 - added vera to compatible distros, changed "Current version" to "Installed version"
+-pwfin2main 0.2.1 - uncommented lhost variable, correctd mhostip variable.
+-pwfin2main 0.2.1 - uncommented lhost variable
+-pwfin2main 0.2.1 - added config file
+-install-keepassxc 0.2.1 - changed location of password vaults.
+-pwfin2main 0.2.0 - Changed location of password vaults.
+-changed password vault location to ~/Documents.
+-install-keepassxc 0.2.1 -added -m flag to move password vaults to ~/.local/share/doc
+-syncmosfa 1.2.5 - corrected rsync command for password vaults.
+-syncfin 0.2.2 - corrected rsync command for password vaults.
+-syncmosfa 1.2.4 - Added sync of password vaults to new location.
+-syncfin 0.2.1 - changed password vault directory
+-syncfin 0.2.1 - changed password vault directory
+-pwfin2main 0.2.0 - added function to sync with default vault location.
+-install-keepassxc 0.2.0 Removed PPA install, added flathub install. Incorporated getopts.
+-passwdsync.sh 0.4.5 - changed location in mstr_dir variable.
+-laptop-utils 1.3.3 - removed PPA installs.
+-laptop-utils 1.3.3 - removed PPA installs.
+-install-flatpak - 0.1.9 - added detection of Ubuntu Jammy
+-functionlib - added if_jammy() function.
+-check-logs 0.6.0 - moved case actions into seperate functions.
+-check-logs 0.5.6 - modified routine to view Timeshift snapshots.
+-mount-sshfs 0.3.2 - removed sudo from mkdir to create mountpoint in ~/mnt
+-mount-sshfs 0.3.1 - added EliteBook 850 G3 (22) to list.
+-cronscripts 0.2.16 - enabled updatelogsed for #22
+-install-ufw 0.1.1 - added full path to ufw version
+-z-defrag - moved hp-850-g3 to its own case.
+-syncmosfa 1.2.3 - Modified so EliteBook 850 (22) is synchronized.
+-1.4.6 - Removed IP 22 (hp-850-g3) from syncing homepage.
+-no changes
+-system-info 3.1.0 - dded nvme_info, modified ff_fix, os_info, check_dependencies functions.
+-system-info 3.1.0 - dded nvme_info, modified ff_fix, os_info, check_dependencies functions.
+-iru-chrome 0.3.9 - updated gpg key and sources.list
+-functionlib - added comment to localnet global variable.
+-weather 0.5.4 - Moved script title to top in wx_forecast().
+-check-versions 0.8.3 - moved header lines to appropriate function.
+-check-versions 0.8.2 - added bluefish editor to deb_versions.
+-bashrc.sed - added -F to la alias
+-bashrc.sed - modified changes to ls aliases
+-check-versions 0.8.1 - Removed underline attributes.
+-install-terminator 0.6.0 - added function to get version; Checks exists in getopts case.
+-check-versions 0.8.0 - checks distro packages, variables in get_versions.
+-cal-todo 0.2.0 - added function to create new todo list.
+-iru-vscodium 0.1.12 - Added function to install Cascadia Code fonts.
+-install-terminator 0.5.9 - Modified Cascadia Code install function.
+-install-kitty 0.1.4 - Added function to install Cascadia Code fonts.
+-install-geany 0.2.3 - renamed function for installing font.
+-functionlib - added full path to several commands
+-cal-todo 0.1.2 - todolist is readonly, minor syntax corrections.
+-cal-todo 0.1.1 - initial commit, calendar and to-do list.
+-install-geany 0.2.2 - correct version number
+-install-geany 0.2.2 - added -v flag to cp in install_themes function.
+-install-geany 0.2.2 - removed dots function. Added awk & sed to display file names.
+-checkiso 0.2.1 - added newline charactor to printf after kill command.
+-install-geany 0.2.1 - added dots function to install_themes, fixed printf statements.
+-check-versions 0.7.2 - Initialized new_ver variable to "Not found" get_versions function.
+-syncbin 1.4.5 - fixed sync_some for ip 227
+-install-geany 0.2.0 - added getops, help, removal, install themes.
+-install-geany 0.1.0 - minor cosmetic changes.
+-install-geany 0.1.0 - installs geany with themes and fonts.
+-leave.txt - corrected a quote.
+-weather 0.5.3 - corrected spelling in a comment.
+-install-glow 0.4.6 - Added text to src_gpg function.
+-cronscripts 0.2.15 - Added 227 to cp_zupdate function.
+-install-glow 0.4.5 - Updated src_gpg function.
+-weather 0.5.3 - Changed default location to Dayton (Ohio).
+-syncbin 1.4.4 - Added IP 227 (hp-mini-110)
+-syncbin 1.4.4 - Added IP 227 (hp-mini-110)
+-iru-vscodium 0.1.11 - Correctd getopts case for i
+-checkiso 0.3.4 - added dots function to checks and expanded dialog.
+-checkiso 0.3.4 - added dots function to checks and expanded dialog.
+-checkiso 0.3.3 - assigned names to $1 & $2 arguments.
+-checkiso 0.3.3 - assigned names to $1 & $2 arguments.
+-checkiso 0.3.2 - updated usage(), fixed syntax error.
+-check-versions 0.7.1 - updated comments.
+-check-versions 0.7.1 - updated comments.
+-weather fixed comment indentation.
+-updated WiFi-pwds
+-WiFi-pwds - extra wireless passwords.
+-changed server mount point to home directory.
+-mount-sshfs 0.3.1 - changed mount point from /mnt to ~/mnt
+-mount-sshfs 0.3.1 - changed mount point from /mnt to ~/mnt
+-error_codes - added another error function.
+-install-atom-deb 1.5.3 - corrected echo statement in update_atom()
+-functionlib - replaced echo with printf in diehard()
+-README.md - fixed spelling errors.
+-README.md - fixed spelling errors.
+-check-versions 0.7.0 - Cleaned up printf statements. Prints No release if none available.
+-check-versions 0.6.15 - added Pulsar (Atom fork), pending release.
+-tty-fonts - Added. Info for setting tty fonts.
+-bu - added box function in a couple places.
+-scriptarchive.sh v0.2.14 Removes empty error log.
+-hb-archive.sh v1.2.13 Removes empty error log.
+-hb-archive.sh v1.2.13 - delete error log if no errors.
+-syncmosfa v1.2.2 - Added synchronization of ~/.config/scripts directory.
+-syncbin v1.4.3 - added ~/.config/scripts.
+-syncbin v1.4.3 - added ~/.config/scripts.
+-syncfin v0.2.0 - added script configs & uses a config file for hostnames & IPs.
+-functionlib - correct spelling error in comment.
+-insert-license v3.0.0 - fixed usage function.
+-gpl_v1 - updated for insertion into code.
+-mk-changelog v1.0.0 - Resolved variable conflict.
+-mk-readme v2.0.0 - creates and sources a configuration file.
+-Fixed errors in the readme template
+-readme - minor modifications to placeholders.
+-mk-changelog v1.0.0 - modified to create & source a config file.
+-Added alternate email address.
+-Added function to create config files & source config files.
+-modified bash and cpp header templates.
+-mk-bash v3.0.0 - incorporated config file for static placeholder information.
+-install-atom-deb v1.5.2 - removed check for atom cfg dir from getops case
+-install-atom-deb v1.5.1 - added help function, updated comments.
+-install-atom-deb v1.5.0 -  installs version 1.63.0. Uses getopts.
+-install-handbrake v0.3.5 - removed excess code from install_handbrake function.
+-iru-youtube-dl v0.1.2 - renamed removal function.
+-iru-micro v0.4.2 -Renamed install and remove functions.
+-iru-micro v0.4.2 -Renamed install and remove functions.
+-iru-marktext v0.3.1 Renamed install, remove, and version functions.
+-iru-bat v0.4.2 - renamed install and remove functions.
+-iru-vscodium v0.1.10 - replaced _app with _vscodium in functions.
+-iru-vscodium v0.2.9 - Edit leave messages. Removed sed command from new_pkg.
+-install-zoom v0.1.1 - updated help function.
+-install-zoom v0.1.1 - added gdebi to check_dependencies & version number to remove_zoom.
+-install-zoom v0.1.0 - removed extraneious comments & blank lines.
+-bash-getopts - Fixed copyright line, added function templates.
+-iru-vscodium v0.1.9 - changed new_pkg variable
+-install-zoom v0.1.0 - Script to install Zoom on Debian/Mint/Ubuntu.
+-install-brave v0.4.1 - Changed brave_ver to display full product name and version number.
+-install-brave v0.4.0 - added -yy to apt-get remove...
+-install-brave v0.4.0 - OpenGPG keys, modified removal.
+-install-brave v0.3.2 - revised brave_ver function.
+-misc_cmds - routines for browser verion info.
+-install-brave v0.3.2 - revised brave_ver function.
+-install-brave v0.3.1 - Added function to get Brave version number.
+-meditation-timer v0.3.4 - Static exit code of 2 in input_value function.
+-meditation-timer v0.3.3 - Time is passed to main-timer function rather than global variable.
+-meditation-timer v0.3.3 - Time is passed to main-timer function.
+-meditation-timer v0.3.2. countdown is single line.
+-sync-i3 v0.1.1 - change remote destination to configs repo.
+-cronscripts v0.2.14 - Added blank line after a comment.
+-fixed spelling error in clone_repo comments.
+-bu - added messages to safely remove backup drive.
+-install-glow v0.4.4 - Added function to apply charm.list & gpg key.
+-install-glow v0.4.3 - Added function to check if glow installed.
+-bu - exclude local/share/libvirt/images
+-mount-sshfs v0.3.0 - updated share name for travel laptop.
+-sync2vm v0.1.5 - added --exclude .git for bin sync.
+-v0.2.13 - Corrected hostnames for remote machines.
+-enclosed variables in parentheses
+-v0.2.2 - added check_package function.
+-v0.2.1 - fixed spelling error.
+-v0.2.1 - removed sourcing functionlib.
+-v0.2.0 - passes repo name to a function for cloning.
+-v0.1.0 - Clone a repo from the local Gitea server.
+-v0.1.0 - Clone a repo from the local Gitea server.
+-v0.2.14 - rsysnc excludes ~/bin/.git/
+-v0.5.2 - Set default location and check for help arguments.
+-v0.5.1 - Added color for temps below freezing.
+-v0.5.1 - Added color for temps below freezing.
+-v0.3.1 - Assigns value to min variable, then checks if 0 or non-digit.
+-v0.3.0 - Defaults to 20 min. Checks for input value of 0.
+-v0.5.0 - fixed multiple assignments of COLUMNS
+-v0.5.0 - added functions to set colors & warnings
+-v0.4.1 - removed bottom line in forcast.
+-v2.7.0 - modified to have device naming to be the same as install-conky.
+-Fixed date command in the defrag log.
+-fix feels like temp & added latitude/longitude.
+-Added sunrise/sunset info & modified appearance.
+-v1.2.13 - excludes .git directory from archive.
+-Update of functionlib and documentation.
+-v0.4.2 - fixed arping_check function, added entries for unassigned static ip addressess.
+-v0.4.2 - changed 192.168.0.16 from Windows PC to Gitea
+-v0.2.1 - changed order of operations in getopts case
+-v0.3.0 - Removed if-else. is_laptop = FALSE, leaves script.
+-Create infor file for Timeshift.
+-v0.3.3 - cosmetic changes.
+-v03.4 - cosmetic changes.
+-v0.4.2 - cosmetic changes.
+-v0.1.3 - made local_host variable readonly
+-v0.5.4 - incorporated functionlib.
+-v0.3.1 - made variables local to using functions.
+-v0.3.0 - cleaned up script, cosmetic changes.
+-v0.1.3 - added --exclude .git to bin rsync
+-uncommented refresh_rate, changed to set to off.
+-v0.2.1 - removed extra newlines.
+-turned refresh_rate back on (default)
+-added --exclude '.git' to rsync for bin directory
+-added leave comments.
+-Fixed printf systax error.
+-removed sync Templates
+-Changed Templates directory from ~/Templates to ~/bin/Templates
+-updated to not include ~/Templates
+-v0.2.12 - changed name of error log.
+-deleted aaa-base.sh, fixed rsync
+-Removed a-test.sh (test script)
+-Updated README file
+-initial commit
+-Initial commit
