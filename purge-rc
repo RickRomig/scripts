@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Updated      : 04 Dec 2025
+# Updated      : 17 Jan 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -40,7 +40,6 @@ fi
 
 list_rc_packages() {
   local rcpkgs
-  # rcpkgs=$(dpkg --list | awk '/^rc/ {print $1,$2}')
   rcpkgs=$(awk '/^rc/ {print $1,$2}' <(dpkg --list))
   printf "Packages in the 'rc' state:\n"
   printf "%s\n" "$rcpkgs"
@@ -52,7 +51,8 @@ purge_rc_packages() {
   if yes_or_no "Are you sure you want to purge the config files for these packages?"; then
     sudo_login 2
     printf "\n%sPurging obsolete configuration files...%s\n" "$green" "$normal"
-    for rcpkg in $(dpkg --list | awk '/^rc/ {print $1,$2}'); do
+    # Can't use process substituion for this.
+    for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
       sudo apt remove --purge "$rcpkg" -yy
     done
   else
@@ -62,12 +62,12 @@ purge_rc_packages() {
 
 list_headers() {
   printf "\n%sInstalled linux headers and images:%s\n" "$green" "$normal"
-  dpkg --list | grep -Ei --color 'linux-image|linux-headers' | awk '{$1=$1}1' | cut -d' ' -f2,3 | column -t
+  grep -Ei --color 'linux-image|linux-headers' <(dpkg --list ) | awk '{$1=$1}1' | cut -d' ' -f2,3 | column -t
 }
 
 main() {
   local script="${0##*/}"
-  local -r version="4.10.25338"
+  local -r version="4.11.26017"
   if grep -q '^rc' <(dpkg --list); then
     list_rc_packages
     purge_rc_packages
