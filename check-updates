@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 17 Jan 2026
+# Updated      : 18 Jan 2026
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -41,7 +41,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="9.0.26017"
+readonly version="9.1.26018"
 SECONDS=0
 
 ## Functions ##
@@ -277,7 +277,7 @@ check_for_updates() {
   upgrades=$(tail -n1 <(sudo apt update 2>/dev/null))
   printf "%s\n" "$upgrades" | awk -F'.' '{print $1"."}'
   grep -q '^All' <(echo "$upgrades") && return
-  apt list --upgradeable 2>/dev/null | sed '1d;s/\/.*$//'
+  sed '1d;s/\/.*$//' <(apt list --upgradeable 2>/dev/null)
 }
 
 other_checks() {
