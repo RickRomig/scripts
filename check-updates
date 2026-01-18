@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 03 Dec 2025
+# Updated      : 17 Jan 2026
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -41,7 +41,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="8.2.25337"
+readonly version="9.0.26017"
 SECONDS=0
 
 ## Functions ##
@@ -54,7 +54,7 @@ cleanup() {
 
 help() {
 	local errcode="${1:-2}"
-  local updated="03 Dec 2025"
+  local updated="17 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt or Nala.
@@ -62,6 +62,7 @@ Performs a system update using either Apt or Nala.
 ${green}Usage:${normal} $script [-ahn]
 ${orange}Available options:${normal}
   -a  Perform a system upgrade using apt-get
+  -c  Check for updates (No upgrade)
   -h  Show this help message and exit
   -n  Perform a system upgrade using nala
 ${orange}Notes:${normal}
@@ -270,10 +271,26 @@ Kernel: $(uname -sr)${normal}
 _HEADER_
 }
 
+check_for_updates() {
+  local upgrades
+  printf "\nChecking for updates...\n"
+  upgrades=$(tail -n1 <(sudo apt update 2>/dev/null))
+  printf "%s\n" "$upgrades" | awk -F'.' '{print $1"."}'
+  grep -q '^All' <(echo "$upgrades") && return
+  apt list --upgradeable 2>/dev/null | sed '1d;s/\/.*$//'
+}
+
+other_checks() {
+  exists cinnamon-spice-updater && update_spices
+  check_flatpak
+  check_disk_space
+  over_line "Update completed in $(format_time $SECONDS)"
+}
+
 main() {
   local noOpt opt optstr OPTARG OPTIND
 	noOpt=1
-	optstr=":ahn"
+	optstr=":achn"
 	while getopts "$optstr" opt; do
     case "$opt" in
       a )
@@ -283,6 +300,12 @@ main() {
         check_disk_space
         sudo_login 1
         apt_update
+        other_checks
+        ;;
+      c )
+        show_header
+        sudo_login 1
+        check_for_updates
         ;;
       h )
         help 0
@@ -299,6 +322,7 @@ main() {
           printf "Nala is not installed. Reverting to apt-get ...\n"
           apt_update
         fi
+        other_checks
         ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
@@ -308,10 +332,6 @@ main() {
   done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-  exists cinnamon-spice-updater && update_spices
-  check_flatpak
-  check_disk_space
-  over_line "Update completed in $(format_time $SECONDS)"
   over_line "$script $version"
   [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && reboot_system
   exit
