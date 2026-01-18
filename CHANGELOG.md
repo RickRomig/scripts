@@ -1,3 +1,6 @@
+-cronjobs/git-dwm.sh: create_snapshot() - weekly & monthly snapshots copy current daily snapshot to appropriate directory
+-check-updates: check_for_updates() - process substitution for 'apt list --upgradable'
+-CHANGELOG.md: modifed check-updates
 -check-updates: added check_for_updates() to check for and list upgradable packages; move spices, flatpaks to other_checks()
 -purge-rc: purge_rc_packages() - removed 1st field from awk command; list_headers() - implemented process substitution
 -CHANGELOG.md: updated - refactoring of functionlib
