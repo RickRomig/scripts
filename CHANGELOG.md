@@ -1,3 +1,5 @@
+-check-updates: check_for_updates() - process substitution for printf
+-CHANGELOG.md: updated
 -cronjobs/git-dwm.sh: create_snapshot() - weekly & monthly snapshots copy current daily snapshot to appropriate directory
 -check-updates: check_for_updates() - process substitution for 'apt list --upgradable'
 -CHANGELOG.md: modifed check-updates
