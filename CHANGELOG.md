@@ -1,3 +1,6 @@
+-check-updates: added check_for_updates() to check for and list upgradable packages; move spices, flatpaks to other_checks()
+-purge-rc: purge_rc_packages() - removed 1st field from awk command; list_headers() - implemented process substitution
+-CHANGELOG.md: updated - refactoring of functionlib
 -functionlib: refactored several functions
 -CHANGELOG.md: udpated
 -CHANGELOG.md: initial commit - Changelog from git log
