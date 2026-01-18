@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Jan 2024
-# Last updated : 09 Oct 2025
-# Version      : 2.2.25282
+# Last updated : 18 Jan 2026
+# Version      : 2.3.26018
 # Comments     : Includes both Gitea and GitHub repositories.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,12 @@ create_snapshot() {
 	local -r archive_dir=~/Downloads/archives/gitea
 	archive="git-snapshot-$(date +%y%m%d).tar.gz"
 	[[ -d "$archive_dir/$interval" ]] || mkdir -p "$archive_dir/$interval"
-	tar -czpf "$archive_dir/$interval/$archive" "$HOME"/gitea "$HOME"/Projects >/dev/null 2>&1
+	case "$interval" in
+		daily )
+			tar -czpf "$archive_dir/$interval/$archive" "$HOME"/gitea "$HOME"/Projects >/dev/null 2>&1 ;;
+		weekly|monthly )
+			cp "$archive_dir/daily/$archive" "$archive_dir/$interval/"
+	esac
 	remove_old_snapshots "$interval" "$archive_dir"
 }
 
