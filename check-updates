@@ -41,7 +41,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="9.1.26018"
+readonly version="9.2.26018"
 SECONDS=0
 
 ## Functions ##
@@ -275,7 +275,7 @@ check_for_updates() {
   local upgrades
   printf "\nChecking for updates...\n"
   upgrades=$(tail -n1 <(sudo apt update 2>/dev/null))
-  printf "%s\n" "$upgrades" | awk -F'.' '{print $1"."}'
+  awk -F'.' '{print $1"."}' <(printf "%s\n" "$upgrades")
   grep -q '^All' <(echo "$upgrades") && return
   sed '1d;s/\/.*$//' <(apt list --upgradeable 2>/dev/null)
 }
