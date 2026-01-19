@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Sep 2019
-# Updated      : 15 Jul 2025
+# Updated      : 19 Jan 2026
 # Comments     : Creates a compressed tar archive of the folder's contents.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -46,7 +46,7 @@ check_host() {
 
 remove_bu_files() {
 	local -r homepage_d="$1"
-  printf "Removing backup files (if any)...\n\n"
+  printf "\nRemoving backup files (if any)...\n"
   find "$homepage_d"/ -type f -regex '\./.*~$' -print -delete
   find "$homepage_d"/ -maxdepth 2 -type f -name "*.bak" -exec rm -v {} \;
 }
@@ -57,9 +57,9 @@ archive_homepage() {
 	archive_d="$2"
 	archive="homepage-$(date +%y%m%d).tar.gz"
 	[[ -d "$archive_d" ]] || mkdir -p "$archive_d"
-	printf "Backing up %s...\n" "$homepage_d"
+	printf "\nBacking up %s...\n" "$homepage_d"
 	tar -czvf "$archive_d/$archive" -C "$HOME/gitea" homepage
-	printf "Removing archives more than three months old...\n"
+	printf "\nRemoving archives more than three months old...\n"
 	find "$archive_d" -mtime +90 -print -delete
 }
 
@@ -67,15 +67,14 @@ sync_dropbox() {
 	local -r archive_d="$1"
 	local -r homepage_d="$2"
 	local -r dropbox_d="$HOME/Dropbox/homepage"
-	if [[ -d "$dropbox_d" ]]; then
-		printf "\nSynchronizing ~/Documents/homepage with ~/Dropbox/homepage...\n"
-		rsync -av --delete --exclude '.git' --exclude '.gitignore' "$homepage_d"/ "$archive_d"/ "$dropbox_d"
-	fi
+	[[ -d "$dropbox_d" ]] || return
+	printf "\nSynchronizing %s with %s...\n" "$homepage_d" "$dropbox_d"
+	rsync -av --delete --exclude '.git' --exclude '.gitignore' "$homepage_d"/ "$archive_d"/ "$dropbox_d"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.11.25196"
+	local -r version="6.12.26019 "
 	local -r main_host="hp-800g2-sff"
 	local -r homepage_dir="$HOME/gitea/homepage"
 	local -r archive_dir="$HOME/Downloads/archives/homepage"
