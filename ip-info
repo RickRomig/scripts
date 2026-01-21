@@ -196,7 +196,7 @@ show_gateway() {
 
 show_dns() {
   local dns_addr
-  dns_addr=$(awk '/IP4.DNS/ {print $NF}' <(/usr/bin/nmcli dev show) | uniq -u)
+  dns_addr=$(awk '/IP4.DNS/ {print $NF}' <(/usr/bin/nmcli dev show) | sort -u)
   printf "%sDNS Servers:%s\n" "$orange" "$normal"
   sed 's/^/        /' <(printf "%s\n" "$dns_addr")
 }
