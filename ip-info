@@ -196,7 +196,7 @@ show_gateway() {
 
 show_dns() {
   local dns_addr
-  dns_addr=$(awk '/IP4.DNS/ {print $NF}' <(/usr/bin/nmcli dev show) | uniq -u)
+  dns_addr=$(awk '/IP4.DNS/ {print $NF}' <(/usr/bin/nmcli dev show) | sort | uniq -d)
   printf "%sDNS Servers:%s\n" "$orange" "$normal"
   sed 's/^/        /' <(printf "%s\n" "$dns_addr")
 }
@@ -204,7 +204,7 @@ show_dns() {
 main() {
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r script="${0##*/}"
-  local -r version="4.0.26021"
+  local -r version="4.1.26021"
   requires_sudo "$lhost" && sudo_login 2
   check_dependencies
   clear
