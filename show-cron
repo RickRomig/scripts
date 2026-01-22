@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Mar 2018
-# Updated      : 14 Jul 2025
+# Updated      : 22 Jan 2026
 # Comments     : Requires sudo privileges
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -81,8 +81,8 @@ show_user_cron() {
   while [[ "$index" -le "$max" ]]; do
     norm_user="$(awk -v pat="$index" -F: '$0~pat{print $1}' /etc/passwd)"
     if [[ "$norm_user" ]]; then
-      printf "\n%sCron jobs for %s:%s\n" "$orange" "${norm_user^}"  "$normal"
-      sudo crontab -l -u "$norm_user" | grep -v '^#' | awk '{print "  "$1,$2,$3,$4,$5"|"$6}' | column -ts "|"
+      printf "\n%sCron jobs for %s:%s\n" "$orange" "${norm_user^}" "$normal"
+      grep -v '^#' <(sudo crontab -l -u "$norm_user") | awk '{print " "$1,$2,$3,$4,$5"|"$6}' | column -ts "|"
     fi
     (( index++ ))
   done
@@ -90,12 +90,12 @@ show_user_cron() {
 
 show_root_cron() {
   printf "\n%sCron jobs for root:%s\n" "$orange" "$normal"
-  sudo crontab -l | grep -v '^#' | awk '{print "  "$1,$2,$3,$4,$5"|"$6}' | column -ts "|"
+  grep -v '^#' <(sudo crontab -l) | awk '{print "  "$1,$2,$3,$4,$5"|"$6}' | column -ts "|"
 }
 
 main() {
   local script="${0##*/}"
-  local version="6.4.25195"
+  local version="6.5.26022"
   local lhost="${HOSTNAME:-$(hostname)}"
   sudo_login 0
   clear
