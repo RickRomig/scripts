@@ -1,3 +1,11 @@
+-local-ip-up: scan_static_addresses() - reassigned names to 11, 14, 16, 19
+-ip-info: show_dns() - piped awk output into sort -u
+-Revert "ip-info: show_dns() - piped awk output into sort then uniq -d"
+-ip-info: show_dns() - piped awk output into sort then uniq -d
+-ip-info: refactored show_network(), show_gateway(), show_dns()
+-ip-info: refactored functions showing IP information, formated printf statements
+-sync-home: sync_dropbox() - returns if no dropbox directory
+-CHANGELOG.md: udpated check-updates
 -check-updates: check_for_updates() - process substitution for printf
 -CHANGELOG.md: updated
 -cronjobs/git-dwm.sh: create_snapshot() - weekly & monthly snapshots copy current daily snapshot to appropriate directory
