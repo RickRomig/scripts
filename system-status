@@ -79,7 +79,7 @@ cpu_temperature(){
 	elif grep -q 'Core 0' <(echo "$sensor_json"); then
 		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(jq -r '."coretemp-isa-0000"."Core 0"."temp2_input"' <(echo "$sensor_json"))"
   else
-    printf "%-10s Not available\n" "CPU:"
+    printf "%-10sNot available\n" "CPU:"
 	fi
 }
 
@@ -91,7 +91,7 @@ gpu_temperature() {
   elif grep -q 'pch_skylake-virtual-0' <(echo "$sensor_json"); then
     printf "%-10s%2.1f\U2103 \n" "GPU:" "$(jq -r '."pch_skylake-virtual-0"."temp1"."temp1_input"' <(echo "$sensor_json"))"
   else
-    printf "%-10s Not available\n" "GPU:"
+    printf "%-10sNot available\n" "GPU:"
   fi
 }
 
@@ -103,7 +103,7 @@ nvme_temperature() {
 		if grep -q 'nvme-pci-0300' <(echo "$sensor_json"); then
 			printf "%-10s%2.1f\U2103 \n" "$drv_name:" "$(jq -r '."nvme-pci-0300"."Composite"."temp1_input"' <(echo "$sensor_json"))"
     else
-      printf "%-10s Not available\n" "$drv_name:"
+      printf "%-10sNot available\n" "$drv_name:"
 		fi
 	done
 }
@@ -120,7 +120,7 @@ sata_temperature() {
 		elif grep -q 'drivetemp-scsi-2-0' <(echo "$sensor_json"); then
 			printf "%-10s%2.1f\U2103 \n" "$drv_name:" "$(jq -r '."drivetemp-scsi-2-0"."temp1"."temp1_input"' <(echo "$sensor_json"))"
     else
-      printf "%-10s Not available\n" "$drv_name:"
+      printf "%-10sNot available\n" "$drv_name:"
 		fi
 	done
 }
@@ -152,7 +152,7 @@ show_footer() {
 main() {
   check_dependencies
   local sensor_json
-  sensor_json="$(sensors -j)"
+  sensor_json="$(sensors -j 2>/dev/null)"
   show_header
   memory_usage
   cpu_usage
