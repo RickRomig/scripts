@@ -1,3 +1,5 @@
+-show-cron: show_user_cron() & show_root_cron() - process substitution
+-CHANGELOG.md: updated ip-info & local-ip-up
 -local-ip-up: scan_static_addresses() - reassigned names to 11, 14, 16, 19
 -ip-info: show_dns() - piped awk output into sort -u
 -Revert "ip-info: show_dns() - piped awk output into sort then uniq -d"
