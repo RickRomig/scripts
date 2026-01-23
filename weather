@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 28 Aug 2025
+# Updated      : 23 Jan 2026
 # Comments     : Based on a script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -36,17 +36,15 @@ else
   exit 1
 fi
 
-# set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.19.25240"
+readonly version="6.20.26023"
 
 ## Functions ##
 
 help() {
-  local updated="28 Aug 2025"
+  local updated="23 Jan 2026"
   clear
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
@@ -85,13 +83,6 @@ timeout_exit() {
   local wx_loc="${1//[+_]/ }"
   printf "Current weather data for %s is not available.\n" "$wx_loc"
   printf "Try again later.\n\n"
-}
-
-is_url_accessible() {
-  local url result
-  url="$1"
-  result=$(curl --head --connect-timeout 8 --max-time 14 --silent --output /dev/null --write-out '%{http_code}' "$url")
-  [[ "$result" -eq 200 ]] && return "$TRUE" || return "$FALSE"
 }
 
 exit_script() {
@@ -294,7 +285,7 @@ main() {
   local location="${1:-Huber+Heights}"
   local wx_url="https://wttr.in"
   check_dependencies
-  is_url_accessible "$wx_url" || { printf "%s is not accessible.\nTry again later.\n" "$wx_url" ; exit_script; }
+  url_reachable "$wx_url" || { printf "%s is not accessible.\nTry again later.\n" "$wx_url" ; exit_script; }
   menu "$wx_url" "$location"
   exit_script
 }
