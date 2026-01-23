@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018,Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Nov 2018
-# Updated      : 05 Dec 2025
+# Updated      : 23 Jan 2026
 # Comments     : Inspired by Joe Collins and Luke Smith
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -38,7 +38,7 @@ fi
 ## Functions ##
 
 check_drivetemp() {
-  sensors | grep -qw drivetemp || sudo modprobe drivetemp
+  grep -qw drivetemp <(sensors) || sudo modprobe drivetemp
   grep -qw drivetemp /etc/modules || echo drivetemp | sudo tee -a /etc/modules
   printf "drivetemp module - [OK]\n"
   sleep 1
@@ -53,7 +53,7 @@ check_dependencies() {
 }
 
 memory_usage() {
-	printf "\n%sMemory usage:%s %s\n" "$orange" "$normal" "$(/usr/bin/free -h | awk '/^Mem:/ {print $3 " / " $2}' | sed 's/i//g')"
+	printf "\n%sMemory usage:%s %s\n" "$orange" "$normal" "$(awk '/^Mem:/ {print $3 " / " $2}' <(/usr/bin/free -h) | sed 's/i//g')"
   printf "%sProcess%s\t\t%sPercentage%s\n" "$underline" "$normal" "$underline" "$normal"
 	ps axch -o cmd:15,%mem --sort=-%mem | head -n 5
 }
@@ -61,7 +61,7 @@ memory_usage() {
 cpu_usage() {
   local cores cpu_usage cpu_use
   cores="$(grep -c "^processor" /proc/cpuinfo)"
-  cpu_usage="$(ps aux | awk 'BEGIN {sum=0} {sum+=$3}; END {print sum}')"
+  cpu_usage="$(awk 'BEGIN {sum=0} {sum+=$3}; END {print sum}' <(ps aux))"
   cpu_use="$((${cpu_usage/\.*} / ${cores:-1}))"
 	printf "\n%sCPU usage: %s%s%%\n" "$orange" "$normal" "$cpu_use"
   printf "%sProcess%s\t\t%sPercentage%s\n" "$underline" "$normal" "$underline" "$normal"
@@ -70,28 +70,28 @@ cpu_usage() {
 
 cpu_temperature(){
   local sensor_json="$1"
-	if echo "$sensor_json" | grep -q 'k10temp-pci-00c3'; then
-		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(echo "$sensor_json" | jq -r '."k10temp-pci-00c3"."temp1"."temp1_input"')"
-	elif echo "$sensor_json" | grep -q 'dell_smm-virtual-0'; then
-		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(echo "$sensor_json" | jq -r '."dell_smm-virtual-0"."CPU"."temp1_input"')"
-	elif echo "$sensor_json" | grep -q 'Package id 0'; then
-		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(echo "$sensor_json" | jq -r '."coretemp-isa-0000"."Package id 0"."temp1_input"')"
-	elif echo "$sensor_json" | grep -q 'Core 0'; then
-		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(echo "$sensor_json" | jq -r '."coretemp-isa-0000"."Core 0"."temp2_input"')"
+	if grep -q 'k10temp-pci-00c3' <(echo "$sensor_json"); then
+		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(jq -r '."k10temp-pci-00c3"."temp1"."temp1_input"' <(echo "$sensor_json"))"
+	elif grep -q 'dell_smm-virtual-0' <(echo "$sensor_json"); then
+		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(jq -r '."dell_smm-virtual-0"."CPU"."temp1_input"' <(echo "$sensor_json"))"
+	elif grep -q 'Package id 0' <(echo "$sensor_json"); then
+		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(jq -r '."coretemp-isa-0000"."Package id 0"."temp1_input"' <(echo "$sensor_json"))"
+	elif grep -q 'Core 0' <(echo "$sensor_json"); then
+		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(jq -r '."coretemp-isa-0000"."Core 0"."temp2_input"' <(echo "$sensor_json"))"
   else
-    printf "%-10sNot available\n" "CPU:"
+    printf "%-10s Not available\n" "CPU:"
 	fi
 }
 
 gpu_temperature() {
   # Only machines 10, 12, and 22 display GPU temperature.
   local sensor_json="$1"
-  if echo "$sensor_json" | grep -q 'nouveau-pci-0100'; then
-    printf "%-10s%2.1f\U2103 \n" "GPU:" "$(echo "$sensor_json" | jq -r '."nouveau-pci-0100"."temp1"."temp1_input"')"
-  elif echo "$sensor_json" | grep -q 'pch_skylake-virtual-0'; then
-    printf "%-10s%2.1f\U2103 \n" "GPU:" "$(echo "$sensor_json" | jq -r '."pch_skylake-virtual-0"."temp1"."temp1_input"')"
+  if grep -q 'nouveau-pci-0100' <(echo "$sensor_json"); then
+    printf "%-10s%2.1f\U2103 \n" "GPU:" "$(jq -r '."nouveau-pci-0100"."temp1"."temp1_input"' <(echo "$sensor_json"))"
+  elif grep -q 'pch_skylake-virtual-0' <(echo "$sensor_json"); then
+    printf "%-10s%2.1f\U2103 \n" "GPU:" "$(jq -r '."pch_skylake-virtual-0"."temp1"."temp1_input"' <(echo "$sensor_json"))"
   else
-    printf "%-10sNot available\n" "GPU:"
+    printf "%-10s Not available\n" "GPU:"
   fi
 }
 
@@ -99,11 +99,11 @@ nvme_temperature() {
 	local drive drv_name sensor_json
   sensor_json="$1"
 	for drive in /dev/nvme0n[0-9]; do
-		drv_name=$(echo -n "$drive" | awk -F/ '{print $NF}')
-		if echo "$sensor_json" | grep -q 'nvme-pci-0300'; then
-			printf "%-10s%2.1f\U2103 \n" "$drv_name:" "$(echo "$sensor_json" | jq -r '."nvme-pci-0300"."Composite"."temp1_input"')"
+		drv_name=$(awk -F/ '{print $NF}'<(echo -n "$drive"))
+		if grep -q 'nvme-pci-0300' <(echo "$sensor_json"); then
+			printf "%-10s%2.1f\U2103 \n" "$drv_name:" "$(jq -r '."nvme-pci-0300"."Composite"."temp1_input"' <(echo "$sensor_json"))"
     else
-      printf "%-10sNot available\n" "$drv_name:"
+      printf "%-10s Not available\n" "$drv_name:"
 		fi
 	done
 }
@@ -112,15 +112,15 @@ sata_temperature() {
 	local drive drv_name sensor_json
   sensor_json="$1"
 	for drive in /dev/sd[a-z]; do
-		drv_name=$(echo -n "$drive" | awk -F/ '{print $NF}')
-		if echo "$sensor_json" | grep -q 'drivetemp-scsi-0-0'; then
-			printf "%-10s%2.1f\U2103 \n" "$drv_name:" "$(echo "$sensor_json" | jq -r '."drivetemp-scsi-0-0"."temp1"."temp1_input"')"
-		elif echo "$sensor_json" | grep -q 'drivetemp-scsi-1-0'; then
-			printf "%-10s%2.1f\U2103 \n" "$drv_name:" "$(echo "$sensor_json" | jq -r '."drivetemp-scsi-1-0"."temp1"."temp1_input"')"
-		elif echo "$sensor_json" | grep -q 'drivetemp-scsi-2-0'; then
-			printf "%-10s%2.1f\U2103 \n" "$drv_name:" "$(echo "$sensor_json" | jq -r '."drivetemp-scsi-2-0"."temp1"."temp1_input"')"
+		drv_name=$(awk -F/ '{print $NF}' <(echo -n "$drive"))
+		if grep -q 'drivetemp-scsi-0-0' <(echo "$sensor_json"); then
+			printf "%-10s%2.1f\U2103 \n" "$drv_name:" "$(jq -r '."drivetemp-scsi-0-0"."temp1"."temp1_input"' <(echo "$sensor_json"))"
+		elif grep -q 'drivetemp-scsi-1-0' <(echo "$sensor_json"); then
+			printf "%-10s%2.1f\U2103 \n" "$drv_name:" "$(jq -r '."drivetemp-scsi-1-0"."temp1"."temp1_input"' <(echo "$sensor_json"))"
+		elif grep -q 'drivetemp-scsi-2-0' <(echo "$sensor_json"); then
+			printf "%-10s%2.1f\U2103 \n" "$drv_name:" "$(jq -r '."drivetemp-scsi-2-0"."temp1"."temp1_input"' <(echo "$sensor_json"))"
     else
-      printf "%-10sNot available\n" "$drv_name:"
+      printf "%-10s Not available\n" "$drv_name:"
 		fi
 	done
 }
@@ -128,7 +128,6 @@ sata_temperature() {
 disk_usage() {
 	printf "\n%sDisk usage:%s\n" "$orange" "$normal"
   sed -n '1p;/^\//p' <(/usr/bin/df -hT -x fuse.portal)
-  # '-x fuse.portal' to eliminate 'df: /run/user/1000/doc: Operation not permitted' error
 }
 
 show_header() {
@@ -140,9 +139,12 @@ show_header() {
 }
 
 show_footer() {
-  local script="${0##*/}"
-  local -r version="6.12.25339"
-  printf "\n%sUp since:%s %s (%s)\n" "$orange" "$normal" "$(awk '{print $(NF-1),$NF}' <(/usr/bin/who -b))" "$(cut -d' ' -f2- <(/usr/bin/uptime -p))"
+  local last_boot up_time
+  local -r script="${0##*/}"
+  local -r version="6.13.26023"
+  last_boot=$(awk '{print $(NF-1),$NF}' <(/usr/bin/who -b))
+  up_time=$(cut -d' ' -f2- <(/usr/bin/uptime -p))
+  printf "\n%sUp since:%s %s (%s)\n" "$orange" "$normal" "$last_boot" "$up_time"
   over_line "$script $version"
   exit
 }
