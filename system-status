@@ -99,7 +99,7 @@ nvme_temperature() {
 	local drive drv_name sensor_json
   sensor_json="$1"
 	for drive in /dev/nvme0n[0-9]; do
-		drv_name=$(awk -F/ '{print $NF}'<(echo -n "$drive"))
+		drv_name=$(awk -F/ '{print $NF}' <(echo -n "$drive"))
 		if grep -q 'nvme-pci-0300' <(echo "$sensor_json"); then
 			printf "%-10s%2.1f\U2103 \n" "$drv_name:" "$(jq -r '."nvme-pci-0300"."Composite"."temp1_input"' <(echo "$sensor_json"))"
     else
