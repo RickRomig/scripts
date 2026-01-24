@@ -1,3 +1,11 @@
+-install-dsh: globally changed group & groups to group_list & group_lists
+-weather: removed is_url_accessible(), replaced with call to url_reachable in functionlib
+-system-status: variable substitution (heer strings) in if statements with grep
+-system-status: nvme_temperature() - space before process substitution
+-system-status: main() - redirected sensors -j STDERR to /dev/null
+-system-status: implemented process substitution for functions using json data; added variables for last boot and uptime
+-show-cron: show_root_cron() - removed extaneous whitespace
+-CHANGELOG.md: updated show-cron
 -show-cron: show_user_cron() & show_root_cron() - process substitution
 -CHANGELOG.md: updated ip-info & local-ip-up
 -local-ip-up: scan_static_addresses() - reassigned names to 11, 14, 16, 19
