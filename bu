@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 09 Jan 2026
+# Last updated : 24 Jan 2026
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.14.26009"
+readonly version="5.15.26024"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -53,7 +53,7 @@ DOTS_PID=
 drive_test() {
 	printf "%sChecking Backup USB Drive%s\n" "$green" "$normal"
 	check_usb || dielog "No USB drive connected!" "$logfile" 1
-	bu_drive_label || dielog "Invalid partition label. Run 'bu -s' for drive setup information." "$logfile" 1
+	bu_drive_label || dielog "Invalid partition label. Run 'bu -i' for drive setup information." "$logfile" 1
   check_uuid || dielog "Incorrect drive to backup $host." "$logfile" 1
   is_deb13 && mount_bu
   bu_drive_fs || dielog "Drive must be formatted with EXT4 or XFS." "$logfile" 1
@@ -238,54 +238,30 @@ ${green}Usage:${normal} $script [-bhirs]
 ${orange}Available options:${normal}
   -b  Backup the host /etc and /home directories.
   -h  Show this help message and exit.
-  -i  Show information about this script.
+  -i  Instructions for setting up the BU_Drive.
   -r  Restore the host /home directory.
-  -s  Instructions for setting up the BU_Drive.
+${orange}Notes:${normal}
+  - Recommend a dedicated USB storage device with sufficient capacity.
+  - The backup drive must be formatted with ext4 or XFS.
+  - The backup partition must be labeled 'BU_Drive'
+  - The backup drive can be used on multiple systems.
 _HELP_
   exit "$errcode"
 }
 
-show_description() {
-	cat << _DESCRIPTION_
- Description:
-
- ${script^^} is a program that makes keeping all of your user data safely backed up on
- a dedicated external USB drive easy.
-
-  ${script^^} will update files that have changed, remove files that have been
- deleted and add any new files that have been created since the last backup.
- The initial backup can take a lot of time if you have a lot of data stored
- in your system's /home directory. BU creates a directory with the host name
- of the machine it's backing up from inside BU_Backups. This allows users to
- share one BU_Drive with multiple machines.
-
- The directory structure and all files are stored openly to allow users easy
- access if they only need to retrieve a few files or directories using a file
- manager.
-
- The  ${script^^} Restore function is an interactive tool that lets a user restore his/her
- /home directories to a previous state. This function will only work when
- restoring to a machine with the exact same hostname as the one the backups were
- made from. It is intended for emergency use, as when significant number of
- directories and files are accidentally removed from /home.
-
-_DESCRIPTION_
-	exit_status=108
-}
-
 drive_setup() {
 	cat << _SETUP_
- BU_Drive Setup:
-
- - You need to prepare a BU Drive with a tool like Gparted or Gnome Disks.
- - This can be any USB storage device.
- - The dedicated USB drive MUST contain a partition formatted with a Linux native
- file system such as Ext4 or XFS.
+ ${orange}BU_Drive Setup:${normal}
+ - Prepare the backup drive with a tool like Gparted or Gnome Disks.
+ - This can be any USB storage device. Recommend an external hard drive or SSD.
+ - The USB drive MUST contain a partition formatted with a Linux native file
+   system such as Ext4 or XFS.
  - The partition MUST be labeled "BU_Drive" so BU can find it and use it for backups.
+ ${orange}Notes:${normal}
  - The partition needs to have enough free capacity to store all data in /home on
- all of the machines you want to use the drive for.
- Note: The script will only allow media formatted with Ext4 or XFS. Non-native file
- systems like FAT32 or NTFS will cause the script to exit with an error.
+   all of the machines you want to use the drive for.
+  - A backup drive can be dedicated to a single machine by adding the machine's
+    hostname and the drive's UUID to the check_uuid function.
 
 _SETUP_
 	exit_status=108
@@ -298,7 +274,7 @@ log_status() {
 		13 ) log "Unable to find backup directory for restore." "$logfile" ;;
 		42 ) log "Backup operation had errors." "$logfile" ;;
 		69 ) log "Restore operation had errors." "$logfile" ;;
-		108 ) printf "Thanks for stopping by.\n" ;;
+		108 ) printf "Hope you found this information useful.\n" ;;
 		* ) log "Unknown error." "$logfile" ;;
 	esac
 }
@@ -309,7 +285,7 @@ main() {
 	clear
 	box "${script^^} -- USB Backup Tool (Version $version)"
 	noOpt=1
-	optstr=":bhirs"
+	optstr=":bhir"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			b )
@@ -325,7 +301,7 @@ main() {
 				help 0
 				;;
 			i )
-				show_description
+				drive_setup
 				;;
 			r )
 				sudo_login 2
@@ -334,9 +310,6 @@ main() {
 				restore
 				sync_drives
 				unmount_usb_drive
-				;;
-			s )
-				drive_setup
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
