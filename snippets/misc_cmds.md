@@ -258,3 +258,10 @@ $ find . -name "*.ext" | rename -v 's/\.ext$/\.new/'
 ```bash
 tree | sed 's/├\|─\|│\|└/ /g'
 ```
+### Redirect a line of a text file to another file
+```bash
+$ head -n1 source-file > target-file      # redirect first line source-file.
+$ tail -n1 source-file > target-file      # redirect last line of source-file.
+$ sed -n '1p' source-file > target-file   # change the 1 to the line number to be redirected.
+$ tail -n +NUM source-file > target-file  # skip NUM-1 lines from the start of the source-file.
+```
