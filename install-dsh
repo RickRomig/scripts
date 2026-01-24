@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Apr 2024
-# Last updated : 05 Sep 2025
-# Comments     : Intended for main system only
+# Last updated : 23 Jan 2026
+# Comments     : Intended for installation on main system only
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -36,16 +36,14 @@ else
   exit 1
 fi
 
-# set -eu
-
 ## Functions ##
 
 copy_group_list() {
 	local -r repository="$1"
-  local -r file="$2"
-  printf "Copying %s list to /etc/dsh/groups ...\n" "$file"
-  sudo cp "$repository/dsh/group/$file" /etc/dsh/groups/
-  printf "%s list added to /etc/dsh/groups\n" "$file"
+  local -r group_list="$2"
+  printf "Copying %s list to /etc/dsh/group ...\n" "$group_list"
+  sudo cp "$repository/dsh/group/$group_list" /etc/dsh/group/
+  printf "The %s list added to /etc/dsh/group\n" "$group_list"
 }
 
 copy_machines_list() {
@@ -54,27 +52,28 @@ copy_machines_list() {
   printf "Copying %s to /etc/dsh/ ...\n" "$file"
   sudo cp "$repository/dsh/$file" /etc/dsh/
   printf "%s copied to /etc/dsh/\n" "$file"
-  printf "Creating symbolic link from %s to /etc/dsh/groups/all.\n" "$file"
-  [[ -L /etc/dsh/group/all ]] || sudo ln -s /etc/dsh/machines.list /etc/dsh/groups/all
+  printf "Creating symbolic link from %s to /etc/dsh/group/all\n" "$file"
+  [[ -L /etc/dsh/group/all ]] || sudo ln -s /etc/dsh/machines.list /etc/dsh/group/all
 }
 
 install_dsh() {
-  local group groups repository
+  local group_list group_lists repository
 	repository=$(assign_cfg_repo)
-  groups=( desktops i3wm laptops )
+  group_lists=( desktops i3wm laptops )
+  sudo_login 2
   sudo apt-get -y install dsh
-  sudo mkdir -p /etc/dsh/groups
+  [[ -d /etc/dsh/group ]] || sudo mkdir -p /etc/dsh/group
   printf "Changing remote shell from rsh to ssh.\n"
   sudo sed -i '/remoteshell/s/rsh/ssh/' /etc/dsh/dsh.conf
   copy_machines_list "$repository"
-  for group in "${groups[@]}"; do
-    copy_group_list "$repository" "$group"
+  for group_list in "${group_lists[@]}"; do
+    copy_group_list "$repository" "$group_list"
   done
 }
 
 main() {
   local script="${0##*/}"
-  local version="2.5.25248"
+  local version="2.6.26023"
   check_package git
   sudo_login 2
   install_dsh
