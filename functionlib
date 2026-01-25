@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 17 Jan 2026
+# Last updated : 25 Jan 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -35,8 +35,16 @@ declare -r TRUE=0
 declare -r FALSE=1
 declare -r GITEA_URL="http://192.168.0.16:3000/Nullifidian"
 declare -r GITHUB_URL="https://github.com/RickRomig"
-RED_ERROR=$(printf "\e[91mERROR:\e[0m"); readonly RED_ERROR
-RED_WARNING=$(printf "\e[91mWARNING!\e[0m"); readonly RED_WARNING
+RED_ERROR=$(printf "\e[91mERROR:\e[0m"); declare -r RED_ERROR
+RED_WARNING=$(printf "\e[91mWARNING!\e[0m"); declare -r RED_WARNING
+
+# Error Codes
+declare -r E_INFO=80
+declare -r E_FILENOTFOUND=81
+declare -r E_MISSING_ARG=82
+declare -r E_TEMP_FILE=83
+declare -r E_TEMP_DIR=84
+declare -r E_DRIVE_ERROR=85
 
 # Get the local network from the first three octets of the default gateway address. Assumes a /24 (class C) private network.
 LOCALNET=$(ip route get 1.2.3.4 | cut -d' ' -f3 | sed 's/\..$//'); readonly LOCALNET
