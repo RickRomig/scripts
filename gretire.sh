@@ -41,7 +41,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.1.26025"
+readonly version="4.2.26025"
 readonly E_NOT_GIT_REPO=92
 EC=0
 
@@ -90,7 +90,6 @@ check_args() {
     EC="$E_FILENOTFOUND"
     return
   fi
-  check_dependencies
   retire_script "$filename"
 }
 
@@ -98,6 +97,7 @@ main() {
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help 0
   local filename="$1"
   if is_git_repo; then
+    check_dependencies
     check_args "$filename"
   else
     printf "%s This is not a git repositiory.\n" "$RED_WARNING" >&2
