@@ -1,3 +1,9 @@
+-system-info: added more process substitution
+-bu: updated help() and drive_setup; removed show_description()
+-snippets/misc_cmds.md: added code to redirect a specific line from a file to a new file
+-iru-micro: updated micro release URL
+-check-versions: updated micro release path
+-CHANGELOG.md: updated install-dsh, weather, system-status
 -install-dsh: globally changed group & groups to group_list & group_lists
 -weather: removed is_url_accessible(), replaced with call to url_reachable in functionlib
 -system-status: variable substitution (heer strings) in if statements with grep
