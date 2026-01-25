@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 04 Dec 2025
+# Updated:     : 24 Jan 2026
 # Comments     : Should be run locally, not remotely.
 #              : Will not get desktop session info in an SSH connection.
 # TODO (Rick)  :
@@ -143,9 +143,9 @@ mfg_info() {
 os_info() {
   local desktop root_part created_date
   desktop="$DESKTOP_SESSION"
-  [[ "$desktop" == "bunsenlabs" || "$desktop" == "lightdm-xsession" ]] && desktop=$(wmctrl -m | awk '/Name/ {print $2}')
+  [[ "$desktop" == "bunsenlabs" || "$desktop" == "lightdm-xsession" ]] && desktop=$(awk '/Name/ {print $2}' <(wmctrl -m))
   root_part=$(awk '$NF == "/" {print $1}' <(df -P))
-	created_date=$(sudo /usr/sbin/tune2fs -l "$root_part" | awk '/created:/ {print $(NF-2),$(NF-3),$NF}')
+	created_date=$(awk '/created:/ {print $(NF-2),$(NF-3),$NF}' <(sudo /usr/sbin/tune2fs -l "$root_part"))
 	printf "\n%-19s %s\n" "Operating System:" "$(uname -o)"
 	printf "%-19s %s\n" "Distribution:" "$(get_distribution)"
   printf "%-19s %s\n" "Desktop:" "${desktop^}"
@@ -162,11 +162,11 @@ cpu_info() {
 
 memory_info() {
   local mem_max mem_type phys_mem
-	phys_mem=$(sudo /usr/bin/lshw -class memory -short -quiet | awk '/System/ {print $(NF-2)}' | sed 's/GiB/ GB/')
-	# mem_type=$(sudo dmidecode --type 17 | awk '/Type:/ {print $NF; exit}')
-  mem_type=$(sudo dmidecode --type 17 | awk 'NR == 16 {print $NF}')
-	# mem_max=$(sudo dmidecode --type 16 | awk -F: '/Capacity/ {print $NF; exit}')
-  mem_max=$(sudo dmidecode --type 16 | awk -F: 'NR == 10 {print $NF}' | sed 's/^ //')
+	phys_mem=$(awk '/System/ {print $(NF-2)}' <(sudo /usr/bin/lshw -class memory -short -quiet) | sed 's/GiB/ GB/')
+	# mem_type=$(awk '/Type:/ {print $NF; exit}' <(sudo dmidecode --type 17))
+  mem_type=$(awk 'NR == 16 {print $NF}' <(sudo dmidecode --type 17))
+	# mem_max=$(awk -F: '/Capacity/ {print $NF; exit}' <(sudo dmidecode --type 16))
+  mem_max=$(awk -F: 'NR == 10 {print $NF}' <(sudo dmidecode --type 16) | sed 's/^ //')
 	printf "%-9s %s %s (%s maximum)\n" "Memory:" "$phys_mem" "$mem_type" "$mem_max"
 }
 
@@ -178,7 +178,7 @@ mac_mfgr() {
   local mac_addr mfgr oui_addr oui_file
   mac_addr="${1^^}"
   oui_file="/usr/share/ieee-data/oui.csv"
-	oui_addr=$(echo "$mac_addr" | cut -d ':' -f1,2,3 | sed 's/://g')
+	oui_addr=$(cut -d ':' -f1,2,3 <<< "$mac_addr" | sed 's/://g')
   mfgr=$(grep -m 1 "$oui_addr" "$oui_file" | cut -d',' -f3 )
   [[ "$mfgr" ]] || mfgr="Unknown"
   echo "$mfgr"
@@ -186,7 +186,7 @@ mac_mfgr() {
 
 wired_info() {
   local eth_int ethernet_dev e_mac e_man
-	eth_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: e/ {print $NF}')
+	eth_int=$(awk '/name: e/ {print $NF}' <(sudo /usr/bin/lshw -class network -quiet))
 	if [[ "$eth_int" ]]; then
 		ethernet_dev=$(awk -F: '/Ethernet controller/ {print $NF}' <(/usr/bin/lspci) | sed 's/^ //')
 		e_mac=$(< /sys/class/net/"${eth_int}"/address)
@@ -198,7 +198,7 @@ wired_info() {
 
 wireless_info() {
   local wifi_int wireless_dev w_mac w_man
-	wifi_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: w/ {print $NF}')
+	wifi_int=$(awk '/name: w/ {print $NF}' <(sudo /usr/bin/lshw -class network -quiet))
 	if [[ "$wifi_int" ]]; then
 		wireless_dev=$(awk -F: '/Network controller/ {print $NF}' <(/usr/bin/lspci) | sed 's/^ //')
 		w_mac=$(< /sys/class/net/"${wifi_int}"/address)
@@ -298,7 +298,7 @@ battery_info() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.0.25338"
+  local -r version="5.1.26024"
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r info_file="$HOME/$lhost.info"
 
