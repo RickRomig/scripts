@@ -9,7 +9,7 @@
 # Created      : 23 Mar 2025
 # Last updated : 22 Sep 2025
 # Comments     :
-# TODO (Rick)  :
+# TODO (Rick)  : Under development
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
@@ -71,7 +71,7 @@ play_game() {
   while true; do
     clear
     unset cards
-    # Draw and dispaly the question card
+    # Draw and display the question card
     question_card=$(printf "%s\n" "${black_cards[@]}" | shuf -n 1)
     # Draw and display the answer cards
     answer_cards=$(printf "%s\n" "${white_cards[@]}" | shuf -n 15)
