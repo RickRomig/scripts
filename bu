@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 24 Jan 2026
+# Last updated : 25 Jan 2026
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.15.26024"
+readonly version="5.16.26026"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -52,11 +52,11 @@ DOTS_PID=
 
 drive_test() {
 	printf "%sChecking Backup USB Drive%s\n" "$green" "$normal"
-	check_usb || dielog "No USB drive connected!" "$logfile" 1
-	bu_drive_label || dielog "Invalid partition label. Run 'bu -i' for drive setup information." "$logfile" 1
-  check_uuid || dielog "Incorrect drive to backup $host." "$logfile" 1
+	check_usb || dielog "No USB drive connected!" "$logfile" "$E_DRIVE_ERROR"
+	bu_drive_label || dielog "Invalid partition label. Run 'bu -i' for drive setup information." "$logfile" "$E_DRIVE_ERROR"
+  check_uuid || dielog "Incorrect drive to backup $host." "$logfile" "$E_DRIVE_ERROR"
   is_deb13 && mount_bu
-  bu_drive_fs || dielog "Drive must be formatted with EXT4 or XFS." "$logfile" 1
+  bu_drive_fs || dielog "Drive must be formatted with EXT4 or XFS." "$logfile" "$E_DRIVE_ERROR"
 	get_space_remaining
 	printf "USB Backup Drive is mounted and meets all criteria.\n"
 }
@@ -114,8 +114,8 @@ unmount_usb_drive() {
 		umount "$mount_point"
 	fi
 	if grep -q 'BU_Drive' <(mount); then
-		log "$RED_ERROR $mount_point failed to unmount." "$logfile"
-		exit_status=10
+		log "$RED_ERROR $mount_point failed to unmount. ($E_DRIVE_ERROR)" "$logfile"
+		exit_status="$E_DRIVE_ERROR"
 	else
 		printf "BU_Drive unmounted.\nIt is now safe to remove the USB drive.\n"
 	fi
@@ -186,7 +186,7 @@ backup() {
 		log "$RED_ERROR rsync exited with errors!" "$logfile"
 		printf "* Try reinserting the backup drive and running the command again to correct them.\n" >&2
     printf "* If errors persist then you may have corrupt files or failing hardware.\n" >&2
-		exit_status=42
+		exit_status=90
   fi
 }
 
@@ -213,7 +213,7 @@ restore() {
 				printf "* Remount BU_Drive USB by unplugging it and plugging it back in.\n" >&2
 				printf "* Wait a few seconds and try running 'bu --restore' again.\n" >&2
 				printf "* You may need to manually restore your data if errors persist.\n" >&2
-	      exit_status=69
+	      exit_status=91
 			fi
 		else
 			log "${orange}Restoration canceled.${normal}" "$logfile"
@@ -223,13 +223,13 @@ restore() {
     printf "* This drive may not have been used to backup this machine.\n" >&2
     printf "* BU_Backups/%s directory may have been moved or deleted.\n" "$host" >&2
     printf "* Hostname or username may have changed since last backup.\n" >&2
-    exit_status=13
+    exit_status="$E_FILENOTFOUND"
 	fi
 }
 
 help() {
 	local errcode="${1:-2}"
-	local updated="24 Jan 2026"
+	local updated="25 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -264,17 +264,17 @@ drive_setup() {
     hostname and the drive's UUID to the check_uuid function.
 
 _SETUP_
-	exit_status=108
+	over_line "$script $version"
+	exit
 }
 
 log_status() {
 	case "$exit_status" in
 		0 ) log "Backup/Restore operation successful." "$logfile" ;;
-		10 ) log "Failed to unmount BU_Drive." "$logfile" ;;
-		13 ) log "Unable to find backup directory for restore." "$logfile" ;;
-		42 ) log "Backup operation had errors." "$logfile" ;;
-		69 ) log "Restore operation had errors." "$logfile" ;;
-		108 ) printf "Hope you found this information useful.\n" ;;
+		81 ) log "Unable to find backup directory for restore." "$logfile" ;;
+		85 ) log "Failed to unmount BU_Drive." "$logfile" ;;
+		90 ) log "Backup operation had errors." "$logfile" ;;
+		91 ) log "Restore operation had errors." "$logfile" ;;
 		* ) log "Unknown error." "$logfile" ;;
 	esac
 }
@@ -317,7 +317,7 @@ main() {
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	log_status
 	trim_log
