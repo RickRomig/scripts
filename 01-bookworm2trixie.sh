@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 29 Nov 2025
+# Last updated : 25 Jan 2026
 # Comments     : This script updates current Debian 12 before upgrade.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 2
 fi
 
 ## Functions ##
@@ -62,15 +62,15 @@ upgrade_packages() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.3.25333"
-	local updated="29 Nov 2025"
-	check_codename || die "This is not Debian 12 Bookworm" 1
-	check_files && die "This script has already been run." 1
+	local version="1.4.26025"
+	local updated="25 Jan 2026"
+	check_codename || die "This is not Debian 12 Bookworm" "$E_INFO"
+	check_files && die "This script has already been run." "$E_INFO"
 	version_info
 	[[ "$(lsb_release --codename --short | awk 'NR = 1 {print}')" == "bookworm" ]] || die "Unsupported Debian version." 1
 	printf "Updating current Debian 12 packages.\n"
 	upgrade_packages
-	printf "Debian 11 packages have been upgraded.\n"
+	printf "Debian 12 packages have been upgraded.\n"
 	printf "Reboot and run 02-bookworm2trixie.sh\n"
 	touch "$HOME/01-upgrade"
 	over_line "$script $version ($updated)"

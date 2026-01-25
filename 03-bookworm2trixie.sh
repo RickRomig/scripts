@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 29 Nov 2025
+# Last updated : 25 Jan 2026
 # Comments     : Final cleanup after upgrade to Debian 12.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -66,9 +66,10 @@ modernize_sources() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.3.25333"
-	local updated="29 Nov 2025"
-	check_files || die "01-bookworm2trixie.sh and 02-bookworm2trixie.sh must be run first." 1
+	local version="1.4.26025"
+	local updated="25 Jan 2026"
+	local exit_code=0
+	check_files || die "01-bookworm2trixie.sh and 02-bookworm2trixie.sh must be run first." "$E_INFO"
 	version_info
 	if [[ $(awk 'NR = 1 {print}' <(lsb_release --codename --short)) == "trixie" ]]; then
 		printf "Debian inplace upgrade was successful!\n"
@@ -77,9 +78,10 @@ main() {
 	else
 		printf "Debian inplace upgrade failed.\n" >&2
 		printf "Backup the home directory and any important files, then install from the ISO.\n" >&2
+		exit_code=1
 	fi
 	over_line "$script $version ($updated)"
-	exit
+	exit "$exit_code"
 }
 
 ## Execution ##
