@@ -35,7 +35,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 # set -eu
@@ -46,8 +46,8 @@ fi
 readonly script="${0##*/}"
 readonly version="<VERSION>"
 script_dir==$(dirname "$(readlink -f "${0}")"); readonly script_dir
-tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
-tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." 1
+tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
+tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 
 ## Functions ##
 
@@ -89,20 +89,20 @@ main() {
   # Check arguments
   if [[ "$#" -eq 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
-    help 1
+    help "$E_MISSING_ARG"
   elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
     help 0
   elif [[ -f "$1" ]]; then
     printf "%s %s already exists." "$RED_ERROR" "$1" >&2
-    help 2
+    help "$E_FILEEXISTS"
   elif [[ ! -f "$1" ]]; then
     printf "%s %s not found." "$RED_ERROR" "$1" >&2
+    help "$E_FILENOTFOUND"
   else
     filename="$1"
   fi
-
+	check_dependencies
   trap cleanup EXIT	# for temp files and directories
-
   # printf "%s %s\n" "$script" "$version"
   over_line "$script $version"
   exit
