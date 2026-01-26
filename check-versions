@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 24 Jan 2026
+# Last updated : 26 Jan 2026
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 #              : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
@@ -36,7 +36,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
@@ -174,7 +174,7 @@ browsers() {
 
 main() {
   local script="${0##*/}"
-  local version="15.7.26024"
+  local version="15.8.26026"
   clear
   box "$script $version"
   printf "\n"
@@ -188,6 +188,6 @@ main() {
 ## Execution ##
 
 check_package curl
-tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 trap cleanup EXIT
 main "$@"
