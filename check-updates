@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 18 Jan 2026
+# Updated      : 26 Jan 2026
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -35,13 +35,13 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="9.2.26018"
+readonly version="10.0.26026"
 SECONDS=0
 
 ## Functions ##
@@ -53,11 +53,11 @@ cleanup() {
 }
 
 help() {
-	local errcode="${1:-2}"
-  local updated="17 Jan 2026"
+	local errcode="${1:-1}"
+  local updated="26 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
-Performs a system update using either Apt or Nala.
+Performs a system update using either Apt-get or Nala.
 
 ${green}Usage:${normal} $script [-ahn]
 ${orange}Available options:${normal}
@@ -86,7 +86,8 @@ reboot_system() {
   printf "\n%s*** REBOOT REQUIRED ***%s\n" "$orange" "$normal"
   if default_no "Do you want to reboot now?"; then
     printf "Rebooting the system...\n"
-    sleep 10; sudo systemctl reboot
+    sleep 10
+    sudo systemctl reboot
   else
     printf "\n%s Please reboot your system as soon as possible.\n" "$RED_WARNING"
   fi
@@ -144,21 +145,24 @@ defer_updates() {
 }
 
 update_flatpaks() {
-  local fp_count
-  printf "\n%sFlatpak:%s\n" "$orange" "$normal"
-  fp_count=$(flatpak list | wc -l)
-  if [[ "$fp_count" -gt 0 ]]; then
+  local fp_updates
+  fp_updates=$(grep -c 'updatable' <(flatpak update --app --noninteractive))
+  if [[ "$fp_updates" -eq 0 ]]; then
+    printf "No flatpak updates currently available\n"
+  else
+    printf "Updating flatpaks...\n"
     printf "User installations...\n"
     flatpak update --user --noninteractive --force-remove --assumeyes | sed '/^$/d'
     printf "System-wide installations...\n"
     sudo flatpak update --system --noninteractive --force-remove --assumeyes  2> /dev/null | sed '/^$/d'
-  else
-    printf "No Flatpak packages installed.\n"
   fi
 }
 
 check_flatpak() {
+  local fp_count
   if exists flatpak; then
+    fp_count=$(flatpak list | wc -l)
+    [[ "$fp_count" -eq 0 ]] && { printf "No Flatpak packages installed.\n"; return; }
     update_flatpaks
   else
     printf "Flatpak is not installed.\n"
@@ -271,17 +275,35 @@ Kernel: $(uname -sr)${normal}
 _HEADER_
 }
 
+check_spice_updates() {
+  local type types num
+  types=(applet desklet extension theme)
+  for type in "${types[@]}"; do
+    num=$(cinnamon-spice-updater --list-simple "$type" | wc -l)
+    printf "%d spice %s " "$num" "$type"
+    [[ "$num" -ne 1 ]] && printf "updates " || printf "uppdate "
+    printf "available\n"
+  done
+}
+
+check_flatpak_updates() {
+  local fp_updates
+  fp_updates=$(grep -c 'updatable' <(flatpak update --app --noninteractive))
+  printf "%d flatpak " "$fp_updates"
+  [[ "$fp_updates" -ne 1 ]] && printf "updates " || printf "uppdate "
+  printf "available\n"
+}
+
 check_for_updates() {
   local upgrades
-  printf "\nChecking for updates...\n"
   upgrades=$(tail -n1 <(sudo apt update 2>/dev/null))
+  printf "%s\nChecking for updates...%s\n" "$orange" "$normal"
   awk -F'.' '{print $1"."}' <(printf "%s\n" "$upgrades")
-  grep -q '^All' <(echo "$upgrades") && return
-  sed '1d;s/\/.*$//' <(apt list --upgradeable 2>/dev/null)
 }
 
 other_checks() {
   exists cinnamon-spice-updater && update_spices
+  printf "\n%sFlatpak:%s\n" "$orange" "$normal"
   check_flatpak
   check_disk_space
   over_line "Update completed in $(format_time $SECONDS)"
@@ -294,7 +316,7 @@ main() {
 	while getopts "$optstr" opt; do
     case "$opt" in
       a )
-        tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+        tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
         trap cleanup EXIT
         show_header
         check_disk_space
@@ -306,6 +328,8 @@ main() {
         show_header
         sudo_login 1
         check_for_updates
+        check_flatpak_updates
+        check_spice_updates
         ;;
       h )
         help 0
@@ -317,7 +341,7 @@ main() {
         if exists nala; then
           nala_update
         else
-          tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+          tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
           trap cleanup EXIT
           printf "Nala is not installed. Reverting to apt-get ...\n"
           apt_update
@@ -326,11 +350,11 @@ main() {
         ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_INVALID_ARG"
 		esac
 		noOpt=0
   done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && reboot_system
