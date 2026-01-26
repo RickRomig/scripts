@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Dec 2022
-# Updated      : 13 Nov 2025
+# Updated      : 26 Jan 2026
 # Comments     : base script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
 #              : Uses default editor ($EDITOR) to edit to-do list.
 #              : Limit to-do list to 7 items to maintain proper formating.
@@ -35,15 +35,15 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.3.25317"
+readonly version="3.4.26026"
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
-calendar=$(mktemp -q) || die "Failed to create temporary file." 1
+calendar=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 
 ## Functions ##
 
@@ -54,8 +54,8 @@ cleanup() {
 }
 
 help() {
-	local errcode="${1:-2}"
-	local updated="13 Nov 2025"
+	local errcode="${1:-1}"
+	local updated="26 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Creates/displays/edits a simple to-do list with a calendar.
@@ -121,11 +121,11 @@ main() {
 				;;
 			? )
 				printf "%s Invalid option: -%s\n" >&2 "$RED_ERROR" "$OPTARG"
-				help 2
+				help "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit
