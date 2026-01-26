@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 28 Oct 2025
-# Last updated : 29 Nov 2025
+# Last updated : 26 Jan 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,7 +38,7 @@ fi
 
 ## Global Variables ##
 
-tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." 1
+tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 
 ## Functions ##
 
@@ -74,7 +74,7 @@ set_multimedia_sources() {
 
 exit_script() {
   local -r script="${0##*/}"
-  local -r version="2.0.25333"
+  local -r version="2.1.26026"
 	over_line "$script $version"
   exit
 }
