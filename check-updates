@@ -41,7 +41,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="10.1.26026"
+readonly version="10.2.26026"
 SECONDS=0
 
 ## Functions ##
@@ -282,11 +282,12 @@ check_spice_updates() {
     num=$(cinnamon-spice-updater --list-simple "$type" | wc -l)
     printf "%d spice %s " "$num" "$type"
     [[ "$num" -ne 1 ]] && printf "updates " || printf "uppdate "
-    printf "available\n"
+    printf "available.\n"
   done
 }
 
 check_flatpak_updates() {
+  [[ $(flatpak list | wc -l) -eq 0 ]] && { printf "No flatpak packages installed.\n"; return; }
   local fp_updates
   fp_updates=$(grep -c 'updatable' <(flatpak update --app --noninteractive))
   printf "%d flatpak " "$fp_updates"
