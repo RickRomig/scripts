@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 May 2024
-# Last updated : 07 Jul 2025
+# Last updated : 26 Jan 2026
 # Comments     : Commits that haven't been pushed to the repository.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,25 +33,29 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
+
+## Global Variables ##
+
+readonly E_NOT_GIT_REPO=92
 
 ## Functions ##
 
 git_reset() {
 	local hash
-	hash=$(git log --oneline | head -n 1 | cut -d' ' -f1)
-	printf "Resetting the most recent commit that has not been pushed to the remote repository to the previous version.\n"
+	hash-"$(awk 'NR==1 {print $1}' <(git log --oneline))"
+	printf "Resetting the most recent commit (%s) that has not been pushed to the remote repository to the previous version.\n" "$hash"
 	git reset "$hash"
 	git log --oneline | head -n 2
 }
 
 main() {
   local script="${0##*/}"
-	local version="2.3.25203"
+	local version="2.4.26026"
 	check_package git
-	[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || die "You are not in a git repositiory." 1
-	if y_or_n "Reset last commit (not pushed) to the previous version?"; then
+	[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || die "You are not in a git repositiory." "$E_NOT_GIT_REPO"
+	if y_or_n "Reset last unpushed commit to the previous version?"; then
 		git_reset
 	else
 		printf "Last commit unchanged.\n"
