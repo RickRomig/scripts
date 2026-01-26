@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 14 Nov 2025
+# Updated      : 26 Jan 2026
 # Comments     : clone_repo() is part of functionlib
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,21 +33,19 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
-
-set -eu
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.0.25318"
+readonly version="4.1.26026"
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local -r updated="14 Nov 2025"
+	local errcode="${1:-1}"
+	local -r updated="26 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Clone a git repository from GitHub or the local Gitea server
@@ -72,9 +70,9 @@ check_repo() {
   if [[ -d "$dl_dir/$git_repo" ]]; then
     if [[ $(find "$dl_dir/$git_repo" -type f) ]]; then
       printf "%s is not empty. Updating the directory...\n" "$dl_dir/$git_repo"
-      pushd "$dl_dir/$git_repo" || die "pushd failed"
+      pushd "$dl_dir/$git_repo" || die "pushd failed" "$E_POPD_PUSHD"
       git pull
-      popd || die "popd failed"
+      popd || die "popd failed" "$E_POPD_PUSHD"
     else
       clone_repo "$git_repo"
     fi
@@ -108,11 +106,11 @@ main() {
         check_repo "fnloc-win" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_INVALID_ARG"
     esac
 		noOpt=0
   done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit
