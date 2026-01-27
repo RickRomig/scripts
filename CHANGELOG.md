@@ -1,3 +1,32 @@
+-greset.sh: git-reset() - process substitution
+-grevert.sh: git_revert() - replaced pipes to head and cut with process subsitution to awk
+-greset.sh: git_reset() - replaced pipes to hed and cut with process subsitution to awk
+-check-updates: check_flatpak_udpates() - added check for install packages
+-check-updates: main() - check if flatpak exists in -c option
+-check-updates: check_for_updates() - replace process substitution with here string
+-check-updates: added check if Cinnamon spiced exist for update checking option
+-check-updates: added functions to check for flatpak and spice updates; refactored check_flatpak() & udpate_flatpak()
+-catless: updated error codes
+-cal-todo: updated error codes
+-Templates/bash-template.txt: update error codes
+-Templates/bash-getopts.txt: update error codes
+-clone-repo: updated error codes
+-functionlib: added new error code variables
+-check-versions: udpated error codes
+-battery-notify-install.sh retired and archived.
+-debian-multimedia.sh: changed error code for call to die()
+-gretire.sh: moved check_dependencies() from check_args() to main()
+-gretire.sh: improved error checking
+-c-menu.sh retired and archived.
+-bu: updated and standardized error codes
+-bs-meter: extraneous whitespace, replace echo with printf
+-updated bookworm2trixie scripts
+-cam.sh: under development in ~/Work/dev/
+-bu: fixed updated date in help()
+-functionlib: added global variables for error codes
+-battery-check: battery_status() - added 99 error code to die calls
+-battery-check: battery_status() - added 99 error code to die calls
+-CHANGELOG.md: system-info, bu, iru-micro, check-versions
 -system-info: added more process substitution
 -bu: updated help() and drive_setup; removed show_description()
 -snippets/misc_cmds.md: added code to redirect a specific line from a file to a new file
