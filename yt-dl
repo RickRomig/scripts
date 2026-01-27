@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 04 Dec 2025
+# Updated      : 27 Jan 2026
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to selected directory under ~/Videos/
 # TODO (Rick)  :
@@ -34,14 +34,14 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.2.25338"
-readonly updated="04 Dec 2025"
+readonly version="7.3.26027"
+readonly updated="27 Jan 202"
 FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
@@ -54,12 +54,12 @@ FMENU="fzf --header=$script \
            --header-first \
            --bind change:top \
            --prompt"
-ec=0
+EC=0
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
+  local errcode="${1:-1}"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Downloads YouTube videos.
@@ -105,7 +105,7 @@ check_dependencies() {
     printf '\e[A\e[K'
     check_packages "${packages[@]}"
   else
-    die "yt-dlp is not installed." 1
+    die "yt-dlp is not installed." "$E_FILENOTFOUND"
   fi
 }
 
@@ -140,8 +140,8 @@ download_video() {
   then
     printf "Download successful.\n"
   else
-    ec="$?"
-    printf "Download failed. Error: %d\n" "$ec"
+    EC="$?"
+    printf "Download failed. Error: %d\n" "$EC"
   fi
 }
 
@@ -166,7 +166,7 @@ main() {
   site=$(extract_domain "$url")
   download_video "$url" "$site"
   over_line "$script $version"
-  exit "$ec"
+  exit "$EC"
 }
 
 ## Execution ##
