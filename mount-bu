@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, 04 Jul 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2022
-# Updated      : 04 Dec 2025
+# Updated      : 27 Jan 2026
 # Comments     : For use with BU backup script.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,27 +33,26 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.20.25338"
+readonly version="2.21.26027"
 readonly mount_point="/media/$USER/BU_Drive"
 
 ## Functions ##
 
 help() {
   local errcode updated
-	errcode="${1:-2}"
-	updated="04 Dec 2025"
+	errcode="${1:-1}"
+	updated="27 Jan 2026"
 	cat << _HELP_
   ${orange}$script${normal} $version, Updated $updated
   Mounts/Unmounts USB backup drive for the BU script.
 
   ${green}Usage:${normal} $script [-hmsu]
-
   ${orange}Availabel options:${normal}
     -h    Show this help message and exit
     -m    Mount USB Backup Drive (BU_Drive)
@@ -68,12 +67,12 @@ _HELP_
 
 mount_bu() {
   local usbdrv
-  usbdrv="$(lsblk -fs | awk '/BU_Drive/ {print $1}')" # do not use process substitution
+  usbdrv="$(awk '/BU_Drive/ {print $1}' <(lsblk -fs))"
   sudo_login 2
   printf "Mounting backup drive: /dev/%s to %s ...\n" "$usbdrv" "$mount_point"
   [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
   sudo mount /dev/"$usbdrv" "$mount_point"
-  printf "Backup drive (/dev/%s) is mounted at %s\n" "$usbdrv" "$(mount | awk '/BU_Drive/ {print $3}')"
+  printf "Backup drive (/dev/%s) is mounted at %s\n" "$usbdrv" "$(awk '/BU_Drive/ {print $3}' <(mount))"
   notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is mounted"
 }
 
@@ -89,7 +88,7 @@ umount_bu() {
 
 bu_status() {
   printf "BU_Drive is "
-  if lsblk | grep -qw BU_Drive; then
+  if grep -qw BU_Drive <(lsblk); then
     printf "mounted.\n"
     notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is mounted"
     return "$TRUE"
@@ -102,7 +101,7 @@ bu_status() {
 
 main() {
   local noOpt opt optstr OPTARG OPTIND
-  [[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || die "BU_Drive not attached."
+  grep -qw 'usb' <(lsblk -S -o TRAN) || die "BU_Drive not attached." "$E_DRIVE_ERROR"
   noOpt=1
   optstr=":hmsu"
   while getopts "$optstr" opt; do
@@ -129,7 +128,7 @@ main() {
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help 2
+        help "$E_INVALID_ARG"
     esac
 	  noOpt=0
   done
