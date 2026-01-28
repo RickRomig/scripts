@@ -60,19 +60,20 @@ get_swap_uuid() {
 set_resume() {
   local swap_uuid
   sudo_login 2
-  printf "\nExtracting the swap partition UUID using /usr/sbin/blkid ...\n"
+  printf "\nExtracting the swap UUID from /usr/sbin/blkid ...\n"
   swap_uuid=$(get_swap_uuid)
-  [[ "$swap_uuid" ]] || { printf "No UUID for swap found.\n" >&2; return; }
+  [[ "$swap_uuid" ]] || { printf "No UUID for swap found.\n" >&2; return 1; }
   local -r resume_path="/etc/initramfs-tools/conf.d/resume"
   printf "\nSWAP UUID: %s\n" "$swap_uuid"
   printf "\nSetting the RESUME environment variable...\n"
   printf "RESUME=UUID=%s\n" "$swap_uuid" | sudo tee "$resume_path" > /dev/null
   printf "\nUpdating initramfs ...\n"
   sudo update-initramfs -u -k all
+  return 0
 }
 
 reboot_system() {
-  printf "%sThe system needs to be rebooted for the change to take affect.%s\n" "$orange" "$normal"
+  printf "%sThe system needs to be rebooted for the change to take effect.%s\n" "$orange" "$normal"
   if default_no "Do you want to reboot now?"; then
     printf "Rebooting...\n"
     sleep 10
@@ -84,12 +85,14 @@ reboot_system() {
 
 main() {
   local script="${0##*/}"
-  local -r version="7.0.26028"
+  local -r version="7.1.26028"
+  local ec=0
   print_message
   set_resume
+  ec="$?"
   over_line "$script $version" "-"
-  reboot_system
-  exit
+  [[ "$ec" -eq 1 ]] && reboot_system
+  exit "$ec"
 }
 
 ## Execution ##
