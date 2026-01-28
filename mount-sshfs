@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 04 Dec 2025
+# Updated      : 28 Jan 2026
 # Comments     : Mount points are at ~/mnt/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,19 +33,20 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Glonal Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.1.25338"
+readonly version="5.2.26028"
+readonly E_OFFLINE=99
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local -r updated="04 Dec 2025"
+	local errcode="${1:-1}"
+	local -r updated="28 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated $updated
 Mounts/Unmounts an SSHFS share.
@@ -83,7 +84,7 @@ fail_msg() {
 mount_share() {
 	local octet="$1"
   local share="$2"
-  ping -c3 "$LOCALNET.$octet" > /dev/null 2>&1 || die "$share at $LOCALNET.$octet is not online."
+  ping -c3 "$LOCALNET.$octet" > /dev/null 2>&1 || die "$share at $LOCALNET.$octet is not online." "$E_OFFLINE"
 	[[ -d "$HOME/mnt/$share/" ]] || mkdir -p "$HOME/mnt/$share"
 	printf "Mounting %s...\n" "$share"
 	if [[ "$share" == "NASD97167" ]]; then
@@ -117,7 +118,7 @@ handle_mount() {
 	octet="$1"
   share="$2"
 	ip=$(local_ip)
-	[[ "$ip" == "$octet" ]] && die "Cannot mount/unmount local system."
+	[[ "$ip" == "$octet" ]] && die "Cannot mount/unmount local system." "$E_DRIVE_ERROR"
   if mounted "$share"; then
 		if default_yes "Unmount $share?"; then
 			unmount_share "$share"
@@ -182,11 +183,11 @@ main() {
 				;;
 			?)
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit
