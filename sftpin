@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2017, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Dec 2017 (Joe Collins)
-# Updated      : 20 Ju1 2025
+# Updated      : 28 Jan 2026
 # Comments     : Based on script by Joe Collins.
 #              : LOCALNET and valid_ip() are declared in functionlib
 # TODO (rick)  :
@@ -34,19 +34,19 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.3.25201"
+readonly version="2.4.26028"
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-  local updated="20 Ju1 2025"
+  local errcode="${1:-1}"
+  local updated="28 Jan 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Log in to a remote server using Secure File Transfer Protocol (SFTP).
@@ -60,16 +60,10 @@ _HELP_
 }
 
 main() {
-  local hostip
-  if [[ $# -eq 0 ]]; then
-    printf "%s No argument passed.\nEnter last octet of remote server's IP address.\n" "$RED_ERROR" >&2
-    help 2
-  elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
-    help 0
-  else
-    valid_ip "$1" && hostip="$1"
-    /usr/bin/sftp "$LOCALNET.$hostip"
-  fi
+  local hostip="$1"
+  [[ "$1" == "-h" || "$1" == "--help" ]] && help 0
+  [[ "$hostip" ]] || read -rp "Enter last octet of remote server's IP address. " hostip
+  valid_ip "$hostip" && /usr/bin/sftp "$LOCALNET.$hostip"
   over_line "$script $version"
   exit
 }
