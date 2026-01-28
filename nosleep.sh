@@ -33,7 +33,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
@@ -45,7 +45,7 @@ set_nosleep() {
   if [[ ! -f "$sed_file" ]]; then
     printf "A required file (%s) was not found.\n" "${sed_file##*/}" >&2
     printf "Operation could not continue.\n" >&2
-    return 1
+    return "$E_FILENOTFOUND"
   fi
   sudo_login 2
   [[ -d /etc/systemd/sleep.conf.d ]] || sudo mkdir -p /etc/systemd/sleep.conf.d
@@ -57,9 +57,10 @@ set_nosleep() {
 
 main() {
   local script="${0##*/}"
-  local -r version="2.1.26001"
+  local -r version="2.2.26028"
   printf "Disables sleep and hiberation on Debian-based systems.\n"
-  set_nosleep; code="$?"
+  set_nosleep
+  local code="$?"
   over_line "$script $version"
   exit "$code"
 }
