@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2017, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Dec 2017 (Joe Collins)
-# Updated      : 28 Jan 2026
+# Updated      : 29 Jan 2026
 # Comments     : Based on script by Joe Collins.
 #              : LOCALNET and valid_ip() are declared in functionlib
 # TODO (rick)  :
@@ -40,18 +40,18 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.4.26028"
+readonly version="2.5.26029"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local updated="28 Jan 2026"
+  local updated="29 Jan 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Log in to a remote server using Secure File Transfer Protocol (SFTP).
 
-${green}Usage:${normal} $script <last_octet>
+${green}Usage:${normal} $script [last_octet] [-h | --help]
 ${orange}Example:${normal} $script 15
 Argument is the last octet of the remote server's IP address.
 Assumes a /24 network.
@@ -63,7 +63,11 @@ main() {
   local hostip="$1"
   [[ "$1" == "-h" || "$1" == "--help" ]] && help 0
   [[ "$hostip" ]] || read -rp "Enter last octet of remote server's IP address. " hostip
-  valid_ip "$hostip" && /usr/bin/sftp "$LOCALNET.$hostip"
+  if valid_ip "$hostip"; then
+    /usr/bin/sftp "$LOCALNET.$hostip"
+  else
+    help "$?"
+  fi
   over_line "$script $version"
   exit
 }
