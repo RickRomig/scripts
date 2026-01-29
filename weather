@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 23 Jan 2026
+# Updated      : 29 Jan 2026
 # Comments     : Based on a script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -39,12 +39,12 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.20.26023"
+readonly version="6.21.26029"
 
 ## Functions ##
 
 help() {
-  local updated="23 Jan 2026"
+  local updated="29 Jan 2026"
   clear
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
@@ -94,7 +94,7 @@ exit_script() {
 wx_forecast() {
   local url="$1"
   local wx_loc="$2"
-  tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+  tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
   trap cleanup EXIT
   clear
   if curl -so "$tmp_file" "$url/${wx_loc}?uA"; then
@@ -111,7 +111,7 @@ current_wx() {
   local wx_loc="$2"
   local url="$url/${wx_loc}?format=j1"
   json=$(curl -s "$url")
-  grep -q 'Unknown location' <(echo "$json") && { echo "Location data not available from http://wttr.in. Try again later."; return 1; }
+  grep -q 'Unknown location' <<< "$json" && { echo "Location data not available from http://wttr.in. Try again later."; return 1; }
 
   # Location data
   city=$(echo "$json"|jq -r ."nearest_area[0]|(.areaName[0].value)")
