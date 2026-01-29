@@ -6,7 +6,7 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Last updated : 21 Oct 2025
+# Last updated : 29 Jan 2026
 # Comments     : Can sync to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -36,7 +36,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 # set -eu
@@ -44,14 +44,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="8.0.25294"
+readonly version="8.1.26029"
 SECONDS=0
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-  local updated="21 Oct 2025"
+  local errcode="${1:-1}"
+  local updated="29 Jan 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Synchrnizes ~/bin with remote hosts.
@@ -150,16 +150,24 @@ syncscript() {
 sync_one() {
   local hostip
   hostip="$1"
-  valid_ip "$hostip" && transfer "$hostip"
-	all_done
+  if valid_ip "$hostip"; then
+    transfer "$hostip"
+	  all_done
+  else
+    help "$?"
+  fi
 }
 
 sync_some() {
   local hostip
   hostip="$1"
   for hostip in "$@"; do
-    valid_ip "$hostip" && transfer "$hostip"
-		all_done
+    if valid_ip "$hostip"; then
+      transfer "$hostip"
+		  all_done
+    else
+      help "$?"
+    fi
 	done
 }
 
