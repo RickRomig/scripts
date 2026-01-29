@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      :
-# Updated      : 19 Jul 2025
+# Updated      : 29 Jan 2026
 # Comments     : Assumes a /24 (Class C) network
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,19 +33,19 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.3.25200"
+readonly version="3.4.26029"
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local updated="19 Jul 2025"
+	local errcode="${1:-1}"
+	local updated="29 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Pings an IP address on the local network.
@@ -79,7 +79,7 @@ valid_ip() {
       printf "%s %s.%s is not a valid IP address.\n" "$RED_ERROR" "$LOCALNET" "$octet" <&2
     fi
   else
-    status=3
+    status="$E_INVALID_ARG"
     printf "%s Invalid argument - %s.\n" "$RED_ERROR" "$octet" <&2
   fi
   return "$status"
@@ -108,14 +108,14 @@ main() {
   # Check arguments
   if [[ $# -eq 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
-    help 2
+    help "$E_MISSING_ARG"
   elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
     help 0
   elif valid_ip "$1"; then
     hostip="$1"
     ping_ip "$hostip"
   else
-    help 2
+    help "$?"
   fi
   over_line "$script $version"
   exit
