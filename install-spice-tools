@@ -33,8 +33,13 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
+
+## Global Variables ##
+declare -r E_NOT_VM=100
+declare -r E_INSTALL_FAIL=101
+
 
 ## Functions ##
 
@@ -53,16 +58,16 @@ install_debian_spice() {
 
 main() {
   local script="${0##*/}"
-  local version="2.1.25254"
+  local version="2.2.26030"
   box "$script $version"
-  [[ "$LOCALNET" != "192.168.122" && "$LOCALNET" != "10.0.2" ]] && die "This is not a virtual machine." 1
+  [[ "$LOCALNET" != "192.168.122" && "$LOCALNET" != "10.0.2" ]] && die "This is not a virtual machine." "$E_NOT_VM"
   printf "Installs Spice Tools to a Virtual Machine.\n"
   if debian_based; then
     install_debian_spice
   elif is_arch; then
     install_arch_spice
   else
-    die "Operating system not supported by this script." 1
+    die "Operating system not supported by this script." "$E_INSTALL_FAIL"
   fi
   leave "Spice Tools installed."
 }
