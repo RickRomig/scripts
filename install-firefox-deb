@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Updated      : 29 Nov 2025
+# Updated      : 30 Jan 2026
 # Comments     : Remove Distro, Flatpak, or Snap version before installing.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,13 +33,13 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.2.25334"
+readonly version="6.3.26030"
 readonly mozilla_list="/etc/apt/sources.list.d/mozilla.list"
 readonly mozilla_asc="/etc/apt/keyrings/packages.mozilla.org.asc"
 readonly mozilla_pref="/etc/apt/preferences.d/mozilla.pref"
@@ -48,8 +48,8 @@ verbose_mode="$FALSE"
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local -r updated="24 Oct 2025"
+	local errcode="${1:-1}"
+	local -r updated="30 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/Removes Mozilla repository version of Firefox.
@@ -74,7 +74,7 @@ firefox_version() {
 }
 
 mozilla_deb() {
-	dpkg -l firefox | grep -q 'Mozilla Firefox' && return "$TRUE" || return "$FALSE"
+	grep -q 'Mozilla Firefox' <(dpkg -l firefox) && return "$TRUE" || return "$FALSE"
 }
 
 other_firefox() {
@@ -179,11 +179,11 @@ main() {
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help  "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit
