@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Nov 2023
-# Updated      : 18 Jul 2025
+# Updated      : 30 Jan 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -62,8 +62,8 @@ configure_polybar() {
 	polybar_d="$1"
 	cfg_file="config.ini"
 	# Get device names from system.
-	e_name=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
-	w_name=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
+	e_name=$(awk '/ethernet/ {print $1}' <(/usr/bin/nmcli dev))
+	w_name=$(awk '/wifi/ {print $1}' <(/usr/bin/nmcli dev))
 	b_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $NF}')
 	# Apply device names or exlude modules as required.
 	if [[ "$w_name" ]]; then
@@ -87,14 +87,14 @@ install_polybar() {
 	local polybar_d=~/.config/polybar
 	sudo_login 2
 	sudo apt-get install -y polybar
-	exists polybar || die "Polybar installation failed!" 1
+	exists polybar || die "Polybar installation failed!" "$E_INSTALLATION"
 	copy_polybar_config "$polybar_d"
 	configure_polybar "$polybar_d"
 }
 
 main() {
   local script="${0##*/}"
-  local version="2.7.25298"
+  local version="2.8.26030"
 	printf "Installs Polybar on Debian with i3wm.\n"
 	exists polybar && leave "Polybar is already installed."
 	install_polybar
