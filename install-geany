@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 15 Nov 2025
+# Updated      : 31 Jan 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,20 +33,21 @@ if [[ -x ~/bin/functionlib ]]; then
   source ~/bin/functionlib
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.1.25319"
+readonly version="3.2.26031"
 verbose_mode="$FALSE"
+EC=0
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local updated="15 Nov 2025"
+	local errcode="${1:-1}"
+	local updated="31 Jan 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes Geany text editor and themes
@@ -63,7 +64,7 @@ _HELP_
 }
 
 geany_version() {
-  geany --version | cut -d' ' -f2
+  cut -d' ' -f2 <(geany --version)
 }
 
 clone_themes() {
@@ -74,22 +75,24 @@ clone_themes() {
   show_message "Cloning Geany themes..."
   git clone "$themes_url" "$cloned_dir"
   show_message "Copying Geany colorschemes..."
-  cp -av "$cloned_dir"/colorschemes/. "$colorschemes_dir/" | awk -F"/" '{print "=> " $NF}' | sed "s/'//"
+  awk -F"/" '{print "=> " $NF}' <(cp -av "$cloned_dir"/colorschemes/. "$colorschemes_dir/") | sed "s/'//"
   printf "Geany themes installed.\n"
 }
 
 install_geany() {
   show_message "Installing Geany from repositories..."
   sudo apt-get install -y geany libvte9
-  exists geany || die "Geany installation failed." 1
+  exists geany || die "Geany installation failed." "$E_INSTALLATION"
   printf "Geany %s installed.\n" "$(geany_version)"
+  geany_config
 }
 
 geany_config() {
   local repository=~/Downloads/configs/geany
   [[ -d ~/gitea/configs/geany ]] && repository=~/gitea/configs/geany
-  if ! [[ -d "$repository" ]]; then
+  if [[ ! -d "$repository" ]]; then
     printf "%s Configs repository not found!\n" "$RED_WARNING" >&2
+    EC="$E_FILENOTFOUND"
     return
   fi
   [[ -d ~/.config/geany ]] || mkdir -p ~/.config/geany
@@ -127,8 +130,6 @@ main() {
         else
           sudo_login 2
           install_geany
-          clone_themes
-          geany_config
         fi
         ;;
       r )
@@ -152,14 +153,14 @@ main() {
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help 2
+        help "$E_INVALID_ARG"
     esac
     noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
