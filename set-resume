@@ -72,17 +72,6 @@ set_resume() {
   return 0
 }
 
-reboot_system() {
-  printf "%sThe system needs to be rebooted for the change to take effect.%s\n" "$orange" "$normal"
-  if default_no "Do you want to reboot now?"; then
-    printf "Rebooting...\n"
-    sleep 10
-    sudo systemctl reboot
-  else
-    printf "\n%s Please reboot your system as soon as possible.\n" "$RED_WARNING"
-  fi
-}
-
 main() {
   local script="${0##*/}"
   local -r version="7.1.26028"
@@ -91,7 +80,7 @@ main() {
   set_resume
   ec="$?"
   over_line "$script $version" "-"
-  [[ "$ec" -eq 1 ]] && reboot_system
+  [[ "$ec" -eq 0 ]] && reboot_system
   exit "$ec"
 }
 
