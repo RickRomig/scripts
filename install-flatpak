@@ -33,18 +33,14 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
 
-flatpak_version() {
-  flatpak --version
-}
-
 install_flatpak() {
   if exists flatpak; then
-    printf "%s is already installed.\n" "$(flatpak_version)"
+    printf "%s is already installed.\n" "$(flatpak --version)"
     return
   fi
   echo "Installing Flatpak..."
@@ -52,7 +48,7 @@ install_flatpak() {
   sudo apt update -qq
   sudo apt install -y flatpak
   exists flatpak || die "Flatpak installation failed." 1
-  printf "%s installed.\n" "$(flatpak_version)"
+  printf "%s installed.\n" "$(flatpak --version)"
 }
 
 install_flathub() {
@@ -70,7 +66,7 @@ install_gnome_plugin() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.4.25296"
+  local -r version="1.5.26031"
   printf "Installs Flatpak and Flathub repository.\n"
   install_flatpak
   exists gnome-software && install_gnome_plugin
