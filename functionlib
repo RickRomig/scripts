@@ -41,7 +41,7 @@ RED_WARNING=$(printf "\e[91mWARNING!\e[0m"); declare -r RED_WARNING
 # Error Codes
 declare -r E_INFO=80
 declare -r E_FILENOTFOUND=81
-declare -r E_FILEEXISTS=82
+declare -r E_FILE_EXISTS=82
 declare -r E_MISSING_ARG=83
 declare -r E_INVALID_ARG=84
 declare -r E_TEMP_FILE=85
@@ -1104,4 +1104,20 @@ url_reachable() {
   url="$1"
   result=$(curl --head --connect-timeout 8 --max-time 14 --silent --output /dev/null --write-out '%{http_code}' "$url")
   [[ "$result" -eq 200 ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# reboot_system
+# Purpose: Prompt the user to reboot the system if it is necessary
+# Aruguments: None
+###############################################################################
+reboot_system() {
+  printf "%sThe system needs to be rebooted for the change to take effect.%s\n" "$orange" "$normal"
+  if default_no "Do you want to reboot now?"; then
+    printf "Rebooting...\n"
+    sleep 10
+    sudo systemctl reboot
+  else
+    printf "\n%s Please reboot your system as soon as practical.\n" "$RED_WARNING"
+  fi
 }
