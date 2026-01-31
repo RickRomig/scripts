@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Last updated : 02 Dec 2025
+# Last updated : 31 Jan 2026
 # Comments     : My default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,48 +33,55 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
 
-get_target_uuid() {
+get_snapshot_uuid() {
   local target_uuid
   target_uuid=$(awk '/data/ {print $(NF-3)}' <(lsblk -f))
-  [[ "$target_uuid" ]] || target_uuid=$(awk '/home/ {print $(NF-3)}' <(lsblk -f)) # home partition if no data partition
+  [[ "$target_uuid" ]] || target_uuid=$(awk '/home/ {print $(NF-3)}' <(lsblk -f)) # home partition if no /data partition
   [[ "$target_uuid" ]] || target_uuid=$(awk '/\/$/ {print $NF-3}' <(lsblk -f))  # root partition if no /home partition
   printf "%s" "$target_uuid"
 }
 
 configure_timeshift() {
   local ts_uuid script_dir
-  ts_uuid=$(get_target_uuid)
+  ts_uuid=$(get_snapshot_uuid)
   script_dir=$(dirname "$(readlink -f "${0}")")
   local -r ts_dir="/etc/timeshift"
   local -r ts_json="timeshift.json"
   local -r ts_sed="$script_dir/files/timeshift.sed"
   if [[ ! -f "$ts_sed" ]]; then
     printf "%s was not found. Configure using the GUI application.\n"  "${ts_sed##*/}" >&2
+    EC="$E_FILENOTFOUND"
     return
   fi
   printf "Configuring Timeshift...\n"
   sudo cp -v "$ts_dir/default.json" "$ts_dir/$ts_json"  # copy default json file
-  sudo sed -i -f "$ts_sed" "$ts_dir/$ts_json" # apply settings
+  sudo sed -i -f "$ts_sed" "$ts_dir/$ts_json" # configure settings
   sudo sed -i "/backup_device_uuid/ s/\",/$ts_uuid\",/" "$ts_dir/$ts_json"  # insert UUID for snapshots
-  sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/$ts_json"  # to get leading spaces right in json file
+  sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/$ts_json"  # adjust leading spaces in json file
+  printf "Timeshift configured.\n"
 }
 
 install_timeshift() {
   printf "Installing Timeshift...\n"
   sudo apt-get install -y timeshift
-  exists timeshift || die "Timeshift installation failed." 1
+  if grep -q '^ii' <(dpkg -l timeshift); then
+    printf "Timeshift installation failed." >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
+  printf "Timeshift %s installed.\n" "$(timeshift --version)"
   configure_timeshift
-  printf "%s installed and configured.\n" "$(timeshift --version)"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.4.25336"
+  local -r version="3.5.26031"
+  EC=0
   if exists timeeshift; then
     printf "%s is already installed.\n" "$(timeshift --version)"
   elif in_repos timeshift; then
@@ -84,7 +91,7 @@ main() {
     printf "Timeshift is not available in %s repositories.\n" "$(get_distribution)"
   fi
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
