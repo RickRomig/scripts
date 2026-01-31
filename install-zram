@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jan 2025
-# Updaged      : 03 Dec 2025
+# Updaged      : 31 Jan 2026
 # Comments     : Option to disable current swap && install ZRam.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
@@ -58,10 +58,19 @@ install_zram() {
   sed_file="zramswap.sed"
   sudo_login 2
 	sudo apt install -y zram-tools
-  grep -q '^ii' <( dpkg -l zram-tools) || { printf "zram-tools installation failed!\n"; return; }
-  sudo sed -i.bak -f "$script_dir/files/$sed_file" /etc/default/zramswap
-  sudo systemctl restart zramswap.service
-	printf "Zram-tools installed and configured.\n"
+  if grep -q '^ii' <(dpkg -l zram-tools); then
+    if [[ -f "$script_dir/files/$sed_file" ]]; then
+      sudo sed -i.bak -f "$script_dir/files/$sed_file" /etc/default/zramswap
+      sudo systemctl restart zramswap.service
+	    printf "Zram-tools installed and configured.\n"
+    else
+      printf "%s not found.\n" "$sed_file" >&2
+      EC="$E_FILENOTFOUND"
+    fi
+  else
+    printf "zram-tools installation failed!\n"
+    EC="$E_INSTALLATION"
+  fi
 }
 
 check_for_swap() {
@@ -70,7 +79,7 @@ check_for_swap() {
 	if [[ -z "$swap_dev" ]]; then
     printf "No swap device detected. Installing zram-tools...\n"
     install_zram
-		return
+		return "$EC"
 	fi
 	case "$swap_dev" in
 	  "/dev/zram0" )
@@ -89,12 +98,13 @@ check_for_swap() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.2.25337"
+  local -r version="4.3.26031"
+  EC=0
   check_for_swap
   printf "Active swap devices:\n"
   /usr/sbin/swapon --show
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
