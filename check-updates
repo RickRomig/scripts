@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 26 Jan 2026
+# Updated      : 30 Jan 2026
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -41,7 +41,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="10.2.26026"
+readonly version="10.3.26030"
 SECONDS=0
 
 ## Functions ##
@@ -54,7 +54,7 @@ cleanup() {
 
 help() {
 	local errcode="${1:-1}"
-  local updated="26 Jan 2026"
+  local updated="30 Jan 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt-get or Nala.
@@ -81,7 +81,7 @@ check_disk_space() {
   printf "\nDisk space used (root): %s / %s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
 }
 
-reboot_system() {
+system_reboot() {
   cat /var/run/reboot-required.pkgs
   printf "\n%s*** REBOOT REQUIRED ***%s\n" "$orange" "$normal"
   if default_no "Do you want to reboot now?"; then
@@ -358,7 +358,7 @@ main() {
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && reboot_system
+  [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && system_reboot
   exit
 }
 
