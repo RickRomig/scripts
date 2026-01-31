@@ -7,7 +7,7 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 02 Dec 2025
+# Updated      : 30 Dec 2026
 # Comments     : Install & remove for Deian-based systems only.
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
@@ -34,19 +34,19 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.19.25336"
+readonly version="1.20.26030"
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local -r updated="02 Dec 2025"
+	local errcode="${1:-1}"
+	local -r updated="30 Dec 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs UFW on Debian, BunsenLabs, and MX Linux systems.
@@ -66,8 +66,8 @@ _HELP_
   exit "$errcode"
 }
 
-exists_xrdp() {
-  grep -q '^ii' <(dpkg -l xrdp 2>/dev/null) && return "$TRUE" || return "$FALSE"
+ufw_exists() {
+  grep -q '^ii' <(dpkg -l ufw 2>/dev/null)  && return "$TRUE" || return "$FALSE"
 }
 
 install_ufw() {
@@ -90,7 +90,7 @@ add_rules() {
   sudo sed -i '/IPV6=no/s/no/yes/' /etc/default/ufw
   sudo ufw allow 631   # CUPS 631
   sudo ufw allow SSH   # SSH 22/tcp
-  exists_xrdp && sudo ufw allow 3389/tcp  # XRDP
+  grep -q '^ii' <(dpkg -l xrdp 2>/dev/null) && sudo ufw allow 3389/tcp  # XRDP
 }
 
 new_rules() {
@@ -126,11 +126,11 @@ disable_ufw() {
 }
 
 ufw_active() {
-  sudo ufw status | grep -qw active && return "$TRUE" || return "$FALSE"
+  grep -qw active <(sudo ufw status) && return "$TRUE" || return "$FALSE"
 }
 
 ufw_version() {
-  /usr/sbin/ufw version | awk '/ufw/ {print $NF}'
+  awk '/ufw/ {print $NF}' <(/usr/sbin/ufw version)
 }
 
 main() {
@@ -140,7 +140,7 @@ main() {
   while getopts "$optstr" opt; do
     case "$opt" in
       a )
-        if grep -q '^ii' <(dpkg -l ufw 2>/dev/null); then
+        if ufw_exists; then
           sudo_login 2
           add_rules
           ufw_active || enable_ufw
@@ -150,7 +150,7 @@ main() {
         fi
         ;;
       d )
-        if dpkg -l | grep -qw ufw; then
+        if ufw_exists; then
           sudo_login 2
           delete_rules
         else
@@ -158,7 +158,7 @@ main() {
         fi
         ;;
       e )
-        if grep -q '^ii' <(dpkg -l ufw 2>/dev/null); then
+        if ufw_exists; then
           sudo_login 2
           if ufw_active; then
             printf "UFW %s is enabled.\n" "$(ufw_version)"
@@ -174,7 +174,7 @@ main() {
         help 0
         ;;
       i )
-        if grep -q '^ii' <(dpkg -l ufw 2>/dev/null); then
+        if ufw_exists; then
           printf "UFW %s is already installed.\n" "$(ufw_version)" >&2
         else
           sudo_login 2
@@ -182,7 +182,7 @@ main() {
         fi
         ;;
       n )
-        if grep -q '^ii' <(dpkg -l ufw 2>/dev/null); then
+        if ufw_exists; then
           sudo_login 2
           new_rules
         else
@@ -191,7 +191,7 @@ main() {
         ;;
       r )
         if debian_system; then
-          if grep -q '^ii' <(dpkg -l ufw 2>/dev/null); then
+          if ufw_exists; then
             sudo_login 2
             remove_ufw
           else
@@ -202,7 +202,7 @@ main() {
         fi
         ;;
       s )
-        if grep -q '^ii' <(dpkg -l ufw 2>/dev/null); then
+        if ufw_exists; then
           sudo_login 2
           printf "UFW %s\n" "$(ufw_version)"
           sudo ufw status numbered
@@ -212,11 +212,11 @@ main() {
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help 2
+        help "$E_INVALID_ARG"
     esac
     noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   exit
