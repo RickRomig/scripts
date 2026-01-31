@@ -7,5 +7,6 @@ a "date_format" : "%Y-%m-%d %H:%M:%S",
 }
 /"exclude"/ {
 a "/home/rick/**",
-a "/root/**"
+a "/root/**",
+a "/data/**"
 }
