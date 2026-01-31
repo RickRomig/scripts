@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2024
-# Last updated : 03 Dec 2025
+# Last updated : 30 Jan 2026
 # Comments     : Working with i3 & Xfce4, no desktop background on Cinnamon.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -59,8 +59,8 @@ install_xdrp() {
 	printf "Enabling and starting xrdp sevice...\n"
 	sudo systemctl enable --now xrdp
 	printf "Allow xrdp port (3389/tcp) on UFW...\n"
-	sudo ufw status | grep -q 'inactive' && sudo ufw enable
-	sudo ufw status | grep -q '3389' || sudo ufw allow 3389/tcp
+	grep -qw 'inactive' <(sudo ufw status) && sudo ufw enable
+	grep -q '3389' <(sudo ufw status) || sudo ufw allow 3389/tcp
 }
 
 setup_xsession() {
@@ -81,13 +81,14 @@ setup_xsession() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.2.25337"
+  local -r version="2.3.26030"
 	sudo_login 2
 	check_package ufw
 	install_xdrp
 	setup_xsession
-	printf "XRDP server installed. Please reboot the system.\n"
+	printf "XRDP server installed.\n"
 	over_line "$script $version"
+	reboot_system
 	exit 0
 }
 
