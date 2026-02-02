@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2020
-# Updated      : 14 Nov 2025
+# Updated      : 02 Feb 2026
 # Comments     : Does not support installation from Ubuntu PPAs or flatpak.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,19 +33,20 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
 readonly version="2.5.25318"
+EC=0
 
 ## Functions ##
 
 help() {
-	local -r errcode="${1:-2}"
-  local -r updated="14 Nov 2025"
+	local -r errcode="${1:-1}"
+  local -r updated="02 Feb 2026"
 
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
@@ -67,6 +68,11 @@ install_audacious() {
     sudo apt update -qq
     sudo apt install audacious audacious-plugins -yy
     exists audacious || die "Audacious failed to install." 1
+    if grep -q '^ii' <(dpkg -l audacious); then
+      printf "%s Audacious installation failed.\n" "$RED_ERROR" >&2
+      EC="$E_INSTALLATION"
+      return
+    fi
     printf "Audacious audio player installed from distro repository.\n"
   else
     printf "Audacious is not in repositories. Audacious audio player not installed.\n"
@@ -105,14 +111,14 @@ main() {
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help 2
+        help "$E_INVALID_ARG"
     esac
     noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
