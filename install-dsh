@@ -38,6 +38,10 @@ fi
 
 ## Functions ##
 
+dsh_version() {
+  awk 'NR==1 {print $NF}' <(dsh --version)
+}
+
 copy_group_list() {
 	local -r repository="$1"
   local -r group_list="$2"
@@ -57,14 +61,21 @@ copy_machines_list() {
 }
 
 install_dsh() {
-  local group_list group_lists repository
-	repository=$(assign_cfg_repo)
-  group_lists=( desktops i3wm laptops )
   sudo_login 2
   sudo apt-get -y install dsh
+  if ! grep -q '^ii' <(dpkg -l dsh 2</dev/null); then
+    printf "%s DSH installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
+  local group_list group_lists repository
+  printf "DSH version %s installed.\n" "$(dsh_version)"
   [[ -d /etc/dsh/group ]] || sudo mkdir -p /etc/dsh/group
+	repository=$(assign_cfg_repo)
+  group_lists=( desktops i3wm laptops )
   printf "Changing remote shell from rsh to ssh.\n"
   sudo sed -i '/remoteshell/s/rsh/ssh/' /etc/dsh/dsh.conf
+  prinf "Copying machine and group lists...\n"
   copy_machines_list "$repository"
   for group_list in "${group_lists[@]}"; do
     copy_group_list "$repository" "$group_list"
@@ -73,12 +84,13 @@ install_dsh() {
 
 main() {
   local script="${0##*/}"
-  local version="2.6.26023"
+  local version="3.0.26033"
+  EC=0
   check_package git
   sudo_login 2
   install_dsh
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
