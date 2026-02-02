@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Mar 2020
-# Updated      : 23 Oct 2025
+# Updated      : 02 Feb 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -48,7 +48,14 @@ install_flatpak() {
   sudo apt update -qq
   sudo apt install -y flatpak
   exists flatpak || die "Flatpak installation failed." 1
+  if ! grep -q '^ii' <(dpkg -l flatpak); then
+    printf "%s Flatpak installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
   printf "%s installed.\n" "$(flatpak --version)"
+  exists gnome-software && install_gnome_plugin
+  install_flathub
 }
 
 install_flathub() {
@@ -67,12 +74,13 @@ install_gnome_plugin() {
 main() {
   local -r script="${0##*/}"
   local -r version="1.5.26031"
+  EC=0
   printf "Installs Flatpak and Flathub repository.\n"
   install_flatpak
   exists gnome-software && install_gnome_plugin
   install_flathub
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
