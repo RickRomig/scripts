@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Last updated : 30 Jan 2026
+# Last updated : 02 Feb 2026
 # Comments     : executable and its manpage will be renamed from ‘bat’ to ‘batcat’
 #              : because of a file name clash with another Debian package.
 #              : Mint 22 installs version 0.24.0 with suffix.
@@ -42,13 +42,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.9.26030"
+readonly version="2.10.26033"
+EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="30 Jan 2026"
+	local updated="02 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Installs/removes/configures bat/batcat
@@ -72,8 +73,13 @@ install_bat() {
 	sudo_login 2
 	sudo apt-get install -yy bat
 	exists batcat || die "Batcat failed to install." 1
-	bat_config
+	if exists batcat; then
+		printf "%s Batcat failed to install."  "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+		return
+	fi
 	printf "bat (batcat) version %s installed.\n" "$(bat_version)"
+	bat_config
 }
 
 remove_batcat() {
@@ -95,6 +101,7 @@ bat_config() {
 	[[ -d ~/.config/bat ]] || mkdir -p ~/.config/bat
 	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
 		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+		EC="$E_FILENOTFOUND"
 		return
 	fi
   printf "Applying Bat configuration...\n"
@@ -147,7 +154,7 @@ main() {
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	exit 0
+	exit "$EC"
 }
 
 ## Execution ##
