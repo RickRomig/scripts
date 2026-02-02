@@ -7,9 +7,9 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 30 Nov 2025
+# Updated      : 02 Feb 2026
 # Comments     : Based on instructions from Joe Collins.
-# TODO (Rick)  :
+# TODO (Rick)  : check entry in flatpak list
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
@@ -33,19 +33,19 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
-22 Oct
 readonly script="${0##*/}"
-readonly  version="2.2.25331"
+readonly  version="2.3.26033"
+EC=0
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local updated="15 Nov 2025"
+	local errcode="${1:-1}"
+	local updated="02 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Install Gnome Boxes from either distribution repositories or flatpak from Flathub.
@@ -112,13 +112,23 @@ install_boxes() {
   printf "\nInstalling GNOME Boxes (distro)...\n"
   sudo apt update -qq
   sudo apt install -yy gnome-boxes qemu-kvm
-  exists gnome-boxes || die "Gnome-boxes installation failed." 1
-  printf "Gnome-boxes installed.\n"
+  if exists gnome-boxes; then
+    printf "Gnome-boxes installed.\n"
+  else
+    printf "%s Gnome-boxes installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+  fi
 }
 
 install_flatpak() {
   printf "\nInstalling GNOME Boxes (flatpak)...\n"
   flatpak install --user flathub org.gnome.Boxes
+  if grep -qi 'boxes' <(flatpak list); then
+    printf "Gnome-Boxes installed.\n"
+  else
+    printf "%s Gnome-boxes installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+  fi
 }
 
 main() {
@@ -144,15 +154,15 @@ main() {
         ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help 2
+        help "$E_INVALID_ARG"
     esac
     noOpt=0
   done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
   printf "Gnome boxes installed and configured.\n"
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
