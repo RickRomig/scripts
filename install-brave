@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 30 Nov 2025
+# Updated      : 02 Feb 2026
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -34,22 +34,23 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.2.25331"
+readonly version="6.3.26033"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 verbose_mode="FALSE"
+EC=0
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-  local updated="15 Nov 2025"
+  local errcode="${1:-1}"
+  local updated="02 Feb 20265"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: ($updated)
 Installs/Removes the Brave browser
@@ -104,7 +105,12 @@ install_brave() {
   sudo apt-get update -qq
   sudo apt-get install brave-browser brave-keyring -yy
   exists brave-browser || die "Brave browser installation failed" 1
-  printf "%ssuccessfully installed.\n" "$(brave_ver)"
+  if grep -q '^ii' <(dpkg -l brave-browser); then
+    printf "%s successfully installed.\n" "$(brave_ver)"
+  else
+    printf "%s Brave browser installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+  fi
 }
 
 remove_brave() {
@@ -133,7 +139,8 @@ purge_configs() {
 }
 
 check_dependencies() {
-  [[ $(uname -m) == "x86_64" ]] || die "System architecture is not 64-bit." 1
+  local E_MISSING_DEPENDENCY=108
+  [[ $(uname -m) == "x86_64" ]] || die "System architecture is not 64-bit." "$E_MISSING_DEPENDENCY"
   local packages=( apt-transport-https curl libu2f-udev )
   check_packages "${packages[@]}"
 }
@@ -179,14 +186,14 @@ main(){
 			  ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help 2
+        help "$E_INVALID_ARG"
     esac
     noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
