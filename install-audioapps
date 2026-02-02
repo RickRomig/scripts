@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Mar 2019
-# Updated      : 22 Oct 2025
+# Updated      : 02 Feb 2026
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,14 +33,14 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
 
 install_audio_apps() {
   printf "\nInstalling audio applications and utilities from repositories.\n"
-  sudo apt-get install -yy asunder audacity easytag  lame mp3gain
+  sudo apt-get install -yy asunder audacity easytag lame mp3gain
 }
 
 list_installed_apps() {
@@ -54,13 +54,14 @@ list_installed_apps() {
 
 main() {
   local script="${0##*/}"
-  local version="1.5.25295"
+  local version="1.6.26033"
   sudo_login 2
   sudo apt-get update -qq
   printf "Installs audio applications on Debian/Ubuntu-based systems.\n"
   install_audio_apps
   list_installed_apps
   over_line "$script $version"
+  exit
 }
 
 ## Execution ##
