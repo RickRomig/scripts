@@ -65,11 +65,11 @@ cleanup() {
 
 app_version() {
 	# application --version
-	dpkg -l application | awk '/ii/ {print $3}' | sed 's/[~+-].*//'
+	awk '/ii/ {print $3}' <(dpkg -l application) | sed 's/[~+-].*//'
 }
 
 help() {
-	local errcode="${1:-2}"
+	local errcode="${1:-1}"
 	local -r updated="<TODAY>"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
