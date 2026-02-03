@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jul 2020
-# Updated      : 25 Jan 2026
+# Updated      : 03 Feb 2026
 # Comments     : Uses data from /sys/class/power_supply/BAT*
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -33,7 +33,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 2
+  exit 81
 fi
 
 ## Functions ##
@@ -72,8 +72,8 @@ battery_capacity() {
     cap_percent="0"
     bat_health="0"
   else
-    cap_percent=$(echo "100/${design_max}*${actual_max}" | bc -l)
-    bat_health=$(echo "$cap_percent" | awk 'NF{print $1/1}' OFMT="%2.2f")
+    cap_percent=$(bc -l <<< "100/${design_max}*${actual_max}")
+    bat_health=$(awk 'NF{print $1/1}' OFMT="%2.2f" <<< "$cap_percent")
   fi
 
   printf "\n%s%-17s%s\n" "$orange" "Battery health:" "$normal"
@@ -90,7 +90,7 @@ battery_condition() {
   if [[ "$c_pct" -eq 0 ]]; then
     warn_level=0
   else
-    warn_level=$(echo "$cap_pct" | awk 'NF{print $1/1}' OFMT="%.0f")
+    warn_level=$(awk 'NF{print $1/1}' OFMT="%.0f" <<< "$cap_pct")
   fi
 
   if [[ "$warn_level" -le "0" ]]; then
@@ -110,13 +110,13 @@ battery_condition() {
 battery_specs() {
   local battery_data battery_serial
   battery_data=$(cat "$battery_path"/uevent)
-  battery_serial=$(echo "$battery_data" | awk -F= '/SERIAL/ {print $NF}')
+  battery_serial=$(awk -F= '/SERIAL/ {print $NF}' <<< "$battery_data")
   [[ -z "$battery_serial" || "$battery_serial" == " " ]] && battery_serial="Not specified"
   printf "\n%sBattery Data:%s\n" "$orange" "$normal"
-  printf "\t%s%-15s%s%s\n" "$lightgreen" "Manufacturer:" "$normal" "$(echo "$battery_data" | awk -F= '/MANUFACTURER/ {print $NF}' | sed 's/^ //')"
-  printf "\t%s%-15s%s%s\n" "$lightgreen" "Nodel name:" "$normal" "$(echo "$battery_data" | awk -F= '/MODEL/ {print $NF}')"
+  printf "\t%s%-15s%s%s\n" "$lightgreen" "Manufacturer:" "$normal" "$(awk -F= '/MANUFACTURER/ {print $NF}' <<< "$battery_data" | sed 's/^ //')"
+  printf "\t%s%-15s%s%s\n" "$lightgreen" "Nodel name:" "$normal" "$(awk -F= '/MODEL/ {print $NF}' <<< "$battery_data")"
   printf "\t%s%-15s%s%s\n" "$lightgreen" "Serial number:" "$normal" "$battery_serial"
-  printf "\t%s%-15s%s%s\n" "$lightgreen" "Technology:" "$normal" "$(echo "$battery_data" | awk -F= '/TECHNOLOGY/ {print $NF}')"
+  printf "\t%s%-15s%s%s\n" "$lightgreen" "Technology:" "$normal" "$(awk -F= '/TECHNOLOGY/ {print $NF}' <<< "$battery_data")"
 }
 
 ac_power() {
@@ -152,7 +152,7 @@ battery_check() {
   local battery_name battery_path
   printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
   if [[ -d /proc/acpi/button/lid/ ]]; then
-    battery_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
+    battery_name=$(find /sys/class/power_supply/ -name "BAT*"); battery_name="${battery_name##*/}"
     if [[ -n "$battery_name" ]]; then
       battery_path="/sys/class/power_supply/$battery_name"
       printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$battery_name"
@@ -171,7 +171,7 @@ battery_check() {
 
 main() {
   local script="${0##*/}"
-  local version="7.2.26025"
+  local version="7.3.26034"
   clear
   check_package bc
   battery_check
