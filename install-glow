@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 30 Jan 2026
+# Updated      : 03 Feb 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,16 +39,17 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.4.26030"
+readonly version="5.5.26034"
 readonly charm_url="https://repo.charm.sh/apt"
 readonly src_list="/etc/apt/sources.list.d/charm.list"
 readonly charm_key="/etc/apt/keyrings/charm.gpg"
+EC=0
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local updated="30 Jan 2026"
+  local updated="03 Feb 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removed Glow Markdown reader
@@ -95,9 +96,13 @@ install_glow() {
   add_gpg
   add_src_list
   sudo apt update && sudo apt install -y glow
-  exists glow || die "Glow installation failed." 1
+  if grep -q '^ii' <(dpkg -l glow 2>/dev/null); then
+    printf "%s Glow installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
+  printf "Glow %s successfully installed.\n" "$(glow_version)"
   glow_config
-  printf "glow %s successfully installed.\n" "$(glow_version)"
 }
 
 remove_glow() {
@@ -113,9 +118,10 @@ remove_glow() {
 glow_config() {
   if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
 		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+    EC="$E_FILENOTFOUND"
 		return
 	fi
- printf "Installing glow.yml...\n"
+  printf "Installing glow.yml...\n"
   [[ -d ~/.config/glow ]] || mkdir -p ~/.config/glow
   [[ -f ~/.config/glow/glow.yml ]] && rm ~/.config/glow/glow.yml
   [[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/glow/glow.yml ~/.config/glow/glow.yml
@@ -162,7 +168,7 @@ main() {
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
