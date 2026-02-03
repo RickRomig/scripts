@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 01 Mar 2025
-# Updated      : 30 Jan 2026
+# Updated      : 03 Feb 2026
 # Comments     : instructions from https://librewolf.net/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,15 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.5.26030"
+readonly version="1.6.26034"
 verbose_mode="$FALSE"
+EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="30 Jan 2026"
+	local -r updated="03 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/removes LibreWolf browser.
@@ -74,11 +75,13 @@ show_message() {
 check_extrepo() {
 	if exists extrepo; then
 		printf "extrepo [OK]\n"
+		sleep 1
+		printf '\e[A\e[K'
 	else
 		show_message "Updating cache and checking/installing extrepo..."
 		sudo apt update && sudo apt install extrepo -y
 	fi
-	sudo extrepo enable librewolf
+	sudo extrepo enable librewolf && sudo extrepo update librewolf
 	printf "extrepo installed and librewolf repo enabled.\n"
 }
 
@@ -89,7 +92,11 @@ install_librewolf() {
 	check_extrepo
 	show_message "Installing LibreWolf..."
 	sudo apt update && sudo apt install librewolf -y
-	exists librewolf || die "LibreWolf installation failed." 1
+  if ! grep -q '^ii' <(dpkg -l librewolf 2>/dev/null); then
+    printf "%s LibreWolf installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
 	printf "LibreWolf browser version %s installed.\n" "$(lw_version)"
 }
 
@@ -97,25 +104,15 @@ remove_librewolf() {
 	printf "Removing LibreWolf browser %s...\n" "$(lw_version)"
 	sudo_login 2
 	show_message "Removing LibreWolf..."
-	sudo apt remove -y librewolf
-	show_message "Removing LibreWolf directories and files..."
-	[[ -f /etc/apt/sources.list.d/extrepo_librewolf.sources ]] && sudo rm /etc/apt/sources.list.d/extrepo_librewolf.sources
-	[[ -L /usr/bin/librewolf ]] && sudo unlink /usr/bin/librewolf
-	[[ -d /usr/share/librewolf ]] && sudo rm -rf /usr/share/librewolf
-	[[ -f /var/lib/extrepo/key/librewolf.asc ]] && sudo rm /var/lib/extrepo/keylibrewolf.asc
+	sudo extrepo disable librewolf
+	# sudo apt remove -y librewolf
 	show_message "Removing LibreWolf local configuration files..."
 	find ~/ -maxdepth 2 -type d -name "*librewolf*" -exec rm -rf {} \;
-	# Shown in LibreWolf removal instructions, but not found on system.
-	# sudo rm -f \
-	# 	/etc/apt/sources.list.d/librewolf.sources \
-	# 	/etc/apt/keyrings/librewolf.gpg \
-	# 	/etc/apt/preferences.d/librewolf.pref \
-	# 	/etc/apt/sources.list.d/home_bgstack15_aftermozilla.sources \
-	# 	/etc/apt/keyrings/home_bgstack15_aftermozilla.gpg \
-	# 	/etc/apt/sources.list.d/librewolf.list \
-	# 	/etc/apt/trusted.gpg.d/librewolf.gpg \
-	# 	/etc/apt/sources.list.d/home:bgstack15:aftermozilla.list \
-	# 	/etc/apt/trusted.gpg.d/home_bgstack15_aftermozilla.gpg
+	show_message "Removing LibreWolf system directories, files, and links..."
+	[[ -L /usr/bin/librewolf ]] && sudo unlink /usr/bin/librewolf
+	sudo find /etc -msxdepth 3 -type f -name "librewolf*" -exec sudo rm {} \;
+	sudo find /usr -msxdepth 3 -type d -name "librewolf*" -exec sudo rm -rf {} \;
+	sudo find /var -maxdepth 4 -type d -name "librewolf*" -exec sudo rm -rf {} \;
 	printf "LibreWolf has been removed.\n"
 }
 
@@ -155,7 +152,7 @@ main() {
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	exit
+	exit "$EC"
 }
 
 ## Execution ##
