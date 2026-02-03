@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Nov 2023
-# Updated      : 30 Jan 2026
+# Updated      : 03 Feb 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,20 +33,20 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
 
 copy_polybar_config() {
-  local repository polybar_d
-	repository=~/Downloads/configs/polybar
-	[[ -d ~/gitea/configs/polybar ]] && repository=~/Downlgiteaoads/configs/polybar
+	local repository=~/Downloads/configs/polybar
+	[[ -d ~/gitea/configs/polybar ]] && repository=~/gitea/configs/polybar
 	if [[ ! -d "$repository" ]]; then
     printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+		EC="$E_FILENOTFOUND"
     return
   fi
-	polybar_d="$1"
+	local polybar_d=~/.config/polybar
 	[[ -d "$polybar_d" ]] || mkdir -p "$polybar_d"
 	printf "Copying the Polybar configuration file ...\n"
 	cp -v "$repository/polybar/config.ini" "$polybar_d/"
@@ -54,18 +54,20 @@ copy_polybar_config() {
 	printf "Installing the Polybar launcher...\n"
 	cp -v "$repository/polybar/polybar-i3" "$polybar_d/"
 	[[ -x "$polybar_d/polybar-i3" ]] || chmod +x "$polybar_d/polybar-i3"
-	printf "polybar-i3 installed.\n"
+	configure_modules "$polybar_d"
+	printf "polybar-i3 confgured.\n"
 }
 
-configure_polybar() {
+configure_modules() {
 	local polybar_d cfg_file b_name e_name w_name
 	polybar_d="$1"
 	cfg_file="config.ini"
 	# Get device names from system.
 	e_name=$(awk '/ethernet/ {print $1}' <(/usr/bin/nmcli dev))
 	w_name=$(awk '/wifi/ {print $1}' <(/usr/bin/nmcli dev))
-	b_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $NF}')
-	# Apply device names or exlude modules as required.
+	b_name=$(find /sys/class/power_supply/ -name "BAT*"); b_name="${b_name##*/}"
+	# b_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $NF}')
+	# Apply device names or exclude modules as required.
 	if [[ "$w_name" ]]; then
 		sed -i "s/wlan0/$w_name/" "$polybar_d/$cfg_file"
 	else
@@ -84,21 +86,29 @@ configure_polybar() {
 }
 
 install_polybar() {
-	local polybar_d=~/.config/polybar
 	sudo_login 2
 	sudo apt-get install -y polybar
-	exists polybar || die "Polybar installation failed!" "$E_INSTALLATION"
-	copy_polybar_config "$polybar_d"
-	configure_polybar "$polybar_d"
+	if ! grep -q '^ii' <(dpkg -l polybar 2>/dev/null); then
+		printf "%s Polybar installation failedn" "$RED_ERROR" >&2
+		EC="$E_INSTALLATION"
+		return
+	fi
+	printf "Polybar installed.\n"
+	copy_polybar_config
 }
 
 main() {
   local script="${0##*/}"
-  local version="2.8.26030"
+  local version="2.9.26034"
+	EC=0
 	printf "Installs Polybar on Debian with i3wm.\n"
-	exists polybar && leave "Polybar is already installed."
-	install_polybar
+	if exists polybar; then
+		printf "Polybar is already installed.\n"
+	else
+		install_polybar
+	fi
 	over_line "$script $version"
+  exit "$EC"
 }
 
 ## Execution ##
