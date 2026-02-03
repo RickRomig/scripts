@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Nov 2018
-# Updated      : 30 Jan 2026
+# Updated      : 03 Feb 2026
 # Comments     : Available as a flatpak (preferred method)
 #              : https://flathub.org/apps/details/fr.free.Homebank
 #              : Linux Mint Sofware Manager
@@ -41,13 +41,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.3.26030"
+readonly version="6.4.26034"
+EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="30 Jan 2026"
+	local updated="03 Feb 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes HomeBank Personal Finance Software.
@@ -81,8 +82,13 @@ install_flatpak_homebank() {
   printf "Install the HomeBank flatpak...\n"
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   flatpak install --user flathub fr.free.Homebank
-  apply_preferences
+  if grep -qw HomeBank <(flatpak list); then
+    printf "%s HomeBank installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
   printf "HomeBank flatpak (%s) installed.\n" "$(homebank_version)"
+  apply_preferences
 }
 
 remove_flatpak_homebank() {
@@ -95,10 +101,15 @@ remove_flatpak_homebank() {
 
 install_homebank() {
   sudo_login 2
-  sudo apt-get install homebank -yyq
+  sudo apt-get install-yyq homebank
   exists homebank || die "Homebank installation failed." 1
-  apply_preferences
+  if grep -q '^ii' <(dpkg -l homebank 2>/dev/null); then
+    printf "%s HomeBank installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
   printf "HomeBank %s installed.\n" "$(homebank_version)"
+  apply_preferences
 }
 
 remove_homebank() {
@@ -176,7 +187,7 @@ main() {
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
