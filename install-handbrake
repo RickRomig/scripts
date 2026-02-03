@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Feb 2019
-# Updated      : 16 Nov 2025
+# Updated      : 03 Feb 2026
 # Comment      : Handbrake rips DVD movies
 #              : Available as a flatpak via Flathub and Mint Software Manager
 #              : https://dl.flathub.org/repo/appstream/fr.handbrake.ghb.flatpakref
@@ -37,19 +37,19 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.13.25320"
+readonly version="3.1.20034"
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local updated="16 Nov 2025"
+	local errcode="${1:-1}"
+	local updated="03 Feb 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Install/Remove Handbrake video transcorder
@@ -65,14 +65,19 @@ _HELP_
 
 install_handbrake() {
   sudo_login 2
-  sudo apt install handbrake-gtk handbrake-cli -yy
+  sudo apt install -yy handbrake handbrake-cli
   exists ghb || die "Handbrake installation failed!" 1
+  if grep -q '^ii' <(dpkg -l handbrake 2>/dev/null); then
+    printf "%s Handbrake installation failed!\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
   echo "Handbrake installed."
 }
 
 remove_handbrake() {
   sudo_login 2
-  sudo apt autoremove handbrake-gtk handbrake-cli -yy
+  sudo apt autoremove handbrake handbrake-cli -yy
   echo "Handbrake removed from system."
 }
 
@@ -86,7 +91,7 @@ main() {
         help 0
         ;;
       i )
-        exists ghb && leave "Handbrake-GTK already installed."
+        exists ghb && leave "Handbrake already installed."
         install_handbrake
         ;;
       r )
@@ -95,13 +100,14 @@ main() {
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help 2
+        help "$E_INVALID_ARG"
     esac
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
-  leave "$script v$version"
+  over_line "$script $version"
+  exit "$EC"
 }
 
 ## Execution ##
