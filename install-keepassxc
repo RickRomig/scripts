@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Jan 2021
-# Updated      : 30 Nov 2025
+# Updated      : 03 Feb 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,19 +33,20 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.4.25334"
+readonly version="4.5.26034"
+EC=0
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local updated="30 Nov 2025"
+	local errcode="${1:-1}"
+	local updated="303 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removed KeePassXC password manager
@@ -63,14 +64,14 @@ _HELP_
 
 flatpak_keepassxc() {
   exists flatpak || return "$FALSE"
-  flatpak list | grep -qw KeePassXC && return "$TRUE" || return "$FALSE"
+  grep -qw KeePassXC <(flatpak list) && return "$TRUE" || return "$FALSE"
 }
 
 keepass_version() {
   if exists keepassxc; then
     awk '{print $NF}' <(keepassxc --version)
   elif flatpak_keepassxc; then
-    awk '/KeePassXC/ {print $3}' <(flatpak list)
+    awk '/KeePassXC/ {print $(NF-2)}' <(flatpak list)
   fi
 }
 
@@ -78,16 +79,25 @@ install_flathub_keepassxc() {
   sudo_login 2
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   flatpak install --user flathub org.keepassxc.KeePassXC
-  apply_keepassxc_ini
+  if grep -qw KeePassXC <(flatpak list); then
+    printf "%s KeePassXC installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
   printf "KeePassXC %s installed from flathub.\n" "$(keepass_version)"
+  apply_keepassxc_ini
 }
 
 install_distro_keepassxc() {
   sudo_login 2
   sudo apt-get install keepassxc -yy
-  exists keepassxc || die "KeePassXC installation failed." 1
-  apply_keepassxc_ini
+  if grep -q '^ii' <(dpkg -l keepassxc 2>/dev/null); then
+    printf "%s KeePassXC installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
   printf "Keepassxc %s installed from distro repositories.\n" "$(keepass_version)"
+  apply_keepassxc_ini
 }
 
 remove_flatpak_keepassxc() {
@@ -101,15 +111,16 @@ remove_distro_keeepassxc() {
   sudo_login 2
   printf "Removing KeePassXC ...\n"
   sudo apt-get remove --purge keepassxc -yy
-  find ~/ -maxdepth 3 -type d -name keepassxc -exec rm -rf {} \;
+  find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name keepassxc -exec rm -rf {} \;
   printf "KeePassXC removed.\n"
 }
 
 apply_keepassxc_ini() {
   local repository=~/Downloads/configs/keepassxc
   [[ -d ~/gitea/configs/keepassxc ]] && repository=~/gitea/configs/keepassxc
-  if ! [[ -d "$repository" ]]; then
+  if [[ ! -d "$repository" ]]; then
     printf "%s Configs repository not found!\n" "$RED_WARNING" >&2
+    EC="$E_FILENOTFOUND"
     return
   fi
   local -r ini_file="keepassxc.ini"
@@ -160,14 +171,14 @@ main() {
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help 2
+        help  "$E_INVALID_ARG"
     esac
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
