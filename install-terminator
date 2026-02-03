@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 01 Dec 2025
+# Updated      : 03 Feb 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,21 +33,20 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
-
-set -eu
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.2.25335"
+readonly version="7.3.260304"
+EC=0
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local -r updated="01 Dec 2025"
+	local errcode="${1:-1}"
+	local -r updated="03 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Terminator terminal emulator
@@ -74,14 +73,18 @@ install_terminator() {
   sudo_login 2
   sudo apt-get -yq update
   sudo apt-get install -y terminator
-  exists terminator || die "Terminator installation failed." 1
+  if ! grep -q '^ii' <(dpkg -l terminator 2>/dev/null); then
+    printf "%s Terminator installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
   printf "Terminator %s installed.\n" "$(terminator_version)"
   if bunsenlabs; then
     printf "BunsenLabs uses its own profiles based on the version of the distribution.\n"
     return
   fi
-  apply_config
   printf "Terminator %s configured.\n" "$(terminator_version)"
+  apply_config
 }
 
 remove_terminator() {
@@ -98,6 +101,7 @@ apply_config() {
   [[ -d ~/gitea/configs/config_dir ]] && repository=~/gitea/configs/config_dir/
   if ! [[ -d "$repository" ]]; then
     printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+    EC="$E_FILENOTFOUND"
     return
   fi
   [[ -d /.config/terminator ]] && mkdir -p /.config/terminator
@@ -150,14 +154,14 @@ main() {
         ;;
       ? )
       printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-      help 2
+      help "$E_INVALID_ARG"
     esac
     noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
