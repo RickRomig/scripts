@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2022
-# Updated      : 15 Jan 2026
+# Updated      : 04 Feb 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,22 +33,22 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.4.26015"
+readonly version="3.5.26035"
 readonly gh_url="https://github.com/VSCodium/vscodium/releases"
 DOTS_PID=
+EC=0
 
 ## Functions ##
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="15 Jan 2026"
+	local errcode="${1:-1}"
+	local updated="04 Feb2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates,  removes the VSCodium editor.
@@ -77,7 +77,7 @@ codium_version() {
 newest_version() {
   local new_ver
   wget -qO "$tmp_file" "$gh_url"
-  new_ver=$(awk -F'/' '/download/ && /amd64.deb/ {print $8;exit}' "$tmp_file" | grep -Ev 'beta|-rc' | sed 's/^v//')
+  new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /amd64.deb/ {print $8;exit}' "$tmp_file") | sed 's/^v//')
   echo "$new_ver"
 }
 
@@ -86,7 +86,8 @@ compare_versions() {
   local cur_ver
   cur_ver=$(dpkg -l codium 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//')
   if [[ -z "$new_ver" ]]; then
-    printf "No download available. Try again later.\n" >&2
+    printf "%s No download available. Try again later.\n" "$RED_ERROR" >&2
+    EC="$E_DOWNLOAD"
     return
   elif [[ ! "$new_ver" > "$cur_ver" ]]; then
     printf "%sVSCodium %s is the latest version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
@@ -99,7 +100,11 @@ compare_versions() {
 install_vscodium() {
   local new_ver="$1"
   local new_pkg="codium_${new_ver}_amd64.deb"
-  [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
+  if [[ -z "$new_ver" ]]; then
+    printf "%s No download available. Try again later." "$RED_ERROR" >&2
+    EC="$E_DOWNLOAD"
+    return
+  fi
   printf "Downloading VSCodium %s from the VSCodium GitHub repository..." "$new_ver"
   dots "." &
   DOTS_PID="$!"
@@ -108,7 +113,11 @@ install_vscodium() {
   printf "Installing VSCodium %s...\n" "$new_ver"
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
-  exists codium || die "VSCodium installation failed!" 1
+  if ! grep -q '^ii' <(dpkg -l codium >/dev/null 2>&1); then
+    printf "%s VSCodium installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
   printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 }
 
@@ -117,15 +126,17 @@ remove_vscodium() {
   printf "Removing the VSCodium editor...\n"
   sudo dpkg --remove codium
   [[ -L ~/.config/VSCodium/User/settings.json ]] && unlink ~/.config/VSCodium/User/settings.json
-  find ~/.config -maxdepth 2 -type d -name VSCodium -exec rm -rf {} \;
+  find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name VSCodium -exec rm -rf {} \;
   printf "VSCodium editor has been removed.\n"
 }
 
 apply_settings() {
+  [[ "$EC" -ne 0 ]] && return
   printf "Applying VSCodium settings...\n"
   [[ -d ~/.config/VSCodium/User ]] && mkdir -p ~/.config/VSCodium/User
 	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
 		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+    EC="$E_FILENOTFOUND"
 		return
 	fi
   [[ -f ~/.config/VSCodium/User/settings.json ]] && rm ~/.config/VSCodium/User/settings.json
@@ -147,8 +158,8 @@ main() {
         if exists codium; then
           printf "VSCodium %s is already installed.\n" "$(codium_version)" >&2
         else
-          tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-			    tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+          tmp_file=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 			    trap cleanup EXIT
 			    new_ver="$(newest_version)"
           printf "%sInstalling VSCodium %s...%s\n" "$lightyellow" "$new_ver" "$normal"
@@ -165,8 +176,8 @@ main() {
         ;;
 		  u )
         if exists codium; then
-			    tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
-			    tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+          tmp_file=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 			    trap cleanup EXIT
 					printf "VSCodium: Comparing current and newest versions...\n"
 			    new_ver="$(newest_version)"
@@ -177,14 +188,14 @@ main() {
         ;;
 		  ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-			  help 2
+			  help "$E_INVALID_ARG"
 	  esac
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
