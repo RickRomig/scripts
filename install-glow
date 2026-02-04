@@ -96,7 +96,7 @@ install_glow() {
   add_gpg
   add_src_list
   sudo apt update && sudo apt install -y glow
-  if grep -q '^ii' <(dpkg -l glow 2>/dev/null); then
+  if ! grep -q '^ii' <(dpkg -l glow 2>/dev/null); then
     printf "%s Glow installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
