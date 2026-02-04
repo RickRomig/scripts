@@ -79,7 +79,7 @@ install_flathub_keepassxc() {
   sudo_login 2
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   flatpak install --user flathub org.keepassxc.KeePassXC
-  if grep -qw KeePassXC <(flatpak list); then
+  if ! grep -qw KeePassXC <(flatpak list); then
     printf "%s KeePassXC installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
@@ -91,7 +91,7 @@ install_flathub_keepassxc() {
 install_distro_keepassxc() {
   sudo_login 2
   sudo apt-get install keepassxc -yy
-  if grep -q '^ii' <(dpkg -l keepassxc 2>/dev/null); then
+  if ! grep -q '^ii' <(dpkg -l keepassxc 2>/dev/null); then
     printf "%s KeePassXC installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
