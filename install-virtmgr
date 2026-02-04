@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2011, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Feb 2021
-# Updated      : 23 Oct 2025
+# Updated      : 04 Feb 2026
 # Comments     : Based on Chris Titus video for installing virt-manager:
 #              : https://www.youtube.com/watch?v=ozYKkaVK0_A
 # TODO (Rick)  : Set up default image pool in home directory.
@@ -34,7 +34,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
@@ -170,6 +170,7 @@ install_packages() {
 main() {
   local -r script="${0##*/}"
   local -r version="3.1.25296"
+  EC=0
   printf "Installs Virt-Manager and KVM/QEMU...\n\n"
   if check_requirements; then
     sudo_login 2
@@ -184,9 +185,10 @@ main() {
     printf "Virt-Manager installed. %s added to libvirt, libvirt-qemu, and kvm groups." "$USER"
   else
     printf "KVM/QEMU cannot be installed.\n" >&2
+    EC="$E_INSTALLATION"
   fi
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
