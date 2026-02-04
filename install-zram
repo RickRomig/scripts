@@ -58,7 +58,7 @@ install_zram() {
   sed_file="zramswap.sed"
   sudo_login 2
 	sudo apt install -y zram-tools
-  if grep -q '^ii' <(dpkg -l zram-tools 2</dev/null); then
+  if ! grep -q '^ii' <(dpkg -l zram-tools 2</dev/null); then
     if [[ -f "$script_dir/files/$sed_file" ]]; then
       sudo sed -i.bak -f "$script_dir/files/$sed_file" /etc/default/zramswap
       sudo systemctl restart zramswap.service
