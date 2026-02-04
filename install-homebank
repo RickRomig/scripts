@@ -82,7 +82,7 @@ install_flatpak_homebank() {
   printf "Install the HomeBank flatpak...\n"
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   flatpak install --user flathub fr.free.Homebank
-  if grep -qw HomeBank <(flatpak list); then
+  if ! grep -qw HomeBank <(flatpak list); then
     printf "%s HomeBank installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
@@ -102,7 +102,7 @@ remove_flatpak_homebank() {
 install_homebank() {
   sudo_login 2
   sudo apt-get install-yyq homebank
-  if grep -q '^ii' <(dpkg -l homebank 2>/dev/null); then
+  if ! grep -q '^ii' <(dpkg -l homebank 2>/dev/null); then
     printf "%s HomeBank installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
