@@ -114,7 +114,7 @@ install_marktext() {
   printf "Installing Mark Text %s...\n" "$new_ver"
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
   exists markktext || die "Marktext installation failed!" 1
-  if grep -q '^ii' <(dpkg -l markktext >/dev/null 2>&1); then
+  if ! grep -q '^ii' <(dpkg -l markktext >/dev/null 2>&1); then
     printf "%s Marktext installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
