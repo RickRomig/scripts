@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 03 Dec 2025
+# Updated      : 04 Feb 2026
 # Comments     : Removes distro repo version if installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,19 +36,17 @@ else
   exit 1
 fi
 
-set -eu
-
 ## Global Variables ##
 
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="2.7.25337"
+readonly version="2.8.25035"
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local updated="03 Dec 2025"
+	local errcode="${1:-1}"
+	local updated="04 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, removes, updates YouTube-dlp.
@@ -91,10 +89,30 @@ update_ytdlp() {
 }
 
 install_updater() {
-	local -r updater="$script_dir/z-ytdlp-update"
+	local -r updater="$script_dir/cronjobs/z-ytdlp-update"
 	local -r cleanup="$script_dir/files/ytdlp-uplog.sed"
   [[ -x "$updater" ]] && sudo cp -v "$updater" /etc/cron.daily/
   [[ -f "$cleanup" ]] && sudo cp -v "$cleanup" /usr/share/misc/
+}
+
+remove_configs() {
+	printf "Removing yt-dlp configuration files...\n"
+	find ~/ -type d -name yt-dlp -exec rm -rf {} \;
+	[[ -f /etc/yt-dlp.conf ]] && sudo rm /etc/yt-dlp.conf
+}
+
+remove_updater() {
+	local -r sed_file="/usr/share/misc/ytdlp-uplog.sed "
+	local -r updater="/etc/cron.daily/z-ytdlp-update"
+	printf "Removing the yt-dlp updater...\n"
+	[[ -f "$sed_file" ]] && sudo rm "$sed_file"
+	[[ -x "$updater" ]] && sudo rm "$updater"
+}
+
+remove_logs() {
+	local -r log_file="/var/log/ytdlpup.log"
+	printf "Removing yt-dlp log file...\n"
+  [[ -f "$log_file" ]] && sudo rm "$log_file"
 }
 
 install_ytdlp() {
@@ -123,58 +141,12 @@ remove_ytdlp() {
   # Removes the yt-dl.org version
   printf "Removing yt-dlp %s installed from yt-dlp.org...\n" "$(ytdlp_version)"
 	sudo_login 2
+	[[ -L "$HOME/.local/bin/yt-dlp" ]] && unlink "$HOME/.local/bin/yt-dlp"
   sudo rm /usr/local/bin/yt-dlp
   remove_configs
   remove_updater
-  remove_ytdlp_logs
+  remove_logs
 	printf "ytdlp.org version of yt-dlp removed.\n"
-}
-
-remove_configs() {
-	local user_config="$HOME/.config/yt-dlp"
-	local global_config="/etc/yt-dlp.conf"
-	printf "Removing yt-dlp configuration files...\n"
-  if [[ -d "$user_config" ]]; then
-    rm -rf "$user_config"
-    printf "%s removed.\n" "$user_config"
-  else
-    printf "%s not found.\n" "$user_config"
-  fi
-  if [[ -f "$global_config" ]]; then
-    sudo rm "$global_config"
-		printf "%s removed.\n" "$global_config"
-	else
-    printf "%s not found.\n" "$global_config"
-  fi
-}
-
-remove_updater() {
-	local -r sed_file="/usr/share/misc/ytdlp-uplog.sed "
-	local -r updater="/etc/cron.daily/z-ytdlp-update"
-	printf "Removing the yt-dlp updater...\n"
-	if [[ -f "$sed_file" ]]; then
-		sudo rm "$sed_file"
-		printf "%s removed.\n" "$sed_file"
-	else
-		printf "%s not found.\n" "$sed_file"
-	fi
-	if [[ -x "$updater" ]]; then
-		sudo rm "$updater"
-		printf "%s removed.\n" "$updater"
-	else
-		printf "%s not found.\n" "$updater"
-	fi
-}
-
-remove_ytdlp_logs() {
-	local -r log_file="/var/log/ytdlpup.log"
-	printf "Removing yt-dlp log file...\n"
-  if [[ -f "$log_file" ]]; then
-    sudo rm "$log_file"
-    printf "%s removed.\n" "$log_file"
-  else
-    printf "%s not found.\n" "$log_file"
-  fi
 }
 
 install_intro() {
@@ -240,11 +212,11 @@ main() {
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit
