@@ -93,7 +93,8 @@ compare_versions() {
   local cur_ver
   cur_ver="$(bat_version)"
   if [[ -z "$new_ver" ]]; then
-    printf "No download available. Try again later.\n" >&2
+    printf "%s No download available. Try again later." "$RED_ERROR" >&2
+    EC="$E_DOWNLOAD"
     return
   elif [[ ! "$new_ver" > "$cur_ver" ]]; then
     printf "%s Bat %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
