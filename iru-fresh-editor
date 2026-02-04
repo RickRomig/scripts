@@ -117,7 +117,6 @@ install_fresh() {
   printf "Installing Fresh-editor %s...\n" "$new_ver"
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
-  dpkg -l fresh-editor | grep -qw '^ii' >/dev/null 2>&1 || die "Bat installation failed." 1
   if ! grep -q '^ii' <(dpkg -l fresh-editor >/dev/null 2>&1); then
     printf "%s Fresh-editor installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
