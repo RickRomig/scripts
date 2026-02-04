@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 15 Jan 2026
-# Comments     : Use install-batcat if distro version equals latest GitHub release.
+# Updated      : 04 Feb 2026
+# Comments     : Use install-batcat if distro version has same base version number as latest GitHub release.
 #              : Mint 22 installs version 0.24.0 with the Ubuntu version appended.
 #              : Debian 13 installs version 0.25.0 with the Debian version appended.
 #              : LMDE 7 (stable) installs version 0.22.1-4.
@@ -36,21 +36,22 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.10.26015"
+readonly version="6.19.26035"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 DOTS_PID=
+EC=0
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local -r updated="15 Jan 2026"
+	local errcode="${1:-1}"
+	local -r updated="04 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Bat utililty.
@@ -83,7 +84,7 @@ bat_version() {
 
 newest_version() {
   wget -qO "$tmp_file" "$gh_url"
-  new_ver=$(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$tmp_file" | grep -Ev 'beta|-rc' | sed 's/^v//')
+  new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$tmp_file") | sed 's/^v//')
   echo "$new_ver"
 }
 
@@ -105,16 +106,24 @@ compare_versions() {
 install_bat() {
   local new_ver="$1"
   local new_pkg="bat_${new_ver}_amd64.deb"
-  [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
+  if [[ -z "$new_ver" ]]; then
+    printf "%s No download available. Try again later." "$RED_ERROR" >&2
+    EC="$E_DOWNLOAD"
+    return
+  fi
   printf "Downloading Bat %s from the sharkdp GitHub repository..." "$new_ver"
-   dots "." &
+  dots "." &
 	DOTS_PID="$!"
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
 	kill_dots
   printf "Installing Bat %s...\n" "$new_ver"
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
-  dpkg -l bat | grep -qw '^ii' >/dev/null 2>&1 || die "Bat installation failed." 1
+  if grep -q '^ii' <(dpkg -l bat >/dev/null 2>&1); then
+    printf "%s Bat installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
   [[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
   printf "Bat %s installed.\n" "$(bat_version)"
 }
@@ -130,9 +139,11 @@ remove_bat() {
 }
 
 bat_config() {
+  [[ "$EC" -ne 0 ]] && return
 	[[ -d ~/.config/bat ]] || mkdir -p ~/.config/bat
 	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
 		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+    EC="$E_FILENOTFOUND"
 		return
 	fi
   printf "Applying Bat configuration...\n"
@@ -157,8 +168,8 @@ main() {
           printf "Bat %s is already installed.\n" "$(bat_version)" >&2
         else
           check_dependencies
-          tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+          tmp_file=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
           trap cleanup EXIT
 					new_ver="$(newest_version)"
           printf "%sInstalling Bat version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
@@ -176,8 +187,8 @@ main() {
       u )
         if exists bat || exists batcat; then
           check_dependencies
-          tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+          tmp_file=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
           trap cleanup EXIT
 					printf "Bat: Comparing current and newest versions...\n"
           new_ver="$(newest_version)"
@@ -188,14 +199,14 @@ main() {
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help 2
+        help "$E_INVALID_ARG"
     esac
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
