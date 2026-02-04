@@ -68,7 +68,7 @@ install_audacious() {
     sudo apt update -qq
     sudo apt install audacious audacious-plugins -yy
     exists audacious || die "Audacious failed to install." 1
-    if grep -q '^ii' <(dpkg -l audacious); then
+    if ! grep -q '^ii' <(dpkg -l audacious); then
       printf "%s Audacious installation failed.\n" "$RED_ERROR" >&2
       EC="$E_INSTALLATION"
       return
