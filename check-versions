@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 26 Jan 2026
+# Last updated : 04 Feb 2026
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 #              : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
@@ -106,15 +106,15 @@ get_new_version() {
     # Extract latest version number from temp file, ignoring beta and release candidates.
   case "$package" in
     codium )
-      new_ver=$(awk -F'/' '/download/ && /amd64.deb/ {print $8;exit}' "$tmp_file" | grep -Ev 'beta|-rc' | sed 's/^v//') ;;
+      new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /amd64.deb/ {print $8;exit}' "$tmp_file") | sed 's/^v//') ;;
     micro )
-      new_ver=$(awk -F'/' '/download/ && /linux/ {print $6;exit}' "$tmp_file" | grep -Ev 'beta|-rc' | sed 's/^v//') ;;
+      new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /linux/ {print $6;exit}' "$tmp_file") | sed 's/^v//') ;;
     fastfetch )
       new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6;exit}' "$tmp_file") ;;
     fresh-editor )
-      new_ver=$(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$tmp_file" | sed 's/^v//') ;;
+      new_ver=$(sed 's/^v//' <(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$tmp_file")) ;;
     * )
-      new_ver=$(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$tmp_file" | grep -Ev 'beta|-rc' | sed 's/^v//')
+      new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$tmp_file") | sed 's/^v//')
   esac
   echo "$new_ver"
 }
@@ -176,7 +176,7 @@ browsers() {
 
 main() {
   local script="${0##*/}"
-  local version="15.8.26026"
+  local version="15.9.26035"
   clear
   box "$script $version"
   printf "\n"
