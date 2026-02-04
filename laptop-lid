@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Oct 2020
-# Updated      : 28 Dec 2025
+# Updated      : 04 Feb 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
@@ -41,10 +41,11 @@ fi
 modify_logind() {
   local script_dir
   script_dir=$(dirname "$(readlink -f "${0}")")
-  local logind_conf="/etc/systemd/logind.conf"
-  local sed_file="$script_dir/files/laptoplid.sed"
+  local -r logind_conf="/etc/systemd/logind.conf"
+  local -r sed_file="$script_dir/files/laptoplid.sed"
   if [[ ! -f "$sed_file" ]]; then
     printf "A required file, %s, was not found. Operation canceled.\n" "${sed_file##*/}" >&2
+    EC="$E_FILENOTFOUND"
     return
   fi
   sudo_login 2
@@ -56,16 +57,18 @@ modify_logind() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.4.25362"
+  local -r version="4.5.26035"
   local -r lhost="${HOSTNAME:=-$(hostname)}"
+  EC=0
   printf "Allows a laptop's lid to be closed without the system going into suspend mode.\n"
   if is_laptop; then
     modify_logind
   else
     printf "%s is not a laptop. Operation canceled.\n" "$lhost" >&2
+    EC="$E_INFO"
   fi
   over_line "$script $version" "-"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
