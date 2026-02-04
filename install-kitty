@@ -67,7 +67,7 @@ kitty_version() {
 install_kitty() {
   printf "Installing the kitty terminal emulator.\n"
   sudo apt-get install -y kitty imagemagick
-  if grep -q '^ii' <(dpkg -l kitty); then
+  if ! grep -q '^ii' <(dpkg -l kitty); then
     printf "%s Kitty installation failed.\n" "$RED_ERROR"
     EC="$E_INSTALLATION"
     return
