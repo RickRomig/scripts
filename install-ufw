@@ -7,7 +7,7 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 30 Dec 2026
+# Updated      : 04 Feb 2026
 # Comments     : Install & remove for Deian-based systems only.
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
@@ -40,13 +40,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.20.26030"
+readonly version="1.21.26035"
+EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="30 Dec 2026"
+	local -r updated="04 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs UFW on Debian, BunsenLabs, and MX Linux systems.
@@ -73,7 +74,11 @@ ufw_exists() {
 install_ufw() {
   printf "Installing UFW (Uncomplicated Firewall)...\n"
   sudo apt-get install ufw -yy
-  exists ufw || { printf "UFW installation failed.\n"; return; }
+  if ! grep -q '^ii' <(dpkg -l ufw); then
+    printf "%s UFW installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
   add_rules
   enable_ufw
   printf "UFW %s installed and configured.\n" "$(ufw_version)"
@@ -219,7 +224,7 @@ main() {
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
