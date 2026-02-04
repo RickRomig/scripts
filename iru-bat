@@ -120,7 +120,7 @@ install_bat() {
   printf "Installing Bat %s...\n" "$new_ver"
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
-  if grep -q '^ii' <(dpkg -l bat >/dev/null 2>&1); then
+  if ! grep -q '^ii' <(dpkg -l bat >/dev/null 2>&1); then
     printf "%s Bat installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
