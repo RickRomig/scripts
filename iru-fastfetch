@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Last updated : 15 Jan 2026
+# Last updated : 04 Feb 2026
 # Comments     : .png logo does not work with Terminator.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,21 +33,22 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.14.26015"
+readonly version="3.15.26035"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
 DOTS_PID=
+EC=0
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local -r updated="15 Jan 2026"
+	local errcode="${1:-1}"
+	local -r updated="04 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, removes, updates FastFetch
@@ -81,11 +82,12 @@ newest_version() {
 }
 
 compare_versions() {
-	local cur_ver new_ver
-	new_ver="$1"
+	local new_ver="$1"
+	local cur_ver
   cur_ver="$(ff_version)"
   if [[ -z "$new_ver" ]]; then
-    printf "No download available. Try again later.\n" >&2
+    printf "%s No download available. Try again later." "$RED_ERROR" >&2
+    EC="$E_DOWNLOAD"
     return
   elif [[ ! "$new_ver" > "$cur_ver" ]]; then
 		printf "%sFastFetch %s is the lastest version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
@@ -98,16 +100,24 @@ compare_versions() {
 install_fastfetch(){
 	local new_ver="$1"
   local -r new_pkg="fastfetch-linux-amd64.deb"
-	[[ -z "$new_ver" ]] && die "No download available. Try again later." 1
+  if [[ -z "$new_ver" ]]; then
+    printf "%s No download available. Try again later." "$RED_ERROR" >&2
+    EC="$E_DOWNLOAD"
+    return
+  fi
 	sudo_login 2
   printf "Downloading FastFetch %s from the fastfetch-cli GitHub repository..." "$new_ver"
-   dots "." &
+  dots "." &
 	DOTS_PID="$!"
   wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
 	kill_dots
   printf "Installing FastFetch %s...\n" "$new_ver"
-	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
 	exists fastfetch || die "Fastfetch installation failed." 1
+  if grep -q '^ii' <(dpkg -l fastfetch >/dev/null 2>&1); then
+    printf "%s Fastfetch installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+	fi
   printf "%sFastFetch %s installed.%s\n" "$lightyellow" "$(ff_version)" "$normal"
 }
 
@@ -119,10 +129,12 @@ remove_fastfetch() {
 }
 
 fastfetch_config() {
+  [[ "$EC" -ne 0 ]] && return
 	local repository=~/Downloads/ccnfigs/fastfetch
 	[[ -d ~/gitea/configs/fastfetch ]] && repository=~/gitea/configs/fastfetch
 	if [[ ! -d "$repository" ]]; then
     printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+    EC="$E_FILENOTFOUND"
 		return
   fi
 	[[ -d ~/.config/fastfetch ]] || mkdir -p ~/.config/fastfetch
@@ -153,8 +165,8 @@ main() {
 					printf "Fastfetch %s is already installed.\n" "$(ff_version)" >&2
 				else
 					check_package wget
-					tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-					tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+					tmp_file=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+					tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 					trap cleanup EXIT
 					new_ver="$(newest_version)"
 					printf "%sInstalling Fastfetch version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
@@ -172,8 +184,8 @@ main() {
 			u )
 				if exists fastfetch; then
 					check_package wget
-					tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-					tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+					tmp_file=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 					trap cleanup EXIT
 					printf "FastFetch: Comparing current and newest versions...\n"
 					new_ver="$(newest_version)"
@@ -184,14 +196,14 @@ main() {
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	exit
+	exit "$EC"
 }
 
 ## Execution ##
