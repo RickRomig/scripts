@@ -67,7 +67,7 @@ install_handbrake() {
   sudo_login 2
   sudo apt install -yy handbrake handbrake-cli
   exists ghb || die "Handbrake installation failed!" 1
-  if grep -q '^ii' <(dpkg -l handbrake 2>/dev/null); then
+  if ! grep -q '^ii' <(dpkg -l handbrake 2>/dev/null); then
     printf "%s Handbrake installation failed!\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
