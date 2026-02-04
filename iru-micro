@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 24 Jan 2025
+# Updated      : 04 Feb 2025
 # Comments     : Debian 13 & LMDE 7 installs version 2.0.14 from repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,20 +33,20 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.16.26024"
+readonly version="6.17.26035"
 readonly gh_url="https://github.com/micro-editor/micro/releases"
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local -r updated="24 Jan 2026"
+	local errcode="${1:-1}"
+	local -r updated="04 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -75,7 +75,7 @@ micro_version() {
 
 newest_version() {
   wget -qO "$tmp_file" "$gh_url"
-  new_ver=$(awk -F'/' '/download/ && /linux/ {print $6;exit}' "$tmp_file" | grep -Ev 'beta|-rc' | sed 's/^v//')
+  new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /linux/ {print $6;exit}' "$tmp_file") | sed 's/^v//')
   echo "$new_ver"
 }
 
@@ -84,7 +84,8 @@ compare_versions() {
   local cur_ver
   cur_ver=$(micro_version)
   if [[ -z "$new_ver" ]]; then
-    printf "No download available. Try again later.\n" >&2
+    printf "%s No download available. Try again later." "$RED_ERROR" >&2
+    EC="$E_DOWNLOAD"
     return
   elif [[ ! "$new_ver" > "$cur_ver" ]]; then
     printf "%sMicro %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
@@ -97,7 +98,11 @@ compare_versions() {
 install_micro() {
   local new_ver="$1"
   local new_pkg="micro-${new_ver}-linux64.tar.gz"
-  [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
+  if [[ -z "$new_ver" ]]; then
+    printf "%s No download available. Try again later." "$RED_ERROR" >&2
+    EC="$E_DOWNLOAD"
+    return
+  fi
   sudo_login 2
   printf "Downloading Micro %s from the zyedidia GitHub repository..." "$new_ver"
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
@@ -106,7 +111,11 @@ install_micro() {
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro /usr/bin/
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro.1 /usr/share/man/man1/
   exists xclip || sudo apt-get install -y xclip
-  exists micro || die "Micro installation failed!" 1
+  if ! grep -q '^ii' <(dpkg -l micro >/dev/null 2>&1); then
+    printf "%s Micro installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+	fi
   printf "Micro %s installed.\n" "$(micro_version)"
 }
 
@@ -125,10 +134,12 @@ remove_micro() {
 }
 
 micro_configs() {
+  [[ "$EC" -ne 0 ]] && return
   printf "Applying Micro settings and bindings...\n"
   [[ -d  ~/.config/micro ]] || mkdir -p  ~/.config/micro
 	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
 		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+    EC="$E_FILENOTFOUND"
 		return
 	fi
  [[ -f  ~/.config/micro/settings.json ]] && rm ~/.config/micro/settings.json
@@ -164,8 +175,8 @@ main() {
         if exists micro; then
           printf "Micro %s is already installed.\n" "$(micro_version)" >&2
         else
-          tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+          tmp_file=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
           trap cleanup EXIT
           new_ver="$(newest_version)"
           printf "%sInstalling Micro version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
@@ -182,8 +193,8 @@ main() {
         ;;
       u )
         if exists micro; then
-          tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+          tmp_file=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
           trap cleanup EXIT
 					printf "Micro: Comparing current and newest versions...\n"
           new_ver="$(newest_version)"
@@ -194,14 +205,14 @@ main() {
         ;;
       ? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help 2
+        help "$E_INVALID_ARG"
     esac
     noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
