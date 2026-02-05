@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 30 Jun 2020
-# Updated      : 16 Nov 2025
+# Updated      : 05 Feb 2026
 # Comments     : See EZNix snapkill script
 #              : /home/rick/Downloads/Utilities/snapkill.d/snapkill
 # TODO (Rick)  :
@@ -34,13 +34,13 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.0.25320"
+readonly version="4.1.25036"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
@@ -48,7 +48,7 @@ script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
 help() {
 	local errcode="${1:-2}"
-	local updated="16 Nov 2025"
+	local updated="05 Feb 2026"
 	cat << _HELP_
 ${green}Usage:${normal} $script [-dehs]
 ${orange}OPTIONS:${normal}
@@ -144,11 +144,11 @@ main() {
         ;;
       ? )
         printf "\n%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help 2
+        help "$E_INVALID_ARG"
     esac
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   exit
