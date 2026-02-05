@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jul 2021
-# Updated      : 04 Dec 2025
+# Updated      : 05 Feb 2026
 # Comments     : Original script found on Reddit r/dharmmawheel, posted by u/Jhanna4
 #              : Sound does not work with Pipewire audio.
 # TODO (Rick)  : Work on getting sound functions to work on Pipewire.
@@ -35,11 +35,13 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
+script="${0##*/}"
+version="2.10.26036"
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
 ## Functions ##
@@ -55,13 +57,13 @@ is_valid_integer() {
 }
 
 usage() {
-  local script="$1"
-  local version="$2"
-  printf "%sUsage:%s %s <minutes> [volume 0-100]\n" "$orange" "$normal" "$script"
-  printf "Meditation time is set in minutes. Only enter integers greater than 0. The default is 20 minutes.\n"
-  printf "Volume is a percentage of the output volume. The default is 50%%.\n"
-  printf "If no arguments or incorrect values are entered, the default values will be used.\n"
-  exit_script "$script" "$version"
+  cat << _USAGE_
+${orange}Usage:${normal} $script <minutes> [volume 0-100]
+Meditation time is set in minutes. Only enter integers greater than 0. The default is 20 minutes.
+Volume is a percentage of the output volume. The default is 50%.
+If no arguments or incorrect values are entered, the default values will be used.
+_USAGE_
+  exit_script
 }
 
 get_volume() {
@@ -129,23 +131,19 @@ meditation_timer() {
 }
 
 exit_script() {
-  local script="$1"
-  local version="$2"
-  printf "\n\U2638 %s v%s\n" "$script" "$version"
-  printf "\UA9 2021-2025 Richard B. Romig\n"
+  printf "\n\U2638 %s %s\n" "$script" "$version"
+  printf "\UA9 2021-2026 Richard B. Romig\n"
   exit
 }
 
 main() {
   trap screensaver_on EXIT
-  local script version audio_file meditation_time orig_volume volume
-  script="${0##*/}"
-  version="2.9.25338"
+  local audio_file meditation_time orig_volume volume
   audio_file="$script_dir/files/Tibetan_bowl.wav"
   # Check arguments and dependencies.
   meditation_time="${1:-20}"  # Default time is 20 minutes.
   [[ "$meditation_time" == "-h" || "$meditation_time" == "--help" ]] && usage "$script" "$version"
-  [[ "${meditation_time//[0-9]/}" || "$meditation_time" -eq 0 ]] &&  meditation_time=20 # if not a digit or equals 0
+  [[ "${meditation_time//[0-9]/}" || "$meditation_time" -eq 0 ]] && meditation_time=20 # if not a digit or equals 0
   volume="${2:-50}"  # Default volume setting is 50%.
   is_valid_integer "$volume" || volume="50"
   volume+="%"   # make volume a percent.
@@ -164,7 +162,7 @@ main() {
   sleep 30  # wait for audio file to finish
   set_volume "$orig_volume"
   printf "\n"
-  exit_script "$script" "$version"
+  exit_script
 }
 
 ## Execution ##
