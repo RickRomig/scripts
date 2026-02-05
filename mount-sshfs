@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 28 Jan 2026
+# Updated      : 05 Feb 2026
 # Comments     : Mount points are at ~/mnt/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Glonal Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.2.26028"
+readonly version="5.3.26036"
 readonly E_OFFLINE=99
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="28 Jan 2026"
+	local -r updated="05 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated $updated
 Mounts/Unmounts an SSHFS share.
@@ -78,7 +78,7 @@ fail_msg() {
 	local -r mount_point="$HOME/mnt"
   printf "Make sure you are not in the mountpoint and run the following command:\n" >&2
   printf "\t%sfusermount -u %s/%s/%s\n" "$orange" "$mount_point" "$share" "$normal"  >&2
-  exit 1
+  exit "$E_INFO"
 }
 
 mount_share() {
