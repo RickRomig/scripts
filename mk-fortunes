@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 04 May 2019
-# Updated      : 19 Jul 2025
+# Updated      : 05 Feb 2026
 # Comments     :
 # License      : GNU General Public License, version 2.0
 ## License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -32,14 +32,14 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-  local updated="19 Jul 2025"
+  local errcode="${1:-1}"
+  local updated="05 Feb 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, updated: $updated
 Creates fortune cookie files for the fortune program.
@@ -60,25 +60,27 @@ create_cookie_file() {
     sudo cp "$cookiefile" "$cookiefile.dat" "$fortunes_d"/
     printf "Fortune cookie file created and copied to /%s\n" "$fortunes_d"
   else
-    die "Fortune cookie operation failed." 1
+    printf "Fortune cookie operation failed.\n"
+    EC="$E_INFO"
   fi
 }
 
 main() {
   local script="${0##*/}"
-  local version="2.0.25200"
+  local version="2.1.26036"
+  EC=0
   if [[ "$#" -eq 0 ]]; then
     printf "%s No argument passed." >&2 "$RED_ERROR"
-    help 2
+    help "$E_MISSING_ARG"
   elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
     help 0
   else
     local cookiefile="$1"
-    [[ -f "$cookiefile" ]] || { printf "%s %s not found.\n" "$RED_ERROR" "$cookiefile" >&2; help 1; }
+    [[ -f "$cookiefile" ]] || { printf "%s %s not found.\n" "$RED_ERROR" "$cookiefile" >&2; help "$E_FILENOTFOUND"; }
     check_package fortune-mod
     create_cookie_file "$cookiefile"
 	  over_line "$script $version"
-	  exit
+	  exit "$EC"
   fi
 }
 
