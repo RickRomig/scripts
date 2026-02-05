@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 29 Jan 2019
-# Updated      : 21 Nov 2025
+# Updated      : 05 Feb 2026
 # Comments     : Processes one C/C++ source file and matching header.
 # TODO (rick)  : Process multiple source & header files in a project.
 # License      : GNU General Public License, version 2.0
@@ -26,10 +26,10 @@
 #####################################################################
 
 readonly script="${0##*/}"
-readonly version="3.1.25325"
+readonly version="3.2.25036"
 
 help() {
-  local errcode="${1:-2}"
+  local errcode="${1:-1}"
   local updated="21 Nov 2025"
   printf "%s %s, updated %s\n" "$script" "$version" "$updated"
   printf "Usage: %s sourcefile\n" "$script"
@@ -53,8 +53,8 @@ process_header() {
   /usr/local/bin/lloc "$headerFile" | tee -a "$locFile"
 }
 
-print_header() {
-  local -r copyright="Copyright 2018-2021"
+print_title() {
+  local -r copyright="Copyright 2018-2026"
   local -r author="Richard B. Romig"
   printf "%s\n" "$script $version"
   printf "%s\n" "$copyright, $author"
@@ -65,7 +65,7 @@ begin_process() {
   local cSource="$1"
   local locFile="${cSource%%.*}.loc"
   local ext="${cSource##*.}"
-  print_header
+  print_title
   printf "Writing LOC data to %s...\n" "$locFile"
   case "$ext" in
     c|cc|cpp )
@@ -77,22 +77,21 @@ begin_process() {
       printf "Logical lines of code data for %s written to %s." "$cSource" "$locFile"
       ;;
     * )
-      printf "\e[91mError:\e[0m Invalid file extension." >&2; help 2
+      printf "\e[91mError:\e[0m Invalid file extension." >&2
+      help 84
   esac
 }
 
 main() {
-  local cSource
+  local cSource="$1"
   if [[ "$#" -eq 0 ]]; then
     printf "\e[91mError:\e[0m No argument provided.\n" >&2
-    help 1
-  elif [[ ! -f "$1" ]]; then
+    help 2
+  elif [[ ! -f "$cSource" ]]; then
     printf "\e[91mError:\e[0m %s not found.\n" "$1" >&2
     help 2
-  else
-    cSource="$1"
-    begin_process "$cSource"
   fi
+  begin_process "$cSource"
   exit
 }
 
