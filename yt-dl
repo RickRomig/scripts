@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 27 Jan 2026
+# Updated      : 05 Feb 2026
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to selected directory under ~/Videos/
 # TODO (Rick)  :
@@ -40,8 +40,8 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.3.26027"
-readonly updated="27 Jan 202"
+readonly version="7.4.26036"
+readonly updated="05 Feb 202"
 FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
@@ -94,7 +94,6 @@ script_info() {
   Version: $version
   Updated: $updated
 _INFO_
-  exit
 }
 
 check_dependencies() {
@@ -110,9 +109,10 @@ check_dependencies() {
 }
 
 extract_domain() {
+  # Extract domain without www and .com
   local domain fullurl
   fullurl="$1"
-  domain=$(sed 's|^[^/]*//||;s|^www\.||;s|/.*$||;s|\..*$||' <(echo "$fullurl"))
+  domain=$(sed 's|^[^/]*//||;s|^www\.||;s|/.*$||;s|\..*$||' <<< "$fullurl")
   printf "%s" "$domain"
 }
 
@@ -130,7 +130,7 @@ select_directory() {
 download_video() {
   local site url destination
   url="$1"
-  site="$2"
+  site=$(extract_domain "$url")
   clear
 	destination=$(select_directory)
   center_text "== ${site^} Download =="
@@ -147,10 +147,11 @@ download_video() {
 
 main() {
   local url
+    check_dependencies
   # Check arguments and fetch URL
   if [[  $# -eq 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
-    help 2
+    help "$E_MISSING_ARG"
   elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
     script_info
   elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
@@ -158,13 +159,12 @@ main() {
   elif [[ "$1" =~ ^https?:\/\/.* ]]; then
     # match by regex, starts with http:// or https://
     url=$*
-  else
+    download_video "$url"
+ else
     # match by YouTube video ID
     url="https://www.youtube.com/watch?v=$*"
+    download_video "$url"
   fi
-  check_dependencies
-  site=$(extract_domain "$url")
-  download_video "$url" "$site"
   over_line "$script $version"
   exit "$EC"
 }
