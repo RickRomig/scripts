@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Dec 2019
-# Updated      : 21 Jan 2026
+# Updated      : 05 Feb 2026
 # Comments     : Variables for IP range do not work, must be hard coded.
 #              : Local host will not respond to arping.
 #              : Local host will respond using arping in iputils-arping.
@@ -36,21 +36,21 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.11.26021"
+readonly version="4.12.26036"
 SECONDS=0
 COUNT=0
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local updated="21 Jan 2026"
+	local errcode="${1:-1}"
+	local updated="05 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Scans local network to see which addresses are active.
@@ -122,7 +122,7 @@ scan_static_addresses() {
 
 scan_dhcp_addresses() {
   local hname ip_addr
-  for ip_addr in $LOCALNET.{100..254}; do
+  for ip_addr in $LOCALNET.{26..254}; do
     if arping_check "$ip_addr"; then
       hname=$(awk '{print $NF}' <(avahi-resolve -a "$ip_addr" 2>/dev/null) | sed 's/\.local$//')
       printf "%s\t" "$ip_addr"
@@ -138,12 +138,12 @@ scan_dhcp_addresses() {
 
 main() {
   local noOpt opt optstr OPTARG OPTIND
+  check_dependencies
   noOpt=1
   optstr=":adhs"
   while getopts "$optstr" opt; do
     case "$opt" in
       a )
-        check_dependencies
         tput civis
         printf "\nScanning the network...\n"
         printf "%s%sIP Address\tHostname%s\n" "$underline" "$green" "$normal"
@@ -152,7 +152,6 @@ main() {
         tput cnorm
         ;;
       d )
-        check_dependencies
         tput civis
         printf "\nScanning DHCP addresses on the network...\n"
         printf "%s%sIP Address\tHostname%s\n" "$underline" "$green" "$normal"
@@ -163,7 +162,6 @@ main() {
         help 0
         ;;
       s )
-        check_dependencies
         tput civis
         printf "\nScanning static IP addresses on the network...\n"
         printf "%s%sIP Address\tHostname%s\n" "$underline" "$green" "$normal"
@@ -172,11 +170,11 @@ main() {
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help 2
+        help "$E_INVALID_ARG"
     esac
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   printf "\n%d active addresses discovered in %s.\n\n" "$COUNT" "$(format_time SECONDS)"
   over_line "$script $version"
