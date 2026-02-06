@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 29 Jan 2026
+# Updated      : 06 Feb 2026
 # Comments     : Based on a script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -39,12 +39,12 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.21.26029"
+readonly version="7.0.26037"
 
 ## Functions ##
 
 help() {
-  local updated="29 Jan 2026"
+  local updated="06 Feb 2026"
   clear
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
@@ -114,27 +114,28 @@ current_wx() {
   grep -q 'Unknown location' <<< "$json" && { echo "Location data not available from http://wttr.in. Try again later."; return 1; }
 
   # Location data
-  city=$(echo "$json"|jq -r ."nearest_area[0]|(.areaName[0].value)")
-  state=$(echo "$json"|jq -r ."nearest_area[0]|(.region[0].value)")
-  # country=$(echo "$json"|jq -r ."nearest_area[0]|(.country[0].value)")
-  latitude=$(echo "$json"|jq -r ."nearest_area[0]|(.latitude)")
-  longitude=$(echo "$json"|jq -r ."nearest_area[0]|(.longitude)")
-  # latlong=$(echo "$json"|jq -r ."request[0]|(.query)")
+  # city=$(echo "$json"|jq -r ."nearest_area[0]|(.areaName[0].value)")
+  city=$(jq -r ."nearest_area[0]|(.areaName[0].value)" <<< "$json")
+  state=$(jq -r ."nearest_area[0]|(.region[0].value)" <<< "$json")
+  # country=$(jq -r ."nearest_area[0]|(.country[0].value)" <<< "$json")
+  latitude=$(jq -r ."nearest_area[0]|(.latitude)" <<< "$json")
+  longitude=$(jq -r ."nearest_area[0]|(.longitude)" <<< "$json")
+  # latlong=$(jq -r ."request[0]|(.query)" <<< "$json")
 
   # Weather conditions
-  description=$(echo "$json"|jq -r ."current_condition[0]|(.weatherDesc[0].value)")
-  temp_F=$(echo "$json"|jq -r ."current_condition[0]|(.temp_F)")
-  temp_C=$(echo "$json"|jq -r ."current_condition[0]|(.temp_C)")
-  feels_F=$(echo "$json"|jq -r ."current_condition[0]|(.FeelsLikeF)")
-  feels_C=$(echo "$json"|jq -r ."current_condition[0]|(.FeelsLikeC)")
-  humidity=$(echo "$json"|jq -r ."current_condition[0]|.humidity")
-  pressure=$(echo "$json"|jq -r ."current_condition[0]|.pressureInches")
-  wind_dir=$(echo "$json"|jq -r ."current_condition[0]|.winddir16Point")
-  wind_spd=$(echo "$json"|jq -r ."current_condition[0]|.windspeedMiles")
-  precip=$(echo "$json"|jq -r ."current_condition[0]|.precipInches")
-  uv_index=$(echo "$json"|jq -r ."current_condition[0]|.uvIndex")
-  sunrise=$(echo "$json"|jq -r ."weather[0]|(.astronomy[0].sunrise)")
-  sunset=$(echo "$json"|jq -r ."weather[0]|(.astronomy[0].sunset)")
+  description=$(jq -r ."current_condition[0]|(.weatherDesc[0].value)" <<< "$json")
+  temp_F=$(jq -r ."current_condition[0]|(.temp_F)" <<< "$json")
+  temp_C=$(jq -r ."current_condition[0]|(.temp_C)" <<< "$json")
+  feels_F=$(jq -r ."current_condition[0]|(.FeelsLikeF)" <<< "$json")
+  feels_C=$(jq -r ."current_condition[0]|(.FeelsLikeC)" <<< "$json")
+  humidity=$(jq -r ."current_condition[0]|.humidity" <<< "$json")
+  pressure=$(jq -r ."current_condition[0]|.pressureInches" <<< "$json")
+  wind_dir=$(jq -r ."current_condition[0]|.winddir16Point" <<< "$json")
+  wind_spd=$(jq -r ."current_condition[0]|.windspeedMiles" <<< "$json")
+  precip=$(jq -r ."current_condition[0]|.precipInches" <<< "$json")
+  uv_index=$(jq -r ."current_condition[0]|.uvIndex" <<< "$json")
+  sunrise=$(jq -r ."weather[0]|(.astronomy[0].sunrise)" <<< "$json")
+  sunset=$(jq -r ."weather[0]|(.astronomy[0].sunset)" <<< "$json")
 
   # Set colors
   tcolor=$(temp_color "$temp_F")
