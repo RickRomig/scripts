@@ -7,7 +7,7 @@
 # Author       : Copyright © 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 May 2020
-# Updated      : 21 Jul 2025
+# Updated      : 06 Feb 2026
 # Comments     : Accepts only full URL
 #              : Downloads to current working directory
 #              : Video Playlist
@@ -36,19 +36,19 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.0.25202"
+readonly version="3.1.26037"
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-  local updated="21 Jul 2025"
+  local errcode="${1:-}"
+  local updated="06 Feb 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Downloads mp3 audio from a playlist of YouTube videos to current working directory.
@@ -68,7 +68,7 @@ check_dependencies() {
     printf '\e[A\e[K'
     check_package ffmpeg
   else
-    die "yt-dlp is not installed." 1
+    die "yt-dlp is not installed." "$E_FILENOTFOUND"
   fi
 }
 
@@ -81,7 +81,8 @@ download_playlist() {
   then
     printf "Download successful\n"
   else
-    printf "Download failed\n"
+    EC="$?"
+    printf "Download failed. Error: %d" "$EC"
   fi
 }
 
@@ -90,18 +91,18 @@ main() {
   check_dependencies
   if [[ "$#" -eq 0 ]]; then
     printf "%s No argument passed \n" "$RED_ERROR" >&2
-    help 2
+    help "$E_MISSING_ARG"
   elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
     help 0
   elif [[ "$1" =~ ^https?:\/\/.* ]]; then
     url="$*"
   else
     printf "%s Invalid argument. Must be full URL.\n" "$RED_ERROR" >&2
-    help 1
+    help "$E_INVALID_ARG"
   fi
   download_playlist "$url"
   over_line "$script v$version" "-"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
