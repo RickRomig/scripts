@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 08 Jan 2025
+# Updated      : 06 Feb 2026
 # Comments     : Testing indicates USB drive need to be mounted.
 #              : Works with fuzzy finder (fzf).
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
@@ -36,13 +36,13 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.5.26008"
+readonly version="7.6.26037"
 user=$(whoami); readonly user
 dryrun="$FALSE"
 FMENU="fzf --header=$script \
@@ -58,13 +58,14 @@ FMENU="fzf --header=$script \
            --bind change:top \
            --prompt"
 DOTS_PID=
+EC=0
+E_WRITE_FAILED=99
 
 ## Functions ##
 
 help() {
-  local errcode updated
-	errcode="${1:-2}"
-	updated="08 Jan 2026"
+	local errcode="${1:-1}"
+	local updated="06 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
@@ -158,7 +159,8 @@ write_dd() {
 	if sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync; then
 	  printf "%s written to /dev/%s.\n" "${iso##*/}" "$usb"
 	else
-    diehard "$iso write to /dev/$usb failed.\n" "$script v$version"
+		printf "%s %s write to /dev/%s failed.\n" "$RED_ERROR" "$iso" "$usb"
+		EC="$E_WRITE_FAILED"
   fi
 }
 
@@ -221,14 +223,14 @@ main() {
 				;;
 			? )
 				printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	exit
+	exit "$EC"
 }
 
 ## Execution ##
