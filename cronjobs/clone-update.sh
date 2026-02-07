@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Sep 2025
-# Last updated : 09 Dec 2025
+# Last updated : 07 Feb 2026
 # Comments     : Run as a daily cron job from ~/.local/bin/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,10 +33,10 @@ update_clone() {
 	[[ -d "$HOME/$clone" ]] && repo_dir="$HOME/$clone"
 	{
 		if [[ -d "$repo_dir" ]]; then
-			pushd "$repo_dir" || return 1
+			pushd "$repo_dir" || { echo "$RED_ERROR pushd to $repo_dir failed."; return 1; }
 			git checkout .
 			git pull
-			popd || return 1
+			popd || { echo "$RED_ERROR popd from $repo_dir failed."; return 1; }
 		else
 			printf "%s has not been cloned to this computer.\n" "$clone"
 		fi
@@ -46,7 +46,7 @@ update_clone() {
 main() {
 	local clone clones
 	local -r script="${0##*/}"
-	local -r version="2.1.25343"
+	local -r version="2.2.26038"
 	local -r log_dir="$HOME/.local/share/logs"
 	local -r repo_log="$log_dir/repo-update.log"
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
