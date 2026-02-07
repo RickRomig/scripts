@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Aug 2025
-# Last updated : 20 Sep 2025
+# Last updated : 07 Feb 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -57,7 +57,7 @@ main() {
 	EC=0
 	local clone clones
   local -r script="${0##*/}"
-  local -r version="2.2.25339"
+  local -r version="2.3.26038"
   clones=(configs scripts i3wm-debian homepage)
   check_package git
   printf "Updating cloned repositories...\n\n"
