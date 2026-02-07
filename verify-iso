@@ -3,11 +3,11 @@
 # Script Name  : verify-iso
 # Description  : Verifies SHA1, SHA256, SHA512, and MD5 checksums of ISO files
 # Dependencies : fzf
-# Arguments    : see help function
+# Arguments    : none (-h or --help for usage and requirements)
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 11 Jan 2026
+# Updated      : 07 Feb 2026
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
@@ -36,13 +36,13 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="11.5.26011"
+readonly version="12.0.26038"
 FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
@@ -56,25 +56,23 @@ FMENU="fzf --header=$script \
            --bind change:top \
            --prompt"
 SPIN_PID=
+EC=0
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local -r updated="09 Jan 2026"
+	local errcode="${1:-1}"
+	local -r updated="07 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.
-
-${green}Usage:${normal} $script [-h] [-v]
+${green}Usage:${normal} $script [-h | --help ]
 ${orange}Available options:${normal}
-  -h  Show this help message and exit
-  -v  Verify ISO with checksum
-
-  * With no argument, defaults to verifying an ISO file.
-	* Checksum files must be a single line specifically for the ISO file you wish to check.
+  -h | --help  Show this help message and exit
+${orange}Requirements:${normal}
+  * Checksum files must be a single line specifically for the ISO file you wish to check.
   * Checksum files must have a file extension of .md5, .sha1, .sha256, or .sha512.
-  * The basename of the checksum file should match the basename name of the ISO.
+  * The basename of the checksum file should match the basename name of the ISO (without the extension).
 
 _HELP_
   exit "$errcode"
@@ -167,38 +165,32 @@ verify_iso() {
 	local checksum isofile iso_dir
 	iso_dir=$(select_directory)
 	isofile=$(select_iso "$iso_dir")
+	[[ "$isofile" ]] || { printf "%s No ISO file selected.\n" "$RED_ERROR" >&2; EC="$E_MISSING_ARG"; return; }
 	checksum=$(select_checksum "$iso_dir")
+	[[ "$checksum" ]] || { printf "%s No checksum file selected.\n" "$RED_ERROR" >&2; EC="$E_MISSING_ARG"; return; }
 	printf "Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.\n"
 	printf "\n%-18s %s\n" "Selected Distro:" "${iso_dir##*/}"
 	printf "%-18s %s\n" "Selected ISO:" "$isofile"
 	printf "%-18s %s\n\n" "Selected Checksum:" "$checksum"
-	check_extension "$checksum"  || diehard "Invalid checksum extension" "Checksum must be one of the following:" ".md5 .sha1 .sha256 .sha512" "$script $version"
-	check_checksum "$iso_dir/$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$script $version"
+	if ! check_extension "$checksum"; then
+		printf "%s Invalid checksum extension.\nExtension must be one of the following: .md5 .sha1 .sha256 .sha512\n" "$RED_ERROR" >&2
+		EC="$E_INVALID_ARG"
+		return
+	elif ! check_checksum "$iso_dir/$checksum"; then
+		printf "%s Too many lines in checksum file.\nReduce the file to a single line.\n" "$RED_ERROR" >&2
+		EC="$E_FILE_ERROR"
+		return
+	fi
 	verify_checksums "$iso_dir/$isofile" "$iso_dir/$checksum"
 	status_msg "$?"
 }
 
 main() {
+	[[ "$1" == "-h" || "$1" == "--help" ]] && help 0;
 	check_package fzf
-	local noOpt optstr opt OPTARG OPTIND
-	noOpt=1
-	optstr=":hv"
-	while getopts "$optstr" opt; do
-		case "$opt" in
-			h )
-				help 0 ;;
-			v )
-				verify_iso ;;
-			? )
-				printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
-		esac
-		noOpt=0
-	done
-	[[ "$noOpt" = 1 ]] && verify_iso
-	shift "$(( OPTIND - 1 ))"
+	verify_iso
 	over_line "$script $version"
-	exit
+	exit "$EC"
 }
 
 ## Execution ##
