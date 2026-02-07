@@ -54,6 +54,7 @@ update_clone() {
 }
 
 main() {
+	EC=0
 	local clone clones
   local -r script="${0##*/}"
   local -r version="2.2.25339"
