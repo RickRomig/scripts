@@ -7,7 +7,7 @@
 # Author       : Copyright © 2018, Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2018
-# Updated      : 05 Dec 2025
+# Updated      : 07 Feb 2026
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -38,13 +38,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.4.25339"
+readonly version="3.5.26038"
+EC=0
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local updated="05 Dec 2025"
+	local errcode="${1:-1}"
+	local updated="07 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Renames filenames in the current directory to all lowercase.
@@ -66,6 +67,7 @@ upper_to_lower() {
 		rename -v 'y/A-Z/a-z/' "$filename"
 	else
 		printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
+		EC="$E_FILENOTFOUND"
 	fi
 }
 
@@ -92,7 +94,7 @@ main() {
 	local file_name
 	if [[ $# -eq 0 ]]; then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help 1
+		help "$E_MISSING_ARG"
 	elif [[ $# -eq 1 ]]; then
 		case "$1" in
 			-a|--all )
@@ -103,7 +105,7 @@ main() {
 				;;
 			-* )
 				printf "%s Invalid argument, %s\n" "$RED_ERROR" "$1" >&2
-				help 1
+				help "$E_INVALID_ARG"
 				;;
 			* )
 				file_name="$1"
@@ -113,7 +115,7 @@ main() {
 		lc_selected "$@"
 	fi
 	over_line "$script $version"
-	exit
+	exit "$EC"
 }
 
 ## Execution ##
