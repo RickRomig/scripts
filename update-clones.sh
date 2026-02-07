@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : update-repos.sh
+# Script Name  : update-clones.sh
 # Description  : update cloned repositories using git pull
 # Dependencies : git
 # Arguments    : See help() function for available options.
@@ -33,7 +33,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
@@ -42,11 +42,11 @@ update_clone() {
 	local -r clone="$1"
 	local repo_dir="$HOME/Downloads/$clone"
 	[[ -d "$HOME/$clone" ]] && repo_dir="$HOME/$clone"
-	if [[ -d "$repo_dir" ]]; then
-		pushd "$repo_dir" || return 1
+	if [[ ! -d "$repo_dir" ]]; then
+		pushd "$repo_dir" || { EC="$E_POPD_PUSHD"; return; }
 		git checkout .
 		git pull
-		popd >/dev/null 2>&1 || return 1
+		popd >/dev/null 2>&1 || { EC="$E_POPD_PUSHD"; return; }
 		printf "\n"
 	else
 		printf "The %s repository has not been cloned to this computer.\n\n" "${repo_dir##*/}"
@@ -64,7 +64,7 @@ main() {
 		update_clone "$clone"
   done
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
