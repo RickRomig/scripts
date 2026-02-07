@@ -89,13 +89,13 @@ no_copy() {
   printf "%s not applicable to this system and was not copied.\n" "$message"
 }
 
-cp_repo_update() {
+cp_clone_update() {
   case "$localip" in
     10|16|22 )
       no_copy "Cloned repository updates are" ;;
     * )
       [[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
-      is_older "repo-update.sh" "$user_cron_path" && cp -pv "$job_dir/repo-update.sh" "$user_cron_path" | awk '{print "==> "$NF}'
+      is_older "clone-update.sh" "$user_cron_path" && cp -pv "$job_dir/clone-update.sh" "$user_cron_path" | awk '{print "==> "$NF}'
   esac
 }
 
@@ -225,13 +225,13 @@ main() {
         cp_repo_backup
         cp_scriptarchive
         cp_empty_trash
-        cp_repo_update
+        cp_clone_update
         cp_zupdate
         cp_zdefrag
         cp_zytdlpupdate
         ;;
       c )
-        cp_repo_update ;;
+        cp_clone_update ;;
       d )
         cp_zdefrag ;;
       f )
