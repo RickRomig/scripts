@@ -42,7 +42,7 @@ update_clone() {
 	local -r clone="$1"
 	local repo_dir="$HOME/Downloads/$clone"
 	[[ -d "$HOME/$clone" ]] && repo_dir="$HOME/$clone"
-	if [[ ! -d "$repo_dir" ]]; then
+	if [[ -d "$repo_dir" ]]; then
 		pushd "$repo_dir" || { EC="$E_POPD_PUSHD"; return; }
 		git checkout .
 		git pull
