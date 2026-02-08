@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.5.26039"
+readonly version="1.6.26039"
 readonly gh_url="https://github.com/sinelaw/fresh/releases"
 DOTS_PID=
 EC=0
@@ -102,6 +102,7 @@ compare_versions() {
 }
 
 install_fresh() {
+  local cur_ver
   local new_ver="$1"
   local new_pkg="fresh-editor_${new_ver}-1_amd64.deb"
   if [[ -z "$new_ver" ]]; then
@@ -117,7 +118,8 @@ install_fresh() {
   printf "Installing Fresh-editor %s...\n" "$new_ver"
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
-  if ! grep -q '^ii' <(dpkg -l fresh-editor 2>/dev/null); then
+  cur_ver="$(fresh_version)"
+  if ! grep -q '^ii' <(dpkg -l fresh-editor 2>/dev/null) || [[ "$cur_ver" != "$new_ver" ]]; then
     printf "%s Fresh-editor installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
