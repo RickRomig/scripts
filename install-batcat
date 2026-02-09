@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Last updated : 02 Feb 2026
+# Last updated : 09 Feb 2026
 # Comments     : executable and its manpage will be renamed from ‘bat’ to ‘batcat’
 #              : because of a file name clash with another Debian package.
 #              : Mint 22 installs version 0.24.0 with suffix.
@@ -42,14 +42,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.10.26033"
+readonly version="2.11.26040"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="02 Feb 2026"
+	local updated="09 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Installs/removes/configures bat/batcat
@@ -72,7 +72,6 @@ bat_version() {
 install_bat() {
 	sudo_login 2
 	sudo apt-get install -yy bat
-	exists batcat || die "Batcat failed to install." 1
 	if ! exists batcat; then
 		printf "%s Batcat failed to install."  "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
