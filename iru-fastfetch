@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Last updated : 04 Feb 2026
+# Last updated : 09 Feb 2026
 # Comments     : .png logo does not work with Terminator.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.15.26035"
+readonly version="3.16.26040"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
 DOTS_PID=
 EC=0
@@ -48,7 +48,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="04 Feb 2026"
+	local -r updated="09 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, removes, updates FastFetch
@@ -112,7 +112,7 @@ install_fastfetch(){
   wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
 	kill_dots
   printf "Installing FastFetch %s...\n" "$new_ver"
-  if ! grep -q '^ii' <(dpkg -l fastfetch >/dev/null 2>&1); then
+  if ! grep -q '^ii' <(dpkg -l fastfetch 2>/dev/null) || [[ "$cur_ver" != "$new_ver" ]]; then
     printf "%s Fastfetch installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
