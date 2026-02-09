@@ -98,6 +98,7 @@ compare_versions() {
 }
 
 install_fastfetch(){
+  local cur_ver
 	local new_ver="$1"
   local -r new_pkg="fastfetch-linux-amd64.deb"
   if [[ -z "$new_ver" ]]; then
@@ -112,6 +113,7 @@ install_fastfetch(){
   wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
 	kill_dots
   printf "Installing FastFetch %s...\n" "$new_ver"
+	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
   if ! grep -q '^ii' <(dpkg -l fastfetch 2>/dev/null) || [[ "$cur_ver" != "$new_ver" ]]; then
     printf "%s Fastfetch installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
