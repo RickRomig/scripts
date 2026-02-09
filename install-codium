@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 30 Jan 2026
+# Updated      : 09 Feb 2026
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,16 +39,17 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.13.26030"
+readonly version="2.14.26040"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
+EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="30 Jan 2026"
+	local updated="09 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
 Install/Remove VSCodium and apply settings
@@ -101,9 +102,13 @@ install_vscodium() {
 	show_message "Updating apt cache and installing VSCodium..."
 	sudo apt-get update
 	sudo apt-get install codium
-	exists codium || die "VSCodium installation failed." 1
-	apply_settings
-	printf "VSCodium %s successfully installed.\n" "$(codium_version)"
+	if exists codium; then
+		printf "VSCodium %s successfully installed.\n" "$(codium_version)"
+		apply_settings
+	else
+	 printf "%s VSCodium installation failed.\n"  "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+  fi
 }
 
 apply_settings() {
@@ -196,7 +201,7 @@ main() {
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
