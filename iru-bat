@@ -105,6 +105,7 @@ compare_versions() {
 }
 
 install_bat() {
+  local cur_ver
   local new_ver="$1"
   local new_pkg="bat_${new_ver}_amd64.deb"
   if [[ -z "$new_ver" ]]; then
@@ -120,6 +121,7 @@ install_bat() {
   printf "Installing Bat %s...\n" "$new_ver"
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
+  cur_ver=$(bat_version)
   if ! grep -q '^ii' <(dpkg -l bat 2>/dev/null) || [[ "$cur_ver" != "$new_ver" ]]; then
     printf "%s Bat installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
