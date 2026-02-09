@@ -44,6 +44,7 @@ readonly mozilla_list="/etc/apt/sources.list.d/mozilla.list"
 readonly mozilla_asc="/etc/apt/keyrings/packages.mozilla.org.asc"
 readonly mozilla_pref="/etc/apt/preferences.d/mozilla.pref"
 verbose_mode="$FALSE"
+EC=0
 
 ## Functions ##
 
@@ -132,7 +133,11 @@ install_mozilla_deb() {
 	sudo apt-get update
 	show_message "Installing Firefox..."
 	sudo apt-get install -y firefox
-	exists firefox || die "Firefox installation failed." 1
+	if ! grep -q '^ii' <(dpkg -l firefox 2>/dev/null); then
+		printf "%s Firefox installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+	fi
 	printf "%s installed.\n" "$(firefox_version)"
 }
 
@@ -186,7 +191,7 @@ main() {
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help  "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	exit
+	exit "$EC"
 }
 
 ## Execution ##
