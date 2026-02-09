@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 04 Feb 2025
+# Updated      : 09 Feb 2025
 # Comments     : Debian 13 & LMDE 7 installs version 2.0.14 from repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.17.26035"
+readonly version="6.18.26040"
 readonly gh_url="https://github.com/micro-editor/micro/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="04 Feb 2026"
+	local -r updated="09 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -96,6 +96,7 @@ compare_versions() {
 }
 
 install_micro() {
+  local cur_ver
   local new_ver="$1"
   local new_pkg="micro-${new_ver}-linux64.tar.gz"
   if [[ -z "$new_ver" ]]; then
@@ -111,7 +112,8 @@ install_micro() {
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro /usr/bin/
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro.1 /usr/share/man/man1/
   exists xclip || sudo apt-get install -y xclip
-  if ! grep -q '^ii' <(dpkg -l micro >/dev/null 2>&1); then
+  cur_ver=$(codium_version)
+  if ! grep -q '^ii' <(dpkg -l micro 2>/dev/null) || [[ "$cur_ver" != "$new_ver" ]]; then
     printf "%s Micro installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
