@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 01 Feb 2026
+# Updated      : 09 Feb 2026
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.4.26032"
+readonly version="2.4.26040"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="01 Feb 2026"
+	local -r updated="09 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Kitty terminal emulator
@@ -67,7 +67,7 @@ kitty_version() {
 install_kitty() {
   printf "Installing the kitty terminal emulator.\n"
   sudo apt-get install -y kitty imagemagick
-  if ! grep -q '^ii' <(dpkg -l kitty); then
+  if ! grep -q '^ii' <(dpkg -l kitty 2>/dev/null); then
     printf "%s Kitty installation failed.\n" "$RED_ERROR"
     EC="$E_INSTALLATION"
     return
