@@ -98,6 +98,7 @@ compare_versions() {
 }
 
 install_vscodium() {
+  local cur_ver
   local new_ver="$1"
   local new_pkg="codium_${new_ver}_amd64.deb"
   if [[ -z "$new_ver" ]]; then
@@ -113,6 +114,7 @@ install_vscodium() {
   printf "Installing VSCodium %s...\n" "$new_ver"
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
+  cur_ver=$(codium_version)
   if ! grep -q '^ii' <(dpkg -l codium 2>/dev/null) || [[ "$cur_ver" != "$new_ver" ]]; then
     printf "%s VSCodium installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
