@@ -98,6 +98,7 @@ compare_versions() {
 }
 
 install_marktext() {
+  local cur_ver
   local new_ver="$1"
   local -r new_pkg="marktext-amd64.deb"
   if [[ -z "$new_ver" ]]; then
@@ -113,6 +114,7 @@ install_marktext() {
   sudo_login 2
   printf "Installing Mark Text %s...\n" "$new_ver"
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
+  cur_ver=$(marktext_version)
   if ! grep -q '^ii' <(dpkg -l markktext 2>/dev/null) || [[ "$cur_ver" != "$new_ver" ]]; then
     printf "%s Marktext installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
