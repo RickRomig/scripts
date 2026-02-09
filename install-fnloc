@@ -39,7 +39,8 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.0.25326"
+readonly version="3.1.26040"
+EC=0
 
 ## Functions ##
 
@@ -84,6 +85,10 @@ dl_deb_pkg() {
   curl -so "$package_dir/$package" "$GITEA_URL/$repo_path/$package"
 }
 
+fnloc_version() {
+  grep '^ii' <(dpkg -l fnloc 2>/dev/null)
+}
+
 install_fnloc() {
   local package="$1"
   local package_name="$2"
@@ -91,6 +96,13 @@ install_fnloc() {
   sudo_login 2
   dpkg -l fnloc | grep -q '^ii' 2>/dev/null && { printf "%s already installed.\n" "$package_name"; return; }
   sudo dpkg -i "$package_dir/$package"
+  if grep -q '^ii' <(dpkg -l fnloc 2>/dev/null); then
+    printf "FnLoC %s successfully installed.\n" "$(fnloc_version)"
+  else
+    printf "%s FnLoc installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
   printf "%s installed.\n" "$package_name"
 }
 
@@ -141,14 +153,14 @@ main() {
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help 2
+        help "$E_INVALID_ARG"
     esac
     noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   printf "%s v%s\n" "$script" "$version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
