@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 05 Dec 2025
+# Last updated : 09 Feb 2026
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,19 +33,19 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.0.25339"
+readonly version="4.1.26040"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="05 Dec 2025"
+	local -r updated="09 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Create symbolic links from configs and scripts repos and add tweaks to system settings.
@@ -134,11 +134,11 @@ link_config_files() {
 
 set_reserved_space() {
 	local home_part root_part data_part rbc blk_cnt res_pct
-	root_part=$(df -P | awk '$NF == "/" {print $1}')
-	home_part=$(df -P | awk '$NF == "/home" {print $1}')
-	data_part=$(df -P | awk '$NF == "/data" {print $1}')
-	rbc=$(sudo /usr/sbin/tune2fs -l "$root_part" | awk '/Reserved block count/ {print $NF}')
-	blk_cnt=$(sudo /usr/sbin/tune2fs -l "$root_part" | awk '/Block count/ {print $NF}')
+	root_part=$(awk '$NF == "/" {print $1}' <(df -P))
+	home_part=$(awk '$NF == "/home" {print $1}' <(df -P))
+	data_part=$(awk '$NF == "/data" {print $1}' <(df -P))
+	rbc=$(awk '/Reserved block count/ {print $NF}' <(sudo /usr/sbin/tune2fs -l "$root_part"))
+	blk_cnt=$(awk '/Block count/ {print $NF}' <(sudo /usr/sbin/tune2fs -l "$root_part"))
 	res_pct="$(bc <<< "${rbc} * 100 / ${blk_cnt}")"
 	printf "e[93mSetting reserved space on root, home, data partitions...\e[0m\n"
 	[[ "$res_pct" -ne 5 ]] && sudo tune2fs -m 5 "$root_part"
@@ -149,7 +149,7 @@ set_reserved_space() {
 
 set_swappiness() {
 	local repo_dir="$1"
-	if grep 'vm.swappiness' /etc/sysctl.conf >/dev/null 2>&1 || [[ -f /etc/sysctl.d/90-swappiness.conf ]]; then
+	if grep -q 'vm.swappiness' /etc/sysctl.conf 2>/dev/null || [[ -f /etc/sysctl.d/90-swappiness.conf ]]; then
 		printf "Swappiness has already been set.\n"
 		return
 	fi
@@ -237,11 +237,11 @@ main() {
 				set_swappiness "$repo_dir" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   exit
