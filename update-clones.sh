@@ -38,6 +38,7 @@ fi
 
 ## Functions ##
 
+# shellcheck disable=SC2088 # Tilde does not expand in quotes.
 update_clone() {
 	local -r clone="$1"
 	local repo_dir="$HOME/Downloads/$clone"
@@ -49,7 +50,7 @@ update_clone() {
 		popd >/dev/null 2>&1 || { EC="$E_POPD_PUSHD"; return; }
 		printf "\n"
 	else
-		printf "The %s repository has not been cloned to this computer.\n\n" "${repo_dir##*/}"
+		printf "~/Downloads/%s ~\nHas not been cloned to this computer.\n~\n" "$clone"
 	fi
 }
 
