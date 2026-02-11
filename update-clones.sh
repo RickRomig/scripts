@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Aug 2025
-# Last updated : 07 Feb 2026
+# Last updated : 11 Feb 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -50,7 +50,7 @@ update_clone() {
 		popd >/dev/null 2>&1 || { EC="$E_POPD_PUSHD"; return; }
 		printf "\n"
 	else
-		printf "~/Downloads/%s ~\nHas not been cloned to this computer.\n~\n" "$clone"
+		printf "~/Downloads/%s ~\nHas not been cloned to this computer.\n~\n\n" "$clone"
 	fi
 }
 
@@ -58,7 +58,7 @@ main() {
 	EC=0
 	local clone clones
   local -r script="${0##*/}"
-  local -r version="2.3.26038"
+  local -r version="2.4.26042"
   clones=(configs scripts i3wm-debian homepage)
   check_package git
   printf "Updating cloned repositories...\n\n"
