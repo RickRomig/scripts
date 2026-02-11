@@ -26,6 +26,7 @@
 
 ## Functions ##
 
+# shellcheck disable=SC2088 # Tilde does not expand in quotes.
 update_clone() {
 	local -r clone="$1"
 	local -r repo_log="$2"
@@ -38,7 +39,7 @@ update_clone() {
 			git pull
 			popd || { echo "$RED_ERROR popd from $repo_dir failed."; return 1; }
 		else
-			printf "%s has not been cloned to this computer.\n" "$clone"
+			printf "~/Downloads/%s ~\nHas not been cloned to this computer.\n ~\n" "$clone"
 		fi
 	} >> "$repo_log"
 }
