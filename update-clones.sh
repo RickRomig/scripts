@@ -50,7 +50,7 @@ update_clone() {
 		popd >/dev/null 2>&1 || { EC="$E_POPD_PUSHD"; return; }
 		printf "\n"
 	else
-		printf "~/Downloads/%s ~\nHas not been cloned to this computer.\n~\n\n" "$clone"
+		printf "~/Downloads/%s ~\nHas not been cloned to this computer.\n\n" "$clone"
 	fi
 }
 
