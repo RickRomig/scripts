@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Sep 2025
-# Last updated : 11 Feb 2026
+# Last updated : 13 Feb 2026
 # Comments     : Run as a daily cron job from ~/.local/bin/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ update_clone() {
 			git pull
 			popd || { echo "$RED_ERROR popd from $repo_dir failed."; return 1; }
 		else
-			printf "~/Downloads/%s ~\nHas not been cloned to this computer.\n ~\n\n" "$clone"
+			printf "~/Downloads/%s ~\nHas not been cloned to this computer.\n ~\n" "$clone"
 		fi
 	} >> "$repo_log"
 }
@@ -47,7 +47,7 @@ update_clone() {
 main() {
 	local clone clones
 	local -r script="${0##*/}"
-	local -r version="2.3.26042"
+	local -r version="2.3.26044"
 	local -r log_dir="$HOME/.local/share/logs"
 	local -r repo_log="$log_dir/repo-update.log"
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
