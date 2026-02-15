@@ -48,25 +48,9 @@ script_dir==$(dirname "$(readlink -f "${0}")"); readonly script_dir
 verbose_mode="$FALSE"
 tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+EC=1
 
 ## Functions ##
-
-check_dependencies() {
-  local packages=( git wget )
-  check_packages "${packages[@]}"
-}
-
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-cleanup() {
-	[[ -f "$tmp_file" ]] && rm "$tmp_file"
-	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
-}
-
-app_version() {
-	# application --version
-	awk '/ii/ {print $3}' <(dpkg -l application) | sed 's/[~+-].*//'
-}
 
 help() {
 	local errcode="${1:-1}"
@@ -87,13 +71,31 @@ _HELP_
   exit "$errcode"
 }
 
+check_dependencies() {
+  local packages=( git wget )
+  check_packages "${packages[@]}"
+}
+
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+cleanup() {
+	[[ -f "$tmp_file" ]] && rm "$tmp_file"
+	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+}
+
+app_version() {
+	# application --version
+	awk '/ii/ {print $3}' <(dpkg -l application) | sed 's/[~+-].*//'
+}
+
 show_message() {
 	local message="$1"
 	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
 
 main() {
-	local noOpt opt optstr OPTARG OPTIND
+	local -i noOpt
+	local opt optstr OPTARG OPTIND
 	noOpt=1
 	optstr=":hirsuv"
 	# optstr=":h:i:r:s:u:vN"
@@ -105,7 +107,7 @@ main() {
 			i )
 				# argI="$OPTARG"
 				if exists application; then
-					printf "Application %s is already installed.\n" "$(app_version)" >&2
+					printf "Application %s is already installed.\n" "$(app_version)"
 				else
 					trap cleanup EXIT	# for temp files and directories
 					install_application
@@ -117,21 +119,21 @@ main() {
 				if exists application; then
 					remove_application
 				else
-					printf "Application is not installed.\n" >&2
+					printf "Application is not installed.\n"
 				fi
 				;;
 			s )
 				if exists application; then
 					apply_settings
 				else
-					printf "Application is not installed.\n" >&2
+					printf "Application is not installed.\n"
 				fi
 				;;
 			u )
 				if exists application; then
 					update_application
 				else
-					printf "Application is not installed.\n" >&2
+					printf "Application is not installed.\n"
 				fi
 				;;
 			v )
@@ -148,11 +150,11 @@ main() {
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	# printf "%s %s\n" "$script" "$version"
 	over_line "$script $version"
-	exit
+	exit "$EC"
 }
 
 ## Execution ##
