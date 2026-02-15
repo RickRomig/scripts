@@ -48,8 +48,24 @@ readonly version="<VERSION>"
 script_dir==$(dirname "$(readlink -f "${0}")"); readonly script_dir
 tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+EC=1
 
 ## Functions ##
+
+help() {
+	local errcode="${1:-1}"
+	local -r updated="<TODAY>"
+  cat << _HELP_
+${orange}$script${normal} $version, Updated: $updated
+Short description
+
+${green}Usage:${normal} $script [-h|--help]
+${orange}Available options:${normal}
+  -h | --help]  Show this help message and exit
+
+_HELP_
+  exit "$errcode"
+}
 
 check_dependencies() {
   local packages=( gdebi wget )
@@ -66,21 +82,6 @@ cleanup() {
 app_version() {
 	# application --version
 	awk '/ii/ {print $3}' <(dpkg -l application) | sed 's/[~+-].*//'
-}
-
-help() {
-	local errcode="${1:-1}"
-	local -r updated="<TODAY>"
-  cat << _HELP_
-${orange}$script${normal} $version, Updated: $updated
-Short description
-
-${green}Usage:${normal} $script [-h|--help]
-${orange}Available options:${normal}
-  -h | --help]  Show this help message and exit
-
-_HELP_
-  exit "$errcode"
 }
 
 main() {
@@ -105,7 +106,7 @@ main() {
   trap cleanup EXIT	# for temp files and directories
   # printf "%s %s\n" "$script" "$version"
   over_line "$script $version"
-  exit
+	exit "$EC"
 }
 
 ## Execution ##
