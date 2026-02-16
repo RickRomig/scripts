@@ -85,12 +85,12 @@ timeshift_snapshots() {
     sudo_login 0
     if pgrep timeshift > /dev/null 2>&1; then
       printf "\n%sTimeshift is currently running.%s Try again later.\n" "$orange" "$normal"
-    elif [[ $(sudo timeshift --list | tail -n1) == "No snapshots found" ]]; then
+    elif [[ $(tail -n1 <(sudo timeshift --list)) == "No snapshots found" ]]; then
       printf "\nNo Timeshift snapshots found.\n"
     else
       clear
       printf "%s%s - Timeshift Snapshots:%s\n" "$lightgreen" "$lhost" "$normal"
-      sudo timeshift --list | awk 'NR!=1 && NR!=3' 2>/dev/null
+      awk 'NR!=1 && NR!=3' 2>/dev/null <(sudo timeshift --list)
     fi
   else
     printf "\n%sTimeshift is not installed on %s.%s\n" "$orange" "$lhost" "$normal"
