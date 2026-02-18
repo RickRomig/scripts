@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 29 Jan 2026
+# Last updated : 18 Feb 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -53,7 +53,7 @@ declare -r E_INSTALLATION=90
 declare -r E_DOWNLOAD=91
 
 # Get the local network from the first three octets of the default gateway address. Assumes a /24 (class C) private network.
-LOCALNET=$(ip route get 1.2.3.4 | cut -d' ' -f3 | sed 's/\..$//'); readonly LOCALNET
+LOCALNET=$(cut -d' ' -f3 <(ip route get 1.2.3.4) | sed 's/\..$//'); readonly LOCALNET
 
 ## Colors ##
 
