@@ -6,11 +6,12 @@ $ uname -r
 ```
 2. View installed kernels.
 ```bash
-$ awk '/linux-image/ {print $2}' <(dpkg --list)
+$ awk '/linux-image/ {print $2}' <(dpkg --list) | sort -r
 ```
-3. List installed headers.
+3. List installed headers on LMDE 7.
 ```bash
-$ grep linux-headers <(ls /usr/src/)  # May not be present on Debian systems
+$ awk '/linux-headers/ {print $2}' <(dpkg --list)
+$ grep linux-headers <(ls /usr/src/)  # LMDE 7, may not be present on Debian systems
 ```
 4. Remove old kernels.
   - Remove the headers first. (Repeat for each old header)
@@ -31,11 +32,12 @@ $ sudo systemctl reboot
 6. Verify that the kernel and headers have been removed.
 ```bash
 $ uname -r
-$ awk '/linux-image/ {print $2}' <(dpkg --list)
-$ grep 'linux-headers' <(ls /usr/src/)
+$ awk '/linux-image/ {print $2}' <(dpkg --list) | sort -r
+$ awk '/linux-headers/ {print $2}' <(dpkg --list) | sort -r
+$ awk '/linux-image/ || /linux-headers/ {print $2}' <(dpkg --list) | sort -r # list both images & headers
 ```
 ## NOTES
 - Be sure to retain at least two kernals, the current kernel and the one that immediately preceded it.
 - There may not be linux-headers on Debian systems.
-- check-updates and z-update scripts don't purge old kernels on some LMDE 7 systems.
+- check-updates and z-update scripts might not purge old kernels on some LMDE 7 systems.
 - Linux Mint and Ubuntu have GUI tools to manage kernels.
