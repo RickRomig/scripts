@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 05 Feb 2026
+# Last updated : 19 Feb 2026
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.0.26026"
+readonly version="6.2.26050"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -54,7 +54,7 @@ drive_test() {
 	printf "%sChecking Backup USB Drive%s\n" "$green" "$normal"
 	check_usb || dielog "No USB drive connected!" "$logfile" "$E_DRIVE_ERROR"
 	bu_drive_label || dielog "Invalid partition label. Run 'bu -i' for drive setup information." "$logfile" "$E_DRIVE_ERROR"
-  check_uuid || dielog "Incorrect drive to backup $host." "$logfile" "$E_DRIVE_ERROR"
+  check_uuid || dielog "Incorrect backup drive." "$logfile" "$E_DRIVE_ERROR"
   is_deb13 && mount_bu
   bu_drive_fs || dielog "Drive must be formatted with EXT4 or XFS." "$logfile" "$E_DRIVE_ERROR"
 	get_space_remaining
@@ -222,7 +222,7 @@ restore() {
 
 help() {
 	local errcode="${1:-1}"
-	local updated="05 Feb 2026"
+	local updated="19 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
