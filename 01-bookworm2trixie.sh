@@ -69,8 +69,7 @@ main() {
 	local version="1.5.26052"
 	local updated="21 Feb 2026"
 	check_codename || die "This is not Debian 12 Bookworm" "$E_INFO"
-	check_file1 && die "This script has already been run." "$E_INFO"
-	check_file2 && die "This script has already been run." "$E_INFO"
+	check_file1 || check_file2 && die "This script has already been run." "$E_INFO"
 	version_info
 	printf "Updating current Debian 12 packages.\n"
 	upgrade_packages
