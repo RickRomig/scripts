@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 25 Jan 2026
+# Last updated : 21 Feb 2026
 # Comments     : This scripts updates sources.list & backports.list.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,18 +33,26 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
 
-check_files() {
+check_file1() {
 	[[ -f "$HOME/01-upgrade" ]] && return "$TRUE" || return "$FALSE"
+}
+
+check_file2() {
+	[[ -f "$HOME/02-sources" ]] && return "$TRUE" || return "$FALSE"
+}
+
+check_codename() {
+	[[ "$(lsb_release --codename --short 2>/dev/null)" == "bookworm" ]] && return "$TRUE" || return "$FALSE"
 }
 
 version_info() {
 	printf "Version information:\n"
-	lsb_release -a | sed '1d'
+	lsb_release --all 2>/dev/null
 	printf "%-16s%s\n" "Version:" "$(cat /etc/debian_version)"
 }
 
@@ -82,12 +90,13 @@ upgrade_debian() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.5.26025"
-	local updated="25 Jan 2026"
-	check_files || die "01-bookworm2trixie.sh must be run first." "$E_INFO"
+	local version="1.6.26052"
+	local updated="21 Feb 2026"
+	check_file1 || die "01-bookworm2trixie.sh must be run first." "$E_INFO"
+	check_file2 && die "This script has already been run." "$E_INFO"
 	check_package apt-transport-https
 	version_info
-	[[ "$(lsb_release --codename --short | awk 'NR = 1 {print}')" == "bookworm" ]] || die "Unsupported Debian version." 1
+	check_codename || die "Unsupported Debian version." "$E_INFO"
 	printf "Updatings source lists...\n"
 	sources_list
 	backports_list
