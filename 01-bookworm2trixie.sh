@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 25 Jan 2026
+# Last updated : 21 Feb 2026
 # Comments     : This script updates current Debian 12 before upgrade.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,22 +33,26 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 2
+  exit 81
 fi
 
 ## Functions ##
 
-check_files() {
+check_file1() {
 	[[ -f "$HOME/01-upgrade" ]] && return "$TRUE" || return "$FALSE"
 }
 
+check_file2() {
+	[[ -f "$HOME/02-sources" ]] && return "$TRUE" || return "$FALSE"
+}
+
 check_codename() {
-	grep -qw bookworm <(lsb_release --codename) && return "$TRUE" || return "$FALSE"
+	[[ "$(lsb_release --codename --short 2>/dev/null)" == "bookworm" ]] && return "$TRUE" || return "$FALSE"
 }
 
 version_info() {
 	printf "Version information:\n"
-	lsb_release -a | sed '1d'
+	lsb_release --all 2>/dev/null
 	printf "%-16s%s\n" "Version:" "$(cat /etc/debian_version)"
 }
 
@@ -62,12 +66,12 @@ upgrade_packages() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.4.26025"
-	local updated="25 Jan 2026"
+	local version="1.5.26052"
+	local updated="21 Feb 2026"
 	check_codename || die "This is not Debian 12 Bookworm" "$E_INFO"
-	check_files && die "This script has already been run." "$E_INFO"
+	check_file1 && die "This script has already been run." "$E_INFO"
+	check_file2 && die "This script has already been run." "$E_INFO"
 	version_info
-	[[ "$(lsb_release --codename --short | awk 'NR = 1 {print}')" == "bookworm" ]] || die "Unsupported Debian version." 1
 	printf "Updating current Debian 12 packages.\n"
 	upgrade_packages
 	printf "Debian 12 packages have been upgraded.\n"
