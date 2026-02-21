@@ -78,7 +78,7 @@ main() {
 	local updated="21 Feb 2026"
 	local exit_code=0
 	check_file1 || die "01-bookworm2trixie.sh and 02-bookworm2trixie.sh must be run first." "$E_INFO"
-	check_file2 && die "02-bookworm2trixie.sh hasn't been run." "$E_INFO"
+	check_file2 || die "02-bookworm2trixie.sh hasn't been run." "$E_INFO"
 	version_info
 	if check_codename; then
 		printf "Debian inplace upgrade was successful!\n"
