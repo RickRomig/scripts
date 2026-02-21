@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 19 Feb 2026
+# Last updated : 21 Feb 2026
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.2.26050"
+readonly version="6.3.26052"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -54,7 +54,7 @@ drive_test() {
 	printf "%sChecking Backup USB Drive%s\n" "$green" "$normal"
 	check_usb || dielog "No USB drive connected!" "$logfile" "$E_DRIVE_ERROR"
 	bu_drive_label || dielog "Invalid partition label. Run 'bu -i' for drive setup information." "$logfile" "$E_DRIVE_ERROR"
-  check_uuid || dielog "Incorrect backup drive." "$logfile" "$E_DRIVE_ERROR"
+  check_uuid || { unmount_usb_drive; dielog "Incorrect backup drive." "$logfile" "$E_DRIVE_ERROR"; }
   is_deb13 && mount_bu
   bu_drive_fs || dielog "Drive must be formatted with EXT4 or XFS." "$logfile" "$E_DRIVE_ERROR"
 	get_space_remaining
@@ -72,7 +72,6 @@ bu_drive_label() {
 }
 
 check_uuid() {
-	# Using this function requires a dedicated backup drive for each host.
 	local uuid_path="/dev/disk/by-uuid"
 	declare -rA uuid_list=(
 		[hp-800g2-sff]="5d3290de-3fa7-4e3c-94b8-aca062c427ef"
@@ -80,7 +79,12 @@ check_uuid() {
 		[hp-probook-6570]="89740987-ca0a-4b33-bb56-9055bb9e1daa"
 		[lenovo-m91p]="772dcef3-6f46-4e58-b6d1-00ca9292c062"
 	)
-	[[ -L "$uuid_path/${uuid_list[$host]}" ]] && return "$TRUE" || return "$FALSE"
+	case "$host" in
+		hp-800g2-sff | hp-850-g3 | hp-probook-6570 | lenovo-m91p )
+			[[ -L "$uuid_path/${uuid_list[$host]}" ]] && return "$TRUE" || return "$FALSE" ;;
+		* )
+			return "$TRUE"
+	esac
 }
 
 is_deb13() {
@@ -222,7 +226,7 @@ restore() {
 
 help() {
 	local errcode="${1:-1}"
-	local updated="19 Feb 2026"
+	local updated="21 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
