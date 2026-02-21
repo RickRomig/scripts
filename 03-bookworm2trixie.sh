@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 25 Jan 2026
-# Comments     : Final cleanup after upgrade to Debian 12.
+# Last updated : 21 Feb 2026
+# Comments     : Cleanup after upgrade to Debian 13.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -33,18 +33,26 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
 
-check_files() {
-	[[ -f "$HOME/01-upgrade" && -f "$HOME/02-sources" ]] && return "$TRUE" || return "$FALSE"
+check_file1() {
+	[[ -f "$HOME/01-upgrade" ]] && return "$TRUE" || return "$FALSE"
+}
+
+check_file2() {
+	[[ -f "$HOME/02-sources" ]] && return "$TRUE" || return "$FALSE"
+}
+
+check_codename() {
+	[[ "$(lsb_release --codename --short 2>/dev/null)" == "trixe" ]] && return "$TRUE" || return "$FALSE"
 }
 
 version_info() {
 	printf "Version information:\n"
-	lsb_release -a | sed '1d'
+	lsb_release --all 2>/dev/null
 	printf "%-16s%s\n" "Version:" "$(cat /etc/debian_version)"
 }
 
@@ -56,29 +64,30 @@ clean_up() {
 	printf "\nRemoving obsolete and unwanted programs...\n"
 	sudo apt --purge autoremove
 	printf "\nThere may be programs and applications that need to be reinstalled or updated.\n"
-	rm "$HOME/01-upgrade" "$HOME/02-sources"
+	rm -v "$HOME/01-upgrade" "$HOME/02-sources"
 }
 
 modernize_sources() {
 	printf "Modernizing sources...\n"
-	[[ -d "/etc/apt/sources.list.d/debian.sources" ]] || sudo apt modernize-sources
+	[[ -f "/etc/apt/sources.list.d/debian.sources" ]] || sudo apt modernize-sources
 }
 
 main() {
 	local script="${0##*/}"
-	local version="1.4.26025"
-	local updated="25 Jan 2026"
+	local version="1.5.26052"
+	local updated="21 Feb 2026"
 	local exit_code=0
-	check_files || die "01-bookworm2trixie.sh and 02-bookworm2trixie.sh must be run first." "$E_INFO"
+	check_file1 || die "01-bookworm2trixie.sh and 02-bookworm2trixie.sh must be run first." "$E_INFO"
+	check_file2 && die "02-bookworm2trixie.sh hasn't been run." "$E_INFO"
 	version_info
-	if [[ $(awk 'NR = 1 {print}' <(lsb_release --codename --short)) == "trixie" ]]; then
+	if check_codename; then
 		printf "Debian inplace upgrade was successful!\n"
 		clean_up
 		modernize_sources
 	else
 		printf "Debian inplace upgrade failed.\n" >&2
 		printf "Backup the home directory and any important files, then install from the ISO.\n" >&2
-		exit_code=1
+		exit_code="$E_INSTALLATION"
 	fi
 	over_line "$script $version ($updated)"
 	exit "$exit_code"
