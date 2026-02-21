@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 30 Jul 2020
-# Updated      : 16 Jul 2025
+# Updated      : 20 Feb 2026
 # Comments     : Obtains battery data from upower utility.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -34,8 +34,6 @@ else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
-
-set -eu
 
 ## Functions ##
 
@@ -72,15 +70,15 @@ battery_condition() {
   # warn_level="$?"
   if [[ "$warn_level" -le "0" ]]; then
     warn="\U1F4A9"
-    printf "    %sReplace the battery!%s  %s\n" "$red" "$normal" "$warn"
+    printf "%4s%sReplace the battery!%s  %s\n" " " "$red" "$normal" "$warn"
   elif [[ "$warn_level" -le "35" ]]; then
     warn="\U1F622"
-    printf "    %sThe battery should be replaced.%s  %s\n" "$red" "$normal" "$warn"
+    printf "%4s%sThe battery should be replaced.%s  %s\n" " " "$red" "$normal" "$warn"
   elif [[ "$warn_level" -le "65" ]]; then
     warn="\U26A0\UFE0F"
-    printf "    %sThe battery is getting weak.%s  %s\n" "$orange" "$normal" "$warn"
+    printf "%4s%sThe battery is getting weak.%s  %s\n" " " "$orange" "$normal" "$warn"
   else
-    printf "    %sThe battery is in good condition.%s\n" "$green" "$normal"
+    printf "%4s%sThe battery is in good condition.%s\n" " " "$green" "$normal"
   fi
 }
 
@@ -91,17 +89,17 @@ battery_specs() {
   battery_tech=$(awk -F: '/technology/ {print $NF}' "$battery_data" | awk '{$1=$1}1')
   [[ -z "$battery_tech" ]] && battery_tech="Unknown"
   printf "\n%sBattery Data:%s\n" "$orange" "$normal"
-  printf "    %-21s%s\n" "Manufacturer:" "$(awk -F: '/vendor/ {print $NF}' "$battery_data" | awk '{$1=$1}1')"
-  printf "    %-21s%s\n" "Nodel name:" "$(awk -F: '/model/ {print $NF}' "$battery_data" | awk '{$1=$1}1')"
-  printf "    %-21s%s\n" "Serial number:" "$battery_serial"
-  printf "    %-21s%s\n" "Technology:" "$battery_tech"
+  printf "%4sManufacturer:  %s\n" " " "$(awk -F: '/vendor/ {print $NF}' "$battery_data" | awk '{$1=$1}1')"
+  printf "%4sModel name:    %s\n" " " "$(awk -F: '/model/ {print $NF}' "$battery_data" | awk '{$1=$1}1')"
+  printf "%4sSerial number: %s\n" " " "$battery_serial"
+  printf "%4sTechnology:    %s\n" " " "$battery_tech"
 }
 
 ac_status() {
   local status
   status=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'AC')" | awk '/online:/ {print $NF}')
   printf "\n%sAC Power:%s\n" "$orange" "$normal"
-  printf "    Laptop is "
+  printf "%4sLaptop is " " "
   [[ "$status" = "no" ]] && printf "not "
   printf "plugged in to AC power.\n"
 }
@@ -109,23 +107,26 @@ ac_status() {
 hidpp_battery() {
   local hidpp_data
   printf "\n%sHID++ Battery:%s\n" "$orange" "$normal"
-  if /usr/bin/upower -e | grep -q hidpp; then
-    hidpp_data=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep hidpp)")
-    printf "    Device: %s\n" "$(echo "$hidpp_data" | awk '/native-path/ {print $NF}')"
-    printf "    %s:   " "$(echo "$hidpp_data" | awk '/model/ {print $NF}')"
-    printf "%s\n" "$(echo "$hidpp_data" | awk '/percentage/ {print $NF}')"
+  if grep -q hidpp <(/usr/bin/upower -e); then
+    hidpp_data=$(/usr/bin/upower -i "$(grep hidpp <(/usr/bin/upower -e))")
+    # printf "%4sDevice: %s\n" " " "$(echo "$hidpp_data" | awk '/native-path/ {print $NF}')"
+    printf "%4sDevice: %s\n" " " "$(awk '/native-path/ {print $NF}' <<< "$hidpp_data")"
+    # printf "%4s%s:   " " " "$(echo "$hidpp_data" | awk '/model/ {print $NF}')"
+    printf "%4s%s:   " " " "$(awk '/model/ {print $NF}' <<< "$hidpp_data")"
+    # printf "%s\n" "$(echo "$hidpp_data" | awk '/percentage/ {print $NF}')"
+    printf "%s\n" "$(awk '/percentage/ {print $NF}' <<< "$hidpp_data")"
   else
-    printf "    No HID++ battery present.\n"
+    printf "%4sNo HID++ battery present.\n" " "
   fi
 }
 
 battery_check() {
   printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
   if [[ -d /proc/acpi/button/lid/ ]]; then
-    if /usr/bin/upower -e | grep -q 'BAT'; then
+    if grep -q 'BAT' <(/usr/bin/upower -e); then
       battery_data=$(mktemp) || die "Failed to create temporary file." 1
       trap cleanup EXIT
-      /usr/bin/upower -i "$(/usr/bin/upower -e | grep BAT)" > "$battery_data"
+      /usr/bin/upower -i "$(grep 'BAT' <(/usr/bin/upower -e))" > "$battery_data"
       printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$(awk '/native-path:/ {print $NF}' "$battery_data")"
       battery_status
       battery_capacity
@@ -143,7 +144,7 @@ battery_check() {
 
 main() {
   local script="${0##*/}"
-  local version="5.0.25197"
+  local version="5.1.26051"
   clear
   check_package upower
   battery_check
