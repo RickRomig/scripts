@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jul 2020
-# Updated      : 03 Feb 2026
+# Updated      : 20 Feb 2026
 # Comments     : Uses data from /sys/class/power_supply/BAT*
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -36,6 +36,10 @@ else
   exit 81
 fi
 
+## Global Variables ##
+
+battery_path=''
+
 ## Functions ##
 
 battery_status() {
@@ -47,8 +51,8 @@ battery_status() {
   [[ -f "$battery_path/capacity" ]] || die "Problem with the battery! Replace it!" 99
   bat_charge=$(cat "$battery_path/capacity")
   [[ "$bat_status" == "Discharging" && "$bat_charge" -le 25 ]] && warn="\U26A0\UFE0F"
-  printf "\t%sStatus:%s %s\n" "$lightgreen" "$normal" "$bat_status"
-  printf "\t%sCharge:%s %s%%  %s\n" "$lightgreen" "$normal" "$bat_charge" "$warn"
+  printf "%4s%sStatus:%s %s\n" " " "$lightgreen" "$normal" "$bat_status"
+  printf "%4s%sCharge:%s %s%%%s\n" " " "$lightgreen" "$normal" "$bat_charge" "$warn"
 }
 
 battery_capacity() {
@@ -76,10 +80,10 @@ battery_capacity() {
     bat_health=$(awk 'NF{print $1/1}' OFMT="%2.2f" <<< "$cap_percent")
   fi
 
-  printf "\n%s%-17s%s\n" "$orange" "Battery health:" "$normal"
-  printf "\t%s%-17s%s %s %s\n" "$lightgreen" "Actual capacity:" "$normal" "$actual_max" "$unit"
-  printf "\t%s%-17s%s %s %s\n" "$lightgreen" "Design capacity:" "$normal" "$design_max" "$unit"
-  printf "\t%s%-17s%s %s%%\n" "$lightgreen" "Battery health:" "$normal" "$bat_health"
+  printf "\n%sBattery health:%s\n" "$orange" "$normal"
+  printf "%4s%sActual capacity:%s %s %s\n" " " "$lightgreen" "$normal" "$actual_max" "$unit"
+  printf "%4s%sDesign capacity:%s %s %s\n" " " "$lightgreen" "$normal" "$actual_max" "$unit"
+  printf "%4s%sBattery health%s   %s %%\n" " " "$lightgreen" "$normal" "$bat_health"
   battery_condition "$cap_percent"
 }
 
@@ -95,15 +99,15 @@ battery_condition() {
 
   if [[ "$warn_level" -le "0" ]]; then
     warn="\U1F4A9"
-    printf "\t%sReplace the Battery!%s  %\n" "$red" "$normal" "$warn"
+    printf "%4s%sReplace the Battery!%s  %\n" " " "$red" "$normal" "$warn"
   elif [[ "$warn_level" -le "35" ]]; then
     warn="\U1F622"
-    printf "\t%sThe battery should be replaced.%s  %\n" "$red" "$normal" "$warn"
+    printf "%4s%sThe battery should be replaced.%s  %\n" " " "$red" "$normal" "$warn"
   elif [[ "$warn_level" -le "65" ]]; then
     warn="\U26A0\UFE0F"
-    printf "\t%sThe battery is getting weak.%s  %\n" "$orange" "$normal" "$warn"
+    printf "%4s%sThe battery is getting weak.%s  %\n" " " "$orange" "$normal" "$warn"
   else
-    printf "\t%sThe battery is in good condition.%s\n" "$green" "$normal"
+    printf "%4s%sThe battery is in good condition.%s\n" " " "$green" "$normal"
   fi
 }
 
@@ -113,10 +117,10 @@ battery_specs() {
   battery_serial=$(awk -F= '/SERIAL/ {print $NF}' <<< "$battery_data")
   [[ -z "$battery_serial" || "$battery_serial" == " " ]] && battery_serial="Not specified"
   printf "\n%sBattery Data:%s\n" "$orange" "$normal"
-  printf "\t%s%-15s%s%s\n" "$lightgreen" "Manufacturer:" "$normal" "$(awk -F= '/MANUFACTURER/ {print $NF}' <<< "$battery_data" | sed 's/^ //')"
-  printf "\t%s%-15s%s%s\n" "$lightgreen" "Nodel name:" "$normal" "$(awk -F= '/MODEL/ {print $NF}' <<< "$battery_data")"
-  printf "\t%s%-15s%s%s\n" "$lightgreen" "Serial number:" "$normal" "$battery_serial"
-  printf "\t%s%-15s%s%s\n" "$lightgreen" "Technology:" "$normal" "$(awk -F= '/TECHNOLOGY/ {print $NF}' <<< "$battery_data")"
+  printf "%4s%sManufacturer:%s  %s\n" " " "$lightgreen" "$normal" "$(awk -F= '/MANUFACTURER/ {print $NF}' <<< "$battery_data" | sed 's/^ //')"
+  printf "%4s%sModel name:%s    %s\n" " " "$lightgreen" "$normal" "$(awk -F= '/MODEL/ {print $NF}' <<< "$battery_data")"
+  printf "%4s%sSerial number:%s %s\n" " " "$lightgreen" "$normal" "$battery_serial"
+  printf "%4s%sTechnology:%s    %s\n" " " "$lightgreen" "$normal" "$(awk -F= '/TECHNOLOGY/ {print $NF}' <<< "$battery_data")"
 }
 
 ac_power() {
@@ -124,7 +128,7 @@ ac_power() {
   ac_path=$(find /sys/class/power_supply/ -name "AC*")
   ac_status="$(cat "$ac_path/online")"
   printf "\n%sAC Power:%s\n" "$orange" "$normal"
-  printf "\tLaptop"
+  printf "%4sLaptop" " "
   case "$ac_status" in
     0 )
       printf " is not plugged in to AC power.\n" ;;
@@ -140,16 +144,16 @@ hidpp_battery() {
   printf "\n%sHID++ Battery:%s\n" "$orange" "$normal"
   for hidpp_path in /sys/class/power_supply/hidpp_battery_?; do
     if [[ "$hidpp_path" != "/sys/class/power_supply/hidpp_battery_?" ]]; then
-      printf "\t%sDevice:%s %s\n" "$lightgreen" "$normal" "${hidpp_path##*}"
-      printf "\t%s%s %s:%s %s%%\n" "$lightgreen" "$(cat "$hidpp_path/manufacturer")" "$(cat "$hidpp_path/model_name")" "$normal" "$(cat "$hidpp_path/capacity")"
+      printf "%4s%sDevice:%s %s\n" " " "$lightgreen" "$normal" "${hidpp_path##*/}"
+      printf "%4s%s%s %s:%s %s%%\n" " " "$lightgreen" "$(cat "$hidpp_path/manufacturer")" "$(cat "$hidpp_path/model_name")" "$normal" "$(cat "$hidpp_path/capacity")"
     else
-      printf "\tHID++ battery not present.\n"
+      printf "%4sHID++ battery not present.\n" " "
     fi
   done
 }
 
 battery_check() {
-  local battery_name battery_path
+  local battery_name
   printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
   if [[ -d /proc/acpi/button/lid/ ]]; then
     battery_name=$(find /sys/class/power_supply/ -name "BAT*"); battery_name="${battery_name##*/}"
@@ -171,7 +175,7 @@ battery_check() {
 
 main() {
   local script="${0##*/}"
-  local version="7.3.26034"
+  local version="7.4.26051"
   clear
   check_package bc
   battery_check
