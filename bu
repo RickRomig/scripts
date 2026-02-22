@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 21 Feb 2026
+# Last updated : 22 Feb 2026
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.3.26052"
+readonly version="6.5.26053"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -78,13 +78,24 @@ check_uuid() {
 		[hp-850-g3]="5d1a8caa-36cf-4a36-8457-1a2bb2f85fd3"
 		[hp-probook-6570]="89740987-ca0a-4b33-bb56-9055bb9e1daa"
 		[lenovo-m91p]="772dcef3-6f46-4e58-b6d1-00ca9292c062"
+		[hp-6005]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
+		[e6500-deb]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
+		[probook-6570b]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
+		[hp-8300]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
+		[hp-8300-usdt]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
+		[hp-800-g1-usdt]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
+		[hp-800-g1-dm]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
+		[probook-6570]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
+		[hp-2560p]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
+		[e-475m]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
 	)
-	case "$host" in
-		hp-800g2-sff | hp-850-g3 | hp-probook-6570 | lenovo-m91p )
-			[[ -L "$uuid_path/${uuid_list[$host]}" ]] && return "$TRUE" || return "$FALSE" ;;
-		* )
-			return "$TRUE"
-	esac
+	[[ -L "$uuid_path/${uuid_list[$host]}" ]] && return "$TRUE" || return "$FALSE"
+	# case "$host" in
+	# 	hp-800g2-sff | hp-850-g3 | hp-probook-6570 | lenovo-m91p )
+	# 		[[ -L "$uuid_path/${uuid_list[$host]}" ]] && return "$TRUE" || return "$FALSE" ;;
+	# 	* )
+	# 		return "$TRUE"
+	# esac
 }
 
 is_deb13() {
@@ -226,7 +237,7 @@ restore() {
 
 help() {
 	local errcode="${1:-1}"
-	local updated="21 Feb 2026"
+	local updated="22 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
