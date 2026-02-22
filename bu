@@ -252,7 +252,7 @@ ${orange}Notes:${normal}
   - A dedicated USB storage device with sufficient capacity for each host.
   - The backup drive must be formatted with ext4 or XFS.
   - The backup partition must be labeled 'BU_Drive'
-  - The decicated backup drive can be only used on a single system.
+  - The decicated backup drive can be only used on the system it's associated with.
 _HELP_
   exit "$errcode"
 }
@@ -260,17 +260,14 @@ _HELP_
 drive_setup() {
 	cat << _SETUP_
  ${orange}BU_Drive Setup:${normal}
- - Prepare the backup drive with a tool like Gparted or Gnome Disks.
- - This can be any USB storage device. Recommend an external hard drive or SSD.
- - The USB drive MUST contain a partition formatted with a Linux native file
-   system such as Ext4 or XFS.
- - The partition MUST be labeled "BU_Drive" so BU can find it and use it for backups.
+	- Prepare the backup drive with a tool like Gparted or Gnome Disks.
+	- This can be any USB storage device. Recommend an external hard drive or SSD.
+	- The USB drive MUST contain a partition formatted with a Linux native file system such as Ext4 or XFS.
+	- The partition MUST be labeled "BU_Drive" so BU can find it and use it for backups.
  ${orange}Notes:${normal}
- - The partition needs to have enough free capacity to store all data in /home on
-   all of the machines you want to use the drive for.
-  - A backup drive needs to be dedicated to  machine by adding the machine's
-    hostname and the drive's UUID to the check_uuid function.
-
+	- The partition needs to have enough free capacity to store all data in /home on all of the machines you want to use the drive for.
+	- A backup drive needs to have its UUID associated with a hostname in the check_uuid function.
+	- The drive's UUID can be found using the command 'sudo blkid'.
 _SETUP_
 	over_line "$script $version"
 	exit
