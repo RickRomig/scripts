@@ -51,6 +51,7 @@ declare -r E_DRIVE_ERROR=88
 declare -r E_POPD_PUSHD=89
 declare -r E_INSTALLATION=90
 declare -r E_DOWNLOAD=91
+declare -r E_NETWORK=92
 
 # Get the local network from the first three octets of the default gateway address. Assumes a /24 (class C) private network.
 LOCALNET=$(cut -d' ' -f3 <(ip route get 1.2.3.4) | sed 's/\..$//'); readonly LOCALNET
@@ -255,9 +256,9 @@ installed() {
 get_distribution() {
   local distro
   if [[ -f /etc/lsb-release ]]; then
-    distro=$(awk -F= '/DISTRIB_DESCRIPTION/ {print $NF}' /etc/lsb-release | sed 's/"//g')
+    distro=$(sed 's/"//g' <(awk -F= '/DISTRIB_DESCRIPTION/ {print $NF}' /etc/lsb-release))
   else
-    distro=$(/usr/bin/lsb_release --description --short)
+    distro=$(/usr/bin/lsb_release --description --short 2</dev/null)
   fi
   echo "$distro"
 }
@@ -452,8 +453,8 @@ leapyear() {
 ###############################################################################
 local_ip() {
   local octet
-  octet=$(ip route get 1.2.3.4 | awk '{print $7}')
-  [[ "$octet" ]] || die "No IP address found. Check network status." 1
+  octet=$(awk '{print $7}' <(ip route get 1.2.3.4))
+  [[ "$octet" ]] || die "No IP address found. Check network status." "$E_NETWORK"
   printf "%s" "${octet##*.}"
 }
 
@@ -479,21 +480,21 @@ valid_ip() {
     if (( octet > 0 )) && (( octet < 255 )); then
       # Valid address - test if reachable or local machine
       if [[ "$localip" -eq "$octet" ]]; then
-        status=2
+        status="$E_NETWORK"
         printf "%s %s.%s is the local client.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
       elif ping -c 1 "$LOCALNET.$octet" > /dev/null 2>&1; then
         status=0
         printf "%s.%s is a valid and reachable IP address.\n" "$LOCALNET" "$octet"
       else
-        status=3
+        status="$E_NETWORK"
         printf "%s %s.%s is valid IP address but is unreachable.\nCheck to see if it is on the network.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
       fi
     else
-      status=4
+      status="$E_INVALID_ARG"
       printf "%s %s.%s is not a valid IP address.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
     fi
   else
-    status=5
+    status="$E_INVALID_ARG"
     printf "%s Invalid argument: %s\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$octet" >&2
   fi
   return "$status"
@@ -602,7 +603,7 @@ box() {
   char="${2:-*}"
   char="${char::1}"
   title="$char $1 $char"
-  edge=$(sed "s/./$char/g" <(echo "$title"))
+  edge=$(sed "s/./$char/g" <<< "$title")
   printf "%s\n%s\n%s\n" "$edge" "$title" "$edge"
 }
 
@@ -622,7 +623,7 @@ under_line() {
   title="$1"
   char="${2:--}"
   char="${char::1}"
-  line=$(sed "s/./$char/g" <(echo "$title"))
+  line=$(sed "s/./$char/g" <<< "$title")
   printf "%s\n%s\n" "$title" "$line"
 }
 
@@ -642,7 +643,7 @@ over_line() {
   title="$1"
   char="${2:--}"
   char="${char::1}"
-  line=$(sed "s/./$char/g" <(echo "$title"))
+  line=$(sed "s/./$char/g" <<< "$title")
   printf "%s\n%s\n"  "$line" "$title"
 }
 
@@ -727,7 +728,7 @@ check_for_file() {
     sleep 1
     printf '\e[A\e[K'
   else
-    die "$target_file not found!" 1
+    die "$target_file not found!" "$E_FILENOTFOUND"
   fi
 }
 
@@ -917,9 +918,9 @@ assign_cfg_repo() {
 			repo_dir="$HOME/gitea/configs" ;;
 		* )
 			if [[ -d "$repo_dir" ]]; then
-				pushd "$repo_dir" || die "pushd failed"
+				pushd "$repo_dir" || die "pushd failed" "$E_POPD_PUSHD"
 				git pull --quiet
-				popd || die "popd failed"
+				popd || die "popd failed" "$E_POPD_PUSHD"
 			else
 				git clone --quiet "$GITHUB_URL/configs.git" "$repo_dir"
 			fi
