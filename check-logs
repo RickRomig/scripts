@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Aug 2019
-# Updated      : 12 Jan 2026
+# Updated      : 23 Feb 2026
 # Comments     : sudo access required to view Timeshift snapshots
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -72,11 +72,7 @@ update_log() {
   else
     printf "%sThe system update log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
-    if [[ -x "/etc/cron.weekly/z-update" || -x "/opt/bin/z-update" ]]; then
-      printf " scheduled but has not run.\n"
-    else
-      printf " not scheduled to run.\n"
-    fi
+    [[ -x "/etc/cron.weekly/z-update" || -x "/opt/bin/z-update" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
 }
 
@@ -107,11 +103,7 @@ defrag_log() {
   else
     printf "%sThe defragmentation report does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
-    if [[ -x "/etc/cron.monthly/z-defrag" || -x "/opt/bin/z-defrag" ]]; then
-      printf " scheduled but has not run.\n"
-    else
-      printf " not scheduled to run.\n"
-    fi
+    [[ -x "/etc/cron.monthly/z-defrag" || -x "/opt/bin/z-defrag" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
 }
 
@@ -129,11 +121,7 @@ ytdlpupdate_log() {
   else
     printf "%sThe yt-dlp update log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
-    if [[ -x "/etc/cron.daily/z-ytdlp-update" ]]; then
-      printf " scheduled but has not run.\n"
-    else
-      printf " not scheduled to run.\n"
-    fi
+    [[ -x "/etc/cron.daily/z-ytdlp-update" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
 }
 
@@ -151,11 +139,7 @@ script_archive_log() {
   else
     printf "%sThe bash script archive log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
-    if [[ -x "$HOME/.local/bin/scriptarchive.sh" ]]; then
-      printf " scheduled but has not run.\n"
-    else
-      printf " not scheduled to run.\n"
-    fi
+    [[ -x "$HOME/.local/bin/scriptarchive.sh" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
 }
 
@@ -173,11 +157,7 @@ password_log() {
   else
     printf "%sThe Password Database Change Log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
-    if [[ -x "$HOME/.local/bin/passwdsync.sh" ]]; then
-      printf " scheduled but has not run.\n"
-    else
-      printf " not scheduled to run.\n"
-    fi
+    [[ -x "$HOME/.local/bin/passwdsync.sh" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
 }
 
@@ -195,11 +175,7 @@ homebank_log() {
   else
     printf "%sThe HomeBank archive log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
-    if [[ -x "$HOME/.local/bin/hb-archive.sh" ]]; then
-      printf " scheduled but has not run.\n"
-    else
-      printf " not scheduled to run.\n"
-    fi
+    [[ -x "$HOME/.local/bin/hb-archive.sh" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
 }
 
@@ -213,11 +189,7 @@ trash_log() {
   else
     printf "%sThe local trash log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
-    if [[ -x "$HOME/.local/bin/empty-trash.sh" ]]; then
-      printf " scheduled but has not run.\n"
-    else
-      printf " not scheduled to run.\n"
-    fi
+    [[ -x "$HOME/.local/bin/empty-trash.sh" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
 }
 
@@ -231,11 +203,7 @@ repo_log() {
   else
     printf "%sThe repository update log does not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
-    if [[ -x "$HOME/.local/bin/repo-update.sh" ]]; then
-      printf " scheduled but has not run.\n"
-    else
-      printf " not scheduled to run.\n"
-    fi
+    [[ -x "$HOME/.local/bin/repo-update.sh" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
 }
 
@@ -249,11 +217,7 @@ git_snapshots() {
   else
     printf "%sGit Repository Snapshots do not exist on %s.%s\n" "$orange" "$lhost" "$normal"
     printf "The job is"
-    if [[ -x "$HOME/.local/bin/gitea-backup.sh" ]]; then
-      printf " scheduled but has not run.\n"
-    else
-      printf " not scheduled to run.\n"
-    fi
+    [[ -x "$HOME/.local/bin/gitea-backup.sh" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
 }
 
@@ -278,11 +242,7 @@ incremental_backups() {
         job_name="journal-bu.sh"
     esac
     printf "The job is"
-    if [[ -x "$HOME/.local/bin/$job_name" ]]; then
-      printf " scheduled but has not run.\n"
-    else
-      printf " not scheduled to run.\n"
-    fi
+    [[ -x "$HOME/.local/bin/$job_name" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
 }
 
@@ -405,7 +365,7 @@ archive_logs() {
 main() {
 	local _opt options script version
   script="${0##*/}"
-  version="10.13.26012"
+  version="10.14.26054"
 	options=( "System logs" "Local logs" "Archive Logs" "Quit")
 	while true; do
 		show_header
