@@ -223,7 +223,7 @@ sudo_login() {
 # Returns: True or False
 ###############################################################################
 bin_in_path() {
-  grep -q "$HOME/bin" <(echo "$PATH") && return $TRUE || return $FALSE
+  grep -q "$HOME/bin" <<< "$PATH" && return $TRUE || return $FALSE
 }
 
 ###############################################################################
@@ -255,11 +255,7 @@ installed() {
 ###############################################################################
 get_distribution() {
   local distro
-  if [[ -f /etc/lsb-release ]]; then
-    distro=$(sed 's/"//g' <(awk -F= '/DISTRIB_DESCRIPTION/ {print $NF}' /etc/lsb-release))
-  else
-    distro=$(/usr/bin/lsb_release --description --short 2</dev/null)
-  fi
+  distro=$(/usr/bin/lsb_release --description --short 2</dev/null)
   echo "$distro"
 }
 
@@ -272,7 +268,7 @@ get_distribution() {
 ###############################################################################
 is_debian() {
   local codename
-  codename=$(awk 'NR = 1 {print $0}' <(/usr/bin/lsb_release --codename --short))
+  codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
   case "$codename" in
     trixie|bookworm|bullseye|faye|gigi ) return "$TRUE" ;;
     * ) return "$FALSE"
@@ -286,7 +282,7 @@ is_debian() {
 # Returns: True or False
 ###############################################################################
 debian_based() {
-  grep -qw debian <(grep -E 'ID|ID_LIKE' /etc/os-release) && return "$TRUE" || return "$FALSE"
+  grep -qw debian <(grep -E -w 'ID|ID_LIKE' /etc/os-release) && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -307,7 +303,7 @@ is_noble() {
 ###############################################################################
 support_ppa() {
   local codename
-  codename=$(/usr/bin/lsb_release --codename --short)
+  codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
   case "$codename" in
     noble|wilma|xia|zara|zena ) return "$TRUE" ;;
     * ) return "$FALSE"
@@ -323,7 +319,7 @@ support_ppa() {
 antix_mx() {
   local dist_id
 	[[ -f /etc/lsb-release ]] || return "$FALSE"
-  dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2> /dev/null)
+  dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2>/dev/null)
   [[ "$dist_id" == "antiX" || "$dist_id" == "MX" ]] && return "$TRUE" || return "$FALSE"
 }
 
@@ -802,7 +798,7 @@ mount_server() {
   share="HP-6005"
   ping -c3 "$LOCALNET.$server_ip" > /dev/null 2>&1 || die "$share at $LOCALNET.$server_ip is not online."
   if [[ -d "$HOME/mnt/$share/" ]]; then
-    mounted=$(mount | grep "$share")
+    mounted=$(grep "$share" <(mount))
     if [[ -z "$mounted" ]]; then
       sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:/home/rick" "$HOME/mnt/$share/"
       echo "$share has been mounted."
@@ -827,7 +823,7 @@ mount_server() {
 unmount_server() {
   local mounted share
   share="HP-6005"
-  mounted=$(mount | grep "$share")
+  mounted=$(grep "$share" <(mount))
   if [[ -n "$mounted" ]]; then
     fusermount -u "$HOME/mnt/$share"
     [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
@@ -850,7 +846,7 @@ mount_nas() {
   share="NASD97167"
   ping -c3 "$LOCALNET.$server_ip" > /dev/null 2>&1 || die "$share at $LOCALNET.$server_ip is not online."
   if [[ -d "$HOME/mnt/$share/" ]]; then
-    mounted=$(mount | grep "$share")
+    mounted=$(grep "$share" <(mount))
     if [[ -z "$mounted" ]]; then
       sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:" "$HOME/mnt/$share/"
       echo "$share has been mounted."
@@ -874,7 +870,7 @@ mount_nas() {
 unmount_nas() {
   local mounted share
   share="NASD97167"
-  mounted=$(mount | grep "$share"); local mounted
+  mounted=$(grep "$share" <(mount))
   if [[ -n "$mounted" ]]; then
     fusermount -u "$HOME/mnt/$share"
     [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
