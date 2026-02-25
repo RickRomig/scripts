@@ -42,10 +42,8 @@ DOTS_PID=
 
 ## Functions ##
 
-print_header() {
-  local space_42
-  space_42=$(for i in {1..42};do echo -n " ";done)
-  echo $'\n'$"${space_42}${bold}${green}Bullshit Meter${normal}"
+print_title() {
+  printf "\n%42s%s%sBullshit Meter%s\n" " " "$bold" "$green" "$normal"
   scale_numbers
   scale_marks
 }
@@ -71,7 +69,7 @@ scale_marks() {
   printf "|"
   for i in {1..10}; do
     for j in {1..9}; do
-      printf "-"
+      printf "="
     done
     printf "|"
   done
@@ -110,7 +108,7 @@ print_analysis() {
   esac
 }
 
-print_title() {
+print_intro() {
   center_text "Bullshit Meter"
   center_text "Enter a statement to be verified and wait for it to be analyzed."
   center_text "Once its bullshit content has been determined, the results will be displayed."
@@ -124,14 +122,14 @@ main() {
   local version="5.6.26025"
   bs_level=$(shuf -i 0-100 -n 1)
   clear
-  print_title
+  print_intro
   read -rp "Statement to be analyzed: " _statement
   printf "\nAnalyzing your statement "
   dots "." &
 	DOTS_PID="$!"
   sleep "$(shuf -i 1-20 -n 1)"
 	kill_dots
-  print_header
+  print_title
   print_indicator "$bs_level"
   print_analysis "$bs_level"
   over_line "$script $version"
