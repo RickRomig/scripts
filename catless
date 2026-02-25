@@ -7,7 +7,7 @@
 # Author       : Copyright ©  2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 26 Jan 2026
+# Updated      : 25 Feb 2026
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,18 +36,16 @@ else
   exit 81
 fi
 
-set -eu
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.5.26026"
+readonly version="6..26056"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local updated="26 Jan 20265"
+  local updated="25 Feb 20265"
   cat << _HELP_
 ${orange}$script${normal} $version (updated $updated)
 Displays a text file using either cat or less depending the number of lines in
@@ -65,16 +63,16 @@ _HELP_
 
 check_file() {
 	local filename="$1"
-	if [[ ! -f "$1" ]]; then
-		printf "%s %s not found.\n" "$RED_ERROR" "$1" >&2
+	if [[ ! -f "$filename" ]]; then
+		printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
 		return "$FALSE"
-	elif [[ ! -s "$1" ]]; then
-		printf "%s %s is an empty file.\n" "$RED_ERROR" "$1" >&2
+	elif [[ ! -s "$filename" ]]; then
+		printf "%s %s is an empty file.\n" "$RED_ERROR" "$filename" >&2
 		return "$FALSE"
-	elif file -bL "$1" | grep -qEi "text|json"; then
+	elif grep -qEi "text|json" <(file -bL "$filename"); then
 		return "$TRUE"
 	else
-		printf "%s %s is not a text file.\n" "$RED_ERROR" "$1" >&2
+		printf "%s %s is not a text file.\n" "$RED_ERROR" "$filename" >&2
 		return "$FALSE"
 	fi
 }
@@ -115,28 +113,28 @@ main() {
 	noOpt=1
 	optstr=":f:hn:"
 	while getopts "$optstr" opt; do
-	case "$opt" in
-		f )
-			filename="$OPTARG"
-			check_file "$filename" && view_file "$filename" "$linenumbers"
-			;;
-		h )
-			help 0
-			;;
-		n )
-			filename="$OPTARG"
-			linenumbers="$TRUE"
-			check_file "$filename" && view_file "$filename" "$linenumbers"
-			;;
-		: )
-			printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-			help "$E_MISSING_ARG"
-			;;
-		? )
-			printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-			help "$E_INVALID_ARG"
-	esac
-	noOpt=0
+		case "$opt" in
+			f )
+				filename="$OPTARG"
+				check_file "$filename" && view_file "$filename" "$linenumbers"
+				;;
+			h )
+				help 0
+				;;
+			n )
+				filename="$OPTARG"
+				linenumbers="$TRUE"
+				check_file "$filename" && view_file "$filename" "$linenumbers"
+				;;
+			: )
+				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$E_MISSING_ARG"
+				;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$E_INVALID_ARG"
+		esac
+		noOpt=0
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No option passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
