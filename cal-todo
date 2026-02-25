@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : cal-todo
 # Description  : Display calendar and ToDo list side by side.
-# Dependencies : ncal paste
+# Dependencies : ncal
 # Arguments    : see help() function for available options
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
@@ -41,7 +41,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.5.26056"
+readonly version="3.6.26056"
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 calendar=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 
@@ -71,11 +71,6 @@ _HELP_
 	exit "$errcode"
 }
 
-check_dependencies() {
-	packages=(ncal paste)
-	check_packages "${packages[@]}"
-}
-
 create_todo() {
 	local doc_dir="$1"
 	local todolist="$2"
@@ -88,6 +83,7 @@ create_todo() {
 show_one_month() {
 	local doc_dir="$1"
 	local todolist="$2"
+	clear
 	cal > "$calendar"
 	paste "$calendar" "$doc_dir/$todolist"
 }
@@ -95,6 +91,7 @@ show_one_month() {
 show_three_months() {
 	local doc_dir="$1"
 	local todolist="$2"
+	clear
 	sed '1d' <(cal -3) > "$calendar"	# strips off the year (1st line) to line up todo list with the month.
 	paste "$calendar" "$doc_dir/$todolist"
 }
@@ -105,7 +102,7 @@ main() {
 	local -r todolist="todo.lst"
 	noOpt=1
 	optstr=":13eh"
-	check_dependencies
+	check_package ncal
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			1 )
