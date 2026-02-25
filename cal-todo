@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : cal-todo
 # Description  : Display calendar and ToDo list side by side.
-# Dependencies : ncal
+# Dependencies : ncal paste
 # Arguments    : see help() function for available options
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Dec 2022
-# Updated      : 26 Jan 2026
+# Updated      : 25 Feb 2026
 # Comments     : base script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
 #              : Uses default editor ($EDITOR) to edit to-do list.
 #              : Limit to-do list to 7 items to maintain proper formating.
@@ -41,7 +41,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.4.26026"
+readonly version="3.5.26056"
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 calendar=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 
@@ -56,7 +56,7 @@ cleanup() {
 help() {
 	local errcode="${1:-1}"
 	local updated="26 Jan 2026"
-	cat << _HELP_
+	cat <<- _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Creates/displays/edits a simple to-do list with a calendar.
 
@@ -71,6 +71,11 @@ _HELP_
 	exit "$errcode"
 }
 
+check_dependencies() {
+	packages=(ncal paste)
+	check_packages "${packages[@]}"
+}
+
 create_todo() {
 	local doc_dir="$1"
 	local todolist="$2"
@@ -80,32 +85,36 @@ create_todo() {
 	$EDITOR "$doc_dir/$todolist"
 }
 
-one_month() {
+show_one_month() {
+	local doc_dir="$1"
+	local todolist="$2"
 	cal > "$calendar"
 	paste "$calendar" "$doc_dir/$todolist"
 }
 
-three_months() {
-	cal -3 > "$calendar"
+show_three_months() {
+	local doc_dir="$1"
+	local todolist="$2"
+	sed '1d' <(cal -3) > "$calendar"	# strips off the year (1st line) to line up todo list with the month.
 	paste "$calendar" "$doc_dir/$todolist"
 }
 
 main() {
-	local noOpt optstr opt doc_dir todolist OPTARG OPTIND
-	doc_dir="$HOME/.local/share/doc"
-	todolist="todo.lst"
+	local noOpt optstr opt OPTARG OPTIND
+	local -r doc_dir="$HOME/.local/share/doc"
+	local -r todolist="todo.lst"
 	noOpt=1
 	optstr=":13eh"
-	check_package ncal
+	check_dependencies
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			1 )
 				[[ -f "$doc_dir/$todolist" ]] || create_todo "$doc_dir" "$todolist"
-				one_month
+				show_one_month "$doc_dir" "$todolist"
 				;;
 			3 )
 				[[ -f "$doc_dir/$todolist" ]] || create_todo "$doc_dir" "$todolist"
-				three_months
+				show_three_months "$doc_dir" "$todolist"
 				;;
 			e )
 				if [[ -f "$doc_dir/$todolist" ]]; then
