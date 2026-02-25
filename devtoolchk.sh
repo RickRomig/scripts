@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #####################################################################
-# Script Name  : devtoolchk
+# Script Name  : devtoolchk.sh
 # Description  : Check if C development tools are installed
 # Dependencies : none
 # Arguments    : none
 # Author       : Copyright © 2017 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 01 Jan 2017
-# Updated      : 24 Jul 2025
+# Updated      : 24 Feb 2026
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -32,7 +32,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 check_tools() {
@@ -40,27 +40,19 @@ check_tools() {
 	packages=( binutils build-essential gcc )
 	for package in "${packages[@]}"; do
 		printf "%s is " "$package"
-		if dpkg -l "$package" > /dev/null 2>&1; then
-			printf "installed.\n"
-		else
-			printf "not installed.\n"
-		fi
+		grep -q '^ii' <(dpkg -l "$package" > /dev/null 2>&1) && printf "installed.\n" || printf "not installed.\n"
 	done
 }
 
 check_glibc() {
 	printf "The GNU C standard library (glibc) is "
-	if exists ldd; then
-		printf "installed.\n"
-	else
-		printf "not installed.\n"
-	fi
+	grep -q '^ii' <(dpkg -l ldd 2>/dev/null) &&printf "installed.\n" || printf "not installed.\n"
 }
 
 main() {
 	local script version
 	script="${0##*/}"
-	version="2.1.25205"
+	version="2.2.26055"
 	printf "Checking for deveolopment tools...\n"
 	check_tools
 	check_glibc
