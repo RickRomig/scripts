@@ -3,11 +3,11 @@
 # Script Name  : disable-swap.sh
 # Description  : disables swap file/partition
 # Dependencies : none
-# Arguments    : See help() function for available options.
+# Arguments    : none
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jan 2025
-# Last updated : 29 Nov 2025
+# Last updated : 24 Feb 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
@@ -55,16 +55,16 @@ check_swap_device() {
 	swap_dev=$(awk '/file/ || /partition/ {print $1}' /proc/swaps)
 	[[ "$swap_dev" ]] || { printf "No swap device detected.\n"; return; }
 	case "$swap_dev" in
-			"/dev/zram0" )
-				printf "zram-tools installed and active swap.\n" ;;
-			* )
-				disable_swap_device "$swap_dev"
+		"/dev/zram0" )
+			printf "zram-tools installed and active swap.\n" ;;
+		* )
+			disable_swap_device "$swap_dev"
 	esac
 }
 
 main() {
 	local script="${0##*/}"
-	local version="2.0.25333"
+	local version="2.1.26055"
 	check_swap_device
 	over_line "$script $version"
 	exit
