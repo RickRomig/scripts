@@ -40,6 +40,7 @@ fi
 
 readonly script="${0##*/}"
 readonly version="2.1.25205"
+EC=0
 
 ## Functions ##
 
@@ -60,40 +61,39 @@ _HELP_
 }
 
 download_page() {
-  local -r domain="$1"
-  local -r url="$2"
+  local -r url="$1"
+  local domain
+  domain=$('s|^[^/]*//||; s|^www\.||; s|/.*$||' <<< "$url")
   printf "Downloading %s to %s\n" "$url" "$PWD"
   wget --quiet --recursive --no-clobber --page-requisites --html-extension --convert-links --restrict-file-names=windows --domains "$domain" --no-parent "$url"
+  EC="$?"
+  print_status
 }
 
 print_status() {
-  local -r exit_code="${1:-0}"
-  if [[ "$exit_code" -eq 0 ]]; then
+  if [[ "$EC" -eq 0 ]]; then
     printf "Page succesfully downloaded.\n"
   else
-    printf "Download failed with exit code: %s.\n" "$exit_code"
+    printf "Download failed with exit code: %s.\n" "$EC"
   fi
 }
 
 main() {
-  local dl_ec domain url
+  local url
   check_package wget
   if [[ "$#" -eq 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
-    help 1
+    help "$E_MISSING_ARG"
   elif [[ "$1" = "--help" || "$1" = "-h" ]]; then
     help 0
   elif [[ "$1" =~ ^https?:\/\/.* ]]; then
     url="$*"
-    domain=$(echo "$url" | sed -e 's|^[^/]*//||' -e 's|^www\.||' -e 's|/.*$||')
-    download_page "$domain" "$url"
-    dl_ec="$?"
-    print_status "$dl_ec"
+    download_page "$url"
     over_line "$script $version"
-    exit "$dl_ec"
+    exit "$EC"
   else
     printf "%s Invalid argument - %s\n" "$RED_ERROR" "$1" >&2
-    help 2
+    help "$E_INVALID_ARG"
   fi
 }
 
