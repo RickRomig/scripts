@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Aug 2025
-# Last updated : 11 Feb 2026
+# Last updated : 25 Feb 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,29 +41,36 @@ fi
 # shellcheck disable=SC2088 # Tilde does not expand in quotes.
 update_clone() {
 	local -r clone="$1"
+	local -r repo_log="$2"
 	local repo_dir="$HOME/Downloads/$clone"
 	[[ -d "$HOME/$clone" ]] && repo_dir="$HOME/$clone"
-	if [[ -d "$repo_dir" ]]; then
-		pushd "$repo_dir" || { EC="$E_POPD_PUSHD"; return; }
-		git checkout .
-		git pull
-		popd >/dev/null 2>&1 || { EC="$E_POPD_PUSHD"; return; }
-		printf "\n"
-	else
-		printf "~/Downloads/%s ~\nHas not been cloned to this computer.\n\n" "$clone"
-	fi
+	{
+		if [[ -d "$repo_dir" ]]; then
+			pushd "$repo_dir" || { EC="$E_POPD_PUSHD"; return; }
+			git checkout .
+			git pull
+			popd >/dev/null 2>&1 || { EC="$E_POPD_PUSHD"; return; }
+			printf "\n"
+		else
+			printf "~/Downloads/%s ~\nHas not been cloned to this computer.\n~\n" "$clone"
+		fi
+	} | tee -a "$repo_log"
 }
 
 main() {
 	EC=0
 	local clone clones
   local -r script="${0##*/}"
-  local -r version="2.4.26042"
+  local -r version="3.0.26056"
+	local -r log_dir="$HOME/.local/share/logs"
+	local -r repo_log="$log_dir/repo-update.log"
+	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
   clones=(configs scripts i3wm-debian homepage)
   check_package git
   printf "Updating cloned repositories...\n\n"
+	printf "%(%F %R)T (%s %s)\n" -1 "$script" "$version" > "$repo_log"
   for clone in "${clones[@]}"; do
-		update_clone "$clone"
+		update_clone "$clone" "$repo_log"
   done
   over_line "$script $version"
   exit "$EC"
