@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 14 Nov 2025
+# Updated      : 25 Feb 2026
 # Comments     : Assumes first line of the target file is either a hash-bang or a C/C++ comment
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,20 +33,19 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
-script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="4.5.25318"
+readonly version="4.6.26056"
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-  local updated="14 Nov 2025"
+  local errcode="${1:-1}"
+  local updated="25 Feb 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts a header into a shell script or a C/C++ source file.
@@ -71,18 +70,19 @@ cleanup() {
 }
 
 create_tmp_file() {
-	tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+	tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 	trap cleanup EXIT
 }
 
 insert_header() {
-	local code_file code_type cur_yr today template_dir template_file
+	local code_file code_type cur_yr today template_file
 	code_file="$1"
 	code_type="$2"
 	template_file="$3"
 	today=$(date +"%d %b %Y")
-	cur_yr=$(echo -e "\UA9 $(date +%Y)")
-	template_dir="$script_dir/Templates"
+  cur_yr=$(printf "\UA9 %s" "$(date +%Y)")
+  script_dir=$(dirname "$(readlink -f "${0}")"); local -r script_dir
+	local -r template_dir="$script_dir/Templates"
 
 	case $code_type in
     "C"|"C++" )
@@ -113,7 +113,7 @@ main() {
     case "$opt" in
       c )
 				code_file="$OPTARG"
-				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
+				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$E_FILENOTFOUND"; }
         code_type="C"
         template_file="c-header.txt"
         create_tmp_file
@@ -123,31 +123,30 @@ main() {
         ;;
       p )
 				code_file="$OPTARG"
-				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
+				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$E_FILENOTFOUND"; }
         code_type="C++"
         template_file="cpp-header.txt"
         create_tmp_file
         ;;
       s )
 				code_file="$OPTARG"
-				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help 2; }
+				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$E_FILENOTFOUND"; }
         code_type="Shell"
         template_file="bash-header.txt"
         create_tmp_file
         ;;
      : )
         printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-        help 2
+        help "$E_MISSING_ARG"
         ;;
       ? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_INVALID_ARG"
     esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
-	[[ "$code_file" ]] || { printf "%s No code file provided.\n" "$RED_ERROR" >&2; help 2; }
 	insert_header "$code_file" "$code_type" "$template_file"
 	edit_view_quit "$code_file"
 	over_line "$script $version"
