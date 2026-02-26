@@ -39,7 +39,7 @@ update_clone() {
 			git pull
 			popd || { echo "$RED_ERROR popd from $repo_dir failed."; return 1; }
 		else
-			printf "~/Downloads/%s ~\nHas not been cloned to this computer.\n ~\n" "$clone"
+			printf "~/Downloads/%s ~\nHas not been cloned to this computer.\n~\n" "$clone"
 		fi
 	} >> "$repo_log"
 }
