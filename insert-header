@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 25 Feb 2026
+# Updated      : 26 Feb 2026
 # Comments     : Assumes first line of the target file is either a hash-bang or a C/C++ comment
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,13 +39,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.6.26056"
+readonly version="4.7.26057"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local updated="25 Feb 2026"
+  local updated="26 Feb 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts a header into a shell script or a C/C++ source file.
@@ -75,14 +75,13 @@ create_tmp_file() {
 }
 
 insert_header() {
-	local code_file code_type cur_yr today template_file
-	code_file="$1"
-	code_type="$2"
-	template_file="$3"
+	local cur_yr today
+	local -r code_file="$1"
+	local -r code_type="$2"
+	local -r template_file="$3"
+	local -r template_dir=~/bin/Templates
 	today=$(date +"%d %b %Y")
   cur_yr=$(printf "\UA9 %s" "$(date +%Y)")
-  script_dir=$(dirname "$(readlink -f "${0}")"); local -r script_dir
-	local -r template_dir="$script_dir/Templates"
 
 	case $code_type in
     "C"|"C++" )
