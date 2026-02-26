@@ -33,7 +33,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
@@ -49,6 +49,7 @@ print_title() {
 }
 
 scale_numbers() {
+  # _i and _j are dummy variables used as indices in the for-loops.
   local _i _j index
   index=0
   printf "%s" "$index"
@@ -63,6 +64,7 @@ scale_numbers() {
 }
 
 scale_marks() {
+  # _i and _j are dummy variables used as indices in the for-loops.
   local _i _j
   printf "|"
   for _i in {1..10}; do
@@ -75,9 +77,10 @@ scale_marks() {
 }
 
 print_indicator() {
+  local _i  # dummy variable
   local level="$1"
   printf "%s%s" "$bold" "$orange"
-  for (( i=0; i <= "$level"; i++ )); do
+  for (( _i=0; _i <= "$level"; _i++ )); do
     printf "*"
   done
   printf "%s\n" "$normal"
@@ -121,7 +124,7 @@ main() {
   bs_level=$(shuf -i 0-100 -n 1)
   clear
   print_intro
-  read -rp "Statement to be analyzed: " _statement
+  read -rp "Statement to be analyzed: " _statement  # dummy variable holding inconsequential data
   printf "\nAnalyzing your statement "
   dots "." &
 	DOTS_PID="$!"
