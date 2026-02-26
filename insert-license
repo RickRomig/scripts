@@ -13,7 +13,6 @@
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -41,7 +40,9 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.7.26057"
+readonly version="5.0.26057"
+license_file=
+license_type=
 
 ## Functions ##
 
@@ -77,68 +78,58 @@ create_tmp_file() {
 	trap cleanup EXIT
 }
 
-insert_license() {
-	local cur_yr licenses
-	local code_type="$1"
-	local code_file="$2"
-	local copy_holder="Richard B. Romig"
-	local email_addr="rick.romig@gmail.com"
-	cur_yr=$(echo -e "\UA9 $(date +%Y)")
-	script_dir=$(dirname "$(readlink -f "${0}")"); local -r script_dir
-	local -r template_dir="$script_dir/Templates"
-
-	# Select license type
+set_license_file() {
+	local licenses=("GPL v1" "GPL v2" "GPL v3" "MIT")
 	printf "\n%sLicense type:%s\n" "$orange" "$normal"
 	licenses=("GPL v1" "GPL v2" "GPL v3" "MIT")
 	PS3="Select the type of license: "
-	select lic_type in "${licenses[@]}"; do
+	select license_type in "${licenses[@]}"; do
 		case $REPLY in
-    1 )
-      lic_file="gpl_v1.txt"; break ;;
-    2 )
-      lic_file="gpl_v2.txt"; break ;;
-    3 )
-      lic_file="gpl_v3.txt"; break ;;
-    4 )
-      lic_file="mit_lic.txt"; break ;;
-    * )
-      printf "%sInvalid option. Try again.%s\n" "$lightred" "$normal" >&2
+			1 )
+				license_file="gpl_v1.txt"; break ;;
+			2 )
+				license_file="gpl_v2.txt"; break ;;
+			3 )
+				license_file="gpl_v3.txt"; break ;;
+			4 )
+				license_file="mit_lic.txt"; break ;;
+			* )
+				printf "%sInvalid option. Try again.%s\n" "$lightred" "$normal" >&2
 		esac
 	done
-	printf "License: %s\n" "$lic_type"
+	printf "License: %s\n" "$license_type"
+}
 
-	# Insert the license into the source file
-	printf "Inserting %a license into %s.\n" "$lic_type" "$code_file"
+insert_license() {
+	local cur_yr
+	local code_type="$1"
+	local code_file="$2"
+	cur_yr=$(printf "\UA9 %s" "$(date +%Y)")
+	local -r template_dir=~/bin/Templates
+	printf "Inserting %s license into %s.\n" "$license_type" "$code_file"
 	case $code_type in
 		"C" )
 			sed -e '1d' \
 				-e "s/<YEAR>/$cur_yr/" \
-				-e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
-				-e "s/<EMAIL>/$email_addr/" \
-				-e "s/^/ * /" "$template_dir/$lic_file" > "$tmp_file"
+				-e "s/^/ * /" "$template_dir/$license_file" > "$tmp_file"
 			sed -i -e "22r ${tmp_file}" "$code_file"
 			;;
 		"C++" )
 			sed -e '1d' \
 				-e "s/<YEAR>/$cur_yr/" \
-				-e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
-				-e "s/<EMAIL>/$email_addr/" \
-				-e "s/^/\/\/ /" "$template_dir/$lic_file" > "$tmp_file"
+				-e "s/^/\/\/ /" "$template_dir/$license_file" > "$tmp_file"
 			sed -i -e "23r ${tmp_file}" "$code_file"
 			;;
 		"Shell" )
 			sed -e '1d' \
 				-e "s/<YEAR>/$cur_yr/" \
-				-e "s/<COPYRIGHT HOLDER>/$copy_holder/" \
-				-e "s/<EMAIL>/$email_addr/" \
-				-e "s/^/# /" "$template_dir/$lic_file" > "$tmp_file"
+				-e "s/^/# /" "$template_dir/$license_file" > "$tmp_file"
 			sed -i -e "15r ${tmp_file}" "$code_file"
 			;;
 		* )
 			die "Invalid code type. Exiting the script." "$E_INVALID_ARG"		# Should never occur
 	esac
-
-	printf "\n%s license has been inserted into %s." "$lic_type" "$code_file"
+	printf "\n%s license has been inserted into %s." "$license_type" "$code_file"
 }
 
 main() {
@@ -186,6 +177,7 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
+	set_license_file
 	insert_license "$code_type" "$code_file"
 	edit_view_quit "$code_file"
 	over_line "$script $version"
