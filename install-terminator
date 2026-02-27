@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 03 Feb 2026
+# Updated      : 27 Feb 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.3.260304"
+readonly version="7.4.26058"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="03 Feb 2026"
+	local -r updated="27 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Terminator terminal emulator
@@ -65,7 +65,7 @@ _HELP_
 }
 
 terminator_version() {
-  awk '/^ii/ {print $3}' <(dpkg -l terminator)
+  awk '/^ii/ {print $3}' <(dpkg -l terminator) | sed 's/-.*//'
 }
 
 install_terminator() {
