@@ -97,7 +97,6 @@ compare_versions() {
 }
 
 install_micro() {
-  local cur_ver
   local new_ver="$1"
   local new_pkg="micro-${new_ver}-linux64.tar.gz"
   if [[ -z "$new_ver" ]]; then
@@ -113,8 +112,7 @@ install_micro() {
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro /usr/bin/
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro.1 /usr/share/man/man1/
   exists xclip || sudo apt-get install -y xclip
-  cur_ver=$(micro_version)
-  if [[ "$cur_ver" != "$new_ver" ]]; then
+  if [[ "$(micro_version)" != "$new_ver" ]]; then
     printf "%s Micro installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
@@ -123,7 +121,6 @@ install_micro() {
 }
 
 remove_micro() {
-  cur_ver=$(micro_version)
   sudo_login 2
   printf "Removing the Micro CLI text editor...\n"
   if [[ -x /usr/bin/micro ]]; then
@@ -133,7 +130,7 @@ remove_micro() {
   [[ -L  ~/.config/micro/settings.json ]] && unlink ~/.config/micro/settings.json
   [[ -L  ~/.config/micro/bindings.json ]] && unlink ~/.config/micro/bindings.json
   find ~/.config -type d -name micro -exec rm -rf {} \;
-  printf "Micro %s and configuration files have been removed.\n" "$cur_ver"
+  printf "Micro and configuration files have been removed.\n"
 }
 
 micro_configs() {
@@ -145,7 +142,7 @@ micro_configs() {
     EC="$E_FILENOTFOUND"
 		return
 	fi
- [[ -f  ~/.config/micro/settings.json ]] && rm ~/.config/micro/settings.json
+  [[ -f  ~/.config/micro/settings.json ]] && rm ~/.config/micro/settings.json
   [[ -f ~/.config/micro/bindings.json ]] && rm  ~/.config/micro/bindings.json
   if [[ -d ~/gitea/configs ]]; then
     ln -sv ~/gitea/configs/micro/settings.json  ~/.config/micro/settings.json
