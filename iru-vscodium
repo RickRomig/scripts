@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2022
-# Updated      : 09 Feb 2026
+# Updated      : 27 Feb 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.6.26040"
+readonly version="3.7.26058"
 readonly gh_url="https://github.com/VSCodium/vscodium/releases"
 DOTS_PID=
 EC=0
@@ -48,7 +48,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local updated="09 Feb 2026"
+	local updated="27 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates,  removes the VSCodium editor.
@@ -71,7 +71,7 @@ cleanup() {
 }
 
 codium_version() {
-	awk '/^ii/ {print $3}' <(dpkg -l  codium)
+	head -n1 <(codium --version)
 }
 
 newest_version() {
@@ -98,7 +98,6 @@ compare_versions() {
 }
 
 install_vscodium() {
-  local cur_ver
   local new_ver="$1"
   local new_pkg="codium_${new_ver}_amd64.deb"
   if [[ -z "$new_ver" ]]; then
@@ -114,8 +113,7 @@ install_vscodium() {
   printf "Installing VSCodium %s...\n" "$new_ver"
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
-  cur_ver=$(codium_version)
-  if ! grep -q '^ii' <(dpkg -l codium 2>/dev/null) || [[ "$cur_ver" != "$new_ver" ]]; then
+  if [[ "$(codium_version)" != "$new_ver" ]]; then
     printf "%s VSCodium installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
