@@ -7,8 +7,9 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 26 Feb 2026
-# Comments     : Debian 13 & LMDE 7 installs version 2.0.14 from repo.
+# Updated      : 27 Feb 2026
+# Comments     : Debian 13 & LMDE 7 repo version 2.0.14
+#              : Debian 12, Ubuntu 24.04 & Mint 22 repo version 2.0.13
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -39,14 +40,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.19.26057"
+readonly version="6.20.26058"
 readonly gh_url="https://github.com/micro-editor/micro/releases"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="26 Feb 2026"
+	local -r updated="27 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -113,7 +114,7 @@ install_micro() {
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro.1 /usr/share/man/man1/
   exists xclip || sudo apt-get install -y xclip
   cur_ver=$(micro_version)
-  if ! grep -q '^ii' <(dpkg -l micro 2>/dev/null) || [[ "$cur_ver" != "$new_ver" ]]; then
+  if [[ "$cur_ver" != "$new_ver" ]]; then
     printf "%s Micro installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
