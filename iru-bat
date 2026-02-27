@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 09 Feb 2026
+# Updated      : 27 Feb 2026
 # Comments     : Use install-batcat if distro version has same base version number as latest GitHub release.
 #              : Mint 22 installs version 0.24.0 with the Ubuntu version appended.
 #              : Debian 13 installs version 0.25.0 with the Debian version appended.
@@ -42,7 +42,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.20.26040"
+readonly version="6.21.26058"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 DOTS_PID=
 EC=0
@@ -51,7 +51,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="04 Feb 2026"
+	local -r updated="27 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Bat utililty.
@@ -79,7 +79,7 @@ check_dependencies() {
 }
 
 bat_version() {
-  awk '/^ii/ {print $3}' <(dpkg -l bat)
+  cut -d' ' -f2 <(bat --version)
 }
 
 newest_version() {
@@ -105,7 +105,6 @@ compare_versions() {
 }
 
 install_bat() {
-  local cur_ver
   local new_ver="$1"
   local new_pkg="bat_${new_ver}_amd64.deb"
   if [[ -z "$new_ver" ]]; then
@@ -121,8 +120,7 @@ install_bat() {
   printf "Installing Bat %s...\n" "$new_ver"
   sudo_login 2
 	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
-  cur_ver=$(bat_version)
-  if ! grep -q '^ii' <(dpkg -l bat 2>/dev/null) || [[ "$cur_ver" != "$new_ver" ]]; then
+  if [[ "$(bat_version)" != "$new_ver" ]]; then
     printf "%s Bat installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
