@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 15 Oct 2025
-# Last updated : 11 Jan 2026
+# Last updated : 28 Feb 2026
 # Comments     : Original script Copyright (C) 2025  Kris Occhipinti
 #              : Modified and adapted by Rick Romig
 # TODO (Rick)  :
@@ -37,7 +37,7 @@ if [[ -x ~/bin/functionlib ]]; then
   source ~/bin/functionlib
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 search_packages() {
@@ -51,10 +51,10 @@ search_packages() {
 				tr "\n" " "
 	)"
 	package="${package// /}"	# remove trailing whitespace
+	[[ "$package" ]] || { printf "Nothing selected\n"; return; }
 	[[ "$package" ]] && read -n1 -rp "Install ${package}? [y/N]: " do_it
-	printf '\n'
 	if [[ "${do_it,,}" != "y" ]]; then
-		printf "%s installation declined.\n" "$package"
+		printf "Iinstallation declined.\n"
 		return
 	fi
 	sudo_login 2
@@ -64,7 +64,7 @@ search_packages() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.2.26011"
+  local -r version="1.3.26059"
   check_package fzf
   search_packages
   over_line "$script $version"
