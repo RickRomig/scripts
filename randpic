@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Jun 2019
-# Updated      : 02 Jan 2026
+# Updated      : 28 Feb 2026
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,6 +38,28 @@ fi
 
 ## Functions ##
 
+select_image_dir() {
+  local FMENU="fzf --header=$script \
+    --layout=reverse \
+    --exact \
+    --border=bold \
+    --border=rounded \
+    --margin=5% \
+    --color=dark \
+    --height=95% \
+    --info=hidden \
+    --header-first \
+    --bind change:top \
+    --prompt"
+  local image_d dest_d
+  local image_dirs=()
+  for image_d in $HOME/Work/images; do
+    [[ -d "$image_d" ]] && image_dirs+=("$(find "$image_d" -type d -print | sort -d)")
+  done
+	dest_d=$($FMENU "Select image directory: " < <(printf "%s\n" "${image_dirs[@]}"))
+	printf "%s" "$dest_d"
+}
+
 valid_folder() {
   local folder="$1"
   case "$folder" in
@@ -60,20 +82,12 @@ valid_image() {
   esac
 }
 
-all_done() {
+select_images() {
   local script="$1"
   local version="$2"
-  printf "\nFinished selecting images.\n"
-  over_line "$script $version"
-  leave ""
-}
+  local tmp_pics="$3"
+  local pic_dir pic_file pic_pid options _opt random_file sel_dir
 
-select_images() {
-  local script="${0##*/}"
-  local version="4.1.26003"
-  local pic_dir pic_file pic_pid options _opt random_file sel_dir tmp_pics
-  tmp_pics=~/Work/images
-  [[ -d "$tmp_pics" ]] || mkdir -p "$tmp_pics"
   clear
   while true; do
     # Randomly select an image folder from ~/Pictures/
@@ -116,7 +130,7 @@ select_images() {
         2 )
           printf "\n%sAccepted image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
           kill $pic_pid
-          all_done "$script" "$version"
+          return
           ;;
         3 )
           printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
@@ -130,7 +144,7 @@ select_images() {
           printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
           kill $pic_pid
           rm "$tmp_pics/$pic_file"
-          all_done "$script" "$version"
+          return
           ;;
         5 )
           printf "\n%sImage deleted:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
@@ -149,8 +163,16 @@ select_images() {
 }
 
 main () {
+  local script="${0##*/}"
+  local version="5.0.260"
+  local image_dir
   check_package imagemagick
-  select_images
+  image_dir=$(select_image_dir)
+  [[ "$image_dir" ]] || die "No destination directory selected." "$E_MISSING_ARG"
+  select_images "$script" "$version" "$image_dir"
+  printf "\nFinished selecting images.\n"
+  over_line "$script $version"
+  leave ""
 }
 
 ## Execution ##
