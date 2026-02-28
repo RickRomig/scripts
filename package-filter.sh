@@ -54,7 +54,7 @@ search_packages() {
 	[[ "$package" ]] || { printf "Nothing selected\n"; return; }
 	[[ "$package" ]] && read -n1 -rp "Install ${package}? [y/N]: " do_it
 	if [[ "${do_it,,}" != "y" ]]; then
-		printf "Iinstallation declined.\n"
+		printf "Installation declined.\n"
 		return
 	fi
 	sudo_login 2
