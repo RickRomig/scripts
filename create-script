@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 14 Nov 2025
+# Last updated : 01 Mar 2026
 # Comments     : Creates the script in the current working directory.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -34,27 +34,26 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="4.6.25318"
+readonly version="4.7.26060"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local updated="14 Nov 2025"
+	local errcode="${1:-1}"
+	local updated="01 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Creates a shell script with header comments (getopts optional)
 
 ${green}Usage:${normal} $script [-h] [-vb script-name] [-vg script-name]
-
 ${orange}Available options:${normal}
   -b  Create a standard BASH script
       $script -b <script-name>
@@ -103,7 +102,10 @@ main() {
 		case "$opt" in
 			b )
 				script_name="$OPTARG"
-				[[ -f "$script_name" ]] && { printf "%s %s already exists\n" "$RED_ERROR" "$script_name" >&2; help 2; }
+				if [[ -f "$script_name" ]]; then
+					printf "%s %s already exists\n" "$RED_ERROR" "$script_name" >&2
+					help "$E_FILE_EXISTS"
+				fi
 				show_message "Script name: $script_name"
 				template_file="bash-template.txt"
 				show_message "Template: $template_file"
@@ -113,7 +115,10 @@ main() {
 				;;
 			g )
 				script_name="$OPTARG"
-				[[ -f "$script_name" ]] && { printf "%s %s already exists\n" "$RED_ERROR" "$script_name" >&2; help 2; }
+				if [[ -f "$script_name" ]]; then
+					printf "%s %s already exists\n" "$RED_ERROR" "$script_name" >&2
+					help "$E_FILE_EXISTS"
+				fi
 				show_message "Script name: $script_name"
 				template_file="bash-getopts.txt"
 				show_message "Template: $template_file"
@@ -124,17 +129,16 @@ main() {
 				;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_MISSING_ARG"
 			;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
-	[[ "$script_name" ]] || { printf "%s No script file provided.\n" "$RED_ERROR" >&2; help 2; }
 	import_metadata "$script_name" "$template_file"
 	edit_view_quit "$script_name"
 	over_line "$script $version"
