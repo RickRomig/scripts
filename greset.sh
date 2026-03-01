@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 May 2024
-# Last updated : 26 Jan 2026
+# Last updated : 01 Mar 2026
 # Comments     : Commits that haven't been pushed to the repository.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,10 +36,6 @@ else
   exit 81
 fi
 
-## Global Variables ##
-
-readonly E_NOT_GIT_REPO=92
-
 ## Functions ##
 
 git_reset() {
@@ -52,9 +48,9 @@ git_reset() {
 
 main() {
   local script="${0##*/}"
-	local version="2.4.26026"
+	local version="2.5.26060"
 	check_package git
-	[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || die "You are not in a git repositiory." "$E_NOT_GIT_REPO"
+	[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || die "You are not in a git repositiory." 1
 	if y_or_n "Reset last unpushed commit to the previous version?"; then
 		git_reset
 	else
