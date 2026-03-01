@@ -36,10 +36,6 @@ else
   exit 81
 fi
 
-## Global Variables ##
-
-readonly E_NOT_GIT_REPO=92
-
 ## Functions ##
 
 git_revert() {
@@ -55,7 +51,7 @@ main() {
   local script="${0##*/}"
 	local version="2.3.26026"
 	check_package git
-	[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || die "You are not in a git repositiory."  "$E_NOT_GIT_REPO"
+	[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || die "You are not in a git repositiory."  1
 	if y_or_n "Reset last commit (pushed) to the previous version?"; then
 		git_revert
 	else
