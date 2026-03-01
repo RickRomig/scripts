@@ -7,8 +7,7 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 14 Feb 2026
-# Updated      : 14 Feb 2026
-# Version      : 1.0.26045
+# Updated      : 28 Feb 2026
 # Comments     : Thanks to Joe Collins and Matt Hartley for the fix for the permissions problem.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +38,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.0.26045"
+readonly version="1.1.26059"
 EC=0
 
 ## Functions ##
@@ -79,9 +78,9 @@ set_permissions() {
 
 mimeapps_list_add() {
   local -r mimeapps_list="$HOME/.local/share/applications/mimeapps.list"
-  if [[ -f "$HOME/$mimeapps_list" ]]; then
-    if grep -qw 'brasero' "$HOME/$mimeapps_list"; then
-      echo "Updating mimeapps.iist..."
+  if [[ -f "$mimeapps_list" ]]; then
+    if grep -qw 'brasero' "$mimeapps_list"; then
+      printf  "Updating mimeapps.iist...\n"
       {
         echo "x-content/blank-cd=brasero.desktop;"
         echo "x-content/blank-dvd=brasero.desktop;"
@@ -92,7 +91,7 @@ mimeapps_list_add() {
 
 # Sound 'pop and click' fix. Set sound card to stay powered on all the time
 pop_and_click() {
-	echo "options snd-hda-intel power_save=0 power_save_controler=N'" | tee -a /etc/modprobe.d/alsa-base.conf >/dev/null
+	echo "options snd-hda-intel power_save=0 power_save_controler=N'" | sudo tee -a /etc/modprobe.d/alsa-base.conf >/dev/null
 }
 
 install_brasero() {
@@ -112,8 +111,10 @@ install_brasero() {
 }
 
 remove_brasero() {
+	local -r mimeapps_list="$HOME/.local/share/applications/mimeapps.list"
 	printf "Removing Braseror %s...\n" "$(brasero_version)"
 	sudo apt-get remove brasero
+	sed -i '/brasero.desktop/d' "$mimeapps_list"
 	printf "Brasero removed.\n"
 }
 
@@ -125,7 +126,7 @@ main() {
 		case "$opt" in
 			h )
 				help 0
-			;;
+				;;
 			i )
 				if exists brasero; then
 					printf "Brasero %s is already installed.\n" "$(brasero_version)"
