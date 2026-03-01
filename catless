@@ -7,7 +7,7 @@
 # Author       : Copyright ©  2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 25 Feb 2026
+# Updated      : 28 Feb 2026
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,13 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6..26056"
+readonly version="6.7.26059"
+EC=0
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local updated="25 Feb 20265"
+  local updated="28 Feb 2026"
   cat << _HELP_
 ${orange}$script${normal} $version (updated $updated)
 Displays a text file using either cat or less depending the number of lines in
@@ -65,19 +66,23 @@ check_file() {
 	local filename="$1"
 	if [[ ! -f "$filename" ]]; then
 		printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
+		EC="$E_FILENOTFOUND"
 		return "$FALSE"
 	elif [[ ! -s "$filename" ]]; then
 		printf "%s %s is an empty file.\n" "$RED_ERROR" "$filename" >&2
+		EC="$E_INVALID_ARG"
 		return "$FALSE"
 	elif grep -qEi "text|json" <(file -bL "$filename"); then
 		return "$TRUE"
 	else
 		printf "%s %s is not a text file.\n" "$RED_ERROR" "$filename" >&2
+		EC="$E_INVALID_ARG"
 		return "$FALSE"
 	fi
 }
 
 over_max() {
+	# Returns TRUE (0) if number of lines deems use of less
 	local catmax filelines textfile
 	textfile="$1"
 	catmax=$(( $(tput lines)*87/100 ))
@@ -139,7 +144,7 @@ main() {
 	[[ "$noOpt" = 1 ]] && { printf "%s No option passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	exit
+	exit "$EC"
 }
 
 ## Execution ##
