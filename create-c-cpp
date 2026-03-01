@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 14 Nov 2025
+# Last updated : 01 Mar 2026
 # Comment      : C template includes GNU GPL v2 license
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,26 +33,25 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="4.3.25318"
+readonly version="4.4.26060"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="14 Nov 2025"
+  local updated="01 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Creates a C/C++ source code file with descriptive comments (GPL v2.0 license)
 
 ${green}Usage:${normal} $script [-h] [-vc source-file] [-vp source-file]
-
 ${orange}Available options:${normal}
   -c  Create a C source code file
       $script -c <source-file>
@@ -95,7 +94,10 @@ main() {
 		case "$opt" in
 			c )
 				code_file="$OPTARG"
-				[[ -f "$code_file" ]] && { printf "%s %s already exists\n" "$RED_ERROR" "$code_file" >&2; help 2; }
+				if [[ -f "$code_file" ]]; then
+					printf "%s %s already exists\n" "$RED_ERROR" "$code_file" >&2
+					help "$E_FILE_EXISTS"
+				fi
 				show_message "Code file: $code_file"
 				template_file="c-template.txt"
 				show_message "Template: c-template.txt"
@@ -105,7 +107,10 @@ main() {
 				;;
 			p )
 				code_file="$OPTARG"
-				[[ -f "$code_file" ]] && { printf "%s %s already exists\n" "$RED_ERROR" "$code_file" >&2; help 2; }
+				if [[ -f "$code_file" ]]; then
+					printf "%s %s already exists\n" "$RED_ERROR" "$code_file" >&2
+					help "$E_FILE_EXISTS"
+				fi
 				show_message "Code file: $code_file"
 				template_file="cpp-template.txt"
 				;;
@@ -115,17 +120,16 @@ main() {
 				;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_MISSING_ARG"
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
-	[[ "$code_file" ]] || { printf "%s No source code file provided.\n" "$RED_ERROR" >&2; help 2; }
 	import_metadata "$code_file" "$template_file"
 	edit_view_quit "$code_file"
 	over_line "$script $version"
