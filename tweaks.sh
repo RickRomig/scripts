@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 09 Feb 2026
+# Last updated : 02 Mar 2026
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,13 +39,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.1.26040"
+readonly version="4.2.26061"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	local -r updated="09 Feb 2026"
+	local -r updated="02 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Create symbolic links from configs and scripts repos and add tweaks to system settings.
@@ -56,7 +56,7 @@ ${orange}Available options:${normal}
 	-d	Symlink dot files to ~/
 	-h	Show this help message and exit
 	-n	Disable snap packages
-	-p	Diable sleep, hibrnation, suspend
+	-p	Diable sleep, hibernation, suspend
 	-r	Adjust Reserve Space on partitions
 	-s	Symlink scripts to ~/bin
 	-t	Apply tweaks to /etc/sudoers.d and /etc/sysctl.conf
