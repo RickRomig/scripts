@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Sep 2019
-# Updated      : 19 Jan 2026
+# Updated      : 02 Mar 2026
 # Comments     : Creates a compressed tar archive of the folder's contents.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,22 +33,17 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
 
-check_host() {
-	local -r main_host="$1"
-	local -r local_host="${HOSTNAME:-$(hostname)}"
-	[[ "$local_host" == "$main_host" ]] && return "$TRUE" || return "$FALSE"
-}
-
 remove_bu_files() {
 	local -r homepage_d="$1"
-  printf "\nRemoving backup files (if any)...\n"
+  printf "\n%sRemoving any backup files...%s\n" "$lightyellow" "$normal"
   find "$homepage_d"/ -type f -regex '\./.*~$' -print -delete
   find "$homepage_d"/ -maxdepth 2 -type f -name "*.bak" -exec rm -v {} \;
+	printf "done\n"
 }
 
 archive_homepage() {
@@ -57,10 +52,11 @@ archive_homepage() {
 	archive_d="$2"
 	archive="homepage-$(date +%y%m%d).tar.gz"
 	[[ -d "$archive_d" ]] || mkdir -p "$archive_d"
-	printf "\nBacking up %s...\n" "$homepage_d"
-	tar -czvf "$archive_d/$archive" -C "$HOME/gitea" homepage
-	printf "\nRemoving archives more than three months old...\n"
+	printf "\n%sArchiving homepage repository...%s\n" "$lightyellow" "$normal"
+	tar -czf "$archive_d/$archive" -C "$HOME/gitea" homepage
+	printf "\n%sRemoving old archives...%s\n" "$lightyellow" "$normal"
 	find "$archive_d" -mtime +90 -print -delete
+	printf "done\n"
 }
 
 sync_dropbox() {
@@ -68,19 +64,20 @@ sync_dropbox() {
 	local -r homepage_d="$2"
 	local -r dropbox_d="$HOME/Dropbox/homepage"
 	[[ -d "$dropbox_d" ]] || return
-	printf "\nSynchronizing %s with %s...\n" "$homepage_d" "$dropbox_d"
+	printf "\n%sSynchronizing homepage archive with Dropbox...%s\n" "$lightyellow" "$normal"
 	rsync -av --delete --exclude '.git' --exclude '.gitignore' "$homepage_d"/ "$archive_d"/ "$dropbox_d"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.12.26019 "
+	local -r version="7.0.26061 "
 	local -r main_host="hp-800g2-sff"
+	local -r local_host="${HOSTNAME:-$(hostname)}"
 	local -r homepage_dir="$HOME/gitea/homepage"
 	local -r archive_dir="$HOME/Downloads/archives/homepage"
-	printf "Archiving homepage files...\n"
-	if check_host "$main_host"; then
+	if [[ "$local_host" == "$main_host" ]]; then
 		check_package rsync
+		printf "%sArchiving homepage files...%s\n" "$orange" "$normal"
 		remove_bu_files "$homepage_dir"
 		archive_homepage "$homepage_dir" "$archive_dir"
 		sync_dropbox "$homepage_dir" "$archive_dir"
