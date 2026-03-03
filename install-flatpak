@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Mar 2020
-# Updated      : 09 Feb 2026
+# Updated      : 03 Mar 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -39,10 +39,6 @@ fi
 ## Functions ##
 
 install_flatpak() {
-  if exists flatpak; then
-    printf "%s is already installed.\n" "$(flatpak --version)"
-    return
-  fi
   echo "Installing Flatpak..."
   sudo_login 2
   sudo apt update -qq
@@ -53,18 +49,20 @@ install_flatpak() {
     return
   fi
   printf "%s installed.\n" "$(flatpak --version)"
-  exists gnome-software && install_gnome_plugin
   install_flathub
+  install_gnome_plugin
 }
 
 install_flathub() {
-  printf "Installing Flathub repository ...\n"
+  printf "Installing the Flathub repository ...\n"
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   printf "Flatbhub installed.\n"
 }
 
 install_gnome_plugin() {
-  # Install only if using Gnome Desktop or Gnome Software Store
+  # Install only if using Gnome Desktop Environment or Gnome Software Store
+  exists gnome-software-plugin-flatpak && { printf "Gnome Plugin already installed.\n"; return; }
+  exists gnome-software || { printf "Gnome Software Store is not installed.\n"; return; }
   printf "Installing the Gnome software plugin for Flatpak ...\n"
   sudo apt install -y gnome-software-plugin-flatpak
   printf "Gnome software plugin installed.\n"
@@ -72,12 +70,16 @@ install_gnome_plugin() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.6.26040"
+  local -r version="1.7.26062"
   EC=0
   printf "Installs Flatpak and Flathub repository.\n"
-  install_flatpak
-  exists gnome-software && install_gnome_plugin
-  install_flathub
+  if exists flatpack; then
+    printf "%s is already installed.\n" "$(flatpak --version)"
+    install_flathub
+    install_gnome_plugin
+  else
+    install_flatpak
+  fi
   over_line "$script $version"
   exit "$EC"
 }
