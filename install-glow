@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 03 Feb 2026
+# Updated      : 03 Mar 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,9 +39,8 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.5.26034"
+readonly version="5.6.26062"
 readonly charm_url="https://repo.charm.sh/apt"
-readonly src_list="/etc/apt/sources.list.d/charm.list"
 readonly charm_key="/etc/apt/keyrings/charm.gpg"
 EC=0
 
@@ -49,7 +48,7 @@ EC=0
 
 help() {
   local errcode="${1:-1}"
-  local updated="03 Feb 2026"
+  local updated="03 Mar 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removed Glow Markdown reader
@@ -81,6 +80,7 @@ add_gpg() {
 }
 
 add_src_list() {
+  local -r src_list="/etc/apt/sources.list.d/charm.list"
   if [[ -f "$src_list" ]]; then
     printf "%s already exists.\n" "${src_list##*/}"
     return
@@ -109,8 +109,7 @@ remove_glow() {
   printf "Removing the Glow markdown reader...\n"
   sudo_login 2
   sudo apt-get -y remove glow
-  [[ -f "$src_list" ]] && sudo rm -v "$src_list"
-  [[ -f "$charm_key" ]] && sudo rm -v "$charm_key"
+  find /etc/apt =type f -name "charm*" -exec sudo rm -f {} \;
   find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name glow -exec rm -rf {} \;
   printf "Glow markdown reader has been removed.\n"
 }
@@ -156,7 +155,7 @@ main() {
         if installed glow; then
           remove_glow
         else
-        printf "Glow is not installed.\n"
+          printf "Glow is not installed.\n"
         fi
         ;;
       ? )
