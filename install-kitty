@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 09 Feb 2026
+# Updated      : 03 Mar 2026
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.4.26040"
+readonly version="2.5.26062"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="09 Feb 2026"
+	local -r updated="03 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Kitty terminal emulator
@@ -81,7 +81,7 @@ remove_kitty() {
   sudo apt-get purge kitty -yy
   [[ -L ~/.config/kitty/kitty.conf ]] && unlink ~/.config/kitty/kitty.conf
   [[ -L ~/.config/kitty/bindings.list ]] && unlink ~/.config/kitty/bindings.list
-  find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name kitty -exec rm -rf {} \;
+  find ~/ -maxdepth 3 -type d -path ~/Downloads -prune -o -path ~/gitea -prune -o -type d -name "kitty*" -exec rm -rf {} \;
   printf "The Kitty terminal emulator and configuration files have been removed.\n"
 }
 
