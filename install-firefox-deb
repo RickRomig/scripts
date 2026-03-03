@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Updated      : 30 Jan 2026
+# Updated      : 03 Mar 2026
 # Comments     : Remove Distro, Flatpak, or Snap version before installing.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,10 +39,8 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.3.26030"
-readonly mozilla_list="/etc/apt/sources.list.d/mozilla.list"
+readonly version="6.4.26062"
 readonly mozilla_asc="/etc/apt/keyrings/packages.mozilla.org.asc"
-readonly mozilla_pref="/etc/apt/preferences.d/mozilla.pref"
 verbose_mode="$FALSE"
 EC=0
 
@@ -50,7 +48,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="30 Jan 2026"
+	local -r updated="03 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/Removes Mozilla repository version of Firefox.
@@ -89,6 +87,7 @@ other_firefox() {
 
 create_preference_file() {
 	# Preference file to prioritize packages from Mozilla repository
+	local -r mozilla_pref="/etc/apt/preferences.d/mozilla.pref"
 	show_message "Creating preference file..."
 	echo '
 Package: *
@@ -110,6 +109,7 @@ set_gpg_key() {
 }
 
 set_sources_list() {
+	local -r mozilla_list="/etc/apt/sources.list.d/mozilla.list"
 	local -r list_url="https://packages.mozilla.org/apt"
 	if [[ -f "$mozilla_list" ]]; then
 		printf "%s already exists.\n" "${mozilla_list##*/}"
@@ -144,12 +144,8 @@ install_mozilla_deb() {
 remove_mozilla_firefox() {
 	printf "Removing %s..." "$(firefox_version)"
 	sudo apt-get remove -y firefox
-	show_message "Removing source.list..."
-	[[ -f "$mozilla_list" ]] && sudo rm "$mozilla_list"
-	show_message "Removing Mozilla preference file..."
-	[[ -f "$mozilla_pref" ]] && sudo rm "$mozilla_pref"
-	show_message "Removing keyring..."
-	[[ -f "$mozilla_asc" ]] && sudo rm "$mozilla_asc"
+	show_message "Removing source.list, preference, & keyring files..."
+	find /etc/apt -maxdepth 2 -type f -name "*mozilla*" -exec sudo rm -f {} \;
 	show_message "Removing user configuration files..."
 	find ~/ -maxdepth 2 -type d -name "*mozilla*" -exec rm -rf {} \;
 	printf "The Mozilla Firefox deb package has been removed.\n"
