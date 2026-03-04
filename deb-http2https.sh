@@ -75,7 +75,7 @@ main() {
 	check_package apt-transport-https
 	case "$distro" in
 		bullseye|bookworm|trixie )
-			[[ -f /etc/apt/sources.llist.d/debian.sources ]] && leave "Sources list has been modernized."
+			[[ -f /etc/apt/sources.list.d/debian.sources ]] && leave "Sources list has been modernized."
 			convert_sources_list
 			convert_backports_list "$distro"
 			;;
