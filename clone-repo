@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 26 Jan 2026
-# Comments     : clone_repo() is part of functionlib
+# Updated      : 04 Feb 2026
+# Comments     : clone_repo() is contained in functionlib
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -39,25 +39,26 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.1.26026"
+readonly version="4.2.26063"
+EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="26 Jan 2026"
+	local -r updated="04 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Clone a git repository from GitHub or the local Gitea server
 
-${green}Usage:${normal} $script [-cfghilsw]
+${green}Usage:${normal} $script [-cfghipsw]
 ${orange}Available options:${normal}
   -c  Clone configs repository
   -f  Clone fnloc repository
   -g  Clone gitea server repository
   -h  Show this help message and exit
   -i  Clone i3wm-debian repository
-  -l  Clone local homepage repository
+  -p  Clone homepage repository
   -s  Clone scripts repository
   -w  Clone fnloc-win repository
 _HELP_
@@ -67,15 +68,16 @@ _HELP_
 check_repo() {
   local -r git_repo="$1"
   local -r dl_dir="$HOME/Downloads"
-  if [[ -d "$dl_dir/$git_repo" ]]; then
-    if [[ $(find "$dl_dir/$git_repo" -type f) ]]; then
-      printf "%s is not empty. Updating the directory...\n" "$dl_dir/$git_repo"
-      pushd "$dl_dir/$git_repo" || die "pushd failed" "$E_POPD_PUSHD"
-      git pull
-      popd || die "popd failed" "$E_POPD_PUSHD"
-    else
-      clone_repo "$git_repo"
-    fi
+  if [[ ! -d "$dl_dir/$git_repo" ]]; then
+    clone_repo "$git_repo"
+    return
+  fi
+  if [[ $(find "$dl_dir/$git_repo" -type f) ]]; then
+    printf "%s is not empty. Updating the directory...\n" "$dl_dir/$git_repo"
+    pushd "$dl_dir/$git_repo" || { EC="$E_POPD_PUSHD"; return; }
+    git checkout .
+    git pull
+    popd || { EC="$E_POPD_PUSHD"; return; }
   else
     clone_repo "$git_repo"
   fi
@@ -98,7 +100,7 @@ main() {
         help 0 ;;
       i )
         check_repo "i3wm-debian" ;;
-      l )
+      p )
         check_repo "homepage" ;;
       s )
         check_repo "scripts" ;;
@@ -113,7 +115,7 @@ main() {
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	exit
+	exit "$EC"
 }
 
 ## Execution ##
