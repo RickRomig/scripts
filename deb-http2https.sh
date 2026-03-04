@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : http2https.sh
-# Description  : Change http to https in sources.list & backports.list
+# Script Name  : deb-http2https.sh
+# Description  : Change http to https in sources.list & backports.list in Debian
 # Dependencies : apt-transport-https
 # Arguments    : See help() function for available options.
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 20 Jul 2025
-# Last updated : 27 Jan 2026
+# Last updated : 04 Mar 2026
 # Comments     : Intended for use on Debian Bullseye, Bookworm, and Trixie
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,45 +33,43 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
 
 debian_distro() {
-	local codename
-	codename=$(sed '2p' <(/usr/bin/lsb_release -cs))
-	printf "%s" "$codename"
+	printf "%s" "$(/usr/bin/lsb_release -cs 2>/dev/null)"
 }
 
 convert_sources_list() {
 	if grep -q 'deb https' /etc/apt/sources.list; then
 		printf "\nSources.list has already been converted\n"
-	else
-		sudo_login 2
-		sudo sed -i.bak 's/http:/https:/;/ftp/s/https:/http:/' /etc/apt/sources.list
-		printf "\nChanged http to https in sources.list\n"
+		return
 	fi
+	sudo_login 2
+	sudo sed -i.bak 's/http:/https:/;/ftp/s/https:/http:/' /etc/apt/sources.list
+	printf "\nChanged http to https in sources.list\n"
 }
 
 convert_backports_list() {
 	local backports_list="${1}-backports.list"
-	if [[ -f "/etc/apt/sources.list.d/$backports_list" ]]; then
-		if grep -q 'deb https' "/etc/apt/sources.list.d/$backports_list"; then
-			printf "%s has already been converted\n" "$backports_list"
-		else
-			sudo_login 2
-			sudo sed -i.bak 's/http:/https:/' "/etc/apt/sources.list.d/$backports_list"
-			printf "Changed http to https in %s\n" "$backports_list"
-		fi
-	else
+	if [[ ! -f "/etc/apt/sources.list.d/$backports_list" ]]; then
 		printf "%s does not exist on this system.\n" "$backports_list"
+		return
+	fi
+	if grep -q 'deb https' "/etc/apt/sources.list.d/$backports_list"; then
+		printf "%s has already been converted\n" "$backports_list"
+	else
+		sudo_login 2
+		sudo sed -i.bak 's/http:/https:/' "/etc/apt/sources.list.d/$backports_list"
+		printf "Changed http to https in %s\n" "$backports_list"
 	fi
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.4.26027"
+	local -r version="1.5.26063"
 	local distro
 	distro=$(debian_distro)
 	check_package apt-transport-https
