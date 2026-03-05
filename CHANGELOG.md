@@ -1,3 +1,254 @@
+-clone-repo: refactored check_repo()
+-deb-http2https.sh: main() - corrected spelling error
+-deb-http2https.sh: added check for debian.sources
+-deb-http2https.sh: renamed; modified functions to return to main()
+-install-kitty: remove_kitty() - modified find command so it includes ssh-kittens directory
+-install-flatpak: check if flatpak installed moved to main(); added further software checks
+-install-firefox-deb: remove_mozilla_firefox() - using find to remove config files
+-install-chrome: set_src_list() - replaced hardcoded signed-by with variable
+-install-glow: remove_glow() - using find to remove .list & .gpg files
+-sync-home: removed check-host(); checks hostname in main()
+-tweaks.sh: help() - corrected spelling error
+-snippets/suspend-hibernation.md: initial commit; instructions to disable suspend & hibernation
+-bu: unmount_usb_drive() - added /dev/null to pgrep command to not dipsly Nemo PID
+-bu: unmount_usb_drive() - close Nemo file manager if running (Cinnamon DE)
+-grevert.sh: removed special exit code
+-greset.sh: removed special exit code
+-create-script: updated error checking
+-create-c-cpp: updated error checking
+-functionlib: viewtext() - removed -N and -n; no line numbers
+-catless: check_file() - added error codes; main() - exits with error code (EC)
+-install-brasero.sh: mimeapps_list_add() - corrected path variables; pop_and_click() - added sudo to tee command
+-install-handbrake: install_handbrake() - corrected spelling in check for failed installation.
+-package-filter.sh: search_packages() - corrected spelling, line 57
+-package-filter.sh: search_packages() - added test to return if empty package string
+-install-handbrake: updated check for failed installation
+-randpic: added select_image_dir() & removed all_done(); moved script & version variables to main()
+-install-homebank: renamed functions
+-install-terminator: terminator_version() - added sed cmd to remove everything after the dash
+-iru-bat: install_bat() - revised check for failed installation
+-iru-fastfetch: install_fastfetch() - revised check for failed installation
+-iru-fresh-editor: install_fresh() - revised check for failed installation
+-iru-marktext: changed marktext_version() & check for failed installation
+-iru-micro: remove_micro() - removed check if binary exists
+-iru-vscodium: install_vscodium() - revised check for failed installation; codium_version() - using head
+-iru-micro: remove_micro() - removed cur_version variable
+-iru-micro: install_micro() - updated check for failed installation
+-iru-micro: install_micro() - corrected cur_ver assignment
+-iru-fastfetch: fixed update in help()
+-iru-fastfetch: install_fastfetch() - added cur_ver assignment
+-hard-coded name and email
+-insert-license: refactored, split insert_license() into set_license_file() & insert_license()
+-insert-header: insert_header() - updated variable declarations
+-functionlib: viewtext() - displays line numbers by default
+-insert-license: updated variables and case statements
+-cronjobs/clone-update.sh: correct whitespace in update_clone()
+-bs-meter: added dummy variables and comments
+-insert-header: updated error codes;updated variables
+-catless: check_file() - process substitution for text file check
+-cal-todo: clear screen before displaying calendar and todo list
+-cal-todo: 3-month calendar lines up with todo list
+-bs-meter: using dummy variables to index nested for loops
+-bs-meter: print_title() - replaced space_42 variable with printf formatting
+-bs-meter: print_title() - replaced space_42 variable with printf formatting
+-update-clones.sh: scripts redirects output to STDOUT and log file
+-dl-webpage: moved domain variable & call to print_status() to download_page(); revised sed for domain assignment
+-disable-swap.sh: check_swap_device() - fixed tabs in case statement
+-devtoolinst.sh: renamed; added libc6 to install_tools()
+-devtoolchk.sh: replaced 'ldd' with 'libc6'
+-devtoolchk.sh: renamed; stremlined check_tools() & check_glibc()
+-functionlib: tweaked functions
+-functionlib: tweaked several functions
+-check-logs: replaced inbedded if statements with '[[..]] && ... || ...
+-bu: updated help() and log_status()
+-bu: check_uuid() - associative array has all hostnames associated with a BU drive UUID.
+-bu: check_uuid() - added case to allow any BU drive on other systems; drive_test() - if check_uuid returns 1, unmount BU drive and exit with error
+-01-bookworm2trixie.sh: combined calls to check_file1() and check_file2()
+-03-bookworm2trixie.sh: corrected logic for call to check_file2()
+-03-bookworm2trixie.sh: updated checks for version and flag files
+-02-bookworm2trixie.sh: updated checks for version and flag files
+-01-bookworm2trixie.sh: updated checks for version and flag files
+-check-battery: formated printf statements to eliminate tabs; refactored hidpp_battery()
+-battery-check: formated printf statements to eliminate tabs; battery_path is global variable
+-rm-duplicates.sh: initial commit; uses file size to identify potential duplicate files
+-show-kernels.sh: initial commit; lists currently installed Linux kernels and headers
+-purge-rc: list_headers() - no longer shows status flags (field 1)
+-bu: drive_test() - chanhrf dielog() erro message
+-functionlib: process substitution in LOCALNET assignment
+-purge-rc: replace grep with awk to list packages
+-snippets/kernel-removal.md: updated & improved documentation
+-snippets/dpkg-flags.md: initial commit; explains flags in dpkg --list
+-snippets/kernel-removal.md: updated to use awk to list kernel images
+-check-logs: timeshift_snapshots() - process substitution
+-snippets/kernel-removal.md: initial commit - Instructions for old kernel removal in Debian and LMDE
+-Templates/bash-template.txt: added EC global variable, rearranged order of functions
+-Templates/bash-getopts.txt: added EC global variable, rearranged order of functions
+-install-brasero.sh: initial commit - includes fixes from Joe Collins
+-cronjobs/clone-update.sh: update_clone() removed extra newline from printf
+-update-clones.sh: update_clone() - removed '~\n' from printf statement
+-read-lines.md: new commit
+-read-lines.md: deleted
+-read-lines.md: updated
+-snippets/read-lines.md: added comments
+-update-clones.sh: update_clone() - formated 'not cloned' statement like other clones
+-cronjobs/clone-update.sh: update_clone() - formated 'not cloned' statement like other clones
+-update-clones.sh: update_clone() - formated 'not cloned' statement like other clones
+-cronjobs/clone-update.sh: update_clone() - formated 'not cloned' statement like other clones
+-refresh-net: restart_network() - removed call to die()
+-tweaks.sh: updated error checking; set_reserved_space() - process substituion
+-install-ufw: install_ufw() added STDERR redirection
+-install-timeshift: install_timeshift() added STDERR redirection
+-install-kitty: install_kitty() added STDERR redirection
+-install-handbrake: install_handbrake() removed call to die()
+-install-fnloc: udpated error checking
+-install-flatpak: install_flatpak() removed call to die()
+-install-firefox-deb: expanded check for failed install
+-install-dsh: isntall_dsh() corrected STDERR redirection
+-install-codium: expanded check for failed install
+-install-cmatrix: isntall_cmatrix() removed call to die()
+-install-chrome: install_chrome() redirects STDERR to /dev/null
+-install-brave: install_brave() redirects STDERR to /dev/null
+-install-batcat: isntall_bat() removed call to die()
+-iru-bat: install_bat() added local variable cur_ver
+-iru-fastfetch: install_fastfetcj() added local variable cur_ver
+-iru-vscodium: install_vscodium() added local variable cur_ver
+-iru-marktext: /home/rick
+-iru-micro: /home/rick
+-iru-marktext: install_marktext() added version comparison check and corrected /dev/null redirection
+-iru-vscodium: install_vscodium() added version comparison check and correct /dev/null redirection
+-iru-fastfetch: install_fastfetch() added version comparison check and correct /dev/null redirection
+-iru-bat: install_bat() added version comparison check and correct /dev/null redirection
+-check-updates: update_apt_cache() added '3600 = 1 hour' to threshhold values comment
+-iru-fresh-editor: install_fresh() - added check to compare versions
+-iru-fresh-editor: install_fresh() - changed '>/dev/null 2>&1' to '2>/dev/null'
+-cronscripts: cp_main_bu() - traverse array of scripts; implemented process substitution
+-cronscripts: changed repo-update to clone-update
+-cronjobs/clone-update.sh: renamed; updated error checking in update_clone()
+-update-clones.sh: update_clone() - fixed test for directory existence
+-umount-usb.sh: updated error checking
+-update-clones.sh: updated version and last updated
+-update-clones.sh: declared EC as global variable
+-update-clones.sh: renamed from update-repos.sh;updated error checking
+-functionlib: added E_FILE_ERROR to Error Codes
+-upper2lower: updated error checking
+-verify-iso: replaced getops with check for help; modified error checking in verify_iso()
+-system-status: implemented here-strings to temperature functions
+-weather: current_wx() - replace pipes with here-strings
+-write-iso: updated error checking
+-yt-dl-playlist: updated error checking
+-yt-dl-audio: updated error checking
+-bu: check-uuid() - incorporated associative array of hostnames & UUIDs. Each system will require its own dedicated backup drive.
+-porn-dl: extract_domain() - here-string; site now assigned in download_video()
+-yt-dl: extract_domain() - here-string; site now assigned in download_video()
+-pingit: updated error handling
+-no-snaps.sh: updated error handling
+-no-flatpak.sh: updated error handling
+-mount-sshfs: fail_msg() changed exit code t E_INFO
+-mk-readme: udpated error checking
+-mk-fortunes: udpated error checking
+-mk-changelog: udpated error checking
+-meditation-timer: script & version variables now global
+-local-ip-up: updated error checking
+-loc2file.sh: main() removed call to begin_process() from if-elif-else
+-laptop-lid:
+-iru-yt-dlp: updated error checking; refactored functions
+-iru-vscodium: updated error checking
+-iru-fresh-editor: install_fresh() removed call to die
+-iru-micro: udpated error checking
+-iru-marktext: install_marktext() fixed grep
+-iru-fresh-editor: install_fresh-editor() fixed grep
+-iru-fastfetch: install_fastfetch() fixed grep
+-iru-bat: install_bat() fixed grep
+-install-zram: install_zram() fixed grep
+-install-timeshift: install_timeshift() fixed grep
+-install-kitty: install_kitty() fixed grep
+-install-keepassxc: fixed grep in install functions
+-install-homebank: install_homebank() fixed grep
+-install-handbrake: install_handbrake() fixed grep
+-install-glow: install_glow() fixed grep
+-install-audacious: install-audacious() fixed grep
+-iru-marktext: updated error checking
+-iru-fastfetch: install_fastfetch() - removed call to die()
+-iru-fresh-editor: updated error handling
+-iru-fastfetch: corrected missing new line in remove_fastfetch()
+-iru-fastfetch: updated error handling
+-iru-bat: compare_versions() - added error code var
+-iru-bat: updated error handing
+-functionlib: added E_DOWNLOAD error code
+-check-versions: refactored get_new_version() to use process substitution
+-ip-info: updated source functionlib error code
+-install-zram: install_zram() - redirected STDERR to /dev/null
+-install-xrdp: updated error code for sourcing functionlib
+-install-virtmgr: updated error checking
+-install-virtmgr: updated error checking
+-install-ufw: updated error checking
+-install-terminator: updated error checking
+-install-spice-tools: updated error checking
+-install-librewolf: remove_librewolf() - uncommented 'sudo apt remove'
+-battery-check: implemented here-strings
+-install-polybar: updated error checking; modified b_name assignment
+-Templates/bash-template.txt: updated app_version() template
+-Templates/bash-getopts.txt: updated app_version() template
+-install-librewolf: updated error checking; updated installation & removal functions
+-install-keepassxc: updated error handling
+-install-homebank: install_homebank() - removed call to die()
+-install-homebank: updated error handling
+-install-handbrake: updated error handling
+-install-glow: updated error checking
+-install-geany: install_geany() - updated installation failure routine
+-check-versions: added dsh package
+-install-flatpak: updated error checking
+-install-chrome: removed old failed installed code
+-install-dsh: updated error checking; added dsh_version()
+-install-cmatrix: updated error handling
+-install-chrome: updated error handling
+-install-brave: updated error handling
+-install-boxes: updated error handling
+-install-batcat: install-bat() - fixed check for failed installation
+-install-batcat: updated error handling
+-install-audioapps: updated error codes
+-install-audacious: updated error codes
+-install-kitty: error code variables
+-install-flatpak: removed flatpak_version(); used 'flatpak --version' instead
+-install-geany: error code variables
+-files/timeshift.sed: added exclusion for /data partition
+-install-timeshift: added error code variables
+-install-zram: added error code variables; refactored install_zram() using if statements
+-install-xrdp: implmented process substitution; added call to functionlib reboot_system()
+-set-resume: removed reboot_system(), called from functionlib
+-check-updates: renamed reboot_system() to system_reboot()
+-functionlib: added reboot_system() to prompt for system reboot
+-install-ufw: removed exists_xrdp(), added ufw_exists(); process substitution
+-install-spice-tools: error code variables
+-functionlib: added 'E_INSTALLATION' error code for failed installations
+-install-polybar: error code variables & process substitution
+-install-nerdfonts: error code variables
+-install-librewolf: error code variables & process substitution
+-install-homebank: error code variables & process substitution
+-install-glow: error code variables & process substitution
+-install-firefox-deb: error code variables & process substitution
+-install-codium: error code variables & process substitution
+-install-batcat: error code variables & process substitution
+-weather: current_weather() - used here-string to pass string to grep
+-sftpin: calls help with error code if valid_ip() fails
+-sshin: added connect_ssh() - validates IP and connects to remote server; main() - simplified checking of arguments
+-syncmosfa: sync_one() - calls help() on failed valid_ip(); sync_some() - refactored
+-syncbin: calls help with error code if valid_ip() fails
+-pingit: main() - added missing arg error code & calls help 0 if invalid_ip() fails
+-pingit: main() - added missing arg error code & calls help 0 if invalid_ip() fails
+-functionlib: valid_ip() - returns status to calling script
+-sftpin: refactored main() - prompt for ip if no argument; removed if-elif-else statements
+-set-resume: set_resume() returns an exit code and main() exits with that code
+-set-resume: refactored - added reboot_system(); get_swap_uuid() - process substitution; set_resume() - returns if no UUID
+-nosleep.sh: added error code variables
+-mount-sshfs: added global variables for error codes
+-retire-script.sh: refactored - added check_args(); modified check_git_repo()
+-yt-dl: updated error codes
+-mount-bu: updated error codes; incorporated process substitution
+-porn-dl: updated error codes
+-laptop-utils: added error code variables
+-http2https.sh: debian_distro() - using process subsition to sed
+-hidpp-battery: sys_class_data() - fixed hidpp_path basename; upower_data() - replaced 'echo ' with here string
 -greset.sh: git-reset() - process substitution
 -grevert.sh: git_revert() - replaced pipes to head and cut with process subsitution to awk
 -greset.sh: git_reset() - replaced pipes to hed and cut with process subsitution to awk
@@ -26,13 +277,11 @@
 -functionlib: added global variables for error codes
 -battery-check: battery_status() - added 99 error code to die calls
 -battery-check: battery_status() - added 99 error code to die calls
--CHANGELOG.md: system-info, bu, iru-micro, check-versions
 -system-info: added more process substitution
 -bu: updated help() and drive_setup; removed show_description()
 -snippets/misc_cmds.md: added code to redirect a specific line from a file to a new file
 -iru-micro: updated micro release URL
 -check-versions: updated micro release path
--CHANGELOG.md: updated install-dsh, weather, system-status
 -install-dsh: globally changed group & groups to group_list & group_lists
 -weather: removed is_url_accessible(), replaced with call to url_reachable in functionlib
 -system-status: variable substitution (heer strings) in if statements with grep
@@ -40,9 +289,7 @@
 -system-status: main() - redirected sensors -j STDERR to /dev/null
 -system-status: implemented process substitution for functions using json data; added variables for last boot and uptime
 -show-cron: show_root_cron() - removed extaneous whitespace
--CHANGELOG.md: updated show-cron
 -show-cron: show_user_cron() & show_root_cron() - process substitution
--CHANGELOG.md: updated ip-info & local-ip-up
 -local-ip-up: scan_static_addresses() - reassigned names to 11, 14, 16, 19
 -ip-info: show_dns() - piped awk output into sort -u
 -Revert "ip-info: show_dns() - piped awk output into sort then uniq -d"
@@ -50,18 +297,12 @@
 -ip-info: refactored show_network(), show_gateway(), show_dns()
 -ip-info: refactored functions showing IP information, formated printf statements
 -sync-home: sync_dropbox() - returns if no dropbox directory
--CHANGELOG.md: udpated check-updates
 -check-updates: check_for_updates() - process substitution for printf
--CHANGELOG.md: updated
 -cronjobs/git-dwm.sh: create_snapshot() - weekly & monthly snapshots copy current daily snapshot to appropriate directory
 -check-updates: check_for_updates() - process substitution for 'apt list --upgradable'
--CHANGELOG.md: modifed check-updates
 -check-updates: added check_for_updates() to check for and list upgradable packages; move spices, flatpaks to other_checks()
 -purge-rc: purge_rc_packages() - removed 1st field from awk command; list_headers() - implemented process substitution
--CHANGELOG.md: updated - refactoring of functionlib
 -functionlib: refactored several functions
--CHANGELOG.md: udpated
--CHANGELOG.md: initial commit - Changelog from git log
 -functionlib: remove_tilde() - removed variables, just runs find command
 -iru-vscodium: added printf to indicate version comparision taking place
 -iru-micro: added printf to indicate version comparision taking place
