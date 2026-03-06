@@ -676,6 +676,37 @@ center_text() {
 }
 
 ###############################################################################
+# color_header
+# Purpose: Display a string of text centered on a colored background.
+#   $1 -> A single line of text to be displayed.
+#   $2 -> Optional background color (default is RED).
+# Modified from script by Kris Occhipinti, http://filmsbykris.com
+###############################################################################
+
+color_header() {
+	local colors centered_line padding_length
+	local -r message="$1"
+	local -r bg_color="$2"
+	local -r columns=$(tput cols)
+
+	case "${bg_color^^}" in
+		BLACK ) colors=$(printf "\e[40;97;1m") ;;
+		AQUA ) colors=$(printf "\e[46;30;1m") ;;
+		BLUE ) colors=$(printf "\e[44;30;1m") ;;
+		GREEN ) colors=$(printf "\e[42;30;1m") ;;
+		GRAY|GREY ) colors=$(printf "\e[47;30;1m") ;;
+		ORANGE ) colors=$(printf "\e[43;30;1m") ;;
+		PURPLE ) colors=$(printf "\e[45;30;1m") ;;
+		* ) colors=$(printf "\e[41;37;1m")
+	esac
+
+	padding_length=$(((columns - ${#message}) / 2))
+	printf -v centered_line "%*s%s%*s" "$padding_length" "" "$message" "$padding_length" ""
+	[[ ${#centered_line} -lt $columns ]] && centered_line="${centered_line} "
+	printf "%s%s%s\n" "$colors" "$centered_line" "$normal"
+}
+
+###############################################################################
 # leave
 # Purpose: Display either a random message from a file or a message string passed
 # as an argument before exiting the script.
