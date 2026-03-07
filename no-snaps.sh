@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 30 Jun 2020
-# Updated      : 05 Feb 2026
+# Updated      : 07 Mar 2026
 # Comments     : See EZNix snapkill script
 #              : /home/rick/Downloads/Utilities/snapkill.d/snapkill
 # TODO (Rick)  :
@@ -40,7 +40,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.1.25036"
+readonly version="4.2.26066"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
@@ -48,7 +48,7 @@ script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
 help() {
 	local errcode="${1:-2}"
-	local updated="05 Feb 2026"
+	local updated="07 Mar 2026"
 	cat << _HELP_
 ${green}Usage:${normal} $script [-dehs]
 ${orange}OPTIONS:${normal}
@@ -87,34 +87,34 @@ snaps_enabled() {
 
 enable_snaps() {
   is_systemd || die "SystemD is required for Snaps." 1
-  if [[ -f "$pref_file" ]]; then
-    if grep -q '^Package:' "$pref_file"; then
-      sudo sed -i '/^Package/s/^/# /;/^Pin/s/^/# /' "$pref_file"
-      printf "Installation of Snapd and Snap packages is now enabled.\n"
-    else
-      printf "Installation of Snapd and Snap packages is already enabled by %s.\n" "$pref_file"
-    fi
-  else
+  if [[ ! -f "$pref_file" ]]; then
     printf "%s does not exist. Installation of Snapd and Snap packages is enabled by default.\n" "$pref_file"
+    return
+  fi
+  if grep -q '^Package:' "$pref_file"; then
+    sudo sed -i '/^Package/s/^/# /;/^Pin/s/^/# /' "$pref_file"
+    printf "Installation of Snapd and Snap packages is now enabled.\n"
+  else
+    printf "Installation of Snapd and Snap packages is already enabled by %s.\n" "$pref_file"
   fi
 }
 
 disable_snaps() {
   snap_packages && diehard "Snap packages are installed." "Remove all Snaps before disabling Snaps."
-  if [[ -f "$pref_file" ]]; then
-    if grep -q '^# Package:' "$pref_file"; then
-      sudo_login 1
-      sudo sed -i '/Package/s/^# //;/Pin/s/^# //' "$pref_file"
-      printf "Installation of Snapd and Snap packages is now disabled.\n"
-      exists snapd && sudo apt=get purge snapd -qq
-    else
-      printf "Installation of Snapd and Snap packages is already disabled.\n"
-    fi
-  else
+  if [[ ! -f "$pref_file" ]]; then
     sudo_login 1
     sudo cp "$script_dir/files/${pref_file##*/}" "${pref_file%/*}/"
     printf "%s has been created. Installation of Snapd and Snap packages is now disabled.\n" "$pref_file"
     exists snapd && sudo apt=get purge snapd -qq
+    return
+  fi
+  if grep -q '^# Package:' "$pref_file"; then
+    sudo_login 1
+    sudo sed -i '/Package/s/^# //;/Pin/s/^# //' "$pref_file"
+    printf "Installation of Snapd and Snap packages is now disabled.\n"
+    exists snapd && sudo apt=get purge snapd -qq
+  else
+    printf "Installation of Snapd and Snap packages is already disabled.\n"
   fi
 }
 
