@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Mar 2022
-# Updated      : 13 Jul 2025
+# Updated      : 07 Mar 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,14 +38,14 @@ fi
 
 ## Functions ##
 
-is_main_host() {
-  local -r m_host="$1"
-  local -r l_host="${HOSTNAME:-$(hostname)}"
-  [[ "$l_host" == "$m_host" ]] && return "$TRUE" || return "$FALSE"
-}
-
 copy_passwords() {
-  local -r mhost="$1"
+  local -r script="$1"
+  local -r mhost="hp-800g2-sff"
+  local -r lhost="${HOSTNAME:-$(hostname)}"
+  if [[ "$lhost" == "$mhost" ]]; then
+    printf "%s cannot be run from %s\n" "$script" "$mhost" >&2
+    return
+  fi
   local -r mhostip="10"
   local -r kdbx_d="$HOME/Documents"
   printf "Making a backup of Passwords.kdbx on %s\n" "$mhost"
@@ -56,14 +56,8 @@ copy_passwords() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="6.0.25194"
-  local -r mhost="hp-800g2-sff"
-  # Ensure script is not being run from HP-800-G2-SFF (10)
-  if is_main_host "$mhost"; then
-    printf "%s cannot be run from %s\n" "$script" "$mhost" >&2
-  else
-    copy_passwords  "$mhost"
-  fi
+  local -r version="6.1.26066"
+  copy_passwords "$script"
   over_line "$script $version" "-"
   exit
 }
