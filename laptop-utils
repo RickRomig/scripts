@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 27 Jan 2026
+# Updated      : 07 Mar 2026
 # Comments     : Based on a script by Joe Collins.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,23 +38,23 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="8.2.26027"
+readonly version="8.3.26066"
 
 ## Funtions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="27 Jan 2026"
+	local updated="07 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs laptop-specific utlities.
 
 ${green}Usage:${normal} $script [-hist]
 ${orange}Available options:${normal}
+  -d  Display installed utilities.
   -h  Show this help message and exit.
   -i  Install laptop utilities.
-  -s  Display installed utilities.
-  -t  Start TLP service.
+  -s  Start TLP service.
 _HELP_
   intro
   exit "$errcode"
@@ -99,18 +99,18 @@ installed_packages() {
 
 tlp_status() {
   local status=1
-  if installed tlp; then
-    is_systemd && { grep -qw active <(systemctl status tlp) && status=0; }
-    is_sysv && {  grep -qw enabled <(tlp-stat -s) && status=0; }
-    if [[ "$status" -eq 0 ]]; then
-      printf "TLP service is active and running.\n"
-      return
-    fi
-    printf "Starting TLP service\n"
-    start_tlp_service
-  else
+  if ! installed tlp; then
     printf "TLP is not installed.\n"
+    return
   fi
+  is_systemd && { grep -qw active <(systemctl status tlp) && status=0; }
+  is_sysv && {  grep -qw enabled <(tlp-stat -s) && status=0; }
+  if [[ "$status" -eq 0 ]]; then
+    printf "TLP service is active and running.\n"
+    return
+  fi
+  printf "Starting TLP service\n"
+  start_tlp_service
 }
 
 start_tlp_service() {
@@ -134,9 +134,16 @@ main() {
   local lhost noOpt opt optstr OPTARG OPTIND
   lhost="${HOSTNAME:=-$(hostname)}"
   noOpt=1
-  optstr=":hist"
+  optstr=":dhis"
   while getopts "$optstr" opt; do
     case "$opt" in
+      d )
+        if is_laptop; then
+          installed_packages
+        else
+          printf "%s is not a laptop. Nothing to do.\n" "$lhost" >&2
+        fi
+        ;;
       h )
         help 0
         ;;
@@ -149,13 +156,6 @@ main() {
         fi
         ;;
       s )
-        if is_laptop; then
-          installed_packages
-        else
-          printf "%s is not a laptop. Nothing to do.\n" "$lhost" >&2
-        fi
-        ;;
-      t )
         if is_laptop; then
           tlp_status
         else
