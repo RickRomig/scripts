@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Nov 2019
-# Updated      : 06 Feb 2026
+# Updated      : 08 Mar 2026
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to current working directory
 # TODO (Rick)  :
@@ -40,14 +40,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.4.26037"
+readonly version="3.5.26067"
 EC=0
 
 ## Functions
 
 help() {
   local errcode="${1:-1}"
-  local -r updated="06 Feb 2026"
+  local -r updated="08 Mar 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Downloads mp3 audio from YouTube videos to current working diretory.
@@ -77,7 +77,8 @@ check_dependencies() {
 download_audio() {
   local url
   url="$1"
-  box "* YouTube Audio Download *" "*"
+  # box "* YouTube Audio Download *" "*"
+  color_header "YouTube Audio Download" "ORANGE"
   printf "\nDownloading mp3 audio from %s to %s...\n" "$url" "$PWD"
   if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" "$url"; then
     printf "Download successful.\n"
