@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 06 Feb 2026
-# Comments     : Testing indicates USB drive need to be mounted.
+# Updated      : 09 Mar 2026
+# Comments     : Testing indicates USB drive needs to be mounted.
 #              : Works with fuzzy finder (fzf).
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
 #              : After a dryrun, USB drive will remain mounted.
@@ -42,7 +42,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.6.26037"
+readonly version="7.7.26068"
 user=$(whoami); readonly user
 dryrun="$FALSE"
 FMENU="fzf --header=$script \
@@ -65,7 +65,7 @@ E_WRITE_FAILED=99
 
 help() {
 	local errcode="${1:-1}"
-	local updated="06 Feb 2026"
+	local updated="09 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
@@ -81,7 +81,7 @@ _HELP_
 }
 
 check_usb_drive() {
-	[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$script v$version"
+	[[ $(grep 'usb' <(lsblk -S -o TRAN)) = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$script $version"
 }
 
 select_directory() {
@@ -107,8 +107,9 @@ select_iso() {
 
 select_usb() {
 	local usb_device
-	usb_device=$(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL | awk '$2 == "disk" && $1 == "1" {print $0}' | awk '{$1=$1}1' | sed 's/1//' | $FMENU "Select the USB drive to write to: ")
-	usb_device=$(echo "$usb_device" | awk '{print $2}')
+	usb_device=$(awk '$2 == "disk" && $1 == "1" {print $2,$3,$4,$5}' <(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL) | \
+	$FMENU "Select the USB drive to write to: ")
+	usb_device=$(awk '{print $2}' <<< "$usb_device")
 	echo "$usb_device"
 }
 
@@ -131,9 +132,8 @@ unmount_usb() {
 
 list_usb_contents() {
 	local drvlabel usbdevice usbpart
-	usbdevice="$1"
-	usbpart="${usbdevice}1"
-	drvlabel=$(grep "$usbpart" <(lsblk) | cut -d'/' -f4- )
+	usbpart="$1"
+	drvlabel=$(awk -v pat="$usbpart" -F/ '$0 ~ pat {print $NF}' <(lsblk))
   printf "\nContents of /dev/%s:\n" "$usbpart"
 	printf "Disk label: %s\n" "$drvlabel"
   ls -F "/media/$user/$drvlabel"
@@ -181,7 +181,7 @@ write_iso() {
 		mount_name="$(date +%y%b%d)"
 		mount_usb "$usbpart"
 	fi
-	list_usb_contents "$usbdevice" # "$mount_name"
+	list_usb_contents "$usbpart" # "$mount_name"
 	# Confirm action or cancel
 	if [[ "$dryrun" == "$TRUE" ]]; then
 		simulate_dd "$isofile" "$usbdevice" "$mount_name"
