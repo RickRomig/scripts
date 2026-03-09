@@ -7,7 +7,7 @@
 # Author       : Copyright © 2021 Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2021
-# Updated      : 05 Dec 2025
+# Updated      : 09 Mar 2026
 # Comment      :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,17 +33,23 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
-main() {
-  local script="${0##*/}"
-  local version="4.2.25339"
-  if grep -iqsw Webcam <(/usr/bin/lsusb); then
-    grep -iw Webcam <(/usr/bin/lsusb)
-  else
+## Functions ##
+
+check_webcam() {
+  if ! grep -iqsw webcam <(/usr/bin/lsusb); then
     printf "No webcam found.\n"
+    return
   fi
+  grep -iw webcam <(/usr/bin/lsusb)
+}
+
+main() {
+  local -r script="${0##*/}"
+  local -r version="4.3.26068"
+  check_webcam
   over_line "$script $version" "-"
   exit
 }
