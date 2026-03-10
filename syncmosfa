@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard Romig, 29 Sep 2020
 # Email        : rick.romig@gmail.com
 # Created      : 29 Sep 2020
-# Last updated : 29 Jan 2026
+# Last updated : 10 Mar 2026
 # Comments     : Can sync to one or all machines on the network.
 #              : LOCALNET is declared in functionlib
 # TODO (rick)  :
@@ -40,14 +40,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.5.26029"
+readonly version="4.6.26069"
 SECONDS=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="29 Jan 2026"
+	local updated="10 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Syncs directories with machines on the network via SSH
@@ -145,7 +145,7 @@ syncscript() {
       transfer_status "$exit_status"
 
       printf "\n%sSyncing ~/Work ...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/Work/ "$LOCALNET.$hostip":Work/
+      rsync -avh --delete --exclude="$HOME/Work/imagas" "$HOME"/Work/ "$LOCALNET.$hostip":Work/
       exit_status="$?"
       transfer_status "$exit_status"
       ;;
@@ -156,7 +156,7 @@ syncscript() {
       transfer_status "$exit_status"
 
       printf "\n%sSyncing ~/Work ...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/Work/ "$LOCALNET.$hostip":Work/
+      rsync -avh --delete --exclude="$HOME/Work/imagas" "$HOME"/Work/ "$LOCALNET.$hostip":Work/
       exit_status="$?"
       transfer_status "$exit_status"
       ;;
