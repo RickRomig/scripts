@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 24 Jan 2026
+# Updated:     : 09 Mar 2026
 # Comments     : Should be run locally, not remotely.
 #              : Will not get desktop session info in an SSH connection.
 # TODO (Rick)  :
@@ -156,7 +156,7 @@ cpu_info() {
   local arch model threads
   model=$(awk -F: '/Model name:/ {print $NF}' <(/usr/bin/lscpu) | sed 's/^[[:space:]]*//g;s/([^)]*)//g')
   arch=$(awk '/Architecture:/ {print $NF}' <(/usr/bin/lscpu))
-  threads=$(awk 'NR == 5 {print $NF}' <(/usr/bin/lscpu))
+  threads=$(awk '/CPU\(s\):/ {print $NF;exit}' <(/usr/bin/lscpu))
 	printf "\n%-9s %s, %s, %s threads \n" "CPU:" "$model" "$arch" "$threads"
 }
 
@@ -298,7 +298,7 @@ battery_info() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.1.26024"
+  local -r version="5.2.26069"
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r info_file="$HOME/$lhost.info"
 
