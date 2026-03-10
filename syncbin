@@ -6,7 +6,7 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Last updated : 29 Jan 2026
+# Last updated : 10 Mar 2026
 # Comments     : Can sync to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -44,14 +44,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="8.1.26029"
+readonly version="8.2.26069"
 SECONDS=0
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local updated="29 Jan 2026"
+  local updated="10 Mar 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Synchrnizes ~/bin with remote hosts.
@@ -116,6 +116,16 @@ syncscript() {
       printf "%s %s is a restricted address. Access denied.\n" "$RED_WARNING" $"$LOCALNET.$hostip"
       ;;
     16|22|153 )
+		  printf "\n%sSyncing ~/.bashrc ...%s\n" "$orange" "$normal"
+      rsync -avh --delete "$HOME"/.bashrc "$LOCALNET.$hostip":
+      exit_status="$?"
+      transfer_status "$exit_status"
+
+      printf "\n%sSyncing ~/bash_aliases ...%s\n" "$orange" "$normal"
+      rsync -avh --delete "$HOME"/.bash_aliases "$LOCALNET.$hostip":
+      exit_status="$?"
+      transfer_status "$exit_status"
+
       printf "\n%sSyncing Git Repositories...%s\n" "$orange" "$normal"
       rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
       exit_status="$?"
