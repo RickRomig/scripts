@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Mar 2023
-# Updated      : 18 Nov 2025
+# Updated      : 10 Mar 2026
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -91,7 +91,7 @@ syncscript() {
   transfer_status "$exit_status"
 
   printf "\n%sSyncing Work directory...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Work/ "$LOCALNET.$hostip":Work/
+  rsync -avh --delete --exclude="$HOME/Work/imagas" "$HOME"/Work/ "$LOCALNET.$hostip":Work/
   exit_status="$?"
   transfer_status "$exit_status"
 
@@ -189,11 +189,11 @@ check_host() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.8.25322"
+  local -r version="4.9.26069"
   box "$script $version" "-"
   check_host
   over_line "Syncronization completed in $(format_time $SECONDS)" "-"
-  printf "%s v%s\n" "$script" "$version"
+  printf "%s %s\n" "$script" "$version"
   exit
 }
 
