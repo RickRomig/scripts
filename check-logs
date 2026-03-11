@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Aug 2019
-# Updated      : 23 Feb 2026
+# Updated      : 11 Mar 2026
 # Comments     : sudo access required to view Timeshift snapshots
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -77,20 +77,22 @@ update_log() {
 }
 
 timeshift_snapshots() {
-  if exists timeshift; then
-    sudo_login 0
-    if pgrep timeshift > /dev/null 2>&1; then
-      printf "\n%sTimeshift is currently running.%s Try again later.\n" "$orange" "$normal"
-    elif [[ $(tail -n1 <(sudo timeshift --list)) == "No snapshots found" ]]; then
-      printf "\nNo Timeshift snapshots found.\n"
-    else
-      clear
-      printf "%s%s - Timeshift Snapshots:%s\n" "$lightgreen" "$lhost" "$normal"
-      awk 'NR!=1 && NR!=3' 2>/dev/null <(sudo timeshift --list)
-    fi
-  else
+	if ! exists timeshift; then
     printf "\n%sTimeshift is not installed on %s.%s\n" "$orange" "$lhost" "$normal"
-  fi
+		return
+	fi
+	if pgrep -x timeshift > /dev/null 2>&1; then
+	  printf "\n%sTimeshift is currently processing a snapshot.%s Try again later.\n" "$orange" "$normal"
+	  return
+	fi
+	sudo_login 0
+	if [[ $(tail -n1 <(sudo timeshift --list)) == "No snapshots found" ]]; then
+	  printf "\nNo Timeshift snapshots found.\n"
+	else
+	  clear
+	  printf "%s%s - Timeshift Snapshots:%s\n" "$lightgreen" "$lhost" "$normal"
+	  awk 'NR!=1 && NR!=3' 2>/dev/null <(sudo timeshift --list)
+	fi
 }
 
 defrag_log() {
@@ -365,7 +367,7 @@ archive_logs() {
 main() {
 	local _opt options script version
   script="${0##*/}"
-  version="10.14.26054"
+  version="10.15.26070"
 	options=( "System logs" "Local logs" "Archive Logs" "Quit")
 	while true; do
 		show_header
