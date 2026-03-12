@@ -18,12 +18,12 @@ Brief description of the project, program, etc.
 3. Known issues
 ### Feedback
 Feel free to contact me with comments and suggestions.
- * [GitHub](https://github.com/<GITHUB>)
- * [<BLOG>](https://<BLOGURL>.wordpress.com)
+ * [GitHub](https://github.com/RickRomig)
+ * [Ricks Tech Stuff](https://ricktech.wordpress.com)
  * [Gitea](http://192.168.0.16:3000/Nullifidian/)
- * Email: [<EMAIL1>](mailto:<EMAIL1>) or [<EMAIL2>](mailto:<EMAIL2>)
+ * Email: [rick.romig@gmail.com](mailto:rick.romig@gmail.com) or [rick.romig@mymetronet.net](mailto:rick.romig@mymetronet.net)
 
-<AUTHOR>
+Richard B. Romig
 <DATE>
 
 ### DISCLAIMER
