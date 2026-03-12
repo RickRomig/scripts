@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
 # Created      : 09 Apr 2019
-# Updated      : 05 Feb 2026
+# Updated      : 11 Mar 2026
 # Comment      : Should be run from the project's main directory.'
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -40,14 +40,14 @@ fi
 
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 readonly script="${0##*/}"
-readonly version="3.2.26036"
+readonly version="3.3.26070"
 verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-2}"
-  local updated="05 Feb 2026"
+  local updated="11 Mar 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, updated: $updated
 Creates a README file for a project.
@@ -69,14 +69,8 @@ show_message() {
 }
 
 create_readme() {
-  local blog_name blog_url copy_holder email_addr1 email_addr2 today
+  local today
   project="$1"
-  copy_holder="Richard B. Romig"
-  github="RickRomig"
-  blog_name="Ricks Tech Stuff"
-  blog_url="ricktech"
-  email_addr1="rick.romig@gmail.com"
-  email_addr2="rick.romig@mymetronet.net"
   today=$(date +"%d %B %Y")
 
   show_message "Importing data into README.md"
@@ -84,12 +78,6 @@ create_readme() {
   # For sed, forward slashes have to be escaped with backslashes
   sed -e '1d' \
     -e "s/<PROJECT>/$project/" \
-    -e "s/<GITHUB>/$github/" \
-    -e "s/<BLOG>/$blog_name/" \
-    -e "s/<BLOGURL>/$blog_url/" \
-    -e "s/<EMAIL1>/$email_addr1/g" \
-    -e "s/<EMAIL2>/$email_addr2/g" \
-    -e "s/<AUTHOR>/$copy_holder/" \
     -e "s/<DATE>/$today/" "$script_dir/Templates/readme.txt" > README.md
   printf "The README.md for %s$project has been created." "$$project"
   edit_view_quit README.md
