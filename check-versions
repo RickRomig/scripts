@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 04 Feb 2026
+# Last updated : 13 Mar 2026
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 #              : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
@@ -89,8 +89,6 @@ get_release_path() {
 	    release_path="fastfetch-cli/fastfetch/releases" ;;
     fresh-editor )
       release_path="sinelaw/fresh/releases" ;;
-	  marktext )
-	    release_path="marktext/marktext/releases" ;;
 	  micro )
 	    release_path="micro-editor/micro/releases"
 	esac
@@ -119,9 +117,9 @@ get_new_version() {
   echo "$new_ver"
 }
 
-github_versions() {
+github_packages() {
   local cur_ver new_ver package packages release_path
-  packages=( bat codium fastfetch fresh-editor marktext micro )
+  packages=( bat codium fastfetch fresh-editor micro )
   printf "%-16s%-16s%s\n" "GitHub Package" "Latest version" "Installed version"
   for package in "${packages[@]}"; do
     cur_ver=$(installed_version "$package")
@@ -144,7 +142,7 @@ github_versions() {
   printf "%s\n" "${normal}"
 }
 
-apt_tools() {
+apt_packages() {
 	local packages package
   packages=( bash batcat bluefish dsh featherpad flatpak fzf geany gedit git gitea glow keepassxc nala nano picom shellcheck xed zoom )
 	printf "%-15s%s\n" "Package" "Version"
@@ -176,12 +174,12 @@ browsers() {
 
 main() {
   local script="${0##*/}"
-  local version="15.9.26035"
+  local version="15.10.26072"
   clear
   box "$script $version"
   printf "\n"
-  github_versions
-  apt_tools
+  github_packages
+  apt_packages
   browsers
   terminals
   leave ""
