@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Feb 2019
-# Updated      : 21 Jan 2026
+# Updated      : 13 Feb 2026
 # Comments     : Some systems require toot access to get ssid & signal strength.
 #              : If necesary, add applicable hostnames to requires_sudo().
 # TODO (rick)  : format printf statements for devices.
@@ -61,14 +61,14 @@ show_public() {
   if [[ "$public_ipv4" ]]; then
     printf "%12s: %s\n" "IPv4" "$public_ipv4"
   else
-    printf "%37s\n" "No public IPv4 address found."
+    printf "%8sNo public IPv4 address found.\n" " "
   fi
   local public_ipv6
   public_ipv6=$(/usr/bin/curl -s -6 icanhazip.com)
   if [[ "$public_ipv6" ]]; then
     printf "%13s: %s\n" "IPv6" "$public_ipv6"
   else
-    sed 's/^/        /' <(printf "No public IPv6 address found.\n")
+    printf "%8sNo public IPv6 address found.\n" " "
   fi
 }
 
@@ -99,7 +99,7 @@ show_wired() {
         printf "%16s: %s\n" "MAC" "$eth_mac"
         ;;
       * )
-        sed 's/^/        /' <(printf "No device found.\n")
+        printf "%8sNo device found.\n" " "
     esac
   fi
 }
@@ -142,7 +142,7 @@ show_wireless() {
         printf "%16s: %s\n" "MAC" "$wifi_mac"
         ;;
       * )
-        sed 's/^/        /' <(printf "No device found.\n")
+        printf "%8sNo device found.\n" " "
     esac
   fi
 }
@@ -175,7 +175,7 @@ show_bridge() {
         printf "%16s: %s\n" "MAC"  "$br_mac"
         ;;
       * )
-        sed 's/^/        /' <(printf "No device found.\n")
+        printf "%8sNo device found.\n" " "
     esac
 	fi
 }
@@ -184,14 +184,15 @@ show_network() {
   local network_addr
   network_addr=$(awk '/kernel/ {print $1;exit}' <(ip route show))
   printf "%sLocal Network:%s\n" "$orange" "$normal"
-  sed 's/^/        /' <(printf "%s\n" "$network_addr")
+  printf "%8s%s\n" " " "$network_addr"
+
 }
 
 show_gateway() {
   local gateway_addr
   gateway_addr=$(awk 'NR==1 {print $3}' <(ip route get 1.2.3.4))
   printf "%sDefault Gateway:%s\n" "$orange" "$normal"
-  sed 's/^/        /' <(printf "%s\n" "$gateway_addr")
+  printf "%8s%s\n" " " "$gateway_addr"
 }
 
 show_dns() {
@@ -199,12 +200,13 @@ show_dns() {
   dns_addr=$(awk '/IP4.DNS/ {print $NF}' <(/usr/bin/nmcli dev show) | sort -u)
   printf "%sDNS Servers:%s\n" "$orange" "$normal"
   sed 's/^/        /' <(printf "%s\n" "$dns_addr")
+  # printf "%8s%s\n" " " "$dns_addr"
 }
 
 main() {
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r script="${0##*/}"
-  local -r version="4.0.26021"
+  local -r version="4.1.26072"
   requires_sudo "$lhost" && sudo_login 2
   check_dependencies
   clear
