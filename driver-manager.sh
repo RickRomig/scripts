@@ -7,9 +7,10 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 05 Nov 2025
-# Last updated : 29 Nov 2025
+# Last updated : 13 Mar 2026
 # Comments     : Based on instructions provided by Andrea Borman
 #              : YouTube - https://www.youtube.com/watch?v=-Q_U5lLTxmU
+#              : I don't know of a way to verify or update packages.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -34,12 +35,12 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
-tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." 1
+tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 
 ## Functions ##
 
@@ -72,27 +73,27 @@ install_packages() {
     "http://launchpadlibrarian.net/689619190"
     "http://packages.linuxmint.com/pool/main/m/mintdrivers"
   )
-  local pkgs=(
-    "mint-info-cinnamon_2025.10.06+lmde_all.deb"
-    "mintsystem_8.6.3_all.deb"
+  local packages=(
+    "mint-info-cinnamon_2025.11.11_all.deb"
+    "mintsystem_8.6.5_all.deb"
     "python3-xkit_0.5.0ubuntu6_all.deb"
     "ubuntu-drivers-common_0.9.7.6_amd64.deb"
-    "mintdrivers_1.8.4_all.deb"
+    "mintdrivers_1.8.8_all.deb"
   )
   sudo_login 2
   for (( idx=0; idx <= 4; idx++ )); do
-	  printf "Installing %s...\n" "${pkgs[idx]}"
-    wget -q -P "$tmp_dir" "${urls[idx]}/${pkgs[idx]}"
-    sudo gdebi -n "$tmp_dir/${pkgs[idx]}"
-    # sudo dpkg -i "$tmp_dir/${pkgs[idx]}"; sudo apt-get install --fix-broken
-    printf "%s installed.\n" "${pkgs[idx]}"
+	  printf "Installing %s...\n" "${packages[idx]}"
+    wget -q -P "$tmp_dir" "${urls[idx]}/${packages[idx]}"
+    sudo gdebi -n "$tmp_dir/${packages[idx]}"
+    # sudo dpkg -i "$tmp_dir/${packages[idx]}"; sudo apt-get install --fix-broken
+    printf "%s installed.\n" "${packages[idx]}"
   done
   printf "Mint Driver Manager installed.\n"
 }
 
 exit_script() {
   local -r script="${0##*/}"
-  local -r version="1.2.25333"
+  local -r version="1.3.26072"
   over_line "$script $version"
   exit
 }
