@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2017, Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 2017
-# Updated      : 17 Sep 2025
-# Comments     : File extensions are not case sensitive, will change to lowercase.
+# Updated      : 14 Mar 2026
+# Comments     : File extensions are not case sensitive, but will change to lowercase.
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
@@ -32,21 +32,19 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
-
-set -eu
 
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.1.25260"
+readonly version="4.0.26073"
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local updated="17 Sep 2025"
+	local errcode="${1:-1}"
+	local updated="14 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Bulk renames file extensions in the current diectory.
@@ -65,36 +63,32 @@ rename_extension() {
   # Rename file extensions based on the passed argument
   case "$ext" in
     htm|html )
-      echo "Renaming .$ext files to .html"
-      rename -v 's/\.HTML?$/\.html/i' ./*
-      ;;
+      rename -v 's/\.HTML?$/\.html/i' ./* ;;
     jpg|jpeg )
-      echo "Renaming .$ext files to .jpg"
-      rename -v 's/\.JPE?G$/\.jpg/i' ./*
-      ;;
+      rename -v 's/\.JPE?G$/\.jpg/i' ./* ;;
     mpg|mpeg )
-      echo "Renaming .$ext files to .mpg"
-      rename -v 's/\.MPE?G$/\.mpg/i' ./*
-      ;;
+      rename -v 's/\.MPE?G$/\.mpg/i' ./* ;;
     * )
       rename -v 's/(\.[A-Z]+$)/lc($1)/gei' -- *.*[A-Z]*
   esac
 }
 
 main() {
-  local extension
+  local extension="$1"
+  local file
   check_package rename
-  if [[ "$#" -eq 0 ]]; then
-    printf "Bulk renames file extensions in the current diectory.\n"
-    read -rp "Enter an extension to rename: " extension
-    rename_extension "$extension"
-  elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
-    help 0
-  else
-    extension="$1"
-    printf "Bulk renames file extensions in the current diectory.\n"
-    rename_extension "$extension"
-  fi
+  [[ "$extension" ]] || read -rp "Enter an extension to rename: " extension
+  [[ "$extension" == "-h" || "$extension" == "--help" ]] && help 0
+  for file in ./*."$extension"; do
+    if [[ -e "$file" ]]; then
+      printf "Renaming .%s file extensions\n" "$extension"
+      break
+    else
+      printf "No files with .%s extension found\n" "$extension"  >&2
+      exit "$E_FILENOTFOUND"
+    fi
+  done
+  rename_extension "$extension"
   over_line "$script $version"
   exit
 }
