@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 30 Jul 2020
-# Updated      : 20 Feb 2026
+# Updated      : 15 Mar 2026
 # Comments     : Obtains battery data from upower utility.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -32,35 +32,40 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
+
+## Global Variables ##
+
+BATTERY_DATA=
 
 ## Functions ##
 
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# shellcheck disable=SC2317
+# Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
-  [[ -f "$battery_data" ]] && rm -f "$battery_data"
+  [[ -f "$BATTERY_DATA" ]] && rm -f "$BATTERY_DATA"
 }
 
 battery_status() {
   printf "\n%sBattery charge:%s\n" "$orange" "$normal"
-  grep --color=never -E "state|to\ full|to\ empty|percentage" "$battery_data"
+  grep --color=never -E "state|to\ full|to\ empty|percentage" "$BATTERY_DATA"
 }
 
 battery_capacity() {
   printf "\n%sBattery health:%s\n" "$orange" "$normal"
-  grep --color=never -E "energy-full:|energy-full-design:|capacity:" "$battery_data"
+  grep --color=never -E "energy-full:|energy-full-design:|capacity:" "$BATTERY_DATA"
 }
 
 warning_level() {
   local energy_design energy_actual
-  energy_design=$(awk '/energy-full-design:/ {printf "%i", $2}' "$battery_data")
-  energy_actual=$(awk '/energy-full:/ {printf "%i", $2}' "$battery_data")
+  energy_design=$(awk '/energy-full-design:/ {printf "%i", $2}' "$BATTERY_DATA")
+  energy_actual=$(awk '/energy-full:/ {printf "%i", $2}' "$BATTERY_DATA")
   if [[ "$energy_actual" -eq 0 || "$energy_design" -eq 0 ]]; then
     echo "0"
   else
-    awk '/capacity/ {printf "%i", $2}' "$battery_data"
+    awk '/capacity/ {printf "%i", $2}' "$BATTERY_DATA"
   fi
 }
 
@@ -84,13 +89,13 @@ battery_condition() {
 
 battery_specs() {
   local battery_serial battery_tech
-  battery_serial=$(awk -F: '/serial/ {print $NF}' "$battery_data" | awk '{$1=$1}1')
+  battery_serial=$(awk '{$1=$1}1' <(awk -F: '/serial/ {print $NF}' "$BATTERY_DATA"))
   [[ -z "$battery_serial" ]] && battery_serial="Not specified"
-  battery_tech=$(awk -F: '/technology/ {print $NF}' "$battery_data" | awk '{$1=$1}1')
-  [[ -z "$battery_tech" ]] && battery_tech="Unknown"
+  battery_tech=$(awk '{$1=$1}1' <(awk -F: '/technology/ {print $NF}' "$BATTERY_DATA"))
+  [[ -z "$battery_tech" ]] && battery_tech="Not specified"
   printf "\n%sBattery Data:%s\n" "$orange" "$normal"
-  printf "%4sManufacturer:  %s\n" " " "$(awk -F: '/vendor/ {print $NF}' "$battery_data" | awk '{$1=$1}1')"
-  printf "%4sModel name:    %s\n" " " "$(awk -F: '/model/ {print $NF}' "$battery_data" | awk '{$1=$1}1')"
+  printf "%4sManufacturer:  %s\n" " " "$(awk '{$1=$1}1' <(awk -F: '/vendor/ {print $NF}' "$BATTERY_DATA"))"
+  printf "%4sModel name:    %s\n" " " "$(awk '{$1=$1}1' <(awk -F: '/model/ {print $NF}' "$BATTERY_DATA"))"
   printf "%4sSerial number: %s\n" " " "$battery_serial"
   printf "%4sTechnology:    %s\n" " " "$battery_tech"
 }
@@ -109,11 +114,8 @@ hidpp_battery() {
   printf "\n%sHID++ Battery:%s\n" "$orange" "$normal"
   if grep -q hidpp <(/usr/bin/upower -e); then
     hidpp_data=$(/usr/bin/upower -i "$(grep hidpp <(/usr/bin/upower -e))")
-    # printf "%4sDevice: %s\n" " " "$(echo "$hidpp_data" | awk '/native-path/ {print $NF}')"
     printf "%4sDevice: %s\n" " " "$(awk '/native-path/ {print $NF}' <<< "$hidpp_data")"
-    # printf "%4s%s:   " " " "$(echo "$hidpp_data" | awk '/model/ {print $NF}')"
     printf "%4s%s:   " " " "$(awk '/model/ {print $NF}' <<< "$hidpp_data")"
-    # printf "%s\n" "$(echo "$hidpp_data" | awk '/percentage/ {print $NF}')"
     printf "%s\n" "$(awk '/percentage/ {print $NF}' <<< "$hidpp_data")"
   else
     printf "%4sNo HID++ battery present.\n" " "
@@ -122,29 +124,29 @@ hidpp_battery() {
 
 battery_check() {
   printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
-  if [[ -d /proc/acpi/button/lid/ ]]; then
-    if grep -q 'BAT' <(/usr/bin/upower -e); then
-      battery_data=$(mktemp) || die "Failed to create temporary file." 1
-      trap cleanup EXIT
-      /usr/bin/upower -i "$(grep 'BAT' <(/usr/bin/upower -e))" > "$battery_data"
-      printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$(awk '/native-path:/ {print $NF}' "$battery_data")"
-      battery_status
-      battery_capacity
-      battery_condition
-      battery_specs
-    else
-      printf "\n%sNo battery detected.%s\n" "$lightred" "$normal" >&2
-    fi
+  if [[ ! -d /proc/acpi/button/lid/ ]]; then
+    printf "\nThis system is not a laptop.\n" >&2
+    return
+  fi
+  if grep -q 'BAT' <(/usr/bin/upower -e); then
+    BATTERY_DATA=$(mktemp) || die "Failed to create temporary file." "E_TEMP_DIR"
+    trap cleanup EXIT
+    /usr/bin/upower -i "$(grep 'BAT' <(/usr/bin/upower -e))" > "$BATTERY_DATA"
+    printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$(awk '/native-path:/ {print $NF}' "$BATTERY_DATA")"
+    battery_status
+    battery_capacity
+    battery_condition
+    battery_specs
+  else
+    printf "\n%sNo battery detected.%s\n" "$lightred" "$normal" >&2
+  fi
     ac_status
     hidpp_battery
-  else
-    printf "\nThis system is not a laptop.\n" >&2
-  fi
 }
 
 main() {
   local script="${0##*/}"
-  local version="5.1.26051"
+  local version="5.2.26074"
   clear
   check_package upower
   battery_check
