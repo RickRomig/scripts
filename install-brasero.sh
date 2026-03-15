@@ -7,7 +7,7 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 14 Feb 2026
-# Updated      : 28 Feb 2026
+# Updated      : 14 Mar 2026
 # Comments     : Thanks to Joe Collins and Matt Hartley for the fix for the permissions problem.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,14 +38,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.1.26059"
+readonly version="1.2.26073"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="14 Feb 2026"
+	local -r updated="14 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs Brasero CD/DVD writeer
@@ -78,14 +78,17 @@ set_permissions() {
 
 mimeapps_list_add() {
   local -r mimeapps_list="$HOME/.local/share/applications/mimeapps.list"
-  if [[ -f "$mimeapps_list" ]]; then
-    if grep -qw 'brasero' "$mimeapps_list"; then
-      printf  "Updating mimeapps.iist...\n"
-      {
-        echo "x-content/blank-cd=brasero.desktop;"
-        echo "x-content/blank-dvd=brasero.desktop;"
-      } >> "$mimeapps_list"
-    fi
+	if [[ ! -f "$mimeapps_list" ]]; then
+		printf "%s not found.\n" "${mimeapps_list##*/}"
+		EC="$E_FILENOTFOUND"
+		return
+	fi
+  if grep -qw 'brasero' "$mimeapps_list"; then
+    printf  "Updating mimeapps.iist...\n"
+    {
+      echo "x-content/blank-cd=brasero.desktop;"
+      echo "x-content/blank-dvd=brasero.desktop;"
+    } >> "$mimeapps_list"
   fi
 }
 
