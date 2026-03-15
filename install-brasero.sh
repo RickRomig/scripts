@@ -83,7 +83,7 @@ mimeapps_list_add() {
 		EC="$E_FILENOTFOUND"
 		return
 	fi
-  if grep -qw 'brasero' "$mimeapps_list"; then
+  if grep -q 'brasero' "$mimeapps_list"; then
     printf  "Updating mimeapps.iist...\n"
     {
       echo "x-content/blank-cd=brasero.desktop;"
