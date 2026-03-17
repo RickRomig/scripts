@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 07 Mar 2026
+# Updated      : 16 Mar 2026
 # Comments     : Based on a script by Joe Collins.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,13 +38,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="8.3.26066"
+readonly version="8.3.26075"
+packages=(acpi thermald tlp tlp-rdw)
 
 ## Funtions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="07 Mar 2026"
+	local updated="16 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs laptop-specific utlities.
@@ -72,7 +73,8 @@ _INTRO_
 
 install_packages() {
   local package
-  local packages=(acpi thermald tlp tlp-rdw)
+  # local packages=(acpi thermald tlp tlp-rdw)
+  printf "Installing packages:\n"
   for package in "${packages[@]}"; do
     if installed "$package"; then
       printf "%s installed.\n" "${package^^}"
@@ -86,7 +88,8 @@ install_packages() {
 
 installed_packages() {
   local package
-  local packages=(acpi thermald tlp tlp-rdw)
+  # local packages=(acpi thermald tlp tlp-rdw)
+  printf "Package status:\n"
   for package in "${packages[@]}"; do
     printf "%s is " "${package^^}"
     if installed "$package"; then
@@ -125,7 +128,7 @@ start_tlp_service() {
     sudo tlp start > /dev/null 2>&1
     printf "The tlp service is started.\n"
   else
-    printf "Init system is not Systemd or SysV.\n"
+    printf "Init system is neither Systemd nor SysV.\n"
     printf "Manually start the TLP service.\n"
   fi
 }
