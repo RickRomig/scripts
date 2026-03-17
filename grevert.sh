@@ -40,7 +40,7 @@ fi
 
 git_revert() {
 	local hash
-	hash-"$(awk 'NR==1 {print $1}' <(git log --oneline))"
+	hash="$(awk 'NR==1 {print $1}' <(git log --oneline))"
 	printf "Reverting the most recent pushed commit (%s) to the previous version.\n" "$hash"
 	git revert "$hash" --no-edit
 	head -n 2 <(git log --oneline)
