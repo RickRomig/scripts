@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Sep 2023
-# Last updated : 27 Jan 2026
+# Last updated : 17 Mar 2026
 # Comments     : Defaults to using /sys/class/power_supply
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,13 +39,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.6.26027"
+readonly version="1.7.26076"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="27 Jan 2026"
+	local updated="17 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Displays HIDPP battery status.
@@ -61,15 +61,20 @@ _HELP_
 }
 
 sys_class_data() {
-	local hidpp_path="/sys/class/power_supply/hidpp_battery_0"
-	if [[ -d "$hidpp_path" ]]; then
-	  printf "%-17s%-15s%-7s%-8s%s\n" "Device" "Manufacturer" "Model" "Charge" "Serial number"
-	  printf "%-17s%-15s%-7s%-8s%s\n" "${hidpp_path##*/}" \
-	  "$(cat "$hidpp_path/manufacturer")" "$(cat "$hidpp_path/model_name")" \
-	  "$(cat "$hidpp_path/capacity")%" "$(cat "$hidpp_path/serial_number")"
-	else
-	  printf "No hidpp battery found.\n"
-	fi
+  local hidpp_path device brand model charge serial
+	printf "%-15s %-10s %-6s %-5s %10s\n" "Device name" "Brand" "Model" "Charge" "Serial number"
+  for hidpp_path in /sys/class/power_supply/hidpp_battery_?; do
+    if [[ "$hidpp_path" != "/sys/class/power_supply/hidpp_battery_?" ]]; then
+			device="${hidpp_path##*/}"
+			brand=$(cat "$hidpp_path/manufacturer")
+			model=$(cat "$hidpp_path/model_name")
+			charge=$(cat "$hidpp_path/capacity")
+			serial=$(cat "$hidpp_path/serial_number")
+			printf "%-15s %-10s %-6s %5s%% %10s\n" "$device" "$brand" "$model" "$charge" "$serial"
+    else
+      printf "%4sHID++ battery not present.\n" " "
+    fi
+  done
 }
 
 upower_data() {
@@ -77,7 +82,7 @@ upower_data() {
 	local hidpp_data
 	if  grep -q hidpp <(/usr/bin/upower -e); then
 	  hidpp_data=$(/usr/bin/upower -i "$(grep hidpp <(/usr/bin/upower -e))")
-	  printf "%-17s%-7s%-8s%s\n" "Device" "Model" "Charge" "Serial number"
+	  printf "%-17s%-7s%-8s%s\n" "Device name" "Model" "Charge" "Serial number"
 	  printf "%-17s%-7s%-8s%s\n" "$(awk '/native-path/ {print $NF}' <<< "$hidpp_data")" \
 	  "$(awk '/model/ {print $NF}' <<< "$hidpp_data")" \
 	  "$(awk '/percentage/ {print $NF}' <<< "$hidpp_data")" \
