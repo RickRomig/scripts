@@ -40,8 +40,8 @@ fi
 
 git_reset() {
 	local hash
-	hash-"$(awk 'NR==1 {print $1}' <(git log --oneline))"
-	printf "Resetting the most recent commit (%s) that has not been pushed to the remote repository to the previous version.\n" "$hash"
+	hash="$(awk 'NR==1 {print $1}' <(git log --oneline))"
+	printf "Resetting the most recent commit (%s) that has not been pushed to the remote repository.\n" "$hash"
 	git reset "$hash"
 	head -n 2 <(git log --oneline)
 }
