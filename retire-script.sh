@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 27 Jan 202
+# Last updated : 18 Mar 2026
 # Comments     : Do not use with scripts or files inside git repos. Use gretire.sh instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,13 +33,13 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.1.26027"
+readonly version="3.2.26077"
 readonly E_NOT_GIT_REPO=92
 EC=0
 
@@ -47,7 +47,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local updated=" 27 Jan 202"
+	local updated="18 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Retires a script by moving it to a zipped archive.
@@ -103,10 +103,10 @@ retire_script() {
 }
 
 main() {
+	check_dependencies
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help 0
 	local filename="$1"
 	[[ "$filename" ]] || read -rp "Enter a script to be retired: " filename
-	check_dependencies
 	check_git_repo
 	chack_args "$filename"
 	retire_script "$filename"
