@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Nov 2019
-# Updated      : 11 Jul 2025
+# Updated      : 18 Mar 2026
 # Comments     : Changes the hostname in both /etc/hostname and /etc/hosts.
 #              : Rules based on hostname(7) man page
 #              : Hostname length limited to 5-15 characters for NETBIOS compatibility.
@@ -37,15 +37,13 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
-readonly script="${0##*/}"
-readonly version="6.0.25209"
 readonly old_host="${HOSTNAME:-$(hostname)}"
-declare -l new_host=""
+declare -l new_host=""  # Convert to lowercase on assignment
 
 ## Functions ##
 
@@ -56,18 +54,19 @@ ${lightblue}Hostname Rules${normal}
   ${orange}*${normal} 5-15 characters (for NETBIOS compatibility)
   ${orange}*${normal} a-z, 0-9, - (hyphen)
   ${orange}*${normal} lowercase (uppercase will be converted)
-  ${orange}*${normal} no special characters (except a hyphen)
+  ${orange}*${normal} no special characters (except hyphen)
   ${orange}*${normal} first character cannot be a hyphen or a digit
   ${orange}*${normal} last character cannot be a hyphen
 _RULES_
 }
 
 get_new_hostname() {
-  local minlen=5
-  local maxlen=15
+  local -r minLen=5
+  local -r maxLen=15
   while true; do
     printf "\nCurrent hostname is %s\n\n" "$old_host"
-    read -rp "Enter new hostname (Enter to cancel): " new_host
+    read -rp "Enter new hostname (press Enter to cancel): " new_host
+
     # Check new hostname against the rules
     case "$new_host" in
       -* )
@@ -91,12 +90,13 @@ get_new_hostname() {
         continue
         ;;
       '' )
-        printf "Rename hostname canceled. No changes made.\n"
-        over_line "$script $version"
-        exit
+        printf "Operation canceled. Hostname unchanged.\n"
+        return
     esac
-    if [[ ${#new_host} -le "$minlen" || ${#new_host} -gt "$maxlen" ]]; then
-      printf "\n%sHostname must be between %d and %d characters.%s\n" "$orange" "$minlen" "$maxlen" "$normal" >&2
+
+    # Check the length of the new hostname
+    if [[ ${#new_host} -le "$minLen" || ${#new_host} -gt "$maxLen" ]]; then
+      printf "\n%sHostname must be between %d and %d characters.%s\n" "$orange" "$minLen" "$maxLen" "$normal" >&2
       hostname_rules
       continue
     fi
@@ -111,9 +111,11 @@ get_new_hostname() {
       break
     fi
   done
+  change_hostname
 }
 
 change_hostname() {
+  sudo_login 2
   printf "\nChanging the hostname from %s to %s ...\n" "$old_host" "$new_host"
   sudo sed -i "s/$old_host/$new_host/" /etc/hosts
   sudo hostnamectl set-hostname "$new_host"
@@ -122,11 +124,11 @@ change_hostname() {
 }
 
 main() {
-  sudo_login 2
+  local -r script="${0##*/}"
+  local -r version="6.1.262077"
   printf "Renames the system hostname.\n"
   hostname_rules
   get_new_hostname
-  change_hostname
   over_line "$script $version"
   exit
 }
