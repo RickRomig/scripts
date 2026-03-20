@@ -41,7 +41,8 @@ fi
 
 ## Functions ##
 
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# shellcheck disable=SC2317
+# Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
 	[[ -f "$tmp_file" ]] && rm -f "$tmp_file"
@@ -142,9 +143,19 @@ github_packages() {
   printf "%s\n" "${normal}"
 }
 
-apt_packages() {
+utility_packages() {
 	local packages package
-  packages=( bash batcat bluefish dsh featherpad flatpak fzf geany gedit git gitea glow keepassxc mousepad nala nano picom shellcheck xed zoom )
+  packages=( bash dsh flatpak fzf git gitea keepassxc nala picom zoom )
+	printf "%-15s%s\n" "Package" "Version"
+	for package in "${packages[@]}"; do
+		show_version "$package"
+	done
+	printf "%s\n" "${normal}"
+}
+
+text_editors() {
+  local package packages
+  packages=( batcat bluefish featherpad geany gedit glow mousepad nano shellcheck xed )
 	printf "%-15s%s\n" "Package" "Version"
 	for package in "${packages[@]}"; do
 		show_version "$package"
@@ -174,13 +185,14 @@ browsers() {
 
 main() {
   local script="${0##*/}"
-  local version="15.11.26079"
+  local version="19.0.26079"
   clear
   box "$script $version"
   printf "\n"
   github_packages
-  apt_packages
+  text_editors
   browsers
+  utility_packages
   terminals
   leave ""
 }
