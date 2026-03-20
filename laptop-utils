@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 16 Mar 2026
+# Updated      : 20 Mar 2026
 # Comments     : Based on a script by Joe Collins.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,14 +38,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="8.3.26075"
+readonly version="8.4.26079"
 packages=(acpi thermald tlp tlp-rdw)
 
 ## Funtions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="16 Mar 2026"
+	local updated="20 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs laptop-specific utlities.
@@ -73,7 +73,6 @@ _INTRO_
 
 install_packages() {
   local package
-  # local packages=(acpi thermald tlp tlp-rdw)
   printf "Installing packages:\n"
   for package in "${packages[@]}"; do
     if installed "$package"; then
@@ -88,15 +87,10 @@ install_packages() {
 
 installed_packages() {
   local package
-  # local packages=(acpi thermald tlp tlp-rdw)
   printf "Package status:\n"
   for package in "${packages[@]}"; do
     printf "%s is " "${package^^}"
-    if installed "$package"; then
-      printf "installed.\n"
-    else
-      printf "not installed.\n"
-    fi
+    installed "$package" && printf "installed.\n" || printf "not installed.\n"
   done
 }
 
@@ -107,7 +101,7 @@ tlp_status() {
     return
   fi
   is_systemd && { grep -qw active <(systemctl status tlp) && status=0; }
-  is_sysv && {  grep -qw enabled <(tlp-stat -s) && status=0; }
+  is_sysv && { grep -qw enabled <(tlp-stat -s) && status=0; }
   if [[ "$status" -eq 0 ]]; then
     printf "TLP service is active and running.\n"
     return
