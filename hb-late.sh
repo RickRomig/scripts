@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Use only if hb-archive.sh fails to run on 1st of the month.
 # Created      : 02 Sep 2019
-# Updatd       : 16 Jul 2025
+# Updatd       : 20 Mar 2026
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -33,10 +33,8 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
-
-set -eu
 
 ## Functions ##
 
@@ -53,22 +51,25 @@ del_old() {
 	find "$arc_dir" -daystart -mtime +1095 -exec rm {} +
 }
 
-update_log_file() {
+update_log_files() {
   local status="$1"
   local arc_date="$2"
+  local err_log="$3"
   local arc_dir="$HOME/Downloads/archive/homebank"
   local log_dir="$HOME/.local/share/logs"
   local log_file="HomeBank-archive.log"
-  local err_log="HomeBank-error.log"
+  # Write to log in the archive directory
+  echo "${orange}HomeBank backup files for $arc_date archived.${normal}"
+  if (( status = 0 )); then
+    echo "$(date +%F) - HomeBank Archive successful." > "$arc_dir/$err_log"
+  else
+    echo "$(date +%F) - HomeBank Archive had errors." >> "$arc_dir/$err_log"
+    echo "Zip Error Code: $status" >&2
+  fi
+  # Write to error log
   {
     printf "%(%a|%F|%R)T|%s|" -1 "$arc_date"
-    if (( status > 0 )); then
-      printf "successful\n"
-      echo "$(date +%F) - HomeBank Archive successful." > "$arc_dir/$err_log"
-    else
-      printf "had errors\n"
-      echo "$(date +%F) - HomeBank Archive had errors. ($status)" >> "$arc_dir/$err_log"
-    fi
+    (( status = 0 )) && printf "successful\n" || printf "had errors\n"
   } >> "$log_dir/$log_file"
 	trim_log "$log_dir" "$log_file"
 	del_old "$arc_dir"
@@ -85,19 +86,12 @@ monthly_archive() {
 
   zip -qmtt "$ref_date" "$arc_dir/$hb_archive" "$hb_dir/*.bak" 2> "$arc_dir/$err_log"
   status="$?"
-  if [[ "$status" -eq 0 ]]; then
-    echo "${orange}HomeBank backup files for $arc_date archived.${normal}"
-    echo "$(date +%F) - HomeBank Archive successful." > "$arc_dir/$err_log"
-  else
-    echo "$(date +%F) - HomeBank Archive had errors." >> "$arc_dir/$err_log"
-    echo "Zip Error Code: $status" >&2
-  fi
-  update_log_file "$status" "$arc_date"
+  update_log_files "$status" "$arc_date" "$err_log"
 }
 
 main() {
   local script="${0##*/}"
-  local version="3.2.25197"
+  local version="4.0.26079"
   local lhost="${HOSTNAME:-$(hostname)}"
   local fhost="hp-800g2-sff"
 
