@@ -135,13 +135,31 @@ $ printf "<%s>\n" "${arr[@]}"	# '@' interates the elements of the array
 <foo>
 <bar>
 <baz>
+$ declare -p array
+declare -a array=([0]="foo" [1]="bar" [2]="baz")
 ```
 	- Should always use quotes and {} brackets when accessing array elements.
 	- Populating an array from a text file
 ```bash
 $ mapfile -t my_array <<< input_file
 ```
-2. Associative arrays
+2. Copying arrays
+```bash
+$ first_arr=(foo bar baz)
+$ second_arr=("${first_arr[@]}")
+$ printf "<%s>\n" "${second_arr[@]}"
+<foo>
+<bar>
+<baz>
+```
+3. Add elements to an array
+```bash
+$ arr=(foo bar baz)
+$ arr2=("${arr[@]}" oof rab zab)
+# or
+$ array2+=(oof rab zab)
+```
+4. Associative arrays
 	- Declaring associative arrays:
 ```bash
 $ declare -A arr
