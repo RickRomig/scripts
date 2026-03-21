@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 02 Feb 2026
+# Updated      : 21 Mar 2026
 # Comments     : Based on instructions from Joe Collins.
 # TODO (Rick)  : check entry in flatpak list
 # License      : GNU General Public License, version 2.0
@@ -38,14 +38,15 @@ fi
 
 ## Global Variables ##
 readonly script="${0##*/}"
-readonly  version="2.3.26033"
+readonly version="3.0.26080"
+readonly E_BIOS_SETTING=99
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="02 Feb 2026"
+	local updated="21 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Install Gnome Boxes from either distribution repositories or flatpak from Flathub.
@@ -61,24 +62,27 @@ _HELP_
 
 check_bios() {
   local vcpu vmx_svm
+  local -r qemu_conf="/etc/modprobe.d/qemu-system-x86.conf"
   printf "Checking if virtualization is enabled in BIOS...\n"
   vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo)
   printf "Virtualization is "
-  if [[ "$vcpu" -gt 0 ]]; then
-    printf "enabled in the BIOS. (%s threads)\n" "$vcpu"
-    vmx_svm=$(grep -E -m 1 'vmx|svm' /proc/cpuinfo )
-    case "$vmx_svm" in
-      *vmx* )
-        sudo sh -c 'echo "options kvm_intel nested=1" >> /etc/modprobe.d/qemu-system-x86.conf' ;;
-      *svm* )
-        sudo sh -c 'echo "options kvm_amd nested=1" >> /etc/modprobe.d/qemu-system-x86.conf' ;;
-    esac
-    sudo sh -c 'echo "group=kvm" >> /etc/modprobe.d/qemu-system-x86.conf'
-  else
-    printf "not enabled in the BIOS.\n"
-    printf "Enable virtualization before installing Gnome Boxes.\n"
-    exit
+  if [[ "$vcpu" -eq 0 ]]; then
+    printf "not enabled in the BIOS.\n" >&2
+    printf "Enable virtualization before installing Gnome Boxes.\n" >&2
+    exit "$E_BIOS_SETTING"
   fi
+  printf "enabled in the BIOS. (%d threads)\n" "$vcpu"
+  vmx_svm=$(grep -E -m 1 'vmx|svm' /proc/cpuinfo )
+  case "$vmx_svm" in
+    *vmx* )
+      # sudo sh -c 'echo "options kvm_intel nested=1" >> /etc/modprobe.d/qemu-system-x86.conf' ;;
+      echo "options kvm_intel nested=1" | sudo tee -a "$qemu_conf" >/dev/null ;;
+    *svm* )
+      # sudo sh -c 'echo "options kvm_amd nested=1" >> /etc/modprobe.d/qemu-system-x86.conf' ;;
+      echo "options kvm_amd nested=1" | sudo tee -a "$qemu_conf" >/dev/null ;;
+  esac
+  # sudo sh -c 'echo "group=kvm" >> /etc/modprobe.d/qemu-system-x86.conf'
+  echo "group=kvm" | sudo tee -a "$qemu_conf" >/dev/null
 }
 
 enable_libvirtd() {
@@ -105,6 +109,7 @@ add_to_kvm_group() {
     enable_libvirtd
   else
     printf "/etc/libvirt/qemu.conf not found!\n" >&2
+    EC="$E_FILENOTFOUND"
   fi
 }
 
@@ -114,6 +119,7 @@ install_boxes() {
   sudo apt install -yy gnome-boxes qemu-kvm
   if exists gnome-boxes; then
     printf "Gnome-boxes installed.\n"
+    add_to_kvm_group
   else
     printf "%s Gnome-boxes installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
@@ -125,6 +131,7 @@ install_flatpak() {
   flatpak install --user flathub org.gnome.Boxes
   if grep -qi 'boxes' <(flatpak list); then
     printf "Gnome-Boxes installed.\n"
+    add_to_kvm_group
   else
     printf "%s Gnome-boxes installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
@@ -141,13 +148,11 @@ main() {
         sudo_login 2
         check_bios
         install_boxes
-        add_to_kvm_group
         ;;
       f )
         sudo_login 2
         check_bios
         install_flatpak
-        add_to_kvm_group
         ;;
       h )
         help 0
@@ -160,7 +165,7 @@ main() {
   done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
-  printf "Gnome boxes installed and configured.\n"
+  [[ "$EC" -eq 0 ]] && printf "Gnome boxes installed and configured.\n"
   over_line "$script $version"
   exit "$EC"
 }
