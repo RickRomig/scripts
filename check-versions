@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 20 Mar 2026
+# Last updated : 22 Mar 2026
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 #              : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
@@ -80,20 +80,14 @@ show_version() {
 
 get_release_path() {
 	local package="$1"
-	local release_path
-	case "$package" in
-	  bat )
-	    release_path="sharkdp/bat/releases" ;;
-		codium )
-			release_path="VSCodium/vscodium/releases" ;;
-	  fastfetch )
-	    release_path="fastfetch-cli/fastfetch/releases" ;;
-    fresh-editor )
-      release_path="sinelaw/fresh/releases" ;;
-	  micro )
-	    release_path="micro-editor/micro/releases"
-	esac
-	echo "$release_path"
+	declare -rA releases_path=(
+		[bat]="sharkdp/bat/releases"
+		[codium]="VSCodium/vscodium/releases"
+		[fastfetch]="fastfetch-cli/fastfetch/releases"
+		[fresh-editor]="sinelaw/fresh/releases"
+		[micro]="micro-editor/micro/releases"
+	)
+	echo "${releases_path[$package]}"
 }
 
 get_new_version() {
@@ -185,7 +179,7 @@ browsers() {
 
 main() {
   local script="${0##*/}"
-  local version="19.0.26079"
+  local version="19.1.26081"
   clear
   box "$script $version"
   printf "\n"
