@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2019
-# Updated      : 21 Nov 2025
+# Updated      : 21 Mar 2026
 # TODO (Rick)  :
 # Comment      : removes DOS carriage return ('\r') characters
 #              : Similar in function to dos2unix.
@@ -34,7 +34,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
@@ -48,17 +48,19 @@ convert_file() {
 
 main() {
   local script="${0##*/}"
-  local version="2.0.25325"
+  local version="2.1.26080"
   local filename="$1"
+  EC=0
   printf "Converts DOS text file to Linux format by removing carriage returns.\n"
   [[ "$#" -eq 0 ]] && read -rp "Enter a DOS text file to process: " filename
   if [[ -f "$filename" ]]; then
     convert_file "$filename"
   else
     printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
+    EC="$E_FILENOTFOUND"
   fi
   over_line "$script $version"
-  exit
+  exit "$EC"
 }
 
 ## Execution ##
