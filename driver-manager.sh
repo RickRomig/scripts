@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 05 Nov 2025
-# Last updated : 13 Mar 2026
+# Last updated : 22 Mar 2026
 # Comments     : Based on instructions provided by Andrea Borman
 #              : YouTube - https://www.youtube.com/watch?v=-Q_U5lLTxmU
 #              : I don't know of a way to verify or update packages.
@@ -81,7 +81,7 @@ install_packages() {
     "mintdrivers_1.8.8_all.deb"
   )
   sudo_login 2
-  for (( idx=0; idx <= 4; idx++ )); do
+  for (( idx=0; idx < "${#urls[@]}"; idx++ )); do
 	  printf "Installing %s...\n" "${packages[idx]}"
     wget -q -P "$tmp_dir" "${urls[idx]}/${packages[idx]}"
     sudo gdebi -n "$tmp_dir/${packages[idx]}"
@@ -93,7 +93,7 @@ install_packages() {
 
 exit_script() {
   local -r script="${0##*/}"
-  local -r version="1.3.26072"
+  local -r version="1.4.26081"
   over_line "$script $version"
   exit
 }
