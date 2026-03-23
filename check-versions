@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 22 Mar 2026
+# Last updated : 23 Mar 2026
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 #              : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
@@ -68,14 +68,18 @@ installed_version() {
   echo "$cur_ver"
 }
 
-show_version() {
-	local package="$1"
-	if exists "$package"; then
-		printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
-		[[ "$package" == "batcat" ]] && package="bat"
-		[[ "$package" == "google-chrome" ]] && package+="-stable"
-    printf "%s\n" "$(installed_version "$package")"
-	fi
+show_versions() {
+	local package packages
+	packages=("$@")
+	for package in "${packages[@]}"; do
+		if exists "$package"; then
+			printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
+			[[ "$package" == "batcat" ]] && package="bat"
+			[[ "$package" == "google-chrome" ]] && package+="-stable"
+      printf "%s\n" "$(installed_version "$package")"
+		fi
+	done
+	printf "%s\n" "$normal"
 }
 
 get_release_path() {
@@ -141,45 +145,33 @@ utility_packages() {
 	local packages package
   packages=( bash dsh flatpak fzf git gitea keepassxc nala picom zoom )
 	printf "%-15s%s\n" "Package" "Version"
-	for package in "${packages[@]}"; do
-		show_version "$package"
-	done
-	printf "%s\n" "${normal}"
+	show_versions "${packages[@]}"
 }
 
 text_editors() {
   local package packages
   packages=( batcat bluefish featherpad geany gedit glow mousepad nano shellcheck xed )
 	printf "%-15s%s\n" "Package" "Version"
-	for package in "${packages[@]}"; do
-		show_version "$package"
-	done
-	printf "%s\n" "${normal}"
+	show_versions "${packages[@]}"
 }
 
 terminals() {
 	local packages package
   packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
 	printf "%-15s%s\n" "Terminal" "Version"
-	for package in "${packages[@]}"; do
-		show_version "$package"
-	done
-	printf "%s\n" "${normal}"
+	show_versions "${packages[@]}"
 }
 
 browsers() {
 	local packages package
   packages=( brave-browser chromium firefox google-chrome librewolf )
 	printf "%-15s%s\n" "Browser" "Version"
-	for package in "${packages[@]}"; do
-		show_version "$package"
-	done
-	printf "%s\n" "${normal}"
+	show_versions "${packages[@]}"
 }
 
 main() {
   local script="${0##*/}"
-  local version="19.1.26081"
+  local version="20.0.26082"
   clear
   box "$script $version"
   printf "\n"
