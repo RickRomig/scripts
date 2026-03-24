@@ -3,12 +3,12 @@
 # Script Name  : debian-multimedia.sh
 # Description  : adds multimedia repository to Debian
 # Dependencies : wget
-# Arguments    : See help() function for available options.
+# Arguments    : None
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 28 Oct 2025
-# Last updated : 26 Jan 2026
-# Comments     :
+# Last updated : 24 Mar 2026
+# Comments     : Only supports Debian 12 (bookworm) & Debian 13 (trixie)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -33,17 +33,19 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+EC=0
 
 ## Functions ##
 
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+# shellcheck disable=SC2317
 cleanup() {
 	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
 }
@@ -64,30 +66,38 @@ set_multimedia_sources() {
 	printf "Setting multimeda sources...\n"
 	case "$distro" in
 		bookworm )
-			sudo cp -v "$script_dir"/files/bookworm-dmo.sources "$source_list" ;;
+			if [[ ! -f "$script_dir/files/bookworm-dmo.sources" ]]; then
+				printf "%s bookworm-dmo.sources not found.\n" "$RED_ERROR" >&2
+				EC="$E_FILENOTFOUND"
+				return
+			fi
+			sudo cp -v "$script_dir"/files/bookworm-dmo.sources "$source_list"
+			;;
 		trixie )
-			sudo cp -v "$script_dir"/files/trixie-dmo.sources "$source_list" ;;
+			if [[ ! -f "$script_dir/files/trixie-dmo.sources" ]]; then
+				printf "%s trixie-dmo.sources not found.\n" "$RED_ERROR" >&2
+				EC="$E_FILENOTFOUND"
+				return
+			fi
+			sudo cp -v "$script_dir"/files/trixie-dmo.sources "$source_list"
+			;;
 		* )
 			# Should not be necessary
 	esac
 }
 
-exit_script() {
-  local -r script="${0##*/}"
-  local -r version="2.1.26026"
-	over_line "$script $version"
-  exit
-}
-
 main() {
+  local -r script="${0##*/}"
+  local -r version="2.2.26083"
 	local distro
 	distro="$(/usr/bin/lsb_release --codename --short)"
 	check_package wget
   trap cleanup EXIT
-	[[ "$distro" != "bookworm " && "$distro" != "trixie " ]] && { printf "%s is not supported by this script.\n" "${distro^}"; exit_script; }
+	[[ "$distro" != "bookworm " && "$distro" != "trixie " ]] && { printf "%s is not supported by this script.\n" "${distro^}"; exit 1; }
 	install_multimedia_keyring
 	set_multimedia_sources "$distro"
-	exit_script
+	over_line "$script $version"
+  exit "$EC"
 }
 
 ## Execution ##
