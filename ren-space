@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : ren-space
-# Description  : replaces spaces with underscores, periods,  or hyphens in filenames in the current directory
+# Description  : replaces spaces with underscores, periods, or hyphens in filenames in the current directory
 # Dependencies : None
 # Arguments    : See help() function for available options.
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 08 Mar 2025
-# Updated      : 13 Nov 2025
+# Updated      : 25 Mar 2026
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -32,21 +32,19 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
-
-set -eu
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.1.25317"
+readonly version="3.2.26084"
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local updated="13 Nov 2025"
+	local errcode="${1:-1}"
+	local updated="25 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 renames filenames containing spaces, replacing spaces with - or . or _
@@ -91,11 +89,11 @@ main() {
 				replace_spaces "_" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit
