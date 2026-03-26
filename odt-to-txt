@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 May 2019
-# Updated      : 25 Nov 2024
+# Updated      : 26 Mar 2026
 # Comments     : Run from a directory containing .odt files to be converted.
 #              : Leaves original .odt files intact.
 # TODO (rick)  :
@@ -34,7 +34,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
@@ -60,25 +60,25 @@ convert_2_md() {
 
 odt_files_found() {
   local num_files
-  num_files=$(find . -maxdepth 1 -type f -iname "*.odt" | wc -l)
+  num_files=$(wc -l < <(find . -maxdepth 1 -type f -iname "*.odt"))
   (( num_files > 0 )) && return "$TRUE" || return "$FALSE"
 }
 
 list_odt_files() {
   printf ".odt filse in %s:\n\n" "$PWD"
-  find ./ -maxdepth 1 -type f -name "*.odt" | sed 's/^\.\///' | sort
+  sed 's/^\.\///' < <(find ./ -maxdepth 1 -type f -name "*.odt") | sort
 }
 
 select_odt_file() {
   local odt_file
-  odt_file=$(find . -maxdepth 3 -type f -name "*.odt" | sed 's/\.\///' | sort -d | fzf --height 40% --reverse --prompt "Select the file to convert: ")
+  odt_file=$(sed 's/^\.\///' < <(find . -maxdepth 1 -type f -name "*.odt") | sort -d | fzf --height 40% --reverse --prompt "Select the file to convert: ")
   echo "$odt_file"
 }
 
 main() {
   local options _opt ofile
   local script="${0##*/}"
-  local version="3.1.25329"
+  local version="3.2.26085"
 
   check_dependencies
 
