@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Jun 2019
-# Updated      : 28 Feb 2026
+# Updated      : 26 Mar 2026
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
@@ -54,7 +54,7 @@ select_image_dir() {
   local image_d dest_d
   local image_dirs=()
   for image_d in $HOME/Work/images; do
-    [[ -d "$image_d" ]] && image_dirs+=("$(find "$image_d" -type d -print | sort -d)")
+    [[ -d "$image_d" ]] && image_dirs+=("$(sort -d < <(find "$image_d" -type d -print))")
   done
 	dest_d=$($FMENU "Select image directory: " < <(printf "%s\n" "${image_dirs[@]}"))
 	printf "%s" "$dest_d"
@@ -164,7 +164,7 @@ select_images() {
 
 main () {
   local script="${0##*/}"
-  local version="5.0.26059"
+  local version="5.1.26085"
   local image_dir
   check_package imagemagick
   image_dir=$(select_image_dir)
