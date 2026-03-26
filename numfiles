@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Nov 2018
-# Updated      : 04 Dec 2025
+# Updated      : 26 Mar 2026
 # Comment      :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -34,7 +34,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
@@ -42,23 +42,22 @@ fi
 num_files() {
 	local cur_dir ndirs nfiles size
 	cur_dir="${PWD//$\/}"
-	ndirs=$(find . -type d | wc -l)
-	nfiles=$(find . -type f | wc -l)
+	ndirs=$(wc -l < <(find . -type d))
+	nfiles=$(wc -l < <(find . -type f))
 	size=$(awk '$2 == "total" {print $1}' <(du -ch))
 
 	printf "Directory: %s\n" "$cur_dir"
-	printf "%'d " "$nfiles"
+	printf "%d " "$nfiles"
 	[[ "$nfiles" -eq "1" ]] && printf "file " || printf "files "
-	printf "in %'d " "$ndirs"
+	printf "in %d " "$ndirs"
 	[[ "$ndirs" -eq "1" ]] && printf "directory " || printf "directories "
 	printf "using %s of disk space\n" "$size"
-	# printf "Disk space used: %s\n" "$size"
 	unset cur_dir ndirs nfiles size
 }
 
 main() {
 	local script="${0##*/}"
-	local version="4.1.25338"
+	local version="4.2.26085"
 	num_files
 	over_line "$script $version"
 	exit
@@ -66,4 +65,4 @@ main() {
 
 ## Execution ##
 
-	main "$@"
+main "$@"
