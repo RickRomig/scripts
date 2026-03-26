@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 18 Mar 2026
+# Updated:     : 28 Mar 2026
 # Comments     : Should be run locally, not remotely.
 #              : Will not get desktop session info in an SSH connection.
 # TODO (Rick)  :
@@ -281,7 +281,7 @@ partition_info() {
 battery_info() {
   local battery_name battery_path battery_data battery_serial
   printf "\nBattery Information:\n"
-  battery_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
+  battery_name=$(awk -F/ '/BAT/ {print $NF}' < <(find /sys/class/power_supply/ -name "BAT*"))
   if [[ "$battery_name" ]]; then
     battery_path="/sys/class/power_supply/$battery_name"
     battery_data=$(< "$battery_path"/uevent)
@@ -299,7 +299,7 @@ else
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.3.26067"
+  local -r version="5.4.26085"
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r info_file="$HOME/$lhost.info"
 
