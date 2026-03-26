@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Aug 2019
-# Updated      : 11 Mar 2026
+# Updated      : 26 Mar 2026
 # Comments     : sudo access required to view Timeshift snapshots
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
@@ -224,27 +224,23 @@ git_snapshots() {
 }
 
 incremental_backups() {
-  local arc_dir bu_name job_name sub_dir
-  bu_name="$1"
-  sub_dir="$2"
-  arc_dir="$HOME/Downloads/archives"
+  local bu_name="$1"
+  local sub_dir="$2"
+  local arc_dir="$HOME/Downloads/archives"
+  declare -rA job_names=(
+    [Finance]="fin-backup.sh"
+    [Git]="gitea-bu.sh"
+    [Journals]="journal-bu.sh"
+  )
   if [[ -d "$arc_dir/$sub_dir" ]]; then
     clear
     printf "%s%s - %s Incremental Backup (last 7 days):%s\n\n" "$lightgreen" "$lhost" "$bu_name" "$normal"
-    find "$arc_dir/$sub_dir" -maxdepth 1 -type f -mtime -7 | sort | awk -F/ '{print $NF}' | head -n8
+    sort < <(find "$arc_dir/$sub_dir" -maxdepth 1 -type f -mtime -7) | awk -F/ '{print $NF}' | head -n8
     printf "\n"
   else
     printf "%s%s incremental backups do not exist on %s.%s\n" "$orange" "$bu_name" "$lhost" "$normal"
-    case "$bu_name" in
-      "Finance" )
-        job_name="fin-backup.sh" ;;
-      "Git" )
-        job_name="gitea-bu.sh" ;;
-      "Journals" )
-        job_name="journal-bu.sh"
-    esac
     printf "The job is"
-    [[ -x "$HOME/.local/bin/$job_name" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
+    [[ -x "$HOME/.local/bin/${job_names[$bu_name]}" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
 }
 
@@ -367,7 +363,7 @@ archive_logs() {
 main() {
 	local _opt options script version
   script="${0##*/}"
-  version="10.15.26070"
+  version="10.16.26085"
 	options=( "System logs" "Local logs" "Archive Logs" "Quit")
 	while true; do
 		show_header
