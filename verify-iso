@@ -82,7 +82,7 @@ select_directory() {
 	local dist_d selected_dir
 	local iso_dirs=()
 	for dist_d in $HOME/Downloads/ISO; do
-		[[ -d "$dist_d" ]] && iso_dirs+=("$(find "$dist_d" -type d -print | sort -d)")
+		[[ -d "$dist_d" ]] && iso_dirs+=("$(sort -d < <(find "$dist_d" -type d -print))")
 	done
 	selected_dir=$($FMENU "Select distribution directory: " < <(printf "%s\n" "${iso_dirs[@]}"))
 	printf "%s" "$selected_dir"
@@ -93,7 +93,7 @@ select_iso() {
 	iso_d="$1"
 	local iso_files=()
 	for iso_files in $iso_d; do
-		[[ -d "$iso_d" ]] && iso_files+=("$(find "$iso_d" -type f -iname "*.iso" -printf "%f\n" | sort -d)")
+		[[ -d "$iso_d" ]] && iso_files+=("$(sort -d < <(find "$iso_d" -type f -iname "*.iso" -printf "%f\n"))")
 	done
 	selected_iso=$($FMENU "Select ISO file: " < <(printf "%s\n" "${iso_files[@]}"))
 	printf "%s" "$selected_iso"
@@ -104,7 +104,7 @@ select_checksum() {
 	iso_d="$1"
 	local chksum_files=()
 	for chksum_files in $iso_d; do
-		[[ -d "$iso_d" ]] && chksum_files+=("$(find "$iso_d" -type f \( -name "*.md5" -or -name "*.sha*" \) -printf "%f\n" | sort -d)")
+		[[ -d "$iso_d" ]] && chksum_files+=("$(sort -d < <(find "$iso_d" -type f \( -name "*.md5" -or -name "*.sha*" \) -printf "%f\n"))")
 	done
 	selected_chksum=$($FMENU "Select Checksum file: " < <(printf "%s\n" "${chksum_files[@]}"))
 	printf "%s" "$selected_chksum"
@@ -182,7 +182,8 @@ verify_iso() {
 		return
 	fi
 	verify_checksums "$iso_dir/$isofile" "$iso_dir/$checksum"
-	status_msg "$?"
+	EC="$?"
+	status_msg "$EC"
 }
 
 main() {
