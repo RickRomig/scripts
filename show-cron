@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Mar 2018
-# Updated      : 22 Jan 2026
+# Updated      : 26 Mar 2026
 # Comments     : Requires sudo privileges
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -34,7 +34,7 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
@@ -43,14 +43,14 @@ anacron_jobs() {
   local count cron_dir interval
   interval="$1"
   cron_dir="/etc/cron.$interval"
-  count=$(find "$cron_dir" -maxdepth 1 -type f -iname \* | wc -l)
+  count=$(wc -l < <(find "$cron_dir" -maxdepth 1 -type f -iname \*))
   [[ "$count" -gt 0 ]] && return "$TRUE" || return "$FALSE"
 }
 
 print_anacron_jobs() {
   local interval="$1"
   local cron_dir="/etc/cron.$interval"
-  find "$cron_dir" -maxdepth 1 -type f -iname \* | awk -F"/" '{print "  " $NF}'
+  find "$cron_dir" -maxdepth 1 -type f -iname \* < <( awk -F"/" '{print "  " $NF}')
 }
 
 list_anacron_jobs() {
@@ -95,7 +95,7 @@ show_root_cron() {
 
 main() {
   local script="${0##*/}"
-  local version="6.5.26022"
+  local version="6.5.26085"
   local lhost="${HOSTNAME:-$(hostname)}"
   sudo_login 0
   clear
