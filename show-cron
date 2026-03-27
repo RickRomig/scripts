@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Mar 2018
-# Updated      : 26 Mar 2026
+# Updated      : 27 Mar 2026
 # Comments     : Requires sudo privileges
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -50,7 +50,7 @@ anacron_jobs() {
 print_anacron_jobs() {
   local interval="$1"
   local cron_dir="/etc/cron.$interval"
-  find "$cron_dir" -maxdepth 1 -type f -iname \* < <( awk -F"/" '{print "  " $NF}')
+  awk -F/ '{print " " $NF}' < <(find "$cron_dir" -maxdepth 1 -type f -iname \*)
 }
 
 list_anacron_jobs() {
@@ -95,7 +95,7 @@ show_root_cron() {
 
 main() {
   local script="${0##*/}"
-  local version="6.5.26085"
+  local version="6.6.26086"
   local lhost="${HOSTNAME:-$(hostname)}"
   sudo_login 0
   clear
