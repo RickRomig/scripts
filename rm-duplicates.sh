@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Feb 2026
-# Last updated : 19 Feb 2026
-# Version      : 1.0.26050
+# Last updated : 26 Mar 2026
+# Version      : 1.1.26085
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -55,14 +55,15 @@ _HELP_
   exit
 }
 
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# shellcheck disable=SC2317
+# Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
   [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
 }
 
 find_sizes() {
-	find . -type f -size +1M -exec ls -l {} \; | awk '{print $5, $9}' | sort -n > "$tmp_file"
+	awk '{print $5, $9}' < <(find . -type f -size +1M -exec ls -l {} \;) | sort -n > "$tmp_file"
 }
 
 filter_duplicates() {
@@ -71,7 +72,7 @@ filter_duplicates() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.0.26050"
+  local -r version="1.1.26085"
   trap cleanup EXIT
   [[ "$1" == "-h" || "$1" == "--help" ]] && help "$script"
   find_sizes
