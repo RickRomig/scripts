@@ -73,7 +73,7 @@ upper_to_lower() {
 
 lc_all() {
 	printf "Renaming all files in the current directory to lowercase.\n"
-	find . -maxdepth 1 -type f -exec rename -v 'y/A-Z/a-z/' {} + | sed 's/\.\///g'
+	sed 's/\.\///g' < <(find . -maxdepth 1 -type f -exec rename -v 'y/A-Z/a-z/' {} +)
 }
 
 lc_one() {
