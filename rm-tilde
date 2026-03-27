@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : unknown
-# Updated      : 01 Sep 2025
+# Updated      : 26 Mar 2026
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -27,7 +27,7 @@
 
 remove_tilde() {
 	local nbu
-	nbu=$(find . -maxdepth 1 -type f -regex '\./.*~$' | wc -l)
+	nbu=$(wc -l < <(find . -maxdepth 1 -type f -regex '\./.*~$'))
 	printf "Removing %d '~' backup " "$nbu"
 	(( nbu == 1 )) && printf "file.\n" || printf "files.\n"
 	(( nbu != 0 )) && find . -maxdepth 1 -type f -regex '\./.*~$' -print -exec rm {} \;
@@ -35,7 +35,7 @@ remove_tilde() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.0.25244"
+	local -r version="3.1.26085"
 	remove_tilde
 	printf "%s %s\n" "$script" "$version"
 	exit
