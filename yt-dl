@@ -121,7 +121,7 @@ select_directory() {
 	local video_dir=$HOME"/Videos"
   local directories=()
   for vid_d in $video_dir; do
-    [[ -d "$vid_d" ]] && directories+=("$(find "$video_dir" -path "$video_dir/Pornography" -prune -o -type d | sort -d)")
+    [[ -d "$vid_d" ]] && directories+=("$(sort -d < <(find "$video_dir" -path "$video_dir/Pornography" -prune -o -type d))")
   done
   selected_directory=$($FMENU "Select destination directory: " < <(printf "%s\n" "${directories[@]}"))
 	printf "%s" "$selected_directory"
