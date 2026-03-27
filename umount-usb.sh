@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 12 Mar 2025
-# Last updated : 07 Feb 2026
+# Last updated : 27 Mar 2026
 # Comments     : Only unmounts devices belonging to the current user.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,6 +36,8 @@ else
   exit 81
 fi
 
+## Functions ##
+
 check_usb() {
 	[[ $(grep 'usb' <(lsblk -S -o TRAN)) = *usb* ]] && return "$TRUE" || return "$FALSE"
 }
@@ -44,21 +46,24 @@ unmount_usb() {
 	local user usb_drive
 	check_usb || { printf "No USB drive connected!\n" >&2; EC="$E_DRIVE_ERROR"; return; }
 	user=$(whoami)
-	usb_drive=$(find /media/"$user" -maxdepth 1 -type d -user "$user" | fzf --height 40% --reverse --prompt "Select the USB drive to unmount: ")
+	usb_drive=$(fzf --height 40% --reverse --prompt "Select the USB drive to unmount: " < <(find /media/"$user" -maxdepth 1 -type d -user "$user"))
 	[[ "$usb_drive" ]] || { printf "No USB drives mounted or selected!\n" >&2; EC="$E_DRIVE_ERROR"; return; }
 	umount -l "$usb_drive"
 	printf "\"%s\" unmounted.\n" "$usb_drive"
 	[[ -d "$usb_drive" ]] && rmdir "$usb_drive"
+	pgrep -x nemo >/dev/null && nemo --quit	# If Nemo is running, close it.
 }
 
 main() {
 	EC=0
 	local -r script="${0##*/}"
-	local -r version="2.1.26038"
+	local -r version="2.2.26086"
 	check_package fzf
 	unmount_usb
 	over_line "$script $version"
 	exit "$EC"
 }
+
+## Execution ##
 
 main "$@"
