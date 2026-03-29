@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jul 2021
-# Updated      : 16 Mar 2026
+# Updated      : 29 Mar 2026
 # Comments     : Original script found on Reddit r/dharmmawheel, posted by u/Jhanna4
 #              : Sound does not work with Pipewire audio.
 # TODO (Rick)  : Work on getting sound functions to work on Pipewire.
@@ -41,7 +41,7 @@ fi
 ## Global Variables ##
 
 script="${0##*/}"
-version="2.11.26075"
+version="2.12.26088"
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
 ## Functions ##
@@ -52,8 +52,9 @@ script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
 is_valid_integer() {
   local value="$1"
-  [[ "$value" =~ ^[0-9]+$ ]] || return "$FALSE"
-  [[ "$value" -ge 0 || "$value" -le 100 ]] && return "$TRUE" || return "$FALSE"
+  local re="^[0-9]+$"
+  [[ $value =~ $re ]] || return "$FALSE"
+  [[ $value -ge 0 || $value -le 100 ]] && return "$TRUE" || return "$FALSE"
 }
 
 usage() {
