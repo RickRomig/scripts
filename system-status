@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018,Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Nov 2018
-# Updated      : 09 Mar 2026
+# Updated      : 29 Mar 2026
 # Comments     : Inspired by Joe Collins and Luke Smith
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -39,7 +39,7 @@ fi
 
 check_drivetemp() {
   grep -qw drivetemp <(sensors) || sudo modprobe drivetemp
-  grep -qw drivetemp /etc/modules || echo drivetemp | sudo tee -a /etc/modules
+  grep -qw drivetemp /etc/modules || sudo tee -a /etc/modules <<< echo drivetemp  # | sudo tee -a /etc/modules
   printf "drivetemp module - [OK]\n"
   sleep 1
   printf '\e[A\e[K'
@@ -141,7 +141,7 @@ show_header() {
 show_footer() {
   local last_boot up_time
   local -r script="${0##*/}"
-  local -r version="6.17.26068"
+  local -r version="6.18.26088"
   last_boot=$(awk '{print $(NF-1),$NF}' <(/usr/bin/who -b))
   up_time=$(cut -d' ' -f2- <(/usr/bin/uptime -p))
   printf "\n%sUp since:%s %s (%s)\n" "$orange" "$normal" "$last_boot" "$up_time"
