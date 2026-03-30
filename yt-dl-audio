@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Nov 2019
-# Updated      : 08 Mar 2026
+# Updated      : 30 Mar 2026
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to current working directory
 # TODO (Rick)  :
@@ -40,14 +40,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.5.26067"
+readonly version="3.6.26089"
 EC=0
 
 ## Functions
 
 help() {
   local errcode="${1:-1}"
-  local -r updated="08 Mar 2026"
+  local -r updated="30 Mar 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Downloads mp3 audio from YouTube videos to current working diretory.
@@ -90,12 +90,13 @@ download_audio() {
 
 main() {
   local url
+  local re="^https?:\/\/.*"
   if [[ "$#" = 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
     help "$E_MISSING_ARG"
   elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
     help 0
-  elif [[ "$1" =~ ^https?:\/\/.* ]]; then
+  elif [[ $1 =~ $re ]]; then
     # match by regex, starts with http:// or https://
     audio_url=$*
   else
