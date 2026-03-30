@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 30 Jan 2026
+# Updated      : 29 Mar 2026
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -41,12 +41,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="10.3.26030"
+readonly version="10.4.26088"
 SECONDS=0
 
 ## Functions ##
 
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# shellcheck disable=SC2317
+# Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
   [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
@@ -54,7 +55,7 @@ cleanup() {
 
 help() {
 	local errcode="${1:-1}"
-  local updated="30 Jan 2026"
+  local updated="29 Mar 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt-get or Nala.
@@ -74,10 +75,10 @@ _HELP_
 check_disk_space() {
 	local df_stats r_size r_used r_perc r_avail
 	df_stats=$(awk 'NR==2 {print $2,$3,$4,$5}' <(df -h /))
-	r_size=$(cut -d ' ' -f1 <(echo "$df_stats"))
-	r_used=$(cut -d ' ' -f2 <(echo "$df_stats"))
-	r_avail=$(cut -d ' ' -f3 <(echo "$df_stats"))
-	r_perc=$(cut -d ' ' -f4 <(echo "$df_stats"))
+	r_size=$(cut -d ' ' -f1 <<< "$df_stats")
+	r_used=$(cut -d ' ' -f2 <<< "$df_stats")
+	r_avail=$(cut -d ' ' -f3 <<< "$df_stats")
+	r_perc=$(cut -d ' ' -f4 <<< "$df_stats")
   printf "\nDisk space used (root): %s / %s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
 }
 
@@ -99,14 +100,14 @@ update_apt_cache() {
   current_time=$(date +%s)
   updated_time=$(stat -c%Y "$cache_file")
   time_diff=$(( current_time - updated_time ))
-  # threshold values: 86400 = 24 hours, 43200 = 12 hours, 21600 = 6 hours 10800 = 3 hours 3600 = 1 hour
-  threshold=10800
+  # threshold values: 86400 = 24 hours, 43200 = 12 hours, 21600 = 6 hours 10800 = 3 hours, 3600 = 1 hour
+  threshold=3600
   if [[ "$time_diff" -le "$threshold" ]]; then
     printf "%sApt cache is up to date.%s\n" "$orange" "$normal"
-  else
-    printf "%sUpdating apt cache...%s\n" "$orange" "$normal"
-    sudo apt-get update
+    return
   fi
+  printf "%sUpdating apt cache...%s\n" "$orange" "$normal"
+  sudo apt-get update
 }
 
 install_updates() {
@@ -133,14 +134,14 @@ remove_orphans() {
 update_complete() {
   local num_updates="$1"
   printf "\n%sUpdate complete. %d" "$orange" "$num_updates"
-  (( num_updates > 1 )) && printf  " updates were" || printf  " update was"
+  (( num_updates != 1 )) && printf  " updates were" || printf  " update was"
   printf " installed.%s\n" "$normal"
 }
 
 defer_updates() {
   local num_updates="$1"
   printf "\n%sNo updates installed. %d" "$orange" "$num_updates"
-  (( num_updates > 1 )) && printf " updates were" || printf " update was"
+  (( num_updates != 1 )) && printf " updates were" || printf " update was"
   printf " deferred.%s\n" "$normal"
 }
 
@@ -194,15 +195,13 @@ apt_update() {
   update_apt_cache
   apt-get dist-upgrade -s > "$tmp_file"
   nupd=$(count_updates)
-  if (( nupd > 0 )); then
-    printf "%sSummary:%s\n" "$orange" "$normal"
-    sed -ne '/^Calculating/,/newly/p' "$tmp_file" | sed '1d'
-    apt_menu "$nupd"
-  else
-    printf "%sSummary:%s\n" "$orange" "$normal"
-    sed -ne '/^Calculating/,/newly/p' "$tmp_file" | sed '1d'
+  printf "%sSummary:%s\n" "$orange" "$normal"
+  sed -ne '/^Calculating/,/newly/p' "$tmp_file" | sed '1d'
+  if [[ nupd -eq 0 ]]; then
     printf "\nPackages are up to date\n"
+    return
   fi
+  apt_menu "$nupd"
 }
 
 count_updates() {
