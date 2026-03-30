@@ -80,13 +80,14 @@ print_status() {
 
 main() {
   local url
+  local re="^https?:\/\/.*"
   check_package wget
   if [[ "$#" -eq 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
     help "$E_MISSING_ARG"
   elif [[ "$1" = "--help" || "$1" = "-h" ]]; then
     help 0
-  elif [[ "$1" =~ ^https?:\/\/.* ]]; then
+  elif [[ $1 =~ $re ]]; then
     url="$*"
     download_page "$url"
     over_line "$script $version"
