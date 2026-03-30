@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 06 Dec 2025
+# Updated      : 29 Mar 2028
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -25,65 +25,63 @@
 ###############################################################################
 
 # shellcheck disable=SC2001
+# See if you can use ${variable//search/replace} instead.
+# In this case parameter expansion does not work.
 over_line() {
   local char len line title
   title="$1"
   char="${2:--}"
   len=${#char}
   (( len > 1 )) && char=${char::1}
-  line=$(sed "s/./$char/g" <(echo "$title"))
+  line=$(sed "s/./$char/g" <<< "$title")
   printf "%s\n%s\n"  "$line" "$title"
 }
 
 check_disk_space() {
   local df_stats r_size r_used r_perc r_avail
 	df_stats=$(awk 'NR==2 {print $2,$3,$4,$5}' <(df -h /))
-	r_size=$(cut -d ' ' -f1 <(echo "$df_stats"))
-	r_used=$(cut -d ' ' -f2 <(echo "$df_stats"))
-	r_avail=$(cut -d ' ' -f3 <(echo "$df_stats"))
-	r_perc=$(cut -d ' ' -f4 <(echo "$df_stats"))
+	r_size=$(cut -d ' ' -f1 <<< "$df_stats")
+	r_used=$(cut -d ' ' -f2 <<< "$df_stats")
+	r_avail=$(cut -d ' ' -f3 <<< "$df_stats")
+	r_perc=$(cut -d ' ' -f4 <<< "$df_stats")
   printf "\nDisk space used (root): %s/%s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
 }
 
 check_flatpaks() {
-  local fp_count
-  if command -v flatpak > /dev/null 2>&1; then
-    fp_count=$(flatpak list | wc -l)
-    if [[ "$fp_count" -gt 0 ]]; then
-      printf "Flatpak updates:\n"
-      flatpak update --system --noninteractive --force-remove --assumeyes 2> /dev/null | sed '/^$/d'
-    else
-      printf "No Flatpak packages installed.\n"
-    fi
-  else
-    printf "Flatpack is not installed.\n"
-  fi
+  local fp_count fp_updates
+  command -v flatpak > /dev/null 2>&1 || { printf "Flatpak is not installed.\n"; return; }
+  fp_count=$(wc -l < <(flatpak list))
+  [[ $fp_count -eq 0 ]] || { printf "No Flatpak packages installed.\n"; return; }
+  fp_updates=$(grep -c updatable <(flatpak update --app --noninteractive))
+  [[ $fp_updates -eq 0 ]] && { printf "No Flatpak updates currently available.\n"; return; }
+  printf "Flatpak updates:\n"
+  sed '/^$/d' <(flatpak update --system --noninteractive --force-remove --assumeyes 2>/dev/null)
 }
 
 get_updates() {
   local nupd fields field1 field2 field3
   /usr/bin/apt-get update
   fields=$(awk '$2 == "upgraded," {print $1,$3,$6,$(NF-2)}' <(apt-get dist-upgrade -s))
-  field1=$(cut -d' ' -f1 <(echo "$fields"))
-  field2=$(cut -d' ' -f2 <(echo "$fields"))
-  field3=$(cut -d' ' -f3 <(echo "$fields"))
+  field1=$(cut -d' ' -f1 <<< "$fields")
+  field2=$(cut -d' ' -f2 <<< "$fields")
+  field3=$(cut -d' ' -f3 <<< "$fields")
   nupd=$((field1 + field2 + field3))
-  if [[ "$nupd" -gt 0 ]]; then
-    printf "\n*** Installing updates ***\n"
-    DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get dist-upgrade -yy
-  else
+  if [[ "$nupd" -eq 0 ]]; then
     printf "\nPackages are up to date\n"
+    return
   fi
+  printf "\n*** Installing updates ***\n"
+  DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get dist-upgrade -yy
 }
 
 autoremove_packages() {
   local npkgs
   npkgs=$(awk '$2 == "upgraded," {print $6}' <(apt-get autoremove -s))
-  if [[ "$npkgs" -gt 0 ]]; then
-    DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove --purge -yy
-  else
+  if [[ "$npkgs" -eq 0 ]]; then
     printf "No packages to be removed.\n"
+    return
   fi
+  DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove --purge -yy
 }
 
 system_reboot() {
