@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 28 Mar 2026
+# Updated:     : 30 Mar 2026
 # Comments     : Should be run locally, not remotely.
 #              : Will not get desktop session info in an SSH connection.
 # TODO (Rick)  :
@@ -251,6 +251,7 @@ nvme_info() {
 get_vendor() {
   local model="${1^^}"
   local id
+  local re="[[:space:]]+"
 	declare -rA vendor_list=(
 		[CS]="PNY"
 		[CT]="Crucial"
@@ -268,7 +269,7 @@ get_vendor() {
 		[WD]="Western Digital"
 	)
   model=$(sed 's/[[:space:]]*$//' <<< "$model")
-  [[ "$model" =~ [[:space:]]+ ]] && model=$(cut -d' ' -f2 <<< "$model")
+  [[ $model =~ $re ]] && model=$(cut -d' ' -f2 <<< "$model")
   id=$(cut -c1-2 <<< "$model")
 	printf "%s" "${vendor_list[$id]}"
 }
@@ -299,7 +300,7 @@ else
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.4.26085"
+  local -r version="5.5.26089"
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r info_file="$HOME/$lhost.info"
 
