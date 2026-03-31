@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Feb 2019
-# Updated      : 20 Mar 2026
+# Updated      : 31 Mar 2026
 # Comments     : Some systems require toot access to get ssid & signal strength.
 #              : If necesary, add applicable hostnames to requires_sudo().
 # TODO (rick)  : format printf statements for devices.
@@ -73,7 +73,7 @@ show_wired() {
     eth_ip=$(awk '/IP4.ADDRESS/ {print $NF}' <(/usr/bin/nmcli dev show "$eth_int") | sed 's/\/24//')
     eth_mac=$(awk '/GENERAL.HWADDR/ {print $NF}' <(/usr/bin/nmcli dev show "$eth_int"))
     # display status
-   case "$eth_state" in
+    case "$eth_state" in
       up )
         printf "%s%12s:%s %s\n" "$lightgreen" "Ethernet" "$normal" "$eth_ip"
         printf "%12s: %s\n" "Device" "$eth_int"
@@ -196,7 +196,7 @@ show_dns() {
 main() {
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r script="${0##*/}"
-  local -r version="4.4.26079"
+  local -r version="4.4.26090"
   requires_sudo "$lhost" && sudo_login 2
   check_dependencies
   clear
