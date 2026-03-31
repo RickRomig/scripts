@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Dec 2024
-# Last updated : 06 Dec 2025
+# Last updated : 30 Mar 2026
 # Comments     : Anacron - copy to /etc/cron.monthly/
 #              : Cron - copy to /usr/local/bin/ or /opt/bin/
 # TODO (Rick)  :
@@ -36,20 +36,21 @@ autoremove_packages() {
 }
 
 # shellcheck disable=SC2001
+# See if you can use ${variable//search/replace} instead.
+# In this case parameter expansion does not work.
 over_line() {
   local char len line title
   title="$1"
   char="${2:--}"
   len=${#char}
   (( len > 1 )) && char=${char::1}
-  line=$(sed "s/./$char/g" <(echo "$title"))
+  line=$(sed "s/./$char/g" <<< "$title")
   printf "%s\n%s\n"  "$line" "$title"
 }
 
 main() {
   local script="${0##*/}"
-  local version="1.3.25340"
-
+  local version="1.4.26089"
   {
     printf "Autoclean log: %(%a %F %R)T\n"
     printf "\nCleaning APT cache...\n"
