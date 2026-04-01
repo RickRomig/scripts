@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 25 Jan 2026
+# Last updated : 01 Apr 2026
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
 #              : If file has been changed, commit the change before retiring.
@@ -35,21 +35,21 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.2.26025"
-readonly E_NOT_GIT_REPO=92
+readonly version="4.3.26091"
+readonly E_NOT_GIT_REPO=101
 EC=0
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local updated="25 Jan 2026"
+	local errcode="${1:-1}"
+	local updated="01 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Retires a script in a Git repo by moving it to a zipped archive.
