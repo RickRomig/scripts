@@ -7,7 +7,7 @@
 # Author       : Copyright (c) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Jun 2022
-# Updated      : 04 Jan 2025
+# Updated      : 01 Apr 2026
 # Comments     : Must be run from the current working directory.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,15 +33,15 @@ if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
+  exit 81
 fi
 
 ## Functions ##
 
 find_images() {
-  local images
-  images=$(find . -maxdepth 1 -type f -iname "*.jp*g" | wc -l)
-  [[ "$images" -gt 0 ]] && return "$TRUE" || return "$FALSE"
+  local num_images
+  num_images=$(wc -l < <(find . -maxdepth 1 -type f -iname "*.jp*g"))
+  [[ $num_images -gt 0 ]] && return "$TRUE" || return "$FALSE"
 }
 
 resize_pics() {
@@ -55,13 +55,13 @@ resize_pics() {
 }
 
 rename_extensions() {
-  # rename *.JPG, *.JPEG, *.jpeg to *.jpg
+  # rename *.JPG, *.JPEG, *.jpeg -> *.jpg
   find . -maxdepth 1 -type f -iname "*.jp*g" -exec rename 's/\.JPE?G$/\.jpg/i' {}  \;
 }
 
 main() {
 	local script="${0##*/}"
-  local version="1.6.26004"
+  local version="1.6.26091"
 	local size="${1:-800}"
   if find_images; then
     check_package imagemagick
