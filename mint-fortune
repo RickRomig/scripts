@@ -2,12 +2,13 @@
 #####################################################################
 # Script Name  : mint-fortune
 # Description  : modified version of packaged mint-fortune
-# Dependencies : cowsay, fortune
+# Dependencies : cowsay, fortune-mod
 # Arguments    : none
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 May 2019
-# Updated      : 19 Jul 2025
+# Updated      : 01 Apr 2026
+# Version      : 1.2.26091
 # Comments     : does not check com.linuxmint.terminal show-fortunes
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,6 +24,20 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #####################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
+  exit 81
+fi
+
+## Functions ##
 
 show_fortune() {
   local cow number range
@@ -47,4 +62,12 @@ show_fortune() {
   /usr/games/fortune | $command -f $cow
 }
 
-[[ -x "/usr/games/fortune" ]] && [[ -x "/usr/games/cowsay" ]] && show_fortune
+main() {
+  local packages=(cowsay fortune-mod)
+  check_packages "${packages[@]}"
+  [[ -x "/usr/games/fortune" ]] && [[ -x "/usr/games/cowsay" ]] && show_fortune
+}
+
+## Execution ##
+
+main "$@"
