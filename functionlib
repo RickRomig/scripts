@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 29 Mar 2026
+# Last updated : 02 Apr 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -207,14 +207,15 @@ user_exists() {
 # Purpose: Prompts for user password if user is in the sudo group.
 # If user is not in the sudo group, displays error message and exits.
 # Argument:
-#   $1 -> number of seconds to sleep before blanking the prompt line. If delay is 0, blanking line is skippped.
+#   $1 -> number of seconds to sleep before blanking the prompt line. If delay is 0, line is immediately blanked.
 ###############################################################################
 sudo_login() {
   local delay="${1:-2}"
   grep -qw sudo <(id -nG "$USER") || die "$USER is not a member of the sudo group. Access denied." 1
-	sudo -vn 2>/dev/null && return
-	sudo ls >/dev/null 2>&1
-	[[ "$delay" -gt 0 ]] && { sleep "$delay"; printf '\e[A\e[K'; }
+	sudo -vn 2>/dev/null && return  # returns if sudo is already active and extends the sudo timeout
+	sudo ls &>/dev/null #2>&1
+  [[ $delay -gt 0 ]] && sleep "$delay"
+  printf '\e[A\e[K'
 }
 
 ###############################################################################
@@ -768,7 +769,7 @@ check_for_file() {
 # Argurment:
 #   $1 -> name of package to check and/or install
 # Example: check_package "$package"
-# NOTE: if set -o pipefail is used in script, function will try to install package even if already installed.
+# NOTE: if set -o pipefail is used in script, function may try to install package even if already installed.
 ###############################################################################
 check_package() {
   local package="$1"
@@ -789,7 +790,7 @@ check_package() {
 # Argurment:
 #   $@ -> array of packages to check and/or install
 # Example: packages=( pkg1 pkg2 ... ); check_packages "${packages[@]}"
-# NOTE: if set -o pipefail is used in script, function will try to install package even if already installed.
+# NOTE: if set -o pipefail is used in script, function may try to install package even if already installed.
 ###############################################################################
 check_packages() {
 	local package packages
