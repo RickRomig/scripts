@@ -2,12 +2,12 @@
 ###############################################################################
 # Script Name  : bu
 # Description  : Backup /etc and /home directories to an external USB drive
-# Dependencies : rsync
+# Dependencies : rsync, Bash 4 or later for associative array
 # Arguments    : see help() function for usage and options
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 09 Mar 2026
+# Last updated : 02 Apr 2026
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,12 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.6.26068"
+readonly version="6.7.26092"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
 readonly logfile="$HOME/.local/share/logs/BU.log"
-exit_status=0
+readonly E_BACUP_ERROR=100
+readonly E_RESTORE_ERROR=101
+EXIT_CODE=0
 SECONDS=0
 DOTS_PID=
 
@@ -92,11 +94,11 @@ check_uuid() {
 	[[ -L "$uuid_path/${uuid_list[$host]}" ]] && return "$TRUE" || return "$FALSE"
 }
 
-is_deb13() {
-	local deb13
+is_deb_13() {
+	local deb_ver
 	if is_debian; then
-		deb13=$(cut -d'.' -f1 </etc/debian_version)
-		(( deb13 >= 13 )) 2>/dev/null && return "$TRUE" || return "$FALSE"
+		deb_ver=$(cut -d'.' -f1 < /etc/debian_version)
+		[[ $deb_ver -ge 13 ]] && return "$TRUE" || return "$FALSE"
 	fi
 	return "$FALSE"
 }
@@ -110,14 +112,14 @@ mount_bu() {
 
 unmount_usb_drive() {
 	printf "Unmounting %s...\n" "$mount_point"
-	if is_deb13; then
+	if is_deb_13; then
 		sudo umount "$mount_point"
 	else
 		umount "$mount_point"
 	fi
 	if grep -q 'BU_Drive' <(mount); then
 		log "$RED_ERROR $mount_point failed to unmount. ($E_DRIVE_ERROR)" "$logfile"
-		exit_status="$E_DRIVE_ERROR"
+		EXIT_CODE="$E_DRIVE_ERROR"
 	else
 		printf "BU_Drive unmounted.\nIt is now safe to remove the USB drive.\n"
 	fi
@@ -189,7 +191,7 @@ backup() {
 		log "$RED_ERROR rsync exited with errors!" "$logfile"
 		printf "* Try reinserting the backup drive and running the command again to correct them.\n" >&2
     printf "* If errors persist then you may have corrupt files or failing hardware.\n" >&2
-		exit_status=90
+		EXIT_CODE="$E_BACUP_ERROR"
   fi
 }
 
@@ -216,7 +218,7 @@ restore() {
 				printf "* Remount BU_Drive USB by unplugging it and plugging it back in.\n" >&2
 				printf "* Wait a few seconds and try running 'bu --restore' again.\n" >&2
 				printf "* You may need to manually restore your data if errors persist.\n" >&2
-	      exit_status=91
+	      EXIT_CODE="$E_RESTORE_ERROR"
 			fi
 		else
 			log "${orange}Restoration canceled.${normal}" "$logfile"
@@ -226,13 +228,13 @@ restore() {
     printf "* This drive may not have been used to backup this machine.\n" >&2
     printf "* BU_Backups/%s directory may have been moved or deleted.\n" "$host" >&2
     printf "* Hostname or username may have changed since last backup.\n" >&2
-    exit_status="$E_FILENOTFOUND"
+    EXIT_CODE="$E_FILENOTFOUND"
 	fi
 }
 
 help() {
 	local errcode="${1:-1}"
-	local updated="09 Mar 2026"
+	local updated="02 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -269,12 +271,12 @@ _SETUP_
 }
 
 log_status() {
-	case "$exit_status" in
+	case "$EXIT_CODE" in
 		0 ) log "Backup/Restore operation successful." "$logfile" ;;
 		81 ) log "Unable to find backup directory for restore." "$logfile" ;;
-		85 ) log "Failed to unmount BU_Drive." "$logfile" ;;
-		90 ) log "Backup operation had errors." "$logfile" ;;
-		91 ) log "Restore operation had errors." "$logfile" ;;
+		88 ) log "Failed to unmount BU_Drive." "$logfile" ;;
+		100 ) log "Backup operation had errors." "$logfile" ;;
+		101 ) log "Restore operation had errors." "$logfile" ;;
 		* ) log "Unknown error." "$logfile" ;;
 	esac
 }
@@ -322,7 +324,7 @@ main() {
 	log_status
 	trim_log
 	over_line "Backup completed in $(format_time $SECONDS)" "-"
-	exit "$exit_status"
+	exit "$EXIT_CODE"
 }
 
 ## Execution ##
