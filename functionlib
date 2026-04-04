@@ -218,12 +218,6 @@ sudo_login() {
   printf '\e[A\e[K'
 }
 
-###############################################################################
-# bin_in_path
-# Purpose: Return true if $HOME/bin is in the PATH
-# Arguments: none
-# Returns: True or False
-###############################################################################
 bin_in_path() {
   grep -q "$HOME/bin" <<< "$PATH" && return $TRUE || return $FALSE
 }
@@ -312,12 +306,6 @@ support_ppa() {
   esac
 }
 
-###############################################################################
-# antix_mx
-# Purpose: Returns true if distribution is antiX or MX Linux
-# Arguments: none
-# Returns: True or False
-###############################################################################
 antix_mx() {
   local dist_id
 	[[ -f /etc/lsb-release ]] || return "$FALSE"
@@ -325,12 +313,6 @@ antix_mx() {
   [[ "$dist_id" == "antiX" || "$dist_id" == "MX" ]] && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# bunsenlabs
-# Purpose: Returns true if distribution is BunsenLabs
-# Arguments: none
-# Returns: True or False
-###############################################################################
 bunsenlabs() {
   [[ $(/usr/bin/lsb_release --id --short) == "BunsenLabs" ]] && return "$TRUE" || return "$FALSE"
 }
@@ -559,11 +541,6 @@ remove_tilde() {
   find . -maxdepth 1 -type f -regex '\./.*~$' -exec rm {} \;
 }
 
-###############################################################################
-# anykey
-# Purpose: Press any key to continue
-# Arguments: none
-###############################################################################
 anykey() {
   read -rsn1 -p "Press any key to continue"; echo
 }
@@ -586,16 +563,6 @@ print_line() {
   sed "s/ /$char/g" <(printf "%${width}s\n")
 }
 
-###############################################################################
-# box
-# Purpose: Displays a box of asterisks around a line of text.
-# Arguments:
-#   $1 -> A single line of text to be displayed.
-#   $2 -> Optional character to form the box. Default is `*`
-# The line of text cannot contain any special characters.
-# Character argument, if present, needs to be in double quotes, i.e., "-".
-# Character argument, if present, is limited to the first character entered.
-###############################################################################
 # shellcheck disable=SC2001
 box() {
   local char edge title
@@ -933,13 +900,6 @@ clone_repo() {
   esac
   git clone "$url/${git_repo}.git" "$HOME/Downloads/$git_repo"
 }
-
-###############################################################################
-# assign_cfg_repo
-# Purpose: assign repository directory for configuration files
-# Argument: None
-# Output: path of repository or cloned repository
-###############################################################################
 
 assign_cfg_repo() {
 	local local_host="${HOSTNAME:-$(hostname)}"
