@@ -7,35 +7,10 @@ None
 TRUE or FALSE (0 or 1)
 ### Usage
 ```bash
-is_systemd && do something
-is_sysv && do something
-is_openrc && do something
-is_runit && do something
-```
-### Code
-1. Systemd
-```bash
-is_systemd() {
-  [[ $(cat /proc/1/comm) == "systemd" ]] && return "$TRUE" || return "$FALSE"
-}
-```
-2. SysV
-```bash
-is_sysv() {
-  [[ $(/sbin/init --version 2>/dev/null | awk '{print $1}') == "SysV" ]] && return "$TRUE" || return "$FALSE"
-}
-```
-3. OpenRC
-```bash
-is_openrc() {
-  [[ -f /sbin/openrc ]] && return "$TRUE" || return "$FALSE"
-}
-```
-4. Runit
-```bash
-is_runit() {
-  [[ $(cat /proc/1/comm) == "runit" ]] && return "$TRUE" || return "$FALSE"
-}
+is_systemd && do_something
+is_sysv && do_something
+is_openrc && do_something
+is_runit && do_something
 ```
 ### Notes
 Other checks:

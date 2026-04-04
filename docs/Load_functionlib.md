@@ -15,12 +15,17 @@ else
    exit 1
 fi
 ```
-2. Source from `.bashrc` for use on command line and all scripts.
+2. Alternate methods
+```bash
+libdirs=~/bin
+source -p '$libdirs" functionlib || exit 1
+```
+3. Source from `.bashrc` for use on command line and all scripts.
 ```bash
 # Function library
 [[ -f ~/bin/functionlib ]] && ~/bin/functionlib
 ```
-3. **Notes**
+### Notes
 - Place at the beginning of the script, after the header and license, but before any variable or function declarations.
 - The full path to the function library must be used. Variables, including environmental variables (HOME, USER) will not work.
 - Include `# shellcheck disable=SC1091` before sourcing unless `shellcheck -x` is used (aliased in `.bash_aliases`).

@@ -9,11 +9,3 @@ cat foobar.conf || diehard "File does not exist." "Please check your spelling."
 ERROR: File does not exist.
 Please check your spelling.
 ```
-### Code
-```bash
-diehard() {
-  local line
-	printf "\e[91mERROR:\e[0m "
-	exec 2>&1; for line; do printf "%s\n" "$line"; done; exit 1
-}
-```

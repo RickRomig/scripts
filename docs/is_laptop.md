@@ -1,18 +1,12 @@
 # is_laptop
 ### Purpose
-Check if the system is a laptop.
+Check if the system is a laptop by checking for `/proc/acpi/button/lid/`.
 ### Arguments
 None
 ### Returns
-TRUE (0) is the system is a laptop, otherwise returns FALSE (1).
+TRUE (0) if the system is a laptop, otherwise returns FALSE (1).
 ### Usage
 ```bash
-is_laptop && do something
-```
-### Code
-```bash
-is_laptop() {
-  [[ -d /proc/acpi/button/lid/ ]] && return "$TRUE" || return "$FALSE"
-}
+is_laptop && do_something
 ```
 ### Notes

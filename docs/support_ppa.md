@@ -4,23 +4,10 @@ Checks if the installed distribution supports Ubuntu Personal Package Archives (
 ### Arguments
 None
 ### Returns
-TRUE (0) or FALSE (1)
+TRUE (0) ipf PPA is officially supported, otherwise FALSE (1)
 ### Usage
 ```bash
 support_ppa || die "PPA not supported." 1
 ```
-### Code
-```bash
-support_ppa() {
-  local codename
-  codename=$(/usr/bin/lsb_release --codename --short)
-  case "$codename" in
-    jammy|noble|vanessa|vera|victoria|virginia|wilma|xia )
-      return "$TRUE"
-    ;;
-    * )
-      return "$FALSE"
-  esac
-}
-```
 ### Notes
+- Personally, I avoide the use of PPAs with Linux Mint and use Flatpak instead.

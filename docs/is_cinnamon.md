@@ -1,18 +1,12 @@
 # is_cinnamon
 ### Purpose
-Return TRUE if the active desktop environment is Cinnamon.
+Checks if the active desktop environment is Cinnamon.
 ### Arguments
 None
 ### Returns
-TRUE or FALSE (0 or 1)
+TRUE (0) if the Cinnamon Desktop Environment, FALSE (1) if not.
 ### Usage
 ```bash
-is_cinnamon && do something
-```
-### Code
-```bash
-is_cinnamon() {
-[ -f /usr/bin/cinnamon-session ] && return "$TRUE" || return "$FALSE"
-}
+is_cinnamon && do_something
 ```
 ### Notes

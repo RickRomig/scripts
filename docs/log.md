@@ -2,8 +2,8 @@
 ### Purpose
 Display an error or informational message and write it to a log file.
 ### Arguments
-- Message to be logges/displayed
-- Path to log file (Unless current directory, full or relative path)
+$1 -> message to be logged and displayed
+$2 -> path/to/logfile (./ or full or relative path)
 ### Returns
 Nothing
 ### Usage
@@ -20,4 +20,5 @@ log() {
 }
 ```
 ### Notes
-Should be used for informational messages and non-critical errors.
+- Should be used for informational messages and non-critical errors.
+- Does not exit the script.
