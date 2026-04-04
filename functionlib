@@ -109,13 +109,6 @@ DEFAULT=$(echo -en "\e[49m")
 
 ## Functions ##
 
-###############################################################################
-# die
-# Purpose: Display an error message and die (exit with an error code)
-# Arguments:
-#   $1 -> Error message
-#   $2 -> Exit status (optional, default is 1)
-###############################################################################
 die() {
   local -r errmsg="${1:-You screwed up}"
   local -r errcode="${2:-1}"
@@ -123,26 +116,12 @@ die() {
   exit "$errcode"
 }
 
-###############################################################################
-# diehard
-# Purpose: Display an error message of 1 or more lines and exit
-# Arguments: Any text immediately following the function call.
-# Example: diehard "File not found." "Check directory."
-###############################################################################
 diehard() {
   local line
 	printf "\e[91mERROR:\e[0m "
 	exec 2>&1; for line; do printf "%s\n" "$line"; done; exit 1
 }
 
-###############################################################################
-# dielog
-# Purpose: Display and log an error message and die (exit with an error code)
-# Arguments:
-#   $1 -> message to be displayed and logged
-#   $2 -> path/to/logfile
-#   $3 -> Exit status (optional, default is 1)
-###############################################################################
 dielog() {
   local message="${1:-You screwed up}"
   local log_file="$2"
@@ -151,15 +130,6 @@ dielog() {
   exit "$err_code"
 }
 
-###############################################################################
-# error_handler
-# Purpose: Display message for trapped errors.
-# Arguments:
-#   $1 -> Error code passed by trap builtin
-#   $2 -> Line number of error passed by trap builtin
-# trap 'error_handler $? $LINENO' ERR
-# Do not use in scripts with functions that return non-error integers.
-###############################################################################
 error_handler() {
   local -r err_code="$1"
   local -r line_nr="$2"
@@ -167,48 +137,21 @@ error_handler() {
   exit "$err_code"
 }
 
-###############################################################################
-# log
-# Purpose: write a msssage to a log file
-# Arguments:
-#   $1 -> message to be logged
-#   $2 -> path/to/logfile
-###############################################################################
 log() {
   local message="${1:-Something happened}"
   local log_file="$2"
   printf "%(%F %R)T: %s\n" -1 "$message" | tee -a "$log_file"
 }
 
-###############################################################################
-# root_user
-# Purpose: Return true if script is being executed by the root user
-# Arguments: none
-# Returns: True or False
-###############################################################################
 root_user() {
   [[ "$(id -u)" -eq "0" ]] && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# user_exists
-# Purpose: Return true if user exists in /etc/passwd
-# Argument:
-#   $1 -> Username to check in /etc/passwd
-# Returns: True or False
-###############################################################################
 user_exists() {
   local U="$1"
   grep -q "^${U}" /etc/passwd && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# sudo_login
-# Purpose: Prompts for user password if user is in the sudo group.
-# If user is not in the sudo group, displays error message and exits.
-# Argument:
-#   $1 -> number of seconds to sleep before blanking the prompt line. If delay is 0, line is immediately blanked.
-###############################################################################
 sudo_login() {
   local delay="${1:-2}"
   grep -qw sudo <(id -nG "$USER") || die "$USER is not a member of the sudo group. Access denied." 1
@@ -222,46 +165,20 @@ bin_in_path() {
   grep -q "$HOME/bin" <<< "$PATH" && return $TRUE || return $FALSE
 }
 
-###############################################################################
-# exists
-# Purpose: Returns true if command/program is in the user's path.
-# Argument:
-#   $1 -> command/program to be checked.
-# Returns: True or False
-###############################################################################
 exists() {
   command -v "$1" &>/dev/null && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# installed
-# Purpose: Returns true if package is installed by apt, dpkg, or gdebi
-# Argument:
-#   $1 -> package to be checked.
-# Returns: True or False
-###############################################################################
 installed() {
   grep -q '^ii' <(dpkg -l "$1" 2>/dev/null) && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# get_distribution
-# Purpose: Prints the full name of the current distribution.
-# Arguments: none
-###############################################################################
 get_distribution() {
   local distro
   distro=$(/usr/bin/lsb_release --description --short 2</dev/null)
   echo "$distro"
 }
 
-###############################################################################
-# is_debian
-# Purpose: Returns true if the distribution is directly based on Debian.
-# Arguments: none
-# Returns: True or False
-# Notes: Antix, BunsenLabs, and MX Linux show as a Debian codename.
-###############################################################################
 is_debian() {
   local codename
   codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
@@ -271,32 +188,14 @@ is_debian() {
   esac
 }
 
-###############################################################################
-# debian_based
-# Purpose: Returns true if distributions is a Debian derivative.
-# Arguments: none
-# Returns: True or False
-###############################################################################
 debian_based() {
   grep -qw debian <(grep -E -w 'ID|ID_LIKE' /etc/os-release) && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# is_noble
-# Purpose: Returns true if distribution is based on Ubuntu 24.04 (i.e., Mint 22.x)
-# Arguments: none
-# Returns: True or False
-###############################################################################
 is_noble() {
   [[ $(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release) == "noble" ]] && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# support_ppa
-# Purpose: Returns true if the distribution supports Ubuntu PPA.
-# Arguments: none
-# Returns: True or False
-###############################################################################
 support_ppa() {
   local codename
   codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
@@ -317,106 +216,44 @@ bunsenlabs() {
   [[ $(/usr/bin/lsb_release --id --short) == "BunsenLabs" ]] && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# is_arch
-# Purpose: Return true if distribution is based on Arch Linux
-# Arguments: none
-# Returns: True or False
-###############################################################################
 is_arch() {
   [[ -d /etc/pacman.d ]] && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# is_systemd
-# Purpose: Returns true is the init system is systemd
-# Arguments: none
-# Returns: True or False
-###############################################################################
 is_systemd() {
   [[ $(cat /proc/1/comm) == "systemd" ]] && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# is_sysv
-# Purpose: Returns true is the init system is SysV
-# Arguments: none
-# Returns: True or False
-###############################################################################
 is_sysv() {
   # [[ $(/sbin/init --version 2>/dev/null | awk '{print $1}') == "SysV" ]] && return "$TRUE" || return "$FALSE"
   [[ $(awk '{print $1}' <(/sbin/init --version 2>/dev/null)) == "SysV" ]] && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# is_openrc
-# Purpose: Returns true is the init system is OpenRC
-# Arguments: none
-# Returns: True or False
-###############################################################################
 is_openrc() {
   [[ -f /sbin/openrc ]] && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# is_runit
-# Purpose: Returns true is the init system is Runit
-# Arguments: none
-# Returns: True or False
-###############################################################################
 is_runit() {
   [[ $(cat /proc/1/comm) == "runit" ]] && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# is_cinnamon
-# Purpose: Returns true is the desktop environment is Cinnamon
-# Arguments: none
-# Returns: True or False
-###############################################################################
 is_cinnamon() {
   [[ -f /usr/bin/cinnamon-session ]] && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# is_i3wm
-# Purpose: Returns true is the window manager is i3wm
-# Arguments: none
-# Returns: True or False
-# Note: wmctrl does not work with SSH connection.
-###############################################################################
 is_i3wm() {
   # [[ $(awk '/Name/ {print $NF}' <(wmctrl -m 2>/dev/null)) == "i3" ]] && return "$TRUE" || return "$FALSE"
   exists i3 && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# is_xfce
-# Purpose: Returns true is the desktop environment is Xfce
-# Arguments: none
-# Returns: True or False
-###############################################################################
 is_xfce() {
   [[ -f /usr/bin/xfce4-session ]] && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# is_laptop
-# Purpose: Returns true is the system is a laptop
-# Arguments: none
-# Returns: True or False
-###############################################################################
 is_laptop() {
   [[ -d /proc/acpi/button/lid/ ]] && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# leapyear
-# Purpose: Returns true if the current year is a leap year.
-# Argument:
-#   $1 -> 4-digit year to be checked
-# Returns: True or False (0 or 1)
-###############################################################################
 leapyear() {
   local year="$1"
   [[ $(( year % 4 )) -ne 0 ]] && return "$FALSE"
@@ -424,13 +261,6 @@ leapyear() {
   [[ $(( year % 100 )) -eq 0 ]] && return "$FALSE" || return "$TRUE"
 }
 
-###############################################################################
-# local_ip
-# Purpose: Extract the last octet of the local IP address
-# Arguments: none
-# Assumes a Class C /24 network, last octet of 1 - 254
-# See ~/bin/snippets/ip-addresses.md for other methods
-###############################################################################
 local_ip() {
   local octet
   octet=$(awk '{print $7}' <(ip route get 1.2.3.4))
@@ -438,15 +268,6 @@ local_ip() {
   printf "%s" "${octet##*.}"
 }
 
-###############################################################################
-# valid_ip
-# Purpose: Return a valid and reachable IP address
-# Assumes a Class C /24 network, last octet of 1 - 254
-# Network identifier and broadcast addresses are excluded
-# Argument:
-#   $1 -> last octet of the IP address to be validated.
-# Returns status to calling script.
-###############################################################################
 valid_ip() {
   local octet status localip re
   octet="$1"
@@ -481,12 +302,6 @@ valid_ip() {
   return "$status"
 }
 
-###############################################################################
-# edit_view_quit
-# Purpose: Edit or view a file after it's been created by a script.
-# Argument:
-#   $1 -> file to be edited or reviewed.
-###############################################################################
 edit_view_quit() {
   local filename _opt
   filename="$1"
@@ -518,12 +333,6 @@ edit_view_quit() {
   done
 }
 
-###############################################################################
-# viewtext
-# Purpose: View a text file with less or cat
-# Argument:
-#   $1 -> file to be viewed
-###############################################################################
 viewtext() {
   local catmax file filelines
   file="$1"
@@ -532,11 +341,6 @@ viewtext() {
   if [[ "$filelines" -gt "$catmax" ]]; then less "$file"; else cat "$file"; fi
 }
 
-###############################################################################
-# remove_tilde
-# Purpose: Removes backup files ending with a tilde '~' in the current directory
-# Arguments: none
-###############################################################################
 remove_tilde() {
   find . -maxdepth 1 -type f -regex '\./.*~$' -exec rm {} \;
 }
@@ -545,16 +349,6 @@ anykey() {
   read -rsn1 -p "Press any key to continue"; echo
 }
 
-###############################################################################
-# print_line
-# Purpose: Print a line of characters across the screen
-# Arguments:
-#  $1 -> character to be printed (optional, = is the default)
-#  #2 -> integer length of the line (optional, width or termina is the default)
-# Character argument, if present, needs to be in double quotes, i.e., "-".
-# Character argument, if present, is limited to the first character entered.
-# Length argument, if present, must follow a character argument.
-###############################################################################
 print_line() {
   local char width
   char="${1:-=}"
@@ -573,16 +367,6 @@ box() {
   printf "%s\n%s\n%s\n" "$edge" "$title" "$edge"
 }
 
-###############################################################################
-# under_line
-# Purpose: Displays a line of hyphen/dashes under a line of text.
-# Arguments:
-#   $1 -> A single line of text to be displayed.
-#   $2 -> Optional character to form the line. Default is `-`
-# The line of text cannot contain any special characters.
-# Character argument, if present, needs to be in double quotes, i.e., "-".
-# Character argument, if present, is limited to the first character entered.
-###############################################################################
 # shellcheck disable=SC2001
 under_line() {
   local char line title
@@ -593,16 +377,6 @@ under_line() {
   printf "%s\n%s\n" "$title" "$line"
 }
 
-###############################################################################
-# over_line
-# Purpose: Displays a line of hyphen/dashes over a line of text.
-# Arguments:
-#   $1 -> A single line of text to be displayed.
-#   $2 -> Optional character to form the line. Default is `-`
-# The line of text cannot contain any special characters.
-# Character argument, if present, needs to be in double quotes, i.e., "-".
-# Character argument, if present, is limited to the first character entered.
-###############################################################################
 # shellcheck disable=SC2001
 over_line() {
   local char line title
@@ -613,13 +387,6 @@ over_line() {
   printf "%s\n%s\n"  "$line" "$title"
 }
 
-###############################################################################
-# center_file
-# Purpose: Display the contents of a text file centered.
-# Argument:
-#   $1 -> a text file
-# Ouput: File contents displayed with lines centered.
-###############################################################################
 center_file() {
   local columns line file
   file="$1"
@@ -629,13 +396,6 @@ center_file() {
 	done < "$file"
 }
 
-###############################################################################
-# center_text
-# Purpose: Display a string of text centered.
-# Argument:
-#  $1 -> a string of text
-# String displayed with lines centered.
-###############################################################################
 center_text() {
   local columns line text_string
   text_string="$1"
@@ -644,14 +404,6 @@ center_text() {
 		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
 	done <<< "$text_string"
 }
-
-###############################################################################
-# color_header
-# Purpose: Display a string of text centered on a colored background.
-#   $1 -> A single line of text to be displayed.
-#   $2 -> Optional background color (default is RED).
-# Modified from script by Kris Occhipinti, http://filmsbykris.com
-###############################################################################
 
 color_header() {
 	local colors centered_line padding_length
@@ -677,14 +429,6 @@ color_header() {
 	printf "%s%s%s\n" "$colors" "$centered_line" "$normal"
 }
 
-###############################################################################
-# leave
-# Purpose: Display either a random message from a file or a message string passed
-# as an argument before exiting the script.
-# Argument:
-#   $1 -> Exit message (Optional)
-# leave "" or leave '' (empty string) if using generated message
-###############################################################################
 leave() {
   local message message_file
   message_file="$HOME/.local/share/doc/leave.txt"
@@ -693,14 +437,6 @@ leave() {
   exit 0
 }
 
-###############################################################################
-# format_time
-# Purpose: Displays the elasped time for a script to run
-# Argument:
-#   $1 -> $SECONDS
-# Place SECONDS=0 ahead of task to be timed.
-# NOTE: SECONDS and ((...)) are undefined in POSIX.
-###############################################################################
 format_time() {
   local ET h m s
   ET="$1"
@@ -710,13 +446,6 @@ format_time() {
   printf "%02d:%02d:%02d\n" $h $m $s
 }
 
-###############################################################################
-# check_for_file
-# Purpose: Checks for a needed support file in ~/bin/files
-# Arugment:
-#   $1 -> File name to be checked.
-# Displays OK for 2 seconds if found, exits the script if not.
-###############################################################################
 check_for_file() {
   local file_dir target_file
   target_file="${1:-foo.bar}"
@@ -730,14 +459,6 @@ check_for_file() {
   fi
 }
 
-###############################################################################
-# check_package
-# Purpose: Check if a package is installed, and install if not.
-# Argurment:
-#   $1 -> name of package to check and/or install
-# Example: check_package "$package"
-# NOTE: if set -o pipefail is used in script, function may try to install package even if already installed.
-###############################################################################
 check_package() {
   local package="$1"
   if grep -q '^ii' <(dpkg -l "$package" 2>/dev/null); then
@@ -751,14 +472,6 @@ check_package() {
   fi
 }
 
-###############################################################################
-# check_packages
-# Purpose: Check if several packages are installed, and install if not.
-# Argurment:
-#   $@ -> array of packages to check and/or install
-# Example: packages=( pkg1 pkg2 ... ); check_packages "${packages[@]}"
-# NOTE: if set -o pipefail is used in script, function may try to install package even if already installed.
-###############################################################################
 check_packages() {
 	local package packages
   packages=("$@")
@@ -775,25 +488,11 @@ check_packages() {
 	done
 }
 
-###############################################################################
-# in_repos
-# Purpose: Returns true if a package is in the repositories, including PPAs and
-# other added software sources in /etc/apt/sources.list.d.
-# Argument:
-#   $1 -> package to be checked
-# Returns: True or False
-###############################################################################
 in_repos() {
   local package="$1"
   [[ "$(awk '/Package:/ {print $NF}' <(apt-cache show "$package" 2>/dev/null))" ]] && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# mount_server
-# Purpose: Mounts a sshfs server on the local network using sshfs in user's home directory.
-# Arguments: none
-# NOTE: $tmp_dir, $tmp_file must be global variables in the calling script.
-###############################################################################
 mount_server() {
   local server_ip share mounted
   server_ip="11"
@@ -815,12 +514,6 @@ mount_server() {
   fi
 }
 
-###############################################################################
-# unmount_server() {
-# Purpose: Unmounts a sshfs server on the local network. Removes temp directory and temp file, if present.
-# Arguments: none
-# NOTE: $tmp_dir, $tmp_file must be global variables in the calling script.
-###############################################################################
 # shellcheck disable=SC2154
 unmount_server() {
   local mounted share
@@ -836,12 +529,6 @@ unmount_server() {
   fi
 }
 
-###############################################################################
-# mount_nas
-# Purpose: Mount the NAS on the local network using sshfs.
-# Arguments: none
-# NOTE: $tmp_dir, $tmp_file must be global variables in the calling script.
-###############################################################################
 mount_nas() {
   local server_ip share mounted
   server_ip="4"
@@ -862,13 +549,6 @@ mount_nas() {
   fi
 }
 
-###############################################################################
-# unmount_nas
-# Purpose: Unmounts the NAS (sshfs server) on local network. Removes temp directory and temp file, if present.
-# Arguments: none
-# NOTE: $tmp_dir, $tmp_file must be global variables in the calling script.
-###############################################################################
-# shellcheck disable=SC2154
 unmount_nas() {
   local mounted share
   share="NASD97167"
@@ -883,12 +563,6 @@ unmount_nas() {
   fi
 }
 
-###############################################################################
-# clone_repo
-# Purpose: Clone a git repository on the GitHub server to ~/Downloads
-# Argument:
-#   $1 -> name of the repository to clone
-###############################################################################
 clone_repo() {
   local git_repo="$1"
   local url
@@ -919,16 +593,6 @@ assign_cfg_repo() {
 	printf "%s" "$repo_dir"
 }
 
-###############################################################################
-# dots
-# Purpose: Display a continuing series of dots as a background process while waiting for an action to complete.
-# Argument:
-#   $1 -> optional character to be repeated. Default is '.' (period)
-# NOTES:
-# Character argument, if present, needs to be in double quotes, i.e., "-". Recommend always including it in the call to it.
-# # DOTS_PID needs to be declared as a global variable in the calling script.
-# Refer to ~/bin/functions/dots-spin.md for usage instructions.
-###############################################################################
 dots() {
 	local char="${1:-.}"
   char="${char::1}"
@@ -939,12 +603,6 @@ dots() {
 	done
 }
 
-###############################################################################
-# kill_dots
-# Purpose: kill the dots background process and restores the cursor.
-# Call function after calling the command running in the foreground.
-# DOTS_PID needs to be declared as a global variable in the calling script.
-###############################################################################
 kill_dots() {
 	if [[ -n "$DOTS_PID" ]]; then
 		kill "$DOTS_PID"
@@ -953,12 +611,6 @@ kill_dots() {
 	tput cnorm
 }
 
-###############################################################################
-# spin
-# Purpose: Display a series of spinning characters to indicate a running process.
-# Refer to ~/bin/functions/dots-spin.md for usage instructions.
-# SPIN_PID needs to be declared as a global variable in the calling script.
-###############################################################################
 spin() {
 	local c
 	local chars=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
@@ -971,12 +623,6 @@ spin() {
 	done
 }
 
-###############################################################################
-# kill_spin
-# Purpose: kill the dots background process and restores the cursor.
-# Call function after calling the command running in the foreground.
-# SPIN_PID needs to be declared as a global variable in the calling script.
-###############################################################################
 kill_spin() {
 	if [[ -n "$SPIN_PID" ]]; then
 		kill "$SPIN_PID"
@@ -986,14 +632,6 @@ kill_spin() {
 	tput cnorm
 }
 
-###############################################################################
-# y_or_n
-# Purpose: Displays a yes or no prompt (y|n).
-# Argument:
-#   $1 -> A string requiring a yes or no response.
-# Returns: True or False
-# Example: y_or_n "Question" && do_something || do_something_else
-###############################################################################
 y_or_n() {
   local yn yn_prompt
   yn_prompt="$1"
@@ -1012,14 +650,6 @@ y_or_n() {
   done
 }
 
-###############################################################################
-# yes_or_no
-# Purpose: Displays a yes or no prompt (yes|no).
-# Argument:
-#   $1 -> A string requiring a yes or no response.
-# Returns: True or False
-# Example: yes_or_no "Question" && do_something || do_something_else
-###############################################################################
 yes_or_no() {
   local yn yn_prompt
   yn_prompt="$1"
@@ -1038,14 +668,6 @@ yes_or_no() {
   done
 }
 
-###############################################################################
-# default_yes
-# Purpose: Displays a yes or no prompt (Y|n), defaults to yes if pressing Enter.
-# Argument:
-#   $1 -> A string requiring a yes or no response.
-# Returns: True or False
-# Example: default_yes "Question" && do_something || do_something_else
-###############################################################################
 default_yes() {
   local yn yn_prompt
   yn_prompt="$1"
@@ -1062,14 +684,6 @@ default_yes() {
   done
 }
 
-###############################################################################
-# default_no
-# Purpose: Displays a yes or no prompt (y|N), defaults to no if pressing Enter.
-# Argument:
-#   $1 -> A string requiring a yes or no response.
-# Returns: True or False
-# Example: default_no "Question" && do_something || do_something_else
-###############################################################################
 default_no() {
   local yn yn_prompt
   yn_prompt="$1"
@@ -1086,13 +700,6 @@ default_no() {
   done
 }
 
-###############################################################################
-# url_accessible
-# Purpose: Returns true if URL is accessible
-# Argument:
-#   $1 -> URL to be checked
-# Returns: True or False
-###############################################################################
 url_reachable() {
   local url result
   url="$1"
@@ -1100,11 +707,6 @@ url_reachable() {
   [[ "$result" -eq 200 ]] && return "$TRUE" || return "$FALSE"
 }
 
-###############################################################################
-# reboot_system
-# Purpose: Prompt the user to reboot the system if it is necessary
-# Aruguments: None
-###############################################################################
 reboot_system() {
   printf "%sThe system needs to be rebooted for the change to take effect.%s\n" "$orange" "$normal"
   if default_no "Do you want to reboot now?"; then
