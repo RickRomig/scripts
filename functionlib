@@ -11,7 +11,7 @@
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
-#              : source "$HOME/bin/functionlib"
+#              : source functionlib or "$HOME/bin/functionlib" or source ~/bin/functionlib
 # Warning!     : Using 'set -o pipefail' in script may cause unexpected behavior or some variables to not be recognized.
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -38,6 +38,9 @@ declare -r GITHUB_URL="https://github.com/RickRomig"
 RED_ERROR=$(printf "\e[91mERROR:\e[0m"); declare -r RED_ERROR
 RED_WARNING=$(printf "\e[91mWARNING!\e[0m"); declare -r RED_WARNING
 
+# Get the local network from the first three octets of the default gateway address. Assumes a /24 (class C) private network.
+LOCALNET=$(cut -d' ' -f3 <(ip route get 1.2.3.4) | sed 's/\..$//'); declare -r LOCALNET
+
 # Error Codes
 declare -r E_INFO=80
 declare -r E_FILENOTFOUND=81
@@ -53,9 +56,6 @@ declare -r E_INSTALLATION=90
 declare -r E_DOWNLOAD=91
 declare -r E_NETWORK=92
 declare -r E_INVALID_HOST=93
-
-# Get the local network from the first three octets of the default gateway address. Assumes a /24 (class C) private network.
-LOCALNET=$(cut -d' ' -f3 <(ip route get 1.2.3.4) | sed 's/\..$//'); readonly LOCALNET
 
 ## Colors ##
 
