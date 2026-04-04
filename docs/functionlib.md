@@ -3,7 +3,14 @@
 ### Introduction
 1. **Functionlib** is a library of functions that can be incorporated into Bash scripts.
 2. This library can be incorporated by sourcing it at the beginning of your script before variables or functions are declared.
-   `. /home/user/bin/functionlib` or `. functionlib`
+```bash
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Load function library ##
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+```
+   - Alternatively, the `.` alias can be used: `source ~/bin/functionlib`. `. /home/user/bin/functionlib`, or `. functionlib`
 3. You may place this library anywhere in your executable path. Suitable locations might be:
    * `/home/user/bin/functionlib` (Recommended)
    * `/home/user/.local/bin/functionlib`
