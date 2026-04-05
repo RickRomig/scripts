@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 23 Mar 2026
+# Last updated : 05 Apr 2026
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 #              : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
@@ -27,17 +27,9 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -100,7 +92,7 @@ get_new_version() {
 	local new_ver
 	local -r github_url="https://github.com"
   curl -s -o "$tmp_file" "$github_url/$release_path"
-    # Extract latest version number from temp file, ignoring beta and release candidates.
+  # Extract latest version number from temp file, ignoring beta and release candidates.
   case "$package" in
     codium )
       new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /amd64.deb/ {print $8;exit}' "$tmp_file") | sed 's/^v//') ;;
@@ -171,7 +163,10 @@ browsers() {
 
 main() {
   local script="${0##*/}"
-  local version="20.0.26082"
+  local version="20.1.26095"
+  check_package curl
+  tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
+  trap cleanup EXIT
   clear
   box "$script $version"
   printf "\n"
@@ -185,7 +180,4 @@ main() {
 
 ## Execution ##
 
-check_package curl
-tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
-trap cleanup EXIT
 main "$@"
