@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 22 Nov 2023
-# Last updated : 15 Jul 2025
+# Last updated : 04 Apr 2026
 # Comments     : Based on a script by Kris Occipinti, https://filmsbykris.com/v7/
 #              : https://gitlab.com/metalx1000/MyBin/-/blob/master/linux/shell/apt-search
 # TODO (Rick)  :
@@ -25,17 +25,9 @@
 # GNU General Public License for more details.
 ###############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Funtions ##
 
@@ -43,28 +35,26 @@ run_query() {
 	local query="$1"
 	local pkg
 	pkg="$(aptitude search "$query" | fzf --prompt "Select packages: " -m | awk '{print $2}' | tr -d '\n')"
-	if [[ "$pkg" ]]; then
-		if default_no	"Install ${pkg}?"; then
-			sudo_login 2
-			sudo apt install "$pkg"
-		else
-			printf "%s was not installed.\n" "$pkg"
-		fi
-	else
+	if [[ -z "$pkg" ]]; then
 		printf "No package selected.\n" >&2
+		return
+	fi
+	if default_no	"Install ${pkg}?"; then
+		sudo_login 2
+		sudo apt install "$pkg"
+	else
+		printf "%s selected but not installed.\n" "$pkg"
 	fi
 }
 
 main() {
 	local script="${0##*/}"
-	local version="3.0.25196"
-	local query
+	local version="4.0.26094"
+	local query="$1"
 	check_package fzf
-	if [[ "$1" ]]; then
-		query="$1"
-	else
-		read -rp "Enter search query: " query
-	fi
+
+	[[ "$query" ]] || read -rp "Enter search query: " query
+
 	if [[ "$query" ]]; then
 		run_query "$query"
 	else
