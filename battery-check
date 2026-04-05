@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jul 2020
-# Updated      : 15 Mar 2026
+# Updated      : 05 Apr 2026
 # Comments     : Uses data from /sys/class/power_supply/BAT*
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -24,17 +24,9 @@
 # GNU General Public License for more details.
 ###############################################################################
 
-# Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
@@ -156,27 +148,27 @@ hidpp_battery() {
 battery_check() {
   local battery_name
   printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
-  if [[ -d /proc/acpi/button/lid/ ]]; then
-    BATTERY_PATH=$(find /sys/class/power_supply/ -name "BAT*")
-    battery_name="${BATTERY_PATH##*/}"
-    if [[ -n "$battery_name" ]]; then
-      printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$battery_name"
-      battery_status
-      battery_capacity
-      battery_specs
-    else
-      printf "\n%sNo battery detected%s\n" "$lightred" "$normal" >&2
-    fi
-    ac_power
-    hidpp_battery
-  else
+  if [[ ! -d /proc/acpi/button/lid/ ]]; then
     printf "\nThis system is not a laptop.\n" >&2
+    return
   fi
+  BATTERY_PATH=$(find /sys/class/power_supply/ -name "BAT*")
+  battery_name="${BATTERY_PATH##*/}"
+  if [[ -z "$battery_name" ]]; then
+    printf "\n%sNo battery detected%s\n" "$lightred" "$normal" >&2
+    return
+  fi
+  printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$battery_name"
+  battery_status
+  battery_capacity
+  battery_specs
+  ac_power
+  hidpp_battery
 }
 
 main() {
   local script="${0##*/}"
-  local version="7.5.26074"
+  local version="7.6.26095"
   clear
   check_package bc
   battery_check
