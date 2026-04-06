@@ -31,7 +31,7 @@ source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.7.26096"
+readonly version="7.0.26096"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -46,23 +46,63 @@ DOTS_PID=
 
 drive_test() {
 	printf "%sChecking Backup USB Drive%s\n" "$green" "$normal"
-	check_usb || dielog "No USB drive connected!" "$logfile" "$E_DRIVE_ERROR"
-	bu_drive_label || dielog "Invalid partition label. Run 'bu -i' for drive setup information." "$logfile" "$E_DRIVE_ERROR"
-  check_uuid || { unmount_usb_drive; dielog "Incorrect backup drive." "$logfile" "$E_DRIVE_ERROR"; }
-  is_deb_13 && mount_bu
-  bu_drive_fs || dielog "Drive must be formatted with EXT4 or XFS." "$logfile" "$E_DRIVE_ERROR"
+	check_usb
+	mount_bu
+	bu_drive_label
+  bu_drive_fs
+  check_uuid
 	get_space_remaining
 	printf "USB Backup Drive is mounted and meets all criteria.\n"
+	if y_or_n "Continue with the backup"; then
+		return
+	else
+		log "BU operation canceled" "$logfile"
+		unmount_usb_drive
+		exit
+	fi
 }
 
 check_usb() {
-	[[ $(grep 'usb' <(lsblk -S -o TRAN)) = *usb* ]] && return "$TRUE" || return "$FALSE"
+	if [[ $(grep 'usb' <(lsblk -S -o TRAN)) = *usb* ]]; then
+		printf "A USB drive is connected.\n"
+	else
+		dielog "No USB drive connected!" "$logfile" "$E_DRIVE_ERROR"
+	fi
+}
+
+mount_bu() {
+  local usbdrv
+  usbdrv=$(awk -F/ '/BU_Drive/ {print $3}' < /proc/mounts)
+  [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
+	[[ $usbdrv ]] && { printf "BU_Drive already mounted on /dev/%s\n" "$usbdrv"; return; }
+	usbdrv=$(awk '/BU_Drive/ {print $1}' <(lsblk -fs))
+	if [[ $usbdrv ]]; then
+		sudo mount /dev/"$usbdrv" "$mount_point"
+		printf "BU_Drive now mounted on /dev/%s\n" "$usbdrv"
+	else
+		dielog "BU_Drive not mounted. Check the drive." "$logfile" "$E_DRIVE_ERROR"
+	fi
 }
 
 bu_drive_label() {
 	local bu_label
-	bu_label="$(grep -w BU_Drive <(lsblk -o label))"
-	[[ "$bu_label" ]] && return "$TRUE" || return "$FALSE"
+	bu_label=$(awk '/BU_Drive/ {print $2}' < /proc/mounts)
+	bu_label="${bu_label##*/}"
+	if [[ $bu_label ]]; then
+		printf "USB drive label = %s \n" "$bu_label"
+	else
+		dielog "Invalid partition label." "$logfile" "$E_DRIVE_ERROR"
+	fi
+}
+
+bu_drive_fs() {
+  local fs_type
+	fs_type=$(awk '/BU_Drive/ {print $3}' < /proc/mounts)
+	if [[ "$fs_type" == "ext4" || "$fs_type" == "XFS" ]]; then
+		printf "BU_Drive format = %s\n" "$fs_type"
+	else
+		dielog "Incorrect format. Drive must be formatted with EXT4 or XFS." "$logfile" "$E_DRIVE_ERROR"
+	fi
 }
 
 check_uuid() {
@@ -83,30 +123,28 @@ check_uuid() {
 		[hp-2560p]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
 		[e-475m]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
 	)
-	[[ -L "$uuid_path/${uuid_list[$host]}" ]] && return "$TRUE" || return "$FALSE"
+	if [[ -L "$uuid_path/${uuid_list[$host]}" ]] ; then
+		printf "USB UUID for %s is correct\n" "$host"
+	else
+		unmount_usb_drive; dielog "Incorrect backup drive." "$logfile" "$E_DRIVE_ERROR"
+	fi
 }
 
-is_deb_13() {
-	local deb_ver
-	is_debian || return "$FALSE"
-	deb_ver=$(cut -d'.' -f1 < /etc/debian_version)
-	[[ $deb_ver -ge 13 ]] && return "$TRUE" || return "$FALSE"
-}
-
-mount_bu() {
-  local usbdrv
-  usbdrv="$(awk '/BU_Drive/ {print $1}' <(lsblk -fs))"
-  [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
-  sudo mount /dev/"$usbdrv" "$mount_point"
-}
+# is_deb_13() {
+# 	local deb_ver
+# 	is_debian || return "$FALSE"
+# 	deb_ver=$(cut -d'.' -f1 < /etc/debian_version)
+# 	[[ $deb_ver -ge 13 ]] && return "$TRUE" || return "$FALSE"
+# }
 
 unmount_usb_drive() {
 	printf "Unmounting %s...\n" "$mount_point"
-	if is_deb_13; then
-		sudo umount "$mount_point"
-	else
-		umount "$mount_point"
-	fi
+	sudo umount "$mount_point"
+	# if is_deb_13; then
+	# 	sudo umount "$mount_point"
+	# else
+	# 	sudo umount "$mount_point"
+	# fi
 	if grep -q 'BU_Drive' <(mount); then
 		log "$RED_ERROR $mount_point failed to unmount. ($E_DRIVE_ERROR)" "$logfile"
 		EXIT_CODE="$E_DRIVE_ERROR"
@@ -114,12 +152,6 @@ unmount_usb_drive() {
 		printf "BU_Drive unmounted.\nIt is now safe to remove the USB drive.\n"
 	fi
 	pgrep -x nemo >/dev/null && nemo --quit	# If Nemo is running, close it.
-}
-
-bu_drive_fs() {
-  local fs_type
-	fs_type="$(awk '/BU_Drive/ {print $2}' <(lsblk -f))"
-	[[ "$fs_type" == "ext4" || "$fs_type" == "XFS" ]] && return "$TRUE" || return "$FALSE"
 }
 
 flush_kb_buffer() {
@@ -137,9 +169,9 @@ sync_drives() {
 }
 
 get_space_remaining() {
-	local avail
-	avail="$(awk 'NR == 2 {print $4}' <(df -h "$mount_point"))"
-	printf "Space available on BU_Drive: %s\n" "$avail"
+	local available
+	available="$(awk 'NR == 2 {print $4}' <(df -h "$mount_point"))"
+	printf "Space available on BU_Drive: %s\n" "$available"
 }
 
 trim_log() {
@@ -305,7 +337,7 @@ main() {
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help 2
+				help "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
