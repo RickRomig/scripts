@@ -57,6 +57,7 @@ search_packages() {
 		printf "Installation declined.\n"
 		return
 	fi
+	printf "\n"
 	sudo_login 2
 	sudo apt install "$package"
 	printf "\nDone\n"
