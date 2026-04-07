@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 15 Oct 2025
-# Last updated : 28 Feb 2026
+# Last updated : 07 Apr 2026
 # Comments     : Original script Copyright (C) 2025  Kris Occhipinti
 #              : Modified and adapted by Rick Romig
 # TODO (Rick)  :
@@ -50,7 +50,7 @@ search_packages() {
 				--preview-window 'top:75%' |
 				tr "\n" " "
 	)"
-	package="${package// /}"	# remove trailing whitespace
+	# package="${package// /}"	# remove trailing whitespace
 	[[ "$package" ]] || { printf "Nothing selected\n"; return; }
 	[[ "$package" ]] && read -n1 -rp "Install ${package}? [y/N]: " do_it
 	if [[ "${do_it,,}" != "y" ]]; then
@@ -65,7 +65,7 @@ search_packages() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.3.26059"
+  local -r version="1.4.26097"
   check_package fzf
   search_packages
   over_line "$script $version"
