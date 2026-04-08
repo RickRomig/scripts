@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 02 Mar 2026
+# Last updated : 07 Apr 2026
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,13 +39,13 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.2.26061"
+readonly version="4.3.26097"
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local -r updated="02 Mar 2026"
+	local errcode="${1:-1}"
+	local -r updated="07 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Create symbolic links from configs and scripts repos and add tweaks to system settings.
@@ -140,10 +140,10 @@ set_reserved_space() {
 	rbc=$(awk '/Reserved block count/ {print $NF}' <(sudo /usr/sbin/tune2fs -l "$root_part"))
 	blk_cnt=$(awk '/Block count/ {print $NF}' <(sudo /usr/sbin/tune2fs -l "$root_part"))
 	res_pct="$(bc <<< "${rbc} * 100 / ${blk_cnt}")"
-	printf "e[93mSetting reserved space on root, home, data partitions...\e[0m\n"
-	[[ "$res_pct" -ne 5 ]] && sudo tune2fs -m 5 "$root_part"
-	[[ "$home_part" ]] && sudo tune2fs -m 0 "$home_part"
-	[[ "$data_part" ]] && sudo tune2fs -m 0 "$data_part"
+	printf "\e[93mSetting reserved space on root, home, data partitions...\e[0m\n"
+	[[ "$res_pct" -ne 5 ]] && sudo /usr/sbin/tune2fs -m 5 "$root_part"
+	[[ "$home_part" ]] && sudo /usr/sbin/tune2fs -m 0 "$home_part"
+	[[ "$data_part" ]] && sudo /usr/sbin/tune2fs -m 0 "$data_part"
 	printf "Partition reserved space set.\n"
 }
 
@@ -180,7 +180,7 @@ no_snaps() {
 
 # Add tweaks to /etc/sudoers.d directory and set swappiness
 sudoers_tweaks() {
-	local repo_dir=~"$1"
+	local repo_dir="$1"
 	printf "\e[93mApplying password feeback...\e[0m\n"
 	if [[ -f /etc/sudoers.d/0pwfeedback ]]; then
 		printf "Sudo password feedback is already enabled with 0pwfeedback\n"
