@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 06 Apr 2026
+# Last updated : 08 Apr 2026
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,12 +31,12 @@ source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.0.26096"
+readonly version="7.0.26098"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
 readonly logfile="$HOME/.local/share/logs/BU.log"
-readonly E_BACUP_ERROR=100
+readonly E_BACKUP_ERROR=100
 readonly E_RESTORE_ERROR=101
 EXIT_CODE=0
 SECONDS=0
@@ -213,7 +213,7 @@ backup() {
 		log "$RED_ERROR rsync exited with errors!" "$logfile"
 		printf "* Try reinserting the backup drive and running the command again to correct them.\n" >&2
     printf "* If errors persist then you may have corrupt files or failing hardware.\n" >&2
-		EXIT_CODE="$E_BACUP_ERROR"
+		EXIT_CODE="$E_BACKUP_ERROR"
   fi
 }
 
