@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 12 May 2021
-# Updated      : 12 Dec 2025
+# Updated      : 09 Apr 2026
 # Comments     : Cinnamon keybindings backup file stored in ~/.config
 #              : Tested with Cinnamon DE on Mint 19+, LMDE 5+, Debian 10+
 # TODO (Rick)  :
@@ -25,31 +25,23 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.1.25346"
-readonly config_dir="$HOME/.config"
-readonly bindings_file="keybindings-backup.dconf"
-readonly bindings_path="/org/cinnamon/desktop/keybindings/"
+readonly version="4.2.26068"
+readonly config_dir=~/.config
+readonly bindings_file=keybindings-backup.dconf
+readonly bindings_path=/org/cinnamon/desktop/keybindings/
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local -r updated="12 Dec 2025"
+  local -r updated="09 Apr 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Creates a backup file of Cinnamon keybindings and restores from a backup file.
@@ -78,10 +70,10 @@ load_from_config() {
 
 copy_from_repo() {
   local -r gh_url="https://raw.githubusercontent.com/RickRomig/configs/refs/heads/main/mint"
-  local dl_dir="$HOME/Downloads/configs/mint"
-  [[ -d ~/gitea/configs/mint ]] && dl_dir="$HOME/gitea/configs/mint"
+  local dl_dir=~/Downloads/configs/mint
+  [[ -d ~/gitea/configs/mint ]] && dl_dir=~/gitea/configs/mint
   printf "Copying Cinnamon keybindings from repository...\n"
-  if [[ -d "$dl_dir" ]]; then
+  if [[ -d $dl_dir ]]; then
     cp -v "$dl_dir/$bindings_file" "$config_dir/"
   else
     curl -so "$config_dir/$bindings_file" "$gh_url/$bindings_file"
@@ -117,11 +109,11 @@ main() {
           ;;
         ? )
           printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-          help 2
+          help "$E_INVALID_ARG"
       esac
       noOpt=0
     done
-    [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+    [[ $noOpt = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
     shift "$(( OPTIND - 1 ))"
   else
     printf "The desktop environment is not Cinnamon.\n" >&2
