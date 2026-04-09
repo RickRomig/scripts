@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 30 Jul 2020
-# Updated      : 16 Mar 2026
+# Updated      : 09 Apr 2026
 # Comments     : Obtains battery data from upower utility.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,17 +23,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 ###############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
@@ -128,25 +120,27 @@ battery_check() {
     printf "\nThis system is not a laptop.\n" >&2
     return
   fi
-  if grep -q 'BAT' <(/usr/bin/upower -e); then
-    BATTERY_DATA=$(mktemp) || die "Failed to create temporary file." "E_TEMP_DIR"
-    trap cleanup EXIT
-    /usr/bin/upower -i "$(grep 'BAT' <(/usr/bin/upower -e))" > "$BATTERY_DATA"
-    printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$(awk '/native-path:/ {print $NF}' "$BATTERY_DATA")"
-    battery_status
-    battery_capacity
-    battery_condition
-    battery_specs
-  else
+  if ! grep -q 'BAT' <(/usr/bin/upower -e); then
     printf "\n%sNo battery detected.%s\n" "$lightred" "$normal" >&2
-  fi
     ac_status
     hidpp_battery
+    return
+  fi
+  BATTERY_DATA=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_DIR"
+  trap cleanup EXIT
+  /usr/bin/upower -i "$(grep 'BAT' <(/usr/bin/upower -e))" > "$BATTERY_DATA"
+  printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$(awk '/native-path:/ {print $NF}' "$BATTERY_DATA")"
+  battery_status
+  battery_capacity
+  battery_condition
+  battery_specs
+  ac_status
+  hidpp_battery
 }
 
 main() {
   local script="${0##*/}"
-  local version="5.3.26075"
+  local version="5.4.26099"
   clear
   check_package upower
   battery_check
