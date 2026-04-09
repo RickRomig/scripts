@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig,
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Feb 2019
-# Updated      : 30 Jan 2025
+# Updated      : 09 Apr 2026
 # Comment      :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,31 +24,21 @@
 # GNU General Public License for more details.
 ###############################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
-
-set -eu
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 clean_work_dir() {
 	local work_dir
 	# work_dir=$(dirname "$(readlink -f "$0")")
 	work_dir="$PWD"
-	printf "\nCleaning up %s ...\n" "$work_dir"
-	find . -maxdepth 1 -type f \( -name "a.out" -o -iname "*.o" -o -iname "*~" \) -print -exec rm {} \;
+	printf "\nCleaning up %s...\n" "$work_dir"
+	find "$work_dir" -maxdepth 1 -type f \( -name "a.out" -o -iname "*.o" -o -iname "*~" \) -print -exec rm -v {} \;
 }
 
 main() {
   local script="${0##*/}"
-  local version="2.2.25196"
+  local version="2.3.26099"
 	clean_work_dir
 	over_line "$script $version"
 	exit
