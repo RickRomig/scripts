@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jul 2020
-# Updated      : 05 Apr 2026
+# Updated      : 10 Apr 2026
 # Comments     : Uses data from /sys/class/power_supply/BAT*
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -156,6 +156,8 @@ battery_check() {
   battery_name="${BATTERY_PATH##*/}"
   if [[ -z "$battery_name" ]]; then
     printf "\n%sNo battery detected%s\n" "$lightred" "$normal" >&2
+    ac_power
+    hidpp_battery
     return
   fi
   printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$battery_name"
@@ -168,7 +170,7 @@ battery_check() {
 
 main() {
   local script="${0##*/}"
-  local version="7.6.26095"
+  local version="7.7.26100"
   clear
   check_package bc
   battery_check
