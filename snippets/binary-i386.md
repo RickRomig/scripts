@@ -9,6 +9,6 @@ Skipping acquire of configured file 'main/bianry-i386' as repository "https://dl
 3. Show packages using 32-bit.
 `$ dpkg --get-selections | grep 386` If nothing displayed, no 32-bit applications.
 4. If no 32-bit applications, remove 32-bit support.
-`$ dpkg --remove-architecture | grep i386`
+`$ sudo dpkg --remove-architecture i386 | grep i386; echo ${PIPESTATUS[@]}`
 ## Miscelleanous
 Adding `[arch=amd64] to line is old source list format` works. I'm not sure it's applicable to the new format.
