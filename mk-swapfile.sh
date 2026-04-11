@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jan 2025
-# Last updated : 07 Jan 2026
+# Last updated : 11 Apr 2026
 # Comments     : creates a swap file if no other swap exists.
 #              : Disable old swap and comment out in /etc/fstab
 #              : User is prompted to provide size of swap file in GB (integer value)
@@ -87,12 +87,12 @@ process_swapfile() {
 	sudo chmod 600 /swapfile	# set file permissions
 	sudo mkswap /swapfile	# set up swap area
 	sudo swapon /swapfile	# enable swap file
-	echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab	# add to /etc/fstab
+	sudo tee -a /etc/fstab <<< "/swapfile none swap sw 0 0"	# add to /etc/fstab
 }
 
 main() {
 	local script="${0##*/}"
-	local version="2.0.26007"
+	local version="2.26101"
 	sudo_login 2
 	if swap_exists; then
 		printf "A swap file or partition already exists and is enabled.\n"
