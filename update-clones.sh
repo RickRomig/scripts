@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Aug 2025
-# Last updated : 25 Feb 2026
+# Last updated : 11 Apr 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,17 +24,9 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -61,7 +53,7 @@ main() {
 	EC=0
 	local clone clones
   local -r script="${0##*/}"
-  local -r version="3.0.26056"
+  local -r version="3.1.26101"
 	local -r log_dir="$HOME/.local/share/logs"
 	local -r repo_log="$log_dir/repo-update.log"
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
