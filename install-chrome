@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2019
-# Updated      : 09 Feb 2026
+# Updated      : 11 Apr 2026
 # Comments     : Google Chrome updates through apt from source list
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.3.26040"
+readonly version="5.4.26101"
 readonly chrome_list="/etc/apt/sources.list.d/google-chrome.list"
 readonly trusted_key="/usr/share/keyrings/google-chrome.gpg"
 EC=0
@@ -48,7 +48,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="09 Feb 2026"
+	local -r updated="11 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updated, or removes Google Chrome.
@@ -84,7 +84,7 @@ set_src_list(){
 		return
   fi
   printf "Creating the source list file...\n"
-  echo "$source_list" | sudo tee "$chrome_list"
+  sudo tee "$chrome_list" <<< "$source_list"
 }
 
 install_chrome() {
