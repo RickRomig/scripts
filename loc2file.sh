@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 29 Jan 2019
-# Updated      : 31 Mar 2026
+# Updated      : 11 Apr 2026
 # Comments     : Processes one C/C++ source file and matching header.
 # TODO (rick)  : Process multiple source & header files in a project.
 # License      : GNU General Public License, version 2.0
@@ -26,7 +26,7 @@
 #####################################################################
 
 readonly script="${0##*/}"
-readonly version="3.2.26090"
+readonly version="3.3.26101"
 readonly E_FILENOTFOUND=81
 readonly E_MISSING_ARG=84
 readonly E_INVALID_ARG=85
@@ -44,7 +44,7 @@ process_source() {
   local cSource="$1"
   local locFile="$2"
   local baseFile="${cSource%%.*}"
-  /usr/local/bin/fnloc "$cSource" | tee "$locFile"
+  tee "$locFile" < <(/usr/local/bin/fnloc "$cSource")
   # Process matching header file if it exists
   [[ -f "$baseFile.h" ]] && process_header "$baseFile.h" "$locFile"
   [[ -f "$baseFile.hh" ]] && process_header "$baseFile.hh" "$locFile"
@@ -53,7 +53,7 @@ process_source() {
 process_header() {
   local headerFile="$1"
   local locFile="$2"
-  /usr/local/bin/lloc "$headerFile" | tee -a "$locFile"
+  tee -a "$locFile" < <(/usr/local/bin/lloc "$headerFile")
 }
 
 print_title() {
