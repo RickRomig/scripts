@@ -7,7 +7,7 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 14 Feb 2026
-# Updated      : 14 Mar 2026
+# Updated      : 11 Apr 2026
 # Comments     : Thanks to Joe Collins and Matt Hartley for the fix for the permissions problem.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,14 +38,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.2.26073"
+readonly version="1.3.26101"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="14 Mar 2026"
+	local -r updated="11 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs Brasero CD/DVD writeer
@@ -77,7 +77,7 @@ set_permissions() {
 }
 
 mimeapps_list_add() {
-  local -r mimeapps_list="$HOME/.local/share/applications/mimeapps.list"
+  local -r mimeapps_list=~/.local/share/applications/mimeapps.list
 	if [[ ! -f "$mimeapps_list" ]]; then
 		printf "%s not found.\n" "${mimeapps_list##*/}"
 		EC="$E_FILENOTFOUND"
@@ -94,7 +94,7 @@ mimeapps_list_add() {
 
 # Sound 'pop and click' fix. Set sound card to stay powered on all the time
 pop_and_click() {
-	echo "options snd-hda-intel power_save=0 power_save_controler=N'" | sudo tee -a /etc/modprobe.d/alsa-base.conf >/dev/null
+	sudo tee -a /etc/modprobe.d/alsa-base.conf >/dev/null <<< "options snd-hda-intel power_save=0 power_save_controler=N"
 }
 
 install_brasero() {
@@ -114,7 +114,7 @@ install_brasero() {
 }
 
 remove_brasero() {
-	local -r mimeapps_list="$HOME/.local/share/applications/mimeapps.list"
+	local -r mimeapps_list=~/.local/share/applications/mimeapps.list
 	printf "Removing Braseror %s...\n" "$(brasero_version)"
 	sudo apt-get remove brasero
 	sed -i '/brasero.desktop/d' "$mimeapps_list"
@@ -153,7 +153,7 @@ main() {
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	[[ "$EC" -eq 0 ]] && reboot_system
+	[[ $EC -eq 0 ]] && reboot_system
 	exit "$EC"
 }
 
