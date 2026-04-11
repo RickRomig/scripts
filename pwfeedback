@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com
 # Created      : 27 Sep 2020
-# Updated      : 16 Nov 2025
+# Updated      : 11 Apr 2026
 # Comments     : Preferred (default) method is /etc/sudoers.d/0pwfeedback.
 #              : 'set -e' halts script with unknown error when assigning pwfb variable.
 # TODO (Rick)  :
@@ -25,22 +25,14 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 1
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.7.25320"
+readonly version="4.8.26101"
 readonly sudoers_file="/etc/sudoers"
 readonly pwfb_dir="/etc/sudoers.d"
 readonly pwfb_file="0pwfeedback"
@@ -48,8 +40,8 @@ readonly pwfb_file="0pwfeedback"
 ## Functions ##
 
 help() {
-	local errcode="${1:-2}"
-	local -r updated="16 Nov 2025"
+	local errcode="${1:-1}"
+	local -r updated="11 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Enable/Disable password feedback in the terminal.
@@ -84,7 +76,7 @@ enable_pwfeedback() {
     [[ "$pwfb" ]] && printf "sudoers.\n" || printf "%s.\n" "$pwfb_file"
   else
     printf "Creating %s ...\n" "$pwfb_file"
-    printf "Defaults  pwfeedback\n" | sudo tee "$pwfb_dir/$pwfb_file" > /dev/null
+    sudo tee "$pwfb_dir/$pwfb_file" >/dev/null <<< "Defaults  pwfeedback"
     # sudo sh -c 'echo "Defaults pwfeedback" > /etc/sudoers.d/0pwfeedback'
     sudo chmod 440 "$pwfb_dir/$pwfb_file"
     printf "Password feedback enabled by %s.\n" "$pwfb_file"
