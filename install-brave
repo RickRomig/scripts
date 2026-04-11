@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 09 Feb 2026
+# Updated      : 11 Apr 2026
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -40,7 +40,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.4.26040"
+readonly version="6.5.26101"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 verbose_mode="FALSE"
@@ -50,7 +50,7 @@ EC=0
 
 help() {
   local errcode="${1:-1}"
-  local updated="09 Feb 20265"
+  local updated="11 Apr 20265"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: ($updated)
 Installs/Removes the Brave browser
@@ -93,7 +93,8 @@ set_src_list() {
     return
   fi
 	show_message "Creating the source list file..."
-  echo "deb [signed-by=$brave_key arch=amd64] $list_url" | sudo tee "$brave_list"
+  # echo "deb [signed-by=$brave_key arch=amd64] $list_url" | sudo tee "$brave_list"
+  sudo tee "$brave_list" <<< "deb [signed-by=$brave_key arch=amd64] $list_url"
   show_message "${brave_list##*/} has been created."
 }
 
