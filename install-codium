@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 07 Apr 2026
+# Updated      : 11 Apr 2026
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,7 +39,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.15.26097"
+readonly version="2.16.26101"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
@@ -49,7 +49,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local updated="07 Apr 2026"
+	local updated="11 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
 Install/Remove VSCodium and apply settings
@@ -91,7 +91,7 @@ set_src_list() {
 		return
 	fi
 	show_message "Creating the source list file..."
-	echo "deb [ signed-by=$key_file arch=amd64 ] $src_url" | sudo tee "$src_list"
+	sudo tee "$src_list" <<< "deb [ signed-by=$key_file arch=amd64 ] $src_url"
 	show_message "${src_list##*/} has been created."
 }
 
