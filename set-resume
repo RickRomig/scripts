@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Nov 2019
-# Updated      : 28 Jan 2026
+# Updated      : 11 Apr 2026
 # Comments     : Extracts swap partition UUID from output of /usr/sbin/blkid
 #              : Debian requires sudo for blkid, in Mint, blkid gives more info wit sudo
 # TODO (Rick)  :
@@ -25,17 +25,9 @@
 # GNU General Public License for more details.
 #############################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -66,7 +58,8 @@ set_resume() {
   local -r resume_path="/etc/initramfs-tools/conf.d/resume"
   printf "\nSWAP UUID: %s\n" "$swap_uuid"
   printf "\nSetting the RESUME environment variable...\n"
-  printf "RESUME=UUID=%s\n" "$swap_uuid" | sudo tee "$resume_path" > /dev/null
+  # printf "RESUME=UUID=%s\n" "$swap_uuid" | sudo tee "$resume_path" >/dev/null
+   sudo tee "$resume_path" >/dev/null <<< "RESUME=UUID=$swap_uuid"
   printf "\nUpdating initramfs ...\n"
   sudo update-initramfs -u -k all
   return 0
@@ -74,7 +67,7 @@ set_resume() {
 
 main() {
   local script="${0##*/}"
-  local -r version="7.1.26028"
+  local -r version="7..26101"
   local ec=0
   print_message
   set_resume
