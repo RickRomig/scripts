@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 29 Mar 2028
+# Updated      : 15 Apr 2028
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -52,7 +52,7 @@ check_flatpaks() {
   command -v flatpak > /dev/null 2>&1 || { printf "Flatpak is not installed.\n"; return; }
   fp_count=$(wc -l < <(flatpak list))
   [[ $fp_count -eq 0 ]] || { printf "No Flatpak packages installed.\n"; return; }
-  fp_updates=$(grep -c updatable <(flatpak update --app --noninteractive))
+  fp_updates=$(grep -c updatable < <(flatpak update --app --noninteractive))
   [[ $fp_updates -eq 0 ]] && { printf "No Flatpak updates currently available.\n"; return; }
   printf "Flatpak updates:\n"
   sed '/^$/d' <(flatpak update --system --noninteractive --force-remove --assumeyes 2>/dev/null)
@@ -91,7 +91,7 @@ system_reboot() {
 
 main() {
   local script="${0##*/}"
-  local version="2.1.25340"
+  local version="2.2.26105"
   local lhost="${HOSTNAME:-$(hostname)}"
   local log_file="/var/log/update.log"
   local sed_file="/usr/share/misc/updatelog.sed"
