@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : yt-dl
 # Description  : Download videos from YouTube.com with best quality
 # Dependencies : yt-dlp fzf ffmpeg
@@ -7,13 +7,13 @@
 # Author       : Copyright © 2019, Richard B. Romig, 05 April 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 30 Mar 2026
+# Updated      : 15 Apr 2026
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to selected directory under ~/Videos/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -23,25 +23,17 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-##########################################################################
-
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
+###############################################################################
 
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.5.26089"
-readonly updated="30 Mar 2026"
+readonly version="7.6.26105"
+readonly updated="15 Apr 2026"
 FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
@@ -98,14 +90,11 @@ _INFO_
 
 check_dependencies() {
   local packages=(ffmpeg fzf)
-  if [[ -x /usr/local/bin/yt-dlp ]]; then
-    printf "yt-dlp [OK]\n"
-    sleep 2
-    printf '\e[A\e[K'
-    check_packages "${packages[@]}"
-  else
-    die "yt-dlp is not installed." "$E_FILENOTFOUND"
-  fi
+  [[ -x /usr/local/bin/yt-dlp ]] || die "yt-dlp is not installed." "$E_FILENOTFOUND"
+  printf "yt-dlp [OK]\n"
+  sleep 2
+  printf '\e[A\e[K'
+  check_packages "${packages[@]}"
 }
 
 extract_domain() {
@@ -137,11 +126,10 @@ download_video() {
   color_header "${site^} Download" "BLUE"
   printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "${site^}"
 	printf "%s...%s\n" "$destination" "$normal"
-  if /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$destination/%(title)s.%(ext)s" "$url"
-  then
+/usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$destination/%(title)s.%(ext)s" "$url"; EC="$?"
+  if [[ $EC -eq 0 ]]; then
     printf "Download successful.\n"
   else
-    EC="$?"
     printf "Download failed. Error: %d\n" "$EC"
   fi
 }
