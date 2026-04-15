@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : yt-dl-playlist
 # Description  : Download a playlist of YouTube audio files to current directory
 # Dependencies : yt-dlp
@@ -7,7 +7,7 @@
 # Author       : Copyright © 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 May 2020
-# Updated      : 30 Mar 2026
+# Updated      : 14 Apr 2026
 # Comments     : Accepts only full URL
 #              : Downloads to current working directory
 #              : Video Playlist
@@ -15,7 +15,7 @@
 # TODO (Rick)  : Hangs after first file in playlist is downloaded.
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -25,30 +25,23 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-##########################################################################
-
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
+###############################################################################
 
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.3.26089"
+readonly version="3.4.260104"
+EC=0
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-}"
-  local updated="30 Mar 2026"
+  local errcode="${1:-1}"
+  local updated="14 Apr 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Downloads mp3 audio from a playlist of YouTube videos to current working directory.
@@ -61,48 +54,42 @@ _HELP_
 }
 
 check_dependencies() {
-  if [ -x /usr/local/bin/yt-dlp ]; then
-    printf "yt-dlp [OK]\n"
-    sleep 2
-    printf '\e[A\e[K'
-    check_package ffmpeg
-  else
-    die "yt-dlp is not installed." "$E_FILENOTFOUND"
-  fi
+  [[ -x /usr/local/bin/yt-dlp ]] || die "yt-dlp is not installed." "$E_FILENOTFOUND"
+  printf "yt-dlp [OK]\n"
+  sleep 2
+  printf '\e[A\e[K'
+  check_package ffmpeg
 }
 
 download_playlist() {
   local playlist_url
-  # box "YouTube Audio Playlist Download" "*"
   color_header "YouTube Audio Playlist Download" "GRAY"
   printf "\nDownloading mp3 audio for %s\n" "$playlist_url"
   # if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s"  --yes-playlist "$url"
-  if /usr/local/bin/yt-dlp --ignore-errors --format bestaudio --extract-audio --restrict-filename --audio-format mp3 --audio-quality 160K --output "%(title)s.%(ext)s" --yes-playlist "$playlist_url"
-  then
+  /usr/local/bin/yt-dlp --ignore-errors --format bestaudio --extract-audio --restrict-filename --audio-format mp3 --audio-quality 160K --output "%(title)s.%(ext)s" --yes-playlist "$playlist_url"; EC="$?"
+  if [[ $EC -eq 0 ]]; then
     printf "Download successful\n"
   else
-    EC="$?"
     printf "Download failed. Error: %d" "$EC"
   fi
 }
 
 main() {
-  local url
   local re="^https?:\/\/.*"
-  check_dependencies
   if [[ "$#" -eq 0 ]]; then
     printf "%s No argument passed \n" "$RED_ERROR" >&2
     help "$E_MISSING_ARG"
   elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
     help 0
   elif [[ $1 =~ $re ]]; then
-    url="$*"
+    local url="$*"
+    check_dependencies
   else
     printf "%s Invalid argument. Must be full URL.\n" "$RED_ERROR" >&2
     help "$E_INVALID_ARG"
   fi
   download_playlist "$url"
-  over_line "$script v$version" "-"
+  over_line "$script $version" "-"
   exit "$EC"
 }
 
