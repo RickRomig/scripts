@@ -62,7 +62,7 @@ check_dependencies() {
 }
 
 download_playlist() {
-  local playlist_url
+  local playlist_url="$1"
   color_header "YouTube Audio Playlist Download" "GRAY"
   printf "\nDownloading mp3 audio for %s\n" "$playlist_url"
   # if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s"  --yes-playlist "$url"
@@ -83,11 +83,11 @@ main() {
     help 0
   elif [[ $1 =~ $re ]]; then
     local url="$*"
-    check_dependencies
   else
     printf "%s Invalid argument. Must be full URL.\n" "$RED_ERROR" >&2
     help "$E_INVALID_ARG"
   fi
+  check_dependencies
   download_playlist "$url"
   over_line "$script $version" "-"
   exit "$EC"
