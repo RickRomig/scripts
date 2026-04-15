@@ -11,4 +11,4 @@ Skipping acquire of configured file 'main/binary-i386' as repository "https://dl
 4. If no 32-bit applications, remove 32-bit support.
 `$ sudo dpkg --remove-architecture i386 | grep i386; echo ${PIPESTATUS[@]}`
 ## Miscelleanous
-Adding `[arch=amd64] to line is old source list format` works. I'm not sure it's applicable to the new format.
+Adding `[arch=amd64] to line in old source list format` also works. I'm not sure it's applicable to the new sources format.
