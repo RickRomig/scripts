@@ -2,7 +2,7 @@
 
 ### Standard format
 ```bash
-cate << EOF
+cat << EOF
 foo
 	bar
 	baz
