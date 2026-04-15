@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : yt-dl-audio
 # Description  : Download mp3 audio from YouTube.com to current directory
 # Dependencies : yt-dlp
@@ -7,13 +7,13 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Nov 2019
-# Updated      : 30 Mar 2026
+# Updated      : 14 Apr 2026
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to current working directory
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -23,31 +23,23 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-##########################################################################
-
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
+###############################################################################
 
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.6.26089"
+readonly version="3.7.260104"
 EC=0
 
 ## Functions
 
 help() {
   local errcode="${1:-1}"
-  local -r updated="30 Mar 2026"
+  local -r updated="14 Apr 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Downloads mp3 audio from YouTube videos to current working diretory.
@@ -64,32 +56,28 @@ _HELP_
 }
 
 check_dependencies() {
-  if [ -x /usr/local/bin/yt-dlp ]; then
-    printf "yt-dlp [OK]\n"
-    sleep 2
-    printf '\e[A\e[K'
-    check_package ffmpeg
- else
-    die "yt-dlp is not installed." "$E_FILENOTFOUND"
-  fi
+  [[ -x /usr/local/bin/yt-dlp ]] || die "yt-dlp is not installed." "$E_FILENOTFOUND"
+  printf "yt-dlp [OK]\n"
+  sleep 2
+  printf '\e[A\e[K'
+  check_package ffmpeg
 }
 
 download_audio() {
-  local url
-  url="$1"
+  local url"$1"
   # box "* YouTube Audio Download *" "*"
   color_header "YouTube Audio Download" "ORANGE"
   printf "\nDownloading mp3 audio from %s to %s...\n" "$url" "$PWD"
-  if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" "$url"; then
+  /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" "$url"; EC="$?"
+  if [[ $EC -eq 0 ]]; then
     printf "Download successful.\n"
   else
-    EC="$?"
     printf "Download failed. Error: %d" "$EC"
   fi
 }
 
 main() {
-  local url
+  local audio_url
   local re="^https?:\/\/.*"
   if [[ "$#" = 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
@@ -98,14 +86,14 @@ main() {
     help 0
   elif [[ $1 =~ $re ]]; then
     # match by regex, starts with http:// or https://
-    audio_url=$*
+    audio_url="$*"
   else
     # match by YouTube video ID
     audio_url="https://www.youtube.com/watch?v=$*"
   fi
   check_dependencies
   download_audio "$audio_url"
-  over_line "$script v$version" "-"
+  over_line "$script $version" "-"
   exit "$EC"
 }
 
