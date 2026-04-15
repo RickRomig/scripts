@@ -1,6 +1,6 @@
 # binary-i386.md
 ## Message during update:
-Skipping acquire of configured file 'main/bianry-i386' as repository "https://dl.google.com/linux/chrome-stable/deb stable InRelease" doesn't support architecture 'i386'
+Skipping acquire of configured file 'main/binary-i386' as repository "https://dl.google.com/linux/chrome-stable/deb stable InRelease" doesn't support architecture 'i386'
 ## Steps to resolve:
 1. Confirm using 64-bit with multiarch enabled.
 `$ dpkg --print-foreign-architectures` If result shows 'i386', then 32-bit support has been added.
