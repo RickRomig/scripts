@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 28 Oct 2025
-# Last updated : 24 Mar 2026
+# Last updated : 16 Apr 2026
 # Comments     : Only supports Debian 12 (bookworm) & Debian 13 (trixie)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,21 +24,13 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
-tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+TMP_DIR=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 EC=0
 
 ## Functions ##
@@ -47,15 +39,15 @@ EC=0
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 # shellcheck disable=SC2317
 cleanup() {
-	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
 }
 
 install_multimedia_keyring() {
 	local -r keyring_url="https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring"
 	local -r keyring_deb="deb-multimedia-keyring_2024.9.1_all.deb"
 	printf "Downloading and installed Debian Multimedia Keyring...\n"
-	wget -P "$tmp_dir" "$keyring_url/$keyring_deb"
-	sudo dpkg -i "$tmp_dir/$keyring_deb"
+	wget -P "$TMP_DIR" "$keyring_url/$keyring_deb"
+	sudo dpkg -i "$TMP_DIR/$keyring_deb"
 }
 
 set_multimedia_sources() {
@@ -88,11 +80,11 @@ set_multimedia_sources() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.2.26083"
+  local -r version="2.3.26106"
 	local distro
 	distro="$(/usr/bin/lsb_release --codename --short)"
-	check_package wget
   trap cleanup EXIT
+	check_package wget
 	[[ "$distro" != "bookworm " && "$distro" != "trixie " ]] && { printf "%s is not supported by this script.\n" "${distro^}"; exit 1; }
 	install_multimedia_keyring
 	set_multimedia_sources "$distro"
