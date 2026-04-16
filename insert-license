@@ -25,17 +25,9 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
@@ -69,12 +61,12 @@ _HELP_
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
-  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
 }
 
-create_tmp_file() {
+create_temp_file() {
 	printf "Creating temporary file.\n"
-	tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
+	TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 	trap cleanup EXIT
 }
 
@@ -104,27 +96,27 @@ insert_license() {
 	local cur_yr
 	local code_type="$1"
 	local code_file="$2"
-	cur_yr=$(printf "\UA9 %s" "$(date +%Y)")
+  cur_yr=$(printf "\UA9 %(%Y)T")
 	local -r template_dir=~/bin/Templates
 	printf "Inserting %s license into %s.\n" "$license_type" "$code_file"
 	case $code_type in
 		"C" )
 			sed -e '1d' \
 				-e "s/<YEAR>/$cur_yr/" \
-				-e "s/^/ * /" "$template_dir/$license_file" > "$tmp_file"
-			sed -i -e "22r ${tmp_file}" "$code_file"
+				-e "s/^/ * /" "$template_dir/$license_file" > "$TMP_FILE"
+			sed -i -e "22r ${TMP_FILE}" "$code_file"
 			;;
 		"C++" )
 			sed -e '1d' \
 				-e "s/<YEAR>/$cur_yr/" \
-				-e "s/^/\/\/ /" "$template_dir/$license_file" > "$tmp_file"
-			sed -i -e "23r ${tmp_file}" "$code_file"
+				-e "s/^/\/\/ /" "$template_dir/$license_file" > "$TMP_FILE"
+			sed -i -e "23r ${TMP_FILE}" "$code_file"
 			;;
 		"Shell" )
 			sed -e '1d' \
 				-e "s/<YEAR>/$cur_yr/" \
-				-e "s/^/# /" "$template_dir/$license_file" > "$tmp_file"
-			sed -i -e "15r ${tmp_file}" "$code_file"
+				-e "s/^/# /" "$template_dir/$license_file" > "$TMP_FILE"
+			sed -i -e "15r ${TMP_FILE}" "$code_file"
 			;;
 		* )
 			die "Invalid code type. Exiting the script." "$E_INVALID_ARG"		# Should never occur
@@ -144,7 +136,7 @@ main() {
 				printf "File: %s\n" "$code_file"
 				code_type="C"
 				printf "Code type: %s source code\n" "$code_type"
-				create_tmp_file
+				create_temp_file
 				;;
 			h )
 				help 0
@@ -155,7 +147,7 @@ main() {
 				printf "File: %s\n" "$code_file"
 				code_type="C++"
 				printf "Code type: %s source code\n" "$code_type"
-				create_tmp_file
+				create_temp_file
 				;;
 			s )
 				code_file="$OPTARG"
@@ -163,7 +155,7 @@ main() {
 				printf "File: %s\n" "$code_file"
 				code_type="Shell"
 				printf "Code type: %s source code\n" "$code_type"
-				create_tmp_file
+				create_temp_file
 				;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
