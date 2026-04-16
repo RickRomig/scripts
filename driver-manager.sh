@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 05 Nov 2025
-# Last updated : 22 Mar 2026
+# Last updated : 16 Apr 2026
 # Comments     : Based on instructions provided by Andrea Borman
 #              : YouTube - https://www.youtube.com/watch?v=-Q_U5lLTxmU
 #              : I don't know of a way to verify or update packages.
@@ -26,21 +26,13 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
-tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+TMP_DIR=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 
 ## Functions ##
 
@@ -61,7 +53,7 @@ check_codename() {
 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
-	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
 }
 
 install_packages() {
@@ -83,9 +75,9 @@ install_packages() {
   sudo_login 2
   for (( idx=0; idx < "${#urls[@]}"; idx++ )); do
 	  printf "Installing %s...\n" "${packages[idx]}"
-    wget -q -P "$tmp_dir" "${urls[idx]}/${packages[idx]}"
-    sudo gdebi -n "$tmp_dir/${packages[idx]}"
-    # sudo dpkg -i "$tmp_dir/${packages[idx]}"; sudo apt-get install --fix-broken
+    wget -q -P "$TMP_DIR" "${urls[idx]}/${packages[idx]}"
+    sudo gdebi -n "$TMP_DIR/${packages[idx]}"
+    # sudo dpkg -i "$TMP_DIR/${packages[idx]}"; sudo apt-get install --fix-broken
     printf "%s installed.\n" "${packages[idx]}"
   done
   printf "Mint Driver Manager installed.\n"
@@ -93,7 +85,7 @@ install_packages() {
 
 exit_script() {
   local -r script="${0##*/}"
-  local -r version="1.4.26081"
+  local -r version="1.5.26106"
   over_line "$script $version"
   exit
 }
