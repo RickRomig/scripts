@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 05 Apr 2026
+# Last updated : 16 Apr 2026
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened once.
 #              : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
@@ -31,13 +31,17 @@
 # shellcheck source=/home/rick/bin/functionlib
 source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
+## Global Variables ##
+
+TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
+
 ## Functions ##
 
 # shellcheck disable=SC2317
 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
-	[[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+	[[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
 }
 
 installed_version() {
@@ -91,19 +95,19 @@ get_new_version() {
 	local release_path="$2"
 	local new_ver
 	local -r github_url="https://github.com"
-  curl -s -o "$tmp_file" "$github_url/$release_path"
+  curl -s -o "$TMP_FILE" "$github_url/$release_path"
   # Extract latest version number from temp file, ignoring beta and release candidates.
   case "$package" in
     codium )
-      new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /amd64.deb/ {print $8;exit}' "$tmp_file") | sed 's/^v//') ;;
+      new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /amd64.deb/ {print $8;exit}' "$TMP_FILE") | sed 's/^v//') ;;
     micro )
-      new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /linux/ {print $6;exit}' "$tmp_file") | sed 's/^v//') ;;
+      new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /linux/ {print $6;exit}' "$TMP_FILE") | sed 's/^v//') ;;
     fastfetch )
-      new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6;exit}' "$tmp_file") ;;
+      new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6;exit}' "$TMP_FILE") ;;
     fresh-editor )
-      new_ver=$(sed 's/^v//' <(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$tmp_file")) ;;
+      new_ver=$(sed 's/^v//' <(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$TMP_FILE")) ;;
     * )
-      new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$tmp_file") | sed 's/^v//')
+      new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$TMP_FILE") | sed 's/^v//')
   esac
   echo "$new_ver"
 }
@@ -163,10 +167,9 @@ browsers() {
 
 main() {
   local script="${0##*/}"
-  local version="20.1.26095"
-  check_package curl
-  tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
+  local version="20.2.26106"
   trap cleanup EXIT
+  check_package curl
   clear
   box "$script $version"
   printf "\n"
