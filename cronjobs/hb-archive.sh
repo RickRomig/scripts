@@ -6,8 +6,8 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Last updated : 09 Oct 2025
-# Version      : 5.0.25282
+# Last updated : 16 Apr 2026
+# Version      : 5.1.26106
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
@@ -24,7 +24,7 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-# Trim top entry from the log file when the length exceeds 12 entries.
+# If log files contains more than 12 entries, trim top entry.
 trim_log() {
 	local log_len log_dir log_file
 	log_dir="$1"
@@ -41,26 +41,26 @@ del_old_archives() {
 
 # Backup *.bak files from from 2 months previous.
 archive_bak() {
-	local arc_date arc_dir err_log hb_dir log_dir log_file ref_date status
-	arc_dir=~/Downloads/archives/homebank
-	log_dir=~/.local/share/logs
-	log_file="HomeBank-archive.log"
+	local arc_date ref_date
 	arc_date=$(date -d "$(date +%Y-%m-01) - 2 months" +%Y-%m)
 	ref_date=$(date -d "$(date +%Y-%m-01) - 1 month" +%m%d%Y)
-	archive="$arc_date-backup.zip"
-	hb_dir=~/Documents/HomeBank
-	err_log="HomeBank-error.log"
-	status=0
+	local -r arc_dir=~/Downloads/archives/homebank
+	local -r log_dir=~/.local/share/logs
+	local -r log_file="HomeBank-archive.log"
+	local -r archive="$arc_date-backup.zip"
+	local -r hb_dir=~/Documents/HomeBank
+	local -r err_log="HomeBank-error.log"
+	local status=0
 	# Create directories if they don't exist.
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 	[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
 {
 	  printf "%(%a|%F|%R)T|%s|" -1 "$arc_date"
-		if zip -qmtt "$ref_date" "$arc_dir/$archive" "$hb_dir"/*.bak 2> "$arc_dir/$err_log"; then
+		zip -qmtt "$ref_date" "$arc_dir/$archive" "$hb_dir"/*.bak 2> "$arc_dir/$err_log"; status="$?"
+		if [[ $status -eq 0 ]]; then
 	    printf "successful\n"
 	    printf "%(%F)T - HomeBank Archive successful.\n" > "$arc_dir/$err_log"
 	  else
-	    status="$?"
 	    printf "had errors\n"
 	    printf "%(%F)T - HomeBank Archive had errors. (%s)" -1 "$status" >> "$arc_dir/$err_log"
 	  fi
