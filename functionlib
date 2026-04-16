@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 11 Apr 2026
+# Last updated : 16 Apr 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -127,7 +127,6 @@ dielog() {
   local message="${1:-You screwed up}"
   local log_file="$2"
   local err_code="${3:-1}"
-  # printf "%(%F %R)T: \e[91mERROR:\e[0m %s (%d)\n" -1 "$message" "$err_code" | tee -a "$log_file"
   tee -a "$log_file" < <(printf "%(%F %R)T: \e[91mERROR:\e[0m %s (%d)\n" -1 "$message" "$err_code")
   exit "$err_code"
 }
@@ -142,7 +141,6 @@ error_handler() {
 log() {
   local message="${1:-Something happened}"
   local log_file="$2"
-  # printf "%(%F %R)T: %s\n" -1 "$message" | tee -a "$log_file"
   tee -a "$log_file" < <(printf "%(%F %R)T: %s\n" -1 "$message")
 }
 
@@ -178,7 +176,7 @@ installed() {
 
 get_distribution() {
   local distro
-  distro=$(/usr/bin/lsb_release --description --short 2</dev/null)
+  distro=$(/usr/bin/lsb_release --description --short 2>/dev/null)
   echo "$distro"
 }
 
@@ -228,7 +226,6 @@ is_systemd() {
 }
 
 is_sysv() {
-  # [[ $(/sbin/init --version 2>/dev/null | awk '{print $1}') == "SysV" ]] && return "$TRUE" || return "$FALSE"
   [[ $(awk '{print $1}' <(/sbin/init --version 2>/dev/null)) == "SysV" ]] && return "$TRUE" || return "$FALSE"
 }
 
@@ -497,9 +494,8 @@ in_repos() {
 }
 
 mount_server() {
-  local server_ip share mounted
-  server_ip="11"
-  share="HP-6005"
+  local -r server_ip="11"
+  local -r share="HP-6005"
   ping -c3 "$LOCALNET.$server_ip" > /dev/null 2>&1 || die "$share at $LOCALNET.$server_ip is not online."
   if [[ -d "$HOME/mnt/$share/" ]]; then
     mounted=$(grep "$share" <(mount))
@@ -518,14 +514,15 @@ mount_server() {
 }
 
 # shellcheck disable=SC2154
+# var is referenced but not assigned
 unmount_server() {
-  local mounted share
-  share="HP-6005"
+  local mounted
+  local -r share="HP-6005"
   mounted=$(grep "$share" <(mount))
   if [[ -n "$mounted" ]]; then
     fusermount -u "$HOME/mnt/$share"
-    [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
-    [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+    [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"  # should be declered as a global variable in the calling script
+    [[ -f "$tmp_file" ]] && rm -f "$tmp_file" # should be declered as a global variable in the calling script
     printf "%s has been unmounted.\n" "$share"
   else
     printf "%s is not mounted.\n" "$share" >&2
@@ -606,6 +603,7 @@ dots() {
 	done
 }
 
+# DOTS_PID must be declared as a global variable in the calling script
 kill_dots() {
 	if [[ -n "$DOTS_PID" ]]; then
 		kill "$DOTS_PID"
@@ -626,6 +624,7 @@ spin() {
 	done
 }
 
+# SPIN_PID must be declared as a global variable in the calling script
 kill_spin() {
 	if [[ -n "$SPIN_PID" ]]; then
 		kill "$SPIN_PID"
