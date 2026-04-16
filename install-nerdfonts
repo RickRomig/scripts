@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Sep 2023
-# Last updated : 30 Jan 2026
+# Last updated : 16 Apr 2026
 # Comments     : system install directory = /usr/local/share/fonts
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,24 +24,22 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Source function library ##
+## Global Variables ##
 
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+
 
 ## Functions ##
 
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# shellcheck disable=SC2317
+# Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
-  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+  [[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
 }
 
 install_NerdFonts() {
@@ -52,9 +50,9 @@ install_NerdFonts() {
   [[ -d "$font_dir" ]] || mkdir -p "$font_dir"
   for font in "${fonts[@]}"; do
     printf "\e[03mInstalling %s ...\e[0m\n" "$font"
-    wget -q -P "$tmp_dir" "$font_repo/$font.tar.xz"
+    wget -q -P "$TMP_DIR" "$font_repo/$font.tar.xz"
     mkdir -p "$font_dir/$font/"
-    tar xvf "$tmp_dir/$font.tar.xz" -C "$font_dir/$font/"
+    tar xvf "$TMP_DIR/$font.tar.xz" -C "$font_dir/$font/"
   done
   printf "Nerd fonts installed.\n"
 }
@@ -74,11 +72,9 @@ install_SymbolNerdFonts() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.12.06030"
-  local -r font_dir="$HOME/.local/share/fonts"
-  sudo_login 2
+  local -r version="1.13.26106"
+  local -r font_dir=~/.local/share/fonts
   check_packages wget
-  tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
   trap cleanup EXIT
   install_NerdFonts "$font_dir"
   install_SymbolNerdFonts "$font_dir"
