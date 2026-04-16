@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 29 Mar 2026
+# Updated      : 16 Apr 2026
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -41,7 +41,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="10.4.26088"
+readonly version="10.5.26106"
 SECONDS=0
 
 ## Functions ##
@@ -55,7 +55,7 @@ cleanup() {
 
 help() {
 	local errcode="${1:-1}"
-  local updated="29 Mar 2026"
+  local updated="16 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt-get or Nala.
@@ -150,24 +150,24 @@ update_flatpaks() {
   fp_updates=$(grep -c 'updatable' <(flatpak update --app --noninteractive))
   if [[ "$fp_updates" -eq 0 ]]; then
     printf "No flatpak updates currently available\n"
-  else
-    printf "Updating flatpaks...\n"
-    printf "User installations...\n"
-    flatpak update --user --noninteractive --force-remove --assumeyes | sed '/^$/d'
-    printf "System-wide installations...\n"
-    sudo flatpak update --system --noninteractive --force-remove --assumeyes  2> /dev/null | sed '/^$/d'
+    return
   fi
+  printf "Updating flatpaks...\n"
+  printf "User installations...\n"
+  flatpak update --user --noninteractive --force-remove --assumeyes | sed '/^$/d'
+  printf "System-wide installations...\n"
+  sed '/^$/d' <(flatpak update --system --noninteractive --force-remove --assumeyes 2>/dev/null)
 }
 
 check_flatpak() {
   local fp_count
-  if exists flatpak; then
-    fp_count=$(flatpak list | wc -l)
-    [[ "$fp_count" -eq 0 ]] && { printf "No Flatpak packages installed.\n"; return; }
-    update_flatpaks
-  else
+  if ! exists flatpak; then
     printf "Flatpak is not installed.\n"
+    return
   fi
+  fp_count=$(wc -l < <(flatpak list))
+  [[ $fp_count -eq 0 ]] && { printf "No Flatpak packages installed.\n"; return; }
+  update_flatpaks
 }
 
 update_spices() {
