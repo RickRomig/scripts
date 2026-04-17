@@ -42,7 +42,7 @@ RED_WARNING=$(printf "\e[91mWARNING!\e[0m"); declare -r RED_WARNING
 # LOCALNET=$(cut -d' ' -f3 <(ip route get 1.2.3.4) | sed 's/\..$//'); declare -r LOCALNET
 LOCALNET=$(cut -d' ' -f3 <(ip route get 1.2.3.4)); LOCALNET="${LOCALNET%.*}"; declare -r LOCALNET
 
-# Error Codes
+# Exit Codes
 declare -r E_INFO=80
 declare -r E_FILENOTFOUND=81
 declare -r E_FILE_EXISTS=82
@@ -358,6 +358,7 @@ print_line() {
 }
 
 # shellcheck disable=SC2001
+# See if you can use ${variable//search/replace} instead. (sed is necesary to replace all charcters)
 box() {
   local char edge title
   char="${2:-*}"
@@ -368,6 +369,7 @@ box() {
 }
 
 # shellcheck disable=SC2001
+# See if you can use ${variable//search/replace} instead.. (sed is necesary to replace all charcters)
 under_line() {
   local char line title
   title="$1"
@@ -378,6 +380,7 @@ under_line() {
 }
 
 # shellcheck disable=SC2001
+# See if you can use ${variable//search/replace} instead.. (sed is necesary to replace all charcters)
 over_line() {
   local char line title
   title="$1"
@@ -496,7 +499,7 @@ in_repos() {
 mount_server() {
   local -r server_ip="11"
   local -r share="HP-6005"
-  ping -c3 "$LOCALNET.$server_ip" > /dev/null 2>&1 || die "$share at $LOCALNET.$server_ip is not online."
+  ping -c3 "$LOCALNET.$server_ip" > /dev/null 2>&1 || die "$share at $LOCALNET.$server_ip is not online." "$E_NETWORK"
   if [[ -d "$HOME/mnt/$share/" ]]; then
     mounted=$(grep "$share" <(mount))
     if [[ -z "$mounted" ]]; then
@@ -521,8 +524,8 @@ unmount_server() {
   mounted=$(grep "$share" <(mount))
   if [[ -n "$mounted" ]]; then
     fusermount -u "$HOME/mnt/$share"
-    [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"  # should be declered as a global variable in the calling script
-    [[ -f "$tmp_file" ]] && rm -f "$tmp_file" # should be declered as a global variable in the calling script
+    [[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"  # should be declered as a global variable in the calling script
+    [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE" # should be declered as a global variable in the calling script
     printf "%s has been unmounted.\n" "$share"
   else
     printf "%s is not mounted.\n" "$share" >&2
@@ -533,7 +536,7 @@ mount_nas() {
   local server_ip share mounted
   server_ip="4"
   share="NASD97167"
-  ping -c3 "$LOCALNET.$server_ip" > /dev/null 2>&1 || die "$share at $LOCALNET.$server_ip is not online."
+  ping -c3 "$LOCALNET.$server_ip" > /dev/null 2>&1 || die "$share at $LOCALNET.$server_ip is not online." "$E_NETWORK"
   if [[ -d "$HOME/mnt/$share/" ]]; then
     mounted=$(grep "$share" <(mount))
     if [[ -z "$mounted" ]]; then
@@ -555,8 +558,8 @@ unmount_nas() {
   mounted=$(grep "$share" <(mount))
   if [[ -n "$mounted" ]]; then
     fusermount -u "$HOME/mnt/$share"
-    [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
-    [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+    [[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"  # should be declered as a global variable in the calling script
+    [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE" # should be declered as a global variable in the calling script
     printf "%s has been unmounted.\n" "$share"
   else
     printf "%s is not mounted.\n" "$share" >&2
