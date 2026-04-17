@@ -7,9 +7,9 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 11 Apr 2026
+# Updated      : 17 Apr 2026
 # Comments     : Alternative to downloading directly from GitHub repo.
-# TODO (Rick)  :
+# TODO (Rick)  : add flatpak installation...
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
@@ -24,24 +24,14 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.16.26101"
-readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
-readonly src_list="/etc/apt/sources.list.d/vscodium.list"
+readonly version="3.0.26107"
 verbose_mode="$FALSE"
 EC=0
 
@@ -49,7 +39,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local updated="11 Apr 2026"
+	local updated="17 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
 Install/Remove VSCodium and apply settings
@@ -72,27 +62,45 @@ codium_version() {
 	awk '/^ii/ {print $3}' <(dpkg -l codium)
 }
 
+is_trixie() {
+  local codename
+  codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
+  case "$codename" in
+    trixie|gigi ) return "$TRUE" ;;
+    * ) return "$FALSE"
+  esac
+}
+
 set_gpg_key() {
-	local -r key_url="https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg"
-	if [[ -f "$key_file" ]]; then
-		printf "%s already exists.\n" "${key_file##*/}"
+	if [[ -f /usr/share/keyrings/vscodium-archive-keyring.asc ]]; then
+		printf "VCCodium keyring already exists.\n"
 		return
 	fi
-	wget "$key_url"
 	show_message "Setting the GPG key..."
-	sudo mv pub.gpg "$key_file"
+	sudo wget https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg \
+	-O /usr/share/keyrings/vscodium-archive-keyring.asc
 	show_message "GPG key is set."
 }
 
 set_src_list() {
-	local -r src_url="https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main"
-	if [[ -f "$src_list" ]]; then
-		printf "%s already exists.\n" "${src_list##*/}"
+	if [[ -f /etc/apt/sources.list.d/vscodium.list || -f /etc/apt/sources.list.d/vscodium.sources ]]; then
+		printf "VCCodium source list already exists.\n"
 		return
 	fi
 	show_message "Creating the source list file..."
-	sudo tee "$src_list" <<< "deb [ signed-by=$key_file arch=amd64 ] $src_url"
-	show_message "${src_list##*/} has been created."
+	if is_trixie; then
+		echo '
+Types: deb
+Architectures: amd64 arm64
+URIs: https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs
+Suites: vscodium
+Components: main
+Signed-By: /usr/share/keyrings/vscodium-archive-keyring.asc
+' | sudo tee /etc/apt/sources.list.d/vscodium.sources
+	else
+		echo 'deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/vscodium-archive-keyring.asc ] https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main' | sudo tee /etc/apt/sources.list.d/vscodium.list
+	fi
+	show_message "VCCodium source list has been created."
 }
 
 install_vscodium() {
@@ -101,12 +109,12 @@ install_vscodium() {
 	set_src_list
 	show_message "Updating apt cache and installing VSCodium..."
 	sudo apt-get update
-	sudo apt-get install codium
-	if exists codium; then
+	sudo apt-get install codium codium-insiders
+	if grep -q '^ii' <(dpkg -l codium 2>/dev/null); then
 		printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 		apply_settings
 	else
-	 printf "%s VSCodium installation failed.\n"  "$RED_ERROR" >&2
+		printf "%s VSCodium installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
   fi
 }
@@ -127,13 +135,13 @@ apply_settings() {
 remove_vscodium() {
 	show_message "Removing VSCodium..."
 	sudo apt-get purge codium
-	show_message "Removing VSCodium GPG key ..."
-	[[ -f "$key_file" ]] && sudo rm -v "$key_file"
-	show_message "Removing VSCodium source list ..."
-	[[ -f "$src_list" ]] && sudo rm -v "$src_list"
 	show_message "Removing VSCodium configuration files ..."
 	[[ -L ~/.config/VSCodium/User//settings.json ]] && unlink ~/.config/VSCodium/User/settings.json
 	find ~/.config -maxdepth 2 -type d -name VSCodium -exec rm -rf {} \;
+	show_message "Removing VSCodium source list ..."
+	find /etc/apt/sources.list.d -maxdepth 1 -type f -name "vscodium*" -exec sudo rm {} \;
+	show_message "Removing VSCodium GPG key and insiders files ..."
+	find /usr/share -type f -name "*vscodium*" -exec sudo rm {} \;
 	printf "VSCodium has been removed.\n"
 }
 
