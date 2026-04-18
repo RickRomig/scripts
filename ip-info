@@ -47,9 +47,9 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
-show_public() {
+show_public_ip() {
   local public_ipv4 public_ipv6
-  public_ipv4=$(/usr/bin/curl -s ifconfig.me)     # http://ident.me
+  public_ipv4=$(/usr/bin/curl -s -4 ifconfig.me)
   [[ "$public_ipv4" ]] && printf "%4sIPv4: %s\n" " " "$public_ipv4" || printf "%4sIPv4: No address found.\n" " "
   public_ipv6=$(/usr/bin/curl -s -6 icanhazip.com)
   [[ "$public_ipv6" ]] && printf "%8s: %s\n" "IPv6" "$public_ipv6" || printf "%4sIPv6: No address found.\n" " "
@@ -166,6 +166,7 @@ show_bridge() {
 show_network() {
   local network_addr
   network_addr=$(awk '/kernel/ {print $1;exit}' <(ip route show))
+  # network_addr=$(awk '/kernel/ {print $1} <(ip route show) | sort -u) # work with KCM/QEMU or Gnome Boxes?
   printf "%sLocal Network:%s\n" "$orange" "$normal"
   printf "%4s%s\n" " " "$network_addr"
 }
@@ -187,7 +188,7 @@ show_dns() {
 main() {
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r script="${0##*/}"
-  local -r version="4.5.26108"
+  local -r version="4.6.26108"
   requires_sudo "$lhost" && sudo_login 2
   check_dependencies
   clear
@@ -195,7 +196,7 @@ main() {
   box "IP Information - $lhost" "*"
   echo "${normal}"
   printf "%sPublic IP:%s\n" "$orange" "$normal"
-  show_public
+  show_public_ip
   printf "%sLocal IP:%s\n" "$orange" "$normal"
   show_wired
   show_wireless
