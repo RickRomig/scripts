@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 07 Apr 2026
+# Updated      : 17 Apr 2026
 # Comments     : Debian 13 & LMDE 7 repo version 2.0.14
 #              : Debian 12, Ubuntu 24.04 & Mint 22 repo version 2.0.13
 # TODO (Rick)  :
@@ -25,22 +25,14 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.21.26097"
+readonly version="6.22.26107"
 readonly gh_url="https://github.com/micro-editor/micro/releases"
 EC=0
 
@@ -48,7 +40,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="07 Apr 2026"
+	local -r updated="17 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -67,8 +59,8 @@ _HELP_
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
-  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
-  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+  [[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
+  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
 }
 
 micro_version() {
@@ -76,8 +68,8 @@ micro_version() {
 }
 
 newest_version() {
-  wget -qO "$tmp_file" "$gh_url"
-  new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /linux/ {print $6;exit}' "$tmp_file") | sed 's/^v//')
+  wget -qO "$TMP_FILE" "$gh_url"
+  new_ver=$(grep -Ev 'beta|-rc' <(awk -F'/' '/download/ && /linux/ {print $6;exit}' "$TMP_FILE") | sed 's/^v//')
   echo "$new_ver"
 }
 
@@ -107,11 +99,11 @@ install_micro() {
   fi
   sudo_login 2
   printf "Downloading Micro %s from the zyedidia GitHub repository..." "$new_ver"
-  wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
+  wget -q -P "$TMP_DIR/" "$gh_url/download/v$new_ver/$new_pkg"
   printf "Installing Micro %s...\n" "$new_ver"
-  tar -xzvf "$tmp_dir/$new_pkg" -C "$tmp_dir/"
-  sudo cp -v "$tmp_dir/micro-$new_ver"/micro /usr/bin/
-  sudo cp -v "$tmp_dir/micro-$new_ver"/micro.1 /usr/share/man/man1/
+  tar -xzvf "$TMP_DIR/$new_pkg" -C "$TMP_DIR/"
+  sudo cp -v "$TMP_DIR/micro-$new_ver"/micro /usr/bin/
+  sudo cp -v "$TMP_DIR/micro-$new_ver"/micro.1 /usr/share/man/man1/
   exists xclip || sudo apt-get install -y xclip
   if [[ "$(micro_version)" != "$new_ver" ]]; then
     printf "%s Micro installation failed.\n" "$RED_ERROR" >&2
@@ -174,8 +166,8 @@ main() {
         if exists micro; then
           printf "Micro %s is already installed.\n" "$(micro_version)" >&2
         else
-          tmp_file=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
-          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+          TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+          TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
           trap cleanup EXIT
           new_ver="$(newest_version)"
           printf "%sInstalling Micro version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
@@ -192,8 +184,8 @@ main() {
         ;;
       u )
         if exists micro; then
-          tmp_file=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
-          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+          TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+          TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
           trap cleanup EXIT
 					printf "Micro: Comparing current and newest versions...\n"
           new_ver="$(newest_version)"
