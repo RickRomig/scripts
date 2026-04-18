@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 30 Mar 2026
+# Updated:     : 17 Apr 2026
 # Comments     : Should be run locally, not remotely.
 #              : Will not get desktop session info in an SSH connection.
 # TODO (Rick)  :
@@ -25,16 +25,16 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Source function library ##
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
+## Global Variables ##
+
+readonly LOCAL_HOST="${HOSTNAME:-$(hostname)}"
+readonly INFO_FILE="$HOME/$LOCAL_HOST.info"
+TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
+HD_DATA=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
 
 ## Functions ##
 
@@ -45,32 +45,32 @@ check_dependencies() {
   [[ -c /dev/nvme0 ]] && check_package nvme-cli
 }
 
-# shellcheck disable=SC2317
 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
+# shellcheck disable=SC2317
 cleanup() {
-  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
-  [[ -f "$hd_data" ]] && rm -f "$hd_data"
+  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
+  [[ -f "$HD_DATA" ]] && rm -f "$HD_DATA"
 }
 
 save_info() {
-  local main_host="hp-800g2-ssf"
+  local -r main_host="hp-800g2-ssf"
+  local -r main_ip="10"
+  local ip_addr
   printf "\n"
-  if default_yes "Save system information to ~/${info_file##*/}"; then
-    printf "Writing system information to ~/%s\n" "${info_file##*/}"
-    cp -v "$tmp_file" "$info_file"
-    chmod 664 "$info_file"
-    default_yes "Copy ${info_file##*/} to $main_host?" && send_to_main
+  if default_yes "Save system information to ~/${INFO_FILE##*/}"; then
+    printf "Writing system information to ~/%s\n" "${INFO_FILE##*/}"
+    cp -v "$TMP_FILE" "$INFO_FILE"
+    chmod 664 "$INFO_FILE"
+    if default_yes "Copy ${INFO_FILE##*/} to $main_host?"; then
+      ip_addr=$(local_ip)
+      [[ "$ip_addr" != "$main_ip" ]] && scp -p "$INFO_FILE" rick@"$LOCALNET.$main_ip":Documents/mosfanet/Computers/info/
+    else
+      printf "System information was not written to ~/%s\n" "$main_host"
+    fi
   else
-    printf "System information was not written to ~/%s\n" "${info_file##*/}"
+    printf "System information was not written to ~/%s\n" "${INFO_FILE##*/}"
   fi
-}
-
-send_to_main() {
-  local main_ip ip_addr
-  ip_addr=$(local_ip)
-  main_ip="10"
-  [[ "$ip_addr" != "$main_ip" ]] && scp -p "$info_file" rick@"$LOCALNET.$main_ip":Documents/mosfanet/Computers/info/
 }
 
 rename_mnt_pt() {
@@ -82,15 +82,15 @@ rename_mnt_pt() {
   select _opt in "/home" "/data" "/ (root)" "/run/timeshift/backup"; do
     case $REPLY in
       1 )
-        sed -i '/timeshift/s/run\/timeshift\/backup/home/' "$tmp_file"
+        sed -i '/timeshift/s/run\/timeshift\/backup/home/' "$TMP_FILE"
         printf "%s mountpoint changed to /home\n" "$ts_drv"
         break ;;
       2 )
-        sed -i '/timeshift/s/run\/timeshift\/backup/data/' "$tmp_file"
+        sed -i '/timeshift/s/run\/timeshift\/backup/data/' "$TMP_FILE"
         printf "%s mountpoint changed to /data\n" "$ts_drv"
         break ;;
       3 )
-        sed -i '/timeshift/s/run\/timeshift\/backup//' "$tmp_file"
+        sed -i '/timeshift/s/run\/timeshift\/backup//' "$TMP_FILE"
         printf "%s mountpoint changed to /\n" "$ts_drv"
         break ;;
       4 )
@@ -213,18 +213,18 @@ ssd_hd_info() {
   local disk hd_ff hd_rpm model
 	printf "\nHard Disk Information:\n"
 	for disk in /dev/sd[a-z]; do
-		sudo hdparm -I "${disk}" 2>/dev/null | tee "$hd_data" > /dev/null
-    printf "%s\n" "$(sed 's/\/dev\///;s/:$//' <(grep -w dev "$hd_data"))"
-    model="$(sed 's/^ *//g' <(awk -F: '/Model/ {print $NF}' "$hd_data"))"
+		sudo hdparm -I "${disk}" 2>/dev/null | tee "$HD_DATA" > /dev/null
+    printf "%s\n" "$(sed 's/\/dev\///;s/:$//' <(grep -w dev "$HD_DATA"))"
+    model="$(sed 's/^ *//g' <(awk -F: '/Model/ {print $NF}' "$HD_DATA"))"
     vendor="$(get_vendor "$model")"
     printf "   %-15s%s\n" "Vendor:" "$vendor"
     printf "   %-15s%s\n" "Model Number:" "$model"
-    printf "   %-15s%s\n" "Serial Number:" "$(sed 's/^ *//g' <(awk -F: '/Serial N/ {print $NF}' "$hd_data"))"
-    printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | tr -d '()')" # sed 's/[)(]//g')"
-    hd_ff=$(sed 's/^ //' <(awk -F: '/Form Factor/ {print $NF}' "$hd_data"))
+    printf "   %-15s%s\n" "Serial Number:" "$(sed 's/^ *//g' <(awk -F: '/Serial N/ {print $NF}' "$HD_DATA"))"
+    printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$HD_DATA" | tr -d '()')" # sed 's/[)(]//g')"
+    hd_ff=$(sed 's/^ //' <(awk -F: '/Form Factor/ {print $NF}' "$HD_DATA"))
     [[ "$hd_ff" ]] || hd_ff=$(ff_fix)
     printf "   %-15s%s" "Form Factor:" "$hd_ff"
-    hd_rpm=$(sed 's/^ //' <(awk -F: '/Rotation/ {print $NF}' "$hd_data"))
+    hd_rpm=$(sed 's/^ //' <(awk -F: '/Rotation/ {print $NF}' "$HD_DATA"))
     case "$hd_rpm" in
       [0-9]* ) printf " %s-rpm Hard Disk Drive\n" "$hd_rpm" ;;
       * ) printf " %s\n" "$hd_rpm"
@@ -246,8 +246,8 @@ nvme_info() {
   done
 }
 
+# See if you can use ${variable//search/replace} instead. (This would eliminate all whitespace in the string)
 # shellcheck disable=SC2001
-# See if you can use ${variable//search/replace} instead. (This woulf eliminate all whitespace in the string)
 get_vendor() {
   local model="${1^^}"
   local id
@@ -300,17 +300,14 @@ else
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.5.26089"
-  local -r lhost="${HOSTNAME:-$(hostname)}"
-  local -r info_file="$HOME/$lhost.info"
+  local -r version="6.0.26107"
 
-  tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
   trap cleanup EXIT
   sudo_login 2
   check_dependencies
   clear
   {
-	  printf "System information for %s, as of %(%d %B %Y)T\n\n" "$lhost"
+	  printf "System information for %s, as of %(%d %B %Y)T\n\n" "$LOCAL_HOST" -1
 	  mfg_info
 	  os_info
 	  cpu_info
@@ -318,18 +315,15 @@ main() {
 	  graphics_info
 	  wired_info
 	  wireless_info
-    if [[ -b /dev/sda ]]; then
-      hd_data=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
-      ssd_hd_info
-    fi
+    [[ -b /dev/sda ]] && ssd_hd_info
     [[ -c /dev/nvme0 ]] && nvme_info
 	  partition_info
 	  is_laptop && battery_info
 	  printf "\n%s v%s\n" "$script" "$version"
-  } | tee "$tmp_file"
+  } | tee "$TMP_FILE"
 
   # Change lsblk timeshift mountpoint to normal partition name.
-  grep -q '/run/timeshift/backup' "$tmp_file" && rename_mnt_pt
+  grep -q '/run/timeshift/backup' "$TMP_FILE" && rename_mnt_pt
   # Save system info to file in the home directory?
   save_info
   exit
