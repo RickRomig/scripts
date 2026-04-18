@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2025
-# Updated      : 11 Msr 2026
+# Updated      : 17 Apr 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,22 +24,15 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.7.26070"
+readonly version="1.8.26107"
 readonly gh_url="https://github.com/sinelaw/fresh/releases"
 DOTS_PID=
 EC=0
@@ -48,7 +41,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="11 Msr 2026"
+	local -r updated="17 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Fresh Editor.
@@ -63,11 +56,12 @@ _HELP_
   exit "$errcode"
 }
 
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+# shellcheck disable=SC2317
 cleanup() {
-  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
-  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+  [[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
+  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
 }
 
 check_dependencies() {
@@ -80,8 +74,8 @@ fresh_version() {
 }
 
 newest_version() {
-  wget -qO "$tmp_file" "$gh_url"
-  new_ver=$(sed 's/^v//' <(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$tmp_file"))
+  wget -qO "$TMP_FILE" "$gh_url"
+  new_ver=$(sed 's/^v//' <(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$TMP_FILE"))
   echo "$new_ver"
 }
 
@@ -112,11 +106,11 @@ install_fresh() {
   printf "Downloading Fresh-editor %s from the sinelaw GitHub repository..." "$new_ver"
   dots "." &
 	DOTS_PID="$!"
-  wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
+  wget -q -P "$TMP_DIR/" "$gh_url/download/v$new_ver/$new_pkg"
 	kill_dots
   printf "Installing Fresh-editor %s...\n" "$new_ver"
   sudo_login 2
-	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
+	sudo dpkg -i "$TMP_DIR/$new_pkg"; sudo apt-get install --fix-broken
   if  [[ "$(fresh_version)" != "$new_ver" ]]; then
     printf "%s Fresh-editor installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
@@ -164,8 +158,8 @@ main() {
           printf "Fresh-editor %s is already installed.\n" "$(fresh_version)" >&2
         else
           check_dependencies
-          tmp_file=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
-          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+          TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+          TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
           trap cleanup EXIT
 					new_ver="$(newest_version)"
           printf "%sInstalling Bat version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
@@ -183,8 +177,8 @@ main() {
       u )
         if exists fresh; then
           check_dependencies
-          tmp_file=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
-          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+          TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+          TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
           trap cleanup EXIT
 					printf "Fresh-editor: Comparing current and newest versions...\n"
           new_ver="$(newest_version)"
