@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Last updated : 27 Feb 2026
+# Last updated : 17 Apr 2026
 # Comments     : .png logo does not work with Terminator.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,22 +24,14 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.18.26058"
+readonly version="3.19.26107"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
 DOTS_PID=
 EC=0
@@ -48,7 +40,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="27 Feb 2026"
+	local -r updated="17 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, removes, updates FastFetch
@@ -66,8 +58,8 @@ _HELP_
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
-	[[ -f "$tmp_file" ]] && rm "$tmp_file"
-	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+	[[ -f "$TMP_FILE" ]] && rm "$TMP_FILE"
+	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
 }
 
 ff_version() {
@@ -76,8 +68,8 @@ ff_version() {
 
 newest_version() {
 	local new_ver
-  wget -qO "$tmp_file" "$gh_url"
-  new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6}' "$tmp_file")
+  wget -qO "$TMP_FILE" "$gh_url"
+  new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6}' "$TMP_FILE")
   echo "$new_ver"
 }
 
@@ -109,10 +101,10 @@ install_fastfetch(){
   printf "Downloading FastFetch %s from the fastfetch-cli GitHub repository..." "$new_ver"
   dots "." &
 	DOTS_PID="$!"
-  wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
+  wget -q -P "$TMP_DIR/" "$gh_url/download/$new_ver/$new_pkg"
 	kill_dots
   printf "Installing FastFetch %s...\n" "$new_ver"
-	sudo dpkg -i "$tmp_dir/$new_pkg"; sudo apt-get install --fix-broken
+	sudo dpkg -i "$TMP_DIR/$new_pkg"; sudo apt-get install --fix-broken
   if [[ "$(ff_version)" != "$new_ver" ]]; then
     printf "%s Fastfetch installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
@@ -166,8 +158,8 @@ main() {
 					printf "Fastfetch %s is already installed.\n" "$(ff_version)" >&2
 				else
 					check_package wget
-					tmp_file=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
-					tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+					TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+					TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 					trap cleanup EXIT
 					new_ver="$(newest_version)"
 					printf "%sInstalling Fastfetch version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
@@ -185,8 +177,8 @@ main() {
 			u )
 				if exists fastfetch; then
 					check_package wget
-					tmp_file=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
-          tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+					TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+          TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 					trap cleanup EXIT
 					printf "FastFetch: Comparing current and newest versions...\n"
 					new_ver="$(newest_version)"
