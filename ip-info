@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Feb 2019
-# Updated      : 31 Mar 2026
+# Updated      : 18 Apr 2026
 # Comments     : Some systems require toot access to get ssid & signal strength.
 #              : If necesary, add applicable hostnames to requires_sudo().
 # TODO (rick)  : format printf statements for devices.
@@ -25,17 +25,9 @@
 # GNU General Public License for more details.
 #####################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -186,17 +178,16 @@ show_gateway() {
 }
 
 show_dns() {
-  local dns_addr dns_addrs addr
-  dns_addr=$(awk '/IP4.DNS/ {print $NF}' <(/usr/bin/nmcli dev show) | sort -u)
-  mapfile -t dns_addrs <<< "$dns_addr"
+  local addr dns_addrs
   printf "%sDNS Servers:%s\n" "$orange" "$normal"
+  readarray -t dns_addrs <<< "$(awk '/IP4.DNS/ {print $NF}' <(/usr/bin/nmcli dev show) | sort -ru)"
   for addr in "${dns_addrs[@]}"; do printf "%4s%s\n" " " "$addr"; done
 }
 
 main() {
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r script="${0##*/}"
-  local -r version="4.4.26090"
+  local -r version="4.5.26108"
   requires_sudo "$lhost" && sudo_login 2
   check_dependencies
   clear
