@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 06 Feb 2026
+# Updated      : 17 Apr 2026
 # Comments     : Based on a script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -24,27 +24,20 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.0.26037"
+readonly version="7.1.26107"
+TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 
 ## Functions ##
 
 help() {
-  local updated="06 Feb 2026"
+  local -r updated="17 Apr 2026"
   clear
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
@@ -73,10 +66,11 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
+# shellcheck disable=SC2317
 cleanup() {
-  [[ -f "$tmp_file" ]] && rm "$tmp_file"
+  [[ -f "$TMP_FILE" ]] && rm "$TMP_FILE"
 }
 
 timeout_exit() {
@@ -94,11 +88,9 @@ exit_script() {
 wx_forecast() {
   local url="$1"
   local wx_loc="$2"
-  tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
-  trap cleanup EXIT
   clear
-  if curl -so "$tmp_file" "$url/${wx_loc}?uA"; then
-    sed '1,7d;/Follow/d' "$tmp_file"
+  if curl -so "$TMP_FILE" "$url/${wx_loc}?uA"; then
+    sed '1,7d;/Follow/d' "$TMP_FILE"
   else
     timeout_exit "$wx_loc"
   fi
@@ -285,6 +277,7 @@ menu() {
 main() {
   local location="${1:-Huber+Heights}"
   local wx_url="https://wttr.in"
+  trap cleanup EXIT
   check_dependencies
   url_reachable "$wx_url" || { printf "%s is not accessible.\nTry again later.\n" "$wx_url" ; exit_script; }
   menu "$wx_url" "$location"
