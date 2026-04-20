@@ -3,11 +3,11 @@
 # Script Name  : clone-repo
 # Description  : Clone a git repository from local Gitea server or GitHub
 # Dependencies : git
-# Arguments    : None
+# Arguments    : See help() function for getopts flags
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 04 Feb 2026
+# Updated      : 19 Apr 2026
 # Comments     : clone_repo() is contained in functionlib
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,29 +24,21 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.2.26063"
+readonly version="4.3.26109"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="04 Feb 2026"
+	local -r updated="19 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Clone a git repository from GitHub or the local Gitea server
@@ -68,19 +60,15 @@ _HELP_
 check_repo() {
   local -r git_repo="$1"
   local -r dl_dir="$HOME/Downloads"
-  if [[ ! -d "$dl_dir/$git_repo" ]]; then
+  if [[ ! $(find "$dl_dir/$git_repo" -type f 2>/dev/null) ]]; then
     clone_repo "$git_repo"
     return
   fi
-  if [[ $(find "$dl_dir/$git_repo" -type f) ]]; then
-    printf "%s is not empty. Updating the directory...\n" "$dl_dir/$git_repo"
-    pushd "$dl_dir/$git_repo" || { EC="$E_POPD_PUSHD"; return; }
-    git checkout .
-    git pull
-    popd || { EC="$E_POPD_PUSHD"; return; }
-  else
-    clone_repo "$git_repo"
-  fi
+  printf "%s is not empty. Updating the repository clone...\n" "$dl_dir/$git_repo"
+  pushd "$dl_dir/$git_repo" || { EC="$E_POPD_PUSHD"; return; }
+  git checkout .
+  git pull
+  popd || { EC="$E_POPD_PUSHD"; return; }
 }
 
 main() {
