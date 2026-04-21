@@ -7,12 +7,12 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 16 Apr 2028
+# Updated      : 21 Apr 2026
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -48,14 +48,28 @@ check_disk_space() {
 }
 
 check_flatpaks() {
-  local fp_count fp_updates
-  command -v flatpak > /dev/null 2>&1 || { printf "Flatpak is not installed.\n"; return; }
+  local fp_count
+  if ! command -v flatpak >/dev/null 2>&1; then
+    printf "Flatpak is not installed.\n"
+    return
+  fi
   fp_count=$(wc -l < <(flatpak list))
-  [[ $fp_count -eq 0 ]] && { printf "No Flatpak packages installed.\n"; return; }
+  if [[ $fp_count -eq 0 ]]; then
+    printf "No Flatpak packages installed.\n"
+    return
+  fi
+  update_flatpaks
+}
+
+update_flatpaks() {
+  local fp_updates
   fp_updates=$(grep -c updatable < <(flatpak update --app --noninteractive))
-  [[ $fp_updates -eq 0 ]] && { printf "No Flatpak updates currently available.\n"; return; }
+  if [[ $fp_updates -eq 0 ]]; then
+    printf "No Flatpak updates currently available.\n"
+    return
+  fi
   printf "Flatpak updates:\n"
-  sed '/^$/d' <(flatpak update --system --noninteractive --force-remove --assumeyes 2>/dev/null)
+  sed '/^$/d' < <(flatpak update --system --noninteractive --force-remove --assumeyes 2>/dev/null)
 }
 
 get_updates() {
@@ -91,7 +105,7 @@ system_reboot() {
 
 main() {
   local script="${0##*/}"
-  local version="2.3.26106"
+  local version="2.4.26111"
   local lhost="${HOSTNAME:-$(hostname)}"
   local log_file="/var/log/update.log"
   local sed_file="/usr/share/misc/updatelog.sed"
