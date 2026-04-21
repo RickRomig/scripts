@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 01 Mar 2025
-# Updated      : 03 Feb 2026
+# Updated      : 20 Apr 2026
 # Comments     : instructions from https://librewolf.net/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,22 +24,14 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.6.26034"
+readonly version="1.7.26110"
 verbose_mode="$FALSE"
 EC=0
 
@@ -47,7 +39,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="03 Feb 2026"
+	local -r updated="20 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/removes LibreWolf browser.
@@ -63,8 +55,7 @@ _HELP_
 }
 
 lw_version() {
-	# awk '{print $NF}' <(librewolf --version)
-	awk '/^ii/ {print $3}' <(dpkg -l librewolf)
+	awk '{print $NF}' <(librewolf --version)
 }
 
 show_message() {
@@ -77,10 +68,10 @@ check_extrepo() {
 		printf "extrepo [OK]\n"
 		sleep 1
 		printf '\e[A\e[K'
-	else
-		show_message "Updating cache and checking/installing extrepo..."
-		sudo apt update && sudo apt install extrepo -y
+		return
 	fi
+	show_message "Updating cache and checking/installing extrepo..."
+	sudo apt update && sudo apt install extrepo -y
 	sudo extrepo enable librewolf && sudo extrepo update librewolf
 	printf "extrepo installed and librewolf repo enabled.\n"
 }
