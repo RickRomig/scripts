@@ -4,10 +4,10 @@
 # Description  : view text file with less or cat based on terminal window size.
 # Dependencies : none
 # Arguments    : See help()
-# Author       : Copyright ©  2020, Richard B. Romig, LudditeGeek@Mosfanet
+# Author       : Copyright © 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 28 Feb 2026
+# Updated      : 23 Apr 2026
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,40 +24,31 @@
 # GNU General Public License for more details.
 #############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.7.26059"
+readonly version="7.0.26113"
 EC=0
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local updated="28 Feb 2026"
+  local updated="23 Apr 2026"
   cat << _HELP_
 ${orange}$script${normal} $version (updated $updated)
 Displays a text file using either cat or less depending the number of lines in
 the file and the number of rows in the current terminal window. Less is used when
 the number of lines is greater than the 87% of the rows, otherwise cat is used.
 
-${green}Usage:${normal} $script [-h] [-f filename] [-n filename]
+${green}Usage:${normal} $script [-h] filename [-n]
 ${orange}Available options:${normal}
-  -f  View file without line numbers.
   -h  Show this help message and exit.
-  -n  View file with line numbers.
+  -n  enable line numbers (follows filename and is case-insensitive).
 _HELP_
   exit "$errcode"
 }
@@ -82,7 +73,7 @@ check_file() {
 }
 
 over_max() {
-	# Returns TRUE (0) if number of lines deems use of less
+	# Returns TRUE (0) if number of lines if less should be used
 	local catmax filelines textfile
 	textfile="$1"
 	catmax=$(( $(tput lines)*87/100 ))
@@ -113,36 +104,13 @@ view_file() {
 }
 
 main() {
-	local noOpt opt optstr filename linenumbers OPTARG OPTIND
-	linenumbers="$FALSE"
-	noOpt=1
-	optstr=":f:hn:"
-	while getopts "$optstr" opt; do
-		case "$opt" in
-			f )
-				filename="$OPTARG"
-				check_file "$filename" && view_file "$filename" "$linenumbers"
-				;;
-			h )
-				help 0
-				;;
-			n )
-				filename="$OPTARG"
-				linenumbers="$TRUE"
-				check_file "$filename" && view_file "$filename" "$linenumbers"
-				;;
-			: )
-				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_MISSING_ARG"
-				;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
-		esac
-		noOpt=0
-	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No option passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
-	shift "$(( OPTIND - 1 ))"
+	local linenumbers
+	[[ $1 == "-h" ]] && help 0
+	local filename="$1"
+	local arg2="${2,,}"	# make argument lowercase
+	arg2="${arg2:0:2}"	# take 1st two characters
+	[[ "$arg2" == "-n" ]] && linenumbers="$TRUE" || linenumbers="$FALSE"
+	check_file "$filename" && view_file "$filename" "$linenumbers"
 	over_line "$script $version"
 	exit "$EC"
 }
