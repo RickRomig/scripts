@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Feb 2019
-# Updated      : 23 Apr 2026
+# Updated      : 24 Apr 2026
 # Comments     : Some systems require to access to use iw to get ssid & signal strength.
 #              : If necesary, add applicable hostnames to requires_sudo().
 # TODO (rick)  : format printf statements for devices.
@@ -66,10 +66,10 @@ show_public_ip() {
 show_wired() {
   # Assumes only one active ethernet wired interface in the system.
   local eth_int eth_state eth_ip eth_mac eth_str
-  printf -v eth_str "%s%12s:%s" "$lightgreen" "Ethernet" "$normal"
   eth_int=$(awk '/ethernet/ {print $1}' <(/usr/bin/nmcli dev))
    [[ "$eth_int" ]] || return
   # interface data
+  printf -v eth_str "%s%12s:%s" "$lightgreen" "Ethernet" "$normal"
   eth_state=$(cat "/sys/class/net/$eth_int/operstate")
   eth_ip=$(awk '/IP4.ADDRESS/ {print $NF}' <(/usr/bin/nmcli dev show "$eth_int") | sed 's/\/24//')
   eth_mac=$(awk '/GENERAL.HWADDR/ {print $NF}' <(/usr/bin/nmcli dev show "$eth_int"))
@@ -98,10 +98,10 @@ show_wired() {
 show_wireless() {
   # Assumes only one active wireless interface in the system.
   local wifi_int wifi_state wifi_ip wifi_mac wifi_ssid wifi_sig wifi_str
-  printf -v wifi_str "%s%12s:%s" "$lightgreen" "Wireless" "$normal"
   wifi_int=$(awk '/wifi / {print $1}' <(/usr/bin/nmcli dev))
   [[ "$wifi_int" ]] || return
   # interface data
+  printf -v wifi_str "%s%12s:%s" "$lightgreen" "Wireless" "$normal"
   wifi_state=$(cat "/sys/class/net/$wifi_int/operstate")
   wifi_ip=$(awk '/IP4.ADDRESS/ {print $NF}' <(/usr/bin/nmcli dev show "$wifi_int") | sed 's/\/24//')
   wifi_mac=$(awk '/GENERAL.HWADDR/ {print $NF}' <(/usr/bin/nmcli dev show "$wifi_int"))
@@ -140,10 +140,10 @@ show_wireless() {
 
 show_bridge() {
   local br_int br_state br_ip br_mac br_route br_str
-  printf -v br_str "%s%12s:%s" "$lightgreen" "Wireless" "$normal"
 	br_int=$(awk '/bridge / {print $1}' <(/usr/bin/nmcli dev))
 	[[ "$br_int" ]] || return
   # interface data
+  printf -v br_str "%s%12s:%s" "$lightgreen" "Wireless" "$normal"
   br_state=$(cat "/sys/class/net/$br_int/operstate")
   br_ip=$(awk '/vir/ && /brd/ {print $2}' <(ip addr show))
   br_mac=$(cat "/sys/class/net/$br_int/address")
@@ -195,7 +195,7 @@ show_dns() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.0.26113"
+  local -r version="5.1.26114"
   local -r lhost="${HOSTNAME:-$(hostname)}"
   requires_sudo "$lhost" && sudo_login 2
   check_dependencies
