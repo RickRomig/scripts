@@ -33,9 +33,7 @@ source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n
 
 readonly LOCAL_HOST="${HOSTNAME:-$(hostname)}"
 readonly INFO_FILE="$HOME/$LOCAL_HOST.info"
-TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
-HD_DATA=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
-NVME_JSON=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
+TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"  # For INFO_FILE
 
 ## Functions ##
 
@@ -195,7 +193,7 @@ wired_info() {
 		e_mac=$(< /sys/class/net/"${eth_int}"/address)
 		e_man=$(mac_mfgr "$e_mac")
 		printf "\nEthernet: %s\n" "$ethernet_dev"
-    printf "%15s %s\n" "Device name:" "$eth_int" "MAC address:" "$e_mac" "Manufacturer:" "$e_man"
+    printf "   %-13s %s\n" "Device name:" "$eth_int" "MAC address:" "$e_mac" "Manufacturer:" "$e_man"
 	fi
 }
 
@@ -207,12 +205,13 @@ wireless_info() {
 		w_mac=$(< /sys/class/net/"${wifi_int}"/address)
 		w_man=$(mac_mfgr "$w_mac")
 		printf "\nWireless: %s\n" "$wireless_dev"
-	  printf "%15s %s\n" "Device name:" "$wifi_int" "MAC address:" "$w_mac" "Manufacturer:" "$w_man"
+	  printf "   %-13s %s\n" "Device name:" "$wifi_int" "MAC address:" "$w_mac" "Manufacturer:" "$w_man"
 	fi
 }
 
 ssd_hd_info() {
   local disk hd_ff hd_rpm model
+  HD_DATA=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
 	printf "\nHard Disk Information:\n"
 	for disk in /dev/sd[a-z]; do
 		sudo hdparm -I "${disk}" 2>/dev/null | tee "$HD_DATA" > /dev/null
@@ -235,26 +234,18 @@ ssd_hd_info() {
 }
 
 nvme_info() {
-  # Does not iterate json array for multiple nvme drives.
-  # local nvme_data devline
-  local model bytesize _i
+  local nvme_data devline model
+  # NVME_JSON=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
   printf "\nNVMe Information:\n"
-  # nvme_data=$(sudo /usr/sbin/nvme list | tail -n+3)
-  sudo /usr/sbin/nvme list -o json | tee "$NVME_JSON" >/dev/null
-  model=$(jq -r '.Devices[0]."ModelNumber"' "$NVME_JSON")
-  bytesize=$(jq -r '.Devices[0]."PhysicalSize"' "$NVME_JSON")
-  printf "   %-15s%s\n" "Vendor:" "$(get_vendor "$model")"
-  printf "   %-15s%s\n" "Model Number:" "$model"
-  printf "   %-15s%s\n" "Serial Number:" "$(jq -r '.Devices[0]."SerialNumber"' "$NVME_JSON")"
-  printf "   %-15s%s GB\n" "Capacity:" "$(( bytesize/1000/1000/1000 ))" # manufacter's capacity
-  # for devline in "${nvme_data[@]}"; do
-  #   printf "%s\n" "$(awk '/dev/ {print $1}' <<< "$devline" | cut -d'/' -f3)"
-  #   model=$(awk '/dev/ {print $4,$5}' <<< "$devline" | sed 's/ [0-9].*$//')
-  #   printf "   %-15s%s\n" "Vendor:" "$(get_vendor "$model")"
-  #   printf "   %-15s%s\n" "Model Number:" "$model"
-  #   printf "   %-15s%s\n" "Serial Number:" "$(awk '/dev/ {print $3}' <<< "$devline")"
-  #   printf "   %-15s%s\n" "Capacity:" "$(awk '/dev/ {print $(NF-7),$(NF-6)}' <<< "$devline")"
-  # done
+  nvme_data=$(sudo /usr/sbin/nvme list | tail -n+3)
+  for devline in "${nvme_data[@]}"; do
+    printf "%s\n" "$(awk -F'/' '{print $3}' <<< "$devline")"
+    model=$(awk '{print $4}' <<< "$devline")
+    printf "   %-15s%s\n" "Vendor:" "$(get_vendor "$model")"
+    printf "   %-15s%s\n" "Model Number:" "$model"
+    printf "   %-15s%s\n" "Serial Number:" "$(awk '{print $3}' <<< "$devline")"
+    printf "   %-15s%s\n" "Capacity:" "$(awk '/dev/ {print $(NF-7),$(NF-6)}' <<< "$devline")"
+  done
 }
 
 # See if you can use ${variable//search/replace} instead. (This would eliminate all whitespace in the string)
