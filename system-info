@@ -7,10 +7,10 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 17 Apr 2026
+# Updated:     : 24 Apr 2026
 # Comments     : Should be run locally, not remotely.
 #              : Will not get desktop session info in an SSH connection.
-# TODO (Rick)  :
+# TODO (Rick)  : NVME info only works with 1 NVMC device, learn to iterate json array
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
@@ -35,6 +35,7 @@ readonly LOCAL_HOST="${HOSTNAME:-$(hostname)}"
 readonly INFO_FILE="$HOME/$LOCAL_HOST.info"
 TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 HD_DATA=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
+NVME_JSON=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
 
 ## Functions ##
 
@@ -51,6 +52,7 @@ check_dependencies() {
 cleanup() {
   [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
   [[ -f "$HD_DATA" ]] && rm -f "$HD_DATA"
+  [[ -f "$NVME_JSON" ]] && rm -f  "$NVME_JSON"
 }
 
 save_info() {
@@ -233,17 +235,26 @@ ssd_hd_info() {
 }
 
 nvme_info() {
-  local nvme_data devline model
+  # Does not iterate json array for multiple nvme drives.
+  # local nvme_data devline
+  local model bytesize _i
   printf "\nNVMe Information:\n"
-  nvme_data=$(sudo /usr/sbin/nvme list | tail -n+3)
-  for devline in "${nvme_data[@]}"; do
-    printf "%s\n" "$(awk '/dev/ {print $1}' <<< "$devline" | cut -d'/' -f3)"
-    model=$(awk '/dev/ {print $4,$5}' <<< "$devline" | sed 's/ [0-9].*$//')
-    printf "   %-15s%s\n" "Vendor:" "$(get_vendor "$model")"
-    printf "   %-15s%s\n" "Model Number:" "$model"
-    printf "   %-15s%s\n" "Serial Number:" "$(awk '/dev/ {print $3}' <<< "$devline")"
-    printf "   %-15s%s\n" "Capacity:" "$(awk '/dev/ {print $(NF-7),$(NF-6)}' <<< "$devline")"
-  done
+  # nvme_data=$(sudo /usr/sbin/nvme list | tail -n+3)
+  sudo /usr/sbin/nvme list -o json | tee "$NVME_JSON" >/dev/null
+  model=$(jq -r '.Devices[0]."ModelNumber"' "$NVME_JSON")
+  bytesize=$(jq -r '.Devices[0]."PhysicalSize"' "$NVME_JSON")
+  printf "   %-15s%s\n" "Vendor:" "$(get_vendor "$model")"
+  printf "   %-15s%s\n" "Model Number:" "$model"
+  printf "   %-15s%s\n" "Serial Number:" "$(jq -r '.Devices[0]."SerialNumber"' "$NVME_JSON")"
+  printf "   %-15s%s GB\n" "Capacity:" "$(( bytesize/1000/1000/1000 ))" # manufacter's capacity
+  # for devline in "${nvme_data[@]}"; do
+  #   printf "%s\n" "$(awk '/dev/ {print $1}' <<< "$devline" | cut -d'/' -f3)"
+  #   model=$(awk '/dev/ {print $4,$5}' <<< "$devline" | sed 's/ [0-9].*$//')
+  #   printf "   %-15s%s\n" "Vendor:" "$(get_vendor "$model")"
+  #   printf "   %-15s%s\n" "Model Number:" "$model"
+  #   printf "   %-15s%s\n" "Serial Number:" "$(awk '/dev/ {print $3}' <<< "$devline")"
+  #   printf "   %-15s%s\n" "Capacity:" "$(awk '/dev/ {print $(NF-7),$(NF-6)}' <<< "$devline")"
+  # done
 }
 
 # See if you can use ${variable//search/replace} instead. (This would eliminate all whitespace in the string)
@@ -300,7 +311,7 @@ else
 
 main() {
   local -r script="${0##*/}"
-  local -r version="6.0.26107"
+  local -r version="7.0.26114"
 
   trap cleanup EXIT
   sudo_login 2
