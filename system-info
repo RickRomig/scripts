@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 25 Apr 2026
+# Updated:     : 26 Apr 2026
 # Comments     : Should be run locally, not remotely.
 #              : Will not get desktop session info in an SSH connection.
 # TODO (Rick)  :
@@ -50,7 +50,7 @@ check_dependencies() {
 cleanup() {
   [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
   [[ -f "$HD_DATA" ]] && rm -f "$HD_DATA"
-  [[ -f "$NVME_JSON" ]] && rm -f  "$NVME_JSON"
+  # [[ -f "$NVME_JSON" ]] && rm -f  "$NVME_JSON"
 }
 
 save_info() {
@@ -76,7 +76,7 @@ save_info() {
 rename_mnt_pt() {
   local ts_drv _opt
   # ts_drv=$(mount | awk '/timeshift/ {print $3}' | cut -d' ' -f1)
-  ts_drv=$(awk '/timeshift/ {print $3}' <(mount))
+  ts_drv=$(awk '/timeshift/ {print $3}' < <(mount))
   printf "\nRename the mountpoint for %s to:\n" "$ts_drv"
   PS3="Select the appropriate mountpoint: "
   select _opt in "/home" "/data" "/ (root)" "/run/timeshift/backup"; do
@@ -144,9 +144,9 @@ mfg_info() {
 os_info() {
   local desktop root_part created_date
   desktop="$DESKTOP_SESSION"
-  [[ "$desktop" == "bunsenlabs" || "$desktop" == "lightdm-xsession" ]] && desktop=$(awk '/Name/ {print $2}' <(wmctrl -m))
-  root_part=$(awk '$NF == "/" {print $1}' <(df -P))
-	created_date=$(awk '/created:/ {print $(NF-2),$(NF-3),$NF}' <(sudo /usr/sbin/tune2fs -l "$root_part"))
+  [[ "$desktop" == "bunsenlabs" || "$desktop" == "lightdm-xsession" ]] && desktop=$(awk '/Name/ {print $2}' < <(wmctrl -m))
+  root_part=$(awk '$NF == "/" {print $1}' < <(df -P))
+	created_date=$(awk '/created:/ {print $(NF-2),$(NF-3),$NF}' < <(sudo /usr/sbin/tune2fs -l "$root_part"))
 	printf "\n%-19s %s\n" "Operating System:" "$(uname -o)"
 	printf "%-19s %s\n" "Distribution:" "$(get_distribution)"
   printf "%-19s %s\n" "Desktop:" "${desktop^}"
@@ -155,24 +155,24 @@ os_info() {
 
 cpu_info() {
   local arch model threads
-  model=$(awk -F: '/Model name:/ {print $NF}' <(/usr/bin/lscpu) | sed 's/^[[:space:]]*//g;s/([^)]*)//g')
-  arch=$(awk '/Architecture:/ {print $NF}' <(/usr/bin/lscpu))
-  threads=$(awk '/CPU\(s\):/ {print $NF;exit}' <(/usr/bin/lscpu))
+  model=$(awk -F: '/Model name:/ {print $NF}' < <(/usr/bin/lscpu) | sed 's/^[[:space:]]*//g;s/([^)]*)//g')
+  arch=$(awk '/Architecture:/ {print $NF}' < <(/usr/bin/lscpu))
+  threads=$(awk '/CPU\(s\):/ {print $NF;exit}' < <(/usr/bin/lscpu))
 	printf "\n%-9s %s, %s, %s threads \n" "CPU:" "$model" "$arch" "$threads"
 }
 
 memory_info() {
   local mem_max mem_type phys_mem
-	phys_mem=$(awk '/System/ {print $(NF-2)}' <(sudo /usr/bin/lshw -class memory -short -quiet) | sed 's/GiB/ GB/')
-	# mem_type=$(awk '/Type:/ {print $NF; exit}' <(sudo dmidecode --type 17))
-  mem_type=$(awk 'NR == 16 {print $NF}' <(sudo dmidecode --type 17))
-	# mem_max=$(awk -F: '/Capacity/ {print $NF; exit}' <(sudo dmidecode --type 16))
-  mem_max=$(awk -F: 'NR == 10 {print $NF}' <(sudo dmidecode --type 16) | sed 's/^ //')
+	phys_mem=$(awk '/System/ {print $(NF-2)}' < <(sudo /usr/bin/lshw -class memory -short -quiet) | sed 's/GiB/ GB/')
+	# mem_type=$(awk '/Type:/ {print $NF; exit}' < <(sudo dmidecode --type 17))
+  mem_type=$(awk 'NR == 16 {print $NF}' < <(sudo dmidecode --type 17))
+	# mem_max=$(awk -F: '/Capacity/ {print $NF; exit}' < <(sudo dmidecode --type 16))
+  mem_max=$(awk -F: 'NR == 10 {print $NF}' < <(sudo dmidecode --type 16) | sed 's/^ //')
 	printf "%-9s %s %s (%s maximum)\n" "Memory:" "$phys_mem" "$mem_type" "$mem_max"
 }
 
 graphics_info() {
-	printf "%-9s %s\n" "Graphics:" "$( awk -F: '/VGA/ {print $NF}' <(/usr/bin/lspci) | sed 's/^ //')"
+	printf "%-9s %s\n" "Graphics:" "$( awk -F: '/VGA/ {print $NF}' < <(/usr/bin/lspci) | sed 's/^ //')"
 }
 
 mac_mfgr() {
@@ -181,15 +181,15 @@ mac_mfgr() {
   oui_file="/usr/share/ieee-data/oui.csv"
 	oui_addr=$(cut -d ':' -f1,2,3 <<< "$mac_addr" | sed 's/://g')
   mfgr=$(grep -m 1 "$oui_addr" "$oui_file" | cut -d',' -f3 )
-  [[ "$mfgr" ]] || mfgr="Unknown"
+  [[ "$mfgr" ]] || mfgr="Unspecified"
   echo "$mfgr"
 }
 
 wired_info() {
   local eth_int ethernet_dev e_mac e_man
-	eth_int=$(awk '/name: e/ {print $NF}' <(sudo /usr/bin/lshw -class network -quiet))
+	eth_int=$(awk '/name: e/ {print $NF}' < <(sudo /usr/bin/lshw -class network -quiet))
 	if [[ "$eth_int" ]]; then
-		ethernet_dev=$(awk -F: '/Ethernet controller/ {print $NF}' <(/usr/bin/lspci) | sed 's/^ //')
+		ethernet_dev=$(awk -F: '/Ethernet controller/ {print $NF}' < <(/usr/bin/lspci) | sed 's/^ //')
 		e_mac=$(< /sys/class/net/"${eth_int}"/address)
 		e_man=$(mac_mfgr "$e_mac")
 		printf "\nEthernet: %s\n" "$ethernet_dev"
@@ -199,9 +199,9 @@ wired_info() {
 
 wireless_info() {
   local wifi_int wireless_dev w_mac w_man
-	wifi_int=$(awk '/name: w/ {print $NF}' <(sudo /usr/bin/lshw -class network -quiet))
+	wifi_int=$(awk '/name: w/ {print $NF}' < <(sudo /usr/bin/lshw -class network -quiet))
 	if [[ "$wifi_int" ]]; then
-		wireless_dev=$(awk -F: '/Network controller/ {print $NF}' <(/usr/bin/lspci) | sed 's/^ //')
+		wireless_dev=$(awk -F: '/Network controller/ {print $NF}' < <(/usr/bin/lspci) | sed 's/^ //')
 		w_mac=$(< /sys/class/net/"${wifi_int}"/address)
 		w_man=$(mac_mfgr "$w_mac")
 		printf "\nWireless: %s\n" "$wireless_dev"
@@ -214,18 +214,18 @@ ssd_hd_info() {
   HD_DATA=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
 	printf "\nHard Disk Information:\n"
 	for disk in /dev/sd[a-z]; do
-		sudo hdparm -I "${disk}" 2>/dev/null | tee "$HD_DATA" > /dev/null
-    printf "%s\n" "$(sed 's/\/dev\///;s/:$//' <(grep -w dev "$HD_DATA"))"
-    model="$(sed 's/^ *//g' <(awk -F: '/Model/ {print $NF}' "$HD_DATA"))"
+    tee "$HD_DATA" > /dev/null < <(sudo hdparm -I "${disk}" 2>/dev/null)
+    printf "%s\n" "$(sed 's/\/dev\///;s/:$//' < <(grep -w dev "$HD_DATA"))"
+    model="$(sed 's/^ *//g' < <(awk -F: '/Model/ {print $NF}' "$HD_DATA"))"
     vendor="$(get_vendor "$model")"
     printf "   %-15s%s\n" "Vendor:" "$vendor"
     printf "   %-15s%s\n" "Model Number:" "$model"
-    printf "   %-15s%s\n" "Serial Number:" "$(sed 's/^ *//g' <(awk -F: '/Serial N/ {print $NF}' "$HD_DATA"))"
-    printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$HD_DATA" | tr -d '()')" # sed 's/[)(]//g')"
-    hd_ff=$(sed 's/^ //' <(awk -F: '/Form Factor/ {print $NF}' "$HD_DATA"))
+    printf "   %-15s%s\n" "Serial Number:" "$(sed 's/^ *//g' < <(awk -F: '/Serial N/ {print $NF}' "$HD_DATA"))"
+    printf "   %-15s%s\n" "Capacity:" "$(tr -d '()' < <(awk '/GB/ {print $(NF-1),$NF}' "$HD_DATA"))"
+    hd_ff=$(sed 's/^ //' < <(awk -F: '/Form Factor/ {print $NF}' "$HD_DATA"))
     [[ "$hd_ff" ]] || hd_ff=$(ff_fix)
     printf "   %-15s%s" "Form Factor:" "$hd_ff"
-    hd_rpm=$(sed 's/^ //' <(awk -F: '/Rotation/ {print $NF}' "$HD_DATA"))
+    hd_rpm=$(sed 's/^ //' < <(awk -F: '/Rotation/ {print $NF}' "$HD_DATA"))
     case "$hd_rpm" in
       [0-9]* ) printf " %s-rpm Hard Disk Drive\n" "$hd_rpm" ;;
       * ) printf " %s\n" "$hd_rpm"
@@ -237,7 +237,7 @@ nvme_info() {
   local nvme_data devline model
   # NVME_JSON=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
   printf "\nNVMe Information:\n"
-  nvme_data=$(sudo /usr/sbin/nvme list | tail -n+3)
+  nvme_data=$(tail -n+3 < <(sudo /usr/sbin/nvme list) | xargs)
   for devline in "${nvme_data[@]}"; do
     printf "%s\n" "$(awk -F'/' '{print $3}' <<< "$devline")"
     model=$(awk '{print $4}' <<< "$devline")
@@ -302,8 +302,7 @@ else
 
 main() {
   local -r script="${0##*/}"
-  local -r version="7.1.26115"
-
+  local -r version="7.2.26116"
   trap cleanup EXIT
   sudo_login 2
   check_dependencies
