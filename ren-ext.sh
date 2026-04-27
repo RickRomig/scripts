@@ -7,8 +7,9 @@
 # Author       : Copyright (C) 2017, Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 2017
-# Updated      : 14 Mar 2026
+# Updated      : 27 Apr 2026
 # Comments     : File extensions are not case sensitive, but will change to lowercase.
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
@@ -23,28 +24,21 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
-
-## Variables ##
+## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.0.26073"
+readonly version="4.1.26117"
+EXIT_CODE=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="14 Mar 2026"
+	local updated="27 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Bulk renames file extensions in the current diectory.
@@ -59,7 +53,7 @@ _HELP_
 }
 
 rename_extension() {
-  local ext="${1,,}"
+  local ext="$1"
   # Rename file extensions based on the passed argument
   case "$ext" in
     htm|html )
@@ -73,24 +67,30 @@ rename_extension() {
   esac
 }
 
-main() {
+check_files() {
   local extension="$1"
   local file
-  check_package rename
   [[ "$extension" ]] || read -rp "Enter an extension to rename: " extension
-  [[ "$extension" == "-h" || "$extension" == "--help" ]] && help 0
   for file in ./*."$extension"; do
     if [[ -e "$file" ]]; then
       printf "Renaming .%s file extensions\n" "$extension"
       break
     else
       printf "No files with .%s extension found\n" "$extension"  >&2
-      exit "$E_FILENOTFOUND"
+      EXIT_CODE="$E_FILENOTFOUND"
+      return
     fi
   done
   rename_extension "$extension"
+}
+
+main() {
+  local extension="$1"
+  check_package rename
+  [[ "$extension" == "-h" || "$extension" == "--help" ]] && help 0
+  check_files "$extension"
   over_line "$script $version"
-  exit
+  exit "$EXIT_CODE"
 }
 
 ## Execution ##
