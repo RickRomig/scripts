@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018,Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Nov 2018
-# Updated      : 29 Mar 2026
+# Updated      : 27 Apr 2026
 # Comments     : Inspired by Joe Collins and Luke Smith
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -99,7 +99,7 @@ nvme_temperature() {
 	local drive drv_name sensor_json
   sensor_json="$1"
 	for drive in /dev/nvme0n[0-9]; do
-		drv_name=$(awk -F/ '{print $NF}' <(echo -n "$drive"))
+		drv_name=$(awk -F/ '{print $NF}' <<< "$drive")
 		if grep -q 'nvme-pci-0300' <<< "$sensor_json"; then
 			printf "%-10s%2.1f\U2103 \n" "$drv_name:" "$(jq -r '."nvme-pci-0300"."Composite"."temp1_input"' <<< "$sensor_json")"
     else
@@ -112,7 +112,7 @@ sata_temperature() {
 	local drive drv_name sensor_json
   sensor_json="$1"
 	for drive in /dev/sd[a-z]; do
-		drv_name=$(awk -F/ '{print $NF}' <(echo -n "$drive"))
+		drv_name=$(awk -F/ '{print $NF}' <<< "$drive")
 		if grep -q 'drivetemp-scsi-0-0' <<< "$sensor_json"; then
 			printf "%-10s%2.1f\U2103 \n" "$drv_name:" "$(jq -r '."drivetemp-scsi-0-0"."temp1"."temp1_input"' <<< "$sensor_json")"
 		elif grep -q 'drivetemp-scsi-1-0' <<< "$sensor_json"; then
@@ -141,7 +141,7 @@ show_header() {
 show_footer() {
   local last_boot up_time
   local -r script="${0##*/}"
-  local -r version="6.18.26088"
+  local -r version="6.19.26117"
   last_boot=$(awk '{print $(NF-1),$NF}' <(/usr/bin/who -b))
   up_time=$(cut -d' ' -f2- <(/usr/bin/uptime -p))
   printf "\n%sUp since:%s %s (%s)\n" "$orange" "$normal" "$last_boot" "$up_time"
