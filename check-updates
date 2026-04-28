@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 21 Apr 2026
+# Updated      : 28 Apr 2026
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -41,7 +41,7 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="10.6.26111"
+readonly version="10.7.26118"
 SECONDS=0
 
 ## Functions ##
@@ -55,7 +55,7 @@ cleanup() {
 
 help() {
 	local errcode="${1:-1}"
-  local updated="21 Apr 2026"
+  local updated="28 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt-get or Nala.
@@ -160,6 +160,7 @@ update_flatpaks() {
 }
 
 check_flatpak() {
+  # check if Flatpak is installed or if packages are installed
   local fp_count
   if ! exists flatpak; then
     printf "Flatpak is not installed.\n"
@@ -174,6 +175,7 @@ check_flatpak() {
 }
 
 update_spices() {
+  # update Cinnamon Spices for Cinnamon DE
   printf "\n%sCinnamon Spices:%s\n" "$orange" "$normal"
   cinnamon-spice-updater --update-all
 }
@@ -278,10 +280,11 @@ _HEADER_
 }
 
 check_spice_updates() {
+  # called by -c flag only to check number of updates available
   local type types num
   types=(applet desklet extension theme)
   for type in "${types[@]}"; do
-    num=$(cinnamon-spice-updater --list-simple "$type" | wc -l)
+    num=$(wc -l < <(cinnamon-spice-updater --list-simple "$type"))
     printf "%d spice %s " "$num" "$type"
     [[ "$num" -ne 1 ]] && printf "updates " || printf "uppdate "
     printf "available.\n"
@@ -289,22 +292,25 @@ check_spice_updates() {
 }
 
 check_flatpak_updates() {
-  [[ $(flatpak list | wc -l) -eq 0 ]] && { printf "No flatpak packages installed.\n"; return; }
+  # called by -c flag only to check number of updates available
+  [[ $(wc -l < <(flatpak list)) -eq 0 ]] && { printf "No flatpak packages installed.\n"; return; }
   local fp_updates
-  fp_updates=$(grep -c 'updatable' <(flatpak update --app --noninteractive))
+  fp_updates=$(grep -c 'updatable'< <(flatpak update --app --noninteractive))
   printf "%d flatpak " "$fp_updates"
   [[ "$fp_updates" -ne 1 ]] && printf "updates " || printf "uppdate "
   printf "available\n"
 }
 
 check_for_updates() {
+  # called by -c flag only to check number of updates available
   local upgrades
-  upgrades=$(tail -n1 <(sudo apt update 2>/dev/null))
+  upgrades=$(tail -n1 < <(sudo apt update 2>/dev/null))
   printf "%s\nChecking for updates...%s\n" "$orange" "$normal"
   awk -F'.' '{printf $1".\n"}' <<< "$upgrades"
 }
 
 other_checks() {
+  # called by -a (apt) and -n (nala) flags
   exists cinnamon-spice-updater && update_spices
   printf "\n%sFlatpak:%s\n" "$orange" "$normal"
   check_flatpak
