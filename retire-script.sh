@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 18 Mar 2026
+# Last updated : 27 Apr 2026
 # Comments     : Do not use with scripts or files inside git repos. Use gretire.sh instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,30 +24,22 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.2.26077"
-readonly E_NOT_GIT_REPO=92
+readonly version="3..26117"
+readonly E_NOT_GIT_REPO=100
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="18 Mar 2026"
+	local updated="27 Apr 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Retires a script by moving it to a zipped archive.
@@ -89,6 +81,7 @@ chack_args() {
 		EC="$E_FILENOTFOUND"
 		exit_script
 	fi
+	retire_script "$filename"
 }
 
 retire_script() {
@@ -105,11 +98,10 @@ retire_script() {
 main() {
 	check_dependencies
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help 0
+	check_git_repo
 	local filename="$1"
 	[[ "$filename" ]] || read -rp "Enter a script to be retired: " filename
-	check_git_repo
 	chack_args "$filename"
-	retire_script "$filename"
 	exit_script
 }
 
