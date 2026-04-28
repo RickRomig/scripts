@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Nov 2019
-# Updated      : 11 Apr 2026
+# Updated      : 28 Apr 2026
 # Comments     : Extracts swap partition UUID from output of /usr/sbin/blkid
 #              : Debian requires sudo for blkid, in Mint, blkid gives more info wit sudo
 # TODO (Rick)  :
@@ -44,8 +44,8 @@ _MESSAGE_
 
 get_swap_uuid() {
   local swap_uuid
-  swap_uuid=$(awk -F\" '/swap/ {print $2}' <(sudo /usr/sbin/blkid))
-  [[ "$swap_uuid" == "LABEL=swap" ]] && swap_uuid=$(awk -F\" '/swap/ {print $3}' <(sudo /usr/sbin/blkid))
+  swap_uuid=$(awk -F\" '/swap/ {print $2}' < <(sudo /usr/sbin/blkid))
+  [[ "$swap_uuid" == "LABEL=swap" ]] && swap_uuid=$(awk -F\" '/swap/ {print $3}' < <(sudo /usr/sbin/blkid))
   printf "%s" "$swap_uuid"
 }
 
@@ -57,9 +57,8 @@ set_resume() {
   [[ "$swap_uuid" ]] || { printf "No UUID for swap found.\n" >&2; return 1; }
   local -r resume_path="/etc/initramfs-tools/conf.d/resume"
   printf "\nSWAP UUID: %s\n" "$swap_uuid"
-  printf "\nSetting the RESUME environment variable...\n"
-  # printf "RESUME=UUID=%s\n" "$swap_uuid" | sudo tee "$resume_path" >/dev/null
-   sudo tee "$resume_path" >/dev/null <<< "RESUME=UUID=$swap_uuid"
+  printf "\nSetting the RESUME environment variable in %s...\n" "$resume_path"
+  sudo tee "$resume_path" &>/dev/null <<< "RESUME=UUID=$swap_uuid"
   printf "\nUpdating initramfs ...\n"
   sudo update-initramfs -u -k all
   return 0
@@ -67,7 +66,7 @@ set_resume() {
 
 main() {
   local script="${0##*/}"
-  local -r version="7..26101"
+  local -r version="7.2.26118"
   local ec=0
   print_message
   set_resume
