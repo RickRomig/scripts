@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Nov 2019
-# Updated      : 18 Mar 2026
+# Updated      : 29 Apr 2026
 # Comments     : Changes the hostname in both /etc/hostname and /etc/hosts.
 #              : Rules based on hostname(7) man page
 #              : Hostname length limited to 5-15 characters for NETBIOS compatibility.
@@ -28,22 +28,14 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
-readonly old_host="${HOSTNAME:-$(hostname)}"
-declare -l new_host=""  # Convert to lowercase on assignment
+# readonly old_host="${HOSTNAME:-$(hostname)}"
+# declare -l new_host=""  # Convert to lowercase on assignment
 
 ## Functions ##
 
@@ -61,6 +53,8 @@ _RULES_
 }
 
 get_new_hostname() {
+  local -r old_host="${HOSTNAME:-$(hostname)}"
+  local -l new_host=
   local -r minLen=5
   local -r maxLen=15
   while true; do
@@ -111,10 +105,12 @@ get_new_hostname() {
       break
     fi
   done
-  change_hostname
+  change_hostname "$old_host" "$new_host"
 }
 
 change_hostname() {
+  local -r old_host="$1"
+  local -r new_host="$2"
   sudo_login 2
   printf "\nChanging the hostname from %s to %s ...\n" "$old_host" "$new_host"
   sudo sed -i "s/$old_host/$new_host/" /etc/hosts
@@ -125,7 +121,7 @@ change_hostname() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="6.1.262077"
+  local -r version="6.2.26119"
   printf "Renames the system hostname.\n"
   hostname_rules
   get_new_hostname
