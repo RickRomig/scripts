@@ -31,9 +31,9 @@ tar -xf archive_file.tar.xz -C /path/to/directory
 	--listed-incremental=archive.snar \
 	source-directory
 
-tar -czf archive.tar.gz -C ~/Downloads dir1 -C ~/Documnts dir2 -C ~/dir3/dir4 dir5
+tar -czf archive.tar.gz -C ~/Downloads dir1 -C ~/Documents dir2 -C ~/dir3/dir4 dir5
 
-tar -czf  archive.tar.gz ~/Downloads/dir1 ~/Documnts/dir2 ~/dir3/dir4/dir5
+tar -czf  archive.tar.gz ~/Downloads/dir1 ~/Documents/dir2 ~/dir3/dir4/dir5
 
-tar -czf  archive.tar.gz -g archive.snar  ~/Documnts/dir2 ~/dir3/dir4/dir5	# only one -C allowed with -g
+tar -czf  archive.tar.gz -g archive.snar  ~/Documents/dir2 ~/dir3/dir4/dir5	# only one -C allowed with -g
 ```
