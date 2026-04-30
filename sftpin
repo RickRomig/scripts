@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2017, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Dec 2017 (Joe Collins)
-# Updated      : 29 Jan 2026
+# Updated      : 30 Apr 2026
 # Comments     : Based on script by Joe Collins.
 #              : LOCALNET and valid_ip() are declared in functionlib
 # TODO (rick)  :
@@ -25,28 +25,20 @@
 # GNU General Public License for more details.
 ###############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.5.26029"
+readonly version="2.6.26120"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local updated="29 Jan 2026"
+  local updated="30 Apr 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Log in to a remote server using Secure File Transfer Protocol (SFTP).
