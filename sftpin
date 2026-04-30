@@ -59,7 +59,7 @@ _HELP_
   exit "$errcode"
 }
 
-main() {
+sftp_in() {
   local hostip="$1"
   [[ "$1" == "-h" || "$1" == "--help" ]] && help 0
   [[ "$hostip" ]] || read -rp "Enter last octet of remote server's IP address. " hostip
@@ -68,6 +68,10 @@ main() {
   else
     help "$?"
   fi
+}
+
+main() {
+  sftp_in "$1"
   over_line "$script $version"
   exit
 }
