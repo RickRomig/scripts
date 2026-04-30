@@ -7,7 +7,7 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Feb 2026
-# Last updated : 19 Feb 2026
+# Last updated : 30 Apr 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,38 +24,31 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
-show_headers() {
+show_linux_headers() {
   local header_list
   printf "\nCurrently installed linux headers:\n"
-  header_list=$(awk '/linux-h/ {print $2}' <(dpkg --list) | grep -v 'tools' | sort -r )
+  header_list=$(awk '/linux-h/ {print $2}' < <(dpkg --list) | grep -v 'tools' | sort -r)
   [[ "$header_list" ]] || { printf "No Linux headers installed\n"; return; }
   printf "%s\n" "$header_list"
 }
 
-show_images() {
+show_linux_images() {
+  printf "Active kernel: %s\n\n" "$(uname -r)"
   printf "Currently installed Linux images:\n"
-  awk '/linux-image/ {print $2}' <(dpkg --list) | sort -r
+  awk '/linux-image/ {print $2}' < <(dpkg --list) | sort -r
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.0.26050"
-  show_images
-  show_headers
+  local -r version="1.1.26120"
+  show_linux_images
+  show_linux_headers
   over_line "$script $version"
 	exit
 }
