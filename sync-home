@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Sep 2019
-# Updated      : 02 Mar 2026
+# Updated      : 01 May 2026
 # Comments     : Creates a compressed tar archive of the folder's contents.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,17 +24,9 @@
 # GNU General Public License for more details.
 #############################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -62,30 +54,37 @@ archive_homepage() {
 sync_dropbox() {
 	local -r archive_d="$1"
 	local -r homepage_d="$2"
-	local -r dropbox_d="$HOME/Dropbox/homepage"
+	local -r dropbox_d=~/Dropbox/homepage
 	[[ -d "$dropbox_d" ]] || return
 	printf "\n%sSynchronizing homepage archive with Dropbox...%s\n" "$lightyellow" "$normal"
 	rsync -av --delete --exclude '.git' --exclude '.gitignore' "$homepage_d"/ "$archive_d"/ "$dropbox_d"
 }
 
-main() {
-	local -r script="${0##*/}"
-	local -r version="7.0.26061 "
+process_homepage() {
 	local -r main_host="hp-800g2-sff"
 	local -r local_host="${HOSTNAME:-$(hostname)}"
-	local -r homepage_dir="$HOME/gitea/homepage"
-	local -r archive_dir="$HOME/Downloads/archives/homepage"
-	if [[ "$local_host" == "$main_host" ]]; then
-		check_package rsync
-		printf "%sArchiving homepage files...%s\n" "$orange" "$normal"
-		remove_bu_files "$homepage_dir"
-		archive_homepage "$homepage_dir" "$archive_dir"
-		sync_dropbox "$homepage_dir" "$archive_dir"
-	else
+	if [[ "$local_host" != "$main_host" ]]; then
 		printf "%sScript must be run from %s.\n" "$RED_WARNING" "$main_host" >&2
+		return "$E_INVALID_HOST"
 	fi
+	local -r homepage_dir=~/gitea/homepage
+	local -r archive_dir=~/Downloads/archives/homepage
+	[[ -d "$homepage_dir" ]] || mkdir "$homepage_dir"
+	[[ -d "$archive_dir" ]] || mkdir "$archive_dir"
+	check_package rsync
+	printf "%sArchiving homepage files...%s\n" "$orange" "$normal"
+	remove_bu_files "$homepage_dir"
+	archive_homepage "$homepage_dir" "$archive_dir"
+	sync_dropbox "$homepage_dir" "$archive_dir"
+}
+
+main() {
+	local -r script="${0##*/}"
+	local -r version="7.1.26121"
+	local ec=0
+	process_homepage;ec="$?"
 	over_line "$script $version" "-"
-	exit
+	exit "$ec"
 }
 
 ## Execution ##
