@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : z-ytdlp-update
 # Description  : Updates youtube-dl automatically using anacron
 # Dependencies : yt-dlp (downloaded from GitHub)
@@ -7,11 +7,11 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Last updated : 14 Dec 2025
+# Last updated : 03 May 2025
 # Comments     : copy as root to /etc/cron.daily
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -21,7 +21,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-##########################################################################
+###############################################################################
 
 trim_log() {
   local log_dir="$1"
@@ -36,10 +36,11 @@ trim_log() {
 
 update_ytdl() {
 	local update_status
-	local log_dir="/var/log"
-	local log_file="ytdlpup.log"
+	local -r log_dir="/var/log"
+	local -r log_file="ytdlpup.log"
 	# local sed_file="/usr/share/misc/ytdlp-uplog.sed"
-	update_status=$(awk '/^Latest version/ {print $3}' <(/usr/local/bin/yt-dlp --update) | sed 's/stable@//')
+	update_status=$(awk '/^Latest version/ {print $3}' < <(/usr/local/bin/yt-dlp --update))
+	update_status="${update_status:7}"
 	[[ "$update_status" ]] || update_status="unavailable"
 	printf "%(%F|%R)T|%s\n" -1 "$update_status" >> "$log_dir/$log_file" 2>&1
 	# sed -i -f "$sed_file" "$log_dir/$log_file"
