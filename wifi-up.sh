@@ -7,7 +7,7 @@
 # Author       : Copyright © 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Jan 2022
-# Updated      : 06 Dec 2025
+# Updated      : 03 May 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -40,13 +40,15 @@ fi
 
 get_wifi_interface() {
   local wifi_int
-  wifi_int=$(awk -F: '/wl/ {print $2}' <(ip addr show))
+  wifi_int=$(awk -F: '/wl/ {print $2}' < <(ip addr show))
+  wifi_int="${wifi_int# }"  # Removed leading space
   echo "$wifi_int"
 }
 
 get_ip_address() {
-  local wifi_ip wifi_int
-  wifi_ip=$(awk '/wl/ {print $4}' <(ip -o -4 addr show) | cut -d'/' -f1)
+  local wifi_ip
+  wifi_ip=$(awk '/wl/ {print $4}' < <(ip -o -4 addr show))
+  wifi_ip="${wifi_ip%%/*}"  # Removed CIDR notation
   echo "$wifi_ip"
 }
 
@@ -83,7 +85,7 @@ show_wifi_ip() {
 
 main() {
   local script="${0##*/}"
-  local -r version="3.1.25340"
+  local -r version="3.2.26123"
   show_wifi_ip
   over_line "$script $version" "-"
   exit
