@@ -6,7 +6,7 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Last updated : 10 Mar 2026
+# Last updated : 02 May 2026
 # Comments     : Can sync to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -27,31 +27,21 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
-
-# set -eu
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="8.2.26069"
+readonly version="8.3.26122"
 SECONDS=0
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local updated="10 Mar 2026"
+  local updated="02 May 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Synchrnizes ~/bin with remote hosts.
@@ -101,7 +91,6 @@ transfer() {
   if ping -c 3 "$LOCALNET.$host_ip" >/dev/null 2>&1; then
     printf "...Syncing to Machine %s\n" "$host_ip"
     syncscript "$host_ip"
-    printf "\n...Machine %s Synced!\n\n" "$host_ip"
   else
     printf "\n...Skipping %s! Not on network.\n\n" "$host_ip"
   fi
@@ -113,7 +102,7 @@ syncscript() {
 
   case "$hostip" in
     1|2|3|4|5|6|7|8|9|10 )
-      printf "%s %s is a restricted address. Access denied.\n" "$RED_WARNING" $"$LOCALNET.$hostip"
+      printf "%s %s is a restricted address. Access denied.\n\n" "$RED_WARNING" $"$LOCALNET.$hostip"
       ;;
     16|22|153 )
 		  printf "\n%sSyncing ~/.bashrc ...%s\n" "$orange" "$normal"
@@ -135,9 +124,10 @@ syncscript() {
       rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
       exit_status="$?"
       transfer_status "$exit_status"
+      printf "\n...Machine %s Synced!\n\n" "$hostip"
       ;;
     15|19 )
-      printf "%s is updated through the Scripts Repository.\n" "$LOCALNET.$hostip"
+      printf "%s is updated through the Scripts Repository.\n\n" "$LOCALNET.$hostip"
       ;;
    * )
 		  printf "\n%sSyncing ~/.bashrc ...%s\n" "$orange" "$normal"
@@ -154,31 +144,24 @@ syncscript() {
       rsync -avh --delete --exclude '.git' --exclude '.gitignore' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
       exit_status="$?"
       transfer_status "$exit_status"
+      printf "\n...Machine %s Synced!\n\n" "$hostip"
   esac
 }
 
 sync_one() {
   local hostip
   hostip="$1"
-  if valid_ip "$hostip"; then
-    transfer "$hostip"
-	  all_done
-  else
-    help "$?"
-  fi
+  transfer "$hostip"
+	all_done
 }
 
 sync_some() {
   local hostip
   hostip="$1"
   for hostip in "$@"; do
-    if valid_ip "$hostip"; then
-      transfer "$hostip"
-		  all_done
-    else
-      help "$?"
-    fi
+    transfer "$hostip"
 	done
+	all_done
 }
 
 sync_all() {
@@ -191,8 +174,7 @@ sync_all() {
 }
 
 all_done() {
-  box "All directories synced!" "-"
-  printf "Script completed in %s\n" "$(format_time $SECONDS)"
+  over_line "Script completed in $(format_time $SECONDS)"
 }
 
 check_host() {
