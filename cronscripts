@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 17 Feb 2022
-# Updated      : 08 Feb 2026
+# Updated      : 03 May 2026
 # Comments     : For jobs needinng root access, checks if repo script is
 #              : newer than the one run by anacron/cron
 # TODO (Rick)  :
@@ -25,22 +25,15 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="10.0.26039"
+readonly version="10.1.26123"
 localip="$(local_ip)"; readonly localip
 # path variables
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
@@ -54,7 +47,7 @@ readonly sed_path="/usr/share/misc/"
 
 help() {
   local errcode="${1:-1}"
-  local updated="08 Feb 2026"
+  local updated="03 May 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Copies cronjob scripts to the appropriate directories.
@@ -217,7 +210,7 @@ cp_zupdate() {
 }
 
 cp_zytdlpupdate() {
-	local -r sed_file="ytdlp-uplog.sed"
+	# local -r sed_file="ytdlp-uplog.sed"
   local -r anacron_path="/etc/cron.daily/"
   case "$localip" in
     10|15|17 )
@@ -228,14 +221,13 @@ cp_zytdlpupdate() {
         sudo_login 1
         awk '{print "==> "$NF}' <(sudo cp -v "$job_dir/z-ytdlp-update" "$anacron_path")
       fi
-      if [[ -f "$sed_path/$sed_file" ]]; then
-        sudo_login 1
-        awk '{print "==> "$NF}' <(sudo cp -v "$files_dir/$sed_file" "$sed_path")
-      elif [[ "$sed_path/$sed_file" -ot "$files_dir/$sed_file" ]]; then
-        sudo_login 1
-        sudo_login 1
-        awk '{print "==> "$NF}' <(sudo cp -v "$files_dir/$sed_file" "$sed_path")
-      fi
+      # if [[ -f "$sed_path/$sed_file" ]]; then
+      #   sudo_login 1
+      #   awk '{print "==> "$NF}' <(sudo cp -v "$files_dir/$sed_file" "$sed_path")
+      # elif [[ "$sed_path/$sed_file" -ot "$files_dir/$sed_file" ]]; then
+      #   sudo_login 1
+      #   awk '{print "==> "$NF}' <(sudo cp -v "$files_dir/$sed_file" "$sed_path")
+      # fi
       ;;
     * )
       no_copy "z-ytdlp-update is"
