@@ -7,9 +7,9 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 06 Oct 2025
-# Comments     : Run as a user cron job.
-#              : Trash directory does not exist until a file is moved to the trash.
+# Updated      : 03 May 2025
+# Comments     : Run as a user cron job. '~/.local/bin/empty-trash.sh'
+#              : Trash directory does not exist until a file has been moved to the trash.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -25,59 +25,53 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
-
-trash_count() {
-	local count; count=$(/usr/bin/trash-list | wc -l)
-	[[ "$count" -gt 0 ]] && return 0 || return 1
+trash_empty() {
+	local count
+	count=$(wc -l < <(/usr/bin/trash-list))
+	[[ "$count" -eq 0 ]] && return "$TRUE" || return "$FALSE"
 }
 
 empty_trash() {
-	local last_week; last_week=$(date -d "$(date) - 6 days" +%F)
-	if trash_count; then
-		printf "\nTrash contents:\n"
-		/usr/bin/trash-list
-		printf "\nRemoving trash older than %s...\n" "$last_week"
-		/usr/bin/trash-empty 6
-		if trash_count; then
-			printf "\nTrash newer than %s...\n" "$last_week"
-			/usr/bin/trash-list
-		else
-			printf "\nAll trash removed.\n"
-		fi
-	else
-		printf "\nThe trash can is empty.\n"
+	local last_week
+	last_week=$(date -d "$(date) - 6 days" +%F)
+	if trash_empty; then
+		printf "\nThe trash is empty.\n"
+		return
 	fi
+	printf "\nTrash contents:\n"
+	/usr/bin/trash-list
+	printf "\nRemoving trash older than %s...\n" "$last_week"
+	/usr/bin/trash-empty 6
+	if trash_empty; then
+		printf "\nAll trash has been removed.\n"
+		return
+	fi
+	printf "\nTrash newer than %s:\n" "$last_week"
+	/usr/bin/trash-list
 }
 
 main() {
-  local script="${0##*/}"
-  local version="4.8.25340"
-  local lhost="${HOSTNAME:-$(hostname)}"
-	local trash_dir=~/.local/share/Trash
-	local log_dir=~/.local/share/logs
-	local log_file="trash.log"
+  local -r script="${0##*/}"
+  local -r version="5.0.26123"
+  local -r lhost="${HOSTNAME:-$(hostname)}"
+	local -r trash_dir=~/.local/share/Trash
+	local -r log_dir=~/.local/share/logs
+	local -r log_file="trash.log"
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 
 	{
 		printf "%s Local Trash Log\n" "$lhost"
 		printf "Date: %(%F %R)T\n"
-		if ! dpkg -l trash-cli > /dev/null 2>&1; then
-			printf "trash-cli package is not installed.\n"
-		elif [[ -d "$trash_dir" ]]; then
+		if [[ ! -d "$trash_dir" ]]; then
+			printf "\nTrash directory does not exist.\nIt will be created when a file is moved to the trash.\n"
+		elif grep -q '^ii' < <(dpkg -l trash-cli &>/dev/null); then
 			empty_trash
 		else
-			printf "\nTrash directory does not exist.\nWill be created when a file is moved to the trash.\n"
+			printf "trash-cli package is not installed.\n"
 		fi
 		over_line "$script $version"
 	} > "$log_dir/$log_file" 2>&1
