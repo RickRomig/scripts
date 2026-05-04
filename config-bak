@@ -7,7 +7,7 @@
 # Author       : Cepyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2019
-# Updated      : 24 Oct 2025
+# Updated      : 03 May 2026
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,23 +24,15 @@
 # GNU General Public License for more details.
 ###############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
-readonly bu_dir="${HOME}/.config/backup"
-readonly cfg_dir="${HOME}/.config"
-count=0
+readonly bu_dir=~/.config/backup
+readonly cfg_dir=~/.config
+BU_COUNT=0
 
 ## Functions ##
 
@@ -48,12 +40,12 @@ bu_home_cfg(){
 	local file="$1"
 	if [[ -f "$HOME/$file" && -f "$bu_dir/$file" ]]; then
 		if [[ "$bu_dir/$file" -ot "$HOME/$file" ]]; then
-	    cp -pv "$HOME/$file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
-			(( count++ ))
+	    awk -F"/" '{print "==> " $NF}' < <(cp -pv "$HOME/$file" "$bu_dir/") | sed "s/'$//"
+			(( BU_COUNT++ ))
 	  fi
 	elif [[ -f "$HOME/$file" ]]; then
-	  cp -pv "$HOME/$file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
-		(( count++ ))
+		awk -F"/" '{print "==> " $NF}' < <(cp -pv "$HOME/$file" "$bu_dir/") | sed "s/'$//"
+		(( BU_COUNT++ ))
 	fi
 }
 
@@ -64,14 +56,16 @@ bu_config_cfg() {
 	if [[ -f "$cfg_dir/$folder/$file" && -f "$bu_dir/$folder/$file" ]]; then
 		if [[ "$bu_dir/$folder/$file" -ot "$cfg_dir/$folder/$file" ]]; then
 			printf "==> "
-			cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
-			(( count++ ))
+			# cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
+			awk '{print $NF}' < <(cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/") | cut -d'/' -f6- | sed "s/'$//"
+			(( BU_COUNT++ ))
 		fi
 	elif [[ -f "$cfg_dir/$folder/$file" ]]; then
 		[[ -d "$bu_dir/$folder" ]] || mkdir -p "$bu_dir/$folder"
 		printf "==> "
-		cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
-		(( count++ ))
+		# cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
+		awk '{print $NF}' < <(cp -pv "$cfg_dir/$folder/$file" "$bu_dir/$folder/") | cut -d'/' -f6- | sed "s/'$//"
+	(( BU_COUNT++ ))
 	fi
 }
 
@@ -82,14 +76,16 @@ bu_misc_cfg() {
 	if [[ -f "$HOME/$folder/$file" && -f "$bu_dir/$folder/$file" ]]; then
 	  if [[ "$bu_dir/$folder/$file" -ot "$HOME/$folder/$file" ]]; then
 			printf "==> "
-	    cp -pv "$HOME/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
-			(( count++ ))
+	    # cp -pv "$HOME/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
+			awk '{print $NF}' < <(cp -pv "$HOME/$folder/$file" "$bu_dir/$folder/") | cut -d'/' -f6- | sed "s/'$//"
+			(( BU_COUNT++ ))
 	  fi
 	elif [[ -f "$HOME/$folder/$file" ]]; then
 		[[ -d "$bu_dir/$folder" ]] || mkdir -p "$bu_dir/$folder"
 		printf "==> "
-	  cp -pv "$HOME/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
-		(( count++ ))
+	  # cp -pv "$HOME/$folder/$file" "$bu_dir/$folder/" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
+		awk '{print $NF}' < <(cp -pv "$HOME/$folder/$file" "$bu_dir/$folder/") | cut -d'/' -f6- | sed "s/'$//"
+		(( BU_COUNT++ ))
 	fi
 }
 
@@ -100,13 +96,15 @@ bu_etc_cfg() {
 	if [[ -f "$folder/$file" && -f "$bu_dir/$file" ]]; then
 		if [[ "$bu_dir/$file" -ot "$folder/$file" ]]; then
 			printf "==> "
-			cp -v "$folder/$file" "$bu_dir/$file" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
-			(( count++ ))
+			# cp -v "$folder/$file" "$bu_dir/$file" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
+			awk '{print $NF}' < <(cp -v "$folder/$file" "$bu_dir/$file") | cut -d'/' -f6- | sed "s/'$//"
+			(( BU_COUNT++ ))
 		fi
 	elif [[ -f "$folder/$file" ]]; then
 		printf "==> "
-		cp -v "$folder/$file" "$bu_dir/$file" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
-		(( count++ ))
+		# cp -v "$folder/$file" "$bu_dir/$file" | awk '{print $NF}' | cut -d'/' -f6- | sed "s/'$//"
+		awk '{print $NF}' < <(cp -v "$folder/$file" "$bu_dir/$file") | cut -d'/' -f6- | sed "s/'$//"
+		(( BU_COUNT++ ))
 	fi
 }
 
@@ -114,16 +112,19 @@ bu_cinnamon_keybindings() {
 	local kb_bu_file="keybindings-backup.dconf"
 	if [[ -f "$cfg_dir/$kb_bu_file" && -f "$bu_dir/$kb_bu_file" ]]; then
 	  if [[ "$bu_dir/$kb_bu_file" -ot "$cfg_dir/$kb_bu_file" ]]; then
-	    cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
-			(( count++ ))
+	    # cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$//"
+			awk -F"/" '{print "==> " $NF}' < <(cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/") | sed "s/'$//"
+			(( BU_COUNT++ ))
 	  fi
 	elif [[ -f "$cfg_dir/$kb_bu_file" ]]; then
-	  cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> "$NF}' | sed "s/'$//"
-		(( count++ ))
+	  # cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> "$NF}' | sed "s/'$//"
+		awk -F"/" '{print "==> " $NF}' < <(cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/") | sed "s/'$//"
+		(( BU_COUNT++ ))
 	elif is_cinnamon; then
 	  dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$kb_bu_file"
 	  cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$S//"
-		(( count++ ))
+		awk -F"/" '{print "==> " $NF}' < <(cp -pv "$cfg_dir/$kb_bu_file" "$bu_dir/") | sed "s/'$//"
+		(( BU_COUNT++ ))
 	fi
 }
 
@@ -213,10 +214,10 @@ bu_misc_cfgs() {
 }
 
 completion_status() {
-	if (( count < 1 )); then
+	if (( BU_COUNT < 1 )); then
 		printf "Configuration files are up to date. No backup required.\n"
-	elif (( count > 1 )); then
-		printf "%d configuration files were backed up.\n" "$count"
+	elif (( BU_COUNT > 1 )); then
+		printf "%d configuration files were backed up.\n" "$BU_COUNT"
 	else
 		printf "1 configuration file was backed up.\n"
 	fi
@@ -224,7 +225,7 @@ completion_status() {
 
 main() {
 	local script="${0##*/}"
-	local version="6.6.25297"
+	local version="6.7.26123"
 	[[ -d "$bu_dir" ]] || mkdir -p "$bu_dir"
 	printf "Backing up configuration files...\n"
 	bu_user_cfgs
