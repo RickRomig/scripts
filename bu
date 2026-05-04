@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 22 Apr 2026
+# Last updated : 03 May 2026
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.1.26112"
+readonly version="7.2.26123"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -170,7 +170,7 @@ sync_drives() {
 
 get_space_remaining() {
 	local available
-	available="$(awk 'NR == 2 {print $4}' <(df -h "$mount_point"))"
+	available="$(awk 'NR == 2 {print $4}' < <(df -h "$mount_point"))"
 	printf "Space available on BU_Drive: %s\n" "$available"
 }
 
@@ -256,7 +256,7 @@ restore() {
 
 help() {
 	local errcode="${1:-1}"
-	local updated="22 Apr 2026"
+	local updated="03 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
