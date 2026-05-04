@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 21 Feb 2026
+# Last updated : 03 May 2026
 # Comments     : Cleanup after upgrade to Debian 13.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,17 +24,9 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -75,7 +67,7 @@ modernize_sources() {
 main() {
 	local script="${0##*/}"
 	local version="1.5.26052"
-	local updated="21 Feb 2026"
+	local updated="03 May 2026"
 	local exit_code=0
 	check_file1 || die "01-bookworm2trixie.sh and 02-bookworm2trixie.sh must be run first." "$E_INFO"
 	check_file2 || die "02-bookworm2trixie.sh hasn't been run." "$E_INFO"
