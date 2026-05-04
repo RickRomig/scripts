@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 28 Apr 2026
+# Updated      : 03 May 2026
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -26,22 +26,14 @@
 ## GNU General Public License for more details.
 ###############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="10.7.26118"
+readonly version="10.8.26123"
 SECONDS=0
 
 ## Functions ##
@@ -55,7 +47,7 @@ cleanup() {
 
 help() {
 	local errcode="${1:-1}"
-  local updated="28 Apr 2026"
+  local updated="03 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt-get or Nala.
@@ -74,7 +66,7 @@ _HELP_
 
 check_disk_space() {
 	local df_stats r_size r_used r_perc r_avail
-	df_stats=$(awk 'NR==2 {print $2,$3,$4,$5}' <(df -h /))
+	df_stats=$(awk 'NR==2 {print $2,$3,$4,$5}' < <(df -h /))
 	r_size=$(cut -d ' ' -f1 <<< "$df_stats")
 	r_used=$(cut -d ' ' -f2 <<< "$df_stats")
 	r_avail=$(cut -d ' ' -f3 <<< "$df_stats")
