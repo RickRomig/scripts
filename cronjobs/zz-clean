@@ -27,7 +27,7 @@
 
 autoremove_packages() {
   local npkgs
-  npkgs=$(grep "^[[:digit:]]\+ upgraded" <(apt-get autoremove -s) | cut -d' ' -f6)
+  npkgs=$(grep "^[[:digit:]]\+ upgraded" < <(apt-get autoremove -s) | cut -d' ' -f6)
   if [[ "$npkgs" -gt 0 ]]; then
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove  --purge -yy
   else
