@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 03 May 2025
+# Updated      : 05 May 2025
 # Comments     : Run as a user cron job. '~/.local/bin/empty-trash.sh'
 #              : Trash directory does not exist until a file has been moved to the trash.
 # TODO (Rick)  :
@@ -39,13 +39,13 @@ empty_trash() {
 	local last_week
 	last_week=$(date -d "$(date) - 6 days" +%F)
 	if trash_empty; then
-		printf "\nThe trash is empty.\n"
+		printf "\nNo trash to be removed.\n"
 		return
 	fi
 	printf "\nTrash contents:\n"
 	/usr/bin/trash-list
 	printf "\nRemoving trash older than %s...\n" "$last_week"
-	/usr/bin/trash-empty 6
+	/usr/bin/trash-empty -v -f 6
 	if trash_empty; then
 		printf "\nAll trash has been removed.\n"
 		return
@@ -56,7 +56,7 @@ empty_trash() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.0.26123"
+  local -r version="5.2.26125"
   local -r lhost="${HOSTNAME:-$(hostname)}"
 	local -r trash_dir=~/.local/share/Trash
 	local -r log_dir=~/.local/share/logs
@@ -68,7 +68,7 @@ main() {
 		printf "Date: %(%F %R)T\n"
 		if [[ ! -d "$trash_dir" ]]; then
 			printf "\nTrash directory does not exist.\nIt will be created when a file is moved to the trash.\n"
-		elif grep -q '^ii' < <(dpkg -l trash-cli &>/dev/null); then
+		elif grep -q '^ii' < <(dpkg -l trash-cli 2>/dev/null); then
 			empty_trash
 		else
 			printf "trash-cli package is not installed.\n"
