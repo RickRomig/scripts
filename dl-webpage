@@ -7,9 +7,9 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, 02 Nov 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Nov 2019
-# Updated      : 24 Jul 2025
+# Updated      : 05 May 2026
 # Comments     :
-# TODO (Rick)  :
+# TODO (Rick)  : Array of wget exit codes
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
@@ -24,36 +24,27 @@
 # GNU General Public License for more details.
 #############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.1.25205"
+readonly version="2.4.26125"
 EC=0
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-  local updated="16 Jul 2025"
+  local errcode="${1:-1}"
+  local updated="05 May 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Downloads a web page to the current directory.
 
 ${green}Usage:  ${normal} $script [URL | OPTION]
 ${green}Example:${normal} $script https://example.com/index.html
-
 ${orange}Available options:${normal}
   -h | --help  Show this help message and exit.
 _HELP_
@@ -63,18 +54,30 @@ _HELP_
 download_page() {
   local -r url="$1"
   local domain
-  domain=$('s|^[^/]*//||; s|^www\.||; s|/.*$||' <<< "$url")
+  domain=$(sed 's|^[^/]*//||; s|^www\.||; s|/.*$||' <<< "$url")
   printf "Downloading %s to %s\n" "$url" "$PWD"
-  wget --quiet --recursive --no-clobber --page-requisites --html-extension --convert-links --restrict-file-names=windows --domains "$domain" --no-parent "$url"
+  wget --quiet --recursive --page-requisites --html-extension --convert-links --restrict-file-names=windows --domains "$domain" --no-parent "$url"
   EC="$?"
   print_status
 }
 
 print_status() {
+  exitcodes=(
+    "No problems occurred"
+    "Generic error code"
+    "Parse error"
+    "File I/O error"
+    "Network Failure"
+    "SSL verification error"
+    "Username/password authentication failure"
+    "Protocol errors"
+    "Server issued an error response"
+  )
   if [[ "$EC" -eq 0 ]]; then
     printf "Page succesfully downloaded.\n"
   else
     printf "Download failed with exit code: %s.\n" "$EC"
+    printf "Error: %s\n" "${exitcodes[EC]}"
   fi
 }
 
