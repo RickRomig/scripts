@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2020
-# Updated      : 02 Feb 2026
+# Updated      : 06 May 2026
 # Comments     : Does not support installation from Ubuntu PPAs or flatpak.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,29 +24,22 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.5.25318"
+readonly version="2.6.25126"
+E_NOT_IN_REPO=102
 EC=0
 
 ## Functions ##
 
 help() {
 	local -r errcode="${1:-1}"
-  local -r updated="02 Feb 2026"
+  local -r updated="06 May 2026"
 
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
@@ -62,21 +55,21 @@ _HELP_
 }
 
 install_audacious() {
-  if in_repos audacious; then
-    sudo_login 2
-    printf "Installing Audacious audio player...\n"
-    sudo apt update -qq
-    sudo apt install audacious audacious-plugins -yy
-    exists audacious || die "Audacious failed to install." 1
-    if ! grep -q '^ii' <(dpkg -l audacious); then
-      printf "%s Audacious installation failed.\n" "$RED_ERROR" >&2
-      EC="$E_INSTALLATION"
-      return
-    fi
-    printf "Audacious audio player installed from distro repository.\n"
-  else
+  if ! in_repos audacious; then
     printf "Audacious is not in repositories. Audacious audio player not installed.\n"
+    EC="$E_NOT_IN_REPO"
+    return
   fi
+  sudo_login 2
+  printf "Installing Audacious audio player...\n"
+  sudo apt update -qq
+  sudo apt install audacious audacious-plugins -yy
+  if ! grep -q '^ii' <(dpkg -l audacious); then
+    printf "%s Audacious installation failed.\n" "$RED_ERROR" >&2
+    EC="$E_INSTALLATION"
+    return
+  fi
+  printf "Audacious audio player installed from distro repository.\n"
 }
 
 remove_audacious() {
