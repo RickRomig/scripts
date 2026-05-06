@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 27 Apr 2026
+# Last updated : 205 May 2026
 # Comments     : Do not use with scripts or files inside git repos. Use gretire.sh instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,15 +31,15 @@ source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3..26117"
-readonly E_NOT_GIT_REPO=100
+readonly version="3.4.26125"
+readonly E_GIT_REPO=100
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="27 Apr 2026"
+	local updated="05 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Retires a script by moving it to a zipped archive.
@@ -69,7 +69,7 @@ check_git_repo() {
   if [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]; then
 		printf "%s This is a git repository.\n" "$RED_WARNING" >&2
 		printf "Use 'gretire.sh' to retire a script inside a git repository\n" >&2
-		EC="$E_NOT_GIT_REPO"
+		EC="$E_GIT_REPO"
 		exit_script
 	fi
 }
@@ -79,7 +79,7 @@ chack_args() {
 	if [[ ! -f "$filename" ]]; then
 		printf "%s was not found in this directory.\n" "$filename" >&2
 		EC="$E_FILENOTFOUND"
-		exit_script
+		return
 	fi
 	retire_script "$filename"
 }
