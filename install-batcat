@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Last updated : 09 Feb 2026
+# Last updated : 06 May 2026
 # Comments     : executable and its manpage will be renamed from ‘bat’ to ‘batcat’
 #              : because of a file name clash with another Debian package.
 #              : Mint 22 installs version 0.24.0 with suffix.
@@ -27,29 +27,21 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.11.26040"
+readonly version="2.12.26126"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="09 Feb 2026"
+	local updated="06 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Installs/removes/configures bat/batcat
@@ -66,7 +58,7 @@ _HELP_
 }
 
 bat_version() {
-  awk '/^ii/ {print $3}' <(dpkg -l bat)
+  awk '/^ii/ {print $3}' < <(dpkg -l bat)
 }
 
 install_bat() {
