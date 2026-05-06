@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 05 May 2025
+# Updated      : 06 May 2025
 # Comments     : Run as a user cron job. '~/.local/bin/empty-trash.sh'
 #              : Trash directory does not exist until a file has been moved to the trash.
 # TODO (Rick)  :
@@ -25,14 +25,10 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
 trash_empty() {
 	local count
 	count=$(wc -l < <(/usr/bin/trash-list))
-	[[ "$count" -eq 0 ]] && return "$TRUE" || return "$FALSE"
+	[[ "$count" -eq 0 ]] && return 0 || return 1
 }
 
 empty_trash() {
@@ -56,7 +52,7 @@ empty_trash() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.2.26125"
+  local -r version="5.3.26126"
   local -r lhost="${HOSTNAME:-$(hostname)}"
 	local -r trash_dir=~/.local/share/Trash
 	local -r log_dir=~/.local/share/logs
@@ -73,7 +69,7 @@ main() {
 		else
 			printf "trash-cli package is not installed.\n"
 		fi
-		over_line "$script $version"
+		printf "%s %s\n" "$script" "$version"
 	} > "$log_dir/$log_file" 2>&1
 	exit
 }
