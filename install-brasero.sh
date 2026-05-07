@@ -7,7 +7,7 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 14 Feb 2026
-# Updated      : 11 Apr 2026
+# Updated      : 06 May 2026
 # Comments     : Thanks to Joe Collins and Matt Hartley for the fix for the permissions problem.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,14 +38,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.3.26101"
+readonly version="1.4.26126"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="11 Apr 2026"
+	local -r updated="06 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs Brasero CD/DVD writeer
@@ -65,7 +65,7 @@ check_dependencies() {
 }
 
 brasero_version() {
-	awk '/ii/ {print $3}' <(dpkg -l brasero) | sed 's/[~+-].*//'
+	awk '/ii/ {print $3}' < <(dpkg -l brasero) | sed 's/[~+-].*//'
 }
 
 #  Set permissions to enable audio CD writing
@@ -76,20 +76,16 @@ set_permissions() {
   sudo chmod -v 0755 /usr/bin/growisofs
 }
 
-mimeapps_list_add() {
-  local -r mimeapps_list=~/.local/share/applications/mimeapps.list
-	if [[ ! -f "$mimeapps_list" ]]; then
-		printf "%s not found.\n" "${mimeapps_list##*/}"
-		EC="$E_FILENOTFOUND"
-		return
-	fi
-  if grep -q 'brasero' "$mimeapps_list"; then
+add_mimeapps() {
+	local -r applications_dir=~/.local/share/applications
+	[[ -d "$applications_dir" ]] || mkdir -p "$applications_dir"
+	[[ -f "$applications_dir/mimeapps.list" ]] || touch "$applications_dir/mimeapps.list"
+  # if ! grep -q 'brasero' "$applications_dir/mimeapps.list"; then
+		local -r set_brasero=("x-content/blank-cd=brasero.desktop;" "x-content/blank-dvd=brasero.desktop;")
     printf  "Updating mimeapps.iist...\n"
-    {
-      echo "x-content/blank-cd=brasero.desktop;"
-      echo "x-content/blank-dvd=brasero.desktop;"
-    } >> "$mimeapps_list"
-  fi
+		tee -a "$applications_dir/mimeapps.list" < <(printf "%s\n" "${set_brasero[@]}")
+		grep -w brasero "$applications_dir/mimeapps.list"
+  # fi
 }
 
 # Sound 'pop and click' fix. Set sound card to stay powered on all the time
@@ -108,7 +104,7 @@ install_brasero() {
 	fi
 	check_dependencies
 	set_permissions
-	mimeapps_list_add
+	add_mimeapps
 	pop_and_click
 	printf "Brasero %s installed.\n" "$(brasero_version)"
 }
