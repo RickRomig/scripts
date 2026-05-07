@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2019
-# Updated      : 11 Apr 2026
+# Updated      : 07 May 2026
 # Comments     : Google Chrome updates through apt from source list
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,22 +24,14 @@
 # GNU General Public License for more details.
 ###############################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.4.26101"
+readonly version="5.5.26127"
 readonly chrome_list="/etc/apt/sources.list.d/google-chrome.list"
 readonly trusted_key="/usr/share/keyrings/google-chrome.gpg"
 EC=0
@@ -48,7 +40,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="11 Apr 2026"
+	local -r updated="07 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updated, or removes Google Chrome.
@@ -74,7 +66,8 @@ set_gpg_key() {
     return
   fi
   printf "Setting the trusted key...\n"
-  curl -fSsL "$trusted_key_url" | gpg --dearmor | sudo tee "$trusted_key"
+  # curl -fSsL "$trusted_key_url" | gpg --dearmor | sudo tee "$trusted_key"
+  gpg --dearmor < <(curl -fSsL "$trusted_key_url") | sudo tee "$trusted_key"
 }
 
 set_src_list(){
@@ -93,7 +86,7 @@ install_chrome() {
   printf "Updating apt cache and installing Google Chrome...\n"
   sudo apt update -qq
   sudo apt-get install -y google-chrome-stable
-  if grep '^ii' <(dpkg -l google-chrome-stable 2>/dev/null); then
+  if grep '^ii' < <(dpkg -l google-chrome-stable 2>/dev/null); then
     printf "%s successfully installed.\n" "$(chrome_version)"
   else
     printf "%s Google Chrome installation failed.\n" "$RED_ERROR" >&2
