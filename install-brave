@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 11 Apr 2026
+# Updated      : 07 May 2026
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -25,22 +25,14 @@
 # GNU General Public License for more details.
 #############################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.5.26101"
+readonly version="6.6.26127"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 verbose_mode="FALSE"
@@ -50,7 +42,7 @@ EC=0
 
 help() {
   local errcode="${1:-1}"
-  local updated="11 Apr 20265"
+  local updated="07 May 20265"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: ($updated)
 Installs/Removes the Brave browser
@@ -104,7 +96,7 @@ install_brave() {
   show_message "Updating apt cache and isntalling the Brave browser"
   sudo apt-get update -qq
   sudo apt-get install brave-browser brave-keyring -yy
-  if grep -q '^ii' <(dpkg -l brave-browser 2>/dev/null); then
+  if grep -q '^ii' < <(dpkg -l brave-browser 2>/dev/null); then
     printf "%s successfully installed.\n" "$(brave_ver)"
   else
     printf "%s Brave browser installation failed.\n" "$RED_ERROR" >&2
