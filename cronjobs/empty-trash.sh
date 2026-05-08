@@ -43,22 +43,21 @@ empty_trash() {
 	/usr/bin/trash-list
 	if [[ "$old_trash" -eq 0 ]]; then
 		printf "\nNo trash older than %s.\n" "$last_week"
-	else
-		printf "\nRemoving trash older than %s...\n" "$last_week"
-		/usr/bin/trash-empty -v -f 6
+		return
 	fi
+	printf "\nRemoving trash older than %s...\n" "$last_week"
+	/usr/bin/trash-empty -v -f 6
 	if trash_empty; then
 		printf "\nAll trash has been removed.\n"
 		return
-	else
-		printf "\nTrash newer than %s:\n" "$last_week"
-		/usr/bin/trash-list
 	fi
+	printf "\nTrash newer than %s:\n" "$last_week"
+	/usr/bin/trash-list
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.5.26128"
+  local -r version="5.6.26128"
   local -r lhost="${HOSTNAME:-$(hostname)}"
 	local -r trash_dir=~/.local/share/Trash
 	local -r log_dir=~/.local/share/logs
@@ -67,7 +66,7 @@ main() {
 
 	{
 		printf "Local Trash Log - %s\n" "$lhost"
-		printf "Date: %(%A %F %R)T\n"
+		printf "%(%A %F %R)T\n"
 		if [[ ! -d "$trash_dir" ]]; then
 			printf "\nTrash directory does not exist.\nIt will be created when a file is moved to the trash.\n"
 		elif grep -q '^ii' < <(dpkg -l trash-cli 2>/dev/null); then
