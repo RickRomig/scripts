@@ -25,6 +25,12 @@
 # GNU General Public License for more details.
 ##########################################################################
 
+old_version() {
+  local vernum
+	vernum=$(cut -d. -f2 < <(trash-empty --version))
+	[[ "$vernum" -lt 23 ]] && return 1 || return 0
+}
+
 trash_empty() {
 	local count
 	count=$(wc -l < <(/usr/bin/trash-list))
@@ -46,7 +52,11 @@ empty_trash() {
 		return
 	fi
 	printf "\nRemoving trash older than %s...\n" "$last_week"
-	/usr/bin/trash-empty -v -f 6
+	if old_version; then
+		usr/bin/trash-empty 6
+	else
+		/usr/bin/trash-empty -v -f 6
+	fi
 	if trash_empty; then
 		printf "\nAll trash has been removed.\n"
 		return
@@ -57,7 +67,7 @@ empty_trash() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.6.26128"
+  local -r version="5.7.26128"
   local -r lhost="${HOSTNAME:-$(hostname)}"
 	local -r trash_dir=~/.local/share/Trash
 	local -r log_dir=~/.local/share/logs
