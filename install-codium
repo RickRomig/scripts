@@ -108,7 +108,7 @@ install_vscodium() {
 	set_src_list
 	show_message "Updating apt cache and installing VSCodium..."
 	sudo apt-get update
-	sudo apt-get install codium codium-insiders
+	sudo apt-get install codium
 	if grep -q '^ii' <(dpkg -l codium 2>/dev/null); then
 		printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 		apply_settings
@@ -127,7 +127,7 @@ apply_settings() {
   show_message "Applying VSCodium settings..."
 	[[ -f ~/.config/VSCodium/User/settings.json ]] && rm ~/.config/VSCodium/User/settings.json
 	[[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/VSCodium/User/settings.json ~/.configVSCodium/User/settings.json
-	[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/VSCodium/User/settings.json ~/.configVSCodium/User/settings.json
+	[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/VSCodium/User/settings.json ~/.config/VSCodium/User/settings.json
   show_message "VSCodium settings applied."
 }
 
