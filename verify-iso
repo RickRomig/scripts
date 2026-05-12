@@ -27,17 +27,9 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
@@ -123,13 +115,13 @@ verify_checksums() {
   SPIN_PID="$!"
 	case "$ext" in
 		md5 )
-			iso_sum=$(awk '{print $1}' <(/usr/bin/md5sum "$iso")) ;;
+			iso_sum=$(awk '{print $1}' < <(/usr/bin/md5sum "$iso")) ;;
 		sha1 )
-			iso_sum=$(awk '{print $1}' <(/usr/bin/sha1sum "$iso")) ;;
+			iso_sum=$(awk '{print $1}' < <(/usr/bin/sha1sum "$iso")) ;;
 		sha256 )
-			iso_sum=$(awk '{print $1}' <(/usr/bin/sha256sum "$iso")) ;;
+			iso_sum=$(awk '{print $1}' < <(/usr/bin/sha256sum "$iso")) ;;
 		sha512 )
-			iso_sum=$(awk '{print $1}' <(/usr/bin/sha512sum "$iso")) ;;
+			iso_sum=$(awk '{print $1}' < <(/usr/bin/sha512sum "$iso")) ;;
 	esac
 	chk_sum=$(awk '{print $1}' "$checksum")
   kill_spin
