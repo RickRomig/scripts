@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 09 Mar 2026
+# Updated      : 12 May 2026
 # Comments     : Testing indicates USB drive needs to be mounted.
 #              : Works with fuzzy finder (fzf).
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
@@ -27,22 +27,14 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.7.26068"
+readonly version="7.8.26132"
 user=$(whoami); readonly user
 dryrun="$FALSE"
 FMENU="fzf --header=$script \
@@ -65,7 +57,7 @@ E_WRITE_FAILED=99
 
 help() {
 	local errcode="${1:-1}"
-	local updated="09 Mar 2026"
+	local updated="12 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
@@ -81,13 +73,16 @@ _HELP_
 }
 
 check_usb_drive() {
-	[[ $(grep 'usb' <(lsblk -S -o TRAN)) = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$script $version"
+	[[ $(grep 'usb' < <(lsblk -S -o TRAN)) = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$script $version"
 }
 
 select_directory() {
 	local dist_d selected_dir
+  local local_host="${HOSTNAME:-$(hostname)}"
+	local iso_dir=~/Downloads/ISO
 	local iso_dirs=()
-	for dist_d in $HOME/Downloads/ISO; do
+	[[ "$local_host" == "dell-9020" ]] && iso_dir=/data/ISO
+	for dist_d in $iso_dir; do
 		[[ -d "$dist_d" ]] && iso_dirs+=("$(sort -d < <(find "$dist_d" -type d -print))")
 	done
 	selected_dir=$($FMENU "Select distribution directory: " < <(printf "%s\n" "${iso_dirs[@]}"))
@@ -107,7 +102,7 @@ select_iso() {
 
 select_usb() {
 	local usb_device
-	usb_device=$(awk '$2 == "disk" && $1 == "1" {print $2,$3,$4,$5}' <(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL) | \
+	usb_device=$(awk '$2 == "disk" && $1 == "1" {print $2,$3,$4,$5}' < <(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL) | \
 	$FMENU "Select the USB drive to write to: ")
 	usb_device=$(awk '{print $2}' <<< "$usb_device")
 	echo "$usb_device"
@@ -134,7 +129,7 @@ unmount_usb() {
 list_usb_contents() {
 	local drvlabel usbdevice usbpart
 	usbpart="$1"
-	drvlabel=$(awk -v pat="$usbpart" -F/ '$0 ~ pat {print $NF}' <(lsblk))
+	drvlabel=$(awk -v pat="$usbpart" -F/ '$0 ~ pat {print $NF}' < <(lsblk))
   printf "\nContents of /dev/%s:\n" "$usbpart"
 	printf "Disk label: %s\n" "$drvlabel"
   ls -F "/media/$user/$drvlabel"
@@ -169,14 +164,14 @@ write_iso() {
 	local isofile usbdevice usbpart usbsize mount_name
 	isofile="$1"
 	usbdevice="$2"
-	usbsize=$(lsblk | awk -v pat="$usbdevice" '$0~pat{print$4;exit}' )
+	usbsize=$(awk -v pat="$usbdevice" '$0~pat{print$4;exit}' < <(lsblk))
 	printf "%-16s %s\n" "Selected ISO:" "${isofile##*/}"
 	printf "%-16s /dev/%s [%s]\n" "Selected device:" "$usbdevice" "$usbsize"
 
 	# Mount selected USB drive if not already mounted.
 	usbpart="${usbdevice}1"
-	if grep -q "$usbpart" <(mount) > /dev/null 2>&1; then
-		mount_name=$(grep "$usbpart" <(lsblk) | cut -d'/' -f4- )
+	if grep -q "$usbpart" < <(mount) >/dev/null 2>&1; then
+		mount_name=$(grep "$usbpart" < <(lsblk) | cut -d'/' -f4- )
 	else
 		sudo_login 2
 		mount_name="$(date +%y%b%d)"
@@ -192,7 +187,7 @@ write_iso() {
 		if yes_or_no "Write ${isofile##*/} to /dev/$usb_device?"; then
 			sudo_login 2
 			write_dd "$isofile" "$usbdevice" "$mount_name"
-			grep -q "/dev/$usbpart" <(mount) > /dev/null 2>&1 && unmount_usb "$mount_name" "$usbpart"
+			grep -q "/dev/$usbpart" < <(mount) > /dev/null 2>&1 && unmount_usb "$mount_name" "$usbpart"
 		else
 			printf "Operation canceled. No action taken.\n"
 		fi
