@@ -7,7 +7,7 @@
 # Author       : Copyright © 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Jan 2022
-# Updated      : 03 May 2026
+# Updated      : 12 May 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,7 +26,7 @@
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -49,9 +49,9 @@ wifi_down() {
   wifi_int="$1"
   printf "No wireless IP address found. Is %s up?\n" "$wifi_int"
   printf "Checking if interface is down and trying to bring it up if not.\n"
-  grep 'DOWN' <(/sbin/ip link show "$wifi_int") && sudo /sbin/ip link set "$wifi_int" up
+  grep 'DOWN' < <(/sbin/ip link show "$wifi_int") && sudo /sbin/ip link set "$wifi_int" up
   printf "Checking again. If down, check if device is toggled on.\n"
-  grep 'DOWN' <(/sbin/ip link show "$wifi_int") && printf "Make sure WiFi is toggled on.\n" >&2
+  grep 'DOWN' < <(/sbin/ip link show "$wifi_int") && printf "Make sure WiFi is toggled on.\n" >&2
   wifi_ip=$(get_ip_address)
   if [[ "$wifi_ip" ]]; then
     printf "Wireless IP - %s\n" "$wifi_ip"
@@ -77,7 +77,7 @@ show_wifi_ip() {
 
 main() {
   local script="${0##*/}"
-  local -r version="3.2.26123"
+  local -r version="3.3.26132"
   show_wifi_ip
   over_line "$script $version" "-"
   exit
