@@ -28,7 +28,7 @@
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 # set -eu
 # set -euo pipefail
@@ -69,7 +69,8 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# shellcheck disable=SC2317
+# Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
 	[[ -f "$tmp_file" ]] && rm "$tmp_file"
@@ -78,7 +79,7 @@ cleanup() {
 
 app_version() {
 	# application --version
-	awk '/ii/ {print $3}' <(dpkg -l application) | sed 's/[~+-].*//'
+	awk '/ii/ {print $3}' < <(dpkg -l application) | sed 's/[~+-].*//'
 }
 
 show_message() {
