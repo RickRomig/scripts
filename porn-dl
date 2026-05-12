@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 15 Apr 2026
+# Updated      : 12 May 2026
 # Comments     : match by regex, starting with http:// or https://
 #              : Downloads videos to selected directory under ~/Videos/Pornography/
 # TODO (Rick)  :
@@ -25,23 +25,15 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.8.26105"
-readonly updated="15 Apr 2026"
+readonly version="4.9.26132"
+readonly updated="12 May 2026"
 FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
@@ -62,11 +54,10 @@ help() {
   local errcode="${1:-1}"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
-Dowload videos from adult sites to ~/Videos/Pornography subdirectory.
+Dowload videos from adult sites to the appropriate subdirectory.
 
 ${green}Usage:${normal} $script [-h] [-i] [video-url]
   $script https://www.pornhub.com/view_video.php?viewkey=ph5ccfa07f0e2a6
-
 ${orange}Available options:${normal}
   -h | --help  Show this help message and exit
   -i | --info  Show information about the script and exit
@@ -114,8 +105,10 @@ extract_domain() {
 
 select_directory() {
 	local vid_d selected_directory
+  local local_host="${HOSTNAME:-$(hostname)}"
 	local video_dir=$HOME"/Videos/Pornography"
   local directories=()
+  [[ "$local_host" == "dell-9020" ]] && video_dir="/data/Videos/Pornography"
   for vid_d in $video_dir; do
     [[ -d "$vid_d" ]] && directories+=("$(sort -d < <(find "$video_dir" -type d -print))")
   done
