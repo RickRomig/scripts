@@ -7,7 +7,7 @@
 # Author       : Copyright © 2021 Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2021
-# Updated      : 09 Mar 2026
+# Updated      : 12 May 2026
 # Comment      :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,31 +24,23 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
 check_webcam() {
-  if ! grep -iqsw webcam <(/usr/bin/lsusb); then
+  if ! grep -iqsw webcam < <(/usr/bin/lsusb); then
     printf "No webcam found.\n"
     return
   fi
-  grep -iw webcam <(/usr/bin/lsusb)
+  grep -iw webcam < <(/usr/bin/lsusb)
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.3.26068"
+  local -r version="4.4.26132"
   check_webcam
   over_line "$script $version" "-"
   exit
