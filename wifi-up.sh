@@ -7,7 +7,7 @@
 # Author       : Copyright © 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Jan 2022
-# Updated      : 12 May 2026
+# Updated      : 13 May 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,14 +33,14 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 get_wifi_interface() {
   local wifi_int
   wifi_int=$(awk -F: '/wl/ {print $2}' < <(ip addr show))
-  wifi_int="${wifi_int# }"  # Removed leading space
+  wifi_int="${wifi_int# }"  # Remove leading space
   echo "$wifi_int"
 }
 
 get_ip_address() {
   local wifi_ip
   wifi_ip=$(awk '/wl/ {print $4}' < <(ip -o -4 addr show))
-  wifi_ip="${wifi_ip%%/*}"  # Removed CIDR notation
+  wifi_ip="${wifi_ip%%/*}"  # Remove CIDR notation
   echo "$wifi_ip"
 }
 
@@ -53,31 +53,31 @@ wifi_down() {
   printf "Checking again. If down, check if device is toggled on.\n"
   grep 'DOWN' < <(/sbin/ip link show "$wifi_int") && printf "Make sure WiFi is toggled on.\n" >&2
   wifi_ip=$(get_ip_address)
-  if [[ "$wifi_ip" ]]; then
-    printf "Wireless IP - %s\n" "$wifi_ip"
-  else
+  if [[ -z "$wifi_ip" ]]; then
     printf "No IP address found. Begin troubleshooting.\n" >&2
+    return
   fi
+  printf "Wireless IP - %s\n" "$wifi_ip"
 }
 
 show_wifi_ip() {
   local wifi_int wifi_ip
   wifi_int=$(get_wifi_interface)
-  if [[ "$wifi_int" ]]; then
-    wifi_ip=$(get_ip_address)
-    if [[ "$wifi_ip" ]]; then
-      printf "Wireless IP - %s\n" "$wifi_ip"
-    else
-      wifi_down "$wifi_int"
-    fi
-  else
+  if [[ -z "$wifi_int" ]]; then
     printf "No wireless interface found.\n"  >&2
+    return
+  fi
+  wifi_ip=$(get_ip_address)
+  if [[ "$wifi_ip" ]]; then
+    printf "Wireless IP - %s\n" "$wifi_ip"
+  else
+    wifi_down "$wifi_int"
   fi
 }
 
 main() {
   local script="${0##*/}"
-  local -r version="3.3.26132"
+  local -r version="3.3.26133"
   show_wifi_ip
   over_line "$script $version" "-"
   exit
