@@ -53,7 +53,7 @@ drive_test() {
   bu_drive_fs
   check_uuid
 	get_space_remaining
-	printf "USB Backup Drive is mounted and meets all criteria.\n"
+	printf "USB Backup Drive checks completed.\n"
 	if default_yes "Continue with the backup"; then
 		return
 	else
@@ -64,7 +64,7 @@ drive_test() {
 }
 
 check_usb() {
-	if [[ $(grep 'usb' <(lsblk -S -o TRAN)) = *usb* ]]; then
+	if [[ $(grep 'usb' < <(lsblk -S -o TRAN)) = *usb* ]]; then
 		printf "A USB drive is connected.\n"
 	else
 		dielog "No USB drive connected!" "$logfile" "$E_DRIVE_ERROR"
@@ -75,14 +75,15 @@ mount_bu() {
   local usbdrv
   usbdrv=$(awk -F/ '/BU_Drive/ {print $3}' /proc/mounts)
   [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
-	[[ $usbdrv ]] && { printf "BU_Drive already mounted on /dev/%s\n" "$usbdrv"; return; }
-	usbdrv=$(awk '/BU_Drive/ {print $1}' < <(lsblk -fs))
 	if [[ $usbdrv ]]; then
+		 printf "BU_Drive mounted on /dev/%s\n" "$usbdrv"
+	elif [[ -z $usbdrv ]]; then
 		sudo mount /dev/"$usbdrv" "$mount_point"
 		printf "BU_Drive now mounted on /dev/%s\n" "$usbdrv"
 	else
 		dielog "BU_Drive not mounted. Check the drive." "$logfile" "$E_DRIVE_ERROR"
 	fi
+	printf "Mount point = %s\n" "$(awk '/BU_Drive/ {print $2}' /proc/mounts)"
 }
 
 bu_drive_label() {
