@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 03 May 2026
+# Last updated : 13 May 2026
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,13 +25,14 @@
 ##############################################################################
 
 ## Load function library ##
+
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.2.26123"
+readonly version="7.3.26133"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -72,10 +73,10 @@ check_usb() {
 
 mount_bu() {
   local usbdrv
-  usbdrv=$(awk -F/ '/BU_Drive/ {print $3}' < /proc/mounts)
+  usbdrv=$(awk -F/ '/BU_Drive/ {print $3}' /proc/mounts)
   [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
 	[[ $usbdrv ]] && { printf "BU_Drive already mounted on /dev/%s\n" "$usbdrv"; return; }
-	usbdrv=$(awk '/BU_Drive/ {print $1}' <(lsblk -fs))
+	usbdrv=$(awk '/BU_Drive/ {print $1}' < <(lsblk -fs))
 	if [[ $usbdrv ]]; then
 		sudo mount /dev/"$usbdrv" "$mount_point"
 		printf "BU_Drive now mounted on /dev/%s\n" "$usbdrv"
@@ -86,18 +87,20 @@ mount_bu() {
 
 bu_drive_label() {
 	local bu_label
-	bu_label=$(awk '/BU_Drive/ {print $2}' < /proc/mounts)
-	bu_label="${bu_label##*/}"
-	if [[ $bu_label ]]; then
-		printf "USB drive label = %s \n" "$bu_label"
-	else
+	bu_label=$(awk '/BU_Drive/ {print $1}' < <(lsblk -o LABEL))
+	[[ -z "$bu_label" ]] && dielog "No partition label." "$logfile" "$E_DRIVE_ERROR"
+	printf "USB drive label = %s \n" "$bu_label"
+	# If label != BU_Drive (ie BU_Drive1) then unmount drive and exit.
+	# Check mountpoints and remove BU_Drive directory from /media/<user>
+	if [[ "$bu_label" != "BU_Drive" ]]; then
+		unmount_usb_drive
 		dielog "Invalid partition label." "$logfile" "$E_DRIVE_ERROR"
 	fi
 }
 
 bu_drive_fs() {
   local fs_type
-	fs_type=$(awk '/BU_Drive/ {print $3}' < /proc/mounts)
+	fs_type=$(awk '/BU_Drive/ {print $3}' /proc/mounts)
 	if [[ "$fs_type" == "ext4" || "$fs_type" == "XFS" ]]; then
 		printf "BU_Drive format = %s\n" "$fs_type"
 	else
@@ -111,7 +114,7 @@ check_uuid() {
 		[hp-800g2-sff]="5d3290de-3fa7-4e3c-94b8-aca062c427ef"
 		[hp-850-g3]="5d1a8caa-36cf-4a36-8457-1a2bb2f85fd3"
 		[hp-probook-6570]="89740987-ca0a-4b33-bb56-9055bb9e1daa"
-		[lenovo-m91p]="772dcef3-6f46-4e58-b6d1-00ca9292c062"
+		[dell-9020]="772dcef3-6f46-4e58-b6d1-00ca9292c062"
 		[hp-6005]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
 		[e6500-deb]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
 		[probook-6570b]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
@@ -130,22 +133,10 @@ check_uuid() {
 	fi
 }
 
-# is_deb_13() {
-# 	local deb_ver
-# 	is_debian || return "$FALSE"
-# 	deb_ver=$(cut -d'.' -f1 < /etc/debian_version)
-# 	[[ $deb_ver -ge 13 ]] && return "$TRUE" || return "$FALSE"
-# }
-
 unmount_usb_drive() {
 	printf "Unmounting %s...\n" "$mount_point"
 	sudo umount "$mount_point"
-	# if is_deb_13; then
-	# 	sudo umount "$mount_point"
-	# else
-	# 	sudo umount "$mount_point"
-	# fi
-	if grep -q 'BU_Drive' <(mount); then
+	if grep -q 'BU_Drive' < <(mount); then
 		log "$RED_ERROR $mount_point failed to unmount. ($E_DRIVE_ERROR)" "$logfile"
 		EXIT_CODE="$E_DRIVE_ERROR"
 	else
@@ -256,7 +247,7 @@ restore() {
 
 help() {
 	local errcode="${1:-1}"
-	local updated="03 May 2026"
+	local updated="13 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
