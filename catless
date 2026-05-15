@@ -7,7 +7,7 @@
 # Author       : Copyright © 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 23 Apr 2026
+# Updated      : 14 May 2026
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,19 +26,19 @@
 
 ## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.0.26113"
+readonly version="7.9.26134"
 EC=0
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local updated="23 Apr 2026"
+  local updated="14 May 2026"
   cat << _HELP_
 ${orange}$script${normal} $version (updated $updated)
 Displays a text file using either cat or less depending the number of lines in
@@ -63,7 +63,7 @@ check_file() {
 		printf "%s %s is an empty file.\n" "$RED_ERROR" "$filename" >&2
 		EC="$E_INVALID_ARG"
 		return "$FALSE"
-	elif grep -qEi "text|json" <(file -bL "$filename"); then
+	elif grep -qEi "text|json" < <(file -bL "$filename"); then
 		return "$TRUE"
 	else
 		printf "%s %s is not a text file.\n" "$RED_ERROR" "$filename" >&2
