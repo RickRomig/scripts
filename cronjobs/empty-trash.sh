@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 08 May 2025
+# Updated      : 15 May 2025
 # Comments     : Run as a user cron job. '~/.local/bin/empty-trash.sh'
 #              : Trash directory does not exist until a file has been moved to the trash.
 # TODO (Rick)  :
@@ -26,15 +26,15 @@
 ##########################################################################
 
 old_version() {
-  local vernum
+  local -i vernum
 	vernum=$(cut -d. -f2 < <(trash-empty --version))
-	[[ "$vernum" -lt 23 ]] && return 1 || return 0
+	(( vernum < 23 )) && return 0 || return 1
 }
 
 trash_empty() {
-	local count
+	local -i count
 	count=$(wc -l < <(/usr/bin/trash-list))
-	[[ "$count" -eq 0 ]] && return 0 || return 1
+	(( count == 0 )) && return 0 || return 1
 }
 
 empty_trash() {
@@ -55,7 +55,7 @@ empty_trash() {
 	if old_version; then
 		/usr/bin/trash-empty 6
 	else
-		/usr/bin/trash-empty -v -f 6
+		/usr/bin/trash-empty -v -f  6
 	fi
 	if trash_empty; then
 		printf "\nAll trash has been removed.\n"
@@ -67,7 +67,7 @@ empty_trash() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.8.26128"
+  local -r version="5.9.26135"
   local -r lhost="${HOSTNAME:-$(hostname)}"
 	local -r trash_dir=~/.local/share/Trash
 	local -r log_dir=~/.local/share/logs
@@ -80,7 +80,7 @@ main() {
 		if [[ ! -d "$trash_dir" ]]; then
 			printf "\nTrash directory does not exist.\nIt will be created when a file is moved to the trash.\n"
 		elif grep -q '^ii' < <(dpkg -l trash-cli 2>/dev/null); then
-			empty_trash
+			empty_trash "$trash_dir"
 		else
 			printf "trash-cli package is not installed.\n"
 		fi
