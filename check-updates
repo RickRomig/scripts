@@ -33,7 +33,7 @@ source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="10.9.26125"
+readonly version="10.10.26125"
 SECONDS=0
 
 ## Functions ##
@@ -303,7 +303,8 @@ check_for_updates() {
     printf "%s\n" "$upgrades"
   else
     printf "Packages that can be upgraded:\n"
-    apt list --upgradable
+    sed '1d' < <(apt list --upgradable 2>/dev/null)
+    # apt list --upgradable
   fi
 }
 
