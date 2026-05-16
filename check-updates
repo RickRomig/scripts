@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 15 May 2026
+# Updated      : 16 May 2026
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -33,7 +33,7 @@ source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="10.10.26125"
+readonly version="10.10.26126"
 SECONDS=0
 
 ## Functions ##
@@ -47,7 +47,7 @@ cleanup() {
 
 help() {
 	local errcode="${1:-1}"
-  local updated="15 May 2026"
+  local updated="16 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt-get or Nala.
@@ -302,7 +302,7 @@ check_for_updates() {
   if [[ "$numup" == "All" ]]; then
     printf "%s\n" "$upgrades"
   else
-    printf "Packages that can be upgraded:\n"
+    printf "Packages that can be upgraded: %d\n" "$numup"
     sed '1d' < <(apt list --upgradable 2>/dev/null)
     # apt list --upgradable
   fi
