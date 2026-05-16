@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 22 Nov 2023
-# Last updated : 04 Apr 2026
+# Last updated : 16 May 2026
 # Comments     : Based on a script by Kris Occipinti, https://filmsbykris.com/v7/
 #              : https://gitlab.com/metalx1000/MyBin/-/blob/master/linux/shell/apt-search
 # TODO (Rick)  :
@@ -20,36 +20,36 @@
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# but WITHOUT ANY WARRANTY; w|ithout even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 ###############################################################################
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Funtions ##
 
 run_query() {
 	local query="$1"
-	local pkg
-	pkg="$(aptitude search "$query" | fzf --prompt "Select packages: " -m | awk '{print $2}' | tr -d '\n')"
-	if [[ -z "$pkg" ]]; then
+	local package
+	package="$(fzf --prompt "Select packages: " -m < <(aptitude search "$package")  | awk '{print $2}' | tr -d '\n')"
+	if [[ -z "$package" ]]; then
 		printf "No package selected.\n" >&2
 		return
 	fi
-	if default_no	"Install ${pkg}?"; then
+	if default_no	"Install ${package}?"; then
 		sudo_login 2
-		sudo apt install "$pkg"
+		sudo apt install "$package"
 	else
-		printf "%s selected but not installed.\n" "$pkg"
+		printf "%s selected but not installed.\n" "$package"
 	fi
 }
 
 main() {
 	local script="${0##*/}"
-	local version="4.0.26094"
+	local version="4.1.26136"
 	local query="$1"
 	check_package fzf
 
