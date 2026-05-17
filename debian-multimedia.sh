@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 28 Oct 2025
-# Last updated : 16 Apr 2026
+# Last updated : 17 May 2026
 # Comments     : Only supports Debian 12 (bookworm) & Debian 13 (trixie)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,7 +26,7 @@
 
 ## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
@@ -80,7 +80,7 @@ set_multimedia_sources() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.3.26106"
+  local -r version="2.4.26137"
 	local distro
 	distro="$(/usr/bin/lsb_release --codename --short)"
   trap cleanup EXIT
