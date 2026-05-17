@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 03 May 2026
+# Last updated : 17 May 2026
 # Comments     : Cleanup after upgrade to Debian 13.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,7 +26,7 @@
 
 ## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -39,13 +39,13 @@ check_file2() {
 }
 
 check_codename() {
-	[[ "$(lsb_release --codename --short 2>/dev/null)" == "trixe" ]] && return "$TRUE" || return "$FALSE"
+	[[ "$(lsb_release --codename --short 2>/dev/null)" == "trixie" ]] && return "$TRUE" || return "$FALSE"
 }
 
 version_info() {
 	printf "Version information:\n"
 	lsb_release --all 2>/dev/null
-	printf "%-16s%s\n" "Version:" "$(cat /etc/debian_version)"
+	printf "%-16s%s\n" "Version:" "$(< /etc/debian_version)"
 }
 
 clean_up() {
@@ -66,8 +66,8 @@ modernize_sources() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.5.26052"
-	local updated="03 May 2026"
+	local version="1.7.26137"
+	local updated="17 May 2026"
 	local exit_code=0
 	check_file1 || die "01-bookworm2trixie.sh and 02-bookworm2trixie.sh must be run first." "$E_INFO"
 	check_file2 || die "02-bookworm2trixie.sh hasn't been run." "$E_INFO"
