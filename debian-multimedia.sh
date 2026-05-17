@@ -74,20 +74,24 @@ set_multimedia_sources() {
 			sudo cp -v "$script_dir"/files/trixie-dmo.sources "$source_list"
 			;;
 		* )
-			# Should not be necessary
+			: # Should not be necessary
 	esac
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.4.26137"
+  local -r version="2.5.26137"g
 	local distro
 	distro="$(/usr/bin/lsb_release --codename --short)"
   trap cleanup EXIT
 	check_package wget
-	[[ "$distro" != "bookworm " && "$distro" != "trixie " ]] && { printf "%s is not supported by this script.\n" "${distro^}"; exit 1; }
-	install_multimedia_keyring
-	set_multimedia_sources "$distro"
+	if [[ "$distro" == "bookworm " || "$distro" == "trixie " ]]; then
+		install_multimedia_keyring
+		set_multimedia_sources "$distro"
+	else
+		printf "%s is not supported by this script.\n" "${distro^}" >&2
+		EC="$E_INSTALLATION"
+	fi
 	over_line "$script $version"
   exit "$EC"
 }
