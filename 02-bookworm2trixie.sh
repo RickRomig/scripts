@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 03 May 2026
+# Last updated : 16 May 2026
 # Comments     : This scripts updates sources.list & backports.list.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,7 +26,7 @@
 
 ## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -45,7 +45,7 @@ check_codename() {
 version_info() {
 	printf "Version information:\n"
 	lsb_release --all 2>/dev/null
-	printf "%-16s%s\n" "Version:" "$(cat /etc/debian_version)"
+	printf "%-16s%s\n" "Version:" "$(< /etc/debian_version)"
 }
 
 sources_list() {
@@ -82,8 +82,8 @@ upgrade_debian() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.7.26123"
-	local updated="03 May 2026"
+	local version="1.8.26136"
+	local updated="16 May 2026"
 	check_file1 || die "01-bookworm2trixie.sh must be run first." "$E_INFO"
 	check_file2 && die "This script has already been run." "$E_INFO"
 	check_package apt-transport-https
