@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 03 May 2026
+# Last updated : 17 May 2026
 # Comments     : This script updates current Debian 12 before upgrade.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,7 +26,7 @@
 
 ## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -45,7 +45,7 @@ check_codename() {
 version_info() {
 	printf "Version information:\n"
 	lsb_release --all 2>/dev/null
-	printf "%-16s%s\n" "Version:" "$(cat /etc/debian_version)"
+	printf "%-16s%s\n" "Version:" "$(< /etc/debian_version)"
 }
 
 upgrade_packages() {
@@ -58,8 +58,8 @@ upgrade_packages() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.6.26123"
-	local updated="03 May 2026"
+	local version="1.6.26136"
+	local updated="17 May 2026"
 	check_codename || die "This is not Debian 12 Bookworm" "$E_INFO"
 	check_file1 || check_file2 && die "This script has already been run." "$E_INFO"
 	version_info
