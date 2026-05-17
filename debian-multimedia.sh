@@ -56,36 +56,23 @@ set_multimedia_sources() {
 	local -r source_list=/etc/apt/sources.list.d/dmo.sources
 	script_dir=$(dirname "$(readlink -f "${0}")")
 	printf "Setting multimeda sources...\n"
-	case "$distro" in
-		bookworm )
-			if [[ ! -f "$script_dir/files/bookworm-dmo.sources" ]]; then
-				printf "%s bookworm-dmo.sources not found.\n" "$RED_ERROR" >&2
-				EC="$E_FILENOTFOUND"
-				return
-			fi
-			sudo cp -v "$script_dir"/files/bookworm-dmo.sources "$source_list"
-			;;
-		trixie )
-			if [[ ! -f "$script_dir/files/trixie-dmo.sources" ]]; then
-				printf "%s trixie-dmo.sources not found.\n" "$RED_ERROR" >&2
-				EC="$E_FILENOTFOUND"
-				return
-			fi
-			sudo cp -v "$script_dir"/files/trixie-dmo.sources "$source_list"
-			;;
-		* )
-			: # Should not be necessary
-	esac
+	if [[ ! -f "$script_dir/files/${distro}-dmo.sources" ]]; then
+		printf "%s %s-dmo.sources not found.\n" "$RED_ERROR" "$distro" >&2
+		EC="$E_FILENOTFOUND"
+		return
+	fi
+	sudo cp -v "$script_dir/files/${distro}-dmo.sources" "$source_list"
+	printf "Debian mulitimedia repository sources set.\n"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.5.26137"g
+  local -r version="2.6.26137"g
 	local distro
 	distro="$(/usr/bin/lsb_release --codename --short)"
   trap cleanup EXIT
 	check_package wget
-	if [[ "$distro" == "bookworm " || "$distro" == "trixie " ]]; then
+	if [[ "$distro" == "bookworm" || "$distro" == "trixie" ]]; then
 		install_multimedia_keyring
 		set_multimedia_sources "$distro"
 	else
