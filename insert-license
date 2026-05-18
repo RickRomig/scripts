@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 26 Feb 2026
+# Updated      : 18 May 2026
 # Comments     : Inserts the license immediately after the file's header.
 #              : Assumes the standard script or C/C++ header is present.
 # TODO (rick)  :
@@ -27,12 +27,12 @@
 
 ## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.0.26057"
+readonly version="5.1.26138"
 license_file=
 license_type=
 
@@ -40,7 +40,7 @@ license_type=
 
 help() {
   local errcode="${1:-1}"
-  local updated="26 Feb 2026"
+  local updated="18 May 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts an Open Source license into a shell script or a C/C++ source code file.
@@ -64,32 +64,19 @@ cleanup() {
   [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
 }
 
-create_temp_file() {
-	printf "Creating temporary file.\n"
-	TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
-	trap cleanup EXIT
-}
-
-set_license_file() {
+set_license() {
 	local licenses=("GPL v1" "GPL v2" "GPL v3" "MIT")
 	printf "\n%sLicense type:%s\n" "$orange" "$normal"
-	licenses=("GPL v1" "GPL v2" "GPL v3" "MIT")
 	PS3="Select the type of license: "
 	select license_type in "${licenses[@]}"; do
 		case $REPLY in
-			1 )
-				license_file="gpl_v1.txt"; break ;;
-			2 )
-				license_file="gpl_v2.txt"; break ;;
-			3 )
-				license_file="gpl_v3.txt"; break ;;
-			4 )
-				license_file="mit_lic.txt"; break ;;
-			* )
-				printf "%sInvalid option. Try again.%s\n" "$lightred" "$normal" >&2
+			1 ) license_file="gpl_v1.txt"; break ;;
+			2 ) license_file="gpl_v2.txt"; break ;;
+			3 ) license_file="gpl_v3.txt"; break ;;
+			4 ) license_file="mit_lic.txt"; break ;;
+			* ) printf "%sInvalid option. Try again.%s\n" "$lightred" "$normal" >&2
 		esac
 	done
-	printf "License: %s\n" "$license_type"
 }
 
 insert_license() {
@@ -98,7 +85,6 @@ insert_license() {
 	local code_file="$2"
   cur_yr=$(printf "\UA9 %(%Y)T")
 	local -r template_dir=~/bin/Templates
-	printf "Inserting %s license into %s.\n" "$license_type" "$code_file"
 	case $code_type in
 		"C" )
 			sed -e '1d' \
@@ -121,7 +107,7 @@ insert_license() {
 		* )
 			die "Invalid code type. Exiting the script." "$E_INVALID_ARG"		# Should never occur
 	esac
-	printf "\n%s license has been inserted into %s." "$license_type" "$code_file"
+	printf "\n%s license has been inserted into %s.\n" "$license_type" "$code_file"
 }
 
 main() {
@@ -136,7 +122,6 @@ main() {
 				printf "File: %s\n" "$code_file"
 				code_type="C"
 				printf "Code type: %s source code\n" "$code_type"
-				create_temp_file
 				;;
 			h )
 				help 0
@@ -147,7 +132,6 @@ main() {
 				printf "File: %s\n" "$code_file"
 				code_type="C++"
 				printf "Code type: %s source code\n" "$code_type"
-				create_temp_file
 				;;
 			s )
 				code_file="$OPTARG"
@@ -155,7 +139,6 @@ main() {
 				printf "File: %s\n" "$code_file"
 				code_type="Shell"
 				printf "Code type: %s source code\n" "$code_type"
-				create_temp_file
 				;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
@@ -169,7 +152,9 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
-	set_license_file
+	TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
+	trap cleanup EXIT
+	set_license
 	insert_license "$code_type" "$code_file"
 	edit_view_quit "$code_file"
 	over_line "$script $version"
