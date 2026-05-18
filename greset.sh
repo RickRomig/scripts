@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 May 2024
-# Last updated : 05 May 2026
+# Last updated : 18 May 2026
 # Comments     : Commits that haven't been pushed to the repository.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,9 +26,13 @@
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
+
+is_git_repo() {
+  [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]  && return "$TRUE" || return "$FALSE"
+}
 
 git_reset() {
 	local hash
@@ -40,10 +44,10 @@ git_reset() {
 
 main() {
   local -r script="${0##*/}"
-	local -r version="2.5.26060"
+	local -r version="2.6.26138"
 	local -r E_NOT_GIT_REPO=101
 	check_package git
-	[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || die "You are not in a git repositiory." "$E_NOT_GIT_REPO"
+	is_git_repo || die "You are not in a git repositiory." "$E_NOT_GIT_REPO"
 	if y_or_n "Reset last unpushed commit to the previous version?"; then
 		git_reset
 	else
