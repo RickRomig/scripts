@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 01 Apr 2026
+# Last updated : 18 May 2026
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
 #              : If file has been changed, commit the change before retiring.
@@ -26,22 +26,14 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.3.26091"
+readonly version="4.4.26138"
 readonly E_NOT_GIT_REPO=101
 EC=0
 
@@ -49,7 +41,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local updated="01 Apr 2026"
+	local updated="18 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Retires a script in a Git repo by moving it to a zipped archive.
@@ -58,8 +50,8 @@ ${green}Usage:${normal} $script [script-name] [OPTION]
 ${orange}Available options:${normal}
   -h | --help  Show this help message and exit
 ${bold}NOTES:${normal}
-Do not use to retire a script not in a git repository. Use 'retire-script.sh' instead.
-If no argument is passed, user will be prompted for the name of the script to be retired.
+Do not use to retire a script that is not in a git repository. Use 'retire-script.sh' instead.
+If no argument is passed, the user will be prompted for the name of the script to be retired.
 _HELP_
 	exit "$errcode"
 }
@@ -75,8 +67,9 @@ is_git_repo() {
 
 retire_script() {
   local filename="$1"
+  archive=~/Downloads/archives/retired-scripts.zip
   printf "Archiving %s..." "$filename"
-  zip -u ~/Downloads/archives/retired-scripts.zip "$filename"
+  zip -u "$archive" "$filename"
   git rm "$filename"
   git commit -m "$filename retired and archived." --no-verify
   git push
@@ -101,7 +94,7 @@ main() {
     check_args "$filename"
   else
     printf "%s This is not a git repositiory.\n" "$RED_WARNING" >&2
-    printf "Run 'retire-script.sh' to retire scripts outside of a git repository.\n" >&2
+    printf "Run 'retire-script.sh' to retire scripts that are not in a git repository.\n" >&2
     EC="$E_NOT_GIT_REPO"
   fi
   over_line "$script $version"
