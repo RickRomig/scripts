@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2025
-# Updated      : 17 Apr 2026
-# Comments     :
+# Updated      : 19 May 2026
+# Comments     : Fresh-editor is installed to /usr/share/fresh-editor & sym-linked to /usr/bin/fresh
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -26,13 +26,13 @@
 
 ## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.8.26107"
+readonly version="1.9.26139"
 readonly gh_url="https://github.com/sinelaw/fresh/releases"
 DOTS_PID=
 EC=0
@@ -41,7 +41,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="17 Apr 2026"
+	local -r updated="19 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Fresh Editor.
@@ -70,12 +70,12 @@ check_dependencies() {
 }
 
 fresh_version() {
-  cut -d' ' -f2 <(fresh --version)
+  cut -d' ' -f2 < <(fresh --version)
 }
 
 newest_version() {
   wget -qO "$TMP_FILE" "$gh_url"
-  new_ver=$(sed 's/^v//' <(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$TMP_FILE"))
+  new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$TMP_FILE"))
   echo "$new_ver"
 }
 
@@ -168,10 +168,10 @@ main() {
         fi
         ;;
       r )
-        if exist fresh; then
+        if exists fresh; then
           remove_fresh
         else
-          printf "Fresh-editorcheck is not installed.\n" >&2
+          printf "Fresh-editor is not installed.\n" >&2
         fi
         ;;
       u )
