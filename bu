@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 14 May 2026
+# Last updated : 20 May 2026
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -32,7 +32,7 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.3.26134"
+readonly version="7.4.26140"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -171,7 +171,7 @@ trim_log() {
 	loglen=$(wc -l < "$logfile")
 	[[ "$loglen" -le 30 ]] && return
 	while [[ "$loglen" -gt 30 ]]; do
-		sed -i '2d' "$logfile"
+		sed -i '1d' "$logfile"
 		(( loglen-- ))
 	done
 }
@@ -248,7 +248,7 @@ restore() {
 
 help() {
 	local errcode="${1:-1}"
-	local updated="14 May 2026"
+	local updated="20 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
