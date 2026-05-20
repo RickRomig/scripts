@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jan 2025
-# Updaged      : 12 May 2026
+# Updaged      : 19 May 2026
 # Comments     : Option to disable current swap && install ZRam.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -50,7 +50,7 @@ install_zram() {
   sed_file="zramswap.sed"
   sudo_login 2
 	sudo apt install -y zram-tools
-  if ! grep -q '^ii' < <(dpkg -l zram-tools 2>/dev/null); then
+  if ! installed zram-tools; then
     printf "zram-tools installation failed!\n"
     EC="$E_INSTALLATION"
     return
@@ -90,7 +90,7 @@ check_for_swap() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.5.26132"
+  local -r version="4.6.26139"
   EC=0
   check_for_swap
   printf "Active swap devices:\n"
