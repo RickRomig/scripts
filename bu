@@ -32,7 +32,7 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.4.26140"
+readonly version="7.5.26140"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -83,14 +83,14 @@ mount_bu() {
 	else
 		dielog "BU_Drive not mounted. Check the drive." "$logfile" "$E_DRIVE_ERROR"
 	fi
-	printf "Mount point = %s\n" "$(awk '/BU_Drive/ {print $2}' /proc/mounts)"
 }
 
 bu_drive_label() {
 	local bu_label
-	bu_label=$(awk '/BU_Drive/ {print $1}' < <(lsblk -o LABEL))
+	bu_label=$(awk '$1 == "1" && $NF ~ "^BU_" {print $NF}' < <(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL))
 	[[ -z "$bu_label" ]] && dielog "No partition label." "$logfile" "$E_DRIVE_ERROR"
 	printf "USB drive label = %s \n" "$bu_label"
+	printf "Mount point = %s\n" "$(awk '/BU_Drive/ {print $2}' /proc/mounts)"
 	# If label != BU_Drive (ie BU_Drive1) then unmount drive and exit.
 	# Check mountpoints and remove BU_Drive directory from /media/<user>
 	if [[ "$bu_label" != "BU_Drive" ]]; then
