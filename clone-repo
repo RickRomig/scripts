@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 19 Apr 2026
+# Updated      : 21 May 2026
 # Comments     : clone_repo() is contained in functionlib
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,14 +24,14 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.3.26109"
+readonly version="4.4.26141"
 EC=0
 
 ## Functions ##
@@ -59,16 +59,16 @@ _HELP_
 
 check_repo() {
   local -r git_repo="$1"
-  local -r dl_dir="$HOME/Downloads"
-  if [[ ! $(find "$dl_dir/$git_repo" -type f 2>/dev/null) ]]; then
-    clone_repo "$git_repo"
-    return
+  local -r dl_dir=~/Downloads
+  if [[ $(find "$dl_dir/$git_repo" -maxdepth 1 -type f 2>/dev/null) ]]; then
+    printf "%s is not empty. Updating the repository clone...\n" "$dl_dir/$git_repo"
+    pushd "$dl_dir/$git_repo" || { EC="$E_POPD_PUSHD"; return; }
+    git checkout .
+    git pull
+    popd || { EC="$E_POPD_PUSHD"; return; }
+  else
+    clone_repo "$git_repo" "$dl_dir/"
   fi
-  printf "%s is not empty. Updating the repository clone...\n" "$dl_dir/$git_repo"
-  pushd "$dl_dir/$git_repo" || { EC="$E_POPD_PUSHD"; return; }
-  git checkout .
-  git pull
-  popd || { EC="$E_POPD_PUSHD"; return; }
 }
 
 main() {
