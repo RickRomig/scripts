@@ -7,7 +7,7 @@
 # Author       : Copyright © 2017 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 01 Jan 2017
-# Updated      : 24 Feb 2026
+# Updated      : 21 May 2026
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -23,32 +23,24 @@
 # GNU General Public License for more details.
 #####################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
 
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 check_tools() {
 	local package packages
 	packages=( binutils build-essential gcc libc6 )
+	printf "Checking for development tools...\n"
 	for package in "${packages[@]}"; do
 		printf "%s is " "$package"
-		grep -q '^ii' <(dpkg -l "$package" 2>/dev/null 2>&1) && printf "installed.\n" || printf "not installed.\n"
+		installed "$package" && printf "installed.\n" || printf "not installed.\n"
 	done
 }
 
 main() {
-	local script version
-	script="${0##*/}"
-	version="2.3.26055"
-	printf "Checking for deveolopment tools...\n"
+	local -r script="${0##*/}"
+	local -r version="2.4.26141"
 	check_tools
 	over_line "$script $version"
 	exit
