@@ -7,7 +7,7 @@
 # Author       : Copyright (C), Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2017
-# Updated      : 24 Feb 2026
+# Updated      : 21 May 2026
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -23,37 +23,30 @@
 # GNU General Public License for more details.
 #####################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
 
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
 install_tools() {
   local package packages
   packages=( binutils build-essential gcc libc6 )
+  printf "Checking and installing C devlopment tools...\n"
 	for package in "${packages[@]}"; do
-		if grep -q '^ii' <(dpkg -l "$package" 2>/dev/null 2>&1); then
+		if installed "$package"; then
 			printf "%s installed.\n" "$package"
 		else
-			printf "Installing %s.\n" "$package"
+			printf "Installing %s...\n" "$package"
       sudo apt-get install -y "$package"
 		fi
 	done
 }
 
 main() {
-	local script="${0##*/}"
-	local version="2.2.25055"
-  printf "Checking and installing C devlopment tools...\n"
+	local -r script="${0##*/}"
+	local -r version="2.3.26141"
   install_tools
 	over_line "$script $version"
   exit
