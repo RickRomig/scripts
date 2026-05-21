@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ###############################################################################
-# Script Name  : clean-c
+# Script Name  : clean-c.sh
 # Description  : removes *~, *.o, and a.out in the current working directory
 # Dependencies : none
 # Arguments    : none
 # Author       : Copyright (C) 2019, Richard Romig,
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Feb 2019
-# Updated      : 09 Apr 2026
+# Updated      : 21 May 2026
 # Comment      :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,21 +24,19 @@
 # GNU General Public License for more details.
 ###############################################################################
 
-## Load function library ##
+## Soruce function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 clean_work_dir() {
-	local work_dir
 	# work_dir=$(dirname "$(readlink -f "$0")")
-	work_dir="$PWD"
-	printf "\nCleaning up %s...\n" "$work_dir"
-	find "$work_dir" -maxdepth 1 -type f \( -name "a.out" -o -iname "*.o" -o -iname "*~" \) -print -exec rm -v {} \;
+	printf "Cleaning up %s...\n" "$PWD"
+	find . -maxdepth 1 -type f \( -name "a.out" -o -iname "*.o" -o -iname "*~" \) -print -exec rm -v {} \;
 }
 
 main() {
   local script="${0##*/}"
-  local version="2.3.26099"
+  local version="2.4.26141"
 	clean_work_dir
 	over_line "$script $version"
 	exit
