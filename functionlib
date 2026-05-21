@@ -566,19 +566,6 @@ unmount_nas() {
   fi
 }
 
-clone_repo() {
-  local git_repo="$1"
-  local dl_dir="$2"
-  local url
-  case "$git_repo" in
-    configs | scripts | i3wm-debian )
-      url="$GITHUB_URL" ;;
-    * )
-      url="$GITEA_URL"
-  esac
-  git clone "$url/${git_repo}.git" "$dl_dir/$git_repo"
-}
-
 assign_cfg_repo() {
 	local local_host="${HOSTNAME:-$(hostname)}"
 	local repo_dir="$HOME/Downloads/configs"
@@ -588,10 +575,11 @@ assign_cfg_repo() {
 		* )
 			if [[ -d "$repo_dir" ]]; then
 				pushd "$repo_dir" || die "pushd failed" "$E_POPD_PUSHD"
+        git checkout .
 				git pull --quiet
 				popd || die "popd failed" "$E_POPD_PUSHD"
 			else
-				git clone --quiet "$GITHUB_URL/configs.git" "$repo_dir"
+				git clone --quiet "$GITHUB_URL/configs.git" "$repo_dir/"
 			fi
 	esac
 	printf "%s" "$repo_dir"
