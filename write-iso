@@ -7,10 +7,10 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 12 May 2026
+# Updated      : 22 May 2026
 # Comments     : Testing indicates USB drive needs to be mounted.
 #              : Works with fuzzy finder (fzf).
-#              : To test without writing to USB drive, use the -d option to enable a dryrun.
+#              : To test without writing to USB drive, use the -d option to enable a dry run.
 #              : After a dryrun, USB drive will remain mounted.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -34,7 +34,7 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.8.26132"
+readonly version="7.9.26142"
 user=$(whoami); readonly user
 dryrun="$FALSE"
 FMENU="fzf --header=$script \
@@ -51,13 +51,13 @@ FMENU="fzf --header=$script \
            --prompt"
 DOTS_PID=
 EC=0
-E_WRITE_FAILED=99
+E_WRITE_FAILED=101
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="12 May 2026"
+	local updated="22 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
@@ -78,10 +78,10 @@ check_usb_drive() {
 
 select_directory() {
 	local dist_d selected_dir
-  local local_host="${HOSTNAME:-$(hostname)}"
+  # local local_host="${HOSTNAME:-$(hostname)}"
 	local iso_dir=~/Downloads/ISO
 	local iso_dirs=()
-	[[ "$local_host" == "dell-9020" ]] && iso_dir=/data/ISO
+	# [[ "$local_host" == "dell-9020" ]] && iso_dir=/data/ISO
 	for dist_d in $iso_dir; do
 		[[ -d "$dist_d" ]] && iso_dirs+=("$(sort -d < <(find "$dist_d" -type d -print))")
 	done
