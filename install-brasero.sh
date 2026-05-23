@@ -7,7 +7,7 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 14 Feb 2026
-# Updated      : 06 May 2026
+# Updated      : 23 May 2026
 # Comments     : Thanks to Joe Collins and Matt Hartley for the fix for the permissions problem.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,19 +26,19 @@
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.4.26126"
+readonly version="1.5.26143"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="06 May 2026"
+	local -r updated="23 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs Brasero CD/DVD writeer
@@ -73,12 +73,10 @@ add_mimeapps() {
 	local -r applications_dir=~/.local/share/applications
 	[[ -d "$applications_dir" ]] || mkdir -p "$applications_dir"
 	[[ -f "$applications_dir/mimeapps.list" ]] || touch "$applications_dir/mimeapps.list"
-  # if ! grep -q 'brasero' "$applications_dir/mimeapps.list"; then
-		local -r set_brasero=("x-content/blank-cd=brasero.desktop;" "x-content/blank-dvd=brasero.desktop;")
-    printf  "Updating mimeapps.iist...\n"
-		tee -a "$applications_dir/mimeapps.list" < <(printf "%s\n" "${set_brasero[@]}")
-		grep -w brasero "$applications_dir/mimeapps.list"
-  # fi
+	local -r set_brasero=("x-content/blank-cd=brasero.desktop;" "x-content/blank-dvd=brasero.desktop;")
+  printf  "Updating mimeapps.iist...\n"
+	tee -a "$applications_dir/mimeapps.list" < <(printf "%s\n" "${set_brasero[@]}")
+	grep -w brasero "$applications_dir/mimeapps.list"
 }
 
 # Sound 'pop and click' fix. Set sound card to stay powered on all the time
@@ -90,7 +88,7 @@ install_brasero() {
 	printf "Installing Brasero CD/DVD burning application...\n"
 	sudo apt-get install -y brasero brasero-common
 	is_debian && sudo apt-get install -y brasero-cdrkit
-	if ! grep -q '^ii' <(dpkg -l brasero 2>/dev/null); then
+	if ! installed brasero; then
 		printf "%s Brasero installation failed.\n" "$RED_ERROR" >&2
 		EC="$E_INSTALLATION"
 		return
@@ -105,7 +103,7 @@ install_brasero() {
 remove_brasero() {
 	local -r mimeapps_list=~/.local/share/applications/mimeapps.list
 	printf "Removing Braseror %s...\n" "$(brasero_version)"
-	sudo apt-get remove brasero
+	sudo apt-get remove brasero brasero-common brasero-cdrkit
 	sed -i '/brasero.desktop/d' "$mimeapps_list"
 	printf "Brasero removed.\n"
 }
@@ -120,14 +118,14 @@ main() {
 				help 0
 				;;
 			i )
-				if exists brasero; then
+				if installed brasero; then
 					printf "Brasero %s is already installed.\n" "$(brasero_version)"
 				else
 					install_brasero
 				fi
 				;;
 			r )
-				if exists brasero; then
+				if installed brasero; then
 					remove_brasero
 				else
 					printf "Brasero is not installed.\n"
