@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#####################################################################
+###############################################################################
 # Script Name  : dos2linux.sh
 # Description  : converts DOS text file to Linux format
 # Dependencies : none
@@ -7,13 +7,13 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2019
-# Updated      : 21 Mar 2026
+# Updated      : 22 May 2026
 # TODO (Rick)  :
 # Comment      : removes DOS carriage return ('\r') characters
 #              : Similar in function to dos2unix.
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -23,19 +23,11 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-#####################################################################
+###############################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -47,11 +39,11 @@ convert_file() {
 }
 
 main() {
-  local script="${0##*/}"
-  local version="2.1.26080"
+  local -r script="${0##*/}"
+  local -r version="2.2.26143"
   local filename="$1"
   EC=0
-  printf "Converts DOS text file to Linux format by removing carriage returns.\n"
+  printf "Converts a DOS text file to Linux format by removing carriage returns.\n"
   [[ "$#" -eq 0 ]] && read -rp "Enter a DOS text file to process: " filename
   if [[ -f "$filename" ]]; then
     convert_file "$filename"
