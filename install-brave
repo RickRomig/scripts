@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 07 May 2026
+# Updated      : 23 May 2026
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -32,9 +32,7 @@ source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.6.26127"
-readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
-readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
+readonly version="7.0.26143"
 verbose_mode="FALSE"
 EC=0
 
@@ -42,20 +40,26 @@ EC=0
 
 help() {
   local errcode="${1:-1}"
-  local updated="07 May 20265"
+  local updated="23 May 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: ($updated)
 Installs/Removes the Brave browser
 
-${green}Usage:${normal} $script [-h] [-vipr]
+${green}Usage:${normal} $script [-h] [-vir]
 ${orange}Available options:${normal}
   -h  Show this help message and exit.
   -i  Install the Brave Browser.
-  -p  Remove the Brave Browser & purge configuration files.
   -r  Remove the Brave Browser & leave configuration files.
   -v  Enable verbose mode. Must precede other flags.
 _HELP_
   exit "$errcode"
+}
+
+check_dependencies() {
+  local E_MISSING_DEPENDENCY=108
+  [[ $(uname -m) == "x86_64" ]] || die "System architecture is not 64-bit." "$E_MISSING_DEPENDENCY"
+  local packages=( apt-transport-https curl libu2f-udev )
+  check_packages "${packages[@]}"
 }
 
 show_message() {
@@ -68,6 +72,7 @@ brave_ver() {
 }
 
 set_gpg_key() {
+  local -r brave_key="$1"
   local -r key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
   if [[ -f "$brave_key" ]]; then
     printf "%s already exists.\n" "${brave_key##*/}"
@@ -79,7 +84,9 @@ set_gpg_key() {
 }
 
 set_src_list() {
+  local -r brave_key="$1"
   local -r list_url="https://brave-browser-apt-release.s3.brave.com/ stable main"
+  local -r brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
   if [[ -f "$brave_list" ]]; then
     printf "%s already exists.\n" "${brave_list##*/}"
     return
@@ -90,63 +97,44 @@ set_src_list() {
 }
 
 install_brave() {
+  local -r brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
   printf "Installing the Brave Browser ...\n"
-  set_gpg_key
-  set_src_list
+  set_gpg_key "$brave_key"
+  set_src_list "$brave_key"
   show_message "Updating apt cache and isntalling the Brave browser"
   sudo apt-get update -qq
   sudo apt-get install brave-browser brave-keyring -yy
-  if grep -q '^ii' < <(dpkg -l brave-browser 2>/dev/null); then
-    printf "%s successfully installed.\n" "$(brave_ver)"
-  else
+  if ! installed brave-browser; then
     printf "%s Brave browser installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
+    return
   fi
+  printf "%s successfully installed.\n" "$(brave_ver)"
 }
 
 remove_brave() {
-	local -r apt_key="/etc/apt/trusted.gpg.d/brave-browser-release.gpg"
   printf "Uninstalling %s...\n" "$(brave_ver)"
-  show_message "Removing the Brave browser and keyring"
   sudo apt-get remove brave-browser brave-keyring -yy
-  # Remove trusted keys
-  if [[ -f "$apt_key" ]]; then
-    show_message "Removing $apt_key"
-    sudo rm "$apt_key"
-    sudo apt-key del C3D4E821 2>/dev/null # apt-key deprecated
-  elif [[ -f "$brave_key" ]]; then
-    show_message "Removing ${brave_key##*/}"
-    sudo rm "$brave_key"
-  fi
-  show_message "Removing ${brave_list##*/}"
-  [[ -f "$brave_list" ]] && sudo rm "$brave_list"
+  show_message "Removing Brave sources..."
+  find /etc/apt/ -maxdepth 2 -type f -iname "brave*" -exec sudo rm {} \;
+  show_message "Removing the Brave keyring and system files..."
+  find /usr/share -type d -iname "brave*" -exec rm -rf {} \;
+  show_message "Removing local configuration and cache files..."
+  find ~/ -maxdepth 2 -type d -name BraveSoftware -exec rm -rf {} \;
   printf "Brave browser has been uninstalled.\n"
-}
-
-purge_configs() {
-  show_message "Removing local configuration and cache files"
-  find ~/ -type d -maxdepth 2 -name BraveSoftware -exec rm -rf {} \;
-  printf "Brave local configuration and cache files have been removed.\n"
-}
-
-check_dependencies() {
-  local E_MISSING_DEPENDENCY=108
-  [[ $(uname -m) == "x86_64" ]] || die "System architecture is not 64-bit." "$E_MISSING_DEPENDENCY"
-  local packages=( apt-transport-https curl libu2f-udev )
-  check_packages "${packages[@]}"
 }
 
 main(){
   local noOpt opt optstr OPTARG OPTIND
   noOpt=1
-  optstr=":hiprv"
+  optstr=":hirv"
   while getopts "$optstr" opt; do
     case "$opt" in
       h )
         help 0
         ;;
       i )
-        if exists brave-browser; then
+        if installed brave-browser; then
           printf "%s is already installed." "$(brave_ver)"
         else
           sudo_login 2
@@ -154,17 +142,8 @@ main(){
           install_brave
         fi
         ;;
-      p )
-        if exists brave-browser; then
-          sudo_login 2
-          remove_brave
-          purge_configs
-        else
-          printf "Brave Browser is not installed.\n"
-        fi
-        ;;
       r )
-        if exists brave-browser; then
+        if installed brave-browser; then
           sudo_login 2
           remove_brave
         else
