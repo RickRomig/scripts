@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Apr 2024
-# Last updated : 23 Mar 2026
+# Last updated : 25 May 2026
 # Comments     : Intended for installation on main system only
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,22 +24,14 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
 dsh_version() {
-  awk 'NR==1 {print $NF}' <(dsh --version)
+  awk 'NR==1 {print $NF}' < <(dsh --version)
 }
 
 copy_group_list() {
@@ -63,7 +55,7 @@ copy_machines_list() {
 install_dsh() {
   sudo_login 2
   sudo apt-get -y install dsh
-  if ! grep -q '^ii' <(dpkg -l dsh 2>/dev/null); then
+  if ! installed dsh; then
     printf "%s DSH installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
@@ -84,7 +76,7 @@ install_dsh() {
 
 main() {
   local script="${0##*/}"
-  local version="3.1.26082"
+  local version="3.2.26145"
   EC=0
   check_package git
   install_dsh
