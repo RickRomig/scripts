@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 03 Feb 2026
+# Updated      : 25 May 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,22 +24,14 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
-
-if [[ -x ~/bin/functionlib ]]; then
-  source ~/bin/functionlib
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.3.26034"
+readonly version="3.4.26145"
 verbose_mode="$FALSE"
 EC=0
 
@@ -47,7 +39,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local updated="03 Feb 2026"
+	local updated="25 May 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes Geany text editor and themes
@@ -64,7 +56,7 @@ _HELP_
 }
 
 geany_version() {
-  cut -d' ' -f2 <(geany --version)
+  cut -d' ' -f2 < <(geany --version)
 }
 
 clone_themes() {
@@ -75,14 +67,14 @@ clone_themes() {
   show_message "Cloning Geany themes..."
   git clone "$themes_url" "$cloned_dir"
   show_message "Copying Geany colorschemes..."
-  awk -F"/" '{print "=> " $NF}' <(cp -av "$cloned_dir"/colorschemes/. "$colorschemes_dir/") | sed "s/'//"
+  awk -F"/" '{print "=> " $NF}' < <(cp -av "$cloned_dir"/colorschemes/. "$colorschemes_dir/") | sed "s/'//"
   printf "Geany themes installed.\n"
 }
 
 install_geany() {
   show_message "Installing Geany from repositories..."
   sudo apt-get install -y geany libvte9
-  if ! grep -q '^ii' <(dpkg -l geany 2>/dev/null); then
+  if ! installed geany; then
     printf "%s Geany installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
@@ -107,9 +99,10 @@ geany_config() {
 
 remove_geany() {
   show_message "Removing Geany $(geany_version)..."
-  sudo apt-get remove -y geany
+  sudo apt-get purge -y geany
   show_message "Removing Geany configuration files ..."
-  find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name geany -exec rm -rf {} \;
+  find ~/.config -type d -name geany -exec rm -rf {} \;
+  sudo find /usr/share -type f -name "geany*" -exec rm {} \;
   printf "Geany and configuration files removed.\n"
 }
 
@@ -129,7 +122,7 @@ main() {
         help 0
         ;;
       i )
-        if exists geany; then
+        if installed geany; then
           printf "Geany %s is already installed.\n" "$(geany_version)"
         else
           sudo_login 2
@@ -137,7 +130,7 @@ main() {
         fi
         ;;
       r )
-        if exists geany; then
+        if installed geany; then
           sudo_login 2
           remove_geany
         else
@@ -145,7 +138,7 @@ main() {
         fi
         ;;
       t )
-        if exists geany; then
+        if installed geany; then
           clone_themes
         else
           printf "Geany is not installed.\n"
