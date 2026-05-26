@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 27 Feb 2026
+# Updated      : 26 May 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,29 +24,21 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.4.26058"
+readonly version="7.5.26146"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="27 Feb 2026"
+	local -r updated="26 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Terminator terminal emulator
@@ -73,7 +65,7 @@ install_terminator() {
   sudo_login 2
   sudo apt-get -yq update
   sudo apt-get install -y terminator
-  if ! grep -q '^ii' <(dpkg -l terminator 2>/dev/null); then
+  if ! installed terminator; then
     printf "%s Terminator installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
@@ -108,8 +100,8 @@ apply_config() {
   printf "Applying Terminator configuration...\n"
   if is_debian; then
     [[ -f ~/.config/terminator/config ]] && rm ~/.config/terminator/config
-    [[ -d  ~/gitea/configs/terminator ]] && ln -s ~/gitea/configs/terminator/config ~/.config/terminator/config
-    [[ -d  ~/Downloads/configs/terminator ]] && ln -sv ~/Downloads/configs/terminator/config ~/.config/terminator/config
+    [[ -d ~/gitea/configs/terminator ]] && ln -s ~/gitea/configs/terminator/config ~/.config/terminator/config
+    [[ -d ~/Downloads/configs/terminator ]] && ln -sv ~/Downloads/configs/terminator/config ~/.config/terminator/config
   else
     cp -v "$repository"/config ~/.config/terminator
     sed -i '/login_shell/s/True/False/' ~/.config/terminator/config
@@ -124,7 +116,7 @@ main() {
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
-        if exists terminator; then
+        if installed terminator; then
           if bunsenlabs; then
             printf "Terminator configuration for BunsenLabs was not overwritten.\n"
             printf "Configuration changes should be made through the Terminator Preferences menu.\n"
@@ -139,14 +131,14 @@ main() {
         help 0
         ;;
       i )
-        if exists terminator; then
+        if installed terminator; then
           printf "Terminator %s is installed.\nInstallation canceled.\n" "$(terminator_version)" >&2
         else
           install_terminator
         fi
         ;;
       r )
-        if exists terminator; then
+        if installed terminator; then
           remove_terminator
         else
           printf "Terminator is not installed.\nOperation canceled.\n" >&2
