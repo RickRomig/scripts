@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Nov 2018
-# Updated      : 27 Feb 2026
+# Updated      : 26 May 2026
 # Comments     : Available as a flatpak (preferred method)
 #              : https://flathub.org/apps/details/fr.free.Homebank
 #              : Linux Mint Sofware Manager
@@ -26,29 +26,21 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.5.26058"
+readonly version="6.6.26146"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="27 Feb 2026"
+	local updated="26 May 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes HomeBank Personal Finance Software.
@@ -64,15 +56,15 @@ _HELP_
 }
 
 flatpak_homebank_installed() {
-  exists flatpak || return "$FALSE"
-  grep -qw HomeBank <(flatpak list) && return "$TRUE" || return "$FALSE"
+  installed flatpak || return "$FALSE"
+  grep -qw HomeBank < <(flatpak list) && return "$TRUE" || return "$FALSE"
 }
 
 homebank_version() {
-  if exists homebank; then
-    printf "%s" "$(cut d' ' -f2 <(homebank --version))"
+  if installed homebank; then
+    printf "%s" "$(cut d' ' -f2 < <(homebank --version))"
   else
-    printf "%s" "$(awk '/HomeBank/ {printf $(NF-2)}' <(flatpak list))"
+    printf "%s" "$(awk '/HomeBank/ {printf $(NF-2)}' < <(flatpak list))"
   fi
 }
 
@@ -80,7 +72,7 @@ install_flatpak_homebank() {
   printf "Install the HomeBank flatpak...\n"
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   flatpak install --user flathub fr.free.Homebank
-  if ! grep -qw HomeBank <(flatpak list); then
+  if ! grep -qw HomeBank < <(flatpak list); then
     printf "%s HomeBank installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
@@ -100,7 +92,7 @@ remove_flatpak_homebank() {
 install_deb_homebank() {
   sudo_login 2
   sudo apt-get install-yyq homebank
-  if ! grep -q '^ii' <(dpkg -l homebank 2>/dev/null); then
+  if ! installed homebank; then
     printf "%s HomeBank installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
@@ -122,6 +114,7 @@ apply_preferences() {
   [[ -d ~/gitea/configs/homebank ]] && repository=~/gitea/configs/homebank
   if [[ ! -d "$repository" ]]; then
     printf "%s Configs repository not found!\n" "$RED_WARNING" >&2
+    EC="$E_FILENOTFOUND"
     return
   fi
   local config_dir=~/.config
@@ -150,7 +143,7 @@ main() {
   while getopts "$optstr" opt; do
     case "$opt" in
       f )
-        if exists homebank || flatpak_homebank_installed; then
+        if installed homebank || flatpak_homebank_installed; then
           printf "HomeBank %s is already installed.\n" "$(homebank_version)"
         else
           install_flatpak_homebank
@@ -160,7 +153,7 @@ main() {
         help 0
         ;;
       i )
-        if exists homebank || flatpak_homebank_installed; then
+        if installed homebank || flatpak_homebank_installed; then
           printf "HomeBank %s is already installed.\n" "$(homebank_version)"
         else
           install_deb_homebank
@@ -169,7 +162,7 @@ main() {
       r )
         if flatpak_homebank_installed; then
           remove_flatpak_homebank
-        elif exists homebank; then
+        elif installed homebank; then
           remove_deb_homebank
         else
           printf "HomeBank is not installed.\n"
