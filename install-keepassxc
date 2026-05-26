@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Jan 2021
-# Updated      : 03 Feb 2026
+# Updated      : 26 May 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,29 +24,21 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.5.26034"
+readonly version="4.6.26146"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="303 Feb 2026"
+	local updated="26 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removed KeePassXC password manager
@@ -63,15 +55,15 @@ _HELP_
 }
 
 flatpak_keepassxc() {
-  exists flatpak || return "$FALSE"
-  grep -qw KeePassXC <(flatpak list) && return "$TRUE" || return "$FALSE"
+  installed flatpak || return "$FALSE"
+  grep -qw KeePassXC < <(flatpak list) && return "$TRUE" || return "$FALSE"
 }
 
 keepass_version() {
-  if exists keepassxc; then
-    awk '{print $NF}' <(keepassxc --version)
+  if installed keepassxc; then
+    awk '{print $NF}' < <(keepassxc --version)
   elif flatpak_keepassxc; then
-    awk '/KeePassXC/ {print $(NF-2)}' <(flatpak list)
+    awk '/KeePassXC/ {print $(NF-2)}' < <(flatpak list)
   fi
 }
 
@@ -79,7 +71,7 @@ install_flathub_keepassxc() {
   sudo_login 2
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   flatpak install --user flathub org.keepassxc.KeePassXC
-  if ! grep -qw KeePassXC <(flatpak list); then
+  if ! grep -qw KeePassXC < <(flatpak list); then
     printf "%s KeePassXC installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
@@ -91,7 +83,7 @@ install_flathub_keepassxc() {
 install_distro_keepassxc() {
   sudo_login 2
   sudo apt-get install keepassxc -yy
-  if ! grep -q '^ii' <(dpkg -l keepassxc 2>/dev/null); then
+  if ! installed keepassxc; then
     printf "%s KeePassXC installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
@@ -139,19 +131,19 @@ main() {
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
-        if exists keepassxc || flatpak_keepassxc; then
+        if installed keepassxc || flatpak_keepassxc; then
           apply_keepassxc_ini
         fi
         ;;
       d )
-        if exists keepassxc || flatpak_keepassxc; then
+        if installed keepassxc || flatpak_keepassxc; then
           printf "KeePassXC version %s is already installed.\n" "$(keepass_version)"
         else
           install_distro_keepassxc
         fi
         ;;
       f )
-        if exists keepassxc || flatpak_keepassxc; then
+        if installed keepassxc || flatpak_keepassxc; then
           printf "KeePassXC version %s is already installed.\n" "$(keepass_version)"
         else
           install_flathub_keepassxc
@@ -163,7 +155,7 @@ main() {
       r )
         if flatpak_keepassxc; then
           remove_flatpak_keepassxc
-        elif exists keepassxc; then
+        elif installed keepassxc; then
           remove_distro_keeepassxc
         else
           printf "KeePassXC is not installed.\n"
