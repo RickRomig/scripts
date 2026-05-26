@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 03 Mar 2026
+# Updated      : 26 May 2026
 # Comments     : Configures as login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -39,14 +39,14 @@ fi
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.5.26062"
+readonly version="2.6.21462"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="03 Mar 2026"
+	local -r updated="26 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Kitty terminal emulator
@@ -61,13 +61,13 @@ _HELP_
 }
 
 kitty_version() {
-  cut -d' ' -f2 <(kitty --version)
+  cut -d' ' -f2 < <(kitty --version)
 }
 
 install_kitty() {
   printf "Installing the kitty terminal emulator.\n"
   sudo apt-get install -y kitty imagemagick
-  if ! grep -q '^ii' <(dpkg -l kitty 2>/dev/null); then
+  if ! installed kitty; then
     printf "%s Kitty installation failed.\n" "$RED_ERROR"
     EC="$E_INSTALLATION"
     return
@@ -77,7 +77,7 @@ install_kitty() {
 }
 
 remove_kitty() {
-  printf "Purging the Kitty terminal emulator %s\n" "$(kitty_version)"
+  printf "Purging the Kitty %s terminal emulator...\n" "$(kitty_version)"
   sudo apt-get purge kitty -yy
   [[ -L ~/.config/kitty/kitty.conf ]] && unlink ~/.config/kitty/kitty.conf
   [[ -L ~/.config/kitty/bindings.list ]] && unlink ~/.config/kitty/bindings.list
@@ -111,7 +111,7 @@ main() {
         help 0
         ;;
       i )
-        if exists kitty; then
+        if installed kitty; then
           printf "Kitty %s already installed.\n" "$(kitty_version)"
         else
           sudo_login 2
@@ -119,7 +119,7 @@ main() {
         fi
         ;;
       r )
-        if exists kitty; then
+        if installed kitty; then
           sudo_login 2
           remove_kitty
         else
