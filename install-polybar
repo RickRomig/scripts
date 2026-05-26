@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Nov 2023
-# Updated      : 03 Feb 2026
+# Updated      : 26 May 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,17 +24,9 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -63,8 +55,8 @@ configure_modules() {
 	polybar_d="$1"
 	cfg_file="config.ini"
 	# Get device names from system.
-	e_name=$(awk '/ethernet/ {print $1}' <(/usr/bin/nmcli dev))
-	w_name=$(awk '/wifi/ {print $1}' <(/usr/bin/nmcli dev))
+	e_name=$(awk '/ethernet/ {print $1}' < <(/usr/bin/nmcli dev))
+	w_name=$(awk '/wifi/ {print $1}' < <(/usr/bin/nmcli dev))
 	b_name=$(find /sys/class/power_supply/ -name "BAT*"); b_name="${b_name##*/}"
 	# b_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $NF}')
 	# Apply device names or exclude modules as required.
@@ -88,8 +80,8 @@ configure_modules() {
 install_polybar() {
 	sudo_login 2
 	sudo apt-get install -y polybar
-	if ! grep -q '^ii' <(dpkg -l polybar 2>/dev/null); then
-		printf "%s Polybar installation failedn" "$RED_ERROR" >&2
+	if ! installed polybar; then
+		printf "%s Polybar installation failed\n" "$RED_ERROR" >&2
 		EC="$E_INSTALLATION"
 		return
 	fi
@@ -99,10 +91,10 @@ install_polybar() {
 
 main() {
   local script="${0##*/}"
-  local version="2.9.26034"
+  local version="2.10.26146"
 	EC=0
 	printf "Installs Polybar on Debian with i3wm.\n"
-	if exists polybar; then
+	if installed polybar; then
 		printf "Polybar is already installed.\n"
 	else
 		install_polybar
