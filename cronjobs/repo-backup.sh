@@ -7,7 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Sep 2023
-# Last updated : 21 Jul 2024 Version 1.3.25202
+# Last updated : 26 May 2026
+# Version      : 1.4.26146
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,8 +24,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 ##########################################################################
-
-set -eu
 
 rsync -aq --delete "$HOME"/gitea/ rick@192.168.0.16:gitea/
 rsync -aq --delete "$HOME"/Projects/ rick@192.168.0.16:Projects/
