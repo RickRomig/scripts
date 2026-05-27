@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Feb 2019
-# Updated      : 24 Apr 2026
+# Updated      : 27 May 2026
 # Comments     : Some systems require to access to use iw to get ssid & signal strength.
 #              : If necesary, add applicable hostnames to requires_sudo().
 # TODO (rick)  : format printf statements for devices.
@@ -27,25 +27,23 @@
 
 ## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ## 0
 
 title_box() {
   local -r lhost="$1"
-  echo -n "${lightyellow}"
+  printf "%s" "$lightyellow"
   box "IP Information - $lhost" "*"
-  echo "${normal}"
+  printf "%s\n" "$normal"
 }
 
 # Some systems may require root access for the iw command. Replace foo-bar with these hostnames.
 requires_sudo() {
 	local lhost="$1"
   case "$lhost" in
-    foo-bar )
-      return "$TRUE" ;;
-    * )
-      return "$FALSE"
+    foo-bar ) return "$TRUE" ;;
+    * ) return "$FALSE"
   esac
 }
 
@@ -66,13 +64,13 @@ show_public_ip() {
 show_wired() {
   # Assumes only one active ethernet wired interface in the system.
   local eth_int eth_state eth_ip eth_mac eth_str
-  eth_int=$(awk '/ethernet/ {print $1}' <(/usr/bin/nmcli dev))
+  eth_int=$(awk '/ethernet/ {print $1}' < <(/usr/bin/nmcli dev))
    [[ "$eth_int" ]] || return
   # interface data
   printf -v eth_str "%s%12s:%s" "$lightgreen" "Ethernet" "$normal"
-  eth_state=$(cat "/sys/class/net/$eth_int/operstate")
-  eth_ip=$(awk '/IP4.ADDRESS/ {print $NF}' <(/usr/bin/nmcli dev show "$eth_int") | sed 's/\/24//')
-  eth_mac=$(awk '/GENERAL.HWADDR/ {print $NF}' <(/usr/bin/nmcli dev show "$eth_int"))
+  eth_state=$(< "/sys/class/net/$eth_int/operstate")
+  eth_ip=$(awk '/IP4.ADDRESS/ {print $NF}' < <(/usr/bin/nmcli dev show "$eth_int") | sed 's/\/24//')
+  eth_mac=$(awk '/GENERAL.HWADDR/ {print $NF}' < <(/usr/bin/nmcli dev show "$eth_int"))
   # display status
   case "$eth_state" in
     up )
@@ -98,19 +96,19 @@ show_wired() {
 show_wireless() {
   # Assumes only one active wireless interface in the system.
   local wifi_int wifi_state wifi_ip wifi_mac wifi_ssid wifi_sig wifi_str
-  wifi_int=$(awk '/wifi / {print $1}' <(/usr/bin/nmcli dev))
+  wifi_int=$(awk '/wifi / {print $1}' < <(/usr/bin/nmcli dev))
   [[ "$wifi_int" ]] || return
   # interface data
   printf -v wifi_str "%s%12s:%s" "$lightgreen" "Wireless" "$normal"
-  wifi_state=$(cat "/sys/class/net/$wifi_int/operstate")
-  wifi_ip=$(awk '/IP4.ADDRESS/ {print $NF}' <(/usr/bin/nmcli dev show "$wifi_int") | sed 's/\/24//')
-  wifi_mac=$(awk '/GENERAL.HWADDR/ {print $NF}' <(/usr/bin/nmcli dev show "$wifi_int"))
+  wifi_state=$(< "/sys/class/net/$wifi_int/operstate")
+  wifi_ip=$(awk '/IP4.ADDRESS/ {print $NF}' < <(/usr/bin/nmcli dev show "$wifi_int") | sed 's/\/24//')
+  wifi_mac=$(awk '/GENERAL.HWADDR/ {print $NF}' < <(/usr/bin/nmcli dev show "$wifi_int"))
   if requires_sudo; then
-    wifi_ssid=$(awk '/SSID/ {print $2}' <(sudo /sbin/iw dev "$wifi_int" link))
-    wifi_sig=$(awk '/signal/ {print $2,$3}' <(sudo /sbin/iw dev "$wifi_int" link))
+    wifi_ssid=$(awk '/SSID/ {print $2}' < <(sudo /sbin/iw dev "$wifi_int" link))
+    wifi_sig=$(awk '/signal/ {print $2,$3}' < <(sudo /sbin/iw dev "$wifi_int" link))
   else
-    wifi_ssid=$( awk '/SSID/ {print $2}' <(/sbin/iw dev "$wifi_int" link))
-    wifi_sig=$(awk '/signal/ {print $2,$3}' <(/sbin/iw dev "$wifi_int" link))
+    wifi_ssid=$( awk '/SSID/ {print $2}' < <(/sbin/iw dev "$wifi_int" link))
+    wifi_sig=$(awk '/signal/ {print $2,$3}' < <(/sbin/iw dev "$wifi_int" link))
   fi
   [[ "$wifi_ssid" ]] || wifi_ssid="Not available"
   [[ "$wifi_sig" ]] || wifi_sig="Not available"
@@ -140,14 +138,14 @@ show_wireless() {
 
 show_bridge() {
   local br_int br_state br_ip br_mac br_route br_str
-	br_int=$(awk '/bridge / {print $1}' <(/usr/bin/nmcli dev))
+	br_int=$(awk '/bridge / {print $1}' < <(/usr/bin/nmcli dev))
 	[[ "$br_int" ]] || return
   # interface data
   printf -v br_str "%s%12s:%s" "$lightgreen" "Wireless" "$normal"
-  br_state=$(cat "/sys/class/net/$br_int/operstate")
-  br_ip=$(awk '/vir/ && /brd/ {print $2}' <(ip addr show))
-  br_mac=$(cat "/sys/class/net/$br_int/address")
-  br_route=$(awk '/vir/ && /kernel/ {print $1}' <(ip route show))
+  br_state=$(< "/sys/class/net/$br_int/operstate")
+  br_ip=$(awk '/vir/ && /brd/ {print $2}' < <(ip addr show))
+  br_mac=$(< "/sys/class/net/$br_int/address")
+  br_route=$(awk '/vir/ && /kernel/ {print $1}' < <(ip route show))
   # display status
   case "$br_state" in
     up )
@@ -173,15 +171,15 @@ show_bridge() {
 
 show_network() {
   local network_addr
-  network_addr=$(awk '/kernel/ {print $1;exit}' <(ip route show))
-  # network_addr=$(awk '/kernel/ {print $1}' <(ip route show) | sort -u) # work with KCM/QEMU or Gnome Boxes?
+  network_addr=$(awk '/kernel/ {print $1;exit}' < <(ip route show))
+  # network_addr=$(awk '/kernel/ {print $1}' < <(ip route show) | sort -u) # work with KVM/QEMU or Gnome Boxes?
   printf "%sLocal Network:%s\n" "$orange" "$normal"
   printf "%4s%s\n" " " "$network_addr"
 }
 
 show_gateway() {
   local gateway_addr
-  gateway_addr=$(awk 'NR==1 {print $3}' <(ip route get 1.2.3.4))
+  gateway_addr=$(awk 'NR==1 {print $3}' < <(ip route get 1.2.3.4))
   printf "%sDefault Gateway:%s\n" "$orange" "$normal"
   printf "%4s%s\n" " " "$gateway_addr"
 }
@@ -189,17 +187,17 @@ show_gateway() {
 show_dns() {
   local addr dns_addrs
   printf "%sDNS Servers:%s\n" "$orange" "$normal"
-  readarray -t dns_addrs <<< "$(awk '/IP4.DNS/ {print $NF}' <(/usr/bin/nmcli dev show) | sort -ru)"
+  readarray -t dns_addrs <<< "$(awk '/IP4.DNS/ {print $NF}' < <(/usr/bin/nmcli dev show) | sort -ru)"
   for addr in "${dns_addrs[@]}"; do printf "%4s%s\n" " " "$addr"; done
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.1.26114"
+  local -r version="5.2.26147"
   local -r lhost="${HOSTNAME:-$(hostname)}"
   requires_sudo "$lhost" && sudo_login 2
   check_dependencies
-  clear
+  clearscreen
   title_box "$lhost"
   show_public_ip
   printf "%sLocal IP:%s\n" "$orange" "$normal"
