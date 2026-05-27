@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2024
-# Last updated : 04 Feb 2026
+# Last updated : 26 May 2026
 # Comments     : Working with i3 & Xfce4, no desktop background on Cinnamon.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,17 +24,9 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -59,21 +51,21 @@ install_xdrp() {
 	printf "Enabling and starting xrdp sevice...\n"
 	sudo systemctl enable --now xrdp
 	printf "Allow xrdp port (3389/tcp) on UFW...\n"
-	grep -qw 'inactive' <(sudo ufw status) && sudo ufw enable
-	grep -q '3389' <(sudo ufw status) || sudo ufw allow 3389/tcp
+	grep -qw 'inactive' < <(sudo ufw status) && sudo ufw enable
+	grep -q '3389' < <(sudo ufw status) || sudo ufw allow 3389/tcp
 }
 
 setup_xsession() {
 	local xsessions_d="/usr/share/xsessions"
 	if [[ -f "$xsessions_d/i3.desktop" ]]; then
 		printf "Setting up i3 session...\n"
-		echo "exec i3 >>~/.local/share/logs/i3log 2>&1" | tee "$HOME/.xsessionrc"
+		tee "$HOME/.xsessionrc" <<< "exec i3 >>~/.local/share/logs/i3log 2>&1"
 	elif [[ -f "$xsessions_d/xfce.desktop" ]]; then
 		printf "Setting up Xfce session...\n"
-		echo "xfce4-session" | tee "$HOME/.xsession"
+		tee "$HOME/.xsession" <<< "xfce4-session"
 	elif [[ -f "$xsessions_d/cinnamon.desktop" ]]; then
 		printf "Setting up Cinnamon session...\n"
-		echo "env -u SESSION_MANAGER -u DBUS_SESSION_BUS_ADDRESS cinnamon-session" | tee "$HOME/.xsession"
+		tee "$HOME/.xsession" <<< "env -u SESSION_MANAGER -u DBUS_SESSION_BUS_ADDRESS cinnamon-session"
 		cinn_xsessionrc
 		# echo "exec cinnamon2d >>~/.local/share/logs/cinnamon.log 2>&1" | tee "$HOME/.xsession"
 	fi
@@ -81,7 +73,7 @@ setup_xsession() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.4.26035"
+  local -r version="2.5.26147"
 	sudo_login 2
 	check_package ufw
 	install_xdrp
