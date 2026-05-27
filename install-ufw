@@ -7,8 +7,8 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 09 Feb 2026
-# Comments     : Install & remove for Deian-based systems only.
+# Updated      : 26 May 2026
+# Comments     : Install & remove for Debian-based systems only.
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,29 +25,21 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.21.26040"
+readonly version="2.0.26146"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="09 Feb 2026"
+	local -r updated="26 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs UFW on Debian, BunsenLabs, and MX Linux systems.
@@ -67,35 +59,35 @@ _HELP_
   exit "$errcode"
 }
 
-ufw_exists() {
-  grep -q '^ii' <(dpkg -l ufw 2>/dev/null)  && return "$TRUE" || return "$FALSE"
-}
-
 install_ufw() {
   printf "Installing UFW (Uncomplicated Firewall)...\n"
   sudo apt-get install ufw -yy
-  if ! grep -q '^ii' <(dpkg -l ufw 2>/dev/null); then
+  if ! installed ufw; then
     printf "%s UFW installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
   fi
-  add_rules
+  default_rules
   enable_ufw
   printf "UFW %s installed and configured.\n" "$(ufw_version)"
 }
 
 remove_ufw() {
+  sudo_login 2
   printf "Removing UFW (Uncomplicated Firewall) version %s...\n" "$(ufw_version)"
   sudo ufw reset  # disable UFW and delete all active rules
   sudo  apt-get purge ufw
 }
 
-add_rules() {
-  printf "Adding rules for CUPS, SSH, and XRDP...\n"
+default_rules() {
+  printf "Adding rules for CUPS, SSH, XRDP...\n"
   sudo sed -i '/IPV6=no/s/no/yes/' /etc/default/ufw
-  sudo ufw allow 631   # CUPS 631
-  sudo ufw allow SSH   # SSH 22/tcp
-  grep -q '^ii' <(dpkg -l xrdp 2>/dev/null) && sudo ufw allow 3389/tcp  # XRDP
+  sudo ufw allow 631 && printf "CUPS (port 631) allowed.\n"
+  sudo ufw allow SSH && printf "SSH (port 22/tcp) allowed.\n"
+  if installed xrdp; then
+    sudo ufw allow 3389/tcp
+    printf "XRDP (port 3389/tcp) allowed.\n"
+  fi
 }
 
 new_rules() {
@@ -131,11 +123,11 @@ disable_ufw() {
 }
 
 ufw_active() {
-  grep -qw active <(sudo ufw status) && return "$TRUE" || return "$FALSE"
+  grep -qw active < <(sudo ufw status) && return "$TRUE" || return "$FALSE"
 }
 
 ufw_version() {
-  awk '/ufw/ {print $NF}' <(/usr/sbin/ufw version)
+  awk 'NR==1 {print $NF}' < <(/usr/sbin/ufw version)
 }
 
 main() {
@@ -145,17 +137,16 @@ main() {
   while getopts "$optstr" opt; do
     case "$opt" in
       a )
-        if ufw_exists; then
+        if installed ufw; then
           sudo_login 2
-          add_rules
+          default_rules
           ufw_active || enable_ufw
-          printf "Rules for CUPS and SSH added.\n"
         else
           printf "UFW is not installed.\n" >&2
         fi
         ;;
       d )
-        if ufw_exists; then
+        if installed ufw; then
           sudo_login 2
           delete_rules
         else
@@ -163,7 +154,7 @@ main() {
         fi
         ;;
       e )
-        if ufw_exists; then
+        if installed ufw; then
           sudo_login 2
           if ufw_active; then
             printf "UFW %s is enabled.\n" "$(ufw_version)"
@@ -179,7 +170,7 @@ main() {
         help 0
         ;;
       i )
-        if ufw_exists; then
+        if installed ufw; then
           printf "UFW %s is already installed.\n" "$(ufw_version)" >&2
         else
           sudo_login 2
@@ -187,7 +178,7 @@ main() {
         fi
         ;;
       n )
-        if ufw_exists; then
+        if installed ufw; then
           sudo_login 2
           new_rules
         else
@@ -195,19 +186,15 @@ main() {
         fi
         ;;
       r )
-        if debian_system; then
-          if ufw_exists; then
-            sudo_login 2
-            remove_ufw
-          else
-            printf "UFW is not installed.\n" >&2
-          fi
+        if installed ufw; then
+          is_debian && remove_ufw
+          printf "Not a Debian system. UFW was not removed.\n" >&2
         else
-          printf "Not a Debian system.\n" >&2
+          printf "UFW is not installed.\n" >&2
         fi
         ;;
       s )
-        if ufw_exists; then
+        if installed ufw; then
           sudo_login 2
           printf "UFW %s\n" "$(ufw_version)"
           sudo ufw status numbered
