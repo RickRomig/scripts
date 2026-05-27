@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Last updated : 09 Feb 2026
+# Last updated : 26 May 2026
 # Comments     : My default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,25 +24,17 @@
 # GNU General Public License for more details.
 ###############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
 get_snapshot_uuid() {
   local target_uuid
-  target_uuid=$(awk '/data/ {print $(NF-3)}' <(lsblk -f))
-  [[ "$target_uuid" ]] || target_uuid=$(awk '/home/ {print $(NF-3)}' <(lsblk -f)) # home partition if no /data partition
-  [[ "$target_uuid" ]] || target_uuid=$(awk '/\/$/ {print $NF-3}' <(lsblk -f))  # root partition if no /home partition
+  target_uuid=$(awk '/data/ {print $(NF-3)}' < <(lsblk -f))  if /data partition exists
+  [[ "$target_uuid" ]] || target_uuid=$(awk '/home/ {print $(NF-3)}' < <(lsblk -f)) # home partition if no /data partition
+  [[ "$target_uuid" ]] || target_uuid=$(awk '/\/$/ {print $NF-3}' < <(lsblk -f))  # root partition if no /home partition
   printf "%s" "$target_uuid"
 }
 
@@ -67,9 +59,10 @@ configure_timeshift() {
 }
 
 install_timeshift() {
+  sudo_login 2
   printf "Installing Timeshift...\n"
   sudo apt-get install -y timeshift
-  if ! grep -q '^ii' <(dpkg -l timeshift 2>/dev/null); then
+  if ! installed timeshift; then
     printf "Timeshift installation failed." >&2
     EC="$E_INSTALLATION"
     return
@@ -80,15 +73,12 @@ install_timeshift() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.5.26040"
+  local -r version="3.6.26146"
   EC=0
-  if exists timeeshift; then
+  if installed timeeshift; then
     printf "%s is already installed.\n" "$(timeshift --version)"
-  elif in_repos timeshift; then
-    sudo_login 2
-    install_timeshift
   else
-    printf "Timeshift is not available in %s repositories.\n" "$(get_distribution)"
+    install_timeshift
   fi
   over_line "$script $version"
   exit "$EC"
