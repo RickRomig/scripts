@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jul 2021
-# Updated      : 29 Mar 2026
+# Updated      : 27 May 2026
 # Comments     : Original script found on Reddit r/dharmmawheel, posted by u/Jhanna4
 #              : Sound does not work with Pipewire audio.
 # TODO (Rick)  : Work on getting sound functions to work on Pipewire.
@@ -26,22 +26,14 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 script="${0##*/}"
-version="2.12.26088"
+version="2.13.26147"
 script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
 
 ## Functions ##
@@ -54,7 +46,7 @@ is_valid_integer() {
   local value="$1"
   local re="^[0-9]+$"
   [[ $value =~ $re ]] || return "$FALSE"
-  [[ $value -ge 0 || $value -le 100 ]] && return "$TRUE" || return "$FALSE"
+  [[ $value -ge 0 && $value -le 100 ]] && return "$TRUE" || return "$FALSE"
 }
 
 usage() {
@@ -70,14 +62,14 @@ _USAGE_
 get_volume() {
   # Get the cuurent volume setting (percentage, ie 50%)
   local volume
-  volume=$(awk -F'[][]' 'END{print $2}' <(amixer get Master))
+  volume=$(awk -F'[][]' 'END{print $2}' < <(amixer get Master))
   echo "$volume"
 }
 
 set_volume() {
   # Set the volume for sounds played or reset to original volume (volume is a percentage, ie 60%)
   local volume="$1"
-  amixer set Master "$volume" >/dev/null
+  amixer set Master "$volume" > /dev/null
 }
 
 play_sound() {
