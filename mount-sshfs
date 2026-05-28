@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 05 Feb 2026
+# Updated      : 27 May 2026
 # Comments     : Mount points are at ~/mnt/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,44 +24,35 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 81
-fi
-
-## Glonal Variables ##
+## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="5.3.26036"
-readonly E_OFFLINE=99
+readonly version="5.4.26147"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="05 Feb 2026"
+	local -r updated="27 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated $updated
 Mounts/Unmounts an SSHFS share.
 
-${green}Usage:${normal} $script [-defghlmns]
+${green}Usage:${normal} $script [-defghmnst]
 ${orange}Available options:${normal}
   -d  toggle mount/umount HP EliteDesk 800 G1 USDT (desktop)
   -e  toggle mount/umount HP EliteBook 850 G3 (laptop)
   -f  toggle mount/umount HP ProBook 6570b (desk)
   -g  toggle mount/umount HP Compaq Elite 8300 USDT (Gitea Server)
   -h  Show this help message and exit
-  -l  toggle mount/umount Lenovo M91p (VM and media)
   -m  toggle mount/umount HP 800 G2 (Main system)
   -n  toggle mount/umount QNAP NAS (network attached storage)
   -s  toggle mount/umount HP Compaq 6005 Pro SSF (file server)
+  -t  toggle mount/umount Dell 9020 (VM and media)
 _HELP_
 	exit "$errcode"
 }
@@ -84,7 +75,7 @@ fail_msg() {
 mount_share() {
 	local octet="$1"
   local share="$2"
-  ping -c3 "$LOCALNET.$octet" > /dev/null 2>&1 || die "$share at $LOCALNET.$octet is not online." "$E_OFFLINE"
+  ping -c3 "$LOCALNET.$octet" > /dev/null 2>&1 || die "$share at $LOCALNET.$octet is not online." "$E_NETWORK"
 	[[ -d "$HOME/mnt/$share/" ]] || mkdir -p "$HOME/mnt/$share"
 	printf "Mounting %s...\n" "$share"
 	if [[ "$share" == "NASD97167" ]]; then
@@ -110,7 +101,7 @@ unmount_share() {
 
 mounted() {
 	local share="$1"
-	grep -q "$share" <(mount) && return "$TRUE" || return "$FALSE"
+	grep -q "$share" < <(mount) && return "$TRUE" || return "$FALSE"
 }
 
 handle_mount() {
@@ -119,14 +110,14 @@ handle_mount() {
   share="$2"
 	ip=$(local_ip)
 	[[ "$ip" == "$octet" ]] && die "Cannot mount/unmount local system." "$E_DRIVE_ERROR"
-  if mounted "$share"; then
-		if default_yes "Unmount $share?"; then
-			unmount_share "$share"
-		else
-			printf "%s left mounted.\n" "$share"
-		fi
-	else
+  if ! mounted "$share"; then
 		mount_share "$octet" "$share"
+		return
+	fi
+	if default_yes "Unmount $share?"; then
+		unmount_share "$share"
+	else
+		printf "%s left mounted.\n" "$share"
 	fi
 }
 
@@ -135,7 +126,7 @@ main() {
 	check_package sshfs
 	printf "Mount or unmount an SSHFS share.\n"
 	noOpt=1
-	optstr=":defghlmns"
+	optstr=":defghmnst"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			d )
@@ -161,11 +152,6 @@ main() {
 			h )
 				help 0
 				;;
-			l )
-				share_name="Lenovo-M91p"
-				share_ip=15
-				handle_mount "$share_ip" "$share_name"
-				;;
 			m )
 				share_name="HP-800-G2"
 				share_ip=10
@@ -179,6 +165,11 @@ main() {
 			s )
 				share_name="HP-6005"
 				share_ip=11
+				handle_mount "$share_ip" "$share_name"
+				;;
+			t )
+				share_name="Dell-9020"
+				share_ip=15
 				handle_mount "$share_ip" "$share_name"
 				;;
 			?)
