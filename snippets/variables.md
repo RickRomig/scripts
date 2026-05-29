@@ -143,6 +143,31 @@ declare -a array=([0]="foo" [1]="bar" [2]="baz")
 ```bash
 $ mapfile -t my_array <<< input_file
 ```
+	- Checking if an item is in an array
+```bash
+# Using regex to match a substring
+if [[ "${array[@]}" =~ 'item' ]]; then
+    echo "item is in the array"
+fi
+
+# Traverse the array for an exact match
+array=("item1" "item2" "item3")
+found=false
+
+for element in "${array[@]}"; do
+  if [[ "$element" == 'item2' ]]; then
+    found=true
+    break
+  fi
+done
+
+if [[ "$found" == true ]]; then
+    echo "item is in the array"
+else
+    echo "item is not in the array"
+fi
+
+```
 2. Copying arrays
 ```bash
 $ first_arr=(foo bar baz)
