@@ -7,7 +7,7 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Feb 2026
-# Last updated : 30 Apr 2026
+# Last updated : 29 May 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n
 show_linux_headers() {
   local header_list
   printf "\nCurrently installed linux headers:\n"
-  header_list=$(awk '/linux-h/ {print $2}' < <(dpkg --list) | grep -v 'tools' | sort -r)
+  header_list=$(awk '/-headers-/ {print $2}' < <(dpkg --list) | grep -v 'tools' | sort -r)
   [[ "$header_list" ]] || { printf "No Linux headers installed\n"; return; }
   printf "%s\n" "$header_list"
 }
@@ -46,7 +46,7 @@ show_linux_images() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.1.26120"
+  local -r version="1.2.26149"
   show_linux_images
   show_linux_headers
   over_line "$script $version"
