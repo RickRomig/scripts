@@ -7,9 +7,9 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 24 May 2026
+# Updated      : 28 May 2026
 # Comments     : match by regex, starting with http:// or https://
-#              : Downloads videos to selected directory under ~/Videos/Pornography/
+#              : Downloads videos to selected directory under ~/Videos/Pornography/ (follows symlinkks)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -32,8 +32,8 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.11.26144"
-readonly updated="24 May 2026"
+readonly version="4.12.26148"
+readonly updated="28 May 2026"
 FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
@@ -107,10 +107,14 @@ select_directory() {
 	local vid_d selected_directory
   local local_host="${HOSTNAME:-$(hostname)}"
 	local video_dir=~/Videos/Pornography
-  [[ "$local_host" == "dell-9020" ]] && video_dir="/data/Videos/Pornography"
+  # [[ "$local_host" == "dell-9020" ]] && video_dir="/data/Videos/Pornography"
   local directories=()
   for vid_d in $video_dir; do
-    [[ -d "$vid_d" ]] && directories+=("$(sort -d < <(find "$video_dir" -type d -print))")
+    if [[ "$local_host" == "dell-9020" ]]; then
+      [[ -d "$vid_d" ]] && directories+=("$(sort -d < <(find -L "$video_dir" -type d -print))")
+    else
+      [[ -d "$vid_d" ]] && directories+=("$(sort -d < <(find "$video_dir" -type d -print))")
+    fi
   done
   selected_directory=$($FMENU "Select destination directory: " < <(printf "%s\n" "${directories[@]}"))
 	printf "%s" "$selected_directory"
