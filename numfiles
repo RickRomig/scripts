@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Nov 2018
-# Updated      : 26 Mar 2026
+# Updated      : 28 May 2026
 # Comment      :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,17 +25,9 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -44,7 +36,7 @@ num_files() {
 	cur_dir="${PWD//$\/}"
 	ndirs=$(wc -l < <(find . -type d))
 	nfiles=$(wc -l < <(find . -type f))
-	size=$(awk '$2 == "total" {print $1}' <(du -ch))
+	size=$(awk '$2 == "total" {print $1}' < <(du -ch))
 
 	printf "Directory: %s\n" "$cur_dir"
 	printf "%d " "$nfiles"
@@ -57,7 +49,7 @@ num_files() {
 
 main() {
 	local script="${0##*/}"
-	local version="4.2.26085"
+	local version="4.3.26148"
 	num_files
 	over_line "$script $version"
 	exit
