@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2017, Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 2017
-# Updated      : 27 Apr 2026
+# Updated      : 30 May 2026
 # Comments     : File extensions are not case sensitive, but will change to lowercase.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,14 +31,13 @@ source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.1.26117"
-EXIT_CODE=0
+readonly version="4.2.26150"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="27 Apr 2026"
+	local updated="30 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Bulk renames file extensions in the current diectory.
@@ -53,8 +52,9 @@ _HELP_
 }
 
 rename_extension() {
-  local ext="$1"
+  local -l ext="$1"
   # Rename file extensions based on the passed argument
+  printf "Renaming .%s file extensions\n" "$ext"
   case "$ext" in
     htm|html )
       rename -v 's/\.HTML?$/\.html/i' ./* ;;
@@ -67,30 +67,13 @@ rename_extension() {
   esac
 }
 
-check_files() {
-  local extension="$1"
-  local file
-  [[ "$extension" ]] || read -rp "Enter an extension to rename: " extension
-  for file in ./*."$extension"; do
-    if [[ -e "$file" ]]; then
-      printf "Renaming .%s file extensions\n" "$extension"
-      break
-    else
-      printf "No files with .%s extension found\n" "$extension"  >&2
-      EXIT_CODE="$E_FILENOTFOUND"
-      return
-    fi
-  done
-  rename_extension "$extension"
-}
-
 main() {
   local extension="$1"
   check_package rename
   [[ "$extension" == "-h" || "$extension" == "--help" ]] && help 0
-  check_files "$extension"
+  rename_extension "$extension"
   over_line "$script $version"
-  exit "$EXIT_CODE"
+  exit
 }
 
 ## Execution ##
