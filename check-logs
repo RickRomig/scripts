@@ -235,7 +235,7 @@ incremental_backups() {
   if [[ -d "$arc_dir/$sub_dir" ]]; then
     clear
     printf "%s%s - %s Incremental Backup (last 7 days):%s\n\n" "$lightgreen" "$lhost" "$bu_name" "$normal"
-    sort < <(find "$arc_dir/$sub_dir" -maxdepth 1 -type f -mtime -7) | awk -F/ '{print $NF}' | head -n8
+    sort < <(find "$arc_dir/$sub_dir" -maxdepth 1 -type f -name "*.tar.gz" -daystart -mtime -7) | awk -F/ '{print $NF}' | head -n7
     printf "\n"
   else
     printf "%s%s incremental backups do not exist on %s.%s\n" "$orange" "$bu_name" "$lhost" "$normal"
