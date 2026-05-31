@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 07 Apr 2026
+# Last updated : 31 May 2026
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,28 +24,20 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.3.26097"
+readonly version="4.4.26151"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="07 Apr 2026"
+	local -r updated="31 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Create symbolic links from configs and scripts repos and add tweaks to system settings.
@@ -134,11 +126,11 @@ link_config_files() {
 
 set_reserved_space() {
 	local home_part root_part data_part rbc blk_cnt res_pct
-	root_part=$(awk '$NF == "/" {print $1}' <(df -P))
-	home_part=$(awk '$NF == "/home" {print $1}' <(df -P))
-	data_part=$(awk '$NF == "/data" {print $1}' <(df -P))
-	rbc=$(awk '/Reserved block count/ {print $NF}' <(sudo /usr/sbin/tune2fs -l "$root_part"))
-	blk_cnt=$(awk '/Block count/ {print $NF}' <(sudo /usr/sbin/tune2fs -l "$root_part"))
+	root_part=$(awk '$NF == "/" {print $1}' < <(df -P))
+	home_part=$(awk '$NF == "/home" {print $1}' < <(df -P))
+	data_part=$(awk '$NF == "/data" {print $1}' < <(df -P))
+	rbc=$(awk '/Reserved block count/ {print $NF}' < <(sudo /usr/sbin/tune2fs -l "$root_part"))
+	blk_cnt=$(awk '/Block count/ {print $NF}' < <(sudo /usr/sbin/tune2fs -l "$root_part"))
 	res_pct="$(bc <<< "${rbc} * 100 / ${blk_cnt}")"
 	printf "\e[93mSetting reserved space on root, home, data partitions...\e[0m\n"
 	[[ "$res_pct" -ne 5 ]] && sudo /usr/sbin/tune2fs -m 5 "$root_part"
