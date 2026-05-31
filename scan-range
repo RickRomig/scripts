@@ -3,11 +3,11 @@
 # Script Name  : scan-range
 # Description  : Scans a range of IP addresses to determine if online.
 # Dependencies : arping (iputils-arping)
-# Arguments    : Beginning and last octets of range to be scanned.
+# Arguments    : range of IP addresses (last octets) to be scanned.
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jul 2022
-# Updated      : 29 Apr 2026
+# Updated      : 31 May 2026
 # Comments     : Adapted from a script by Dave McKay at howtogeek.com
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,50 +24,41 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.2.26119"
+readonly version="4.0.26151"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="29 Apr 2026"
+	local updated="31 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Scans a range of IP addresses to determine if they are online.
 
 ${green}Usage:${normal} $script IP1 IP2
 ${orange}Example:${normal} $script 10 20
-Takes 2 integers between 1 and 254 (last octets of the local network range)
+Takes 2 integer arguments between 1 and 254 (last octets of address).
+First argument must be less than the second.
 _HELP_
 	exit "$errcode"
 }
 
 check_arg_values() {
-	# returns TRUE only if both octets are digits and within the range of valid IP addresses.
+	# returns TRUE only if both octets are inegers within the valid range of valid IP addresses.
 	local ip1="$1"
 	local ip2="$2"
 	local re="^[0-9]+$"
-	if [[ $ip1 =~ $re && "$ip2" =~ $re ]] 2>/dev/null; then
-		[[ "$ip1" -ge "$ip2" ]] && return "$FALSE"
-		[[ "$ip1" -lt 1 || "$ip2" -ge 255 ]] && return "$FALSE" || return "$TRUE"
-	else
-		return "$FALSE"
-	fi
+	[[ "$ip1" =~ $re && "$ip2" =~ $re ]] 2>/dev/null || { printf "%s non-integer value\n" "$RED_ERROR" <&2; return "$FALSE"; }
+	[[ "$ip1" -ge "$ip2" ]] && { printf "%s Invalid range\n" "$RED_ERROR" <&2; return "$FALSE"; }
+	[[ "$ip1" -lt 1 || "$ip2" -gt 254 ]] && { printf "%s Invalid range\n" "$RED_ERROR" <&2; return "$FALSE"; }
+	return "$TRUE"
 }
 
 scan_range() {
@@ -75,11 +66,8 @@ scan_range() {
 	ip1="$1"
 	ip2="$2"
 	for (( ip=ip1; ip<=ip2; ip++ )); do
-		if grep -E "0 response|0 packets received" <(arping -c 1 "$LOCALNET.$ip") > /dev/null; then
-			printf "%s.%s didn't respond.\n" "$LOCALNET" "$ip"
-		else
-			printf "%s.%s responded.\n" "$LOCALNET" "$ip"
-		fi
+		printf "%s.%d " "$LOCALNET" "$ip"
+		grep -E "0 response|0 packets received" < <(arping -c 1 "$LOCALNET.$ip") > /dev/null && printf "didn't respond.\n" || printf "responded.\n"
 	done
 }
 
@@ -87,7 +75,7 @@ main() {
 	[[ $# -lt 2 ]] && { printf "%s Too few arguments passed.\n" "$RED_ERROR" <&2; help "$E_MISSING_ARG"; }
 	local addr1="$1"
 	local addr2="$2"
-	check_arg_values "$addr1" "$addr2" || { printf "%s Invalid arguments. Values must be integers between 1 and 254.\n" "$RED_ERROR" <&2; help "$E_INVALID_ARG"; }
+	check_arg_values "$addr1" "$addr2" || help "$E_INVALID_ARG"
 	check_package iputils-arping
 	scan_range "$addr1" "$addr2"
 	over_line "$script $version"
