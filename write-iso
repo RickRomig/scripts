@@ -34,7 +34,7 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.11.26152"
+readonly version="8.0.26152"
 user=$(whoami); readonly user
 dryrun="$FALSE"
 FMENU="fzf --header=$script \
@@ -78,17 +78,14 @@ check_usb_drive() {
 
 select_directory() {
 	local dist_d selected_dir
-  local local_host="${HOSTNAME:-$(hostname)}"
-	local iso_dir=~/Downloads/ISO
-	# [[ "$local_host" == "dell-9020" ]] && iso_dir=/data/ISO
+	local iso_dir="$1"
 	local iso_dirs=()
 	for dist_d in $iso_dir; do
-		case "$local_host" in
-			dell-9020 )
-				[[ -d "$dist_d" ]] && iso_dirs+=("$(sort -d < <(find -L "$dist_d" -maxdepth 2 -type d -print))") ;;
-			* )
-				[[ -d "$dist_d" ]] && iso_dirs+=("$(sort -d < <(find "$dist_d" -maxdepth 2  -type d -print))")
-		esac
+		if [[ -L "$iso_dir" ]]; then
+			iso_dirs+=("$(sort -d < <(find -L "$dist_d" -maxdepth 2 -type d -print))")
+		else
+			iso_dirs+=("$(sort -d < <(find "$dist_d" -maxdepth 2 -type d -print))")
+		fi
 	done
 	selected_dir=$($FMENU "Select distribution directory: " < <(printf "%s\n" "${iso_dirs[@]}"))
 	printf "%s" "$selected_dir"
@@ -99,7 +96,7 @@ select_iso() {
 	iso_d="$1"
 	local iso_files=()
 	for iso_files in $iso_d; do
-		[[ -d "$iso_d" ]] && iso_files+=("$(sort -d < <(find "$iso_d" -type f -iname "*.iso" -printf "%f\n"))")
+		iso_files+=("$(sort -d < <(find "$iso_d" -type f -iname "*.iso" -printf "%f\n"))")
 	done
 	selected_iso=$($FMENU "Select ISO file: " < <(printf "%s\n" "${iso_files[@]}"))
 	printf "%s" "$selected_iso"
@@ -201,6 +198,8 @@ write_iso() {
 
 main() {
   local noOpt opt optstr iso_dir iso_file usb_device OPTARG OPTIND
+	local isoDir=~/Downloads/ISO
+	[[ -d "$isoDir" ]] || { printf "%s ISO directory not found.\n" "$RED_ERROR"; EC="$E_FILENOTFOUND"; return; }
 	noOpt=1
 	optstr=":dhw"
 	while getopts "$optstr" opt; do
@@ -217,7 +216,7 @@ main() {
 				printf "Writes ISO to a USB drive.\n\n"
 				check_package fzf
 				check_usb_drive
-				iso_dir=$(select_directory)
+				iso_dir=$(select_directory "$isoDir")
 				iso_file=$(select_iso "$iso_dir")
 				usb_device=$(select_usb)
 				write_iso "$iso_dir/$iso_file" "$usb_device"
