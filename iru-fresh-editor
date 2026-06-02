@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2025
-# Updated      : 19 May 2026
+# Updated      : 02 Jun 2026
 # Comments     : Fresh-editor is installed to /usr/share/fresh-editor & sym-linked to /usr/bin/fresh
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -32,7 +32,7 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.9.26139"
+readonly version="1.0.26153"
 readonly gh_url="https://github.com/sinelaw/fresh/releases"
 DOTS_PID=
 EC=0
@@ -41,7 +41,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="19 May 2026"
+	local -r updated="02 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Fresh Editor.
@@ -73,6 +73,15 @@ fresh_version() {
   cut -d' ' -f2 < <(fresh --version)
 }
 
+convert_compare() {
+	local newVer="$1"
+	local curVer="$2"
+	local digitCur digitNew
+	digitNew=$(sed 's/^0*//' < <(tr -d . <<< "$newVer"))
+	digitCur=$(sed 's/^0*//;s/[-~+ud].*//' < <(tr -d . <<< "$curVer"))
+	(( digitNew > digitCur )) && return 0 || return 1
+}
+
 newest_version() {
   wget -qO "$TMP_FILE" "$gh_url"
   new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$TMP_FILE"))
@@ -84,15 +93,23 @@ compare_versions() {
   local cur_ver
   cur_ver="$(fresh_version)"
   if [[ -z "$new_ver" ]]; then
-    printf "%s No download available. Try again later.\n" "$RED_ERROR" >&2
+    printf "%s No download available. Try again later." "$RED_ERROR" >&2
     EC="$E_DOWNLOAD"
-    return
-  elif [[ ! "$new_ver" > "$cur_ver" ]]; then
+  elif convert_compare "$new_ver" "$cur_ver"; then
+    printf "%sInstalled version of Fresh-editor is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
+  else
     printf "%s Fresh-editor %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
-    return
   fi
-  printf "%sInstalled version of Fresh-editor is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-  install_fresh "$new_ver"
+  # if [[ -z "$new_ver" ]]; then
+  #   printf "%s No download available. Try again later.\n" "$RED_ERROR" >&2
+  #   EC="$E_DOWNLOAD"
+  #   return
+  # elif [[ ! "$new_ver" > "$cur_ver" ]]; then
+  #   printf "%s Fresh-editor %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
+  #   return
+  # fi
+  # printf "%sInstalled version of Fresh-editor is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
+  # install_fresh "$new_ver"
 }
 
 install_fresh() {
