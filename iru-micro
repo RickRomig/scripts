@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 17 Apr 2026
+# Updated      : 02 Jun 2026
 # Comments     : Debian 13 & LMDE 7 repo version 2.0.14
 #              : Debian 12, Ubuntu 24.04 & Mint 22 repo version 2.0.13
 # TODO (Rick)  :
@@ -27,12 +27,12 @@
 
 ## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.22.26107"
+readonly version="7.0.26153"
 readonly gh_url="https://github.com/micro-editor/micro/releases"
 EC=0
 
@@ -40,7 +40,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="17 Apr 2026"
+	local -r updated="02 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -64,7 +64,16 @@ cleanup() {
 }
 
 micro_version() {
-  awk '/Version:/ {print $NF}' <(micro -version)
+  awk '/Version:/ {print $NF}' < <(micro -version)
+}
+
+convert_compare() {
+	local newVer="$1"
+	local curVer="$2"
+	local digitCur digitNew
+	digitNew=$(sed 's/^0*//' < <(tr -d . <<< "$newVer"))
+	digitCur=$(sed 's/^0*//;s/[-~+ud].*//' < <(tr -d . <<< "$curVer"))
+	(( digitNew > digitCur )) && return 0 || return 1
 }
 
 newest_version() {
@@ -80,13 +89,21 @@ compare_versions() {
   if [[ -z "$new_ver" ]]; then
     printf "%s No download available. Try again later." "$RED_ERROR" >&2
     EC="$E_DOWNLOAD"
-    return
-  elif [[ ! "$new_ver" > "$cur_ver" ]]; then
+  elif convert_compare "$new_ver" "$cur_ver"; then
+    printf "%sInstalled version of Micro is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
+  else
     printf "%sMicro %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
-    return
   fi
-  printf "%sInstalled version of Micro is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-  install_micro "$new_ver"
+  # if [[ -z "$new_ver" ]]; then
+  #   printf "%s No download available. Try again later." "$RED_ERROR" >&2
+  #   EC="$E_DOWNLOAD"
+  #   return
+  # elif [[ ! "$new_ver" > "$cur_ver" ]]; then
+  #   printf "%sMicro %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
+  #   return
+  # fi
+  # printf "%sInstalled version of Micro is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
+  # install_micro "$new_ver"
 }
 
 install_micro() {
