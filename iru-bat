@@ -29,7 +29,7 @@
 
 ## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
@@ -72,7 +72,7 @@ check_dependencies() {
 }
 
 bat_version() {
-  cut -d' ' -f2 <(bat --version)
+  cut -d' ' -f2 < <(bat --version)
 }
 
 convert_compare() {
@@ -100,7 +100,7 @@ compare_versions() {
   elif convert_compare "$new_ver" "$cur_ver"; then
     printf "%sInstalled version of Bat is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
   else
-    printf "%s Bat %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
+    printf "%sBat %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
   fi
 
   # if [[ -z "$new_ver" ]]; then
