@@ -32,7 +32,7 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.1.26154"
+readonly version="2.2.26155"
 readonly gh_url="https://github.com/sinelaw/fresh/releases"
 DOTS_PID=
 EC=0
@@ -79,7 +79,7 @@ convert_compare() {
 	local digitCur digitNew
 	digitNew=$(sed 's/^0*//' < <(tr -d . <<< "$newVer"))
 	digitCur=$(sed 's/^0*//;s/[-~+ud].*//' < <(tr -d . <<< "$curVer"))
-	(( digitNew > digitCur )) && return 0 || return 1
+	(( digitNew > digitCur )) && return "$TRUE" || return "$FALSE"
 }
 
 newest_version() {
