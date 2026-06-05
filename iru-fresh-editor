@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2025
-# Updated      : 03 Jun 2026
-# Comments     : Fresh-editor is installed to /usr/share/fresh-editor & sym-linked to /usr/bin/fresh
+# Updated      : 05 Jun 2026
+# Comments     : Beginning with version 0.3.12, installs to /usr/bin/fresh
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -28,11 +28,10 @@
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.2.26155"
+readonly version="2.3.26156"
 readonly gh_url="https://github.com/sinelaw/fresh/releases"
 DOTS_PID=
 EC=0
@@ -41,7 +40,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="03 Jun 2026"
+	local -r updated="05 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Fresh Editor.
@@ -101,16 +100,6 @@ compare_versions() {
   else
     printf "%sFresh-editor %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
   fi
-  # if [[ -z "$new_ver" ]]; then
-  #   printf "%s No download available. Try again later.\n" "$RED_ERROR" >&2
-  #   EC="$E_DOWNLOAD"
-  #   return
-  # elif [[ ! "$new_ver" > "$cur_ver" ]]; then
-  #   printf "%s Fresh-editor %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
-  #   return
-  # fi
-  # printf "%sInstalled version of Fresh-editor is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-  # install_fresh "$new_ver"
 }
 
 install_fresh() {
@@ -134,7 +123,6 @@ install_fresh() {
     EC="$E_INSTALLATION"
     return
   fi
-  [[ -L /usr/bin/fresh ]] || sudo ln -sf /usr/share/fresh-editor/fresh /usr/bin/fresh
   printf "%sFresh-editor %s installed.%s\n" "$lightyellow" "$(fresh_version)" "$normal"
 }
 
@@ -143,7 +131,6 @@ remove_fresh() {
   printf "Removing Fresh-editor %s...\n" "$(fresh_version)"
   sudo dpkg --remove fresh-editor
 	find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name fresh -exec rm -rf {} \;
-  [[ -L /usr/bin/fresh ]] && sudo rm -f /usr/bin/fresh
   printf "Fresh-editor and its configuration files have been removed.\n"
 }
 
