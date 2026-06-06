@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Mar 2023
-# Updated      : 10 Mar 2026
+# Updated      : 06 Jun 2026
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,17 +24,9 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source ~/bin/functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
@@ -183,13 +175,13 @@ check_host() {
   elif [[ "$local_host" == "$laptop_host" ]]; then
     sync_to_main "$main_host" "$laptop_host"
   else
-    die "Invalid client. $script must be run from either $main_host or $laptop_host." 1
+    die "Invalid client. $script must be run from either $main_host or $laptop_host." "$E_INVALID_HOST"
   fi
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.9.26069"
+  local -r version="4.10.26157"
   box "$script $version" "-"
   check_host
   over_line "Syncronization completed in $(format_time $SECONDS)" "-"
