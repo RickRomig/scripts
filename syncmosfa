@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020 Richard Romig, 29 Sep 2020
 # Email        : rick.romig@gmail.com
 # Created      : 29 Sep 2020
-# Last updated : 10 Mar 2026
+# Last updated : 06 Jun 2026
 # Comments     : Can sync to one or all machines on the network.
 #              : LOCALNET is declared in functionlib
 # TODO (rick)  :
@@ -25,29 +25,21 @@
 # GNU General Public License for more details.
 ###############################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source ~/bin/functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.6.26069"
+readonly version="4.7.26157"
 SECONDS=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="10 Mar 2026"
+	local updated="06 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Syncs directories with machines on the network via SSH
@@ -162,7 +154,7 @@ syncscript() {
       ;;
     * )
       # 17, 21, 24. 25 exclusions
-      printf "\nMosfanet and Work directories were not synchronized.\n"
+      printf "\nExcluded from sync. Mosfanet and Work directories were not synchronized.\n"
   esac
 }
 
