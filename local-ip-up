@@ -7,11 +7,11 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Dec 2019
-# Updated      : 05 Feb 2026
+# Updated      : 07 Jun 2026
 # Comments     : Variables for IP range do not work, must be hard coded.
-#              : Local host will not respond to arping.
-#              : Local host will respond using arping in iputils-arping.
-#              : Installing arping will uninstall iputils-arping & sudo required.
+#              : Local host will respond using arping in the iputils-arping package.
+#              : Local host will not respond using the arping package.
+#              : Installing arping package will uninstall iputils-arping & require sudo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -27,22 +27,14 @@
 ## GNU General Public License for more details.
 #############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.12.26036"
+readonly version="4.13.26158"
 SECONDS=0
 COUNT=0
 
@@ -50,7 +42,7 @@ COUNT=0
 
 help() {
 	local errcode="${1:-1}"
-	local updated="05 Feb 2026"
+	local updated="07 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Scans local network to see which addresses are active.
@@ -73,14 +65,14 @@ check_dependencies() {
 
 arping_check() {
   local addr="$1"
-  grep -E "0 response|0 packets received" <(arping -c 1 "$addr" ) > /dev/null 2>&1 && return 1 || return 0
+  grep -E "0 response|0 packets received" < <(arping -c 1 "$addr" ) > /dev/null 2>&1 && return 1 || return 0
 }
 
 scan_static_addresses() {
   local hname ip_addr
   for ip_addr in $LOCALNET.{1..25}; do
     if arping_check "$ip_addr"; then
-      hname=$(awk '{print $NF}' <(avahi-resolve -a "$ip_addr" 2>/dev/null) | sed 's/\.local$//')
+      hname=$(awk '{print $NF}' < <(avahi-resolve -a "$ip_addr" 2>/dev/null) | sed 's/\.local$//')
       printf "%s\t" "$ip_addr"
       if [[ "$hname" ]]; then
         printf "%s\n" "$hname"
@@ -122,15 +114,11 @@ scan_static_addresses() {
 
 scan_dhcp_addresses() {
   local hname ip_addr
-  for ip_addr in $LOCALNET.{26..254}; do
+  for ip_addr in $LOCALNET.{100..199}; do
     if arping_check "$ip_addr"; then
-      hname=$(awk '{print $NF}' <(avahi-resolve -a "$ip_addr" 2>/dev/null) | sed 's/\.local$//')
+      hname=$(awk '{print $NF} ' < <(avahi-resolve -a "$ip_addr" 2>/dev/null) | sed 's/\.local$//')
       printf "%s\t" "$ip_addr"
-      if [[ -n "$hname" ]]; then
-        printf "%s\n" "$hname"
-      else
-        printf "Unknown host\n"
-      fi
+       [[ -n "$hname" ]] &&  printf "%s\n" "$hname" || printf "Unknown host\n"
       (( COUNT++ ))
     fi
   done
