@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : randpic
-# Description  : Copies random image file from ~/Pictures to ~/tmp/pics
+# Description  : Copies random image file from ~/Pictures to ~/Work/images
 # Dependencies : imagemagick
 # Arguments    : None
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Jun 2019
-# Updated      : 29 May 2026
+# Updated      : 07 Jun 2026
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -53,17 +53,22 @@ select_image_dir() {
 }
 
 valid_folder() {
-  local folder="$1"
-  local is_valid="$TRUE"
+  local -r sel_dir="$1"
   local directory=
-  local invalid_dirs=("album-art" "backgrounds" "DCIM" "Facebook" "Tech-pics" "unsorted" "wallpaper" "web-site-pics" "Zipped" "SLIDES")
-  for directory in "${invalid_dirs[@]}"; do
-    if [[ "$directory" == "$folder" ]]; then
-      is_valid="$FALSE"
-      break
-    fi
-  done
-  return "$is_valid"
+  local invalid_dirs=(
+    "album-art"
+    "backgrounds"
+    "DCIM"
+    "Facebook"
+    "SLIDES"
+    "Tech-pics"
+    "unsorted"
+    "wallpaper"
+    "web-site-pics"
+    "Zipped"
+  )
+  for directory in "${invalid_dirs[@]}"; do [[ "$directory" == "$sel_dir" ]] && return "$FALSE"; done
+  return "$TRUE"
 }
 
 valid_image() {
@@ -160,7 +165,7 @@ select_images() {
 
 main () {
   local script="${0##*/}"
-  local version="6.0.26149"
+  local version="6.1.26158"
   local image_dir
   check_package imagemagick
   image_dir=$(select_image_dir)
