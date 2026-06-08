@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Jun 2019
-# Updated      : 07 Jun 2026
+# Updated      : 08 Jun 2026
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,8 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 
 ## Functions ##
 
-select_image_dir() {
+select_dest_dir() {
+  local -r script="$1"
   local FMENU="fzf --header=$script \
     --layout=reverse \
     --exact \
@@ -44,11 +45,11 @@ select_image_dir() {
     --bind change:top \
     --prompt"
   local image_d dest_d
-  local image_dirs=()
+  local dest_dirs=()
   for image_d in $HOME/Work/images; do
-    [[ -d "$image_d" ]] && image_dirs+=("$(sort -d < <(find "$image_d" -maxdepth 1 -type d -print))")
+    [[ -d "$image_d" ]] && dest_dirs+=("$(sort -d < <(find "$image_d" -maxdepth 1 -type d -print))")
   done
-	dest_d=$($FMENU "Select image directory: " < <(printf "%s\n" "${image_dirs[@]}"))
+	dest_d=$($FMENU "Select image directory: " < <(printf "%s\n" "${dest_dirs[@]}"))
 	printf "%s" "$dest_d"
 }
 
@@ -76,36 +77,31 @@ valid_image() {
   local ext="${filename##*.}"
   ext="${ext,,}"
   case $ext in
-    bmp|gif|jpeg|jpg|png|tiff )
-      return "$TRUE" ;;
-    * )
-      return "$FALSE"
+    bmp|gif|jpeg|jpg|png|tiff ) return "$TRUE" ;;
+    * ) return "$FALSE"
   esac
 }
 
 select_images() {
-  local script="$1"
-  local version="$2"
-  local tmp_pics="$3"
+  local tmp_pics="$1"
   local pic_dir pic_file pic_pid options _opt random_file sel_dir
 
   clear
   while true; do
     # Randomly select an image folder from ~/Pictures/
-    pic_dir=$(find ~/Pictures -maxdepth 1 -type d | shuf -n1)
+    pic_dir=$(shuf -n1 < <(find ~/Pictures -maxdepth 1 -type d))
     sel_dir="${pic_dir##*/}"
     valid_folder "$sel_dir" || continue
 
     # Choose a random image file from the selected folder
-    random_file=$(find "$pic_dir" -maxdepth 1 -type f | shuf -n1)
+    random_file=$(shuf -n1 < <(find "$pic_dir" -maxdepth 1 -type f | shuf -n1))
     pic_file="${random_file##*/}"
     valid_image "$pic_file" || continue
 
     # Accept or reject selected file
-    clear
-    box "Random Image Selector ($script v$version)"
-    printf "Selects a random image from ~/Pictures\n"
-    printf "%sSelected image: %s%s/%s%s\n" "$blue" "$orange" "$sel_dir" "$pic_file" "$normal"
+    clearscreen
+    box "Random Image Selector"
+    printf "\n%sSelected image: %s%s/%s%s\n" "$blue" "$orange" "$sel_dir" "$pic_file" "$normal"
     cp -p "$pic_dir/$pic_file" "$tmp_pics"
     # /usr/bin/display -geometry +600+20 "$tmp_pics/$pic_file" &
     /usr/bin/display -geometry +1000+20 -resize 800x600 "$tmp_pics/$pic_file" &
@@ -164,13 +160,13 @@ select_images() {
 }
 
 main () {
-  local script="${0##*/}"
-  local version="6.1.26158"
-  local image_dir
+  local -r script="${0##*/}"
+  local -r version="6.2.26159"
+  local dest_dir
   check_package imagemagick
-  image_dir=$(select_image_dir)
-  [[ "$image_dir" ]] || die "No destination directory selected." "$E_MISSING_ARG"
-  select_images "$script" "$version" "$image_dir"
+  dest_dir=$(select_dest_dir "$script")
+  [[ "$dest_dir" ]] || die "No destination directory selected." "$E_MISSING_ARG"
+  select_images "$dest_dir"
   printf "\nFinished selecting images.\n"
   over_line "$script $version"
   leave ""
