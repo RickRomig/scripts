@@ -7,7 +7,7 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Sep 2019
-# Updated      : 01 May 2026
+# Updated      : 09 Jun 2026
 # Comments     : Creates a compressed tar archive of the folder's contents.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,29 +26,36 @@
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+
+## Global Variables ##
+
+EC=0
 
 ## Functions ##
 
-remove_bu_files() {
+remove_backup_files() {
 	local -r homepage_d="$1"
-  printf "\n%sRemoving any backup files...%s\n" "$lightyellow" "$normal"
-  find "$homepage_d"/ -type f -regex '\./.*~$' -print -delete
-  find "$homepage_d"/ -maxdepth 2 -type f -name "*.bak" -exec rm -v {} \;
-	printf "done\n"
+	local -i num_bu
+	num_bu=$(wc -l < <(find . -maxdepth 2 \( -name "*.bak" -o -regex '\./.*~$' \) -type f -print))
+  printf "\n%sRemoving backup files...%s\n" "$lightyellow" "$normal"
+	(( num_bu == 0 )) && { printf "No backup files found.\n"; return; }
+	find . -maxdepth 2 \( -name "*.bak" -o -regex '\./.*~$' \) -type f -delete
 }
 
-archive_homepage() {
-	local archive homepage_d archive_d
-	homepage_d="$1"
-	archive_d="$2"
+archive_homepage_repo() {
+	local -r homepage_d="$1"
+	local -r archive_d="$2"
+	local archive
+	local -n old_archives
 	archive="homepage-$(date +%y%m%d).tar.gz"
+	old_archives=$(wc -l < <(find "$archive_d" -mtime +90 -print -print))
 	[[ -d "$archive_d" ]] || mkdir -p "$archive_d"
 	printf "\n%sArchiving homepage repository...%s\n" "$lightyellow" "$normal"
-	tar -czf "$archive_d/$archive" -C "$HOME/gitea" homepage
+	tar -czvf "$archive_d/$archive" -C "$HOME/gitea" homepage
 	printf "\n%sRemoving old archives...%s\n" "$lightyellow" "$normal"
+	(( old_archives == 0 )) && { printf "No old archives found.\n"; return; }
 	find "$archive_d" -mtime +90 -print -delete
-	printf "done\n"
 }
 
 sync_dropbox() {
@@ -65,7 +72,8 @@ process_homepage() {
 	local -r local_host="${HOSTNAME:-$(hostname)}"
 	if [[ "$local_host" != "$main_host" ]]; then
 		printf "%sScript must be run from %s.\n" "$RED_WARNING" "$main_host" >&2
-		return "$E_INVALID_HOST"
+		EC="$E_INVALID_HOST"
+		return
 	fi
 	local -r homepage_dir=~/gitea/homepage
 	local -r archive_dir=~/Downloads/archives/homepage
@@ -73,18 +81,17 @@ process_homepage() {
 	[[ -d "$archive_dir" ]] || mkdir "$archive_dir"
 	check_package rsync
 	printf "%sArchiving homepage files...%s\n" "$orange" "$normal"
-	remove_bu_files "$homepage_dir"
-	archive_homepage "$homepage_dir" "$archive_dir"
+	remove_backup_files "$homepage_dir"
+	archive_homepage_repo "$homepage_dir" "$archive_dir"
 	sync_dropbox "$homepage_dir" "$archive_dir"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.1.26121"
-	local ec=0
-	process_homepage;ec="$?"
+	local -r version="7.2.26160"
+	process_homepage
 	over_line "$script $version" "-"
-	exit "$ec"
+	exit "$EC"
 }
 
 ## Execution ##
