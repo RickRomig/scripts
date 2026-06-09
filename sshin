@@ -7,11 +7,11 @@
 # Author       : Copyright (C) 2017, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 07 Oct 2017  (Joe Collins' original script)
-# Updated      : 29 Jan 2026
+# Updated      : 08 Jun 2026
 # Comments     : Based on a script by Joe Collins.
 #              : LOCALNET and valid_ip() are declared in functionlib
 #              : X11 forwarding should be enabled in /etc/ssh/sshd_config
-#              : Invalid IP will exit script with error code from valid_ip() in functionlib
+#              : An invalid IP will exit the script with error code from valid_ip() in functionlib
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -27,34 +27,26 @@
 # GNU General Public License for more details.
 ###############################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 # Variables
 
 readonly script="${0##*/}"
-readonly version="3.0.26029"
+readonly version="3.1.26159"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local updated="29 Jan 2026"
+  local updated="08 Jun 2026"
   cat << _HELP_
 
 ${orange}$script${normal} $version ($updated)
 Log in to a remote server using Secure Shell (SSH).
 
-${green}Usage:${normal} $script [last-octet] [-h | --help] [X]
+${green}Usage:${normal} $script [last-octet [X]] [-h | --help]
 ${orange}Example:${normal} $script 15
 ${orange}Example:${normal} $script 11 X
 First argument is the last octet of the remote server's IP address.
@@ -84,7 +76,7 @@ connect_ssh() {
 
 main() {
   local hostip="$1"
-  local x_opt="${2}"
+  local x_opt="${2:-z}"
   [[ "$1" == "-h" || "$1" == "--help" ]] && help 0
   [[ "$hostip" ]] || read -rp "Enter last octet of remote server's IP address. " hostip
   connect_ssh "$hostip" "$x_opt"
