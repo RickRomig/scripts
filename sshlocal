@@ -2,14 +2,14 @@
 ##########################################################################
 # Script Name  : sshlocal
 # Description  : connect to remote servers via SSH using the .local domain
-# Dependencies : OpenSSH, OpenSSH_server, fzf (optional)
+# Dependencies : OpenSSH, OpenSSH_server, fzf
 # Arguments    : X or x to enable X11 forwarding
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Feb 2025
-# Last updated : 02 Oct 2025
+# Last updated : 08 Jun 2026
 # Comments     :
-# TODO (Rick)  :
+# TODO (Rick)  : Doesn't connect to hp-8300
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
@@ -24,24 +24,31 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
-readonly script="${0##*/}"
-readonly version="3.4.25275"
-readonly servers=(hp-800g2-sff hp-6005 e6500-deb probook-6570b hp-8300 lenovo-m91p hp-8300-usdt hp-800-g1-usdt hp-800-g1-dm probook-6570 hp-probook-6570 hp-850-g3 hp-2560p e-475m)
-FMENU="fzf --header=$script \
+EC=0
+
+## Functions ##
+
+connect_server() {
+	local server="$1"
+	printf "%sConnecting to %s ...%s\n" "$lightyellow" "$server" "$normal"
+	ssh -q "$server".local
+}
+
+connect_server_x() {
+	local server="$1"
+	printf "%sConnecting to %s (X11 forwarding) ...%s\n" "$lightyellow" "$server" "$normal"
+	ssh -X -q "$server".local
+}
+
+fuzzy_server() {
+	local local_host="${HOSTNAME:-$(hostname)}"
+	local FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
            --border=bold \
@@ -53,82 +60,42 @@ FMENU="fzf --header=$script \
            --header-first \
            --bind change:top \
            --prompt"
-
-## Functions ##
-
-check_x11() {
-	local x_arg="$1"
-	case "$x_arg" in
-		X|x* )
-			return "$TRUE" ;;
-		* )
-			return "$FALSE"
-	esac
-}
-
-connect_server() {
-	local server="$1"
-	printf "%sConnecting to %s ...%s\n" "$lightyellow" "$server" "$normal"
-	ssh "$server".local
-}
-
-connect_server_x() {
-	local server="$1"
-	printf "%sConnecting to %s (X11 forwarding) ...%s\n" "$lightyellow" "$server" "$normal"
-	ssh -X "$server".local
-}
-
-fuzzy_server() {
-	local lhost server x11_arg
-	x11_arg="$1"
-	lhost="$2"
-	server=$(printf "%s\n" "${servers[@]}" | $FMENU "Choose the remote server: ")
-	[[ "$lhost" == "$server" ]] && diehard "Attempting to connect to local client." "$script $version"
-	if check_x11 "$x11_arg"; then
+local -r servers=(
+		hp-800g2-sff
+		hp-6005
+		e6500-deb
+		probook-6570b
+		hp-8300
+		dell-9020
+		hp-8300-usdt
+		hp-800-g1-usdt
+		hp-800-g1-dm
+		probook-6570
+		hp-probook-6570
+		hp-850-g3
+		hp-2560p e-475m
+	)
+	local server
+	server=$($FMENU "Choose the remote server: " < <(printf "%s\n" "${servers[@]}"))
+	[[ "$local_host" == "$server" ]] && { printf "Attempting to connect to local client.\n" >&2; EC="$E_INVALID_HOST"; return; }
+	[[ "$server" ]] || { printf "No server selected.\n"; return; }
+	if default_no "Enable X11 forwarding?"; then
+		printf '\e[A\e[K'
 		connect_server_x "$server"
 	else
+		printf '\e[A\e[K'
 		connect_server "$server"
 	fi
 }
 
-select_server() {
-	local index arr_len lhost x11_arg _server
-	lhost="$2"
-	x11_arg="$1"
-	COLUMNS=40
-	PS3="Choose the remote server: "
-	print "%s\n" "$script"
-	select _server in "${servers[@]}" "Exit"; do
-		if (( REPLY == 1 + "${#servers[@]}" )); then
-			printf "Exiting. No server contacted.\n"
-			break
-		elif (( REPLY > 0 && REPLY <= "${#servers[@]}" )); then
-			index=$(( REPLY -1 ))
-			[[ "$lhost" == "${servers[index]}" ]] && diehard "Attempting to connect to local client." "$script $version"
-			if check_x11 "$x11_arg"; then
-				connect_server_x "${servers[index]}"
-			else
-				connect_server "${servers[index]}"
-			fi
-			break
-		else
-			arr_len="${#servers[@]}"; arr_len=$(( arr_len + 1 ))
-			printf "%sInvalid option.%s Choose 1 - %d.\n" "$lightred" "$normal" "$arr_len"
-		fi
-	done
-}
-
 main() {
-	local x11_arg="${1:-Y}"
-	local local_host="${HOSTNAME:-$(hostname)}"
-	clear
-	if exists fzf; then
-		fuzzy_server "$x11_arg" "$local_host"
-	else
-		select_server "$x11_arg" "$local_host"
-	fi
+	local -r script="${0##*/}"
+	local -r version="4.0.26159"
+	check_package fzf
+	clearscreen
+	fuzzy_server
   over_line "$script $version"
-	exit
+	exit "$EC"
 }
 
 ## Execution ##
