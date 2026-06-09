@@ -7,9 +7,9 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Feb 2025
-# Last updated : 08 Jun 2026
+# Last updated : 09 Jun 2026
 # Comments     :
-# TODO (Rick)  : Doesn't connect to hp-8300
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
@@ -35,15 +35,15 @@ EC=0
 ## Functions ##
 
 connect_server() {
-	local server="$1"
+	local server="${1}.local"
 	printf "%sConnecting to %s ...%s\n" "$lightyellow" "$server" "$normal"
-	ssh -q "$server".local
+	ssh "$server"
 }
 
 connect_server_x() {
-	local server="$1"
+	local server="${1}.local"
 	printf "%sConnecting to %s (X11 forwarding) ...%s\n" "$lightyellow" "$server" "$normal"
-	ssh -X -q "$server".local
+	ssh -X "$server"
 }
 
 fuzzy_server() {
@@ -90,7 +90,7 @@ local -r servers=(
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.0.26159"
+	local -r version="4.1.26160"
 	check_package fzf
 	clearscreen
 	fuzzy_server
