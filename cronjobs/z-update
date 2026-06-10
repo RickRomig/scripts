@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 21 Apr 2026
+# Updated      : 10 Jun 2026
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -23,6 +23,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 ###############################################################################
+
+REBOOT_FLAG=1
 
 # shellcheck disable=SC2001
 # See if you can use ${variable//search/replace} instead.
@@ -99,16 +101,17 @@ autoremove_packages() {
 }
 
 system_reboot() {
-  cat /var/run/reboot-required.pkgs
+  [[ -f /var/run/reboot-required.pkgs ]] && cat /var/run/reboot-required.pkgs
   printf "\n*** REBOOT REQUIRED ***\n"
+  REBOOT_FLAG=0
 }
 
 main() {
-  local script="${0##*/}"
-  local version="2.4.26111"
-  local lhost="${HOSTNAME:-$(hostname)}"
-  local log_file="/var/log/update.log"
-  local sed_file="/usr/share/misc/updatelog.sed"
+  local -r script="${0##*/}"
+  local -r version="2.5.2161"
+  local -r lhost="${HOSTNAME:-$(hostname)}"
+  local -r log_file="/var/log/update.log"
+  local -r sed_file="/usr/share/misc/updatelog.sed"
   {
     printf "%s weekly update\n" "$lhost"
     printf "Date: %(%a %F %R)T\n"
@@ -122,11 +125,11 @@ main() {
     printf "\n*** Flatpak updates ***\n"
     check_flatpaks
 	  check_disk_space
-    [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && system_reboot
+    [[ -f /var/run/reboot-required || -f /run/reboot-required ]]  && system_reboot
     over_line "$script $version"
   } > "$log_file" 2>&1
   sed -i -f "$sed_file" "$log_file"
-  exit
+  (( REBOOT_FLAG == 0 )) && systemctl reboot || exit
 }
 
 main "$@"
