@@ -1,12 +1,11 @@
 # Alias functions
 ## ~/.bash_aliases
-
-#### Check if a program is installed
+#### Check if a program is installed in user's path
 ```bash
 exist() {
   command -v "$1" > /dev/null && echo "$1 installed" || echo "$1 not installed"
 }
-exist foobar
+exist foobar-baz
 ```
 #### Check if a package is in distribution repositories.
 ```bash
@@ -14,6 +13,7 @@ inrepos() {
   pkg=$(apt-cache show "$1" 2>/dev/null | awk '/Package:/ {print $NF}')
   [[ "$pkg" ]] && echo "$1 found in repos" || echo "$1 not found in repos"
 }
+inrepos foobar-baz
 ```
 #### Get a future date a given number of days from the current date
 ```bash
@@ -212,15 +212,18 @@ ex foobar.tar.gz
 #### `bat` help wrapper for syntax highlighting with --help (requres `bat` to be installed)
 ```bash
 alias bathelp='bat --plain --language=help'
-help() {
+hlp() {
   "$@" --help 2>&1 | bathelp
 }
 help htop
 ```
 #### Online cheatsheet for Linux commands
+```bash
 cheat() {
   curl -s cheat.sh/$1 | bat -p
 }
+cheat ls
+```
 #### Display timeshift snapshots on the command line.
 ```bash
 tsl() {
@@ -230,19 +233,29 @@ tsl
 ```
 #### Use `fzf` to list and search for files in the current directory and select a file to be edited by `micro`.
 ```bash
-micro-file() {
+preview-file() {
 	file=$(find . -type f | sort -d | fzf --reverse --preview="bat --style=full --color=always {}" --bind shift-up:preview-page-up,shift-down:preview-page-down --border=rounded)
-	[[ "$file" ]] && micro "$file"
+	[[ "$file" ]] && ${EDITOR} "$file"
 }
-micro-file
+preview-file
 ```
 #### awk field separator....?
+```bash
 field() {
   awk -F "${2:- }" "{print \$${1:-1} }"
 }
+```
 #### Restore files from the trash directory
 ```bash
 restore-trash() { /usr/bin/trash-restore $1; }
+restore-trash foobar.baz
+```
+#### Run Shellcheck on a file & tee to a log file
+```bash
+scgl() {
+	tee ./shellcheck.log < <(shellcheck -f gcc "$1")
+}
+scgl foobar.sh
 ```
 ### .bashrc alias functions
 #### Parse git branch, identifies git branch in bash prompt (~/.bashrc)
