@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 02 Jun 2026
+# Last updated : 12 Jun 2026
 # Comments     : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
 #              : Chromium browser does not create config directory until opened once.
 # TODO (Rick)  :
@@ -47,6 +47,8 @@ installed_version() {
   local package="$1"
   local cur_ver
   case "$package" in
+    bat )
+      cur_ver=$(cut -d' ' -f2 <(bat --version 2>/dev/null)) ;;
     dsh )
       cur_ver=$(awk 'NR==1 {print $NF}' < <(dsh --version 2>/dev/null)) ;;
     firefox )
@@ -64,12 +66,17 @@ installed_version() {
 }
 
 convert_compare() {
-	local newVer="$1"
-	local curVer="$2"
-	local digitCur digitNew
-	digitNew=$(sed 's/^0*//' < <(tr -d . <<< "$newVer"))
-	digitCur=$(sed 's/^0*//;s/[-~+ud].*//' < <(tr -d . <<< "$curVer"))
-	(( digitNew > digitCur )) && return "$TRUE" || return "$FALSE"
+	local newVer="${1//./ }"
+	local curVer="${2//./ }"
+	local new_arr=()
+	local cur_arr=()
+  local -i index
+	IFS=" " read -ra new_arr <<< "$newVer"
+	IFS=" " read -ra cur_arr <<< "$curVer"
+	for (( index=0; index <=2; index++)) ; do
+		[[ "${new_arr[i]}" > "${cur_arr[i]}" ]] && return "$TRUE"
+	done
+	return "$FALSE"
 }
 
 show_versions() {
@@ -141,13 +148,6 @@ github_packages() {
 	  else
       printf "%s%s\n" "${gray}" "$cur_ver"
 	  fi
-    # if [[ ! "$new_ver" > "$cur_ver" ]]; then
-    #   printf "%s%s\n" "${gray}" "$cur_ver"
-    # elif [[ "$cur_ver" ]]; then
-    #   printf "%s%-16s%sUpdate available\n" "${gray}" "$cur_ver" "${orange}"
-    # else
-    #   printf "%s%s\n" "${gray}" "not installed"
-    # fi
   done
   printf "%s\n" "${normal}"
 }
@@ -182,7 +182,7 @@ browsers() {
 
 main() {
   local script="${0##*/}"
-  local version="21.0.26153"
+  local version="21.1.26163"
   trap cleanup EXIT
   check_package curl
   clearscreen
