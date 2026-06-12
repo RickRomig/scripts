@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2022
-# Updated      : 04 Jun 2026
+# Updated      : 12 Jun 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.2.26155"
+readonly version="4.3.26163"
 readonly gh_url="https://github.com/VSCodium/vscodium/releases"
 DOTS_PID=
 EC=0
@@ -40,7 +40,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local updated="04 Jun 2026"
+	local updated="12 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates,  removes the VSCodium editor.
@@ -67,12 +67,17 @@ codium_version() {
 }
 
 convert_compare() {
-	local newVer="$1"
-	local curVer="$2"
-	local digitCur digitNew
-	digitNew=$(sed 's/^0*//' < <(tr -d . <<< "$newVer"))
-	digitCur=$(sed 's/^0*//;s/[-~+ud].*//' < <(tr -d . <<< "$curVer"))
-	(( digitNew > digitCur )) && return "$TRUE" || return "$FALSE"
+	local newVer="${1//./ }"
+	local curVer="${2//./ }"
+	local new_arr=()
+	local cur_arr=()
+  local -i index
+	IFS=" " read -ra new_arr <<< "$newVer"
+	IFS=" " read -ra cur_arr <<< "$curVer"
+	for (( index=0; index <=2; index++)) ; do
+		[[ "${new_arr[index]}" > "${cur_arr[index]}" ]] && return "$TRUE"
+	done
+	return "$FALSE"
 }
 
 newest_version() {
@@ -95,17 +100,7 @@ compare_versions() {
   else
     printf "%sVSCodium %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
   fi
-  # if [[ -z "$new_ver" ]]; then
-  #   printf "%s No download available. Try again later.\n" "$RED_ERROR" >&2
-  #   EC="$E_DOWNLOAD"
-  #   return
-  # elif [[ ! "$new_ver" > "$cur_ver" ]]; then
-  #   printf "%sVSCodium %s is the latest version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
-  #   return
-  # fi
-  # printf "%sInstalled version of VSCodium is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-  # install_vscodium "$new_ver"
-}
+  }
 
 install_vscodium() {
   local new_ver="$1"
