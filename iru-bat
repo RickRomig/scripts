@@ -75,6 +75,22 @@ bat_version() {
   cut -d' ' -f2 < <(bat --version)
 }
 
+# shellcheck disable=SC2317
+# Don't warn about unreachable commands in this function
+convert_compare() {
+	local newVer="${1//./ }"
+	local curVer="${2//./ }"
+	local new_arr=()
+	local cur_arr=()
+  local -i index
+	IFS=" " read -ra new_arr <<< "$newVer"
+	IFS=" " read -ra cur_arr <<< "$curVer"
+	for (( index=0; index <=2; index++)) ; do
+		[[ "${new_arr[index]}" -gt "${cur_arr[index]}" ]] && return "$TRUE"
+	done
+	return "$FALSE"
+}
+
 convert_compare() {
 	local newVer="${1//./ }"
 	local curVer="${2//./ }"
@@ -89,21 +105,6 @@ convert_compare() {
 	return "$FALSE"
 }
 
-
-convert_compare() {
-	local newVer="${1//./ }"
-	local curVer="${2//./ }"
-	local new_arr=()
-	local cur_arr=()
-  local -i index
-	IFS=" " read -ra new_arr <<< "$newVer"
-	IFS=" " read -ra cur_arr <<< "$curVer"
-	for (( index=0; index <=2; index++)) ; do
-		[[ "${new_arr[i]}" > "${cur_arr[i]}" ]] && return "$TRUE"
-	done
-	return "$FALSE"
-}
-
 newest_version() {
   wget -qO "$TMP_FILE" "$gh_url"
   new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$TMP_FILE"))
@@ -111,6 +112,7 @@ newest_version() {
 }
 
 compare_versions() {
+  set -x
   local new_ver="$1"
   local cur_ver
   cur_ver="$(bat_version)"
@@ -123,17 +125,7 @@ compare_versions() {
   else
     printf "%sBat %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
   fi
-
-  # if [[ -z "$new_ver" ]]; then
-  #   printf "%s No download available. Try again later." "$RED_ERROR" >&2
-  #   EC="$E_DOWNLOAD"
-  #   return
-  # elif [[ ! "$new_ver" > "$cur_ver" ]]; then
-  #   printf "%s Bat %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
-  #   return
-  # fi
-  # printf "%sInstalled version of Bat is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-  # install_bat "$new_ver"
+  set +x
 }
 
 install_bat() {
