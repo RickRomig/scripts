@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Last updated : 06 May 2026
+# Last updated : 14 Jun 2026
 # Comments     : executable and its manpage will be renamed from ‘bat’ to ‘batcat’
 #              : because of a file name clash with another Debian package.
 #              : Mint 22 installs version 0.24.0 with suffix.
@@ -29,19 +29,19 @@
 
 ## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.12.26126"
+readonly version="2.13.26165"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="06 May 2026"
+	local updated="14 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Installs/removes/configures bat/batcat
@@ -61,7 +61,7 @@ bat_version() {
   awk '/^ii/ {print $3}' < <(dpkg -l bat)
 }
 
-install_bat() {
+install_batcat() {
 	sudo_login 2
 	sudo apt-get install -yy bat
 	if ! exists batcat; then
@@ -69,7 +69,7 @@ install_bat() {
     EC="$E_INSTALLATION"
 		return
 	fi
-	printf "bat (batcat) version %s installed.\n" "$(bat_version)"
+	printf "Bat (Batcat) version %s installed.\n" "$(bat_version)"
 	bat_config
 }
 
@@ -113,25 +113,25 @@ main() {
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c )
-				if exists bat || exists batcat; then
+				if installed bat; then
 					bat_config
 				else
-					printf "Bat is not installed.\n"
+					printf "Bat (Batcat) is not installed.\n"
 				fi
 				;;
 			h )
 				help 0
 				;;
 			i )
-				if exists bat || exists batcat; then
-					printf "Bat %s is already installed.\n" "$(bat_version)"
+				if installed bat; then
+					printf "Bat (Batcat) %s is already installed.\n" "$(bat_version)"
 				else
-					install_bat
+					install_batcat
 				fi
 				;;
 			r )
-				if exists bat || exists batcat; then
-					printf "Bat is not installed.\n"
+				if installed bat; then
+					printf "Bat (Batcat) is not installed.\n"
 				else
 					remove_batcat
 				fi
