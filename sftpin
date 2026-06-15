@@ -3,11 +3,11 @@
 # Script Name  : sftpin
 # Description  : Connects to host computer via sftp
 # Dependencies : sftp (openssh-client)
-# arguments    : Last octet of target host's IP address
+# Arguments    : Last octet of target host's IP address
 # Author       : Copyright (C) 2017, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Dec 2017 (Joe Collins)
-# Updated      : 30 Apr 2026
+# Updated      : 15 Jun 2026
 # Comments     : Based on script by Joe Collins.
 #              : LOCALNET and valid_ip() are declared in functionlib
 # TODO (rick)  :
@@ -27,18 +27,18 @@
 
 ## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.6.26120"
+readonly version="2.7.26166"
 
 ## Functions ##
 
 help() {
   local errcode="${1:-1}"
-  local updated="30 Apr 2026"
+  local updated="15 Jun 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Log in to a remote server using Secure File Transfer Protocol (SFTP).
@@ -53,8 +53,6 @@ _HELP_
 
 sftp_in() {
   local hostip="$1"
-  [[ "$1" == "-h" || "$1" == "--help" ]] && help 0
-  [[ "$hostip" ]] || read -rp "Enter last octet of remote server's IP address. " hostip
   if valid_ip "$hostip"; then
     /usr/bin/sftp "$LOCALNET.$hostip"
   else
@@ -63,7 +61,10 @@ sftp_in() {
 }
 
 main() {
-  sftp_in "$1"
+  [[ "$1" == "-h" || "$1" == "--help" ]] && help 0
+  local hostip="$1"
+  [[ "$hostip" ]] || read -rp "Enter last octet of remote server's IP address: " hostip
+  sftp_in "$hostip"
   over_line "$script $version"
   exit
 }
