@@ -116,13 +116,6 @@ select_directory() {
       directories+=("$(sort -d < <(find "$vid_d" -path "$video_dir/Pornography" -prune -o -type d))")
     fi
   done
-  # for vid_d in $video_dir; do
-  #   if [[ "$local_host" == "dell-9020" ]]; then
-  #     [[ -d "$vid_d" ]] && directories+=("$(sort -d < <(find -L "$video_dir" -path "$video_dir/Pornography" -prune -o -type d))")
-  #   else
-  #     [[ -d "$vid_d" ]] && directories+=("$(sort -d < <(find "$video_dir" -path "$video_dir/Pornography" -prune -o -type d))")
-  #   fi
-  # done
   selected_directory=$($FMENU "Select destination directory: " < <(printf "%s\n" "${directories[@]}"))
 	printf "%s" "$selected_directory"
 }
