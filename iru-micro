@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 12 Jun 2026
+# Updated      : 16 Jun 2026
 # Comments     : Debian 13 & LMDE 7 repo version 2.0.14
 #              : Debian 12, Ubuntu 24.04 & Mint 22 repo version 2.0.13
 # TODO (Rick)  :
@@ -32,7 +32,7 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.3.26163"
+readonly version="7.4.26167"
 readonly gh_url="https://github.com/micro-editor/micro/releases"
 EC=0
 
@@ -40,7 +40,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="12 Jun 2026"
+	local -r updated="16 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -70,15 +70,19 @@ micro_version() {
 convert_compare() {
 	local newVer="${1//./ }"
 	local curVer="${2//./ }"
+  local newer="$FALSE"
 	local new_arr=()
 	local cur_arr=()
   local -i index
 	IFS=" " read -ra new_arr <<< "$newVer"
 	IFS=" " read -ra cur_arr <<< "$curVer"
 	for (( index=0; index <=2; index++)) ; do
-		[[ "${new_arr[index]}" > "${cur_arr[index]}" ]] && return "$TRUE"
+		if [[ "${new_arr[index]}" > "${cur_arr[index]}" ]]; then
+      newer="$TRUE"
+      break
+    fi
 	done
-	return "$FALSE"
+	return "$newer"
 }
 
 newest_version() {
