@@ -9,8 +9,11 @@
 # Created      : 05 Apr 2019
 # Updated      : 28 May 2026
 # Comments     : match by regex, starting with http:// or https://
-#              : Downloads videos to selected directory under ~/Videos/Pornography/ (follows symlinkks)
-# TODO (Rick)  :
+#              : Follows symlinks to destination directory if present.
+# TODO (Rick)  : Not working on Pornhub or RedTube with yt-dlp version 2026-06-09. Get the following warning are error:
+# WARNING: [PornHub] The extractor is attempting impersonation, but no impersonate target is available. If you encounter errors, then see  https://github.com/yt-dlp/yt-dlp#impersonation  for information on installing the required dependencies
+# ERROR: [PornHub] 6a2334a910cba: Unable to download webpage: HTTP Error 410: Gone (caused by <HTTPError 410: Gone>)
+# Download failed. Error: 1
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
@@ -105,15 +108,13 @@ extract_domain() {
 
 select_directory() {
 	local vid_d selected_directory
-  local local_host="${HOSTNAME:-$(hostname)}"
 	local video_dir=~/Videos/Pornography
-  # [[ "$local_host" == "dell-9020" ]] && video_dir="/data/Videos/Pornography"
   local directories=()
   for vid_d in $video_dir; do
-    if [[ "$local_host" == "dell-9020" ]]; then
-      [[ -d "$vid_d" ]] && directories+=("$(sort -d < <(find -L "$video_dir" -type d -print))")
+    if [[ -L "$video_dir" ]]; then
+      directories+=("$(sort -d < <(find -L "$vid_d" -type d -print))")
     else
-      [[ -d "$vid_d" ]] && directories+=("$(sort -d < <(find "$video_dir" -type d -print))")
+      directories+=("$(sort -d < <(find "$vid_d" -type d -print))")
     fi
   done
   selected_directory=$($FMENU "Select destination directory: " < <(printf "%s\n" "${directories[@]}"))
