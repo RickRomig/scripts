@@ -31,7 +31,7 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.4.26168"
+readonly version="4.5.26168"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
 DOTS_PID=
 EC=0
@@ -96,6 +96,7 @@ compare_versions() {
 	local new_ver="$1"
 	local cur_ver
   cur_ver="$(ff_version)"
+	printf "Comparing current and newest versions...\n"
   if [[ -z "$new_ver" ]]; then
     printf "%s No download available. Try again later." "$RED_ERROR" >&2
     EC="$E_DOWNLOAD"
@@ -198,7 +199,6 @@ main() {
 					TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
           TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 					trap cleanup EXIT
-					printf "FastFetch: Comparing current and newest versions...\n"
 					new_ver="$(newest_version)"
 					compare_versions "$new_ver"
 				else
