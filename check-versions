@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 16 Jun 2026
+# Last updated : 17 Jun 2026
 # Comments     : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
 #              : Chromium browser does not create config directory until opened once.
 # TODO (Rick)  :
@@ -66,14 +66,14 @@ installed_version() {
 }
 
 convert_compare() {
-	local newVer="${1//./ }"  # replace . with space
-	local curVer="${2//./ }"  # replace . with space
+  local newVer="$1"
+  local curVer="$2"
   local newer="$FALSE"
 	local new_arr=()
 	local cur_arr=()
   local -i index
-	IFS=" " read -ra new_arr <<< "$newVer"
-	IFS=" " read -ra cur_arr <<< "$curVer"
+	IFS="." read -ra new_arr <<< "$newVer"
+	IFS="." read -ra cur_arr <<< "$curVer"
 	for (( index=0; index <=2; index++)) ; do
 		if [[ "${new_arr[index]}" > "${cur_arr[index]}" ]]; then
       newer="$TRUE"
@@ -186,7 +186,7 @@ browsers() {
 
 main() {
   local script="${0##*/}"
-  local version="21.2.26167"
+  local version="21.3.26168"
   trap cleanup EXIT
   check_package curl
   clearscreen
