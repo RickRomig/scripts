@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Last updated : 16 Jun 2026
+# Last updated : 17 Jun 2026
 # Comments     : .png logo does not work with Terminator.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.3.26167"
+readonly version="4.4.26168"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
 DOTS_PID=
 EC=0
@@ -68,14 +68,14 @@ ff_version() {
 }
 
 convert_compare() {
-	local newVer="${1//./ }"
-	local curVer="${2//./ }"
+  local newVer="$1"
+  local curVer="$2"
   local newer="$FALSE"
 	local new_arr=()
 	local cur_arr=()
   local -i index
-	IFS=" " read -ra new_arr <<< "$newVer"
-	IFS=" " read -ra cur_arr <<< "$curVer"
+	IFS="." read -ra new_arr <<< "$newVer"
+	IFS="." read -ra cur_arr <<< "$curVer"
 	for (( index=0; index <=2; index++)) ; do
 		if [[ "${new_arr[index]}" > "${cur_arr[index]}" ]]; then
       newer="$TRUE"
@@ -105,16 +105,6 @@ compare_versions() {
   else
     printf "%s FastFetch %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
 	fi
-  # if [[ -z "$new_ver" ]]; then
-  #   printf "%s No download available. Try again later." "$RED_ERROR" >&2
-  #   EC="$E_DOWNLOAD"
-  #   return
-  # elif [[ ! "$new_ver" > "$cur_ver" ]]; then
-	# 	printf "%sFastFetch %s is the lastest version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
-	# 	return
-	# fi
-	# printf "%sThe installed version of FastFetch is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-	# install_fastfetch "$new_ver"
 }
 
 install_fastfetch(){
