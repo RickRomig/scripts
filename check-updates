@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 10 Jun 2026
+# Updated      : 18 Jun 2026
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -33,7 +33,7 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="10.12.26161"
+readonly version="10.13.26169"
 SECONDS=0
 
 ## Functions ##
@@ -42,12 +42,12 @@ SECONDS=0
 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
-  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
 }
 
 help() {
 	local errcode="${1:-1}"
-  local updated="10 Jun 2026"
+  local updated="18 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt-get or Nala.
@@ -154,7 +154,7 @@ update_flatpaks() {
 check_flatpak() {
   # check if Flatpak is installed or if packages are installed
   local fp_count
-  if ! exists flatpak; then
+  if ! installed flatpak; then
     printf "Flatpak is not installed.\n"
     return
   fi
@@ -190,10 +190,10 @@ apt_update() {
   local nupd
   printf "%sChecking for updates...%s\n" "$orange" "$normal"
   update_apt_cache
-  apt-get dist-upgrade -s > "$tmp_file"
+  apt-get dist-upgrade -s > "$TMP_FILE"
   nupd=$(count_updates)
   printf "%sSummary:%s\n" "$orange" "$normal"
-  sed -ne '/^Calculating/,/newly/p' "$tmp_file" | sed '1d'
+  sed '1d' < <(sed -ne '/^Calculating/,/newly/p' "$TMP_FILE")
   if [[ nupd -eq 0 ]]; then
     printf "\nPackages are up to date\n"
     return
@@ -204,9 +204,9 @@ apt_update() {
 count_updates() {
 	local field1 field2 field3
 	local -i count=0
-	field1=$(awk '$8 == "remove" {print $1}' "$tmp_file")
-	field2=$(awk '$8 == "remove" {print $3}' "$tmp_file")
-	field3=$(awk '$8 == "remove" {print $6}' "$tmp_file")
+	field1=$(awk '$8 == "remove" {print $1}' "$TMP_FILE")
+	field2=$(awk '$8 == "remove" {print $3}' "$TMP_FILE")
+	field3=$(awk '$8 == "remove" {print $6}' "$TMP_FILE")
 	count=$((field1 + field2 + field3))
 	echo "$count"
 }
@@ -324,7 +324,7 @@ main() {
 	while getopts "$optstr" opt; do
     case "$opt" in
       a )
-        tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
+        TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
         trap cleanup EXIT
         show_header
         check_disk_space
@@ -349,7 +349,7 @@ main() {
         if exists nala; then
           nala_update
         else
-          tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
+          TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
           trap cleanup EXIT
           printf "Nala is not installed. Reverting to apt-get ...\n"
           apt_update
