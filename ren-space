@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 08 Mar 2025
-# Updated      : 26 Mar 2026
+# Updated      : 17 Jun 2026
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -23,28 +23,20 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.2.26085"
+readonly version="3.3.26168"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="26 Mar 2026"
+	local updated="17 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 renames filenames containing spaces, replacing spaces with - or . or _
@@ -79,14 +71,10 @@ main() {
 	optstr=":dhpu"
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			d )
-				replace_spaces "-" ;;
-			h )
-				help 0 ;;
-			p )
-				replace_spaces "." ;;
-			u )
-				replace_spaces "_" ;;
+			d ) replace_spaces "-" ;;
+			h ) help 0 ;;
+			p ) replace_spaces "." ;;
+			u ) replace_spaces "_" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$E_INVALID_ARG"
