@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : install-fnloc
 # Description  : Installs fnloc/lloc - apps to count lines of code.
 # Dependencies : git
@@ -7,39 +7,29 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Feb 2020
-# Updated      : 22 Nov 2025
-# Comments     :
-# TODO (Rick)  : clone from either repo
+# Updated      : 18 Jun 2026
+# Comments     : To install from my local Gitea server, uncomment GITEA_URL and comment GITHUB_URL
+# TODO (Rick)  : Still needs testing.
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.1.26040"
+readonly version="3.2.26169"
 EC=0
 
 ## Functions ##
@@ -48,14 +38,15 @@ about_fnloc() {
   cat << _ABOUT_
 FnLoC (Funtion Lines of Code) is a program that counts lines of code in C source
 code files, breaking out functions and the number of lines of code with them.
-The program will also count lines of code in associated header files. A wrapper
-script is included. View the README file for detailed information.
+Package includes LLoC (Logical Lines of Code) which counts lines of code in
+associated header files. A wrapper script is included. View the README file for
+detailed information.
 _ABOUT_
 }
 
 help() {
 	local errcode="${1:-2}"
-	local updated="1225 Nov 2025"
+	local updated="18 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs the Function Lines of Code (FnLoC) package.
@@ -72,61 +63,58 @@ _HELP_
 }
 
 clone_fnloc_repo() {
-  local package_dir="$1"
-  local repo_name="fnloc.git"
-  git clone "$GITEA_URL/$repo_name" "$package_dir"  # http://192.168.0.16:3000/Nullifidian/fnloc.git
+  local -r package_dir="$1"
+  local -r repo_name="fnloc.git"
+  # git clone "$GITEA_URL/$repo_name" "$package_dir"  # http://192.168.0.16:3000/Nullifidian/fnloc.git
+  git clone "$GITHUB_URL/$repo_name" "$package_dir"  # https://github.com/RickRomig/fnloc.git
 }
 
-dl_deb_pkg() {
-  local package="$1"
-  local package_dir="$2"
-  local repo_path="fnloc/raw/branch/main"
+download_deb_pkg() {
+  local -r package="$1"
+  local -r package_dir="$2"
+  local -r repo_path="fnloc/raw/branch/main"
   [[ -d "$package_dir" ]] || mkdir -p "$package_dir"
-  curl -so "$package_dir/$package" "$GITEA_URL/$repo_path/$package"
+  # curl -so "$package_dir/$package" "$GITEA_URL/$repo_path/$package"
+  curl -so "$package_dir/$package" "$GITHUB_URL/$repo_path/$package"
 }
 
 fnloc_version() {
-  grep '^ii' <(dpkg -l fnloc 2>/dev/null)
+  grep '^ii' < <(dpkg -l fnloc 2>/dev/null)
 }
 
 install_fnloc() {
   local package="$1"
-  local package_name="$2"
-  local package_dir="$3"
+  local package_dir="$2"
   sudo_login 2
-  dpkg -l fnloc | grep -q '^ii' 2>/dev/null && { printf "%s already installed.\n" "$package_name"; return; }
   sudo dpkg -i "$package_dir/$package"
-  if grep -q '^ii' <(dpkg -l fnloc 2>/dev/null); then
-    printf "FnLoC %s successfully installed.\n" "$(fnloc_version)"
-  else
+  if ! grep -q '^ii' < <(dpkg -l fnloc 2>/dev/null); then
     printf "%s FnLoc installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
   fi
-  printf "%s installed.\n" "$package_name"
+  printf "FnLoC %s successfully installed.\n" "$(fnloc_version)"
 }
 
 remove_fnloc() {
-  local package_name="$1"
   sudo_login 2
-  dpkg -l fnloc | grep -q '^ii' 2>/dev/null || { printf "FnLoC is not installed.\n"; return; }
   sudo dpkg -r fnloc
-  printf "%s removed.\n" "$package_name"
+  find /usr/local/bin -type f -name "*loc*" -exec sudo rm {} \;
+  find /usr/local -type d -name "fnloc" -exec sudo rm -rf {} \;
+  printf "FnLoC removed.\n"
 }
 
 show_header() {
   cat << _HEADER_
-$script installs FnLoC (Function Lines of Code) either from the douwnload .deb package
-or from the cloned repository (GitHub or my local Giteas repository). The script can
-also remove the program from the system.
+$script installs FnLoC (Function Lines of Code) either from the douwnload .deb
+package or from the cloned repository (GitHub or my local Giteas repository).
+The script can also remove the program from the system.
 
 _HEADER_
 }
 
 main() {
   local package="fnloc_2.3.1_amd64.deb"
-  local package_name="FnLoC 2.3.1"
-  local package_dir="$HOME/Downloads/fnloc"
+  local package_dir=~/Downloads
   local noOpt opt optstr OPTARG OPTIND
   noOpt=1
   optstr=":acdhr"
@@ -137,19 +125,31 @@ main() {
         ;;
       c )
         show_header
-        clone_fnloc_repo "$package_dir"
-        install_fnloc "$package" "$package_name" "$package_dir"
+        if installed fnloc; then
+          printf "FnLoC already installed.\n"
+        else
+          clone_fnloc_repo "$package_dir"
+          install_fnloc "$package" "$package_dir/"
+        fi
         ;;
       d )
         show_header
-        dl_deb_pkg  "$package""$package_dir"
-        install_fnloc "$package" "$package_name" "$package_dir"
+        if installed fnloc; then
+          printf "FnLoC already installed.\n"
+        else
+          download_deb_pkg "$package" "$package_dir"
+          install_fnloc "$package" "$package_dir/fnloc/"
+        fi
         ;;
       h )
         help 0
         ;;
       r )
-        remove_fnloc "$package_name"
+        if ! installed fnloc; then
+          printf "FnLoC is not installed.\n"
+        else
+          remove_fnloc
+        fi
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
