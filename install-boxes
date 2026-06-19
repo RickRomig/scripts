@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#############################################################################
+###############################################################################
 # Script Name  : install-boxes
 # Description  : Installs GNOME boxes.
 # Dependencies : none
@@ -7,22 +7,20 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 19 May 2026
+# Updated      : 19 Jun 2026
 # Comments     : Based on instructions from Joe Collins.
-# TODO (Rick)  : check entry in flatpak list
+# TODO (Rick)  : check entry in flatpak list, does Flatpak include all dependencies?
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#############################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
 ## Load function library ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -31,7 +29,7 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.1.26139"
+readonly version="4.2.26170"
 readonly E_BIOS_SETTING=100
 EC=0
 
@@ -39,7 +37,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local updated="19 May 2026"
+	local updated="19 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Install Gnome Boxes from either distribution repositories or flatpak from Flathub.
@@ -51,6 +49,14 @@ ${orange}Available options:${normal}
 	-h	Show this help message and exit
 _HELP_
   exit "$errcode"
+}
+
+boxes_version() {
+  if installed gnome-boxes; then
+    gnome-boxes --version
+  elif grep -qi 'Gnome-Boxes' < <(flatpak list); then
+    awk '/Gnome-Boxes/ {print "$NF-2"}' 'gnome-boxes' < <(flatpak list)
+  fi
 }
 
 check_bios() {
@@ -86,6 +92,7 @@ enable_libvirtd() {
 
 add_to_kvm_group() {
   local user in_kvm_grp
+  grep kvm /etc/group &>/dev/null || sudo groupadd --system kvm
   user=$(whoami)
   in_kvm_grp=$(awk '/kvm:/ && /'"$user"'/' /etc/group)
   printf "User %s " "$user"
@@ -96,29 +103,49 @@ add_to_kvm_group() {
     printf "added to "
   fi
   printf "the kvm group.\n"
+  # if [[ -f /etc/libvirt/qemu.conf ]]; then
+  #   printf "Allow users in the kvm group to start VMs.\n"
+  #   sudo sed -i.bak 's/\#group\ =\ "root"/group\ =\ "kvm"/' /etc/libvirt/qemu.conf
+  # else
+  #   printf "/etc/libvirt/qemu.conf not found!\n" >&2
+  # fi
+}
 
-  if [[ -f /etc/libvirt/qemu.conf ]]; then
-    printf "Allow users in the kvm group to start VMs.\n"
-    sudo sed -i.bak 's/\#group\ =\ "root"/group\ =\ "kvm"/' /etc/libvirt/qemu.conf
+add_to_libvirt_group() {
+  local user in_libvirt_grp
+  grep libvirt /etc/group &>/dev/null || sudo groupadd --system libvirt
+  user=$(whoami)
+  in_libvirt_grp=$(awk '/libvirt/ && /'"$user"'/' /etc/group)
+  printf "User %s " "$user"
+  if [[ "$in_libvirt_grp" ]]; then
+    printf "is already a member of "
   else
-    printf "/etc/libvirt/qemu.conf not found!\n" >&2
+    sudo usermod -a -G libvirt "$user"
+    printf "added to "
   fi
-  enable_libvirtd
+  printf "the libvirt group.\n"
 }
 
 link_data_drive() {
   [[ -d /data ]] || return
   [[ -d /data/gnome-boxes ]] || mkdir -p /data/gnome-boxes
-  [[ -d ~/.local/share/gnome-boxes ]] && mv ~/.local/share/gnome-boxes /data/
+  # [[ -d ~/.local/share/gnome-boxes ]] && mv ~/.local/share/gnome-boxes /data/
   ln -vs /data/gnome-boxes ~/.local/share/gnome-boxes
   printf "Gnome-boxes images linked to data drive.\n"
 }
 
-install_boxes() {
+install_from_deb() {
   [[ EC -ne 0 ]] && return
   printf "\nInstalling GNOME Boxes (distro)...\n"
   sudo apt update -qq
-  sudo apt install -yy gnome-boxes qemu-kvm
+  sudo apt install -yy gnome-boxes
+  sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virt-manager
+  sudo modprobe kvm
+  if [[ $(awk '/Vendor ID:/ {print $NF}' < <(lscpu)) == "GueuineIntel" ]]; then
+    sudo modprobe kvm_intel
+  else
+    sudo modprobe kvm_amd
+  fi
   if ! installed gnome-boxes; then
     printf "%s Gnome-boxes installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
@@ -126,10 +153,12 @@ install_boxes() {
   fi
   printf "Gnome-boxes installed.\n"
   add_to_kvm_group
+  add_to_libvirt_group
+  enable_libvirtd
   link_data_drive
 }
 
-install_flatpak() {
+install_from_flatpak() {
   [[ EC -ne 0 ]] && return
   printf "\nInstalling GNOME Boxes (flatpak)...\n"
   flatpak install --user flathub org.gnome.Boxes
@@ -140,7 +169,8 @@ install_flatpak() {
   fi
   printf "Gnome-Boxes installed.\n"
   add_to_kvm_group
-  link_data_drive
+  enable_libvirtd
+  link_data_drive   # I haven't looked into moving or linking to a separate drive
 }
 
 main() {
@@ -150,14 +180,22 @@ main() {
 	while getopts "$optstr" opt; do
     case "$opt" in
       d )
-        sudo_login 2
-        check_bios
-        install_boxes
+        if installed gnome-boxes || grep -qi 'boxes' < <(flatpak list); then
+          printf "Gnome-Boxes is already installed (Version: %s).\n" "$(boxes_version)"
+        else
+          sudo_login 2
+          check_bios
+          install_from_deb
+        fi
         ;;
       f )
-        sudo_login 2
-        check_bios
-        install_flatpak
+        if installed gnome-boxes || grep -qi 'boxes' < <(flatpak list); then
+          printf "Gnome-Boxes is already installed (Version: %s).\n" "$(boxes_version)"
+        else
+          sudo_login 2
+          check_bios
+          install_from_flatpak
+        fi
         ;;
       h )
         help 0
