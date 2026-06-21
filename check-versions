@@ -48,8 +48,8 @@ installed_version() {
   local cur_ver
   [[ "$package" == "fresh-editor" ]] && package="fresh"
   case "$package" in
-    bat )
-      cur_ver=$(cut -d' ' -f2 <("$package"  --version 2>/dev/null)) ;;
+    bat|fastfetch )
+      cur_ver=$(cut -d' ' -f2 < <("$package"  --version 2>/dev/null)) ;;
     codium|dsh|fresh|micro )
       cur_ver=$(awk 'NR==1 {print $NF}' < <("$package" --version 2>/dev/null)) ;;
     firefox|gitea )
