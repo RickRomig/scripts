@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Sep 2023
-# Last updated : 18 Mar 2026
+# Last updated : 20 Jun 2026
 # Comments     : Defaults to using /sys/class/power_supply
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,28 +24,21 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="1.8.26077"
+readonly version="1.9.26171"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="18 Mar 2026"
+	local updated="20 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Displays HIDPP battery status.
@@ -68,11 +61,11 @@ sys_class_data() {
 			return
     fi
 		device="${hidpp_path##*/}"
-		brand=$(cat "$hidpp_path/manufacturer")
-		model=$(cat "$hidpp_path/model_name")
-		charge=$(cat "$hidpp_path/capacity")
+		brand=$(< "$hidpp_path/manufacturer")
+		model=$(< "$hidpp_path/model_name")
+		charge=$(< "$hidpp_path/capacity")
 		printf -v charge '%-5s' "$charge%"
-		serial=$(cat "$hidpp_path/serial_number")
+		serial=$(< "$hidpp_path/serial_number")
 		printf "%-15s %-10s %-6s %-5s %12s\n" "Device name" "Brand" "Model" "Charge" "Serial number"
 		printf "%-15s %-10s %-6s %s %12s\n" "$device" "$brand" "$model" "$charge" "$serial"
   done
@@ -99,12 +92,9 @@ main() {
 	optstr=":hsu"
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			h )
-				help 0 ;;
-			s )
-				sys_class_data ;;
-			u )
-				upower_data ;;
+			h ) help 0 ;;
+			s ) sys_class_data ;;
+			u ) upower_data ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$E_INVALID_ARG"
