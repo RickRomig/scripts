@@ -31,7 +31,7 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4..26173"
+readonly version="4.5.26173"
 
 ## Functions ##
 
