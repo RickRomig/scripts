@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 31 May 2026
+# Last updated : 22 Jun 2026
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,13 +31,13 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="4.4.26151"
+readonly version="4..26173"
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="31 May 2026"
+	local -r updated="22 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Create symbolic links from configs and scripts repos and add tweaks to system settings.
@@ -95,7 +95,6 @@ link_config_files() {
 		"glow/glow.yml"
 		"kitty/bindings.list"
 		"kitty/kitty.conf"
-		"marktext/preferences.json"
 		"micro/bindings.json"
 		"micro/settings.json"
 		"picom/picom.conf"
@@ -103,6 +102,7 @@ link_config_files() {
 		"rofi/arc_dark_transparent_colors.rasi"
 		"rofi/config.rasi"
 		"redshift.conf"
+		"shellcheck/shellcheckrc"
 		"terminator/config"
 		"VSCodium/User/settings.json"
 	)
