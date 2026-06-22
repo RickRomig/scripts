@@ -22,19 +22,16 @@ If you use Shellcheck to check syntax, include Shellcheck directives to tell She
 # shellcheck source=/home/rick/bin/functionlib
 # shellcheck disable=SC1091
 ```
-Disabling SC1091 is not required if using `shellcheck -x` to check syntax.
-If running outside the `~/bin` directory, change the path in the directive. Use the full path, i.e., `/home/username/script-directory`.
+Disabling SC1091 is not required if using `shellcheck -x` to check syntax or if `external-sources=true` is set in `~/.config/shellcheckrc'.
+If sorurcing from outside the `~/bin` directory, change the path in the directive. Use the full path, i.e., `/home/username/script-directory`.
 
 ### Sourcing the function library
 
-Source `functionlib` before any any other code. Edit the path if running from a directory other than `~/bin`.
+Source `functionlib` before any any other code. Edit the path if running it from a directory other than `~/bin`.
 ```bash
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
+## Source function library ##
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 ```
 
 ## Directories
@@ -66,4 +63,4 @@ These programs are free software; you can redistribute them and/or modify them u
 These programs are distributed in the hope that they will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 #### Rick Romig (*The Luddite Geek*)
-##### 22 Jul 2025
+##### 22 Jun 2026
