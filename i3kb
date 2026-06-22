@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : i3kb
 # Description  : Displays i3 keybindings
 # Dependencies : None
@@ -7,12 +7,12 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Apr 2023
-# Updated      : 31 Oct 2024
+# Updated      : 22 Jun 2026
 # Comments     : Install with bindings.list in ~/.config/i3/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -22,23 +22,15 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-##########################################################################
-
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
+###############################################################################
 
 ## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
-readonly i3_dir="$HOME/.config/i3"
+readonly i3_dir=~/.config/i3
 readonly bindings="bindings.list"
 
 ## Functions ##
@@ -58,12 +50,12 @@ show_bindings() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.9.25205"
-	if exists i3; then
-		clear
+	local -r version="1.10.26173"
+	if [[ "$DESKTOP_SESSION" == "i3" ]]; then
+		clearscreen
 		show_bindings
 	else
-		printf "i3wm is not installed." >&2
+		printf "i3wm is not the current desktop session.\n"
 	fi
 	over_line "$script $version"
 	exit
