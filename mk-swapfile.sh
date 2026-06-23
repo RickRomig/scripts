@@ -7,7 +7,6 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jan 2025
-# Last updated : 11 Apr 2026
 # Comments     : creates a swap file if no other swap exists.
 #              : Disable old swap and comment out in /etc/fstab
 #              : User is prompted to provide size of swap file in GB (integer value)
@@ -26,17 +25,9 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -47,22 +38,16 @@ swap_exists() {
 }
 
 create_swapfile() {
-	local _opt size
+	local _opt opttions size
+	opttions=("Create swap file with dd" "Create swap file with fallocate" "Quit without creating a swap file")
 	read -rp "Enter size of swap file in GB: " size
 	PS3="Choose creation method: "
-	select _opt in dd fallocate cancel; do
+	select _opt in "${opttions[@]}"; do
 		case "$REPLY" in
-			1 )
-				dd_swapfile "$size"
-				break ;;
-			2 )
-				fallocate_swapfile "$size"
-				break ;;
-			3 )
-				printf "Swap file creation canceled.\n"
-				break ;;
-			* )
-				printf "%sInvalid choice. Try again.%s\n" "$orange" "$normal" >&2
+			1 ) dd_swapfile "$size"; break ;;
+			2 ) fallocate_swapfile "$size"; break ;;
+			3 ) printf "Swap file creation canceled.\n"; break ;;
+			* ) printf "%sInvalid choice. Try again.%s\n" "$orange" "$normal" >&2
 		esac
 	done
 }
@@ -70,6 +55,7 @@ create_swapfile() {
 dd_swapfile() {
 	local size=$(($1 * 1048576))
 	printf "Creating swap file in the root directory...\n"
+	sudo_login 2
 	sudo dd if=/dev/zero of=/swapfile bs=1024 count="$size"
 	process_swapfile
 }
@@ -77,29 +63,30 @@ dd_swapfile() {
 fallocate_swapfile() {
 	local size="$1"
 	printf "Creating swap file in the root directory...\n"
+	sudo_login 2
 	sudo fallocate -l "$size"G /swapfile
 	process_swapfile
 }
 
 process_swapfile() {
-	ls -lh /swapfile  # see the file in the root directory
-	sudo e4defrag /swapfile	# defrag swapfile so it's 1 contigous file
+	ls -lh /swapfile  				# see the file in the root directory
+	sudo e4defrag /swapfile		# defrag swapfile so it's 1 contigous file
 	sudo chmod 600 /swapfile	# set file permissions
-	sudo mkswap /swapfile	# set up swap area
-	sudo swapon /swapfile	# enable swap file
+	sudo mkswap /swapfile			# set up swap area
+	sudo swapon /swapfile			# enable swap file
 	sudo tee -a /etc/fstab <<< "/swapfile none swap sw 0 0"	# add to /etc/fstab
 }
 
 main() {
 	local script="${0##*/}"
-	local version="2.26101"
-	sudo_login 2
+	local version="2.2.26174"
 	if swap_exists; then
 		printf "A swap file or partition already exists and is enabled.\n"
 		printf "Disable current swap before creating swap file.\n"
 	else
 		create_swapfile
 	fi
+	sudo_login 2
 	printf "Current Swap:\n"
 	sudo swapon --show
   over_line "$script $version"
