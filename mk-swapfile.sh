@@ -38,11 +38,11 @@ swap_exists() {
 }
 
 create_swapfile() {
-	local _opt opttions size
-	opttions=("Create swap file with dd" "Create swap file with fallocate" "Quit without creating a swap file")
+	local _opt options size
+	options=("Create swap file with dd" "Create swap file with fallocate" "Quit without creating a swap file")
 	read -rp "Enter size of swap file in GB: " size
 	PS3="Choose creation method: "
-	select _opt in "${opttions[@]}"; do
+	select _opt in "${options[@]}"; do
 		case "$REPLY" in
 			1 ) dd_swapfile "$size"; break ;;
 			2 ) fallocate_swapfile "$size"; break ;;
