@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : numfiles
 # Description  : displays number of files and directories in current directory
 #              : and how much disk space the directory uses.
@@ -8,12 +8,12 @@
 # Author       : Copyright (C) 2018, Richard Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Nov 2018
-# Updated      : 28 May 2026
+# Updated      : 23 Jun 2026
 # Comment      :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -23,33 +23,32 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-##########################################################################
+###############################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
 num_files() {
-	local cur_dir ndirs nfiles size
-	cur_dir="${PWD//$\/}"
+	local ndirs nfiles size
 	ndirs=$(wc -l < <(find . -type d))
 	nfiles=$(wc -l < <(find . -type f))
 	size=$(awk '$2 == "total" {print $1}' < <(du -ch))
 
-	printf "Directory: %s\n" "$cur_dir"
-	printf "%d " "$nfiles"
+	printf "Directory: %s\n" "$PWD"
+	printf "Contains %d " "$nfiles"
 	[[ "$nfiles" -eq "1" ]] && printf "file " || printf "files "
 	printf "in %d " "$ndirs"
 	[[ "$ndirs" -eq "1" ]] && printf "directory " || printf "directories "
-	printf "using %s of disk space\n" "$size"
-	unset cur_dir ndirs nfiles size
+	printf "using %s of disk space.\n" "$size"
+	unset ndirs nfiles size
 }
 
 main() {
 	local script="${0##*/}"
-	local version="4.3.26148"
+	local version="4.4.26174"
 	num_files
 	over_line "$script $version"
 	exit
