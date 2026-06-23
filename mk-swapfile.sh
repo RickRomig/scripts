@@ -7,6 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jan 2025
+# Updated      : 23 Jun 2026
 # Comments     : creates a swap file if no other swap exists.
 #              : Disable old swap and comment out in /etc/fstab
 #              : User is prompted to provide size of swap file in GB (integer value)
