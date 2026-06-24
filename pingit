@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2023
-# Updated      : 30 Mar 2026
+# Updated      : 23 Jun 2026
 # Comments     : Assumes a /24 (Class C) network
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,29 +24,21 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
-
-## Variables ##
+## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.7.26089"
+readonly version="3.8.26174"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="30 Mar 2026"
+	local updated="23 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Pings an IP address on the local network.
@@ -68,25 +60,25 @@ validIP() {
   local octet="$1"
   local re="^[0-9]+$"
   if [[ -z "$octet" ]]; then
-    EC="$E_MISSING_ARG"
     printf "%s No argument passed. No host IP.\n" "$RED_ERROR" <&2
+    EC="$E_MISSING_ARG"
   elif [[ $1 =~ $re ]] 2>/dev/null; then
     # Argument is an integer value
     if [[ "$octet" -gt 0 && "$octet" -lt 255 ]]; then
-      EC=0
       printf "%s.%s is a valid IP address.\n" "$LOCALNET" "$octet"
+      EC=0
     else
-      EC="$E_INVALID_ARG"
       printf "%s %s.%s is not a valid IP address.\n" "$RED_ERROR" "$LOCALNET" "$octet" <&2
+      EC="$E_INVALID_ARG"
     fi
   else
-    EC="$E_INVALID_ARG"
     printf "%s Invalid argument - %s.\n" "$RED_ERROR" "$octet" <&2
+    EC="$E_INVALID_ARG"
   fi
   return
 }
 
-ping_ip() {
+pingIP() {
   local localip hostip
   hostip="$1"
   localip="$(local_ip)"
@@ -101,18 +93,11 @@ ping_ip() {
 }
 
 main() {
-  local hostip
-  # Check arguments
-  if [[ $# -eq 0 ]]; then
-    printf "%s No argument passed.\n" "$RED_ERROR" >&2
-    help "$E_MISSING_ARG"
-  elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-    help 0
-  elif validIP "$1"; then
-    [[ "$EC" -ne 0 ]] && help "$EC"
-    hostip="$1"
-    ping_ip "$hostip"
-  fi
+	[[ "$1" = "-h" || "$1" = "--help" ]] && help "$EC"
+  local hostip="$1"
+  validIP "$hostip" # Sets EC and displays status message
+  [[ "$EC" -ne 0 ]] && help "$EC"
+  pingIP "$hostip"  # Sets EC and displays information
   over_line "$script $version"
   exit "$EC"
 }
