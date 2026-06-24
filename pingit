@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2023
-# Updated      : 23 Jun 2026
+# Updated      : 24 Jun 2026
 # Comments     : Assumes a /24 (Class C) network
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,27 +31,27 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.8.26174"
+readonly version="3.9.26175"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local updated="23 Jun 2026"
+	local updated="24 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Pings an IP address on the local network.
 
 ${green}Usage:${normal} $script [last-octet] [OPTION]
 ${orange}Available options${normal}
-  1-254        Pings local address ending with that octet.
+  1-254        Ping local address ending with that octet.
   -h | --help  Show this help message and exit.
 
 ${orange}Example:${normal} $script 42
 ${orange}Note:${normal}
   1. Address must be an integer in the range of 1 to 254, representing the last octet of the target address.
-  2. Assumes a Class C (/24) network.
+  2. Assumes a Class C (CIDR /24) network.
 _HELP_
   exit "$errcode"
 }
@@ -75,7 +75,7 @@ validIP() {
     printf "%s Invalid argument - %s.\n" "$RED_ERROR" "$octet" <&2
     EC="$E_INVALID_ARG"
   fi
-  return
+  return "$EC"
 }
 
 pingIP() {
@@ -86,18 +86,24 @@ pingIP() {
   if [[ "$localip" == "$hostip" ]]; then
     printf "\n%s.%s is the computer you're pinging from.\n" >&2 "$LOCALNET" "$hostip"
     EC="$E_INVALID_ARG"
-    return
+    return "$EC"
   fi
   ping -c 5 "$LOCALNET.$hostip"
   EC="$?"
+  return "$EC"
 }
 
 main() {
 	[[ "$1" = "-h" || "$1" = "--help" ]] && help "$EC"
   local hostip="$1"
-  validIP "$hostip" # Sets EC and displays status message
-  [[ "$EC" -ne 0 ]] && help "$EC"
-  pingIP "$hostip"  # Sets EC and displays information
+  # validIP "$hostip" # Sets EC and displays status message
+  # [[ "$EC" -ne 0 ]] && help "$EC"
+  # pingIP "$hostip"  # Sets EC and displays information
+  if validIP "$hostip"; then
+    pingIP "$hostip"
+  else
+    help "$?"
+  fi
   over_line "$script $version"
   exit "$EC"
 }
