@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Aug 2019
-# Last updated : 04 Apr 2026
+# Last updated : 25 Jun 2026
 # Comments     : For entertainiment purposes only.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -24,10 +24,8 @@
 # GNU General Public License for more details.
 ###############################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
@@ -36,8 +34,8 @@ DOTS_PID=
 
 ## Functions ##
 
-print_title() {
-  printf "\n%42s%s%sBullshit Meter%s\n" " " "$bold" "$green" "$normal"
+print_graph() {
+  printf "\n%+42s%s%sBullshit Meter%s\n" "" "$bold" "$green" "$normal"
   scale_numbers
   scale_marks
 }
@@ -114,7 +112,7 @@ print_intro() {
 main() {
   local _statement bs_level
   local script="${0##*/}"
-  local version="5.8.26094"
+  local version="5.9.26176"
   bs_level=$(shuf -i 0-100 -n 1)
   clear
   print_intro
@@ -124,7 +122,7 @@ main() {
 	DOTS_PID="$!"
   sleep "$(shuf -i 1-20 -n 1)"
 	kill_dots
-  print_title
+  print_graph
   print_indicator "$bs_level"
   print_analysis "$bs_level"
   over_line "$script $version"
