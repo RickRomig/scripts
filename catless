@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#############################################################################
+###############################################################################
 # Script Name  : catless
 # Description  : view text file with less or cat based on terminal window size.
 # Dependencies : none
@@ -7,12 +7,13 @@
 # Author       : Copyright © 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 14 May 2026
+# Updated      : 25 Jun 2026
 # Comments     : Checks to see if passed argument is a valid text or json file.
+#              : To show line numbers, use -n after the file name.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-#############################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -22,39 +23,39 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-#############################################################################
+###############################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.9.26134"
+readonly version="7.10.26176"
 EC=0
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-1}"
-  local updated="14 May 2026"
-  cat << _HELP_
-${orange}$script${normal} $version (updated $updated)
-Displays a text file using either cat or less depending the number of lines in
-the file and the number of rows in the current terminal window. Less is used when
-the number of lines is greater than the 87% of the rows, otherwise cat is used.
+  local -r errcode="${1:-1}"
+  local -r updated="25 Jun 2026"
+  cat <<- _HELP_
+	${orange}$script${normal} $version (updated $updated)
+	Displays a text file using either cat or less depending the number of lines in
+	the file and the number of rows in the current terminal window. Less is used when
+	the number of lines is greater than the 87% of the rows, otherwise cat is used.
 
-${green}Usage:${normal} $script [-h] filename [-n]
-${orange}Available options:${normal}
-  -h  Show this help message and exit.
-  -n  enable line numbers (follows filename and is case-insensitive).
-_HELP_
+	${green}Usage:${normal} $script [-h] filename [-n]
+	${orange}Available options:${normal}
+	  -h  Show this help message and exit.
+	  -n  enable line numbers (follows filename and is case-insensitive).
+	_HELP_
   exit "$errcode"
 }
 
 check_file() {
-	local filename="$1"
+	local -r filename="$1"
 	if [[ ! -f "$filename" ]]; then
 		printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
 		EC="$E_FILENOTFOUND"
@@ -66,24 +67,24 @@ check_file() {
 	elif grep -qEi "text|json" < <(file -bL "$filename"); then
 		return "$TRUE"
 	else
-		printf "%s %s is not a text file.\n" "$RED_ERROR" "$filename" >&2
+		printf "%s %s is not a valid text file.\n" "$RED_ERROR" "$filename" >&2
 		EC="$E_INVALID_ARG"
 		return "$FALSE"
 	fi
 }
 
 over_max() {
-	# Returns TRUE (0) if number of lines if less should be used
-	local catmax filelines textfile
-	textfile="$1"
+	# Returns TRUE (0) if number of lines in file > number of rows in terminal
+	local -r textfile="$1"
+	local catmax filelines
 	catmax=$(( $(tput lines)*87/100 ))
 	filelines=$(wc -l < "$textfile")
 	(( filelines > catmax )) && return "$TRUE" || return "$FALSE"
 }
 
 view_file() {
-  local textfile="$1"
-  local linenumbers="$2"
+  local -r textfile="$1"
+  local -r linenumbers="$2"
   if over_max "$textfile"; then
     case "$linenumbers" in
       0 )
@@ -106,7 +107,7 @@ view_file() {
 main() {
 	local linenumbers
 	[[ $1 == "-h" ]] && help 0
-	local filename="$1"
+	local -r filename="$1"
 	local arg2="${2,,}"	# make argument lowercase
 	arg2="${arg2:0:2}"	# take 1st two characters
 	[[ "$arg2" == "-n" ]] && linenumbers="$TRUE" || linenumbers="$FALSE"
