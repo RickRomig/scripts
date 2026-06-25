@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Dec 2022
-# Updated      : 16 May 2026
+# Updated      : 25 Jun 2026
 # Comments     : base script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
 #              : Uses default editor ($EDITOR) to edit to-do list.
 #              : Limit to-do list to 7 items to maintain proper formating.
@@ -26,28 +26,27 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.7.26136"
-script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
-calendar=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
+readonly version="3.8.26176"
+CALENDAR=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 
 ## Functions ##
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
-	[[ -f "$calendar" ]] && rm -f "$calendar"
+	[[ -f "$CALENDAR" ]] && rm -f "$CALENDAR"
 }
 
 help() {
 	local errcode="${1:-1}"
-	local updated="16 May 2026"
+	local updated="25 Jun 2026"
 	cat <<- _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Creates/displays/edits a simple to-do list with a calendar.
@@ -64,28 +63,30 @@ _HELP_
 }
 
 create_todo() {
-	local doc_dir="$1"
-	local todolist="$2"
-	printf "Creating todo list...\n"
+	local -r doc_dir="$1"
+	local -r todolist="$2"
+	local script_dir
+	script_dir=$(dirname "$(readlink -f "${0}")")
 	[[ -d "$doc_dir" ]] || mkdir -p "$doc_dir"
-	cp "$script_dir/Templates/$todolist" "$doc_dir/"
+	printf "Creating todo list...\n"
+	cp -v "$script_dir/Templates/$todolist" "$doc_dir/"
 	$EDITOR "$doc_dir/$todolist"
 }
 
 show_one_month() {
-	local doc_dir="$1"
-	local todolist="$2"
+	local -r doc_dir="$1"
+	local -r todolist="$2"
 	clear
-	cal > "$calendar"
-	paste "$calendar" "$doc_dir/$todolist"
+	cal > "$CALENDAR"
+	paste "$CALENDAR" "$doc_dir/$todolist"
 }
 
 show_three_months() {
-	local doc_dir="$1"
-	local todolist="$2"
+	local -r doc_dir="$1"
+	local -r todolist="$2"
 	clear
-	sed '1d' < <(cal -3) > "$calendar"	# strips off the year (1st line) to line up todo list with the month.
-	paste "$calendar" "$doc_dir/$todolist"
+	sed '1d' < <(cal -3) > "$CALENDAR"	# strips off the year (1st line) to line up todo list with the month.
+	paste "$CALENDAR" "$doc_dir/$todolist"
 }
 
 main() {
