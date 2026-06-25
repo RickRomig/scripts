@@ -7,7 +7,7 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 15 Apr 2026
-# Last updated : 13 May2026
+# Last updated : 25 Jun 2026
 # Comments     : Fixes main/binary-i386 error message for Google Chrome update
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,42 +31,42 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Functions ##
 
 intro_message() {
-echo "Error message that sometimes appears when updating Google Chrome..."
-echo "Skipping acquire of configured file 'main/binary-i386' as repository"
-echo "\"https://dl.google.com/linux/chrome-stable/deb stable InRelease\""
-echo "doesn't support architecture 'i386'"
+	cat <<- _INTRO_
+	While updating Google Chrome using apt, the following message may appear:
+	Skipping acquire of configured file 'main/binary-i386' as repository
+	"https://dl.google.com/linux/chrome-stable/deb stable InRelease"
+	doesn't support architecture 'i386'
+	_INTRO_
 }
 
 check_i386_arch() {
-	local foreign_arch
-	foreign_arch=$(dpkg --print-foreign-architectures)
-	[[ $foreign_arch == "i386" ]] && return "$TRUE" || return "$FALSE"
+	grep -q 'i386' < <(dpkg --print-foreign-architectures) && return "$TRUE" || return "$FALSE"
 }
 
 check_amd64_arch() {
-	local  native_arch
+	local native_arch
 	native_arch=$(dpkg --print-architecture)
 	printf "%+4sNative architecture is %s.\n" "" "$native_arch"
 	[[ $native_arch == "amd64" ]] && return "$TRUE" || return "$FALSE"
 }
 
 remove_i386_arch() {
-	local  native_arch num_386
+	local num_386
 	printf "\nConfirm that 64-bit with multiarch is enabled...\n"
+	check_amd64_arch || return
 	if check_i386_arch; then
 		printf "%+4s32-bit support has been added.\n" ""
 	else
 		printf "%+4s32-bit support has not been added.\n" ""
 	fi
-	printf "Confirm native architecture...\n"
-	check_amd64_arch || return
 	num_386=$(grep -c 386 < <(dpkg --get-selections))
 	if [[ $num_386 -gt 0 ]]; then
-		printf "Number of 32-bit packages = %d\n" "$num_386"
-		printf "32-bit applicaitons:\n"
+		printf "\n32-bit applications:\n"
 		grep 386 < <(dpkg --get-selections)
+		printf "32-bit architecture support cannot be removed.\n"
 		return
 	fi
+	printf "%+4sNo 32-bit packages installed.\n" ""
 	check_i386_arch || return
 	sudo_login 2
 	printf "%+4sRemoving i386 architecture support...\n" ""
@@ -77,8 +77,9 @@ remove_i386_arch() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.0.26133"
+  local -r version="2.1.26176"
   intro_message
+	grep -q '^ii' < <(dpkg -l google-chrome-stable 2>/dev/null) || { printf "\nGoogle Chrome is not installed. Operation canceled.\n"; exit; }
   remove_i386_arch
   over_line "$script $version"
 	exit
