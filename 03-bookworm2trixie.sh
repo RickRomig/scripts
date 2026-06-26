@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 17 May 2026
+# Last updated : 26 Jun 2026
 # Comments     : Cleanup after upgrade to Debian 13.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,7 +24,7 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
@@ -50,10 +50,10 @@ version_info() {
 
 clean_up() {
 	sudo_login 2
-	printf "Cleaning up after the upgrade...\n"
-	printf "\nCleaning the apt cache...\n"
+	printf "%sCleaning up after the upgrade...%s\n" "$orange" "$normal"
+	printf "\n%sCleaning the apt cache...%s\n" "$orange" "$normal"
 	sudo apt autoclean
-	printf "\nRemoving obsolete and unwanted programs...\n"
+	printf "\n%sRemoving obsolete and unwanted programs...%s\n" "$orange" "$normal"
 	sudo apt --purge autoremove
 	printf "\nThere may be programs and applications that need to be reinstalled or updated.\n"
 	rm -v "$HOME/01-upgrade" "$HOME/02-sources"
@@ -66,14 +66,14 @@ modernize_sources() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.7.26137"
-	local updated="17 May 2026"
+	local version="1.8.26177"
+	local updated="26 Jun 2026"
 	local exit_code=0
 	check_file1 || die "01-bookworm2trixie.sh and 02-bookworm2trixie.sh must be run first." "$E_INFO"
 	check_file2 || die "02-bookworm2trixie.sh hasn't been run." "$E_INFO"
 	version_info
 	if check_codename; then
-		printf "Debian inplace upgrade was successful!\n"
+		printf "%sDebian inplace upgrade was successful!%s\n" "$orange" "$normal"
 		clean_up
 		modernize_sources
 	else
