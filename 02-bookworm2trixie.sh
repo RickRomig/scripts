@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 16 May 2026
+# Last updated : 26 Jun 2026
 # Comments     : This scripts updates sources.list & backports.list.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,7 +24,7 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
@@ -76,25 +76,27 @@ upgrade_debian() {
 	# Cleans and updates apt cache, then upgrades to Debian 13.
 	sudo apt clean
 	sudo apt update
+	printf "%sUpgrde without new packages...%s\b" "$orange" "$normal"
 	sudo apt upgrade --without-new-pkgs
+	printf "%sFull upgrade...%s\n" "$orange" "$normal"
 	sudo apt full-upgrade
 }
 
 main() {
 	local script="${0##*/}"
-	local version="1.8.26136"
-	local updated="16 May 2026"
+	local version="1.9.26177"
+	local updated="26 Jun 2026"
 	check_file1 || die "01-bookworm2trixie.sh must be run first." "$E_INFO"
 	check_file2 && die "This script has already been run." "$E_INFO"
 	check_package apt-transport-https
 	version_info
 	check_codename || die "Unsupported Debian version." "$E_INFO"
-	printf "Updatings source lists...\n"
+	printf "%sUpdatings source lists...%s\n" "$orange" "$normal"
 	sources_list
 	backports_list
-	printf "Upgrading to Debian 13\n"
+	printf "sUpgrading to Debian 13...%s\n" "$orange" "$normal"
 	upgrade_debian
-	printf "Debian 13 Trixie installed.\n"
+	printf "%sDebian 13 Trixie installed.%s\n" "$orange" "$normal"
 	printf "Reboot and run 03-bookworm2trixie.sh\n"
 	touch "$HOME/02-sources"
 	over_line "$script $version ($updated)"
