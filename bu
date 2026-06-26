@@ -24,8 +24,7 @@
 # GNU General Public License for more details.
 ##############################################################################
 
-## Load function library ##
-
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
@@ -76,7 +75,7 @@ mount_bu() {
   usbdrv=$(awk -F/ '/BU_Drive/ {print $3}' /proc/mounts)
   [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
 	if [[ $usbdrv ]]; then
-		 printf "BU_Drive mounted on /dev/%s\n" "$usbdrv"
+		printf "BU_Drive mounted on /dev/%s\n" "$usbdrv"
 	elif [[ -z $usbdrv ]]; then
 		sudo mount /dev/"$usbdrv" "$mount_point"
 		printf "BU_Drive now mounted on /dev/%s\n" "$usbdrv"
