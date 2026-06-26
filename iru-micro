@@ -7,9 +7,10 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 17 Jun 2026
+# Updated      : 26 Jun 2026
 # Comments     : Debian 13 & LMDE 7 repo version 2.0.14
 #              : Debian 12, Ubuntu 24.04 & Mint 22 repo version 2.0.13
+#              : If repo version installed, run iru-micro -u to remove and install new version
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -32,7 +33,7 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="7.5.26168"
+readonly version="8.0.26177"
 readonly gh_url="https://github.com/micro-editor/micro/releases"
 EC=0
 
@@ -40,7 +41,7 @@ EC=0
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="17 Jun 2026"
+	local -r updated="26 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -116,13 +117,21 @@ install_micro() {
     return
   fi
   sudo_login 2
+  # if the repo verssion is installed, remove it.
+  installed micro && sudo apt=get remove micro
+  [[ -d /usr/share/micro/ ]] || sudo mkdir /usr/share/micro/
+  [[ -d /usr/share/doc/micro/ ]] || sudo mkdir /usr/share/doc/micro/
   printf "Downloading Micro %s from the zyedidia GitHub repository..." "$new_ver"
   wget -q -P "$TMP_DIR/" "$gh_url/download/v$new_ver/$new_pkg"
   printf "Installing Micro %s...\n" "$new_ver"
   tar -xzvf "$TMP_DIR/$new_pkg" -C "$TMP_DIR/"
   sudo cp -v "$TMP_DIR/micro-$new_ver"/micro /usr/bin/
   sudo cp -v "$TMP_DIR/micro-$new_ver"/micro.1 /usr/share/man/man1/
-  exists xclip || sudo apt-get install -y xclip
+  sudo cp -v "$TMP_DIR/micro-$new_ver"/micro.desktop /usr/share/applications/
+  sudo cp -v "$TMP_DIR/micro-$new_ver"/micro.svg /usr/share/micro/
+  sudo cp -v "$TMP_DIR/micro-$new_ver"/README.md /usr/share/doc/micro/
+  sudo cp -v "$TMP_DIR/micro-$new_ver"/LICENSE* /usr/share/doc/micro/
+  installed xclip || sudo apt-get install -y xclip
   if [[ "$(micro_version)" != "$new_ver" ]]; then
     printf "%s Micro installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
@@ -134,11 +143,13 @@ install_micro() {
 remove_micro() {
   sudo_login 2
   printf "Removing the Micro CLI text editor...\n"
-  sudo rm -v /usr/bin/micro
-  sudo rm -v /usr/share/man/man1/micro.1
   [[ -L  ~/.config/micro/settings.json ]] && unlink ~/.config/micro/settings.json
   [[ -L  ~/.config/micro/bindings.json ]] && unlink ~/.config/micro/bindings.json
   find ~/.config -type d -name micro -exec rm -rf {} \;
+  sudo rm -v /usr/bin/micro
+  sudo rm -rfv /usr/share/doc/micro
+  sudo find /usr/share -type f -name "micro." -exec rm -f {} ;\
+
   printf "Micro and configuration files have been removed.\n"
 }
 
