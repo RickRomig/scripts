@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 20 Jul 2025
-# Last updated : 04 Mar 2026
+# Last updated : 27 Jun 2026
 # Comments     : Intended for use on Debian Bullseye, Bookworm, and Trixie
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,17 +24,9 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -60,21 +52,21 @@ convert_backports_list() {
 	fi
 	if grep -q 'deb https' "/etc/apt/sources.list.d/$backports_list"; then
 		printf "%s has already been converted\n" "$backports_list"
-	else
-		sudo_login 2
-		sudo sed -i.bak 's/http:/https:/' "/etc/apt/sources.list.d/$backports_list"
-		printf "Changed http to https in %s\n" "$backports_list"
+		return
 	fi
+	sudo_login 2
+	sudo sed -i.bak 's/http:/https:/' "/etc/apt/sources.list.d/$backports_list"
+	printf "Changed http to https in %s\n" "$backports_list"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.5.26063"
+	local -r version="1.6.26178"
 	local distro
 	distro=$(debian_distro)
 	check_package apt-transport-https
 	case "$distro" in
-		bullseye|bookworm|trixie )
+		bookworm|trixie )
 			[[ -f /etc/apt/sources.list.d/debian.sources ]] && leave "Sources list has been modernized."
 			convert_sources_list
 			convert_backports_list "$distro"
