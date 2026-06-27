@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
 # Script Name  : sync-repos
-# Description  : Synchronixz local Git repositories
+# Description  : Synchronize local Git repositories
 # Dependencies : rsync
 # Arguments    : See help() function for available options.
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 10 Aug 2025
-# Updated      : 01 May 2026
+# Updated      : 26 Jun 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,19 +26,19 @@
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="3.4.26121"
+readonly version="3.5.26177"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="01 May 2026"
+	local -r updated="26 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Synchronixe Git repositories and work directories between local computers.
@@ -129,14 +129,10 @@ main() {
 	check_package rsync
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			g )
-				transfer "16" "hp-8300-usdt" ;;
-			h )
-				help 0 ;;
-			l )
-				transfer "22" "hp-850-g3" ;;
-			m )
-				transfer "10" "hp-800g2-sff" ;;
+			g ) transfer "16" "hp-8300-usdt" ;;
+			h ) help 0 ;;
+			l ) transfer "22" "hp-850-g3" ;;
+			m ) transfer "10" "hp-800g2-sff" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$E_INVALID_ARG"
