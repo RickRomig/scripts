@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : install-audacious
 # Description  : Installs/Removes Audacious audio player
 # Dependencies : none
@@ -7,12 +7,12 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2020
-# Updated      : 18 May 2026
+# Updated      : 27 Jun 2026
 # Comments     : Does not support installation from Ubuntu PPAs or flatpak.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -22,24 +22,24 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-##########################################################################
+###############################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
 readonly script="${0##*/}"
-readonly version="2.7.25138"
-E_NOT_IN_REPO=102
+readonly version="2.8.25178"
+readonly E_NOT_IN_REPO=102
 EC=0
 
 ## Functions ##
 
 help() {
 	local -r errcode="${1:-1}"
-  local -r updated="18 May 2026"
+  local -r updated="27 Jun 2026"
 
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
@@ -64,7 +64,7 @@ install_audacious() {
   printf "Installing Audacious audio player...\n"
   sudo apt update -qq
   sudo apt install audacious audacious-plugins -yy
-  if ! grep -q '^ii' < <(dpkg -l audacious); then
+  if ! installed audacious; then
     printf "%s Audacious installation failed.\n" "$RED_ERROR" >&2
     EC="$E_INSTALLATION"
     return
@@ -89,14 +89,14 @@ main() {
 			  help 0
 		    ;;
       i )
-        if exists audacious; then
+        if installed audacious; then
           printf "Audacious audio player is already installed.\n" >&2
         else
           install_audacious
         fi
         ;;
       r )
-        if exists audacious; then
+        if installed audacious; then
           remove_audacious
         else
           printf "Audacious audio player is not installed." >&2
