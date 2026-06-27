@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Last updated : 26 Jun 2026
+# Last updated : 27 Jun 2026
 # Comments     : This scripts updates sources.list & backports.list.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -76,7 +76,7 @@ upgrade_debian() {
 	# Cleans and updates apt cache, then upgrades to Debian 13.
 	sudo apt clean
 	sudo apt update
-	printf "%sUpgrde without new packages...%s\b" "$orange" "$normal"
+	printf "%sUpgrade without new packages...%s\b" "$orange" "$normal"
 	sudo apt upgrade --without-new-pkgs
 	printf "%sFull upgrade...%s\n" "$orange" "$normal"
 	sudo apt full-upgrade
@@ -84,8 +84,8 @@ upgrade_debian() {
 
 main() {
 	local script="${0##*/}"
-	local version="1.9.26177"
-	local updated="26 Jun 2026"
+	local version="1.9.26178"
+	local updated="27 Jun 2026"
 	check_file1 || die "01-bookworm2trixie.sh must be run first." "$E_INFO"
 	check_file2 && die "This script has already been run." "$E_INFO"
 	check_package apt-transport-https
@@ -94,7 +94,7 @@ main() {
 	printf "%sUpdatings source lists...%s\n" "$orange" "$normal"
 	sources_list
 	backports_list
-	printf "sUpgrading to Debian 13...%s\n" "$orange" "$normal"
+	printf "%sUpgrading to Debian 13...%s\n" "$orange" "$normal"
 	upgrade_debian
 	printf "%sDebian 13 Trixie installed.%s\n" "$orange" "$normal"
 	printf "Reboot and run 03-bookworm2trixie.sh\n"
