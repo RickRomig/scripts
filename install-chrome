@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2019
-# Updated      : 24 May 2026
+# Updated      : 29 Jun 2026
 # Comments     : Google Chrome updates through apt from source list
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,14 +31,14 @@ source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n
 ## Variables ##
 
 readonly script="${0##*/}"
-readonly version="6.0.26144"
+readonly version="6.0.26180"
 EC=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-1}"
-	local -r updated="07 May 2026"
+	local -r updated="29 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updated, or removes Google Chrome.
@@ -82,7 +82,7 @@ set_src_list(){
 
 install_chrome() {
   local -r trusted_key="/usr/share/keyrings/google-chrome.gpg"
- printf "Updating apt cache and installing Google Chrome...\n"
+  printf "Updating apt cache and installing Google Chrome...\n"
   set_gpg_key "$trusted_key"
   set_src_list "$trusted_key"
   sudo apt update -qq
