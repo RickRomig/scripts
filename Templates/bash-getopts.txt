@@ -1,6 +1,6 @@
 ## Shell Template ##
 #!/usr/bin/env bash
-################################################################################
+###############################################################################
 # Script Name  : <FILE>
 # Description  :
 # Dependencies :
@@ -14,7 +14,7 @@
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-################################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
 # Foundation; either version 2 of the License, or (at your option) any later version.
@@ -22,29 +22,25 @@
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE. See the GNU General Public License for more details.
-################################################################################
+###############################################################################
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-# set -eu
-# set -euo pipefail
-
 ## Global Variables ##
 
-readonly script="${0##*/}"
-readonly version="<VERSION>"
-script_dir==$(dirname "$(readlink -f "${0}")"); readonly script_dir
-verbose_mode="$FALSE"
-tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
-tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-EC=1
+SCRIPT_DIR==$(dirname "$(readlink -f "${0}")"); readonly script_dir
+VERBOSE_MODE="$FALSE"
+TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
+TMP_DIR=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-1}"
+  local -r script="$1"
+  local -r version="$2"
+	local errcode="${3:-1}"
 	local -r updated="<TODAY>"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
@@ -65,27 +61,32 @@ _HELP_
 check_dependencies() {
   local packages=( git wget )
   check_packages "${packages[@]}"
+	return "$?"
 }
 
-# shellcheck disable=SC2317
-# Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
 cleanup() {
-	[[ -f "$tmp_file" ]] && rm "$tmp_file"
-	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+	[[ -f "$TMP_FILE" ]] && rm "$TMP_FILE"
+	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
 }
 
 app_version() {
 	# application --version
-	awk '/ii/ {print $3}' < <(dpkg -l application) | sed 's/[~+-].*//'
+	awk '/ii/ {print $3}' < <(dpkg -l application 2>/dev/null) | sed 's/[~+-].*//'
+	return 0
 }
 
 show_message() {
 	local message="$1"
-	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+	[[ "$VERBOSE_MODE" == "$TRUE" ]] && echo "$message"
+	return 0
 }
 
 main() {
+  local -r script="${0##*/}"
+  local -r version="<VERSION>"
+  local exit_code=0
 	local -i noOpt
 	local opt optstr OPTARG OPTIND
 	noOpt=1
@@ -98,11 +99,12 @@ main() {
 			;;
 			i )
 				# argI="$OPTARG"
-				if exists application; then
+				if installed application; then
 					printf "Application %s is already installed.\n" "$(app_version)"
 				else
 					trap cleanup EXIT	# for temp files and directories
 					install_application
+					exit_code="$?"
 					apply_settings	# optional custom configuration
 				fi
 				;;
@@ -110,6 +112,7 @@ main() {
 				# argR="$OPTARG"
 				if exists application; then
 					remove_application
+					exit_code="$?"
 				else
 					printf "Application is not installed.\n"
 				fi
@@ -117,6 +120,7 @@ main() {
 			s )
 				if exists application; then
 					apply_settings
+					exit_code="$?"
 				else
 					printf "Application is not installed.\n"
 				fi
@@ -124,29 +128,29 @@ main() {
 			u )
 				if exists application; then
 					update_application
+					exit_code="$?"
 				else
 					printf "Application is not installed.\n"
 				fi
 				;;
 			v )
-				verbose_mode="$TRUE"
+				VERBOSE_MODE="$TRUE"
 				show_message "Verbose mode enabled."
 				;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_MISSING_ARG"
+				help "$script" "$version" "$E_MISSING_ARG"
 	  		;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
-	# printf "%s %s\n" "$script" "$version"
 	over_line "$script $version"
-	exit "$EC"
+	exit "$exit_code"
 }
 
 ## Execution ##
