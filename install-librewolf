@@ -24,21 +24,20 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
-readonly script="${0##*/}"
-readonly version="1.8.26146"
-verbose_mode="$FALSE"
-EC=0
+VERBOSE_MODE="$FALSE"
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-1}"
+  local -r script="$1"
+  local -r version="$2"
+	local errcode="${3:-1}"
 	local -r updated="26 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
@@ -56,11 +55,13 @@ _HELP_
 
 lw_version() {
 	awk '{print $NF}' < <(librewolf --version)
+  return 0
 }
 
 show_message() {
 	local message="$1"
-	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+	[[ "$VERBOSE_MODE" == "$TRUE" ]] && echo "$message"
+  return 0
 }
 
 check_extrepo() {
@@ -68,13 +69,14 @@ check_extrepo() {
 		printf "extrepo [OK]\n"
 		sleep 1
 		printf '\e[A\e[K'
-		return
+		return 0
 	else
 		show_message "Updating cache and checking/installing extrepo..."
 		sudo apt update && sudo apt install extrepo -y
 	fi
 	sudo extrepo enable librewolf && sudo extrepo update librewolf
 	printf "extrepo installed and librewolf repo enabled.\n"
+  return 0
 }
 
 install_librewolf() {
@@ -86,8 +88,7 @@ install_librewolf() {
 	sudo apt update && sudo apt install librewolf -y
   if ! installed librewolf; then
     printf "%s LibreWolf installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
   fi
 	printf "LibreWolf browser version %s installed.\n" "$(lw_version)"
 }
@@ -106,45 +107,51 @@ remove_librewolf() {
 	sudo find /usr -maxdepth 3 -type d -name "librewolf*" -exec sudo rm -rf {} \;
 	# sudo find /var -maxdepth 4 -type d -name "librewolf*" -exec sudo rm -rf {} \;
 	printf "LibreWolf has been removed.\n"
+	return 0
 }
 
 main() {
+readonly script="${0##*/}"
+readonly version="1.8.26146"
 	local noOpt opt optstr OPTARG OPTIND
+  local exit_code=0
 	noOpt=1
 	optstr=":hirv"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
-				help 0
+				help "$script" "$version" 0
 				;;
 			i )
 				if installed librewolf; then
 					printf "LibreWolf %s is already installed.\n" "$(lw_version)"
 				else
 					install_librewolf
+					exit_code="$?"
 				fi
 				;;
 			r )
 				if installed librewolf; then
 					remove_librewolf
+					exit_code="$?"
 				else
 					printf "LibreWolf is not installed.\n"
 				fi
 				;;
 			v )
-				verbose_mode="$TRUE"
+				VERBOSE_MODE="$TRUE"
 				show_message "Verbose mode enabled."
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$E_INVALID_ARG"
+        help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	exit "$EC"
+	exit "$exit_code"
 }
 
 ## Execution ##
