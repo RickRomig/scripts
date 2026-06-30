@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : empty-trash.sh
 # Description  : Empty the local trash directory
 # Dependencies : trash-cli 'sudo apt install trash-cli'
@@ -7,13 +7,13 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 12 JUn 2025
+# Updated      : 30 Jun 2026
 # Comments     : Run as a user cron job. '~/.local/bin/empty-trash.sh'
 #              : Trash directory does not exist until a file has been moved to the trash.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -23,7 +23,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-##########################################################################
+###############################################################################
 
 old_version() {
   local -i vernum
@@ -53,9 +53,9 @@ empty_trash() {
 	fi
 	printf "\nRemoving trash older than %s...\n" "$last_week"
 	if old_version; then
-		/usr/bin/trash-empty 6
+		sed '/trashinfo$/d' < <(/usr/bin/trash-empty 6)
 	else
-		/usr/bin/trash-empty -v -f  6
+		sed '/trashinfo$/d' < <(/usr/bin/trash-empty -v -f  6)
 	fi
 	if trash_empty; then
 		printf "\nAll trash has been removed.\n"
