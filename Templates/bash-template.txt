@@ -28,17 +28,11 @@
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-# set -eu
-# set -euo pipefail
-
 ## Global Variables ##
 
-readonly script="${0##*/}"
-readonly version="<VERSION>"
-script_dir==$(dirname "$(readlink -f "${0}")"); readonly script_dir
-tmp_file=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
-tmp_dir=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-EC=1
+SCRIPT_DIR==$(dirname "$(readlink -f "${0}")"); readonly script_dir
+TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
+TMP_DIR=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 
 ## Functions ##
 
@@ -60,43 +54,46 @@ _HELP_
 check_dependencies() {
   local packages=( gdebi wget )
   check_packages "${packages[@]}"
+	return "$?"
 }
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
-	[[ -f "$tmp_file" ]] && rm "$tmp_file"
-	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+	[[ -f "$TMP_FILE" ]] && rm "$TMP_FILE"
+	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
 }
 
 app_version() {
 	# application --version
 	awk '/ii/ {print $3}' < <(dpkg -l application) | sed 's/[~+-].*//'
+	return 0
 }
 
 main() {
   local -r script="${0##*/}"
   local -r version="<VERSION>"
+  local exit_code=0
   # Check arguments
   if [[ "$#" -eq 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
-    help "$E_MISSING_ARG"
+    help "$script" "$version" "$E_MISSING_ARG"
   elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
-    help 0
+    help "$script" "$version" 0
   elif [[ -f "$1" ]]; then
     printf "%s %s already exists." "$RED_ERROR" "$1" >&2
-    help "$E_FILEEXISTS"
+    help "$script" "$version" "$E_FILE_EXISTS"
   elif [[ ! -f "$1" ]]; then
     printf "%s %s not found." "$RED_ERROR" "$1" >&2
-    help "$E_FILENOTFOUND"
+    help "$script" "$version" "$E_FILENOTFOUND"
   else
     filename="$1"
   fi
 	check_dependencies
-  trap cleanup EXIT	# for temp files and directories
+  trap cleanup EXIT	# if temp files and directories
   # printf "%s %s\n" "$script" "$version"
   over_line "$script $version"
-	exit "$EC"
+	exit "$exit_code"
 }
 
 ## Execution ##
