@@ -53,7 +53,7 @@ empty_trash() {
 	fi
 	printf "\nRemoving trash older than %s...\n" "$last_week"
 	if old_version; then
-		sed '/trashinfo$/d' < <(/usr/bin/trash-empty 6)
+		/usr/bin/trash-empty 6	# older versions do not support verbosity
 	else
 		sed '/trashinfo$/d' < <(/usr/bin/trash-empty -v -f  6)
 	fi
@@ -67,7 +67,7 @@ empty_trash() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.11.26182"
+  local -r version="5.12.26182"
   local -r lhost="${HOSTNAME:-$(hostname)}"
 	local -r trash_dir=~/.local/share/Trash
 	local -r log_dir=~/.local/share/logs
