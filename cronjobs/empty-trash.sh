@@ -38,9 +38,10 @@ trash_empty() {
 }
 
 empty_trash() {
+	local -r trash_dir="$1"
 	local last_week old_trash
 	last_week=$(date -d "$(date) - 6 days" +%F)
-	old_trash="$(wc -l < <(find ~/.local/share/Trash/files -maxdepth 1 -type f -o -type d -daystart -ctime +6 -print))"
+	old_trash="$(wc -l < <(find "$trash_dir/files" -maxdepth 1 -type f -o -type d -daystart -ctime +6 -print))"
 	if trash_empty; then
 		printf "\nNo trash to be removed.\n"
 		return
@@ -67,7 +68,7 @@ empty_trash() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.12.26182"
+  local -r version="5.13.26182"
   local -r lhost="${HOSTNAME:-$(hostname)}"
 	local -r trash_dir=~/.local/share/Trash
 	local -r log_dir=~/.local/share/logs
