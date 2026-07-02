@@ -7,7 +7,7 @@
 # Author       : Copyright © 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 01 Jul 2026
+# Updated      : 02 Jul 2026
 # Comments     : Checks to see if passed argument is a valid text or json file.
 #              : To show line numbers, use -n after the file name.
 # TODO (Rick)  :
@@ -35,7 +35,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local errcode="${3:-1}"
-  local -r updated="01 Jul 2026"
+  local -r updated="02 Jul 2026"
   cat <<- _HELP_
 	${orange}$script${normal} $version (updated $updated)
 	Displays a text file using either cat or less depending the number of lines in
@@ -100,13 +100,13 @@ view_file() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="8.0.26182"
+	local -r version="8.1.26183"
 	local -i exit_code=0
-	local num_flag=
+	local num_flag="$FALSE"
 	[[ $1 == "-h" ]] && help "$script" "$version" 0
 	local -r filename="$1"
-	local num_opt="${2,,}"		# make argument lowercase
-	num_opt="${num_opt:0:2}"	# take 1st two characters
+	local -l num_opt="$2"	# make argument lowercase
+	[[ "${num_opt:0:1}" == "-" ]] && num_opt="${num_opt:0:2}"	# take 1st two characters
 	[[ "$num_opt" == "-n" || "$num_opt" == "n" ]] && num_flag="$TRUE" || num_flag="$FALSE"
 	check_file "$filename" && view_file "$filename" "$num_flag"
 	exit_code="$?"
