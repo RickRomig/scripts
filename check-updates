@@ -7,14 +7,14 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 18 Jun 2026
+# Updated      : 02 Jul 2026
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -26,28 +26,17 @@
 ## GNU General Public License for more details.
 ###############################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="10.13.26169"
-SECONDS=0
-
 ## Functions ##
 
-# shellcheck disable=SC2317
-# Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-cleanup() {
-  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
-}
-
 help() {
-	local errcode="${1:-1}"
-  local updated="18 Jun 2026"
+  local -r script="$1"
+  local -r version="$2"
+	local -r errcode="${3:-1}"
+  local -r updated="02 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt-get or Nala.
@@ -64,14 +53,25 @@ _HELP_
   exit "$errcode"
 }
 
-check_disk_space() {
-	local df_stats r_size r_used r_perc r_avail
-	df_stats=$(awk 'NR==2 {print $2,$3,$4,$5}' < <(df -h /))
-	r_size=$(cut -d ' ' -f1 <<< "$df_stats")
-	r_used=$(cut -d ' ' -f2 <<< "$df_stats")
-	r_avail=$(cut -d ' ' -f3 <<< "$df_stats")
-	r_perc=$(cut -d ' ' -f4 <<< "$df_stats")
-  printf "\nDisk space used (root): %s / %s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
+show_header() {
+  local -r script="$1"
+  local -r version="$2"
+  local -r local_host="${HOSTNAME:-$(hostname)}"
+  clearscreen
+  cat << _HEADER_
+${bold}${orange}$script $version
+System: $local_host (ip: $(local_ip))
+Distro: $(get_distribution)
+Kernel: $(uname -sr)${normal}
+_HEADER_
+  return 0
+}
+
+# shellcheck disable=SC2317
+# Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+cleanup() {
+  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
 }
 
 system_reboot() {
@@ -83,7 +83,19 @@ system_reboot() {
     sudo systemctl reboot
   else
     printf "\n%s Please reboot your system as soon as possible.\n" "$RED_WARNING"
+    return 0
   fi
+}
+
+check_disk_space() {
+	local df_stats r_size r_used r_perc r_avail
+	df_stats=$(awk 'NR==2 {print $2,$3,$4,$5}' < <(df -h /))
+	r_size=$(cut -d ' ' -f1 <<< "$df_stats")
+	r_used=$(cut -d ' ' -f2 <<< "$df_stats")
+	r_avail=$(cut -d ' ' -f3 <<< "$df_stats")
+	r_perc=$(cut -d ' ' -f4 <<< "$df_stats")
+  printf "\nDisk space used (root): %s / %s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
+  return 0
 }
 
 update_apt_cache() {
@@ -96,20 +108,34 @@ update_apt_cache() {
   threshold=3600
   if [[ "$time_diff" -le "$threshold" ]]; then
     printf "%sApt cache is up to date.%s\n" "$orange" "$normal"
-    return
+    return 0
   fi
   printf "%sUpdating apt cache...%s\n" "$orange" "$normal"
   sudo apt-get update
+  return 0
+}
+
+count_updates() {
+	local field1 field2 field3
+	local -i count=0
+	field1=$(awk '$8 == "remove" {print $1}' "$TMP_FILE")
+	field2=$(awk '$8 == "remove" {print $3}' "$TMP_FILE")
+	field3=$(awk '$8 == "remove" {print $6}' "$TMP_FILE")
+	count=$((field1 + field2 + field3))
+	echo "$count"
+  return 0
 }
 
 install_updates() {
   printf "\n%sInstalling updates...%s\n" "$orange" "$normal"
   sudo apt-get dist-upgrade -yy
+  return 0
 }
 
 clean_apt_cache() {
   printf "\n%sCleaning up apt cache...%s\n" "$orange" "$normal"
   sudo apt-get autoclean
+  return 0
 }
 
 remove_orphans() {
@@ -121,6 +147,7 @@ remove_orphans() {
   else
     printf "No packages to be removed.\n"
   fi
+  return 0
 }
 
 update_complete() {
@@ -128,6 +155,7 @@ update_complete() {
   printf "\n%sUpdate complete. %d" "$orange" "$num_updates"
   (( num_updates != 1 )) && printf  " updates were" || printf  " update was"
   printf " installed.%s\n" "$normal"
+  return 0
 }
 
 defer_updates() {
@@ -135,80 +163,7 @@ defer_updates() {
   printf "\n%sNo updates installed. %d" "$orange" "$num_updates"
   (( num_updates != 1 )) && printf " updates were" || printf " update was"
   printf " deferred.%s\n" "$normal"
-}
-
-update_flatpaks() {
-  local fp_updates
-  fp_updates=$(grep -c 'updatable' <(flatpak update --app --noninteractive))
-  if [[ "$fp_updates" -eq 0 ]]; then
-    printf "No flatpak updates currently available\n"
-    return
-  fi
-  printf "Updating flatpaks...\n"
-  printf "User installations...\n"
-  sed '/^$/d' < <(flatpak update --user --noninteractive --force-remove --assumeyes 2>/dev/null)
-  printf "System-wide installations...\n"
-  sed '/^$/d' < <(flatpak update --system --noninteractive --force-remove --assumeyes 2>/dev/null)
-}
-
-check_flatpak() {
-  # check if Flatpak is installed or if packages are installed
-  local fp_count
-  if ! installed flatpak; then
-    printf "Flatpak is not installed.\n"
-    return
-  fi
-  fp_count=$(wc -l < <(flatpak list))
-  if [[ $fp_count -eq 0 ]]; then
-    printf "No Flatpak packages installed.\n"
-    return
-  fi
-  update_flatpaks
-}
-
-update_spices() {
-  # update Cinnamon Spices for Cinnamon DE
-  printf "\n%sCinnamon Spices:%s\n" "$orange" "$normal"
-  cinnamon-spice-updater --update-all
-}
-
-nala_update() {
-  printf "%sChecking for updates...%s\n" "$orange" "$normal"
-  sudo nala upgrade
-  if default_no "Run autoremove/autopurge?"; then
-    printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
-    sudo nala autoremove
-    printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
-    sudo nala autopurge --config
-  else
-    printf "Autoremove and autopurge deferred.\n"
-  fi
-  printf "\n"
-}
-
-apt_update() {
-  local nupd
-  printf "%sChecking for updates...%s\n" "$orange" "$normal"
-  update_apt_cache
-  apt-get dist-upgrade -s > "$TMP_FILE"
-  nupd=$(count_updates)
-  printf "%sSummary:%s\n" "$orange" "$normal"
-  sed '1d' < <(sed -ne '/^Calculating/,/newly/p' "$TMP_FILE")
-  if [[ nupd -eq 0 ]]; then
-    printf "\nPackages are up to date\n"
-    return
-  fi
-  apt_menu "$nupd"
-}
-
-count_updates() {
-	local field1 field2 field3
-	local -i count=0
-	field1=$(awk '$8 == "remove" {print $1}' "$TMP_FILE")
-	field2=$(awk '$8 == "remove" {print $3}' "$TMP_FILE")
-	field3=$(awk '$8 == "remove" {print $6}' "$TMP_FILE")
-	count=$((field1 + field2 + field3))
-	echo "$count"
+  return 0
 }
 
 apt_menu() {
@@ -258,18 +213,77 @@ apt_menu() {
 				printf "%sInvalid option!%s Select 1..%d\n" "$lightred" "$normal" "${#options[@]}" >&2
 		esac
 	done
+  return 0
+}
+apt_update() {
+  local nupd
+  printf "%sChecking for updates...%s\n" "$orange" "$normal"
+  update_apt_cache
+  apt-get dist-upgrade -s > "$TMP_FILE"
+  nupd=$(count_updates)
+  printf "%sSummary:%s\n" "$orange" "$normal"
+  sed '1d' < <(sed -ne '/^Calculating/,/newly/p' "$TMP_FILE")
+  if [[ nupd -eq 0 ]]; then
+    printf "\nPackages are up to date\n"
+    return 0
+  fi
+  apt_menu "$nupd"
+  return 0
 }
 
-show_header() {
-  local local_host="${HOSTNAME:-$(hostname)}"
-  clearscreen
-  cat << _HEADER_
-${bold}${orange}$script $version
-System: $local_host (ip: $(local_ip))
-Distro: $(get_distribution)
-Kernel: $(uname -sr)${normal}
-_HEADER_
+nala_update() {
+  printf "%sChecking for updates...%s\n" "$orange" "$normal"
+  sudo nala upgrade
+  if default_no "Run autoremove/autopurge?"; then
+    printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
+    sudo nala autoremove
+    printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
+    sudo nala autopurge --config
+  else
+    printf "Autoremove and autopurge deferred.\n"
+  fi
+  printf "\n"
+  return 0
 }
+
+update_flatpaks() {
+  local fp_updates
+  fp_updates=$(grep -c 'updatable' <(flatpak update --app --noninteractive))
+  if [[ "$fp_updates" -eq 0 ]]; then
+    printf "No flatpak updates currently available\n"
+    return 0
+  fi
+  printf "Updating flatpaks...\n"
+  printf "User installations...\n"
+  sed '/^$/d' < <(flatpak update --user --noninteractive --force-remove --assumeyes 2>/dev/null)
+  printf "System-wide installations...\n"
+  sed '/^$/d' < <(flatpak update --system --noninteractive --force-remove --assumeyes 2>/dev/null)
+  return 0
+}
+
+check_flatpak() {
+  # check if Flatpak is installed or if packages are installed
+  local fp_count
+  if ! installed flatpak; then
+    printf "Flatpak is not installed.\n"
+    return
+  fi
+  fp_count=$(wc -l < <(flatpak list))
+  if [[ $fp_count -eq 0 ]]; then
+    printf "No Flatpak packages installed.\n"
+    return 0
+  fi
+  update_flatpaks
+  return 0
+}
+
+update_spices() {
+  # update Cinnamon Spices for Cinnamon DE
+  printf "\n%sCinnamon Spices:%s\n" "$orange" "$normal"
+  cinnamon-spice-updater --update-all
+  return 0
+}
+
 
 check_spice_updates() {
   # called by -c flag only to check number of updates available
@@ -281,6 +295,7 @@ check_spice_updates() {
     [[ "$num" -ne 1 ]] && printf "updates " || printf "uppdate "
     printf "available.\n"
   done
+  return 0
 }
 
 check_flatpak_updates() {
@@ -291,6 +306,7 @@ check_flatpak_updates() {
   printf "%d flatpak " "$fp_updates"
   [[ "$fp_updates" -ne 1 ]] && printf "updates " || printf "uppdate "
   printf "available\n"
+  return 0
 }
 
 check_for_updates() {
@@ -306,6 +322,7 @@ check_for_updates() {
     sed '1d' < <(apt list --upgradable 2>/dev/null)
     # apt list --upgradable
   fi
+  return 0
 }
 
 other_checks() {
@@ -315,35 +332,39 @@ other_checks() {
   check_flatpak
   check_disk_space
   over_line "Update completed in $(format_time $SECONDS)"
+  return 0
 }
 
 main() {
-  local noOpt opt optstr OPTARG OPTIND
-	noOpt=1
-	optstr=":achn"
+  SECONDS=0
+  local -r script="${0##*/}"
+  local -r version="11.0.26183"
+  local opt OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":achn"
 	while getopts "$optstr" opt; do
     case "$opt" in
       a )
         TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
         trap cleanup EXIT
-        show_header
+        show_header "$script" "$version"
         check_disk_space
         sudo_login 1
         apt_update
         other_checks
         ;;
       c )
-        show_header
+        show_header "$script" "$version"
         sudo_login 1
         check_for_updates
         exists flatpak && check_flatpak_updates
         exists cinnamon-spice-updater && check_spice_updates
         ;;
       h )
-        help 0
+        help "$script" "$version" 0
         ;;
       n )
-        show_header
+        show_header "$script" "$version"
         check_disk_space
         sudo_login 1
         if exists nala; then
@@ -358,7 +379,7 @@ main() {
         ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		noOpt=0
   done
