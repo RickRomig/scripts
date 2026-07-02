@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2019
-# Updated      : 22 May 2026
+# Updated      : 02 Jul 2026
 # TODO (Rick)  :
 # Comment      : removes DOS carriage return ('\r') characters
 #              : Similar in function to dos2unix.
@@ -40,19 +40,19 @@ convert_file() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.2.26143"
+  local -r version="2.3.26183"
   local filename="$1"
-  EC=0
+  local exit_code=0
   printf "Converts a DOS text file to Linux format by removing carriage returns.\n"
   [[ "$#" -eq 0 ]] && read -rp "Enter a DOS text file to process: " filename
   if [[ -f "$filename" ]]; then
     convert_file "$filename"
   else
     printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
-    EC="$E_FILENOTFOUND"
+    exit_code="$E_FILENOTFOUND"
   fi
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
 
 ## Execution ##
