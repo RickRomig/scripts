@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : mount-sshfs
 # Description  : Mount or unmount a local SSHFS share.
 # Dependencies : sshfs
@@ -7,37 +7,33 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 27 May 2026
+# Updated      : 03 Jul 2026
 # Comments     : Mount points are at ~/mnt/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="5.4.26147"
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-1}"
-	local -r updated="27 May 2026"
+  local -r script="$1"
+  local -r version="$2"
+  local -r errcode="${3:-1}"
+  local -r updated="03 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated $updated
 Mounts/Unmounts an SSHFS share.
@@ -69,7 +65,7 @@ fail_msg() {
 	local -r mount_point="$HOME/mnt"
   printf "Make sure you are not in the mountpoint and run the following command:\n" >&2
   printf "\t%sfusermount -u %s/%s/%s\n" "$orange" "$mount_point" "$share" "$normal"  >&2
-  exit "$E_INFO"
+  exit "$E_DRIVE_ERROR"
 }
 
 mount_share() {
@@ -86,6 +82,7 @@ mount_share() {
 	printf "Home directory at %s:\n" "$share"
 	ls "$HOME/mnt/$share/"
 	printf "%s at %s.%s has been mounted.\n" "$share" "$LOCALNET" "$octet"
+	return 0
 }
 
 unmount_share() {
@@ -93,6 +90,7 @@ unmount_share() {
   cd "$HOME" || cd_fail "$share"
   if fusermount -u "$HOME/mnt/$share/"; then
 		printf "%s has been unmounted.\n" "$share"
+		return 0
   else
 		printf "%s %s has not been unmounted." >&2 "$RED_ERROR" "$share"
 		fail_msg "$share"
@@ -112,21 +110,25 @@ handle_mount() {
 	[[ "$ip" == "$octet" ]] && die "Cannot mount/unmount local system." "$E_DRIVE_ERROR"
   if ! mounted "$share"; then
 		mount_share "$octet" "$share"
-		return
+		return "$?"
 	fi
 	if default_yes "Unmount $share?"; then
 		unmount_share "$share"
 	else
 		printf "%s left mounted.\n" "$share"
 	fi
+	return "$?"
 }
 
 main() {
-  local noOpt opt optstr share_name share_ip OPTARG OPTIND
+	local -r script="${0##*/}"
+	local -r version="5.5.26184"
+	local -i exit_code=0
+  local opt share_name share_ip OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":defghmnst"
 	check_package sshfs
 	printf "Mount or unmount an SSHFS share.\n"
-	noOpt=1
-	optstr=":defghmnst"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			d )
@@ -174,14 +176,15 @@ main() {
 				;;
 			?)
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
+		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	exit
+	exit "$exit_code"
 }
 
 ## Execution ##
