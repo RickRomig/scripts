@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#############################################################################
+###############################################################################
 # Script Name  : set-resume
 # Description  : Set the RESUME environment variable after update-initramfs error
 # Dependencies : None
@@ -7,24 +7,23 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Nov 2019
-# Updated      : 15 Jun 2026
+# Updated      : 03 Jul 2026
 # Comments     : Extracts swap partition UUID from output of /usr/sbin/blkid
 #              : Debian requires sudo for blkid, in Mint, blkid gives more info with sudo
 #              : Run script only if you get an update-initramfs error message.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#############################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -48,6 +47,7 @@ get_swap_uuid() {
   swap_uuid=$(awk -F\" '/swap/ {print $2}' < <(sudo /usr/sbin/blkid))
   [[ "$swap_uuid" == "LABEL=swap" ]] && swap_uuid=$(awk -F\" '/swap/ {print $3}' < <(sudo /usr/sbin/blkid))
   printf "%s" "$swap_uuid"
+  return 0
 }
 
 set_resume() {
@@ -55,7 +55,7 @@ set_resume() {
   sudo_login 2
   printf "\nExtracting the swap UUID from /usr/sbin/blkid ...\n"
   swap_uuid=$(get_swap_uuid)
-  [[ "$swap_uuid" ]] || { printf "No UUID for swap found.\n" >&2; return "$E_INFO"; }
+  [[ "$swap_uuid" ]] || { printf "No UUID for swap found.\n" >&2; return 1; }
   if default_no "Set RESUME environment variable?"; then
     local -r resume_path="/etc/initramfs-tools/conf.d/resume"
     printf "\nSWAP UUID: %s\n" "$swap_uuid"
@@ -63,16 +63,16 @@ set_resume() {
     sudo tee "$resume_path" &>/dev/null <<< "RESUME=UUID=$swap_uuid"
     printf "\nUpdating initramfs ...\n"
     sudo update-initramfs -u -k all
-    return 0
+    return "$?"
   else
     printf "Operation canceled. RESUME environment variable not reset.\n"
-    return "$E_INFO"
+    return 0
   fi
 }
 
 main() {
   local script="${0##*/}"
-  local -r version="7.3.26166"
+  local -r version="7.4.26184"
   local exit_code=0
   print_message
   set_resume
