@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 18 May 2026
+# Last updated : 02 Jul 2026
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
 #              : If file has been changed, commit the change before retiring.
@@ -30,18 +30,13 @@
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="4.4.26138"
-readonly E_NOT_GIT_REPO=101
-EC=0
-
 ## Functions ##
 
 help() {
-	local errcode="${1:-1}"
-	local updated="18 May 2026"
+  local -r script="$1"
+  local -r version="$2"
+	local -r errcode="${3:-1}"
+	local updated="02 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Retires a script in a Git repo by moving it to a zipped archive.
@@ -59,6 +54,7 @@ _HELP_
 check_dependencies() {
   local packages=( git zip )
   check_packages "${packages[@]}"
+  return 0
 }
 
 is_git_repo() {
@@ -73,6 +69,7 @@ retire_script() {
   git rm "$filename"
   git commit -m "$filename retired and archived." --no-verify
   git push
+  return 0
 }
 
 check_args() {
@@ -80,25 +77,29 @@ check_args() {
   [[ "$filename" ]] || read -rp "Enter the name of the script to be retired: " filename
   if [[ ! -f "$filename" ]]; then
     printf "%s not found in this git repository.\n" "$filename" >&2
-    EC="$E_FILENOTFOUND"
-    return
+    return "$E_FILENOTFOUND"
   fi
   retire_script "$filename"
+  return 0
 }
 
 main() {
-	[[ "$1" == "-h" || "$1" == "--help" ]] && help 0
+  local -r script="${0##*/}"
+  local -r version="4.5.26183"
+  local exit_code=0
+	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
   local filename="$1"
   if is_git_repo; then
     check_dependencies
     check_args "$filename"
+    exit_code="$?"
   else
     printf "%s This is not a git repositiory.\n" "$RED_WARNING" >&2
     printf "Run 'retire-script.sh' to retire scripts that are not in a git repository.\n" >&2
-    EC="$E_NOT_GIT_REPO"
+    exit_code="$E_INVALID_ARG"
   fi
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
 
 ## Execution ##
