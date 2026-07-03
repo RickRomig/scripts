@@ -7,39 +7,32 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 04 May 2019
-# Updated      : 05 Feb 2026
+# Updated      : 03 Jul 2026
 # Comments     :
 # License      : GNU General Public License, version 2.0
 ## License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
- printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-1}"
-  local updated="05 Feb 2026"
+  local -r script="$1"
+  local -r version="$2"
+  local -r errcode="${3:-1}"
+  local -r updated="03 Jul 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, updated: $updated
 Creates fortune cookie files for the fortune program.
@@ -59,28 +52,30 @@ create_cookie_file() {
   if strfile -c % "$cookiefile" "$cookiefile.dat"; then
     sudo cp "$cookiefile" "$cookiefile.dat" "$fortunes_d"/
     printf "Fortune cookie file created and copied to /%s\n" "$fortunes_d"
+    return 0
   else
     printf "Fortune cookie operation failed.\n"
-    EC="$E_INFO"
+    return 1
   fi
 }
 
 main() {
   local script="${0##*/}"
-  local version="2.1.26036"
-  EC=0
+  local version="2.2.26184"
+  exit_code=0
   if [[ "$#" -eq 0 ]]; then
     printf "%s No argument passed." >&2 "$RED_ERROR"
-    help "$E_MISSING_ARG"
+    help "$script" "$version" "$E_MISSING_ARG"
   elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-    help 0
+    help "$script" "$version" 0
   else
     local cookiefile="$1"
-    [[ -f "$cookiefile" ]] || { printf "%s %s not found.\n" "$RED_ERROR" "$cookiefile" >&2; help "$E_FILENOTFOUND"; }
+    [[ -f "$cookiefile" ]] || { printf "%s %s not found.\n" "$RED_ERROR" "$cookiefile" >&2; help "$script" "$version" "$E_FILENOTFOUND"; }
     check_package fortune-mod
     create_cookie_file "$cookiefile"
+    exit_code="$?"
 	  over_line "$script $version"
-	  exit "$EC"
+	  exit "$exit_code"
   fi
 }
 
