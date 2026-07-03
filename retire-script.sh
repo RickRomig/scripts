@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : retire-script.sh
 # Description  : retire scripts to a zipped archive
 # Dependencies : git zip
@@ -7,39 +7,34 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 205 May 2026
+# Last updated : 03 Jul 2026
 # Comments     : Do not use with scripts or files inside git repos. Use gretire.sh instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.
+###############################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="3.4.26125"
-readonly E_GIT_REPO=100
-EC=0
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source ~/bin/functionlib\n"; exit 1; }
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-1}"
-	local updated="05 May 2026"
+  local -r script="$1"
+  local -r version="$2"
+  local -r errcode="${3:-1}"
+  local -r updated="03 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Retires a script by moving it to a zipped archive.
@@ -55,54 +50,51 @@ _HELP_
 	exit "$errcode"
 }
 
-exit_script() {
-  over_line "$script $version"
-	exit "$EC"
-}
-
 check_dependencies() {
 	local packages=(git zip)
 	check_packages "${packages[@]}"
+	return 0
 }
 
 check_git_repo() {
-  if [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]; then
-		printf "%s This is a git repository.\n" "$RED_WARNING" >&2
-		printf "Use 'gretire.sh' to retire a script inside a git repository\n" >&2
-		EC="$E_GIT_REPO"
-		exit_script
-	fi
+	[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] && return "$TRUE" || return "$FALSE"
 }
 
 chack_args() {
-	local filename="$1"
+	local -r filename="$1"
 	if [[ ! -f "$filename" ]]; then
 		printf "%s was not found in this directory.\n" "$filename" >&2
-		EC="$E_FILENOTFOUND"
-		return
+		return "$E_FILENOTFOUND"
 	fi
 	retire_script "$filename"
+	return 0
 }
 
 retire_script() {
-	local filename archive_dir ret_archive retname
-	archive_dir="$HOME/Downloads/archives"
-	ret_archive="retired-scripts.zip"
-	filename="$1"
-	retname="${filename}.$(date +'%y%j')"
-	mv -v "$filename" "$retname"
-	zip -um "$archive_dir/$ret_archive$" "$retname"
+	local ret_name
+	local -r archive_dir=~/Downloads/archives
+	local -r ret_archive="retired-scripts.zip"
+	local -r filename="$1"
+	ret_name="${filename}.$(date +'%y%j')"
+	mv -v "$filename" "$ret_name"
+	zip -um "$archive_dir/$ret_archive$" "$ret_name"
 	printf "%s has been retired and archived.\n" "$filename"
+	return 0
 }
 
 main() {
-	check_dependencies
-	[[ "$1" == "-h" || "$1" == "--help" ]] && help 0
-	check_git_repo
+	local -r script="${0##*/}"
+	local -r version="3.5.26184"
+	local -i exit_code=0
+	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
+	check_git_repo && die "This is a git repository. Use 'gretire.sh' to retire a script inside a git repository." 1
 	local filename="$1"
 	[[ "$filename" ]] || read -rp "Enter a script to be retired: " filename
+	check_dependencies
 	chack_args "$filename"
-	exit_script
+	exit_code="$?"
+  over_line "$script $version"
+	exit "$exit_code"
 }
 
 ## Execution ##
