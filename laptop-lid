@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : laptop-lid
 # Description  : allows laptop lid to be closed without suspend or sleep.
 # Dependencies : ~/bin/files/laptoplid.sed
@@ -7,34 +7,25 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Oct 2020
-# Updated      : 04 Feb 2026
+# Updated      : 03 Jul 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify# it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Shellcheck Directives ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -45,30 +36,31 @@ modify_logind() {
   local -r sed_file="$script_dir/files/laptoplid.sed"
   if [[ ! -f "$sed_file" ]]; then
     printf "A required file, %s, was not found. Operation canceled.\n" "${sed_file##*/}" >&2
-    EC="$E_FILENOTFOUND"
-    return
+    return "$E_FILENOTFOUND"
   fi
   sudo_login 2
   printf "Modifying %s and restarting the systemd-logind service.\n" "${logind_conf##*/}"
   sudo sed -i.bak -f "$sed_file" "$logind_conf"
   sudo systemctl restart systemd-logind.service
   printf "%s modified, backup created, and service restarted.\n" "$logind_conf"
+  return 0
 }
 
 main() {
   local -r script="${0##*/}"
   local -r version="4.5.26035"
   local -r lhost="${HOSTNAME:=-$(hostname)}"
-  EC=0
+  exit_code=0
   printf "Allows a laptop's lid to be closed without the system going into suspend mode.\n"
   if is_laptop; then
     modify_logind
+    exit_code="$?"
   else
     printf "%s is not a laptop. Operation canceled.\n" "$lhost" >&2
-    EC="$E_INFO"
+    exit_code=1
   fi
   over_line "$script $version" "-"
-  exit "$EC"
+  exit "$exit_code"
 }
 
 ## Execution ##
