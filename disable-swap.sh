@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jan 2025
-# Last updated : 24 Feb 2026
+# Last updated : 04 Jul 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,17 +24,9 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
 ## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Functions ##
 
@@ -48,26 +40,30 @@ disable_swap_device() {
 	else
 		printf "%s remains enabled as swap.\n" "$swap_dev"
 	fi
+	return 0
 }
 
 check_swap_device() {
 	local swap_dev
 	swap_dev=$(awk '/file/ || /partition/ {print $1}' /proc/swaps)
-	[[ "$swap_dev" ]] || { printf "No swap device detected.\n"; return; }
+	[[ "$swap_dev" ]] || { printf "No swap device detected.\n"; return 0; }
 	case "$swap_dev" in
 		"/dev/zram0" )
-			printf "zram-tools installed and active swap.\n" ;;
+			printf "zram-tools installed and active swap.\nNo changes made.\n" ;;
 		* )
 			disable_swap_device "$swap_dev"
 	esac
+	return 0
 }
 
 main() {
-	local script="${0##*/}"
-	local version="2.1.26055"
+	local -r script="${0##*/}"
+	local -r version="2.2.26185"
+	local exit_code=0
 	check_swap_device
+	exit_code="$?"
 	over_line "$script $version"
-	exit
+	exit "$exit_code"
 }
 
 ## Execution ##
