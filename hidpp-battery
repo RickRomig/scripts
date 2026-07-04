@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : hidpp-battery
 # Description  : Displays status of HIDPP battery
 # Dependencies : upower
@@ -7,38 +7,32 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Sep 2023
-# Last updated : 20 Jun 2026
+# Last updated : 04 Jul 2026
 # Comments     : Defaults to using /sys/class/power_supply
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="1.9.26171"
-
 ## Functions ##
 
 help() {
-	local errcode="${1:-1}"
-	local updated="20 Jun 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local errcode="${3:-1}"
+	local updated="04 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Displays HIDPP battery status.
@@ -58,7 +52,7 @@ sys_class_data() {
   for hidpp_path in /sys/class/power_supply/hidpp_battery_?; do
     if [[ "$hidpp_path" == "/sys/class/power_supply/hidpp_battery_?" ]]; then
       printf "HID++ battery not present.\n"
-			return
+			return 0
     fi
 		device="${hidpp_path##*/}"
 		brand=$(< "$hidpp_path/manufacturer")
@@ -69,13 +63,14 @@ sys_class_data() {
 		printf "%-15s %-10s %-6s %-5s %12s\n" "Device name" "Brand" "Model" "Charge" "Serial number"
 		printf "%-15s %-10s %-6s %s %12s\n" "$device" "$brand" "$model" "$charge" "$serial"
   done
+	return 0
 }
 
 upower_data() {
 	check_package upower
 	if ! grep -q hidpp <(/usr/bin/upower -e); then
 	  printf "HID++ battery not present.\n"
-		return
+		return 0
 	fi
 	local hidpp_data
 	hidpp_data=$(/usr/bin/upower -i "$(grep hidpp <(/usr/bin/upower -e))")
@@ -84,26 +79,32 @@ upower_data() {
 	"$(awk '/model/ {print $NF}' <<< "$hidpp_data")" \
 	"$(awk '/percentage/ {print $NF}' <<< "$hidpp_data")" \
 	"$(awk '/serial/ {print $NF}' <<< "$hidpp_data")"
+	return 0
 }
 
 main() {
-	local noOpt optstr opt OPTARG OPTIND
-	noOpt=1
-	optstr=":hsu"
+	local -r script="${0##*/}"
+	local -r version="1.10.26185"
+	local exit_code=0
+	local opt OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":hsu"
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			h ) help 0 ;;
+			h ) help "$script" "$version" 0 ;;
 			s ) sys_class_data ;;
 			u ) upower_data ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
+		exit_code="$?"
 		noOpt=0
 	done
 	[[ "$noOpt" = 1 ]] && sys_class_data
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
+	exit "$exit_code"
 }
 
 ## Execution ##
