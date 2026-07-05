@@ -29,7 +29,11 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 ## Functions ##
 
 is_git_repo() {
-  [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]  && return "$TRUE" || return "$FALSE"
+  [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] && return "$TRUE" || return "$FALSE"
+}
+
+unpushed_commits() {
+	[[ $(grep -c 'Author:' < <(git log --branches --not --remotes)) -gt 0 ]] && return "$TRUE" || return "$FALSE"
 }
 
 git_reset() {
@@ -41,16 +45,25 @@ git_reset() {
 	return 0
 }
 
-main() {
-  local -r script="${0##*/}"
-	local -r version="2.8.26185"
-	check_package git
-	is_git_repo || die "You are not in a git repositiory. Reset operation canceled." 1
+reset_commit() {
+	if ! unpushed_commits; then
+		printf "THere are no unpushed commits in the local repository that can be reset.\n"
+		return 0
+	fi
 	if y_or_n "Reset last unpushed commit to the previous version?"; then
 		git_reset
 	else
 		printf "Last unpushed commit unchanged.\n"
 	fi
+	return 0
+}
+
+main() {
+  local -r script="${0##*/}"
+	local -r version="3.0.26185"
+	check_package git
+	is_git_repo || die "You are not in a git repositiory. Reset operation canceled." 1
+	reset_commit
 	over_line "$script $version"
 	exit
 }
