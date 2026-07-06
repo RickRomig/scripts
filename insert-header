@@ -7,44 +7,32 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 18 May 2026
+# Updated      : 06 Jul 2026
 # Comments     : Assumes first line of the target file is either a hash-bang or a C/C++ comment
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="4.9.26138"
-
 ## Functions ##
 
-# Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-# shellcheck disable=SC2317
-cleanup() {
-  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
-}
-
 help() {
-  local errcode="${1:-1}"
-  local updated="18 May 2026"
+  local -r script="$1"
+  local -r version="$2"
+  local errcode="${3:-1}"
+  local updated="06 Jul 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts a header into a shell script or a C/C++ source file.
@@ -60,6 +48,12 @@ ${orange}Available options:${normal}
       $script -s <shell-script>
 _HELP_
   exit "$errcode"
+}
+
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+cleanup() {
+  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
 }
 
 insert_header() {
@@ -90,46 +84,49 @@ insert_header() {
       printf "%sInvalid code type.%s\n" "$lightred" "$normal" >&2
 	esac
 	printf "The %s header has been inserted into %s." "$code_type" "$code_file"
+  return 0
 }
 
 main() {
+  local -r script="${0##*/}"
+  local -r version="4.9.26138"
 	local code_file code_type template_file opt OPTARG OPTIND
-	local noOpt=1
-	local optstr=":c:hp:s:v"
+	local -i noOpt=1
+	local -r optstr=":c:hp:s:v"
 	while getopts "$optstr" opt; do
     case "$opt" in
       c )
 				code_file="$OPTARG"
-				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$E_FILENOTFOUND"; }
+				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$script" "$version" "$E_FILENOTFOUND"; }
         code_type="C"
         template_file="c-header.txt"
         ;;
       h )
-        help 0
+        help "$script" "$version" 0
         ;;
       p )
 				code_file="$OPTARG"
-				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$E_FILENOTFOUND"; }
+				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$script" "$version" "$E_FILENOTFOUND"; }
         code_type="C++"
         template_file="cpp-header.txt"
         ;;
       s )
 				code_file="$OPTARG"
-				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$E_FILENOTFOUND"; }
+				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$script" "$version" "$E_FILENOTFOUND"; }
         code_type="Shell"
         template_file="bash-header.txt"
         ;;
      : )
         printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$E_MISSING_ARG"
+        help "$script" "$version" "$E_MISSING_ARG"
         ;;
       ? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
     esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 	trap cleanup EXIT
