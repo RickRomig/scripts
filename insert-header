@@ -50,10 +50,19 @@ _HELP_
   exit "$errcode"
 }
 
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 cleanup() {
   [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
+}
+
+check_code_file() {
+	local -r codefile="$1"
+	if [[ -f "$codefile" ]]; then
+		return "$TRUE"
+	fi
+	printf "%s %s not found\n" "$RED_ERROR" "$codefile" >&2
+	return "$FALSE"
 }
 
 insert_header() {
@@ -89,7 +98,7 @@ insert_header() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.9.26138"
+  local -r version="4.10.26187"
 	local code_file code_type template_file opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":c:hp:s:v"
@@ -97,7 +106,7 @@ main() {
     case "$opt" in
       c )
 				code_file="$OPTARG"
-				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$script" "$version" "$E_FILENOTFOUND"; }
+				check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
         code_type="C"
         template_file="c-header.txt"
         ;;
@@ -106,13 +115,13 @@ main() {
         ;;
       p )
 				code_file="$OPTARG"
-				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$script" "$version" "$E_FILENOTFOUND"; }
+				check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
         code_type="C++"
         template_file="cpp-header.txt"
         ;;
       s )
 				code_file="$OPTARG"
-				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$script" "$version" "$E_FILENOTFOUND"; }
+				check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
         code_type="Shell"
         template_file="bash-header.txt"
         ;;
