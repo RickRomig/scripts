@@ -7,40 +7,38 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 19 Jun 2026
+# Updated      : 06 Jul 2026
 # Comments     : Inserts the license immediately after the file's header.
 #              : Assumes the standard script or C/C++ header is present.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ##########################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
 ## Global Variables ##
 
-readonly script="${0##*/}"
-readonly version="5.2.26170"
 license_file=
 license_type=
 
 ## Functions ##
 
 help() {
-  local -r errcode="${1:-1}"
-  local -r updated="19 Jun 2026"
+  local -r script="$1"
+  local -r version="$2"
+  local errcode="${3:-1}"
+  local updated="06 Jul 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts an Open Source license into a shell script or a C/C++ source code file.
@@ -59,9 +57,19 @@ _HELP_
 }
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
 cleanup() {
   [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
+}
+
+check_code_file() {
+	local -r codefile="$1"
+	if [[ -f "$codefile" ]]; then
+		printf "File: %s\n" "$code_file"
+		return "$TRUE"
+	fi
+	printf "%s %s not found\n" "$RED_ERROR" "$codefile" >&2
+	return "$FALSE"
 }
 
 set_license() {
@@ -77,6 +85,7 @@ set_license() {
 			* ) printf "%sInvalid option. Try again.%s\n" "$lightred" "$normal" >&2
 		esac
 	done
+  return 0
 }
 
 insert_license() {
@@ -108,18 +117,20 @@ insert_license() {
 			die "Invalid code type. Exiting the script." "$E_INVALID_ARG"		# Should never occur
 	esac
 	printf "%s license has been inserted into %s.\n" "$license_type" "$code_file"
+  return 0
 }
 
 main() {
+ local -r script="${0##*/}"
+  local -r version="4.10.26187"
 	local opt code_file code_type OPTARG OPTIND
-	local noOpt=1
-	local optstr=":c:hp:s:"
+	local -i noOpt=1
+	local -r optstr=":c:hp:s:"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c )
 				code_file="$OPTARG"
-				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$E_FILENOTFOUND"; }
-				printf "File: %s\n" "$code_file"
+				check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
 				code_type="C"
 				printf "Code type: %s source code\n" "$code_type"
 				;;
@@ -128,29 +139,27 @@ main() {
 				;;
 			p )
 				code_file="$OPTARG"
-				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$E_FILENOTFOUND"; }
-				printf "File: %s\n" "$code_file"
+				check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
 				code_type="C++"
 				printf "Code type: %s source code\n" "$code_type"
 				;;
 			s )
 				code_file="$OPTARG"
-				[[ -f "$code_file" ]] || { printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2; help "$E_FILENOTFOUND"; }
-				printf "File: %s\n" "$code_file"
+				check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
 				code_type="Shell"
 				printf "Code type: %s source code\n" "$code_type"
 				;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_MISSING_ARG"
+				help "$script" "$version" "$E_MISSING_ARG"
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 	trap cleanup EXIT
