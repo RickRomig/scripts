@@ -2,42 +2,38 @@
 ###############################################################################
 # Script Name  : create-c-cpp
 # Description  : create C source file from template
-# Dependencies : None
-# Arguments    : see help()
+# Dependencies : bat, micro (used by edit_view_quit function)
+# Arguments    : see help() function
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 11 Jun 2026
-# Comment      : C template includes GNU GPL v2 license
+# Last updated : 07 Jul 2026
+# Comments     : Creates code files in the current working directory
+#              : Templates include GNU GPL v2 license
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Global Variables ##
-readonly script="${0##*/}"
-readonly version="4.5.26162"
-verbose_mode="$FALSE"
-
-## Functions ##
+VERBOSE_MODE="$FALSE"
 
 help() {
-  local errcode="${1:-2}"
-  local updated="11 Jun 2026"
+  local -r script="$1"
+  local -r version="$2"
+  local errcode="${3:-1}"
+  local updated="07 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Creates a C/C++ source code file with descriptive comments (GPL v2.0 license)
@@ -57,12 +53,22 @@ _HELP_
 
 show_message() {
 	local message="$1"
-	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+	[[ "$VERBOSE_MODE" == "$TRUE" ]] && echo "$message"
+	return 0
+}
+
+file_exists() {
+	local -r codefile="$1"
+	if [[ -f "$codefile" ]]; then
+		printf "%s %s already exists.\n" "$RED_ERROR" "$codefile" >&2
+		return "$TRUE"
+	fi
+	return "$FALSE"
 }
 
 import_metadata() {
 	local cur_yr today script_dir
-	local -r script_name="$1"
+	local -r code_file="$1"
 	local -r template_file="$2"
 	script_dir=$(dirname "$(readlink -f "${0}")")
 	local -r template_dir="$script_dir/Templates"
@@ -76,22 +82,22 @@ import_metadata() {
 		-e "s/<YEAR>/$cur_yr/" \
 		-e "s/<TODAY>/$today/"  "$template_dir/$template_file" > "$code_file"
 	show_message "Setting file permissions to 644 (rw-r--r--)."
-	chmod 755 "$script_name"
+	chmod 755 "$code_file"
 	printf "%s has been created." "$code_file"
+	return 0
 }
 
 main() {
+  local -r script="${0##*/}"
+  local -r version="4.6.26188"
 	local code_file opt template_file OPTARG OPTIND
-	local noOpt=1
-	local optstr=":c:hp:v"
+	local -i noOpt=1
+	local -r optstr=":c:hp:v"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c )
 				code_file="$OPTARG"
-				if [[ -f "$code_file" ]]; then
-					printf "%s %s already exists\n" "$RED_ERROR" "$code_file" >&2
-					help "$E_FILE_EXISTS"
-				fi
+				file_exists "$code_file" && help "$script" "$version" "$E_FILE_EXISTS"
 				show_message "Code file: $code_file"
 				template_file="c-template.txt"
 				show_message "Template: c-template.txt"
@@ -101,35 +107,30 @@ main() {
 				;;
 			p )
 				code_file="$OPTARG"
-				if [[ -f "$code_file" ]]; then
-					printf "%s %s already exists\n" "$RED_ERROR" "$code_file" >&2
-					help "$E_FILE_EXISTS"
-				fi
+				file_exists "$code_file" && help "$script" "$version" "$E_FILE_EXISTS"
 				show_message "Code file: $code_file"
 				template_file="cpp-template.txt"
 				;;
 			v )
-				verbose_mode="$TRUE"
+				VERBOSE_MODE="$TRUE"
 				show_message "Verbose mode enabled."
 				;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_MISSING_ARG"
+				help "$script" "$version" "$E_MISSING_ARG"
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	import_metadata "$code_file" "$template_file"
 	edit_view_quit "$code_file"
 	over_line "$script $version"
 	printf "MOTD: "; leave ""
 }
-
-## Execution ##
 
 main "$@"
