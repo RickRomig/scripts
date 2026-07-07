@@ -7,22 +7,20 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 11 Jun 2026
+# Last updated : 07 Jul 2026
 # Comments     : Creates the script in the current working directory.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
 ## Source function library ##
@@ -31,15 +29,15 @@ source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functio
 
 ## Global Variables ##
 
-readonly script="${0##*/}"
-readonly version="4.8.26162"
-verbose_mode="$FALSE"
+VERBOSE_MODE="$FALSE"
 
 ## Functions ##
 
 help() {
-	local errcode="${1:-1}"
-	local updated="11 Jun 2026"
+  local -r script="$1"
+  local -r version="$2"
+  local errcode="${3:-1}"
+  local updated="07 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Creates a shell script with header comments (getopts optional)
@@ -59,7 +57,16 @@ _HELP_
 
 show_message() {
 	local message="$1"
-	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+	[[ "$VERBOSE_MODE" == "$TRUE" ]] && echo "$message"
+}
+
+script_exists() {
+	local -r scriptname="$1"
+	if [[ -f "$scriptname" ]]; then
+		printf "%s %s already exists.\n" "$RED_ERROR" "$scriptname" >&2
+		return "$TRUE"
+	fi
+	return "$FALSE"
 }
 
 import_metadata() {
@@ -87,17 +94,16 @@ import_metadata() {
 }
 
 main() {
+  local -r script="${0##*/}"
+  local -r version="4.10.26188"
 	local opt script_name template_file OPTARG OPTIND
-	local noOpt=1
-	local optstr=":b:hg:v"
+	local -i noOpt=1
+	local -r optstr=":b:hg:v"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			b )
 				script_name="$OPTARG"
-				if [[ -f "$script_name" ]]; then
-					printf "%s %s already exists\n" "$RED_ERROR" "$script_name" >&2
-					help "$E_FILE_EXISTS"
-				fi
+				script_exists "$script_name" && help "$script" "$version" "$E_FILE_EXISTS"
 				show_message "Script name: $script_name"
 				template_file="bash-template.txt"
 				show_message "Template: ${template_file##*/}"
@@ -107,29 +113,26 @@ main() {
 				;;
 			g )
 				script_name="$OPTARG"
-				if [[ -f "$script_name" ]]; then
-					printf "%s %s already exists\n" "$RED_ERROR" "$script_name" >&2
-					help "$E_FILE_EXISTS"
-				fi
+				script_exists "$script_name" && help "$script" "$version" "$E_FILE_EXISTS"
 				show_message "Script name: $script_name"
 				template_file="bash-getopts.txt"
 				show_message "Template: ${template_file##*/}"
 				;;
 			v )
-				verbose_mode="$TRUE"
+				VERBOSE_MODE="$TRUE"
 				show_message "Verbose mode enabled."
 				;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_MISSING_ARG"
+				help "$script" "$version" "$E_MISSING_ARG"
 			;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	import_metadata "$script_name" "$template_file"
 	edit_view_quit "$script_name"
