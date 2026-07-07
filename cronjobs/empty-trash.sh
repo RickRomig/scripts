@@ -7,25 +7,24 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 01 Ju1 2026
+# Updated      : 07 Ju1 2026
 # Comments     : Run as a user cron job. '~/.local/bin/empty-trash.sh'
 #              : Trash directory does not exist until a file has been moved to the trash.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-old_version() {
+# Check version of trash-cli
+old_trash_count_version() {
   local -i vernum
 	vernum=$(cut -d. -f2 < <(trash-empty --version))
 	(( vernum < 23 )) && return 0 || return 1
@@ -39,36 +38,37 @@ trash_empty() {
 
 empty_trash() {
 	local -r trash_dir="$1"
-	local last_week old_trash
+	local last_week old_trash_count
 	last_week=$(date -d "$(date) - 6 days" +%F)
-	old_trash="$(wc -l < <(find "$trash_dir/files" -maxdepth 1 -type f -o -type d -daystart -ctime +6))"
+	old_trash_count="$(wc -l < <(find "$trash_dir/files" -maxdepth 1 -type f,d -daystart -ctime +6))"
 	if trash_empty; then
 		printf "\nNo trash to be removed.\n"
-		return
+		return 0
 	fi
 	printf "\nTrash contents:\n"
 	/usr/bin/trash-list
-	if [[ "$old_trash" -eq 0 ]]; then
+	if [[ "$old_trash_count" -eq 0 ]]; then
 		printf "\nNo trash older than %s.\n" "$last_week"
-		return
+		return 0
 	fi
 	printf "\nRemoving trash older than %s...\n" "$last_week"
-	if old_version; then
-		/usr/bin/trash-empty 6	# older versions do not support verbosity
+	if old_trash_count_version; then
+		/usr/bin/trash-empty 6	# older trash-cli versions do not support verbosity
 	else
-		sed '/trashinfo$/d' < <(/usr/bin/trash-empty -v -f  6)
+		sed '/trashinfo$/d' < <(/usr/bin/trash-empty -v -f  6)	# don't display files from Trash/info
 	fi
 	if trash_empty; then
 		printf "\nAll trash has been removed.\n"
-		return
+		return 0
 	fi
 	printf "\nTrash newer than %s:\n" "$last_week"
 	/usr/bin/trash-list
+	return 0
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.13.26182"
+  local -r version="5.14.26188"
   local -r lhost="${HOSTNAME:-$(hostname)}"
 	local -r trash_dir=~/.local/share/Trash
 	local -r log_dir=~/.local/share/logs
