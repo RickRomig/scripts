@@ -2,16 +2,16 @@
 ###############################################################################
 # Script Name  : create_script
 # Description  : Creates script file with header information
-# Dependencies : bat, micro (used by edit_view_quit.)
-# Arguments    : See help function
+# Dependencies : bat, micro (used by edit_view_quit function)
+# Arguments    : See  help() function
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
 # Last updated : 07 Jul 2026
-# Comments     : Creates the script in the current working directory.
+# Comments     : Creates script in the current working directory
+#              : Templates include GNU GPL v2 license
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
-# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
 # This program is free software; you can redistribute it and/or modify it under
@@ -27,11 +27,7 @@
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Global Variables ##
-
 VERBOSE_MODE="$FALSE"
-
-## Functions ##
 
 help() {
   local -r script="$1"
@@ -58,6 +54,7 @@ _HELP_
 show_message() {
 	local message="$1"
 	[[ "$VERBOSE_MODE" == "$TRUE" ]] && echo "$message"
+	return 0
 }
 
 script_exists() {
@@ -91,6 +88,7 @@ import_metadata() {
 	show_message "Setting file permissions to 755 (rwxr-xr-x)."
 	chmod 755 "$script_name"
 	printf "The %s script has been created." "$script_name"
+	return 0
 }
 
 main() {
@@ -139,7 +137,5 @@ main() {
 	over_line "$script $version"
 	printf "MOTD: "; leave ""
 }
-
-## Execution ##
 
 main "$@"
