@@ -7,34 +7,30 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 02 Jul 2026
+# Updated      : 08 Jul 2026
 # Comments     : clone_repo() is contained in functionlib
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Functions ##
-
 help() {
   local -r script="$1"
   local -r version="$2"
 	local -r errcode="${3:-1}"
-	local -r updated="02 Jul 2026"
+	local -r updated="08 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Clone a git repository from GitHub or the local Gitea server
@@ -64,8 +60,8 @@ check_repo() {
     popd || return "$E_POPD_PUSHD"
   else
     clone_repo "$git_repo" "$dl_dir/"
-    return 0
   fi
+  return "$?"
 }
 
 clone_repo() {
@@ -78,13 +74,13 @@ clone_repo() {
     * )
       url="$GITEA_URL"
   esac
-  git clone "$url/${git_repo}.git" "$dl_dir/"
-  return 0
+  git clone "$url/${git_repo}.git" "$dl_dir/$git_repo"
+  return "$?"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.1.26183"
+  local -r version="5.2.26189"
   local exit_code=0
   local opt OPTARG OPTIND
   local -i noOpt=1
@@ -110,7 +106,5 @@ main() {
 	over_line "$script $version"
 	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
