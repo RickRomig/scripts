@@ -60,13 +60,28 @@ loop_clones() {
 	return "$?"
 }
 
+validIP() {
+	local -i localIP
+	localIP=$(local_ip)
+	case "$localIP" in
+		10|16|22|153 )
+			printf "Main repository\nNothing to do.\n"
+			return "$FALSE"
+			;;
+		* )
+			return "$TRUE"
+	esac
+}
+
 main() {
   local -r script="${0##*/}"
-  local -r version="4.0.26189"
+  local -r version="4.1.26189"
 	local -i exit_code=0
-  check_package git
-  printf "Updating cloned repositories...\n\n"
-	loop_clones "$script" "$version"
+	if validIP; then
+		check_package git
+		printf "Updating cloned repositories...\n\n"
+		loop_clones "$script" "$version"
+	fi
 	exit_code="$?"
   over_line "$script $version"
   exit "$exit_code"
