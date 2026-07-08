@@ -26,63 +26,55 @@
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-update_clone() {
-	local -r clone="$1"
-	local -r repo_log="$2"
-	local repo_dir="$HOME/Downloads/$clone"
-	[[ -d "$HOME/$clone" ]] && repo_dir="$HOME/$clone"
-	{
-		if [[ -d "$repo_dir" ]]; then
-			pushd "$repo_dir" || return "$E_POPD_PUSHD"
-			git checkout .
-			git pull
-			popd >/dev/null 2>&1 || return "$E_POPD_PUSHD"
-			printf "\n"
-		else
-			printf "~ %s repository ~\nHas not been cloned to this computer.\n~\n" "$clone"
-		fi
-	} | tee -a "$repo_log"
-	return "$?"
-}
-
-loop_clones() {
+update_clones() {
 	local -r script="$1"
 	local -r version="$2"
 	local -r log_dir=~/.local/share/logs
-	local -r repo_log="$log_dir/repo-update.log"
+	local -r repo_log=repo-update.log
   local -r clones=(configs scripts i3wm-debian homepage)
-	local clone
+	local clone clone_dir
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
-	printf "%(%F %R)T (%s %s)\n" -1 "$script" "$version" > "$repo_log"
-  for clone in "${clones[@]}"; do
-		update_clone "$clone" "$repo_log"
-  done
-	return "$?"
+	printf "%(%F %R)T (%s %s)\n" -1 "$script" "$version" > "$log_dir/$repo_log"
+		{
+			for clone in "${clones[@]}"; do
+				clone_dir="$HOME/Downloads/$clone"
+				[[ -d "$HOME/$clone" ]] && clone_dir="$HOME/$clone"
+				if [[ -d "$clone_dir" ]]; then
+					pushd "$clone_dir" >/dev/null 2>&1 || return "$E_POPD_PUSHD"
+					printf "~ %s repository ~\n" "${clone^^}"
+					git checkout .
+					git pull
+					popd >/dev/null 2>&1 || return "$E_POPD_PUSHD"
+					printf "\n"
+				else
+					printf "~ %s repository ~\nHas not been cloned to this computer.\n~\n" "${clone^^}"
+				fi
+			done
+		} | tee -a "$log_dir/$repo_log"
+	return 0
 }
 
 validIP() {
-	local -i localIP
-	localIP=$(local_ip)
-	case "$localIP" in
-		10|16|22|153 ) return "$FALSE" ;;
+  local local_host="${HOSTNAME:-$(hostname)}"
+	case "$local_host" in
+		hp-800g2-sff|hp-850-g3|hp-8300-usdt ) return "$FALSE" ;;
 		* ) return "$TRUE"
 	esac
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.2.26189"
+  local -r version="5.0.26189"
 	local -i exit_code=0
+	printf "%sUpdating cloned repositories...%s\n" "$orange" "$normal"
 	if validIP; then
 		check_package git
-		printf "Updating cloned repositories...\n\n"
-		loop_clones "$script" "$version"
+		update_clones "$script" "$version"
 		exit_code="$?"
 	else
 		exit_code="$?"
-		printf "Main repository\nNothing to do.\n"
+		printf "Main repository - Nothing to do.\n"
 	fi
-	# exit_code="$?"
   over_line "$script $version"
   exit "$exit_code"
 }
