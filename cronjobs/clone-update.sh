@@ -1,32 +1,27 @@
 #!/usr/bin/env bash
-##########################################################################
+################################################################################
 # Script Name  : repo-update.sh
 # Description  : update cloned repositories
 # Dependencies : git
-# Arguments    : See help() function for available options.
+# Arguments    : None
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Sep 2025
-# Last updated : 13 Feb 2026
+# Last updated : 08 Jul 2026
 # Comments     : Run as a daily cron job from ~/.local/bin/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+################################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License for more details.
+################################################################################
 
-## Functions ##
-
-# shellcheck disable=SC2088 # Tilde does not expand in quotes.
 update_clone() {
 	local -r clone="$1"
 	local -r repo_log="$2"
@@ -34,30 +29,39 @@ update_clone() {
 	[[ -d "$HOME/$clone" ]] && repo_dir="$HOME/$clone"
 	{
 		if [[ -d "$repo_dir" ]]; then
-			pushd "$repo_dir" || { echo "$RED_ERROR pushd to $repo_dir failed."; return 1; }
+			pushd "$repo_dir" || { echo "$RED_ERROR pushd to $repo_dir failed." >&2; return 1; }
 			git checkout .
 			git pull
-			popd || { echo "$RED_ERROR popd from $repo_dir failed."; return 1; }
+			popd || { echo "$RED_ERROR popd from $repo_dir failed." >&2; return 1; }
 		else
-			printf "~/Downloads/%s ~\nHas not been cloned to this computer.\n~\n" "$clone"
+			printf "~ %s repository ~\nHas not been cloned to this computer.\n~\n" "$clone"
 		fi
 	} >> "$repo_log"
+	return "$?"
 }
 
-main() {
-	local clone clones
-	local -r script="${0##*/}"
-	local -r version="2.3.26044"
-	local -r log_dir="$HOME/.local/share/logs"
+loop_clones() {
+	local -r script="$1"
+	local -r version="$2"
+	local -r log_dir=~/.local/share/logs
 	local -r repo_log="$log_dir/repo-update.log"
+  local -r clones=(configs scripts i3wm-debian homepage)
+	local clone
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 	printf "%(%F %R)T (%s %s)\n" -1 "$script" "$version" > "$repo_log"
-  clones=(configs scripts i3wm-debian homepage)
   for clone in "${clones[@]}"; do
 		update_clone "$clone" "$repo_log"
   done
+	return "$?"
 }
 
-## Execution ##
+main() {
+	local -r script="${0##*/}"
+	local -r version="3.0.26189"
+	local -i exit_code=0
+	loop_clones "$script" "$version"
+	exit_code="$?"
+  exit "$exit_code"
+}
 
 main "$@"
