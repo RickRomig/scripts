@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : cal-todo
 # Description  : Display calendar and ToDo list side by side.
 # Dependencies : ncal
@@ -7,36 +7,29 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Dec 2022
-# Updated      : 25 Jun 2026
+# Updated      : 09 Jul 2026
 # Comments     : base script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
 #              : Uses default editor ($EDITOR) to edit to-do list.
 #              : Limit to-do list to 7 items to maintain proper formating.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="3.8.26176"
 CALENDAR=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
-
-## Functions ##
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
@@ -45,8 +38,10 @@ cleanup() {
 }
 
 help() {
-	local errcode="${1:-1}"
-	local updated="25 Jun 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local -r errcode="${3:-1}"
+	local -r updated="09 Jul 2026"
 	cat <<- _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Creates/displays/edits a simple to-do list with a calendar.
@@ -71,6 +66,17 @@ create_todo() {
 	printf "Creating todo list...\n"
 	cp -v "$script_dir/Templates/$todolist" "$doc_dir/"
 	$EDITOR "$doc_dir/$todolist"
+	return "$?"
+}
+
+print_months() {
+	local previous current next
+	local -i padding=6
+	printf -v previous "%*s%s%*s" "$padding" "" "$(date -d "$(date +%F) - 1 month" +'%b %Y')" "$padding" ""
+	printf -v current "%*s%s%*s" "$padding" "" "$(date +'%b %Y')" "$padding" ""
+	printf -v next "%*s%s%*s" "$padding" "" "$(date -d "$(date +%F) + 1 month" +'%b %Y')" "$padding" ""
+	printf "\n%s  %s  %s\n" "$previous" "$current" "$next"
+	return 0
 }
 
 show_one_month() {
@@ -79,22 +85,29 @@ show_one_month() {
 	clear
 	cal > "$CALENDAR"
 	paste "$CALENDAR" "$doc_dir/$todolist"
+	return "$?"
 }
 
 show_three_months() {
 	local -r doc_dir="$1"
 	local -r todolist="$2"
 	clear
+	print_months
 	sed '1d' < <(cal -3) > "$CALENDAR"	# strips off the year (1st line) to line up todo list with the month.
 	paste "$CALENDAR" "$doc_dir/$todolist"
+	return "$?"
 }
 
 main() {
-	local noOpt optstr opt OPTARG OPTIND
-	local -r doc_dir="$HOME/.local/share/doc"
+	local -r script="${0##*/}"
+	local -r version="3.9.26190"
+	local -i exit_code=0
+	local opt OPTARG OPTIND
+	local -r doc_dir=~/.local/share/doc
 	local -r todolist="todo.lst"
-	noOpt=1
-	optstr=":13eh"
+	local -i noOpt=1
+	local -r optstr=":13eh"
+	trap cleanup EXIT
 	check_package ncal
 	while getopts "$optstr" opt; do
 		case "$opt" in
@@ -116,21 +129,19 @@ main() {
 				fi
 				;;
 			h )
-				help 0
+				help "$script" "$version" 0
 				;;
 			? )
 				printf "%s Invalid option: -%s\n" >&2 "$RED_ERROR" "$OPTARG"
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
+		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	exit
+	exit "$exit_code"
 }
 
-## Execution ##
-
-trap cleanup EXIT
 main "$@"
