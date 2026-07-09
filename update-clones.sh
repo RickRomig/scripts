@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Aug 2025
-# Last updated : 08 Jul 2026
+# Last updated : 09 Jul 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -54,7 +54,7 @@ update_clones() {
 	return 0
 }
 
-validIP() {
+valid_host() {
   local local_host="${HOSTNAME:-$(hostname)}"
 	case "$local_host" in
 		hp-800g2-sff|hp-850-g3|hp-8300-usdt ) return "$FALSE" ;;
@@ -64,10 +64,10 @@ validIP() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.0.26189"
+  local -r version="5.0.26190"
 	local -i exit_code=0
 	printf "%sUpdating cloned repositories...%s\n" "$orange" "$normal"
-	if validIP; then
+	if valid_host; then
 		check_package git
 		update_clones "$script" "$version"
 		exit_code="$?"
