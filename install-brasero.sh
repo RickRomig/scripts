@@ -7,38 +7,31 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 14 Feb 2026
-# Updated      : 23 May 2026
-# Comments     : Thanks to Joe Collins and Matt Hartley for the fix for the permissions problem.
+# Updated      : 10 Jul 2026
+# Comments     : Thanks to Joe Collins and Matt Hartley for the fix to the permissions problem.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify# it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or# (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of# MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="1.5.26143"
-EC=0
-
-## Functions ##
-
 help() {
-	local errcode="${1:-1}"
-	local -r updated="23 May 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local -r errcode="${3:-1}"
+	local -r updated="10 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs Brasero CD/DVD writeer
@@ -55,18 +48,21 @@ _HELP_
 check_dependencies() {
   local packages=( cdrdao growisofs wodim )
   check_packages "${packages[@]}"
+	return "$?"
 }
 
 brasero_version() {
-	awk '/ii/ {print $3}' < <(dpkg -l brasero) | sed 's/[~+-].*//'
+	awk '/^ii/ {print $3}' < <(dpkg -l brasero) | sed 's/[~+-].*//'
+	return 0
 }
 
 #  Set permissions to enable audio CD writing
 set_permissions() {
-  echo "Setting permissions..."
+  printf "Setting permissions...\n"
   sudo chmod -v 4711 /usr/bin/cdrdao
   sudo chmod -v 4711 /usr/bin/wodim
   sudo chmod -v 0755 /usr/bin/growisofs
+	return 0
 }
 
 add_mimeapps() {
@@ -77,11 +73,13 @@ add_mimeapps() {
   printf  "Updating mimeapps.iist...\n"
 	tee -a "$applications_dir/mimeapps.list" < <(printf "%s\n" "${set_brasero[@]}")
 	grep -w brasero "$applications_dir/mimeapps.list"
+	return 0
 }
 
 # Sound 'pop and click' fix. Set sound card to stay powered on all the time
 pop_and_click() {
 	sudo tee -a /etc/modprobe.d/alsa-base.conf >/dev/null <<< "options snd-hda-intel power_save=0 power_save_controler=N"
+	return "$?"
 }
 
 install_brasero() {
@@ -90,32 +88,36 @@ install_brasero() {
 	is_debian && sudo apt-get install -y brasero-cdrkit
 	if ! installed brasero; then
 		printf "%s Brasero installation failed.\n" "$RED_ERROR" >&2
-		EC="$E_INSTALLATION"
-		return
+		return "$E_INSTALLATION"
 	fi
 	check_dependencies
 	set_permissions
 	add_mimeapps
 	pop_and_click
 	printf "Brasero %s installed.\n" "$(brasero_version)"
+	return 0
 }
 
 remove_brasero() {
-	local -r mimeapps_list=~/.local/share/applications/mimeapps.list
+	local -r applications_dir=~/.local/share/applications
 	printf "Removing Braseror %s...\n" "$(brasero_version)"
 	sudo apt-get remove brasero brasero-common brasero-cdrkit
-	sed -i '/brasero.desktop/d' "$mimeapps_list"
+	sed -i '/brasero.desktop/d' "$applications_dir/mimeapps.list"
 	printf "Brasero removed.\n"
+	return 0
 }
 
 main() {
-	local noOpt opt optstr OPTARG OPTIND
-	noOpt=1
-	optstr=":hir"
+	local -r script="${0##*/}"
+	local -r version="1.6.26191"
+	local -i exit_code=0
+	local opt  OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":hir"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
-				help 0
+				help "$script" "$version" 0
 				;;
 			i )
 				if installed brasero; then
@@ -133,17 +135,16 @@ main() {
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
+		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	[[ $EC -eq 0 ]] && reboot_system
-	exit "$EC"
+	[[ $exit_code -eq 0 ]] && reboot_system
+	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
