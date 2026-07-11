@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : iru-micro
 # Description  : Installs, updates, and removes the Micro CLI text editor.
 # Dependencies : curl wget
@@ -7,41 +7,35 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 26 Jun 2026
-# Comments     : Debian 13 & LMDE 7 repo version 2.0.14
-#              : Debian 12, Ubuntu 24.04 & Mint 22 repo version 2.0.13
-#              : If repo version installed, run iru-micro -u to remove and install new version
+# Updated      : 11 Jul 2026
+# Comments     : Debian 13 & LMDE 7 installs version 2.0.14 from Debian repository
+#              : Debian 12, Ubuntu 24.04 & Mint 22 nstalls version 2.0.13 from repositories
+#              : iru-micro -u remove remove repo version and install latest from GitHub repository
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify# it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or# (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of# MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="8.0.26177"
-readonly gh_url="https://github.com/micro-editor/micro/releases"
-EC=0
-
-## Functions ##
+# readonly gh_url="https://github.com/micro-editor/micro/releases"
 
 help() {
-	local errcode="${1:-1}"
-	local -r updated="26 Jun 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local -r errcode="${3:-1}"
+	local -r updated="11 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -66,11 +60,12 @@ cleanup() {
 
 micro_version() {
   awk '/Version:/ {print $NF}' < <(micro -version)
+  return 0
 }
 
 convert_compare() {
-  local newVer="$1"
-  local curVer="$2"
+  local -r newVer="$1"
+  local -r curVer="$2"
   local newer="$FALSE"
 	local new_arr=()
 	local cur_arr=()
@@ -87,34 +82,39 @@ convert_compare() {
 }
 
 newest_version() {
+  local -r gh_url="$1"
   wget -qO "$TMP_FILE" "$gh_url"
   new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /linux/ {print $6;exit}' "$TMP_FILE"))
   echo "$new_ver"
+  return 0
 }
 
 compare_versions() {
-  local new_ver="$1"
+  local -r new_ver="$1"
+  local -r gh_url="$2"
   local cur_ver
   cur_ver=$(micro_version)
   printf "Comparing current and newest versions...\n"
   if [[ -z "$new_ver" ]]; then
     printf "%s No download available. Try again later." "$RED_ERROR" >&2
-    EC="$E_DOWNLOAD"
+    return "$E_DOWNLOAD"
   elif convert_compare "$new_ver" "$cur_ver"; then
     printf "%sInstalled version of Micro is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-    install_micro "$new_ver"
+    install_micro "$new_ver" "$gh_url"
+    return "$?"
   else
     printf "%sMicro %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
   fi
+  return 0
 }
 
 install_micro() {
-  local new_ver="$1"
+  local -r new_ver="$1"
+  local -r gh_url="$2"
   local new_pkg="micro-${new_ver}-linux64.tar.gz"
   if [[ -z "$new_ver" ]]; then
     printf "%s No download available. Try again later." "$RED_ERROR" >&2
-    EC="$E_DOWNLOAD"
-    return
+    return "$E_DOWNLOAD"
   fi
   sudo_login 2
   # if the repo verssion is installed, remove it.
@@ -134,10 +134,10 @@ install_micro() {
   installed xclip || sudo apt-get install -y xclip
   if [[ "$(micro_version)" != "$new_ver" ]]; then
     printf "%s Micro installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
 	fi
   printf "Micro %s installed.\n" "$(micro_version)"
+  return 0
 }
 
 remove_micro() {
@@ -149,18 +149,16 @@ remove_micro() {
   sudo rm -v /usr/bin/micro
   sudo rm -rfv /usr/share/doc/micro
   sudo find /usr/share -type f -name "micro." -exec rm -f {} ;\
-
   printf "Micro and configuration files have been removed.\n"
+  return 0
 }
 
 micro_configs() {
-  [[ "$EC" -ne 0 ]] && return
   printf "Applying Micro settings and bindings...\n"
   [[ -d  ~/.config/micro ]] || mkdir -p  ~/.config/micro
 	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
 		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
-    EC="$E_FILENOTFOUND"
-		return
+		return "$E_FILENOTFOUND"
 	fi
   [[ -f  ~/.config/micro/settings.json ]] && rm ~/.config/micro/settings.json
   [[ -f ~/.config/micro/bindings.json ]] && rm  ~/.config/micro/bindings.json
@@ -173,12 +171,17 @@ micro_configs() {
   fi
   micro -plugin install bookmark
   printf "Micro setttings applied.\n"
+  return 0
 }
 
 main() {
-  local noOpt opt optstr new_ver OPTARG OPTIND
-  noOpt=1
-  optstr=":chiru"
+  local -r script="${0##*/}"
+  locl -r version="8.1.26192"
+	local -i exit_code=0
+  local -r gh_url="https://github.com/micro-editor/micro/releases"
+  local opt new_ver OPTARG OPTIND
+  local -i noOpt=1
+  local -r optstr=":chiru"
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
@@ -189,7 +192,7 @@ main() {
         fi
         ;;
       h )
-        help 0
+        help "$script" "$version" 0
         ;;
       i )
         if exists micro; then
@@ -198,10 +201,9 @@ main() {
           TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
           TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
           trap cleanup EXIT
-          new_ver="$(newest_version)"
+          new_ver="$(newest_version "$gh_url")"
           printf "%sInstalling Micro version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
-          install_micro "$new_ver"
-          micro_configs
+          install_micro "$new_ver" "$gh_url" && micro_configs
         fi
         ;;
       r )
@@ -216,24 +218,23 @@ main() {
           TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
           TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
           trap cleanup EXIT
-          new_ver="$(newest_version)"
-          compare_versions "$new_ver"
+          new_ver="$(newest_version "$gh_url")"
+          compare_versions "$new_ver" "$gh_url"
         else
           printf "Micro is not installed.\n" >&2
         fi
         ;;
       ? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$E_INVALID_ARG"
+        help "$script" "$version" "$E_INVALID_ARG"
     esac
+    exit_code="$?"
     noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
