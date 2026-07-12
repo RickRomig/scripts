@@ -249,7 +249,6 @@ df -P / | awk '{print $1}' | sed '1d'
 $ find . -name "*.ext" - exec rename -v 's/\.ext$/\.new/' {}\;
 $ find . -name "*.ext" | rename -v 's/\.ext$/\.new/'
 ```
-
 ### Create directory notification
 ```bash
 [[ -e "$dir" ]] || { notify-send -t 2000 "Creating directory $dir..."; mkdir -p "$dir"; }
@@ -264,4 +263,30 @@ $ head -n1 source-file > target-file      # redirect first line source-file.
 $ tail -n1 source-file > target-file      # redirect last line of source-file.
 $ sed -n '1p' source-file > target-file   # change the 1 to the line number to be redirected.
 $ tail -n +NUM source-file > target-file  # skip NUM-1 lines from the start of the source-file.
+```
+### UUID, fstab
+* Find UUID of devices:
+```bash
+$ sudo blkid
+/dev/sdb1: UUID="e5ca7961-14a2-4412-98ab-3755e98a36d9" BLOCK_SIZE="4096" TYPE="ext4" PARTUUID="3eca74c1-01"
+/dev/sda5: UUID="df2448f0-0a35-42ee-bd8e-4f1494070954" BLOCK_SIZE="4096" TYPE="ext4" PARTUUID="bb8c8670-05"
+/dev/sda1: UUID="EB95-E99B" BLOCK_SIZE="512" TYPE="vfat" PARTUUID="bb8c8670-01"
+/dev/sdc1: LABEL="BU_Drive" UUID="5d3290de-3fa7-4e3c-94b8-aca062c427ef" BLOCK_SIZE="4096" TYPE="ext4" PARTUUID="5e50ec50-01"
+/dev/zram0: UUID="01e93c87-0524-4f26-a485-cb63ad13851e" TYPE="swap"
+$ sudo lsblk -f
+NAME   FSTYPE FSVER LABEL UUID                                 FSAVAIL FSUSE% MOUNTPOINTS
+sda
+├─sda1 vfat   FAT32       EB95-E99B                             967.9M     1% /boot/efi
+├─sda2
+└─sda5 ext4   1.0         df2448f0-0a35-42ee-bd8e-4f1494070954  203.2G     8% /
+sdb
+└─sdb1 ext4   1.0         e5ca7961-14a2-4412-98ab-3755e98a36d9    1.1T    33% /home
+zram0                                                                         [SWAP]
+```
+* Veifify `/etc/fstab`:
+```bash
+$ sudo systemctl daemon-reload  # run after making changes to fstab
+$ sudo mount -a   # if no output, it's okay
+$ sudo findmt --verify
+Success, no errors or warnings detected
 ```
