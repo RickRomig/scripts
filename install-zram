@@ -7,33 +7,31 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jan 2025
-# Updated      : 27 May 2026
+# Updated      : 12 Jul 2026
 # Comments     : Option to disable current swap && install ZRam.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Load function library ##
+## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
 
 find_current_swap() {
   local swap_dev
   swap_dev=$(awk '/file/ || /partition/ {print $1}' /proc/swaps)
   echo "$swap_dev"
+  return 0
 }
 
 disable_swap() {
@@ -42,6 +40,7 @@ disable_swap() {
   sudo sed -i.bak '/swap/s/^UUID=/# UUID=/' /etc/fstab
   sudo /usr/sbin/swapoff "$swap_dev"
   printf "%s is disabled as swap.\n" "$swap_dev"
+  return 0
 }
 
 install_zram() {
@@ -52,17 +51,15 @@ install_zram() {
 	sudo apt install -y zram-tools
   if ! installed zram-tools; then
     printf "zram-tools installation failed!\n"
-    EC="$E_INSTALLATION"
-    return
-  fi
-  if [[ ! -f "$script_dir/files/$sed_file" ]]; then
+    return "$E_INSTALLATION"
+  elif [[ ! -f "$script_dir/files/$sed_file" ]]; then
     printf "%s not found.\n" "$sed_file" >&2
-    EC="$E_FILENOTFOUND"
-    return
+    return "$E_FILENOTFOUND"
   fi
   sudo sed -i.bak -f "$script_dir/files/$sed_file" /etc/default/zramswap
   sudo systemctl restart zramswap.service
 	printf "Zram-tools installed and configured.\n"
+  return 0
 }
 
 check_for_swap() {
@@ -71,7 +68,7 @@ check_for_swap() {
 	if [[ -z "$swap_dev" ]]; then
     printf "No swap device detected. Installing zram-tools...\n"
     install_zram
-		return
+		return "$?"
 	fi
 	case "$swap_dev" in
 	  "/dev/zram0" )
@@ -81,24 +78,25 @@ check_for_swap() {
 	    if yes_or_no "Do you want to disable $swap_dev and install zram-tools?"; then
 	      disable_swap "$swap_dev"
 	      install_zram
+        return "$?"
 	    else
 				printf "%s remains enabled as swap.\n" "$swap_dev"
 	      printf "zram-tools not installed.\n"
 	    fi
 	esac
+  return 0
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.7.26147"
-  EC=0
+  local -r version="4.8.26193"
+  exit_code=0
   check_for_swap
+  exit_code="$?"
   printf "Active swap devices:\n"
   /usr/sbin/swapon --show
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
