@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jan 2025
-# Updated      : 23 Jun 2026
+# Updated      : 12 Jul 2026
 # Comments     : creates a swap file if no other swap exists.
 #              : Disable old swap and comment out in /etc/fstab
 #              : User is prompted to provide size of swap file in GB (integer value)
@@ -51,6 +51,7 @@ create_swapfile() {
 			* ) printf "%sInvalid choice. Try again.%s\n" "$orange" "$normal" >&2
 		esac
 	done
+	return "$?"
 }
 
 dd_swapfile() {
@@ -59,6 +60,7 @@ dd_swapfile() {
 	sudo_login 2
 	sudo dd if=/dev/zero of=/swapfile bs=1024 count="$size"
 	process_swapfile
+	return "$?"
 }
 
 fallocate_swapfile() {
@@ -67,6 +69,7 @@ fallocate_swapfile() {
 	sudo_login 2
 	sudo fallocate -l "$size"G /swapfile
 	process_swapfile
+	return "$?"
 }
 
 process_swapfile() {
@@ -75,25 +78,28 @@ process_swapfile() {
 	sudo chmod 600 /swapfile	# set file permissions
 	sudo mkswap /swapfile			# set up swap area
 	sudo swapon /swapfile			# enable swap file
-	sudo tee -a /etc/fstab <<< "/swapfile none swap sw 0 0"	# add to /etc/fstab
+	sudo tee -a /etc/fstab <<< "/swapfile none swap sw 0 0"	# add swapfile to /etc/fstab
+	sudo systemctl daemon-reload	# reload daemons
+	sudo findmnt --verify			# verity fstab
+	return "$?"
 }
 
 main() {
 	local script="${0##*/}"
 	local version="2.2.26174"
+	local -i exit_code=0
 	if swap_exists; then
 		printf "A swap file or partition already exists and is enabled.\n"
 		printf "Disable current swap before creating swap file.\n"
 	else
 		create_swapfile
+		exit_code="$?"
 	fi
 	sudo_login 2
 	printf "Current Swap:\n"
 	sudo swapon --show
   over_line "$script $version"
-  exit
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
