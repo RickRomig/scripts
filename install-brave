@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#############################################################################
+###############################################################################
 # Script Name  : install-brave
 # Description  : installs the Brave broswer
 # Dependencies : apt-transport-https, curl, libu2f-udev
@@ -7,40 +7,34 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 23 May 2026
+# Updated      : 13 Jul 2026
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#############################################################################
+# This program is distributed in the hope that it will be useful,# but WITHOUT
+# ANY WARRANTY; without even the implied warranty of# MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib
 source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="7.0.26143"
-verbose_mode="FALSE"
-EC=0
-
-## Functions ##
+VERBOSE_MODE="FALSE"
 
 help() {
-  local errcode="${1:-1}"
-  local updated="23 May 2026"
+  local -r script="$1"
+  local -r version="$2"
+  local errcode="${3:-1}"
+  local updated="13 Jul 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: ($updated)
 Installs/Removes the Brave browser
@@ -56,19 +50,21 @@ _HELP_
 }
 
 check_dependencies() {
-  local E_MISSING_DEPENDENCY=108
-  [[ $(uname -m) == "x86_64" ]] || die "System architecture is not 64-bit." "$E_MISSING_DEPENDENCY"
+  [[ $(uname -m) == "x86_64" ]] || die "System architecture is not 64-bit." 1
   local packages=( apt-transport-https curl libu2f-udev )
   check_packages "${packages[@]}"
+  return 0
 }
 
 show_message() {
 	local message="$1"
-	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+	[[ "$VERBOSE_MODE" == "$TRUE" ]] && echo "$message"
+  return 0
 }
 
 brave_ver() {
   brave-browser --version
+  return 0
 }
 
 set_gpg_key() {
@@ -76,11 +72,12 @@ set_gpg_key() {
   local -r key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
   if [[ -f "$brave_key" ]]; then
     printf "%s already exists.\n" "${brave_key##*/}"
-    return
+    return 0
   fi
   show_message "Importing public key for verification of the APT repository"
   sudo curl -fsSLo "$brave_key" "$key_url"
 	show_message "GPG key is set."
+  return 0
 }
 
 set_src_list() {
@@ -89,11 +86,12 @@ set_src_list() {
   local -r brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
   if [[ -f "$brave_list" ]]; then
     printf "%s already exists.\n" "${brave_list##*/}"
-    return
+    return 0
   fi
 	show_message "Creating the source list file..."
   sudo tee "$brave_list" <<< "deb [signed-by=$brave_key arch=amd64] $list_url"
   show_message "${brave_list##*/} has been created."
+  return 0
 }
 
 install_brave() {
@@ -106,10 +104,10 @@ install_brave() {
   sudo apt-get install brave-browser brave-keyring -yy
   if ! installed brave-browser; then
     printf "%s Brave browser installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
   fi
   printf "%s successfully installed.\n" "$(brave_ver)"
+  return 0
 }
 
 remove_brave() {
@@ -118,20 +116,24 @@ remove_brave() {
   show_message "Removing Brave sources..."
   find /etc/apt/ -maxdepth 2 -type f -iname "brave*" -exec sudo rm {} \;
   show_message "Removing the Brave keyring and system files..."
-  find /usr/share -type d -iname "brave*" -exec rm -rf {} \;
+  find /usr/share -maxdepth 3 -type f,d -iname "brave*" -exec rm -rf {} \;
   show_message "Removing local configuration and cache files..."
   find ~/ -maxdepth 2 -type d -name BraveSoftware -exec rm -rf {} \;
   printf "Brave browser has been uninstalled.\n"
+  return 0
 }
 
 main(){
-  local noOpt opt optstr OPTARG OPTIND
-  noOpt=1
-  optstr=":hirv"
+  local -r script="${0##*/}"
+  local -r version="7.1.26194"
+  local -i exit_code=0
+  local opt OPTARG OPTIND
+  local -i noOpt=1
+  local -r optstr=":hirv"
   while getopts "$optstr" opt; do
     case "$opt" in
       h )
-        help 0
+        help "$script" "$version" 0
         ;;
       i )
         if installed brave-browser; then
@@ -151,21 +153,20 @@ main(){
         fi
         ;;
 			v )
-				verbose_mode="$TRUE"
+				VERBOSE_MODE="$TRUE"
 				show_message "Verbose mode enabled."
 			  ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$E_INVALID_ARG"
+        help "$script" "$version" "$E_INVALID_ARG"
     esac
+    exit_code="$?"
     noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
