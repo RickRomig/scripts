@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : install-brave-origin
+# Description  : installs/removes Brave Origin browser
+# Dependencies : apt-transport-https, curl, libu2f-udev
+# Arguments    : See help() function for available options.
+# Author       : Copyright © 2026, Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail | rick.romig@mymetronet.net
+# Created      : 13 Jul 2026
+# Updated      : 13 Jul 2026
+# Version      : 1.0.26194
+# Comments     : Does not overwrite current Brave version
+#              : To downgrade to the original standard Brave:
+#              : Go to brave://flags/#brave-origin and change flag to Disabled
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
+
+## Source function library ##
+# shellcheck source=/home/rick/bin/functionlib
+source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+
+
+help() {
+  local -r script="$1"
+  local -r version="$2"
+	local errcode="${3:-1}"
+	local -r updated="13 Jul 2026"
+	cat << _HELP_
+${orange}$script${normal} $version, Upated: $updated
+Installs/Removes Brave Origin
+
+${green}Usage:${normal} $script [-hirsu] [-v option]
+${orange}Available options:${normal}
+	-h	Show this help message and exit.
+	-i	Install Brave Origin.
+	-r	Remove Brave Origin.
+	-v	Enable verbose mode. If used, must precede other flags.
+${orange}NOTE:${normal}
+Upgrade to Brave Origin for free by clicking 'Proceed with Origin for free on Linux' on the desktop Settings page.
+_HELP_
+  exit "$errcode"
+}
+
+brave_version() {
+	brave-origin --version
+	return 0
+}
+
+show_message() {
+	local message="$1"
+	[[ "$VERBOSE_MODE" == "$TRUE" ]] && echo "$message"
+	return 0
+}
+
+set_gpg_key() {
+  local -r brave_key="$1"
+	local -r key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
+  # if [[ -f "$brave_key" ]]; then
+  #   printf "%s already exists.\n" "${brave_key##*/}"
+  #   return 0
+  # fi
+  show_message "Importing public key for verification of the APT repository"
+  sudo curl -fsSLo "$brave_key" "$key_url"
+	show_message "GPG key is set."
+  return 0
+}
+
+set_sources() {
+	local -r sources_url="https://brave-browser-apt-release.s3.brave.com/brave-browser.sources"
+	local -r sources_file="/etc/apt/sources.list.d/brave-browser-release.sources https://brave-browser-apt-release.s3.brave.com/brave-browser.sources"
+	show_message "Creating the source list file..."
+	sudo curl -fsSLo "$sources_file" "$sources_url"
+  show_message "${sources_file##*/} has been created."
+  return 0
+}
+
+install_brave_origin() {
+  local -r brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
+  printf "Installing the Brave Browser ...\n"
+  set_gpg_key "$brave_key"
+  set_sources
+  show_message "Updating apt cache and isntalling the Brave browser"
+  sudo apt-get update -qq
+	sudo apt-get install brave-origin -yy
+	if ! installed brave-origin; then
+		printf "%s Brave Origin installation failded.\n" "$RED_ERROR" >&2
+    return "$E_INSTALLATION"
+	fi
+  printf "%s successfully installed.\n" "$(brave_version)"
+  return 0
+}
+
+remove_brave_origin() {
+  printf "Uninstalling %s...\n" "$(brave_version)"
+	sudo apt-get remove brave-browser brave-keyring
+  show_message "Removing Brave sources..."
+  find /etc/apt/ -maxdepth 2 -type f -iname "brave*" -exec sudo rm {} \;
+  show_message "Removing the Brave keyring and system files..."
+  find /usr/share -maxdepth 3 -type f,d -iname "brave*" -exec rm -rf {} \;
+  show_message "Removing local configuration and cache files..."
+  find ~/ -maxdepth 2 -type d -name BraveSoftware -exec rm -rf {} \;
+  printf "Brave browser has been uninstalled.\n"
+  return 0
+}
+
+main() {
+  local -r script="${0##*/}"
+  local -r version="1.0.26194"
+  local exit_code=0
+	local opt OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":hirv"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			h )
+				help "$script" "$version" 0
+			;;
+			i )
+				if installed brave-origin; then
+					printf "%s is already installed.\n" "$(brave_version)"
+				else
+					[[ $(uname -m) == "x86_64" ]] || die "System architecture is not 64-bit." 1
+          sudo_login 2
+					check_package curl
+					install_brave_origin
+				fi
+				;;
+			r )
+				if installed brave-origin; then
+          sudo_login 2
+					remove_brave_origin
+				else
+					printf "Brave Origin is not installed.\n"
+				fi
+				;;
+			v )
+				VERBOSE_MODE="$TRUE"
+				show_message "Verbose mode enabled."
+				;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$script" "$version" "$E_INVALID_ARG"
+		esac
+		exit_code="$?"
+		noOpt=0
+	done
+	[[ "$noOpt" -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+	exit "$exit_code"
+}
+
+## Execution ##
+
+main "$@"
