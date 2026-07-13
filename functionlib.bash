@@ -1,0 +1,722 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : functionlib.bash
+# Description  : personal function library used in Bash scripts
+# Dependencies : none
+# Arguments    : none except those passed to individual functions
+# Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 21 Sep 2019
+# Last updated : 13 Jul 2026
+# Comments     : source into the current shell environment by entering at the beginning of the script:
+#              : # shellcheck source=/home/rick/bin/functionlib.bash.
+#              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
+#              : source functionlib.bash or "$HOME/bin/functionlib.bash" or source ~/bin/functionlib.bash
+# Warning!     : Using 'set -o pipefail' in script may cause unexpected behavior or some variables to not be recognized.
+# License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck disable=SC2034 # diabled globally because of colors block.
+
+## Global variables ##
+
+declare -r TRUE=0
+declare -r FALSE=1
+declare -r GITEA_URL="http://192.168.0.16:3000/Nullifidian"
+declare -r GITHUB_URL="https://github.com/RickRomig"
+RED_ERROR=$(printf "\e[91mERROR:\e[0m"); declare -r RED_ERROR
+RED_WARNING=$(printf "\e[91mWARNING!\e[0m"); declare -r RED_WARNING
+
+# Get the local network from the first three octets of the default gateway address. Assumes a /24 (class C) private network.
+LOCALNET=$(awk 'NR==1 {print $3}' < <(ip route get 1.2.3.4)); LOCALNET="${LOCALNET%.*}"; declare -r LOCALNET
+
+# Custom Exit Codes (3-63)
+declare -r E_FILENOTFOUND=3
+declare -r E_FILE_EXISTS=4
+declare -r E_FILE_ERROR=5
+declare -r E_MISSING_ARG=6
+declare -r E_INVALID_ARG=7
+declare -r E_TEMP_FILE=8
+declare -r E_TEMP_DIR=9
+declare -r E_DRIVE_ERROR=10
+declare -r E_POPD_PUSHD=11
+declare -r E_INSTALLATION=12
+declare -r E_DOWNLOAD=13
+declare -r E_NETWORK=14
+declare -r E_INVALID_HOST=15
+
+## Colors ##
+
+# Text attributes
+normal=$(echo -en "\e[0m")
+bold=$(echo -en "\e[1m")
+dim=$(echo -en "\e[2m")
+underline=$(echo -en "\e[4m")
+blink=$(echo -en "\e[5m")
+reverse=$(echo -en "\e[7m")
+hidden=$(echo -en "\e[8m")
+strikethrough=$(echo -en "\e[9m")
+
+# Foreground (text) colors
+black=$(echo -en "\e[30m")
+red=$(echo -en "\e[31m")
+green=$(echo -en "\e[32m")
+orange=$(echo -en "\e[33m")
+blue=$(echo -en "\e[34m")
+purple=$(echo -en "\e[35m")
+aqua=$(echo -en "\e[36m")
+gray=$(echo -en "\e[37m")
+darkgray=$(echo -en "\e[90m")
+lightred=$(echo -en "\e[91m")
+lightgreen=$(echo -en "\e[92m")
+lightyellow=$(echo -en "\e[93m")
+lightblue=$(echo -en "\e[94m")
+lightpurple=$(echo -en "\e[95m")
+lightaqua=$(echo -en "\e[96m")
+white=$(echo -en "\e[97m")
+default=$(echo -en "\e[39m")
+
+# Background colors
+BLACK=$(echo -en "\e[40m")
+RED=$(echo -en "\e[41m")
+GREEN=$(echo -en "\e[42m")
+ORANGE=$(echo -en "\e[43m")
+BLUE=$(echo -en "\e[44m")
+PURPLE=$(echo -en "\e[45m")
+AQUA=$(echo -en "\e[46m")
+GRAY=$(echo -en "\e[47m")
+DARKGRAY=$(echo -en "\e[100m")
+LIGHTRED=$(echo -en "\e[101m")
+LIGHTGREEN=$(echo -en "\e[102m")
+LIGHTYELLOW=$(echo -en "\e[103m")
+LIGHTBLUE=$(echo -en "\e[104m")
+LIGHTPURPLE=$(echo -en "\e[105m")
+LIGHTAQUA=$(echo -en "\e[106m")
+WHITE=$(echo -en "\e[107m")
+DEFAULT=$(echo -en "\e[49m")
+
+## Functions ##
+
+die() {
+  local -r errmsg="${1:-You screwed up}"
+  local -r errcode="${2:-1}"
+  printf "\e[91mERROR:\e[0m %s (%d)\n" "$errmsg" "$errcode" >&2
+  exit "$errcode"
+}
+
+diehard() {
+  local line
+	printf "\e[91mERROR:\e[0m "
+	exec 2>&1; for line; do printf "%s\n" "$line"; done; exit 1
+}
+
+dielog() {
+  local message="${1:-You screwed up}"
+  local log_file="$2"
+  local err_code="${3:-1}"
+  tee -a "$log_file" < <(printf "%(%F %R)T: \e[91mERROR:\e[0m %s (%d)\n" -1 "$message" "$err_code")
+  exit "$err_code"
+}
+
+error_handler() {
+  local -r err_code="$1"
+  local -r line_nr="$2"
+  printf "\e[91mERROR:\e[0m (%s) occurred on line %s\n" "$err_code" "$line_nr" >&2
+  exit "$err_code"
+}
+
+log() {
+  local message="${1:-Something happened}"
+  local log_file="$2"
+  tee -a "$log_file" < <(printf "%(%F %R)T: %s\n" -1 "$message")
+}
+
+debug() {
+	[[ -n $DEBUG ]] && printf "[DEBUG] %s\n" "$@" >&2
+	return 0
+}
+# Usage:  place 'debug' messages in script; run DEBUG=1 <script>; unset DEBUG
+
+root_user() {
+  [[ "$(id -u)" -eq "0" ]] && return "$TRUE" || return "$FALSE"
+}
+
+user_exists() {
+  local U="$1"
+  grep -q "^${U}" /etc/passwd && return "$TRUE" || return "$FALSE"
+}
+
+sudo_login() {
+  local delay="${1:-2}"
+  grep -qw sudo <(id -nG "$USER") || die "$USER is not a member of the sudo group. Access denied." 1
+	sudo -vn 2>/dev/null && return  # returns if sudo is already active and extends the sudo timeout
+	sudo ls &>/dev/null #2>&1
+  [[ $delay -gt 0 ]] && sleep "$delay"
+  printf '\e[A\e[K'
+}
+
+clearscreen() {
+  # clears the terminal screen without scrollback (Kittty)
+  printf '\e[H\e[2J\e[3J'
+}
+
+bin_in_path() {
+  grep -q "$HOME/bin" <<< "$PATH" && return $TRUE || return $FALSE
+}
+
+exists() {
+  command -v "$1" &>/dev/null && return "$TRUE" || return "$FALSE"
+}
+
+installed() {
+  grep -q '^ii' < <(dpkg -l "$1" 2>/dev/null) && return "$TRUE" || return "$FALSE"
+}
+
+get_distribution() {
+  local distro
+  distro=$(/usr/bin/lsb_release --description --short 2>/dev/null)
+  echo "$distro"
+}
+
+is_debian() {
+  local codename
+  codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
+  case "$codename" in
+    trixie|bookworm|bullseye|faye|gigi ) return "$TRUE" ;;
+    * ) return "$FALSE"
+  esac
+}
+
+debian_based() {
+  grep -qw debian < <(grep -E -w 'ID|ID_LIKE' /etc/os-release) && return "$TRUE" || return "$FALSE"
+}
+
+is_noble() {
+  [[ $(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release) == "noble" ]] && return "$TRUE" || return "$FALSE"
+}
+
+support_ppa() {
+  local codename
+  codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
+  case "$codename" in
+    noble|wilma|xia|zara|zena ) return "$TRUE" ;;
+    * ) return "$FALSE"
+  esac
+}
+
+antix_mx() {
+  local dist_id
+	[[ -f /etc/lsb-release ]] || return "$FALSE"
+  dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2>/dev/null)
+  [[ "$dist_id" == "antiX" || "$dist_id" == "MX" ]] && return "$TRUE" || return "$FALSE"
+}
+
+bunsenlabs() {
+  [[ $(/usr/bin/lsb_release --id --short) == "BunsenLabs" ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_arch() {
+  [[ -d /etc/pacman.d ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_systemd() {
+  [[ $(cat /proc/1/comm) == "systemd" ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_sysv() {
+  [[ $(awk '{print $1}' < <(/sbin/init --version 2>/dev/null)) == "SysV" ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_openrc() {
+  [[ -f /sbin/openrc ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_runit() {
+  [[ $(cat /proc/1/comm) == "runit" ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_cinnamon() {
+  [[ -f /usr/bin/cinnamon-session ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_i3wm() {
+  # [[ $(awk '/Name/ {print $NF}' < <(wmctrl -m 2>/dev/null)) == "i3" ]] && return "$TRUE" || return "$FALSE"
+  exists i3 && return "$TRUE" || return "$FALSE"
+}
+
+is_xfce() {
+  [[ -f /usr/bin/xfce4-session ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_laptop() {
+  [[ -d /proc/acpi/button/lid/ ]] && return "$TRUE" || return "$FALSE"
+}
+
+leapyear() {
+  local year="$1"
+  [[ $(( year % 4 )) -ne 0 ]] && return "$FALSE"
+  [[ $(( year % 400 )) -eq 0 ]] && return "$TRUE"
+  [[ $(( year % 100 )) -eq 0 ]] && return "$FALSE" || return "$TRUE"
+}
+
+local_ip() {
+  local octet
+  octet=$(awk '{print $7}' <(ip route get 1.2.3.4))
+  [[ "$octet" ]] || die "No IP address found. Check network status." "$E_NETWORK"
+  printf "%s" "${octet##*.}"
+}
+
+valid_ip() {
+  local octet status localip re
+  octet="$1"
+  re="^[0-9]+$"
+  status=0
+  localip="$(local_ip)"
+  if [[ -z "$octet" ]]; then
+    status="$E_MISSING_ARG"
+    printf "%s No argument passed. No host IP.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" >&2
+  elif [[ $1 =~ $re ]]; then
+    # Argument is an integer value
+    if (( octet > 0 )) && (( octet < 255 )); then
+      # Valid address - test if reachable or local machine
+      if [[ "$localip" -eq "$octet" ]]; then
+        status="$E_NETWORK"
+        printf "%s %s.%s is the local client.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+      elif ping -c 1 "$LOCALNET.$octet" > /dev/null 2>&1; then
+        status=0
+        printf "%s.%s is a valid and reachable IP address.\n" "$LOCALNET" "$octet"
+      else
+        status="$E_NETWORK"
+        printf "%s %s.%s is valid IP address but is unreachable.\nCheck to see if it is on the network.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+      fi
+    else
+      status="$E_INVALID_ARG"
+      printf "%s %s.%s is not a valid IP address.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+    fi
+  else
+    status="$E_INVALID_ARG"
+    printf "%s Invalid argument: %s\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$octet" >&2
+  fi
+  return "$status"
+}
+
+edit_view_quit() {
+  local filename _opt
+  filename="$1"
+  printf "\nYou may edit or view %s at this time.\n" "$filename"
+  PS3="Choose an option: "
+  select _opt in Edit View Quit; do
+    case "$REPLY" in
+      1 )
+        $EDITOR "$filename" || /usr/bin/nano "$filename"
+        break
+        ;;
+      2 )
+        if exists batcat; then
+          "$HOME"/.local/bin/bat "$filename"
+        elif exists bat; then
+          /usr/bin/bat "$filename"
+        else
+          viewtext "$filename"
+        fi
+        break
+        ;;
+      3 )
+        printf "\nExiting.\n"
+        break
+        ;;
+      * )
+        printf "%sInvalid choice. Try again.%s\n" "$orange" "$normal" >&2
+    esac
+  done
+}
+
+viewtext() {
+  local catmax file filelines
+  file="$1"
+  catmax=$(( $(tput lines)*87/100 ))
+  filelines=$(wc -l < "$file")
+  if [[ "$filelines" -gt "$catmax" ]]; then less "$file"; else cat "$file"; fi
+}
+
+remove_tilde() {
+  find . -maxdepth 1 -type f -regex '\./.*~$' -exec rm {} \;
+}
+
+anykey() {
+  read -rsn1 -p "Press any key to continue"; echo
+}
+
+print_line() {
+  local char width
+  char="${1:-=}"
+  char="${char::1}"
+  width="${2:-$(tput cols)}"
+  sed "s/ /$char/g" <(printf "%${width}s\n")
+}
+
+# shellcheck disable=SC2001
+# See if you can use ${variable//search/replace} instead. (sed is necesary to replace all charcters)
+box() {
+  local char edge title
+  char="${2:-*}"
+  char="${char::1}"
+  title="$char $1 $char"
+  edge=$(sed "s/./$char/g" <<< "$title")
+  printf "%s\n%s\n%s\n" "$edge" "$title" "$edge"
+}
+
+# shellcheck disable=SC2001
+# See if you can use ${variable//search/replace} instead.. (sed is necesary to replace all charcters)
+under_line() {
+  local char line title
+  title="$1"
+  char="${2:--}"
+  char="${char::1}"
+  line=$(sed "s/./$char/g" <<< "$title")
+  printf "%s\n%s\n" "$title" "$line"
+}
+
+# shellcheck disable=SC2001
+# See if you can use ${variable//search/replace} instead.. (sed is necesary to replace all charcters)
+over_line() {
+  local char line title
+  title="$1"
+  char="${2:--}"
+  char="${char::1}"
+  line=$(sed "s/./$char/g" <<< "$title")
+  printf "%s\n%s\n"  "$line" "$title"
+}
+
+center_file() {
+  local columns line file
+  file="$1"
+	columns="$(tput cols)"
+	while IFS= read -r line; do
+		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
+	done < "$file"
+}
+
+center_text() {
+  local columns line text_string
+  text_string="$1"
+	columns="$(tput cols)"
+	while IFS= read -r line; do
+		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
+	done <<< "$text_string"
+}
+
+color_header() {
+	local colors centered_line padding_length
+	local -r message="$1"
+	local -r bg_color="$2"
+	local -r columns=$(tput cols)
+
+	case "${bg_color^^}" in
+		BLACK ) colors=$(printf "\e[40;97;1m") ;;
+		AQUA ) colors=$(printf "\e[46;30;1m") ;;
+		BLUE ) colors=$(printf "\e[44;30;1m") ;;
+		GREEN ) colors=$(printf "\e[42;30;1m") ;;
+		GRAY|GREY ) colors=$(printf "\e[47;30;1m") ;;
+		ORANGE ) colors=$(printf "\e[43;30;1m") ;;
+		PURPLE ) colors=$(printf "\e[45;30;1m") ;;
+		WHITE ) colors=$(printf "\e[97;30;1m") ;;
+		* ) colors=$(printf "\e[41;37;1m")
+	esac
+
+	padding_length=$(((columns - ${#message}) / 2))
+	printf -v centered_line "%*s%s%*s" "$padding_length" "" "$message" "$padding_length" ""
+	[[ ${#centered_line} -lt $columns ]] && centered_line="${centered_line} "
+	printf "%s%s%s\n" "$colors" "$centered_line" "$normal"
+}
+
+leave() {
+  local message message_file
+  message_file="$HOME/.local/share/doc/leave.txt"
+  message="${1:-$(shuf -n 1 "$message_file")}"
+  printf "%s\n" "$message"
+  exit 0
+}
+
+format_time() {
+  local ET h m s
+  ET="$1"
+  ((h=ET/3600))
+  ((m=(ET%3600)/60))
+  ((s=ET%60))
+  printf "%02d:%02d:%02d\n" $h $m $s
+}
+
+check_for_file() {
+  local file_dir target_file
+  target_file="${1:-foo.bar}"
+  file_dir="$HOME/bin/files"
+  if [[ -f "$file_dir/$target_file" ]]; then
+    printf "%s [OK]\n" "$target_file"
+    sleep 1
+    printf '\e[A\e[K'
+  else
+    die "$target_file not found!" "$E_FILENOTFOUND"
+  fi
+}
+
+check_package() {
+  local package="$1"
+  if grep -q '^ii' < <(dpkg -l "$package" 2>/dev/null); then
+    printf "%s [OK]\n" "$package"
+    sleep 1
+    printf '\e[A\e[K'
+  else
+    printf "Installing %s ...\n" "$package"
+    sudo_login 1
+    sudo apt-get install "$package" -yyq
+  fi
+}
+
+check_packages() {
+	local package packages
+  packages=("$@")
+	for package in "${packages[@]}"; do
+    if grep -q '^ii' < <(dpkg -l "$package" 2>/dev/null); then
+		  printf "%s [OK]\n" "$package"
+      sleep 1
+      printf '\e[A\e[K'
+		else
+			printf "Installing %s ...\n" "$package"
+      sudo_login 1
+			sudo apt-get install "$package" -yyq
+		fi
+	done
+}
+
+in_repos() {
+  local package="$1"
+  [[ "$(awk '/Package:/ {print $NF}' < <(apt-cache show "$package" 2>/dev/null))" ]] && return "$TRUE" || return "$FALSE"
+}
+
+mount_server() {
+  local -r server_ip="11"
+  local -r share="HP-6005"
+  ping -c3 "$LOCALNET.$server_ip" >/dev/null 2>&1 || die "$share at $LOCALNET.$server_ip is not online." "$E_NETWORK"
+  if [[ -d "$HOME/mnt/$share/" ]]; then
+    mounted=$(grep "$share" <(mount))
+    if [[ -z "$mounted" ]]; then
+      sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:/home/rick" "$HOME/mnt/$share/"
+      echo "$share has been mounted."
+    else
+      echo "$share is already mounted"
+    fi
+  else
+    # Create the mount point.
+    mkdir -p "$HOME/mnt/$share/"
+    sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:/home/rick" "$HOME/mnt/$share/"
+    echo "$share has been created and mounted."
+  fi
+}
+
+# shellcheck disable=SC2154
+# var is referenced but not assigned
+unmount_server() {
+  local mounted
+  local -r share="HP-6005"
+  mounted=$(grep "$share" < <(mount))
+  if [[ -n "$mounted" ]]; then
+    fusermount -u "$HOME/mnt/$share"
+    [[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"  # should be declered as a global variable in the calling script
+    [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE" # should be declered as a global variable in the calling script
+    printf "%s has been unmounted.\n" "$share"
+  else
+    printf "%s is not mounted.\n" "$share" >&2
+  fi
+}
+
+mount_nas() {
+  local server_ip share mounted
+  server_ip="4"
+  share="NASD97167"
+  ping -c3 "$LOCALNET.$server_ip" > /dev/null 2>&1 || die "$share at $LOCALNET.$server_ip is not online." "$E_NETWORK"
+  if [[ -d "$HOME/mnt/$share/" ]]; then
+    mounted=$(grep "$share" <(mount))
+    if [[ -z "$mounted" ]]; then
+      sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:" "$HOME/mnt/$share/"
+      echo "$share has been mounted."
+    else
+      echo "$share is already mounted"
+    fi
+  else
+    mkdir -p "$HOME/mnt/$share/"    # Create the mount point.
+    sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:" "$HOME/mnt/$share/"
+    echo "$share has been created and mounted."
+  fi
+}
+
+unmount_nas() {
+  local mounted share
+  share="NASD97167"
+  mounted=$(grep "$share" < <(mount))
+  if [[ -n "$mounted" ]]; then
+    fusermount -u "$HOME/mnt/$share"
+    [[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"  # should be declered as a global variable in the calling script
+    [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE" # should be declered as a global variable in the calling script
+    printf "%s has been unmounted.\n" "$share"
+  else
+    printf "%s is not mounted.\n" "$share" >&2
+  fi
+}
+
+assign_cfg_repo() {
+	local local_host="${HOSTNAME:-$(hostname)}"
+	local repo_dir="$HOME/Downloads/configs"
+	case "$local_host" in
+		hp-800g2-sff|hp-8300-usdt|hp-850-g3 )
+			repo_dir="$HOME/gitea/configs" ;;
+		* )
+			if [[ -d "$repo_dir" ]]; then
+				pushd "$repo_dir" || die "pushd failed" "$E_POPD_PUSHD"
+        git checkout .
+				git pull --quiet
+				popd || die "popd failed" "$E_POPD_PUSHD"
+			else
+				git clone --quiet "$GITHUB_URL/configs.git" "$repo_dir/"
+			fi
+	esac
+	printf "%s" "$repo_dir"
+}
+
+dots() {
+	local char="${1:-.}"
+  char="${char::1}"
+	tput civis
+	while true; do
+		printf '%s' "$char"
+		sleep .5
+	done
+}
+
+# DOTS_PID must be declared as a global variable in the calling script
+kill_dots() {
+	if [[ -n "$DOTS_PID" ]]; then
+		kill "$DOTS_PID"
+		printf "done\n"
+	fi
+	tput cnorm
+}
+
+spin() {
+	local c
+	local chars=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
+	tput civis
+	while true; do
+		for c in "${chars[@]}"; do
+			echo -ne "Processing: $c \r"
+			sleep .2
+		done
+	done
+}
+
+# SPIN_PID must be declared as a global variable in the calling script
+kill_spin() {
+	if [[ -n "$SPIN_PID" ]]; then
+		kill "$SPIN_PID"
+	fi
+	printf "\n"
+	printf '\e[A\e[K'
+	tput cnorm
+}
+
+y_or_n() {
+  local yn yn_prompt
+  yn_prompt="$1"
+  while true; do
+    read -rp "$yn_prompt [y/n] " yn
+    case "$yn" in
+      [Yy]* )
+        return "$TRUE" ;;
+      [Nn]* )
+        return "$FALSE" ;;
+      '' )
+        printf "%s Response required -- try again.\n" "$RED_WARNING" >&2 ;;
+      * )
+        printf "%s Invalid choice. Enter y or n.\n" "$RED_ERROR" >&2
+    esac
+  done
+}
+
+yes_or_no() {
+  local yn yn_prompt
+  yn_prompt="$1"
+  while true; do
+    read -rp "$yn_prompt [yes/no] " yn
+    case "${yn,,}" in
+      yes )
+        return "$TRUE" ;;
+      no )
+        return "$FALSE" ;;
+      '' )
+        printf "%s Response required -- try again.\n" "$RED_WARNING" >&2 ;;
+      * )
+        printf "%s Invalid choice. Enter yes or no.\n" "$RED_ERROR" >&2
+    esac
+  done
+}
+
+default_yes() {
+  local yn yn_prompt
+  yn_prompt="$1"
+  while true; do
+    read -rp "$yn_prompt [Y/n] " yn
+    case "$yn" in
+      [Yy]*|'' )
+        return "$TRUE" ;;
+      [Nn]* )
+        return "$FALSE" ;;
+      * )
+        printf "%s Invalid choice. Enter y or n.\n" "$RED_ERROR" >&2
+    esac
+  done
+}
+
+default_no() {
+  local yn yn_prompt
+  yn_prompt="$1"
+  while true; do
+    read -rp "$yn_prompt [y/N] " yn
+    case "$yn" in
+      [Yy]* )
+        return "$TRUE" ;;
+      [Nn]*|'' )
+        return "$FALSE" ;;
+      * )
+        printf "%s Invalid choice. Enter y or n.\n" "$RED_ERROR" >&2
+    esac
+  done
+}
+
+url_reachable() {
+  local url result
+  url="$1"
+  result=$(curl --head --connect-timeout 8 --max-time 14 --silent --output /dev/null --write-out '%{http_code}' "$url")
+  [[ "$result" -eq 200 ]] && return "$TRUE" || return "$FALSE"
+}
+
+reboot_system() {
+  printf "%sThe system needs to be rebooted for the change to take effect.%s\n" "$orange" "$normal"
+  if default_no "Do you want to reboot now?"; then
+    printf "Rebooting...\n"
+    sleep 10
+    sudo systemctl reboot
+  else
+    printf "\n%s Please reboot your system as soon as practical.\n" "$RED_WARNING"
+  fi
+}
