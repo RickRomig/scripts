@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : install-firefox-deb
 # Description  : install Firefox .deb package from Mozilla repos
 # Dependencies : wget
@@ -7,39 +7,31 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Updated      : 25 May 2026
+# Updated      : 14 Jul 2026
 # Comments     : Remove Distro, Flatpak, or Snap version before installing.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
 ## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="6.6.26145"
-verbose_mode="$FALSE"
-EC=0
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local errcode="${1:-1}"
-	local -r updated="25 May 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local errcode="${3:-1}"
+	local -r updated="14 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/Removes Mozilla repository version of Firefox.
@@ -56,11 +48,12 @@ _HELP_
 
 show_message() {
 	local message="$1"
-	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+	[[ "$VERBOSE" == "$TRUE" ]] && echo "$message"
 }
 
 firefox_version() {
 	firefox --version
+	return 0
 }
 
 mozilla_deb() {
@@ -85,6 +78,7 @@ Package: *
 Pin: origin packages.mozilla.org
 Pin-Priority: 1000
 '| sudo tee "$mozilla_pref"
+	return "$?"
 }
 
 set_gpg_key() {
@@ -92,36 +86,45 @@ set_gpg_key() {
 	local -r key_url="https://packages.mozilla.org/apt/repo-signing-key.gpg"
 	if [[ -f "$mozilla_asc" ]]; then
 		printf "%s already exists.\n" "${mozilla_asc##*/}"
-		return
+		return 0
 	fi
 	show_message "Installing keyrings directory..."
 	[[ -d /etc/apt/keyrings ]] || sudo install -d -m 0755 /etc/apt/keyrings
 	show_message "Importing Mozilla APT repository keys..."
 	wget -q "$key_url" -O- | sudo tee "$mozilla_asc"
+	return "$?"
 }
 
-set_sources_list() {
+set_sources() {
 	local -r mozilla_asc="$1"
 	local -r mozilla_list="/etc/apt/sources.list.d/mozilla.list"
 	local -r list_url="https://packages.mozilla.org/apt"
 	if [[ -f "$mozilla_list" ]]; then
 		printf "%s already exists.\n" "${mozilla_list##*/}"
-		return
+		return 0
 	fi
-	show_message "Adding Mozilla APT repository to sources list..."
-	sudo tee -a "$mozilla_list" >/dev/null <<< "deb [signed-by=$mozilla_asc] $list_url mozilla main"
+	show_message "Adding Mozilla APT sources..."
+	# sudo tee -a "$mozilla_list" >/dev/null <<< "deb [signed-by=$mozilla_asc] $list_url mozilla main"
+	echo "
+Types: deb
+URIs: $list_url
+Suites: mozilla
+Compoenents: main
+Signed-By: $mozilla_asc
+" | tee >/dev/null "$mozilla_list"
+	return "$?"
 }
 
 install_mozilla_deb() {
 	if other_firefox; then
 		printf "Another version of Firefox is already installed.\n" >&2
-		printf "Remove before installing the Mozilla package.\n" >&2
-		return
+		printf "Remove it before installing the Mozilla package.\n" >&2
+		return 0
 	fi
 	local -r mozilla_asc="/etc/apt/keyrings/packages.mozilla.org.asc"
 	printf "Installing the Mozilla Firefox DEB package...\n"
 	set_gpg_key "$mozilla_asc"
-	set_sources_list "$mozilla_asc"
+	set_sources "$mozilla_asc"
 	create_preference_file
 	show_message "Updating apt cache..."
 	sudo apt-get update
@@ -129,10 +132,10 @@ install_mozilla_deb() {
 	sudo apt-get install -y firefox
 	if ! installed firefox; then
 		printf "%s Firefox installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
 	fi
 	printf "%s installed.\n" "$(firefox_version)"
+	return 0
 }
 
 remove_mozilla_firefox() {
@@ -143,16 +146,21 @@ remove_mozilla_firefox() {
 	show_message "Removing user configuration files..."
 	find ~/ -maxdepth 2 -type d -name "*mozilla*" -exec rm -rf {} \;
 	printf "The Mozilla Firefox deb package has been removed.\n"
+	return 0
 }
 
 main() {
-	local noOpt opt optstr
-	noOpt=1
-	optstr=":hirv"
+	VERBOSE="$FALSE"
+	local -r script="${0##*/}"
+	local -r version="6.7.26195"
+	local -i exit_code=0
+	local opt OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":hirv"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
-				help 0
+				help "$script" "$version" 0
 				;;
 			i )
 				if mozilla_deb; then
@@ -169,21 +177,20 @@ main() {
 				fi
 				;;
 			v )
-				verbose_mode="$TRUE"
+				VERBOSE="$TRUE"
 				show_message "Verbose mode enabled."
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
+		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help  "$E_MISSING_ARG"; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	exit "$EC"
+	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
