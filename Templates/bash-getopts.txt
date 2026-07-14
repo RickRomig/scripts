@@ -17,7 +17,8 @@
 ###############################################################################
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later version.
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
@@ -25,8 +26,8 @@
 ###############################################################################
 
 ## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 ## Global Variables ##
 
@@ -40,7 +41,7 @@ TMP_DIR=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DI
 help() {
   local -r script="$1"
   local -r version="$2"
-	local errcode="${3:-1}"
+	local -r errcode="${3:-1}"
 	local -r updated="<TODAY>"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
@@ -72,8 +73,8 @@ cleanup() {
 }
 
 app_version() {
-	# application --version
-	awk '/ii/ {print $3}' < <(dpkg -l application 2>/dev/null) | sed 's/[~+-].*//'
+	application --version
+# 	awk '/ii/ {print $3}' < <(dpkg -l application 2>/dev/null) | sed 's/[~+-].*//'
 	return 0
 }
 
@@ -84,18 +85,17 @@ show_message() {
 }
 
 main() {
+	local opt OPTARG OPTIND
   local -r script="${0##*/}"
   local -r version="<VERSION>"
   local exit_code=0
-	local -i noOpt
-	local opt optstr OPTARG OPTIND
-	noOpt=1
-	optstr=":hirsuv"
+	local -i noOpt=1
+	local -r optstr=":hirsuv"
 	# optstr=":h:i:r:s:u:vN"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
-				help 0
+				help "$script" "$version" 0
 			;;
 			i )
 				# argI="$OPTARG"
@@ -110,7 +110,7 @@ main() {
 				;;
 			r )
 				# argR="$OPTARG"
-				if exists application; then
+				if installed application; then
 					remove_application
 					exit_code="$?"
 				else
@@ -118,17 +118,15 @@ main() {
 				fi
 				;;
 			s )
-				if exists application; then
+				if installed application; then
 					apply_settings
-					exit_code="$?"
 				else
 					printf "Application is not installed.\n"
 				fi
 				;;
 			u )
-				if exists application; then
+				if installed application; then
 					update_application
-					exit_code="$?"
 				else
 					printf "Application is not installed.\n"
 				fi
@@ -145,6 +143,7 @@ main() {
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
+		exit_code="$?"
 		noOpt=0
 	done
 	[[ "$noOpt" -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
