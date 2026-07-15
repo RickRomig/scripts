@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+################################################################################
 # Script Name  : install-codium
 # Description  : installs vscodium from a repo using apt-get
 # Dependencies : git wget
@@ -7,22 +7,21 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 24 May 2026
+# Updated      : 15 Jul 2026
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  : add flatpak installation...
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+################################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# OR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+################################################################################
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
@@ -30,7 +29,7 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 
 help() {
 	local errcode="${1:-1}"
-	local updated="24 May 2026"
+	local updated="15 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
 Install/Remove VSCodium and apply settings
@@ -71,15 +70,15 @@ set_sources() {
 	local -r codium_asc="$1"
 	local -r codium_sources=/etc/apt/sources.list.d/vscodium.sources
 	local -r sources_url="https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs"
-	show_message "Creating the sources list file..."
-	tee $codium_sources <<< \
+	show_message "Creating the VSCodium sources file..."
+	sudo tee $codium_sources <<< \
 "Types: deb
 Architectures: amd64 arm64
 URIs: $sources_url
 Suites: vscodium
 Components: main
 Signed-By: $codium_asc"
-	show_message "VCCodium sources list has been created."
+	show_message "VCCodium sources has been created."
 	return 0
 }
 
