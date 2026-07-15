@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Updated      : 14 Jul 2026
+# Updated      : 15 Jul 2026
 # Comments     : Remove Distro, Flatpak, or Snap version before installing.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local errcode="${3:-1}"
-	local -r updated="14 Jul 2026"
+	local -r updated="15 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/Removes Mozilla repository version of Firefox.
@@ -84,10 +84,6 @@ Pin-Priority: 1000
 set_gpg_key() {
 	local -r mozilla_asc="$1"
 	local -r key_url="https://packages.mozilla.org/apt/repo-signing-key.gpg"
-	if [[ -f "$mozilla_asc" ]]; then
-		printf "%s already exists.\n" "${mozilla_asc##*/}"
-		return 0
-	fi
 	show_message "Installing keyrings directory..."
 	[[ -d /etc/apt/keyrings ]] || sudo install -d -m 0755 /etc/apt/keyrings
 	show_message "Importing Mozilla APT repository keys..."
@@ -97,22 +93,16 @@ set_gpg_key() {
 
 set_sources() {
 	local -r mozilla_asc="$1"
-	local -r mozilla_list="/etc/apt/sources.list.d/mozilla.list"
-	local -r list_url="https://packages.mozilla.org/apt"
-	if [[ -f "$mozilla_list" ]]; then
-		printf "%s already exists.\n" "${mozilla_list##*/}"
-		return 0
-	fi
-	show_message "Adding Mozilla APT sources..."
-	# sudo tee -a "$mozilla_list" >/dev/null <<< "deb [signed-by=$mozilla_asc] $list_url mozilla main"
-	echo "
-Types: deb
-URIs: $list_url
+	local -r mozilla_sources="/etc/apt/sources.list.d/mozilla.sources"
+	local -r sources_url="https://packages.mozilla.org/apt"
+	show_message "Creating Mozilla APT sources..."
+	sudo tee $mozilla_sources <<< \
+"Types: deb
+URIs: $sources_url
 Suites: mozilla
 Compoenents: main
-Signed-By: $mozilla_asc
-" | tee >/dev/null "$mozilla_list"
-	return "$?"
+Signed-By: $mozilla_asc"
+	return 0
 }
 
 install_mozilla_deb() {
@@ -152,7 +142,7 @@ remove_mozilla_firefox() {
 main() {
 	VERBOSE="$FALSE"
 	local -r script="${0##*/}"
-	local -r version="6.7.26195"
+	local -r version="6.8.26196"
 	local -i exit_code=0
 	local opt OPTARG OPTIND
 	local -i noOpt=1
