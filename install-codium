@@ -24,18 +24,9 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="4.0.26144"
-verbose_mode="$FALSE"
-EC=0
-
-## Functions ##
+## Source function library ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local errcode="${1:-1}"
@@ -59,60 +50,60 @@ _HELP_
 check_dependencies() {
   local packages=( git wget )
   check_packages "${packages[@]}"
+	return 0
 }
 
 codium_version() {
-	awk '/^ii/ {print $3}' < <(dpkg -l codium)
+	head -n1 < <(codium --version)
+	return 0
 }
 
 set_gpg_key() {
-	if [[ -f /usr/share/keyrings/vscodium-archive-keyring.asc ]]; then
-		printf "VCCodium keyring already exists.\n"
-		return
-	fi
+	local -r codium_asc="$1"
+	local -r key_url="https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg"
 	show_message "Setting the GPG key..."
-	sudo wget https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg -O /usr/share/keyrings/vscodium-archive-keyring.asc
+	sudo wget "$key_url" -O "$codium_asc"
 	show_message "GPG key is set."
+	return 0
 }
 
-set_src_list() {
-	local script_dir
-	script_dir=$(dirname "$(readlink -f "${0}")")
-	local -r sources_list_d=/etc/apt/sources.list.d
-	if [[ -f /etc/apt/sources.list.d/vscodium.sources ]]; then
-		printf "VCCodium sources list already exists.\n"
-		return
-	fi
+set_sources() {
+	local -r codium_asc="$1"
+	local -r codium_sources=/etc/apt/sources.list.d/vscodium.sources
+	local -r sources_url="https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs"
 	show_message "Creating the sources list file..."
-	if [[ -f "$script_dir/files/vscodium.sources" ]]; then
-		[[ -f "$sources_list_d/vscodium.list" ]] && sudo rm "$sources_list_d/vscodium.list"
-		sudo cp -v "$script_dir/files/vscodium.sources" "$sources_list_d/"
-	else
-		die "$script_dir/files/vscodium.sources not found." "$E_FILENOTFOUND"
-	fi
+	tee $codium_sources <<< \
+"Types: deb
+Architectures: amd64 arm64
+URIs: $sources_url
+Suites: vscodium
+Components: main
+Signed-By: $codium_asc"
 	show_message "VCCodium sources list has been created."
+	return 0
 }
 
 install_vscodium() {
+	local -r codium_asc="$1"
 	show_message "Installing VSCodium..."
-	set_gpg_key
-	set_src_list
+	set_gpg_key "$codium_asc"
+	set_sources "$codium_asc"
 	show_message "Updating apt cache and installing VSCodium..."
 	sudo apt-get update
 	sudo apt-get install codium
 	if ! installed codium; then
 		printf "%s VSCodium installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-		return
+		return "$E_INSTALLATION"
   fi
 	printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 	apply_settings
+	return "$?"
 }
 
 apply_settings() {
 	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
-		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
-		return
+		printf "%s Repository not found!\n" "$RED_WARNING" >&2
+		return "$E_FILENOTFOUND"
 	fi
 	[[ -d ~/.config/VSCodium/User/ ]] || mkdir -p ~/.config/VSCodium/User/
   show_message "Applying VSCodium settings..."
@@ -120,6 +111,7 @@ apply_settings() {
 	[[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/VSCodium/User/settings.json ~/.configVSCodium/User/settings.json
 	[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/VSCodium/User/settings.json ~/.config/VSCodium/User/settings.json
   show_message "VSCodium settings applied."
+	return 0
 }
 
 remove_vscodium() {
@@ -133,31 +125,38 @@ remove_vscodium() {
 	show_message "Removing VSCodium GPG key and insiders files ..."
 	find /usr/share -type f -name "*vscodium*" -exec sudo rm {} \;
 	printf "VSCodium has been removed.\n"
+	return 0
 }
 
 show_message() {
   local message="$1"
-  [[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+  [[ "$VERBOSE" == "$TRUE" ]] && echo "$message"
+	return 0
 }
 
 main() {
-  local noOpt opt optstr OPTARG OPTIND
-	noOpt=1
-	optstr=":ahirsv"
+	VERBOSE="$FALSE"
+	local -r script="${0##*/}"
+	local -r version="5.0.26196"
+	local -i exit_code=0
+	local -r codium_asc="usr/share/keyrings/vscodium-archive-keyring.asc"
+  local opt OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":ahirsv"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			a)
 				# Set apt gpg key and source list
 				if installed codium; then
 					sudo_login 2
-					set_gpg_key
-					set_src_list
+					set_gpg_key "$codium_asc"
+					set_sources "$codium_asc"
 				else
 					printf "VSCodium is not installed.\n" >&2
 				fi
 				;;
 			h )
-				help 0
+				help "$script" "$version" 0
 				;;
 			i )
 				# Install VSCodium via apt
@@ -166,7 +165,7 @@ main() {
 				else
 					sudo_login 2
 					check_dependencies
-					install_vscodium
+					install_vscodium "$codium_asc"
 				fi
 				;;
 			r )
@@ -187,21 +186,20 @@ main() {
 				fi
 				;;
 			v )
-				verbose_mode="$TRUE"
+				VERBOSE="$TRUE"
 				show_message "Verbose mode enabled."
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
+		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
