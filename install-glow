@@ -28,14 +28,6 @@
 # shellcheck source=/home/rick/bin/functionlib
 source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
 
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="5.8.26145"
-EC=0
-
-## Functions ##
-
 help() {
   local errcode="${1:-1}"
   local updated="25 May 2026"
@@ -55,33 +47,33 @@ _HELP_
 
 glow_version() {
   cut -d' ' -f3 <(glow --version)
+	return 0
 }
 
-add_gpg() {
+set_gpg_key() {
   local -r charm_url="$1"
   local -r charm_key="$2"
-  if [[ -f "$charm_key" ]]; then
-    printf "%s already exists.\n" "${charm_key##*/}"
-    return
-  fi
   printf "Adding the Charm GPG key...\n"
   [[ -d /etc/apt/keyrings ]] || sudo mkdir -p /etc/apt/keyrings
   check_package curl
+  # sudo doesn't affect redirects. [SC2024]
   curl -fsSL "$charm_url/gpg.key" | sudo gpg --dearmor -o "$charm_key"
   printf "Charm GPG key applied.\n"
+	return 0
 }
 
-add_src_list() {
+set_sources() {
   local -r charm_url="$1"
   local -r charm_key="$2"
-  local -r src_list="/etc/apt/sources.list.d/charm.list"
-  if [[ -f "$src_list" ]]; then
-    printf "%s already exists.\n" "${src_list##*/}"
-    return
-  fi
+  local -r charm_sources="/etc/apt/sources.list.d/charm.sources"
   printf "Creating the the Charm apt source list...\n"
-  sudo tee "$src_list" <<< "deb [signed-by=$charm_key] $charm_url/ * *"
-  printf "Charm apt source list created.\n"
+  sudo tee "$charm_sources" <<< \
+"Types: deb
+URIs: $charm_url
+Suites: *
+Components: *
+Signed-By: $charm_key"
+	return 0
 }
 
 install_glow() {
@@ -89,16 +81,16 @@ install_glow() {
   local -r charm_key="/etc/apt/keyrings/charm.gpg"
   printf "Installing the Glow markdown reader...\n"
   sudo_login 2
-  add_gpg "$charm_url" "$charm_key"
-  add_src_list "$charm_url" "$charm_key"
+  set_gpg_key "$charm_url" "$charm_key"
+  set_sources "$charm_url" "$charm_key"
   sudo apt update && sudo apt install -y glow
   if ! grep -q '^ii' <(dpkg -l glow 2>/dev/null); then
     printf "%s Glow installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
   fi
   printf "Glow %s successfully installed.\n" "$(glow_version)"
   glow_config
+	return 0
 }
 
 remove_glow() {
@@ -109,13 +101,13 @@ remove_glow() {
   [[ -f /usr/share/man/man1/glow.1.gz ]] && sudo rm -f /usr/share/man/man1/glow.1.gz
   find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name glow -exec rm -rf {} \;
   printf "Glow markdown reader has been removed.\n"
+	return 0
 }
 
 glow_config() {
   if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
 		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
-    EC="$E_FILENOTFOUND"
-		return
+		return "$E_FILENOTFOUND"
 	fi
   printf "Installing glow.yml...\n"
   [[ -d ~/.config/glow ]] || mkdir -p ~/.config/glow
@@ -123,12 +115,16 @@ glow_config() {
   [[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/glow/glow.yml ~/.config/glow/glow.yml
   [[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/glow/glow.yml ~/Downloads/configs/glow/glow.yml
   printf "Glow configuration applied.\n"
+	return 0
 }
 
 main() {
-  local noOpt opt optstr OPTARG OPTIND
-	noOpt=1
-  optstr=":chir"
+	local -r script="${0##*/}"
+	local -r version="5.0.26196"
+	local -i exit_code=0
+  local opt OPTARG OPTIND
+	local -i noOpt=1
+  local -r optstr=":chir"
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
@@ -159,14 +155,13 @@ main() {
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help "$E_INVALID_ARG"
     esac
+		exit_code="$?"
 	  noOpt=0
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
