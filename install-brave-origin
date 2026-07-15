@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Jul 2026
-# Updated      : 13 Jul 2026
-# Version      : 1.0.26194
+# Updated      : 15 Jul 2026
+# Version      : 1.1.26196
 # Comments     : Does not overwrite current Brave version
 #              : To downgrade to the original standard Brave:
 #              : Go to brave://flags/#brave-origin and change flag to Disabled
@@ -26,9 +26,8 @@
 ###############################################################################
 
 ## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
   local -r script="$1"
@@ -58,17 +57,13 @@ brave_version() {
 
 show_message() {
 	local message="$1"
-	[[ "$VERBOSE_MODE" == "$TRUE" ]] && echo "$message"
+	[[ "$VERBOSE" == "$TRUE" ]] && echo "$message"
 	return 0
 }
 
 set_gpg_key() {
-  local -r brave_key="$1"
+  local -r brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 	local -r key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
-  # if [[ -f "$brave_key" ]]; then
-  #   printf "%s already exists.\n" "${brave_key##*/}"
-  #   return 0
-  # fi
   show_message "Importing public key for verification of the APT repository"
   sudo curl -fsSLo "$brave_key" "$key_url"
 	show_message "GPG key is set."
@@ -85,9 +80,8 @@ set_sources() {
 }
 
 install_brave_origin() {
-  local -r brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
   printf "Installing the Brave Browser ...\n"
-  set_gpg_key "$brave_key"
+  set_gpg_key
   set_sources
   show_message "Updating apt cache and isntalling the Brave browser"
   sudo apt-get update -qq
@@ -114,8 +108,9 @@ remove_brave_origin() {
 }
 
 main() {
+	VERBOSE="$FALSE"
   local -r script="${0##*/}"
-  local -r version="1.0.26194"
+  local -r version="1.1.26196"
   local exit_code=0
 	local opt OPTARG OPTIND
 	local -i noOpt=1
@@ -144,7 +139,7 @@ main() {
 				fi
 				;;
 			v )
-				VERBOSE_MODE="$TRUE"
+				VERBOSE="$TRUE"
 				show_message "Verbose mode enabled."
 				;;
 			? )
@@ -159,7 +154,5 @@ main() {
 	over_line "$script $version"
 	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
