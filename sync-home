@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#############################################################################
+###############################################################################
 # Script Name  : sync-home
 # Description  : Synchronize ~/Documents/homepage with ~/Dropbox/homepage
 # Dependencies : rsync
@@ -7,63 +7,60 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Sep 2019
-# Updated      : 09 Jun 2026
+# Updated      : 15 Jul 2026
 # Comments     : Creates a compressed tar archive of the folder's contents.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#############################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of# MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.
+###############################################################################
 
 ## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-EC=0
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 remove_backup_files() {
 	local -r homepage_d="$1"
 	local -i num_bu
 	num_bu=$(wc -l < <(find "$homepage_d" \( -name "*.bak" -o -regex '\./.*~$' \) -type f -print))
   printf "\n%sRemoving backup files...%s\n" "$lightyellow" "$normal"
-	(( num_bu == 0 )) && { printf "No backup files found.\n"; return; }
+	(( num_bu == 0 )) && { printf "No backup files found.\n"; return 0; }
 	find "$homepage_d" \( -name "*.bak" -o -regex '\./.*~$' \) -type f -delete
+	return 0
 }
 
 archive_homepage_repo() {
 	local -r archive_d="$1"
-	local archive
-	local -n old_archives
+	local archive old_archives
 	archive="homepage-$(date +%y%m%d).tar.gz"
-	old_archives=$(wc -l < <(find "$archive_d" -mtime +90 -print -print))
+	old_archives=$(wc -l < <(find "$archive_d" -type f -mtime +90 -print))
 	[[ -d "$archive_d" ]] || mkdir -p "$archive_d"
 	printf "\n%sArchiving homepage repository...%s\n" "$lightyellow" "$normal"
-	tar -czvf "$archive_d/$archive" -C "$HOME/gitea" homepage
+	tar -czf "$archive_d/$archive" -C "$HOME/gitea" homepage
+	printf "Hompage repoisitory archived.\n"
 	printf "\n%sRemoving old archives...%s\n" "$lightyellow" "$normal"
-	(( old_archives == 0 )) && { printf "No old archives found.\n"; return; }
+	(( old_archives == 0 )) && { printf "No old archives found.\n"; return 0; }
 	find "$archive_d" -mtime +90 -print -delete
+	return 0
 }
 
 sync_dropbox() {
 	local -r archive_d="$1"
 	local -r homepage_d="$2"
 	local -r dropbox_d=~/Dropbox/homepage
-	[[ -d "$dropbox_d" ]] || return
+	[[ -d "$dropbox_d" ]] || { printf "No Dropbox directory found.\n"; return 0; }
 	printf "\n%sSynchronizing homepage archive with Dropbox...%s\n" "$lightyellow" "$normal"
 	rsync -av --delete --exclude '.git' --exclude '.gitignore' "$homepage_d"/ "$archive_d"/ "$dropbox_d"
+	return 0
 }
 
 process_homepage() {
@@ -71,8 +68,7 @@ process_homepage() {
 	local -r local_host="${HOSTNAME:-$(hostname)}"
 	if [[ "$local_host" != "$main_host" ]]; then
 		printf "%sScript must be run from %s.\n" "$RED_WARNING" "$main_host" >&2
-		EC="$E_INVALID_HOST"
-		return
+		return "$E_INVALID_HOST"
 	fi
 	local -r homepage_dir=~/gitea/homepage
 	local -r archive_dir=~/Downloads/archives/homepage
@@ -83,16 +79,17 @@ process_homepage() {
 	remove_backup_files "$homepage_dir"
 	archive_homepage_repo "$archive_dir"
 	sync_dropbox "$homepage_dir" "$archive_dir"
+	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.3.26160"
+	local -r version="7.4.26196"
+	local -i exit_code=0
 	process_homepage
+	exit_code="$?"
 	over_line "$script $version" "-"
-	exit "$EC"
+	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
