@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 15 Jul 2026
+# Updated      : 18 Jul 2026
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  : add flatpak installation...
 # License      : GNU General Public License, version 2.0
@@ -28,13 +28,15 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local errcode="${1:-1}"
-	local updated="15 Jul 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local -r errcode="${3:-1}"
+	local -f updated="18 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
 Install/Remove VSCodium and apply settings
 
-${green}Usage:${normal} $script [-h] [-va] [-vi] [-vr] [-vs]
+${green}Usage:${normal} $script [-h] [-vairs]
 ${orange}Available options:${normal}
   -a  Set apt gpg key and source list.
   -h  Show this help message and exit.
@@ -136,9 +138,9 @@ show_message() {
 main() {
 	VERBOSE="$FALSE"
 	local -r script="${0##*/}"
-	local -r version="5.0.26196"
+	local -r version="5.1.26199"
 	local -i exit_code=0
-	local -r codium_asc="usr/share/keyrings/vscodium-archive-keyring.asc"
+	local -r codium_asc="/usr/share/keyrings/vscodium-archive-keyring.asc"
   local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":ahirsv"
