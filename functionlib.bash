@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 13 Jul 2026
+# Last updated : 18 Jul 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -161,7 +161,7 @@ sudo_login() {
   local delay="${1:-2}"
   grep -qw sudo <(id -nG "$USER") || die "$USER is not a member of the sudo group. Access denied." 1
 	sudo -vn 2>/dev/null && return  # returns if sudo is already active and extends the sudo timeout
-	sudo ls &>/dev/null #2>&1
+	sudo ls &>/dev/null
   [[ $delay -gt 0 ]] && sleep "$delay"
   printf '\e[A\e[K'
 }
@@ -176,10 +176,12 @@ bin_in_path() {
 }
 
 exists() {
+  # checks if program/application is in user's path
   command -v "$1" &>/dev/null && return "$TRUE" || return "$FALSE"
 }
 
 installed() {
+  # checks if program/appliation was installed by apt/dpkg and is still installed
   grep -q '^ii' < <(dpkg -l "$1" 2>/dev/null) && return "$TRUE" || return "$FALSE"
 }
 
@@ -193,7 +195,7 @@ is_debian() {
   local codename
   codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
   case "$codename" in
-    trixie|bookworm|bullseye|faye|gigi ) return "$TRUE" ;;
+    trixie|bookworm|gigi ) return "$TRUE" ;;
     * ) return "$FALSE"
   esac
 }
@@ -251,8 +253,9 @@ is_cinnamon() {
 }
 
 is_i3wm() {
-  # [[ $(awk '/Name/ {print $NF}' < <(wmctrl -m 2>/dev/null)) == "i3" ]] && return "$TRUE" || return "$FALSE"
-  exists i3 && return "$TRUE" || return "$FALSE"
+  # [[ $(awk '/Name/ {print $NF}' < <(wmctrl -m 2>/dev/null)) == "i3" ]] && return "$TRUE" || return "$FALSE" # Not via SSH
+  # exists i3 && return "$TRUE" || return "$FALSE"
+  installed i3 && return "$TRUE" || return "$FALSE"
 }
 
 is_xfce() {
