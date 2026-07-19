@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Aug 2025
-# Last updated : 09 Jul 2026
+# Last updated : 19 Jul 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,22 +23,22 @@
 ################################################################################
 
 ## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 update_clones() {
 	local -r script="$1"
 	local -r version="$2"
 	local -r log_dir=~/.local/share/logs
 	local -r repo_log=repo-update.log
-  local -r clones=(configs scripts i3wm-debian homepage)
+  local -r clones=(configs scripts i3wm-debian homepage fnloc fnloc-win gitea-server)
 	local clone clone_dir
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 	printf "%(%F %R)T (%s %s)\n" -1 "$script" "$version" > "$log_dir/$repo_log"
 		{
 			for clone in "${clones[@]}"; do
-				clone_dir="$HOME/Downloads/$clone"
-				[[ -d "$HOME/$clone" ]] && clone_dir="$HOME/$clone"
+				clone_dir=~/Downloads/$clone
+				[[ -d ~/$clone ]] && clone_dir=~/$clone
 				if [[ -d "$clone_dir" ]]; then
 					pushd "$clone_dir" >/dev/null 2>&1 || return "$E_POPD_PUSHD"
 					printf "~ %s repository ~\n" "${clone^^}"
@@ -64,7 +64,7 @@ valid_host() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.0.26190"
+  local -r version="5.1.26200"
 	local -i exit_code=0
 	printf "%sUpdating cloned repositories...%s\n" "$orange" "$normal"
 	if valid_host; then
