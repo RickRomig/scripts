@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 13 Jul 2026
+# Updated      : 20 Jul 2026
 # Comments     : Use install-batcat if distro version has same base version number as latest GitHub release.
 #              : Mint 22 installs version 0.24.0 with the Ubuntu version appended.
 #              : Debian 13 installs version 0.25.0 with the Debian version appended.
@@ -27,12 +27,14 @@
 ###############################################################################
 
 ## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local errcode="${1:-1}"
-	local -r updated=" 13 Jul 2026"
+  local -r script="$1"
+  local -r version="$2"
+	local -r errcode="${3:-1}"
+	local -r updated="13 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Bat utililty.
@@ -105,7 +107,7 @@ compare_versions() {
     printf "%sInstalled version of Bat is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
     install_bat "$new_ver" "$gh_url"
     return "$?"
-else
+  else
     printf "%sBat %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
   fi
   return 0
@@ -143,12 +145,13 @@ remove_bat() {
   [[ -L ~/.config/bat/config ]] && unlink ~/.config/bat/config
   [[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
   find ~/.config -type d -name bat -exec rm -rf {} \;
+  [[ -d /usr/share/doc/bat ]] && sudo rm -rf /usr/share/doc/bat
+  [[ -f /usr/share/man/man1/bat.1.gz ]] && sudo rm -f /usr/share/man/man1/bat.1.gz
   printf "Bat and its configuration files have been removed.\n"
   return 0
 }
 
 bat_config() {
-  [[ "$EC" -ne 0 ]] && return
 	[[ -d ~/.config/bat ]] || mkdir -p ~/.config/bat
 	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
 		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
@@ -165,7 +168,7 @@ bat_config() {
 
 main() {
   local -r  script="${0##*/}"
-  local -r version="7.6.26194"
+  local -r version="7.7.26201"
 	local -i exit_code=0
   local -r gh_url="https://github.com/sharkdp/bat/releases"
   local opt new_ver OPTARG OPTIND
