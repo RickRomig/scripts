@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 18 Jul 2026
+# Updated      : 19 Jul 2026
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -27,8 +27,6 @@
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
-
-VERBOSE_MODE="FALSE"
 
 help() {
   local -r script="$1"
@@ -58,7 +56,7 @@ check_dependencies() {
 
 show_message() {
 	local message="$1"
-	[[ "$VERBOSE_MODE" == "$TRUE" ]] && echo "$message"
+	[[ "$VERBOSE" == "$TRUE" ]] && echo "$message"
   return 0
 }
 
@@ -80,18 +78,22 @@ set_gpg_key() {
   return 0
 }
 
-set_src_list() {
-  local -r brave_key="$1"
-  local -r sources_url="https://brave-browser-apt-release.s3.brave.com/"
-  local -r brave_sources=/etc/apt/sources.list.d/brave-browser-release.sources
+set_sources() {
+  local -r key_file="$1"
+  local -r sources_uri="https://brave-browser-apt-release.s3.brave.com/"
+  local -r sources_file=/etc/apt/sources.list.d/brave-browser-release.sources
+  if [[ -f /etc/apt/sources.list.d/brave-browser-release.list ]]; then
+    show_message "Renaming old source list file..."
+    sudo mv /etc/apt/sources.list.d/brave-browser-release.list /etc/apt/sources.list.d/brave-browser-release.list.bak
+  fi
 	show_message "Creating the source list file..."
-  sudo tee $brave_sources <<< \
+  sudo tee $sources_file <<< \
 "Types: deb
-URIs: $sources_url
+URIs: $sources_uri
 Suites: stable
 Components: main
-Signed-By: $brave_key"
-  show_message "${brave_sources##*/} has been created."
+Signed-By: $key_file"
+  show_message "${sources_file##*/} has been created."
   return 0
 }
 
@@ -99,7 +101,7 @@ install_brave() {
   local -r brave_key=/usr/share/keyrings/brave-browser-archive-keyring.gpg
   printf "Installing the Brave Browser ...\n"
   set_gpg_key "$brave_key"
-  set_src_list "$brave_key"
+  set_sources "$brave_key"
   show_message "Updating apt cache and isntalling the Brave browser"
   sudo apt-get update -qq
   sudo apt-get install brave-browser brave-keyring -yy
@@ -125,6 +127,7 @@ remove_brave() {
 }
 
 main(){
+  VERBOSE="FALSE"
   local -r script="${0##*/}"
   local -r version="7.2.26199"
   local -i exit_code=0
@@ -154,7 +157,7 @@ main(){
         fi
         ;;
 			v )
-				VERBOSE_MODE="$TRUE"
+				VERBOSE="$TRUE"
 				show_message "Verbose mode enabled."
 			  ;;
       ? )
