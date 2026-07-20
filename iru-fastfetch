@@ -2,45 +2,36 @@
 ##########################################################################
 # Script Name  : iru-fastfetch
 # Description  : Install/udadate/remove FastFetch
-# Dependencies : gdebi, wget
+# Dependencies : wget
 # Arguments    : See help() function
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Last updated : 17 Jun 2026
+# Last updated : 20 Jul 2026
 # Comments     : .png logo does not work with Terminator.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify# it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or# (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of# MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="4.5.26168"
-readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
-DOTS_PID=
-EC=0
-
-## Functions ##
+## Source function library ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local errcode="${1:-1}"
-	local -r updated="16 Jun 2026"
+  local -r script="$1"
+  local -r version="$2"
+	local -r errcode="${3:-1}"
+	local -r updated="13 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, removes, updates FastFetch
@@ -65,11 +56,12 @@ cleanup() {
 
 ff_version() {
 	fastfetch --version-raw
+  return 0
 }
 
 convert_compare() {
-  local newVer="$1"
-  local curVer="$2"
+  local -r newVer="$1"
+  local -r curVer="$2"
   local newer="$FALSE"
 	local new_arr=()
 	local cur_arr=()
@@ -90,31 +82,35 @@ newest_version() {
   wget -qO "$TMP_FILE" "$gh_url"
   new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6}' "$TMP_FILE")
   echo "$new_ver"
+  return 0
 }
 
 compare_versions() {
-	local new_ver="$1"
+	local -r new_ver="$1"
+  local -r gh_url="$2"
 	local cur_ver
   cur_ver="$(ff_version)"
 	printf "Comparing current and newest versions...\n"
   if [[ -z "$new_ver" ]]; then
     printf "%s No download available. Try again later." "$RED_ERROR" >&2
-    EC="$E_DOWNLOAD"
+    return "$E_DOWNLOAD"
   elif convert_compare "$new_ver" "$cur_ver"; then
     printf "%sInstalled version of FastFetch is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-		install_fastfetch "$new_ver"
+		install_fastfetch "$new_ver" "$gh_url"
+    return "$?"
   else
     printf "%s FastFetch %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
 	fi
+  return 0
 }
 
 install_fastfetch(){
-	local new_ver="$1"
-  local -r new_pkg="fastfetch-linux-amd64.deb"
+	local -r new_ver="$1"
+	local -r gh_url="$2"
+	local -r new_pkg="fastfetch-linux-amd64.deb"
   if [[ -z "$new_ver" ]]; then
     printf "%s No download available. Try again later." "$RED_ERROR" >&2
-    EC="$E_DOWNLOAD"
-    return
+    return "$E_DOWNLOAD"
   fi
 	sudo_login 2
   printf "Downloading FastFetch %s from the fastfetch-cli GitHub repository..." "$new_ver"
@@ -126,10 +122,10 @@ install_fastfetch(){
 	sudo dpkg -i "$TMP_DIR/$new_pkg"; sudo apt-get install --fix-broken
   if [[ "$(ff_version)" != "$new_ver" ]]; then
     printf "%s Fastfetch installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
 	fi
   printf "%sFastFetch %s installed.%s\n" "$lightyellow" "$(ff_version)" "$normal"
+	return 0
 }
 
 remove_fastfetch() {
@@ -137,17 +133,16 @@ remove_fastfetch() {
 	printf "Removing FastFetch %s ...\n" "$(ff_version)"
 	sudo dpkg --purge fastfetch
 	find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name fastfetch -exec rm -rf {} \;
+	find /usr/share -type f,d -iname "fastfetch*" -exec sudo rm -rf {} \;
 	printf "Fastfetch and its configuration files have been removed.\n"
 }
 
 fastfetch_config() {
-  [[ "$EC" -ne 0 ]] && return
 	local repository=~/Downloads/configs/fastfetch
 	[[ -d ~/gitea/configs/fastfetch ]] && repository=~/gitea/configs/fastfetch
 	if [[ ! -d "$repository" ]]; then
     printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
-    EC="$E_FILENOTFOUND"
-		return
+		return "$E_FILENOTFOUND"
   fi
 	[[ -d ~/.config/fastfetch ]] || mkdir -p ~/.config/fastfetch
 	[[ -d ~/.local/share/fastfetch/logos ]] || mkdir -p ~/.local/share/fastfetch/logos
@@ -159,62 +154,67 @@ fastfetch_config() {
 		cp -v "$repository"/config.jsonc ~/.config/fastfetch/
 		cp -v "$repository"/logo.png ~/.local/share/fastfetch/logos/
 	fi
-	grep -qw gigi <(lsb_release -cs) && sed -i '/type/s/kitty-direct/kitty/' ~/.config/fastfetch/config.jsonc
+	grep -qw gigi < <(lsb_release -cs) && sed -i '/type/s/kitty-direct/kitty/' ~/.config/fastfetch/config.jsonc
 	printf "Fastfetch configuration applied.\n"
+	return 0
 }
 
 main() {
-  local noOpt opt optstr new_ver OPTARG OPTIND
-	noOpt=1
-	optstr=":hiru"
+	local -r script="${0##*/}"
+	local -r  version="4.6.26201"
+	local -i exit_code=0
+	local -r gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
+  local opt new_ver OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":hiru"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
-				help 0
+				help "$script" "$version" 0
 				;;
 			i )
-				if exists fastfetch; then
+				if installed fastfetch; then
 					printf "Fastfetch %s is already installed.\n" "$(ff_version)" >&2
 				else
 					check_package wget
 					TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
 					TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 					trap cleanup EXIT
-					new_ver="$(newest_version)"
+					new_ver="$(newest_version "$gh_url")"
 					printf "%sInstalling Fastfetch version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
-					install_fastfetch "$new_ver"
-					fastfetch_config
+					install_fastfetch "$new_ver" "$gh_url" && fastfetch_config
 				fi
 				;;
 			r )
-				if exists fastfetch; then
+				if installed fastfetch; then
 					remove_fastfetch
 				else
 					printf "Fastfetch is not installed.\n" >&2
 				fi
 				;;
 			u )
-				if exists fastfetch; then
+				if installed fastfetch; then
 					check_package wget
 					TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
           TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 					trap cleanup EXIT
-					new_ver="$(newest_version)"
-					compare_versions "$new_ver"
+					new_ver="$(newest_version "$gh_url")"
+					compare_versions "$new_ver" "$gh_url"
 				else
 					printf "Fastfetch is not installed.\n" >&2
 				fi
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
+		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	exit "$EC"
+	exit "$exit_code"
 }
 
 ## Execution ##
