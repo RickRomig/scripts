@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 18 Jul 2026
+# Updated      : 19 Jul 2026
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  : add flatpak installation...
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -r errcode="${3:-1}"
-	local -f updated="18 Jul 2026"
+	local -f updated="19 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
 Install/Remove VSCodium and apply settings
@@ -49,6 +49,7 @@ _HELP_
 }
 
 check_dependencies() {
+  [[ $(uname -m) == "x86_64" ]] || die "System architecture is not 64-bit." 1
   local packages=( git wget )
   check_packages "${packages[@]}"
 	return 0
@@ -60,35 +61,39 @@ codium_version() {
 }
 
 set_gpg_key() {
-	local -r codium_asc="$1"
+	local -r key_file="$1"
 	local -r key_url="https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg"
 	show_message "Setting the GPG key..."
-	sudo wget "$key_url" -O "$codium_asc"
+	sudo wget "$key_url" -O "$key_file"
 	show_message "GPG key is set."
 	return 0
 }
 
 set_sources() {
-	local -r codium_asc="$1"
-	local -r codium_sources=/etc/apt/sources.list.d/vscodium.sources
-	local -r sources_url="https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs"
+	local -r key_file="$1"
+	local -r sources_file=/etc/apt/sources.list.d/vscodium.sources
+	local -r sources_uri="https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs"
+	if [[ -f /etc/apt/sources.list.d/vscodium.list ]]; then
+		show_message "Renaming old source list file..."
+		sudo mv /etc/apt/sources.list.d/vscodium.list /etc/apt/sources.list.d/vscodium.list.bak
+	fi
 	show_message "Creating the VSCodium sources file..."
-	sudo tee $codium_sources <<< \
+	sudo tee $sources_file <<< \
 "Types: deb
 Architectures: amd64 arm64
-URIs: $sources_url
+URIs: $sources_uri
 Suites: vscodium
 Components: main
-Signed-By: $codium_asc"
+Signed-By: $key_file"
 	show_message "VCCodium sources has been created."
 	return 0
 }
 
 install_vscodium() {
-	local -r codium_asc="$1"
+	local -r key_file="$1"
 	show_message "Installing VSCodium..."
-	set_gpg_key "$codium_asc"
-	set_sources "$codium_asc"
+	set_gpg_key "$key_file"
+	set_sources "$key_file"
 	show_message "Updating apt cache and installing VSCodium..."
 	sudo apt-get update
 	sudo apt-get install codium
@@ -138,9 +143,9 @@ show_message() {
 main() {
 	VERBOSE="$FALSE"
 	local -r script="${0##*/}"
-	local -r version="5.1.26199"
+	local -r version="5.2.26200"
 	local -i exit_code=0
-	local -r codium_asc="/usr/share/keyrings/vscodium-archive-keyring.asc"
+	local -r key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
   local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":ahirsv"
@@ -150,8 +155,8 @@ main() {
 				# Set apt gpg key and source list
 				if installed codium; then
 					sudo_login 2
-					set_gpg_key "$codium_asc"
-					set_sources "$codium_asc"
+					set_gpg_key "$key_file"
+					set_sources "$key_file"
 				else
 					printf "VSCodium is not installed.\n" >&2
 				fi
@@ -166,7 +171,7 @@ main() {
 				else
 					sudo_login 2
 					check_dependencies
-					install_vscodium "$codium_asc"
+					install_vscodium "$key_file"
 				fi
 				;;
 			r )
