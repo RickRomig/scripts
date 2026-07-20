@@ -7,39 +7,37 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Feb 2019
-# Updated      : 27 May 2026
+# Updated      : 20 Jul 2026
 # Comments     : Some systems require to access to use iw to get ssid & signal strength.
-#              : If necesary, add applicable hostnames to requires_sudo().
+#              : If necesary, add applicable hostnames to sudo_required().
 # TODO (rick)  : format printf statements for devices.
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify# it under
+# the terms of the GNU General Public License as published by# the Free Software
+# Foundation; either version 2 of the License, or# (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,# but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ## 0
+## Source function library ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 title_box() {
   local -r lhost="$1"
   printf "%s" "$lightyellow"
   box "IP Information - $lhost" "*"
   printf "%s\n" "$normal"
+  return 0
 }
 
-# Some systems may require root access for the iw command. Replace foo-bar with these hostnames.
-requires_sudo() {
+# Some systems may require root access for the iw command. Replace foo-bar with appropriate hostnames.
+sudo_required() {
 	local lhost="$1"
   case "$lhost" in
     foo-bar ) return "$TRUE" ;;
@@ -50,6 +48,7 @@ requires_sudo() {
 check_dependencies() {
   local packages=( curl iw network-manager )
   check_packages "${packages[@]}"
+  return 0
 }
 
 show_public_ip() {
@@ -59,13 +58,14 @@ show_public_ip() {
   [[ "$public_ipv4" ]] && printf "%4sIPv4: %s\n" " " "$public_ipv4" || printf "%4sIPv4: No address found.\n" " "
   public_ipv6=$(/usr/bin/curl -s -6 icanhazip.com)
   [[ "$public_ipv6" ]] && printf "%8s: %s\n" "IPv6" "$public_ipv6" || printf "%4sIPv6: No address found.\n" " "
+  return 0
 }
 
 show_wired() {
   # Assumes only one active ethernet wired interface in the system.
   local eth_int eth_state eth_ip eth_mac eth_str
   eth_int=$(awk '/ethernet/ {print $1}' < <(/usr/bin/nmcli dev))
-   [[ "$eth_int" ]] || return
+   [[ "$eth_int" ]] || return 0
   # interface data
   printf -v eth_str "%s%12s:%s" "$lightgreen" "Ethernet" "$normal"
   eth_state=$(< "/sys/class/net/$eth_int/operstate")
@@ -91,19 +91,20 @@ show_wired() {
     * )
       printf "%4sNo device found.\n" " "
   esac
+  return 0
 }
 
 show_wireless() {
   # Assumes only one active wireless interface in the system.
   local wifi_int wifi_state wifi_ip wifi_mac wifi_ssid wifi_sig wifi_str
   wifi_int=$(awk '/wifi / {print $1}' < <(/usr/bin/nmcli dev))
-  [[ "$wifi_int" ]] || return
+  [[ "$wifi_int" ]] || return 0
   # interface data
   printf -v wifi_str "%s%12s:%s" "$lightgreen" "Wireless" "$normal"
   wifi_state=$(< "/sys/class/net/$wifi_int/operstate")
   wifi_ip=$(awk '/IP4.ADDRESS/ {print $NF}' < <(/usr/bin/nmcli dev show "$wifi_int") | sed 's/\/24//')
   wifi_mac=$(awk '/GENERAL.HWADDR/ {print $NF}' < <(/usr/bin/nmcli dev show "$wifi_int"))
-  if requires_sudo; then
+  if sudo_required; then
     wifi_ssid=$(awk '/SSID/ {print $2}' < <(sudo /sbin/iw dev "$wifi_int" link))
     wifi_sig=$(awk '/signal/ {print $2,$3}' < <(sudo /sbin/iw dev "$wifi_int" link))
   else
@@ -134,12 +135,13 @@ show_wireless() {
     * )
       printf "%4sNo device found.\n" " "
   esac
+  return 0
 }
 
 show_bridge() {
   local br_int br_state br_ip br_mac br_route br_str
 	br_int=$(awk '/bridge / {print $1}' < <(/usr/bin/nmcli dev))
-	[[ "$br_int" ]] || return
+	[[ "$br_int" ]] || return 0
   # interface data
   printf -v br_str "%s%12s:%s" "$lightgreen" "Wireless" "$normal"
   br_state=$(< "/sys/class/net/$br_int/operstate")
@@ -167,6 +169,7 @@ show_bridge() {
     * )
       printf "%4sNo device found.\n" " "
   esac
+  return 0
 }
 
 show_network() {
@@ -175,6 +178,7 @@ show_network() {
   # network_addr=$(awk '/kernel/ {print $1}' < <(ip route show) | sort -u) # work with KVM/QEMU or Gnome Boxes?
   printf "%sLocal Network:%s\n" "$orange" "$normal"
   printf "%4s%s\n" " " "$network_addr"
+  return 0
 }
 
 show_gateway() {
@@ -182,6 +186,7 @@ show_gateway() {
   gateway_addr=$(awk 'NR==1 {print $3}' < <(ip route get 1.2.3.4))
   printf "%sDefault Gateway:%s\n" "$orange" "$normal"
   printf "%4s%s\n" " " "$gateway_addr"
+  return 0
 }
 
 show_dns() {
@@ -189,13 +194,14 @@ show_dns() {
   printf "%sDNS Servers:%s\n" "$orange" "$normal"
   readarray -t dns_addrs <<< "$(awk '/IP4.DNS/ {print $NF}' < <(/usr/bin/nmcli dev show) | sort -ru)"
   for addr in "${dns_addrs[@]}"; do printf "%4s%s\n" " " "$addr"; done
+  return 0
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.2.26147"
+  local -r version="5.3.26201"
   local -r lhost="${HOSTNAME:-$(hostname)}"
-  requires_sudo "$lhost" && sudo_login 2
+  sudo_required "$lhost" && sudo_login 2
   check_dependencies
   clearscreen
   title_box "$lhost"
@@ -210,7 +216,5 @@ main() {
   over_line "$script $version"
   exit
 }
-
-## Execution ##
 
 main "$@"
