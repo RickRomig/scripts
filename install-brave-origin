@@ -71,10 +71,14 @@ set_gpg_key() {
 }
 
 set_sources() {
-	local -r sources_url="https://brave-browser-apt-release.s3.brave.com/brave-browser.sources"
+	local -r sources_uri="https://brave-browser-apt-release.s3.brave.com/brave-browser.sources"
 	local -r sources_file="/etc/apt/sources.list.d/brave-browser-release.sources https://brave-browser-apt-release.s3.brave.com/brave-browser.sources"
-	show_message "Creating the source list file..."
-	sudo curl -fsSLo "$sources_file" "$sources_url"
+  if [[ -f /etc/apt/sources.list.d/brave-browser-release.list ]]; then
+    show_message "Renaming old source list file..."
+    sudo mv /etc/apt/sources.list.d/brave-browser-release.list /etc/apt/sources.list.d/brave-browser-release.list.bak
+  fi
+	show_message "Creating the sources file..."
+	sudo curl -fsSLo "$sources_file" "$sources_uri"
   show_message "${sources_file##*/} has been created."
   return 0
 }
