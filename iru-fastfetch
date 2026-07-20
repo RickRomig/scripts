@@ -31,7 +31,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -r errcode="${3:-1}"
-	local -r updated="13 Jul 2026"
+	local -r updated="20 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, removes, updates FastFetch
@@ -78,6 +78,7 @@ convert_compare() {
 }
 
 newest_version() {
+	local -r gh_url="$1"
 	local new_ver
   wget -qO "$TMP_FILE" "$gh_url"
   new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6}' "$TMP_FILE")
