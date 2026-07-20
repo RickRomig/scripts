@@ -57,12 +57,6 @@ cleanup() {
   [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
 }
 
-check_dependencies() {
-  local packages=( git wget )
-  check_packages "${packages[@]}"
-  return 0
-}
-
 bat_version() {
   cut -d' ' -f2 < <(bat --version)
   return 0
@@ -121,6 +115,7 @@ install_bat() {
     printf "%s No download available. Try again later." "$RED_ERROR" >&2
     return "$E_DOWNLOAD"
   fi
+	sudo_login 2
   printf "Downloading Bat %s from the sharkdp GitHub repository..." "$new_ver"
   dots "." &
 	DOTS_PID="$!"
@@ -183,7 +178,7 @@ main() {
         if exists bat || exists batcat; then
           printf "Bat %s is already installed.\n" "$(bat_version)"
         else
-          check_dependencies
+					check_package wget
           TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
           TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
           trap cleanup EXIT
