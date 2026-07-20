@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 13 Jul 2026
+# Updated      : 20 Jul 2026
 # Comments     : Debian 13 & LMDE 7 installs version 2.0.14 from Debian repository
 #              : Debian 12, Ubuntu 24.04 & Mint 22 nstalls version 2.0.13 from repositories
 #              : iru-micro -u remove remove repo version and install latest from GitHub repository
@@ -26,14 +26,14 @@
 ###############################################################################
 
 ## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -r errcode="${3:-1}"
-	local -r updated="13 Jul 2026"
+	local -r updated="20 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -50,7 +50,7 @@ _HELP_
 }
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
 cleanup() {
   [[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
   [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
@@ -88,7 +88,7 @@ convert_compare() {
 newest_version() {
   local -r gh_url="$1"
   wget -qO "$TMP_FILE" "$gh_url"
-  new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /linux/ {print $6;exit}' "$TMP_FILE"))
+  new_ver=$(sed 's/^v//' < <(awk -F'/' '/download\/v/ {print $6;exit}' "$TMP_FILE"))
   echo "$new_ver"
   return 0
 }
@@ -183,7 +183,7 @@ micro_configs() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="8.2.26194"
+  local -r version="8.3.26201"
 	local -i exit_code=0
   local -r gh_url="https://github.com/micro-editor/micro/releases"
   local opt new_ver OPTARG OPTIND
