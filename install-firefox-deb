@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Updated      : 15 Jul 2026
+# Updated      : 20 Jul 2026
 # Comments     : Remove Distro, Flatpak, or Snap version before installing.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local errcode="${3:-1}"
-	local -r updated="15 Jul 2026"
+	local -r updated="20 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/Removes Mozilla repository version of Firefox.
@@ -93,8 +93,12 @@ set_gpg_key() {
 
 set_sources() {
 	local -r mozilla_asc="$1"
-	local -r mozilla_sources="/etc/apt/sources.list.d/mozilla.sources"
+	local -r mozilla_sources=/etc/apt/sources.list.d/mozilla.sources
 	local -r sources_url="https://packages.mozilla.org/apt"
+	if [[ -f /etc/apt/sources.list.d/mozilla.list ]]; then
+		show_message "Renaming old source list file..."
+		sudo mv /etc/apt/sources.list.d/mozilla.list /etc/apt/sources.list.d/mozilla.list.bak
+	fi
 	show_message "Creating Mozilla APT sources..."
 	sudo tee $mozilla_sources <<< \
 "Types: deb
@@ -142,7 +146,7 @@ remove_mozilla_firefox() {
 main() {
 	VERBOSE="$FALSE"
 	local -r script="${0##*/}"
-	local -r version="6.8.26196"
+	local -r version="6.9.26201"
 	local -i exit_code=0
 	local opt OPTARG OPTIND
 	local -i noOpt=1
