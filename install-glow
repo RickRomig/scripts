@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+################################################################################
 # Script Name  : install-glow
 # Description  : Installs and removes the Glow markdown reader.
 # Dependencies : curl
@@ -7,30 +7,31 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 25 May 2026
+# Updated      : 19 Jul 2026
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+################################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of# MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+################################################################################
 
 ## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local errcode="${1:-1}"
-  local updated="25 May 2026"
+  local -r script="$1"
+  local -r version="$2"
+	local -r errcode="${3:-1}"
+	local -r updated="19 Jul 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removed Glow Markdown reader
@@ -63,16 +64,17 @@ set_gpg_key() {
 }
 
 set_sources() {
-  local -r charm_url="$1"
-  local -r charm_key="$2"
-  local -r charm_sources="/etc/apt/sources.list.d/charm.sources"
+  local -r sources_uri="$1"
+  local -r key_file="$2"
+  local -r sources_file=/etc/apt/sources.list.d/charm.sources
+  [[ -d /etc/apt/sources.list.d/charm.list ]] && sudo mv /etc/apt/sources.list.d/charm.list /etc/apt/sources.list.d/charm.list.bak
   printf "Creating the the Charm apt source list...\n"
-  sudo tee "$charm_sources" <<< \
+  sudo tee "$sources_file" <<< \
 "Types: deb
-URIs: $charm_url
+URIs: $sources_uri
 Suites: *
 Components: *
-Signed-By: $charm_key"
+Signed-By: $key_file"
 	return 0
 }
 
@@ -120,7 +122,7 @@ glow_config() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.0.26196"
+	local -r version="5.1.26200"
 	local -i exit_code=0
   local opt OPTARG OPTIND
 	local -i noOpt=1
@@ -135,7 +137,7 @@ main() {
         fi
         ;;
       h )
-        help 0
+        help "$script" "$version" 0
         ;;
       i )
         if installed glow; then
@@ -153,12 +155,12 @@ main() {
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$E_INVALID_ARG"
+        help "$script" "$version" "$E_INVALID_ARG"
     esac
 		exit_code="$?"
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   exit "$exit_code"
