@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : check-versions
 # Description  : Checks GitHub for latest versions of select programs and
 #              : displays latest versions with currently installed versions.
@@ -8,27 +8,26 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 21 Jun 2026
+# Last updated : 20 Jul 2026
 # Comments     : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
 #              : Chromium browser does not create config directory until opened once.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify# it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or# (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of# MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+## Source function library ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 ## Global Variables ##
 
@@ -38,7 +37,7 @@ TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 
 # shellcheck disable=SC2317
 # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
 cleanup() {
 	[[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
 }
@@ -115,7 +114,7 @@ get_new_version() {
     codium )
       new_ver=$(awk -F'/' '/download/ && /amd64.deb/ {print $8;exit}' "$TMP_FILE") ;;
     micro )
-      new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /linux/ {print $6;exit}' "$TMP_FILE")) ;;
+      new_ver=$(sed 's/^v//' < <(awk -F'/' '/download\/v/ {print $6;exit}' "$TMP_FILE")) ;;
     fastfetch )
       new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6;exit}' "$TMP_FILE") ;;
     fresh-editor )
@@ -181,7 +180,7 @@ browsers() {
 
 main() {
   local script="${0##*/}"
-  local version="21.4.26172"
+  local version="21.5.26201"
   trap cleanup EXIT
   check_package curl
   clearscreen
