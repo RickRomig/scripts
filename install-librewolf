@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : install-librewolf
 # Description  : install/remove LibreWolf browser
 # Dependencies : extrepo
@@ -7,38 +7,31 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 01 Mar 2025
-# Updated      : 26 May 2026
+# Updated      : 20 Jul 2026
 # Comments     : instructions from https://librewolf.net/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
 ## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-VERBOSE_MODE="$FALSE"
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
   local -r script="$1"
   local -r version="$2"
 	local errcode="${3:-1}"
-	local -r updated="26 May 2026"
+	local -r updated="20 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/removes LibreWolf browser.
@@ -60,7 +53,7 @@ lw_version() {
 
 show_message() {
 	local message="$1"
-	[[ "$VERBOSE_MODE" == "$TRUE" ]] && echo "$message"
+	[[ "$VERBOSE" == "$TRUE" ]] && echo "$message"
   return 0
 }
 
@@ -111,12 +104,13 @@ remove_librewolf() {
 }
 
 main() {
-readonly script="${0##*/}"
-readonly version="1.8.26146"
-	local noOpt opt optstr OPTARG OPTIND
-  local exit_code=0
-	noOpt=1
-	optstr=":hirv"
+	VERBOSE="$FALSE"
+	local -r script="${0##*/}"
+	local -r version="1.9.26201"
+  local -i exit_code=0
+	local opt OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":hirv"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
@@ -139,7 +133,7 @@ readonly version="1.8.26146"
 				fi
 				;;
 			v )
-				VERBOSE_MODE="$TRUE"
+				VERBOSE="$TRUE"
 				show_message "Verbose mode enabled."
 				;;
 			? )
