@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2025
-# Updated      : 20 Jun 2026
+# Updated      : 21 Jun 2026
 # Comments     : Beginning with version 0.3.12, installs to /usr/bin/fresh
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -r errcode="${3:-1}"
-	local -r updated="20 Jul 2026"
+	local -r updated="21 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Fresh Editor.
@@ -56,6 +56,7 @@ cleanup() {
 
 fresh_version() {
   cut -d' ' -f2 < <(fresh --version)
+  return 0
 }
 
 convert_compare() {
@@ -77,6 +78,7 @@ convert_compare() {
 }
 
 newest_version() {
+  local -r gh_url="$1"
   wget -qO "$TMP_FILE" "$gh_url"
   new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$TMP_FILE"))
   echo "$new_ver"
@@ -151,7 +153,7 @@ fresh_config() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.8.26201"
+  local -r version="2.9re.26202"
 	local -i exit_code=0
   local -r gh_url="https://github.com/sinelaw/fresh/releases"
   local opt new_ver OPTARG OPTIND
@@ -170,7 +172,7 @@ main() {
           TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
           TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
           trap cleanup EXIT
-					new_ver="$(newest_version)"
+					new_ver="$(newest_version "$gh_url")"
           printf "%sInstalling Bat version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
           install_fresh "$new_ver" "$gh_url" && fresh_config
         fi
@@ -188,8 +190,8 @@ main() {
           TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
           TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
           trap cleanup EXIT
-          new_ver="$(newest_version)"
-          compare_versions "$new_ver"
+          new_ver="$(newest_version "$gh_url")"
+          compare_versions "$new_ver" "$gh_url"
         else
           printf "Fresh-editor is not installed.\n" >&2
         fi
@@ -206,7 +208,5 @@ main() {
 	over_line "$script $version"
   exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
