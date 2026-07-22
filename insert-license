@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : insert-license
-# Description  : Insert a license into a shell script or C source code.
-# Dependencies : bat, micro (nano)
-# Arguments    : Shell script or C source file
+# Description  : Insert a license into a shell script or C/C++ source code.
+# Dependencies : bat, micro (nano) to view/edit target file
+# Arguments    : Shell script or C source file (See help function)
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 06 Jul 2026
+# Updated      : 22 Jul 2026
 # Comments     : Inserts the license immediately after the file's header.
 #              : Assumes the standard script or C/C++ header is present.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
 # Foundation; either version 2 of the License, or (at your option) any later version.
@@ -21,24 +21,20 @@
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-##########################################################################
+###############################################################################
 
 ## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib,bash\n"; exit 1; }
 
-## Global Variables ##
-
-license_file=
-license_type=
-
-## Functions ##
+LICENSE_FILE=
+LICENSE_TYPE=
 
 help() {
   local -r script="$1"
   local -r version="$2"
   local errcode="${3:-1}"
-  local updated="06 Jul 2026"
+  local updated="22 Jul 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts an Open Source license into a shell script or a C/C++ source code file.
@@ -76,12 +72,12 @@ set_license() {
 	local licenses=("GPL v1" "GPL v2" "GPL v3" "MIT")
 	printf "\n%sLicense type:%s\n" "$orange" "$normal"
 	PS3="Select the type of license: "
-	select license_type in "${licenses[@]}"; do
-		case $license_type in
-			"GPL v1" ) license_file="gpl_v1.txt"; break ;;
-			"GPL v2" ) license_file="gpl_v2.txt"; break ;;
-			"GPL v3" ) license_file="gpl_v3.txt"; break ;;
-			"MIT" ) license_file="mit_lic.txt"; break ;;
+	select LICENSE_TYPE in "${licenses[@]}"; do
+		case $LICENSE_TYPE in
+			"GPL v1" ) LICENSE_FILE="gpl_v1.txt"; break ;;
+			"GPL v2" ) LICENSE_FILE="gpl_v2.txt"; break ;;
+			"GPL v3" ) LICENSE_FILE="gpl_v3.txt"; break ;;
+			"MIT" ) LICENSE_FILE="mit_lic.txt"; break ;;
 			* ) printf "%sInvalid option. Try again.%s\n" "$lightred" "$normal" >&2
 		esac
 	done
@@ -98,30 +94,30 @@ insert_license() {
 		"C" )
 			sed -e '1d' \
 				-e "s/<YEAR>/$cur_yr/" \
-				-e "s/^/ * /" "$template_dir/$license_file" > "$TMP_FILE"
+				-e "s/^/ * /" "$template_dir/$LICENSE_FILE" > "$TMP_FILE"
 			sed -i -e "21r ${TMP_FILE}" "$code_file"
 			;;
 		"C++" )
 			sed -e '1d' \
 				-e "s/<YEAR>/$cur_yr/" \
-				-e "s/^/\/\/ /" "$template_dir/$license_file" > "$TMP_FILE"
+				-e "s/^/\/\/ /" "$template_dir/$LICENSE_FILE" > "$TMP_FILE"
 			sed -i -e "22r ${TMP_FILE}" "$code_file"
 			;;
 		"Shell" )
 			sed -e '1d' \
 				-e "s/<YEAR>/$cur_yr/" \
-				-e "s/^/# /" "$template_dir/$license_file" > "$TMP_FILE"
+				-e "s/^/# /" "$template_dir/$LICENSE_FILE" > "$TMP_FILE"
 			sed -i -e "15r ${TMP_FILE}" "$code_file"
 			;;
 		* )
 			die "Invalid code type. Exiting the script." "$E_INVALID_ARG"		# Should never occur
 	esac
-	printf "%s license has been inserted into %s.\n" "$license_type" "$code_file"
+	printf "%s license has been inserted into %s.\n" "$LICENSE_TYPE" "$code_file"
   return 0
 }
 
 main() {
- local -r script="${0##*/}"
+	local -r script="${0##*/}"
   local -r version="4.10.26187"
 	local opt code_file code_type OPTARG OPTIND
 	local -i noOpt=1
@@ -135,7 +131,7 @@ main() {
 				printf "Code type: %s source code\n" "$code_type"
 				;;
 			h )
-				help 0
+				help "$script" "$version" 0
 				;;
 			p )
 				code_file="$OPTARG"
@@ -169,7 +165,5 @@ main() {
 	over_line "$script $version"
 	printf "MOTD: "; leave ""
 }
-
-## Executtion **
 
 main "$@"
