@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-########################################################################### Script Name  : syncbin
+###############################################################################
+# Script Name  : syncbin
 # Description  : Syncs bin diectory with machines on the network via SSH
 # Dependencies : rsync
 # Arguments    : See help function for detailed information.
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Last updated : 02 May 2026
+# Last updated : 22 Jul 2026
 # Comments     : Can sync to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -15,36 +16,28 @@
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify# it under
+# the terms of the GNU General Public License as published by# the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
 ## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="8.3.26122"
-SECONDS=0
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local errcode="${1:-1}"
-  local updated="02 May 2026"
+  local -r script="$1"
+  local -r version="$2"
+  local -r errcode="${3:-1}"
+  local -r updated="22 Jul 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
-Synchrnizes ~/bin with remote hosts.
+Synchronizes ~/bin with remote hosts.
 
 ${green}Usage:${normal} $script [OPTION]
 ${orange}Available options${normal}
@@ -69,22 +62,23 @@ _HELP_
 }
 
 transfer_status() {
-  local xfr_status="$1"
+  local -i xfr_status="$1"
   if [[ "$xfr_status" -eq 0 ]]; then
 		printf "Transfer successful\n"
 	else
 		printf "%s A transfer failed. Code: %d. Check network status.\n" "$RED_ERROR" "$xfr_status" >&2
 	fi
+  return 0
 }
 
 transfer() {
-  local ip_addr host_ip
-  host_ip="$1"
+  local ip_addr
+  local -r host_ip="$1"
   # Skip local machine:
   ip_addr="$(local_ip)"
   if [[ "$ip_addr" == "$host_ip" ]]; then
     printf "%sSkipping Machine %s (local client)%s\n\n" "$green" "$host_ip" "$normal"
-    return
+    return 0
   fi
   # Check for machines and sync if on-line:
   printf "%sChecking for %s...%s\n" "$green" "$host_ip" "$normal"
@@ -94,11 +88,12 @@ transfer() {
   else
     printf "\n...Skipping %s! Not on network.\n\n" "$host_ip"
   fi
+  return 0
 }
 
 syncscript() {
-  local exit_status=0
-  local hostip="$1"
+  local -i exit_status=0
+  local -r hostip="$1"
 
   case "$hostip" in
     1|2|3|4|5|6|7|8|9|10 )
@@ -121,54 +116,49 @@ syncscript() {
       transfer_status "$exit_status"
       printf "\n...Machine %s Synced!\n\n" "$hostip"
   esac
+  return 0
 }
 
 sync_one() {
-  local hostip
-  hostip="$1"
+  local -r hostip="$1"
   transfer "$hostip"
-	all_done
+  return 0
 }
 
 sync_some() {
-  local hostip
-  hostip="$1"
-  for hostip in "$@"; do
-    transfer "$hostip"
-	done
-	all_done
+  local -r hostip="$1"
+  for hostip in "$@"; do transfer "$hostip"; done
+  return 0
 }
 
 sync_all() {
   local octets hostip
   octets=(11 12 13 14 16 17 18 20 21 22 23 24 25)
-  for hostip in "${octets[@]}"; do
-    transfer "$hostip"
-  done
-  all_done
-}
-
-all_done() {
-  over_line "Script completed in $(format_time $SECONDS)"
+  for hostip in "${octets[@]}"; do transfer "$hostip"; done
+  return 0
 }
 
 check_host() {
-  local main_host local_host ip_addr
-  main_host="hp-800g2-sff"
-  local_host="${HOSTNAME:-$(hostname)}"
+  local ip_addr
+  local -r main_host="hp-800g2-sff"
+  local -r local_host="${HOSTNAME:-$(hostname)}"
   ip_addr="$(local_ip)"
   printf "Host: %s%s%s at " "$lightyellow" "$local_host" "$normal"
   printf "%s%s%s\n\n" "$lightyellow" "$LOCALNET.$ip_addr" "$normal"
   [[ "$local_host" == "$main_host" ]] || leave "Script must be run from $main_host!"
+  return 0
 }
 
 main() {
+  local -r script="${0##*/}"
+  local -r version="8.4.26203"
+  SECONDS=0
   check_package rsync
  if [[ "$#" -eq 0 ]]; then
     printf "%s No arguments passed.\n" "$RED_ERROR" >&2
-    help 2
+    help "$script" "$version" "$E_MISSING_ARG"
   elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-    help 0
+    help "$script" "$version" 0
   elif [[ "$1" = "-a" || "$1" = "--all" ]]; then
     check_host
     sync_all
@@ -179,6 +169,7 @@ main() {
     check_host
     sync_one "$1"
   fi
+  over_line "Script completed in $(format_time $SECONDS)"
   over_line "$script $version"
   exit
 }
