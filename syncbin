@@ -105,41 +105,16 @@ syncscript() {
       printf "%s %s is a restricted address. Access denied.\n\n" "$RED_WARNING" $"$LOCALNET.$hostip"
       ;;
     16|22|153 )
-		  printf "\n%sSyncing ~/.bashrc ...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/.bashrc "$LOCALNET.$hostip":
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      printf "\n%sSyncing ~/bash_aliases ...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/.bash_aliases "$LOCALNET.$hostip":
-      exit_status="$?"
-      transfer_status "$exit_status"
-
       printf "\n%sSyncing Git Repositories...%s\n" "$orange" "$normal"
       rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      printf "\n%sSyncing Projects Repositories...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
       exit_status="$?"
       transfer_status "$exit_status"
       printf "\n...Machine %s Synced!\n\n" "$hostip"
       ;;
     15|19 )
-      printf "%s is updated through the Scripts Repository.\n\n" "$LOCALNET.$hostip"
+      printf "%s is updated through the Scripts Repository clone.\n\n" "$LOCALNET.$hostip"
       ;;
    * )
-		  printf "\n%sSyncing ~/.bashrc ...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/.bashrc "$LOCALNET.$hostip":
-      exit_status="$?"
-      transfer_status "$exit_status"
-
-      printf "\n%sSyncing ~/bash_aliases ...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/.bash_aliases "$LOCALNET.$hostip":
-      exit_status="$?"
-      transfer_status "$exit_status"
-
       printf "\n%sSyncing ~/bin ...%s\n" "$orange" "$normal"
       rsync -avh --delete --exclude '.git' --exclude '.gitignore' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
       exit_status="$?"
