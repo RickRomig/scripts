@@ -7,7 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Sep 2025
-# Last updated : 19 Jul 2026
+# Last updated : 23 Jul 2026
+# Version      : 4.2.26200
 # Comments     : Run as a daily cron job from ~/.local/bin/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,15 +24,13 @@
 ################################################################################
 
 update_clones() {
-	local -r script="$1"
-	local -r version="$2"
 	local -r log_dir=~/.local/share/logs
 	local -r repo_log=repo-update.log
   local -r clones=(configs scripts i3wm-debian homepage fnloc fnloc-win gitea-server)
 	local clone clone_dir
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
-	printf "%(%F %R)T (%s %s)\n" -1 "$script" "$version" > "$log_dir/$repo_log"
 		{
+			printf "Updated: %(%A, %F %R)T\n"
 			for clone in "${clones[@]}"; do
 				clone_dir=~/Downloads/$clone
 				[[ -d ~/$clone ]] && clone_dir=~/$clone
@@ -46,17 +45,13 @@ update_clones() {
 					printf "~ %s repository ~\nHas not been cloned to this computer.\n~\n" "${clone^^}"
 				fi
 			done
-		} >> "$log_dir/$repo_log" 2>&1
+		} > "$log_dir/$repo_log" 2>&1
 	return 0
 }
 
 main() {
-	local -r script="${0##*/}"
-	local -r version="4.1.26200"
-	local -i exit_code=0
-	update_clones "$script" "$version"
-	exit_code="$?"
-  exit "$exit_code"
+	update_clones
+  exit
 }
 
 main "$@"
