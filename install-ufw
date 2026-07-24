@@ -27,7 +27,7 @@
 
 ## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib,bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
   local -r script="$1"
@@ -39,16 +39,16 @@ ${orange}$script${normal} $version ($updated)
 Installs UFW on Debian, BunsenLabs, and MX Linux systems.
 UFW/GUFW is installed by default in Linux Mint, LMDE, and Ubuntu.
 
-${green}Usage:${normal} $script [-adehinrs]
+${green}Usage:${normal} $script [-adhinrst]
 ${orange}Available options:${normal}
   -a  Add default rules for CUPS and SSH (Gitea/XRDP if installed)
   -d  Delete rules by rule number
-  -e  Toggle Enable/Disable UFW
   -h  Show this help message and exit
   -i  Install UFW on a Debian-based system
   -n  Add New rules
   -r  Remove UFW from a Debian-based system
   -s  UFW Status
+  -t  Toggle Enable/Disable UFW
 _HELP_
   exit "$errcode"
 }
@@ -62,12 +62,16 @@ install_ufw() {
     return "$E_INSTALLATION"
   fi
   add_default_rules
-  enable_ufw
+  sudo ufw status verbose
   printf "UFW %s installed and configured.\n" "$(ufw_version)"
   return 0
 }
 
 remove_ufw() {
+  if ! is_debian; then
+    printf "Not a Debian system. UFW will not be removed.\n"
+    return 0
+  fi
   sudo_login 2
   printf "Removing UFW (Uncomplicated Firewall) version %s...\n" "$(ufw_version)"
   sudo ufw reset  # disable UFW and delete all active rules
@@ -87,6 +91,7 @@ add_default_rules() {
   if installed xrdp; then
     sudo ufw allow 3389/tcp comment 'XRDP' && printf "XRDP (port 3389) allowed.\n"
   fi
+  ufw_active || sudo ufw enable
   return 0
 }
 
@@ -100,6 +105,7 @@ add_new_rules() {
     read -rp "Rule to be added (done to exit): " rule
     [[ "$rule" != "" ]] && sudo ufw delete "$rule"
   done
+  ufw_active || sudo ufw enable
   return 0
 }
 
@@ -111,22 +117,19 @@ delete_rules() {
     read -rp "Rule to be removed (by number): " rule
     [[ "$rule" != "" ]] && sudo ufw delete "$rule"
   done
+  ufw_active || sudo ufw enable
   return 0
 }
 
-enable_ufw() {
+toggle_ufw() {
   sudo_login 2
-  printf "Enabling UFW...\n"
-  sudo ufw enable
-  sudo ufw status verbose
-  return 0
-}
-
-disable_ufw() {
-  sudo_login 2
-  printf "Disabling UFW...\n"
-  sudo ufw disable
-  sudo ufw status verbose
+  if ufw_active; then
+    sudo ufw disable
+    printf "UFW has been disabled.\n"
+  else
+    sudo ufw enable
+    printf "UFW is now enabled.\n"
+  fi
   return 0
 }
 
@@ -141,17 +144,16 @@ ufw_version() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.2.26205"
+  local -r version="2.3.26205"
   local -i exit_code=0
   local opt OPTARG OPTIND
   local -i noOpt=1
-  local -r optstr=":adehinrs"
+  local -r optstr=":adhinrst"
   while getopts "$optstr" opt; do
     case "$opt" in
       a )
         if installed ufw; then
           add_default_rules
-          ufw_active || enable_ufw
         else
           printf "UFW is not installed.\n" >&2
         fi
@@ -159,20 +161,6 @@ main() {
       d )
         if installed ufw; then
           delete_rules
-          ufw_active || enable_ufw
-        else
-          printf "UFW is not installed.\n" >&2
-        fi
-        ;;
-      e )
-        if installed ufw; then
-          if ufw_active; then
-            printf "UFW %s is enabled.\n" "$(ufw_version)"
-            default_no "Disable UFW?" && disable_ufw
-          else
-            printf "UFW %s is disabled.\n" "$(ufw_version)"
-            enable_ufw
-          fi
         else
           printf "UFW is not installed.\n" >&2
         fi
@@ -190,26 +178,29 @@ main() {
       n )
         if installed ufw; then
           add_new_rules
-          ufw_active || enable_ufw
         else
           printf "UFW is not installed.\n" >&2
         fi
         ;;
       r )
         if installed ufw; then
-          if is_debian; then
-            remove_ufw
-          else
-            printf "Not a Debian system. UFW was not removed.\n"
-          fi
+          remove_ufw
         else
           printf "UFW is not installed.\n" >&2
         fi
         ;;
       s )
         if installed ufw; then
+          sudo_login 2
           printf "UFW %s\n" "$(ufw_version)"
           sudo ufw status verbose
+        else
+          printf "UFW is not installed.\n" >&2
+        fi
+        ;;
+      t )
+        if installed ufw; then
+          toggle_ufw
         else
           printf "UFW is not installed.\n" >&2
         fi
@@ -218,7 +209,7 @@ main() {
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help "$script" "$version" "$E_INVALID_ARG"
     esac
-    exit_code "$?"
+    exit_code="$?"
     noOpt=0
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
