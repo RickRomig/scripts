@@ -7,7 +7,7 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 23 Jul 2026
+# Updated      : 24 Jul 2026
 # Comments     : Install & remove for Debian-based systems (Debian, antiX, MX, BunsenLabs).
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
@@ -19,9 +19,10 @@
 #  Foundation; either version 2 of the License, or (at your option) any later
 # version.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of# MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE. See the# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of# MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the# GNU General Public License for
+# more details.
 ###############################################################################
 
 ## Source function library ##
@@ -32,7 +33,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -i errcode="${3:-1}"
-	local -r updated="23 Jul 2026"
+	local -r updated="24 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs UFW on Debian, BunsenLabs, and MX Linux systems.
@@ -53,6 +54,7 @@ _HELP_
 }
 
 install_ufw() {
+  sudo_login 2
   printf "Installing UFW (Uncomplicated Firewall)...\n"
   sudo apt-get install ufw -yy
   if ! installed ufw; then
@@ -74,24 +76,23 @@ remove_ufw() {
 }
 
 add_default_rules() {
-  printf "Adding rules for CUPS, SSH, XRDP...\n"
+  sudo_login 2
+  printf "Adding rules for CUPS, SSH, ...\n"
   sudo sed -i '/IPV6=no/s/no/yes/' /etc/default/ufw
-  sudo ufw allow 631 && printf "CUPS (port 631) allowed.\n"
-  # sudo ufw allow SSH && printf "SSH (port 22/tcp) allowed.\n"
-  sudo ufw allow from 192.168.0.0/24 to any port 22
+  sudo ufw allow from 192.168.0.0/24 to any port 22 comment 'SSH' && printf "SSH (port 22) allowd on 192.168.0.0.\n"
+  sudo ufw allow from 192.168.0.0/24 to any port 631 comment 'CUPS' && printf "CUPS (port 631) allowed on 192.168.0.0.\n"
   if exists gitea; then
-    sudo ufw allow 3000/tcp
-    printf "Gitea (port 3000/tcp) allowed.\n"
+    sudo ufw allow 3000/tcp comment 'GITEA' && printf "GITEA (port 3000) allowed.\n"
   fi
   if installed xrdp; then
-    sudo ufw allow 3389/tcp
-    printf "XRDP (port 3389/tcp) allowed.\n"
+    sudo ufw allow 3389/tcp comment 'XRDP' && printf "XRDP (port 3389) allowed.\n"
   fi
   return 0
 }
 
 add_new_rules() {
   local rule="deny foo"
+  sudo_login 2
   sudo ufw status
   printf "Add new rules in the following format:\n"
   printf "allow/deny <protocol> or allow/deny <port-number>\n"
@@ -103,9 +104,10 @@ add_new_rules() {
 }
 
 delete_rules() {
-  local rule="allow foo"
-  sudo ufw status numbered
+  local -i rule=0
+  sudo_login 2
   while [[ "$rule" != "" ]]; do
+    sudo ufw status numbered
     read -rp "Rule to be removed (by number): " rule
     [[ "$rule" != "" ]] && sudo ufw delete "$rule"
   done
@@ -113,6 +115,7 @@ delete_rules() {
 }
 
 enable_ufw() {
+  sudo_login 2
   printf "Enabling UFW...\n"
   sudo ufw enable
   sudo ufw status verbose
@@ -120,6 +123,7 @@ enable_ufw() {
 }
 
 disable_ufw() {
+  sudo_login 2
   printf "Disabling UFW...\n"
   sudo ufw disable
   sudo ufw status verbose
@@ -127,7 +131,7 @@ disable_ufw() {
 }
 
 ufw_active() {
-  grep -qw active < <(sudo ufw status) && return "$TRUE" || return "$FALSE"
+  grep -qw active < <(sudo /usr/sbin/ufw status) && return "$TRUE" || return "$FALSE"
 }
 
 ufw_version() {
@@ -137,7 +141,7 @@ ufw_version() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.1.26204"
+  local -r version="2.2.26205"
   local -i exit_code=0
   local opt OPTARG OPTIND
   local -i noOpt=1
@@ -146,7 +150,6 @@ main() {
     case "$opt" in
       a )
         if installed ufw; then
-          sudo_login 2
           add_default_rules
           ufw_active || enable_ufw
         else
@@ -155,7 +158,6 @@ main() {
         ;;
       d )
         if installed ufw; then
-          sudo_login 2
           delete_rules
           ufw_active || enable_ufw
         else
@@ -164,7 +166,6 @@ main() {
         ;;
       e )
         if installed ufw; then
-          sudo_login 2
           if ufw_active; then
             printf "UFW %s is enabled.\n" "$(ufw_version)"
             default_no "Disable UFW?" && disable_ufw
@@ -183,14 +184,13 @@ main() {
         if installed ufw; then
           printf "UFW %s is already installed.\n" "$(ufw_version)" >&2
         else
-          sudo_login 2
           install_ufw
         fi
         ;;
       n )
         if installed ufw; then
-          sudo_login 2
           add_new_rules
+          ufw_active || enable_ufw
         else
           printf "UFW is not installed.\n" >&2
         fi
@@ -208,7 +208,6 @@ main() {
         ;;
       s )
         if installed ufw; then
-          sudo_login 2
           printf "UFW %s\n" "$(ufw_version)"
           sudo ufw status verbose
         else
