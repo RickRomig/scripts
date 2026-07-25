@@ -34,7 +34,7 @@ help() {
 	local updated="25 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
-Installs/Removed KeePassXC password manager
+Installs/Removes KeePassXC password manager
 
 ${green}Usage:${normal} $script [-dfhr]
 ${orange}Available options:${normal}
@@ -87,11 +87,13 @@ install_deb_keepassxc() {
 }
 
 remove_keepassxc() {
+  sudo_login 2
   printf "Removing KeePassXC ...\n"
   flatpak_keepassxc && flatpak uninstall --noninteractive --assumeyes org.keepassxc.KeePassXC
   installed keepassxc && sudo apt-get remove --purge keepassxc -yy
+  printf "Removing KeepassXC configuration and support files...\n"
   find ~/ -maxdepth 5 -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name keepassxc -exec rm -rf {} \;
-  find /usr/share -type f,d -iname "keepassxc*" -exec rm -rf {} \;
+  find /usr/share -type f,d -iname "keepassxc*" -exec sudo rm -rf {} \;
   printf "KeePassXC removed.\n"
   return 0
 }
