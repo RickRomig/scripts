@@ -1,37 +1,36 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : install-dsh
 # Description  : Installs & configures DSH
-# Dependencies : git (used by assign_cfg_repo() in functionlib)
-# Arguments    : none
+# Dependencies : git (used by assign_cfg_repo() in functionlib.bash)
+# Arguments    : None
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Apr 2024
-# Last updated : 25 May 2026
-# Comments     : Intended for installation on main system only
+# Last updated : 27 Jul 2026
+# Version      : 3.3.26208
+# Comments     : Intended for installation on main system
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the# GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+## Source function library ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 dsh_version() {
   awk 'NR==1 {print $NF}' < <(dsh --version)
+  return 0
 }
 
 copy_group_list() {
@@ -40,6 +39,7 @@ copy_group_list() {
   printf "Copying %s list to /etc/dsh/group ...\n" "$group_list"
   sudo cp "$repository/dsh/group/$group_list" /etc/dsh/group/
   printf "The %s list added to /etc/dsh/group\n" "$group_list"
+  return 0
 }
 
 copy_machines_list() {
@@ -50,6 +50,7 @@ copy_machines_list() {
   printf "%s copied to /etc/dsh/\n" "$file"
   printf "Creating symbolic link from %s to /etc/dsh/group/all\n" "$file"
   [[ -L /etc/dsh/group/all ]] || sudo ln -s /etc/dsh/machines.list /etc/dsh/group/all
+  return 0
 }
 
 install_dsh() {
@@ -57,8 +58,7 @@ install_dsh() {
   sudo apt-get -y install dsh
   if ! installed dsh; then
     printf "%s DSH installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
   fi
   local group_list group_lists repository
   printf "DSH version %s installed.\n" "$(dsh_version)"
@@ -72,18 +72,18 @@ install_dsh() {
   for group_list in "${group_lists[@]}"; do
     copy_group_list "$repository" "$group_list"
   done
+  return 0
 }
 
 main() {
-  local script="${0##*/}"
-  local version="3.2.26145"
-  EC=0
+  local -f script="${0##*/}"
+  local -r version="3.3.262085"
+  exit_code=0
   check_package git
   install_dsh
+  exit_code="$?"
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
