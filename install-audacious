@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2020
-# Updated      : 09 Jul 2026
+# Updated      : 27 Jul 2026
 # Comments     : Does not support installation from Ubuntu PPAs or flatpak.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,14 +23,14 @@
 ###############################################################################
 
 ## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
   local -r script="$1"
   local -r version="$2"
   local errcode="${3:-1}"
-  local updated="06 Jul 2026"
+  local updated="27 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Install or remove Audacious audio player
@@ -47,7 +47,7 @@ _HELP_
 install_audacious() {
   if ! in_repos audacious; then
     printf "Audacious is not in repositories. Audacious audio player not installed.\n"
-    return 1
+    return "$E_UNSUPPORTED"
   fi
   sudo_login 2
   printf "Installing Audacious audio player...\n"
@@ -71,7 +71,7 @@ remove_audacious() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.9.26190"
+  local -r version="2.10.26208"
   local -i exit_code=0
   local opt  OPTARG OPTIND
   local -i noOpt=1
