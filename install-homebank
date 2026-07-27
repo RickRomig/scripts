@@ -1,46 +1,39 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : install-homebank
-# Description  : Installs Homebank
+# Description  : Installs/Rmoves Homebank
 # Dependencies : none
 # Arguments    : none
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Nov 2018
-# Updated      : 26 May 2026
+# Updated      : 27 Jul 2026
+# Version      : 7.0.26208
 # Comments     : Available as a flatpak (preferred method)
 #              : https://flathub.org/apps/details/fr.free.Homebank
 #              : Linux Mint Sofware Manager
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify# it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="6.6.26146"
-EC=0
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local errcode="${1:-1}"
-	local updated="26 May 2026"
+  local -r script="$1"
+  local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="26 May 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes HomeBank Personal Finance Software.
@@ -66,6 +59,7 @@ homebank_version() {
   else
     printf "%s" "$(awk '/HomeBank/ {printf $(NF-2)}' < <(flatpak list))"
   fi
+  return 0
 }
 
 install_flatpak_homebank() {
@@ -74,19 +68,10 @@ install_flatpak_homebank() {
   flatpak install --user flathub fr.free.Homebank
   if ! grep -qw HomeBank < <(flatpak list); then
     printf "%s HomeBank installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
   fi
   printf "HomeBank flatpak (%s) installed.\n" "$(homebank_version)"
-  apply_preferences
-}
-
-remove_flatpak_homebank() {
-  printf "Removing HomeBank flatpak (%s)...\n" "$(homebank_version)"
-  flatpak uninstall --oninteractive --assumeyes fr.free.Homebank
-  [[ -d "$HOME/.var/app/fr.free.Homebank" ]] && rm -rf "$HOME/.var/app/fr.free.Homebank"
-  remove_homebank_configs
-  printf "HomeBank has been removed.\n"
+  return 0
 }
 
 install_deb_homebank() {
@@ -94,19 +79,23 @@ install_deb_homebank() {
   sudo apt-get install-yyq homebank
   if ! installed homebank; then
     printf "%s HomeBank installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
   fi
   printf "HomeBank %s installed.\n" "$(homebank_version)"
-  apply_preferences
+  return 0
 }
 
-remove_deb_homebank() {
-  printf "Removing HomeBank %s...\n" "$(homebank_version)"
-  sudo_login 2
-  sudo apt-get remove homebank -yy > /dev/null 2>&1
+remove_homebank() {
+  if installed homebank; then
+    printf "Removing HomeBank %s...\n" "$(homebank_version)"
+    sudo_login 2
+    sudo apt-get remove homebank -yy > /dev/null 2>&1
+  else
+    printf "Removing HomeBank %s...\n" "$(homebank_version)"
+    flatpak uninstall --oninteractive --assumeyes fr.free.Homebank
+    [[ -d "$HOME/.var/app/fr.free.Homebank" ]] && rm -rf "$HOME/.var/app/fr.free.Homebank"
+  fi
   remove_homebank_configs
-  printf "HomeBank has been removed.\n"
 }
 
 apply_preferences() {
@@ -114,8 +103,7 @@ apply_preferences() {
   [[ -d ~/gitea/configs/homebank ]] && repository=~/gitea/configs/homebank
   if [[ ! -d "$repository" ]]; then
     printf "%s Configs repository not found!\n" "$RED_WARNING" >&2
-    EC="$E_FILENOTFOUND"
-    return
+    return "$E_FILENOTFOUND"
   fi
   local config_dir=~/.config
   flatpak_homebank && config_dir=~/.var/app/fr.free.Homebank/config
@@ -130,6 +118,7 @@ remove_homebank_configs() {
   if default_no "Remove user configuration files?"; then
     printf "Removing user configuration files...\n"
     [[ -d "$config_dir" ]] && rm -rf "$config_dir"
+    find /usr/share -type f,d -iname "homebank*" -exec sudo rm -rf {} \;
     printf "User configuration files removed.\n"
   else
     printf "User configurations files left intact.\n"
@@ -137,49 +126,49 @@ remove_homebank_configs() {
 }
 
 main() {
-  local noOpt opt optstr OPTARG OPTIND
-  noOpt=1
-  optstr=":fhir"
+  local -r script="${0##*/}"
+  local -r version="7.0.26208"
+  local -i exit_code=0
+  local opt OPTARG OPTIND
+  loccal -i noOpt=1
+  local -r optstr=":fhir"
   while getopts "$optstr" opt; do
     case "$opt" in
       f )
         if installed homebank || flatpak_homebank_installed; then
           printf "HomeBank %s is already installed.\n" "$(homebank_version)"
         else
-          install_flatpak_homebank
+          install_flatpak_homebank && apply_preferences
         fi
         ;;
       h )
-        help 0
+        help "$script" "$version" 0
         ;;
       i )
         if installed homebank || flatpak_homebank_installed; then
           printf "HomeBank %s is already installed.\n" "$(homebank_version)"
         else
-          install_deb_homebank
+          install_deb_homebank && apply_preferences
         fi
         ;;
       r )
-        if flatpak_homebank_installed; then
-          remove_flatpak_homebank
-        elif installed homebank; then
-          remove_deb_homebank
+        if installed homebank || flatpak_homebank_installed; then
+          remove_homebank
         else
           printf "HomeBank is not installed.\n"
         fi
         ;;
       ? )
         printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$E_INVALID_ARG"
+        help "$script" "$version" "$E_INVALID_ARG"
     esac
+    exit_code="$?"
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
