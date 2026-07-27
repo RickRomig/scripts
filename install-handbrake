@@ -1,56 +1,41 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : install-handbrake
-# Description  : Installs handbrake
+# Description  : Installs/Removes handbrake
 # Dependencies : None
 # Arguments    : None
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Feb 2019
-# Updated      : 28 Feb 2026
+# Updated      : 27 Jul 2026
+# Version      : 3.4.26208
 # Comment      : Handbrake rips DVD movies
 #              : Available as a flatpak via Flathub and Mint Software Manager
 #              : https://dl.flathub.org/repo/appstream/fr.handbrake.ghb.flatpakref
 #              : flatpak install fr.handbrake.ghb
 #              : flakpak may not be able to access certain codecs for DRM.
-# TODO (rick)  :
+# TODO (rick)  : Install and determine support files in /usr/share/
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify# it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="3.3.26059"
-EC=0
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local errcode="${1:-1}"
-	local updated="28 Feb 2026"
+  local -r script="$1"
+  local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="27 Jul 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Install/Remove Handbrake video transcorder
@@ -69,26 +54,31 @@ install_handbrake() {
   sudo apt install -yy handbrake handbrake-cli
   if ! exists ghb || ! exists HandbrakeCLI; then
     printf "%s Handbrake installation failed!\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
   fi
   echo "Handbrake installed."
+  return 0
 }
 
 remove_handbrake() {
   sudo_login 2
   sudo apt autoremove handbrake handbrake-cli -yy
-  echo "Handbrake removed from system."
+  printf  "Handbrake removed from system.\n"
+  # Removal of files in /usr/share pending
+  return 0
 }
 
 main() {
-  local noOpt opt optstr OPTARG OPTIND
-  noOpt=1
-  optstr=":hir"
+  local -r script="${0##*/}"
+  local -r version="3.4.26208"
+  local -ri exit_code=0
+  local opt OPTARG OPTIND
+  local -i noOpt=1
+  local -r optstr=":hir"
   while getopts "$optstr" opt; do
     case "$opt" in
       h )
-        help 0
+        help "$script" "$version" 0
         ;;
       i )
         exists ghb && leave "Handbrake already installed."
@@ -100,16 +90,15 @@ main() {
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$E_INVALID_ARG"
+        help "$script" "$version" "$E_INVALID_ARG"
     esac
+    exit_code="$?"
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
