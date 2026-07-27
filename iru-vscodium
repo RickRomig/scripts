@@ -132,7 +132,7 @@ remove_vscodium() {
   printf "Removing the VSCodium editor %s...\n" "$(codium_version)"
   sudo dpkg --remove codium
   [[ -L ~/.config/VSCodium/User/settings.json ]] && unlink ~/.config/VSCodium/User/settings.json
-  find ~/ -maxdepth 3 -type d -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name VSCodium -exec rm -rf {} \;
+  find ~/ -maxdepth 3 -path "$HOME/Downloads" -prune -o -path "$HOME/gitea" -prune -o -type d -name VSCodium -exec rm -rf {} \;
   find /etc/apt -type f -iname "*codium*" -exec sudo rm -f {} \;
   find /usr/share -maxdepth 3 -type f,d -iname "*codium*" -exec sudo rm -rf {} \;
   printf "VSCodium editor has been removed.\n"
