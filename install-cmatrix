@@ -1,43 +1,37 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Script Name  : install-cnatrix
-# Description  : installs cmatrix
+# Description  : installs/removes cmatrix
 # Dependencies : none
 # Arguments    : none
 # Author       : Copyright (C) 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2024
-# Updated      : 24 May 2026
+# Updated      : 27 Jul 2026
+# Version      : 1.11.26208
 # Comment      :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-### Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="1.10.26144"
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local errcode="${1:=-1}"
-  local updated="24 May 2026"
+  local -r script="$1"
+  local -r version="$2"
+  local -ri errcode="${3:=-1}"
+  local -r updated="27 Jul 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes C-Matrix
@@ -58,10 +52,10 @@ install_cmatrix() {
   sudo apt-get install cmatrix cmatrix-xfont -yy
   if ! installed cmatrix; then
     printf "%s cmatrix installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
   fi
   printf "C-Matrix installed.\n"
+  return 0
 }
 
 remove_cmatrix() {
@@ -69,16 +63,20 @@ remove_cmatrix() {
   sudo_login 2
   sudo apt-get remove cmatrix cmatrix-xfont -yy
   printf "C-Matrix removed.\n"
+  return 0
 }
 
 main() {
-  local noOpt opt optstr OPTARG OPTIND
-  noOpt=1
-  optstr=":hir"
+  local -r script="${0##*/}"
+  local -r version="1.11.26208"
+	local -i exit_code=0
+  local opt OPTARG OPTIND
+  local -i noOpt=1
+  local -r optstr=":hir"
   while getopts "$optstr" opt; do
     case "$opt" in
       h )
-        help 0
+        help "$script" "$version" 0
         ;;
       i )
         if installed cmatrix; then
@@ -96,14 +94,15 @@ main() {
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$E_INVALID_ARG"
+        help "$script" "$version" "$E_INVALID_ARG"
     esac
+    exit_code="$?"
     noOpt=0
   done
-  [[   "$noOpt" == 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+  [[   "$noOpt" == 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
 
 ## Execution ##
