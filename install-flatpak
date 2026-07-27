@@ -1,77 +1,68 @@
 #!/usr/bin/env bash
-#############################################################################
+###############################################################################
 # Script Name  : install-flatpak
-# Description  : Installs flatpak, Gnome Software plugin, and Flathub repository
+# Description  : Installs flatpak, Gnome Software plugin, Flathub repository
 # Dependencies : None
 # Arguments    : None
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Mar 2020
-# Updated      : 03 Mar 2026
+# Updated      : 27 Jul 2026
+# Version      : 1.8.26208
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify# it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#############################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-### Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 81
-fi
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 install_flatpak() {
   echo "Installing Flatpak..."
   sudo_login 2
   sudo apt update -qq
   sudo apt install -y flatpak
-  if ! grep -q '^ii' <(dpkg -l flatpak 2>/dev/null); then
+  if ! installed flatpak; then
     printf "%s Flatpak installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
   fi
   printf "%s installed.\n" "$(flatpak --version)"
   install_flathub
   install_gnome_plugin
+  return 0
 }
 
 install_flathub() {
   printf "Installing the Flathub repository ...\n"
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   printf "Flatbhub installed.\n"
+  return 0
 }
 
 install_gnome_plugin() {
-  # Install only if using Gnome Desktop Environment or Gnome Software Store
-  exists gnome-software-plugin-flatpak && { printf "Gnome Plugin already installed.\n"; return; }
-  exists gnome-software || { printf "Gnome Software Store is not installed.\n"; return; }
+  # Install only if using Gnome Desktop Environment or Gnome Software Store is installed
+  exists gnome-software-plugin-flatpak && { printf "Gnome Plugin already installed.\n"; return 0; }
+  exists gnome-software || { printf "Gnome Software Store is not installed.\n"; return 0; }
   printf "Installing the Gnome software plugin for Flatpak ...\n"
   sudo apt install -y gnome-software-plugin-flatpak
   printf "Gnome software plugin installed.\n"
+  return 0
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.7.26062"
-  EC=0
+  local -r version="1.8.26208"
+  exit_code=0
   printf "Installs Flatpak and Flathub repository.\n"
   if exists flatpack; then
     printf "%s is already installed.\n" "$(flatpak --version)"
@@ -80,10 +71,9 @@ main() {
   else
     install_flatpak
   fi
+  exit_code="$?"
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
