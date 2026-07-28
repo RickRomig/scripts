@@ -1,64 +1,56 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : install-polybar
-# Description  : Installs polybar on Debian i3wm systems.
-# Dependencies : git (for assign_cfg_repo() in functionlib)
+# Description  : Installs & configures polybar on Debian i3wm systems.
+# Dependencies : None
 # Arguments    : None
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Nov 2023
-# Updated      : 26 May 2026
+# Updated      : 28 Jul 2026
+# Version      : 2.11.26209
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 copy_polybar_config() {
 	local repository=~/Downloads/configs/polybar
 	[[ -d ~/gitea/configs/polybar ]] && repository=~/gitea/configs/polybar
 	if [[ ! -d "$repository" ]]; then
-    printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
-		EC="$E_FILENOTFOUND"
-    return
+    printf "%s Repository not found!\n" "$RED_ERROR" >&2
+    return "$E_FILENOTFOUND"
   fi
-	local polybar_d=~/.config/polybar
+	local -r polybar_d=~/.config/polybar
 	[[ -d "$polybar_d" ]] || mkdir -p "$polybar_d"
-	printf "Copying the Polybar configuration file ...\n"
-	cp -v "$repository/polybar/config.ini" "$polybar_d/"
-	printf "Polybar configuration file copied from the Gitea server.\n"
-	printf "Installing the Polybar launcher...\n"
-	cp -v "$repository/polybar/polybar-i3" "$polybar_d/"
+	printf "Copying the Polybar configuration files ...\n"
+	[[ -f "$polybar_d/config.ini" ]] && cp "$polybar_d/config.ini" "$polybar_d/config.ini.bak"
+	cp -av "$repository/polybar" "$polybar_d"
 	[[ -x "$polybar_d/polybar-i3" ]] || chmod +x "$polybar_d/polybar-i3"
 	configure_modules "$polybar_d"
-	printf "polybar-i3 confgured.\n"
+	return 0
 }
 
 configure_modules() {
-	local polybar_d cfg_file b_name e_name w_name
-	polybar_d="$1"
-	cfg_file="config.ini"
-	# Get device names from system.
+	local -r polybar_d="$1"
+	local -r cfg_file="config.ini"
+	local b_name e_name w_name
+	# Get device names from the system.
 	e_name=$(awk '/ethernet/ {print $1}' < <(/usr/bin/nmcli dev))
 	w_name=$(awk '/wifi/ {print $1}' < <(/usr/bin/nmcli dev))
 	b_name=$(find /sys/class/power_supply/ -name "BAT*"); b_name="${b_name##*/}"
-	# b_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $NF}')
 	# Apply device names or exclude modules as required.
 	if [[ "$w_name" ]]; then
 		sed -i "s/wlan0/$w_name/" "$polybar_d/$cfg_file"
@@ -75,6 +67,8 @@ configure_modules() {
 	else
 		sed -i '/^modules-right/s/ battery//' "$polybar_d/$cfg_file"
 	fi
+	printf "polybar-i3 confgured.\n"
+	return 0
 }
 
 install_polybar() {
@@ -82,27 +76,27 @@ install_polybar() {
 	sudo apt-get install -y polybar
 	if ! installed polybar; then
 		printf "%s Polybar installation failed\n" "$RED_ERROR" >&2
-		EC="$E_INSTALLATION"
-		return
+		return "$E_INSTALLATION"
 	fi
 	printf "Polybar installed.\n"
 	copy_polybar_config
+	return 0
 }
 
 main() {
   local script="${0##*/}"
-  local version="2.10.26146"
-	EC=0
+  local version="2.11.26209"
+  local -i exit_code=0
 	printf "Installs Polybar on Debian with i3wm.\n"
 	if installed polybar; then
 		printf "Polybar is already installed.\n"
+		default_no "Overwrite current polybar configuration?" && copy_polybar_config
 	else
 		install_polybar
 	fi
+	exit_code="$?"
 	over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
