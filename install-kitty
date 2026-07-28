@@ -7,33 +7,29 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 30 Jun 2026
-# Comments     : Configures as login terminal for Debian-based distros.
+# Updated      : 27 Jul 2026
+# Version      : 2.8.26208
+# Comments     : Configures as a login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
   local -r script="$1"
   local -r version="$2"
-	local errcode="${3:-1}"
+	local -ri errcode="${3:-1}"
 	local -r updated="30 Jun 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
@@ -57,7 +53,7 @@ install_kitty() {
   printf "Installing the kitty terminal emulator.\n"
   sudo apt-get install -y kitty imagemagick
   if ! installed kitty; then
-    printf "%s Kitty installation failed.\n" "$RED_ERROR"
+    printf "%s Kitty installation failed.\n" "$RED_ERROR" >&2
     return "$E_INSTALLATION"
   fi
   printf "Kitty %s installed.\n" "$(kitty_version)"
@@ -69,22 +65,23 @@ remove_kitty() {
   printf "Purging the Kitty %s terminal emulator...\n" "$(kitty_version)"
   sudo apt-get purge kitty -yy
   [[ -L ~/.config/kitty/kitty.conf ]] && unlink ~/.config/kitty/kitty.conf
-  [[ -L ~/.config/kitty/bindings.list ]] && unlink ~/.config/kitty/bindings.list
-  find ~/ -maxdepth 3 -type d -path ~/Downloads -prune -o -path ~/gitea -prune -o -type d -name "kitty*" -exec rm -rf {} \;
+  [[ -L ~/.config/kitty/keybindings.conf ]] && unlink ~/.config/kitty/keybindings.conf
+  find ~/ -maxdepth 3 -path ~/Downloads -prune -o -path ~/gitea -prune -o -type d -name "kitty*" -exec rm -rf {} \;
+  find ~/ -maxdepth 2 -type f -iname "kitty*" -delete
   printf "The Kitty terminal emulator and configuration files have been removed.\n"
   return 0
 }
 
 kitty_config() {
   local repository=~/Downloads/configs/kitty
-  [[ -d ~/gitea/configs/geany ]] && repository=~/gitea/configs/kitty
+  [[ -d ~/gitea/configs/kitty ]] && repository=~/gitea/configs/kitty
   if [[ ! -d "$repository" ]]; then
-    printf "%s Configs repository not found!\n" "$RED_WARNING" >&2
+    printf "%s Configs repository not found!\n" "$RED_ERROR" >&2
     return "$E_FILENOTFOUND"
   fi
   [[ -d ~/.config/kitty ]] || mkdir -p ~/.config/kitty
   printf "Applying configuration files ...\n"
-  cp -v "$repository"/kitty.conf "$repository"/bindings.list ~/.config/kitty/
+  cp -v "$repository"/*.conf ~/.config/kitty/
   [[ "$DESKTOP_SESSION" != "i3" ]] && sed -i.bak '/hide_window_decorations/s/yes/no/' ~/.config/kitty/kitty.conf
   printf "kitty configuration files applied.\n"
   return 0
@@ -92,12 +89,12 @@ kitty_config() {
 
 main() {
   check_package git
-  local noOpt opt optstr OPTARG OPTIND
+  local opt OPTARG OPTIND
   local -r script="${0##*/}"
-  local -r version="2.7.26181"
-  local exit_code=0
-  noOpt=1
-  optstr=":hir"
+  local -r version="2.8.26208"
+  local -i exit_code=0
+  local -i noOpt=1
+  local -r optstr=":hir"
   while getopts "$optstr" opt; do
     case "$opt" in
       h )
@@ -109,14 +106,12 @@ main() {
         else
           sudo_login 2
           install_kitty
-          exit_code="$?"
         fi
         ;;
       r )
         if installed kitty; then
           sudo_login 2
           remove_kitty
-          exit_code="$?"
         else
           printf "Kitty is not installed.\n"
         fi
@@ -125,6 +120,7 @@ main() {
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help "$script" "$version" "$E_INVALID_ARG"
     esac
+    exit_code="$?"
 	  noOpt=0
   done
   [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
