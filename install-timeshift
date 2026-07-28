@@ -7,55 +7,51 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Last updated : 26 May 2026
-# Comments     : My default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
+# Updated      : 28 Jul 2026
+# Version      : 3.7.26209
+# Comments     : Default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 get_snapshot_uuid() {
   local target_uuid
-  target_uuid=$(awk '/data/ {print $(NF-3)}' < <(lsblk -f))  if /data partition exists
+  target_uuid=$(awk '/data/ {print $(NF-3)}' < <(lsblk -f))                         # if /data partition exists
   [[ "$target_uuid" ]] || target_uuid=$(awk '/home/ {print $(NF-3)}' < <(lsblk -f)) # home partition if no /data partition
-  [[ "$target_uuid" ]] || target_uuid=$(awk '/\/$/ {print $NF-3}' < <(lsblk -f))  # root partition if no /home partition
+  [[ "$target_uuid" ]] || target_uuid=$(awk '/\/$/ {print $NF-3}' < <(lsblk -f))    # root partition if no /home partition
   printf "%s" "$target_uuid"
+  return 0
 }
 
 configure_timeshift() {
   local ts_uuid script_dir
-  ts_uuid=$(get_snapshot_uuid)
   script_dir=$(dirname "$(readlink -f "${0}")")
   local -r ts_dir="/etc/timeshift"
-  local -r ts_json="timeshift.json"
   local -r ts_sed="$script_dir/files/timeshift.sed"
   if [[ ! -f "$ts_sed" ]]; then
     printf "%s was not found. Configure using the GUI application.\n"  "${ts_sed##*/}" >&2
-    EC="$E_FILENOTFOUND"
-    return
+    return "$E_FILENOTFOUND"
   fi
   printf "Configuring Timeshift...\n"
-  sudo cp -v "$ts_dir/default.json" "$ts_dir/$ts_json"  # copy default json file
-  sudo sed -i -f "$ts_sed" "$ts_dir/$ts_json" # configure settings
-  sudo sed -i "/backup_device_uuid/ s/\",/$ts_uuid\",/" "$ts_dir/$ts_json"  # insert UUID for snapshots
-  sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/$ts_json"  # adjust leading spaces in json file
+  ts_uuid=$(get_snapshot_uuid)
+  sudo cp -v "$ts_dir/default.json" "$ts_dir/timeshift.json"                      # copy default json file
+  sudo sed -i -f "$ts_sed" "$ts_dir/timeshift.json"                               # configure settings
+  sudo sed -i "/backup_device_uuid/ s/\",/$ts_uuid\",/" "$ts_dir/timeshift.json"  # insert UUID for snapshot location
+  sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/timeshift.json"                # adjust leading spaces in json file
   printf "Timeshift configured.\n"
+  return 0
 }
 
 install_timeshift() {
@@ -64,26 +60,24 @@ install_timeshift() {
   sudo apt-get install -y timeshift
   if ! installed timeshift; then
     printf "Timeshift installation failed." >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
   fi
   printf "Timeshift %s installed.\n" "$(timeshift --version)"
-  configure_timeshift
+  return 0
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.6.26146"
-  EC=0
+  local -r version="3.7.26209"
+  local -i exit_code=0
   if installed timeeshift; then
     printf "%s is already installed.\n" "$(timeshift --version)"
   else
-    install_timeshift
+    install_timeshift && configure_timeshift
   fi
+  exit_code="$?"
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
