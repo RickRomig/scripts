@@ -7,37 +7,25 @@
 # Author       : Copyright (C) 2011, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Feb 2021
-# Updated      : 04 Feb 2026
+# Updated      : 28 Jul 2026
+# Version      : 3.3.26209
 # Comments     : Based on Chris Titus video for installing virt-manager:
 #              : https://www.youtube.com/watch?v=ozYKkaVK0_A
 # TODO (Rick)  : Set up default image pool in home directory.
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 check_kernel() {
   local kernel64
@@ -47,7 +35,7 @@ check_kernel() {
 	  printf "64-bit.\n"
     return 0
   else
-	  printf "not 64-bit.\n" >&2
+	  printf "not 64-bit.\n"
 	  return 1
   fi
 }
@@ -60,7 +48,7 @@ check_processor() {
 	  printf "64-bit.\n"
     return 0
   else
-	  printf "not 64-bit.\n" >&2
+	  printf "not 64-bit.\n"
 	  return 1
   fi
 }
@@ -73,27 +61,26 @@ check_bios() {
     printf "enabled in the BIOS.\n"
     return 0
   else
-    printf "not enabled in the BIOS.\n " >&2
+    printf "not enabled in the BIOS.\n "
 	  return 1
   fi
 }
 
 check_requirements() {
   local -i virt_flag=0
-  is_systemd  || virt_flag=1
-  check_kernel || virt_flag=1
-  check_processor || virt_flag=1
-  check_bios || virt_flag=1
-  if [[ "$virt_flag" -eq 0 ]]; then
-    printf "\nSystem meets all requirements to install KVM/QEMU.\n"
-    return 0
-  else
+  is_systemd  || (( virt_flag++ ))
+  check_kernel || (( virt_flag++ ))
+  check_processor || (( virt_flag++ ))
+  check_bios || (( virt_flag++ ))
+  if [[ "$virt_flag" -ne 0 ]]; then
     printf "\nSystem does not meet all requirements to install KVM/QEMU.\n" >&2
 	  printf "KVM/QEMU requires a 64-bit kernel, a 64-bit processor,\n" >&2
 	  printf "and virtualization to be enabled in the BIOS.\n" >&2
     printf "Systemd is required to run background services.\n" >&2
     return 1
   fi
+  printf "\nSystem meets all requirements to install KVM/QEMU.\n"
+  return 0
 }
 
 enable_libvirtd() {
@@ -102,6 +89,7 @@ enable_libvirtd() {
   sudo systemctl start libvirtd
   # sudo systemctl restart libvirtd
   sudo systemctl status libvirtd.service
+  return 0
 }
 
 start_networking() {
@@ -109,6 +97,7 @@ start_networking() {
   sudo virsh net-start default
   sudo virsh net-autostart default
   sudo virsh net-list --all
+  return 0
 }
 
 add_to_libvirt() {
@@ -124,6 +113,7 @@ add_to_libvirt() {
     printf "added to "
   fi
   printf "the libvirt group.\n"
+  return 0
 }
 
 add_to_libvirtqemu() {
@@ -139,6 +129,7 @@ add_to_libvirtqemu() {
     printf "added to "
   fi
   printf "the libvirt-qemu group.\n"
+  return 0
 }
 
 add_to_kvm() {
@@ -154,6 +145,7 @@ add_to_kvm() {
     printf "added to "
   fi
   printf "the kvm group.\n"
+  return 0
 }
 
 install_packages() {
@@ -165,32 +157,31 @@ install_packages() {
   sudo apt-get install dnsmasq vde2 openbsd-netcat
   sudo apt-get install spice-vdagent
   sudo modprobe vhost_net
+  return "$?"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.2.26035"
-  EC=0
+  local -r version="3.3.26209"
+  local -i exit_code=0
   printf "Installs Virt-Manager and KVM/QEMU...\n\n"
   if check_requirements; then
     sudo_login 2
     install_packages
+    exit_code="$?"
     start_networking
     printf "Adding %s to libvirt, libvirt-qemu, and kvm groups...\n" "$USER"
     add_to_libvirt
     add_to_libvirtqemu
     add_to_kvm
-    printf "Starting and enabling the libvirt daemon"
     enable_libvirtd
     printf "Virt-Manager installed. %s added to libvirt, libvirt-qemu, and kvm groups." "$USER"
   else
     printf "KVM/QEMU cannot be installed.\n" >&2
-    EC="$E_INSTALLATION"
+    exit_code="$E_INSTALLATION"
   fi
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
