@@ -1,75 +1,59 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : install-spice-tools
-# Description  : Installs Spice Tools Guest Additions to a Gnome Boxes VM
+# Description  : Installs Spice Tools Guest Additions to a VM
 # Dependencies : none
 # Arguments    : none
 # Author       : Copyright (C) 2021, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Sep 2021
-# Updated      : 03 Feb 2026
+# Updated      : 28 Jul 2026
+# Version      : 3.0.26209
 # Comments     : Supports Arch and Debian-based operating systems.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
-
-## Global Variables ##
-declare -r E_NOT_VM=100
-
-## Functions ##
-
-install_arch_spice() {
+install_spice_tools() {
   sudo_login 2
-  sudo pacman -Sy
-  sudo pacman -S spice-vdagent spice-webdavd
-}
-
-install_debian_spice() {
-  sudo_login 2
-  sudo apt-get update
-  in_repos spice-vdagent && sudo apt-get install -y spice-vdagent
-  in_repos spice-webdavd && sudo apt-get install -y spice-webdavd
+  if debian_based; then
+    sudo apt-get update && sudo apt-get install -y spice-vdagent spice-webdavd
+    return "$?"
+  elif is_arch; then
+    sudo pacman -Sy
+    sudo pacman -S spice-vdagent spice-webdavd
+    return "$?"
+  else
+    printf "%s Operating system not supported by this script.\n" "$RED_ERROR" >&2
+    return "$E_UNSUPPORTED"
+  fi
 }
 
 main() {
-  local script="${0##*/}"
-  local version="2.3.26034"
-  box "$script $version"
-  [[ "$LOCALNET" != "192.168.122" && "$LOCALNET" != "10.0.2" ]] && die "This is not a virtual machine." "$E_NOT_VM"
-  printf "Installs Spice Tools to a Virtual Machine.\n"
-  if debian_based; then
-    install_debian_spice
-  elif is_arch; then
-    install_arch_spice
+  local -r script="${0##*/}"
+  local -r version="3.0.26209"
+  local -i exit_code=0
+  if [[ "$LOCALNET" == "192.168.122" || "$LOCALNET" == "10.0.2" ]]; then
+    install_spice_tools
+    exit_code="$?"
   else
-    die "Operating system not supported by this script." "$E_INSTALLATION"
+    printf "%s This is not a virtual machine.\n" "$RED_ERROR" >&2
+    exit_code="$E_INVALID_HOST"
   fi
-  leave "Spice Tools installed."
+  over_line "$script $version"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
