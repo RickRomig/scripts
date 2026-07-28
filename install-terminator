@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : install-terminator
 # Description  : Installs the Terminator terminal emulator from repos.
 # Dependencies : curl
@@ -7,37 +7,30 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 26 May 2026
-# Comments     :
+# Updated      : 28 Jul 2026
+# Version      : 7.6.26209
+# Comments     : By default, Terminator is configured as a login shell (Debian, Antix, MX Linux, LMDE)
+#              : Login shell is disabled for other distributions (Linux Mint)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="7.5.26146"
-EC=0
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local errcode="${1:-1}"
+  local -r script="$1"
+  local -r version="$2"
+	local -ri errcode="${3:-1}"
 	local -r updated="26 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
@@ -57,7 +50,8 @@ _HELP_
 }
 
 terminator_version() {
-  awk '/^ii/ {print $3}' <(dpkg -l terminator) | sed 's/-.*//'
+  awk '/^ii/ {print $3}' < <(dpkg -l terminator) | sed 's/-.*//'
+  return 0
 }
 
 install_terminator() {
@@ -67,16 +61,10 @@ install_terminator() {
   sudo apt-get install -y terminator
   if ! installed terminator; then
     printf "%s Terminator installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
   fi
   printf "Terminator %s installed.\n" "$(terminator_version)"
-  if bunsenlabs; then
-    printf "BunsenLabs uses its own profiles based on the version of the distribution.\n"
-    return
-  fi
-  printf "Terminator %s configured.\n" "$(terminator_version)"
-  apply_config
+  return 0
 }
 
 remove_terminator() {
@@ -84,17 +72,23 @@ remove_terminator() {
   sudo_login 2
   sudo apt-get purge terminator
   [[ -L ~/.config/terminator/config ]] && unlink ~/.config/terminator/config
-  find ~/.config/ -maxdepth 2 -type d -name terminator -exec rm -rf {} \;
+  find ~/.config -maxdepth 2 -type d -name terminator -exec rm -rf {} \;
+  find /usr/share -maxdepth 3 -type f,d -iname "terminator*" -exec sudo rm -rf {} \;
   printf "Terminator and its configuration files have been removed.\n"
+  return 0
 }
 
 apply_config() {
-  local repository=~/Downloads/ccnfigs/config_dir
-  [[ -d ~/gitea/configs/config_dir ]] && repository=~/gitea/configs/config_dir/
+  if bunsenlabs; then
+    printf "BunsenLabs uses its own profiles based on the version of the distribution.\n"
+    printf "Configuration changes should be made through the Terminator Preferences menu.\n"
+    return 0
+  fi
+  local repository=~/Downloads/ccnfigs/
+  [[ -d ~/gitea/configs ]] && repository=~/gitea/configs
   if ! [[ -d "$repository" ]]; then
-    printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
-    EC="$E_FILENOTFOUND"
-    return
+    printf "%s Repository not found!\n" "$RED_ERROR" >&2
+    return "$E_FILENOTFOUND"
   fi
   [[ -d /.config/terminator ]] && mkdir -p /.config/terminator
   printf "Applying Terminator configuration...\n"
@@ -103,38 +97,37 @@ apply_config() {
     [[ -d ~/gitea/configs/terminator ]] && ln -s ~/gitea/configs/terminator/config ~/.config/terminator/config
     [[ -d ~/Downloads/configs/terminator ]] && ln -sv ~/Downloads/configs/terminator/config ~/.config/terminator/config
   else
-    cp -v "$repository"/config ~/.config/terminator
+    cp -v "$repository"/terminator/config ~/.config/terminator/
     sed -i '/login_shell/s/True/False/' ~/.config/terminator/config
   fi
-  printf "Terminator configuration file applied.\n"
+  printf "Terminator %s configured.\n" "$(terminator_version)"
+  return 0
 }
 
 main() {
-  local noOpt opt optstr OPTARG OPTIND
-  noOpt=1
-  optstr=":chir"
+  local -r script="${0##*/}"
+  local -r version="7.6.26209"
+  local -i exit_code=0
+  local opt OPTARG OPTIND
+  local -i noOpt=1
+  local -r optstr=":chir"
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
         if installed terminator; then
-          if bunsenlabs; then
-            printf "Terminator configuration for BunsenLabs was not overwritten.\n"
-            printf "Configuration changes should be made through the Terminator Preferences menu.\n"
-          else
-            apply_config
-          fi
+          apply_config
         else
           printf "Terminator is not installed.\nConfiguration cannot be applied.\n" >&2
         fi
         ;;
       h )
-        help 0
+        help "$script" "$version" 0
         ;;
       i )
         if installed terminator; then
           printf "Terminator %s is installed.\nInstallation canceled.\n" "$(terminator_version)" >&2
         else
-          install_terminator
+          install_terminator && apply_config
         fi
         ;;
       r )
@@ -146,16 +139,15 @@ main() {
         ;;
       ? )
       printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-      help "$E_INVALID_ARG"
+      help "$script" "$version" "$E_INVALID_ARG"
     esac
+    exit_code="$?"
     noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
