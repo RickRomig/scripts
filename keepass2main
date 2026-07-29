@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : pwfin2main
 # Description  : Synchronizes password database files with main PC
 # Dependencies : scp (openssh-server)
@@ -7,51 +7,34 @@
 # Author       : Copyright (C) 2022 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Mar 2022
-# Updated      : 16 Mar 2026
-# Comments     : Will not run from hp-800g2-sff (ip 10)
+# Updated      : 28 Jul 2026
+# Version      : 6.3.26210
+# Comments     : Not to be run from hp-800g2-sff (ip 10)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
-
-## Global Variables ##
-
-EC=0
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 check_host() {
   local -r script="$1"
-  local -r mhost="hp-800g2-sff"
+  local -r mhost="$2"
   local -r lhost="${HOSTNAME:-$(hostname)}"
   if [[ "$lhost" == "$mhost" ]]; then
     printf "%s cannot be run from %s\n" "$script" "$mhost" >&2
-    EC="$E_INVALID_HOST"
-    return
+    return "$E_INVALID_HOST"
   fi
-  copy_passwords "$mhost"
+  return 0
 }
 
 copy_passwords() {
@@ -62,16 +45,18 @@ copy_passwords() {
   ssh rick@"$LOCALNET.$mhostip" cp -pv "$kdbx_d/Passwords.kdbx" "$kdbx_d/Passwords.$(date '+%y%m%d').kdbx"
   printf "Copying updated KeepassXC databases to %s\n" "$mhost"
   scp -p "$kdbx_d/Passwords.kdbx" "$kdbx_d/Passwords.old.kdbx" "$kdbx_d/Tina-passwords.kdbx"  rick@"$LOCALNET.$mhostip":Documents/
+  return "$?"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="6.2.26075"
-  check_host "$script"
+  local -r version="6.3.26210"
+  local -r mhost="hp-800g2-sff"
+  local -i exit_code=0
+  check_host "$script" "$mhost" && copy_passwords "$mhost"
+  exit_code="$?"
   over_line "$script $version" "-"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
