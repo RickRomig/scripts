@@ -2,38 +2,51 @@
 ##########################################################################
 # Script Name  : install-xrdp
 # Description  : Installs xrdp to Debian-based systems
-# Dependencies : ufw
+# Dependencies : ufw (to allow port 3389)
 # Arguments    : none
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2024
-# Last updated : 26 May 2026
+# Updated      : 29 Jul 2026
+# Version      : 2.6.26210
 # Comments     : Working with i3 & Xfce4, no desktop background on Cinnamon.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 add_to_sslcert() {
 	printf "Adding xrdp user to the SSL-Cert group...\n"
 	getent group ssl-cert || sudo groupadd ssl-cert > /dev/null 2>&1
 	[[ $(awk '/ssl-cert:/ && /xrdp/' /etc/group) ]] || sudo adduser xrdp ssl-cert
+	return 0
+}
+
+install_xdrp() {
+	printf "Installing xrdp...\n"
+	sudo apt-get install -y xrdp xorgxrdp
+	if ! installed xrdp || ! installed xorgxrdp; then
+		printf "%s XDRP installation failed.\n" "$RED_ERROR" >&2
+    return "$E_INSTALLATION"
+	fi
+	add_to_sslcert
+	printf "Enabling and starting xrdp sevice...\n"
+	sudo systemctl enable --now xrdp
+	printf "Allow xrdp port (3389/tcp) on UFW...\n"
+	grep -qw 'inactive' < <(sudo ufw status) && sudo ufw enable
+	grep -q '3389' < <(sudo ufw status) || sudo ufw allow 3389/tcp
+	return 0
 }
 
 cinn_xsessionrc() {
@@ -42,17 +55,6 @@ if [ $DISPLAY != ":0" ]; then
   export XAUTHORITY=${HOME}/.Xauthority
 fi
 _CINNX_
-}
-
-install_xdrp() {
-	printf "Installing xrdp...\n"
-	sudo apt-get install -y xrdp xorgxrdp
-	add_to_sslcert
-	printf "Enabling and starting xrdp sevice...\n"
-	sudo systemctl enable --now xrdp
-	printf "Allow xrdp port (3389/tcp) on UFW...\n"
-	grep -qw 'inactive' < <(sudo ufw status) && sudo ufw enable
-	grep -q '3389' < <(sudo ufw status) || sudo ufw allow 3389/tcp
 }
 
 setup_xsession() {
@@ -69,21 +71,22 @@ setup_xsession() {
 		cinn_xsessionrc
 		# echo "exec cinnamon2d >>~/.local/share/logs/cinnamon.log 2>&1" | tee "$HOME/.xsession"
 	fi
+	return 0
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.5.26147"
+  local -r version="2.6.26210"
+  local -i exit_code=0
 	sudo_login 2
 	check_package ufw
 	install_xdrp
+	exit_code="$?"
 	setup_xsession
-	printf "XRDP server installed.\n"
+	printf "XRDP server installed and configured.\n"
 	over_line "$script $version"
 	reboot_system
-	exit 0
+	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
