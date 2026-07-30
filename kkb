@@ -1,64 +1,66 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : kkb
 # Description  : Displays kitty keybindings
-# Dependencies : curl
+# Dependencies : git (used by assign_cfg_repo() from functionlib.bash)
 # Arguments    : None
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Apr 2023
-# Last updated : 22 Jun 2026
+# Updated      : 28 Jul 2026
+# Version      : 1.11.26210
 # Comments     : Install with kitty-bindings.list in ~/.config/kitty/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly kitty_dir=~/.config/kitty
-readonly bindings="bindings.list"
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 copy_bindings() {
+	local -r kitty_dir="$1"
+	local -r bindings="$2"
 	local repository
 	repository=$(assign_cfg_repo)
 	printf "Cooying Kitty keyboard bindings...\n"
 	cp -v "$repository/$bindings" "$kitty_dir/$bindings"
+  return 0
 }
 
 show_bindings() {
-	[[ -f "$kitty_dir/$bindings" ]] || copy_bindings
+	local -r kitty_dir="$1"
+	local -r bindings="$2"
+	[[ -f "$kitty_dir/$bindings" ]] || copy_bindings "$kitty_dir" "$bindings"
 	printf "%sKitty keybindings:%s\n" "$green" "$normal"
 	column -t -s "|" -N Binding,Action,Binding,Action "$kitty_dir/$bindings"
+  return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.10.26173"
+	local -r version="1.11.26210"
+  local -i exit_code=0
+	local -r kitty_dir=~/.config/kitty
+	local -r bindings="keybindings.conf"
 	if [[ "$TERM" == "xterm-kitty" ]]; then
 		clearscreen
-		show_bindings
+		check-check_package git
+		show_bindings "$kitty_dir" "$bindings"
 	else
 		printf "The current terminal emulator is not Kitty.\n"
 	fi
+	exit_code="$?"
 	over_line "$script $version"
-	exit
+	exit "$exit_code"
 }
 
 ## Execution ##
