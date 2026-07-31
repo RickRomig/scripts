@@ -7,30 +7,27 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jan 2025
-# Updated      : 12 Jul 2026
+# Updated      : 31 Jul 2026
+# Version      : 2.3.26212
 # Comments     : creates a swap file if no other swap exists.
 #              : Disable old swap and comment out in /etc/fstab
 #              : User is prompted to provide size of swap file in GB (integer value)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 swap_exists() {
   local myswap
@@ -73,21 +70,22 @@ fallocate_swapfile() {
 }
 
 process_swapfile() {
-	ls -lh /swapfile  				# see the file in the root directory
-	sudo e4defrag /swapfile		# defrag swapfile so it's 1 contigous file
-	sudo chmod 600 /swapfile	# set file permissions
-	sudo mkswap /swapfile			# set up swap area
-	sudo swapon /swapfile			# enable swap file
+	ls -lh /swapfile  																			# see the file in the root directory
+	sudo e4defrag /swapfile																	# defrag swapfile so it's 1 contigous file
+	sudo chmod 600 /swapfile																# set file permissions
+	sudo mkswap /swapfile																		# set up swap area
+	sudo swapon /swapfile																		# enable swap file
 	sudo tee -a /etc/fstab <<< "/swapfile none swap sw 0 0"	# add swapfile to /etc/fstab
-	sudo systemctl daemon-reload	# reload daemons
-	sudo findmnt --verify			# verity fstab
+	sudo systemctl daemon-reload														# reload daemons
+	sudo findmnt --verify																		# verify fstab
 	return "$?"
 }
 
 main() {
 	local script="${0##*/}"
-	local version="2.2.26174"
+	local version="2.3.26212"
 	local -i exit_code=0
+	sudo_login 2
 	if swap_exists; then
 		printf "A swap file or partition already exists and is enabled.\n"
 		printf "Disable current swap before creating swap file.\n"
@@ -95,7 +93,6 @@ main() {
 		create_swapfile
 		exit_code="$?"
 	fi
-	sudo_login 2
 	printf "Current Swap:\n"
 	sudo swapon --show
   over_line "$script $version"
