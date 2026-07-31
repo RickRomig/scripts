@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : meditation-timer
 # Description  : Counts down remaining time of a meditation session.
 # Dependencies : aplay (alsa-utils)
@@ -7,56 +7,42 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jul 2021
-# Updated      : 27 May 2026
+# Updated      : 31 Jul 2026
+# Version      : 3.0.26212
 # Comments     : Original script found on Reddit r/dharmmawheel, posted by u/Jhanna4
-#              : Sound does not work with Pipewire audio.
-# TODO (Rick)  : Work on getting sound functions to work on Pipewire.
+# TODO (Rick)  : Work on getting sound functions to work with Pipewire audio.
 # License      : GNU General Public License, version 2.0
-# GNU General Public License for more details.
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-script="${0##*/}"
-version="2.13.26147"
-script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
-
-## Functions ##
-
-# dpms_enabled() {
-  # grep -w Enabled <(xset -q) && return "$TRUE" || return "$FALSE"
-# }
-
-is_valid_integer() {
-  local value="$1"
-  local re="^[0-9]+$"
-  [[ $value =~ $re ]] || return "$FALSE"
-  [[ $value -ge 0 && $value -le 100 ]] && return "$TRUE" || return "$FALSE"
-}
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 usage() {
+	local -r script="$1"
   cat << _USAGE_
 ${orange}Usage:${normal} $script <minutes> [volume 0-100]
 Meditation time is set in minutes. Only enter integers greater than 0. The default is 20 minutes.
 Volume is a percentage of the output volume. The default is 50%.
 If no arguments or incorrect values are entered, the default values will be used.
 _USAGE_
-  exit_script
+  exit 1
+}
+
+is_valid_integer() {
+  local -r value="$1"
+  local -r re="^[0-9]+$"
+  [[ $value =~ $re ]] || return "$FALSE"
+  [[ $value -ge 0 && $value -le 100 ]] && return "$TRUE" || return "$FALSE"
 }
 
 get_volume() {
@@ -67,15 +53,33 @@ get_volume() {
 }
 
 set_volume() {
-  # Set the volume for sounds played or reset to original volume (volume is a percentage, ie 60%)
+  # Set the volume for audio file or reset to original volume (volume is a percentage, ie 60%)
   local volume="$1"
   amixer set Master "$volume" > /dev/null
 }
 
+set_playback_volume() {
+  local volume="${1:-50}"  # Default volume setting is 50%.
+  # set to default if not a valid integer
+  is_valid_integer "$volume" || volume="50"
+  # make volume a percent for use by amixer
+  volume+="%"
+  set_volume "$volume"
+	return 0
+}
+
 play_sound() {
-  # Play a sound as a background process.
+  # Play an audio file as a background process.
   local sound="$1"
   /usr/bin/aplay "$sound" > /dev/null 2>&1 &
+}
+
+set_meditation_time() {
+	local minutes="${1:-20}"  # Default time is 20 minutes.
+	# set to default if not a digit or equal to 0
+  [[ "${minutes//[0-9]/}" || "$minutes" -eq 0 ]] && minutes=20
+  echo "$minutes"
+  return 0
 }
 
 screensaver_off() {
@@ -96,16 +100,15 @@ screensaver_on() {
 }
 
 prep_countdown() {
-  # Allow 10 seconds before meditation begins.
-  local count
+  # Allow 10 seconds to prepare for meditation
+  local -i count
   for count in {10..1}; do printf "\t%02d\r" "$count"; sleep 1; done
 }
 
 meditation_timer() {
-  local hours interval min minutes seconds sec_rem
-  min="$1"
+  local -i hours interval minutes seconds sec_rem
+	local -ri min="$1"
   sec_rem=$(( 60 * min ))
-  # local -r audio_file="$script_dir/files/Low-Wood-Block.wav"
   while [[ "$sec_rem" -gt 0 ]]; do
     sec_rem=$(( sec_rem - 1 ))
     interval="$sec_rem"
@@ -119,34 +122,21 @@ meditation_timer() {
     # interval=$(( interval - hours ))
     # weeks=$(( interval / 604800 ))
     printf "\t%02d:%02d:%02d\r" "$hours" "$minutes" "$seconds"
-    # [[ $(( sec_rem % 300 )) -eq 0 && "$sec_rem" -gt 0 ]] && play_sound "$audio_file"
     sleep 1
   done
 }
 
-exit_script() {
-  printf "\n\U2638 %s %s\n" "$script" "$version"
-  printf "\UA9 2021-2026 Richard B. Romig\n"
-  exit
-}
+meditate() {
+	local minutes="$1"
+	local volume="$2"
+	local meditation_time orig_volume script_dir
+	script_dir=$(dirname "$(readlink -f "${0}")")
+	local -r audio_file="$script_dir/files/Tibetan_bowl.wav"
 
-main() {
-  trap screensaver_on EXIT
-  local audio_file meditation_time orig_volume volume
-  audio_file="$script_dir/files/Tibetan_bowl.wav"
-  # Check arguments and dependencies.
-  meditation_time="${1:-20}"  # Default time is 20 minutes.
-  [[ "$meditation_time" == "-h" || "$meditation_time" == "--help" ]] && usage
-  [[ "${meditation_time//[0-9]/}" || "$meditation_time" -eq 0 ]] && meditation_time=20 # if not a digit or equals 0
-  volume="${2:-50}"  # Default volume setting is 50%.
-  is_valid_integer "$volume" || volume="50"
-  volume+="%"   # make volume a percent.
-  check_package alsa-utils
-  clear
-  # Capture original volume setting
   orig_volume=$(get_volume)  # orig_volume is a percentage, ie 87%
-  # Set playback volume
-  set_volume "$volume"
+	meditation_time=$(set_meditation_time "$minutes")
+  set_playback_volume "$volume"
+
   printf "\n\t\U2638 %sMeditation Timer%s \U2638 \n\n" "$green" "$normal"
   screensaver_off
   prep_countdown
@@ -156,9 +146,22 @@ main() {
   sleep 30  # wait for audio file to finish
   set_volume "$orig_volume"
   printf "\n"
-  exit_script
+  return 0
 }
 
-## Execution ##
+main() {
+	local -r script="${0##*/}"
+	local -r version="3.0.26212"
+	local minutes="$1"
+  [[ "$minutes" == "-h" || "$minutes" == "--help" ]] && usage "$script"
+  local volume="$2"
+	trap screensaver_on EXIT
+  check_package alsa-utils
+  clearscreen
+  meditate "$minutes" "$volume"
+  printf "\n\U2638 %s %s\n" "$script" "$version"
+  printf "\UA9 2021-2026 Richard B. Romig\n"
+  exit
+}
 
 main "$@"
