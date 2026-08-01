@@ -7,38 +7,31 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, 04 Jul 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2022
-# Updated      : 27 May 2026
+# Updated      : 31 Jul 2026
+# Version      : 2.24.26212
 # Comments     : For use with BU backup script.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Variables ##
-
-readonly script="${0##*/}"
-readonly version="2.23.26147"
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local errcode updated
-	errcode="${1:-1}"
-	updated="27 May 2026"
+  local -r script="$1"
+  local -r version="$2"
+  local -ri errcode="${1:-1}"
+	local -r updated="31 Jul 2026"
 	cat << _HELP_
   ${orange}$script${normal} $version, Updated $updated
   Mounts/Unmounts USB backup drive for the BU script.
@@ -66,6 +59,7 @@ mount_bu() {
   sudo mount /dev/"$usbdrv" "$mount_point"
   printf "Backup drive (/dev/%s) is mounted at %s\n" "$usbdrv" "$(awk '/BU_Drive/ {print $3}' < <(mount))"
   notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is mounted"
+  return 0
 }
 
 umount_bu() {
@@ -78,6 +72,7 @@ umount_bu() {
   printf "BU_Drive (%s) is unmounted.\n" "$usbdrv"
   pgrep -x nemo >/dev/null && nemo --quit
   notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is unmounted"
+  return 0
 }
 
 bu_status() {
@@ -94,19 +89,21 @@ bu_status() {
 }
 
 main() {
-  grep -qw 'usb' <(lsblk -S -o TRAN) || die "BU_Drive not attached." "$E_DRIVE_ERROR"
-  local noOpt opt optstr OPTARG OPTIND
+  grep -qw 'usb' < <(lsblk -S -o TRAN) || die "BU_Drive not attached." "$E_DRIVE_ERROR"
+  local -r script="${0##*/}"
+  local -r version="2.24.26212"
   local -r mount_point="/media/$USER/BU_Drive"
-  noOpt=1
-  optstr=":hmsu"
+  local opt OPTARG OPTIND
+  local -i noOpt=1
+  local -r optstr=":hmsu"
   while getopts "$optstr" opt; do
     case "$opt" in
       h )
-        help 0
+        help "$script" "$version" 0
         ;;
       m )
         if bu_status; then
-          printf "No further action necessary.\n"
+          printf "BU_Drive is mounted. No further action necessary.\n"
         else
           mount_bu "$mount_point"
         fi
@@ -118,20 +115,19 @@ main() {
         if bu_status; then
           umount_bu "$mount_point"
         else
-          printf "No further action necessary.\n"
+          printf "BU_Drive is not mounted. No further action necessary.\n"
         fi
         ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$E_INVALID_ARG"
+        help "$script" "$version" "$E_INVALID_ARG"
     esac
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { bu_status; help 0; }
+  [[ "$noOpt" = 1 ]] && bu_status
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
+  exit
 }
-
-## Execution ##
 
 main "$@"
