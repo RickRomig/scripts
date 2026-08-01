@@ -45,8 +45,6 @@ update_clones() {
 					git pull
 					popd >/dev/null 2>&1 || return "$E_POPD_PUSHD"
 					printf "\n"
-				else
-					printf "~ %s ~\nHas not been cloned to this computer.\n~\n" "${clone^^}"
 				fi
 			done
 		} | tee "$log_dir/$repo_log"
