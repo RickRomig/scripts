@@ -7,8 +7,9 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 03 Jul 2026
-# Comments     : Mount points are at ~/mnt/
+# Updated      : 31 Jul 2026
+# Version      : 5.6.26212
+# Comments     : Mount points are at ~/mnt/ (HOME directory)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -23,17 +24,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
   local -r script="$1"
   local -r version="$2"
-  local -r errcode="${3:-1}"
-  local -r updated="03 Jul 2026"
+  local -ri errcode="${3:-1}"
+  local -r updated="31 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated $updated
 Mounts/Unmounts an SSHFS share.
@@ -57,20 +55,20 @@ cd_fail() {
 	local share="$1"
   printf "%s The cd shell builtin failed.\n" "$RED_ERROR" >&2
   printf "The SSHFS share has not been unmounted.\n" >&2
-  fail_msg "$share"
+	return 0
 }
 
 fail_msg() {
-	local share="$1"
+	local -r share="$1"
 	local -r mount_point="$HOME/mnt"
   printf "Make sure you are not in the mountpoint and run the following command:\n" >&2
   printf "\t%sfusermount -u %s/%s/%s\n" "$orange" "$mount_point" "$share" "$normal"  >&2
-  exit "$E_DRIVE_ERROR"
+	return 0
 }
 
 mount_share() {
-	local octet="$1"
-  local share="$2"
+	local -r octet="$1"
+  local -r share="$2"
   ping -c3 "$LOCALNET.$octet" > /dev/null 2>&1 || die "$share at $LOCALNET.$octet is not online." "$E_NETWORK"
 	[[ -d "$HOME/mnt/$share/" ]] || mkdir -p "$HOME/mnt/$share"
 	printf "Mounting %s...\n" "$share"
@@ -86,26 +84,30 @@ mount_share() {
 }
 
 unmount_share() {
-  local share="$1"
-  cd "$HOME" || cd_fail "$share"
+  local -r share="$1"
+  if ! cd "$HOME"; then
+		cd_fail "$share"
+		fail_msg "$share"
+		return "$E_DRIVE_ERROR"
+	fi
   if fusermount -u "$HOME/mnt/$share/"; then
 		printf "%s has been unmounted.\n" "$share"
 		return 0
-  else
-		printf "%s %s has not been unmounted." >&2 "$RED_ERROR" "$share"
-		fail_msg "$share"
-  fi
+ fi
+	printf "%s %s has not been unmounted." >&2 "$RED_ERROR" "$share"
+	fail_msg "$share"
+	return "$E_DRIVE_ERROR"
 }
 
 mounted() {
-	local share="$1"
+	local -r share="$1"
 	grep -q "$share" < <(mount) && return "$TRUE" || return "$FALSE"
 }
 
 handle_mount() {
-	local ip octet share
-	octet="$1"
-  share="$2"
+	local -r octet="$1"
+  local -r share="$2"
+	local -i ip
 	ip=$(local_ip)
 	[[ "$ip" == "$octet" ]] && die "Cannot mount/unmount local system." "$E_DRIVE_ERROR"
   if ! mounted "$share"; then
@@ -122,7 +124,7 @@ handle_mount() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.5.26184"
+	local -r version="5.6.26184"
 	local -i exit_code=0
   local opt share_name share_ip OPTARG OPTIND
 	local -i noOpt=1
@@ -152,7 +154,7 @@ main() {
 				handle_mount "$share_ip" "$share_name"
 				;;
 			h )
-				help 0
+				help "$script" "$version" 0
 				;;
 			m )
 				share_name="HP-800-G2"
