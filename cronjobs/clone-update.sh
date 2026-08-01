@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Sep 2025
-# Last updated : 23 Jul 2026
-# Version      : 4.2.26200
+# Last updated : 01 Aug 2026
+# Version      : 4.3.26213
 # Comments     : Run as a daily cron job from ~/.local/bin/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,8 +41,6 @@ update_clones() {
 					git pull
 					popd >/dev/null 2>&1 || return "$?"
 					printf "\n"
-				else
-					printf "~ %s repository ~\nHas not been cloned to this computer.\n~\n" "${clone^^}"
 				fi
 			done
 		} > "$log_dir/$repo_log" 2>&1
