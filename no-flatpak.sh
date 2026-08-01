@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : no-flatpak.sh
 # Description  : Enable/disable Flatpaks in a Debian or Ubuntu-based system.
 # Dependencies : None
@@ -7,37 +7,30 @@
 # Author       : Copyright (C) 2024, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Mar 2024
-# Updated      : 28 May 2026
+# Updated      : 01 Aug 2026
+# Version      : 1.6.26213
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify  it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="1.5.26148"
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local errcode="${1:-1}"
-	local updated="28 May 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="28 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated $updated
 Disables/Enables Flatpak support.
@@ -69,7 +62,7 @@ enable_flatpak() {
 	local -r pref_file="$1"
 	if [[ ! -f "$pref_file" ]]; then
     printf "%s does not exist.\nInstallation of Flatpak and Flatpak packages is enabled by default.\n" "$pref_file"
-		return
+		return 0
   fi
 	if grep -q '^Package:' "$pref_file"; then
 		sudo_login 1
@@ -78,6 +71,7 @@ enable_flatpak() {
 	else
     printf "Installation of Flatpak and Flatpak packages is already enabled by %s.\n" "$pref_file"
   fi
+	return 0
 }
 
 disable_flatpak() {
@@ -87,7 +81,7 @@ disable_flatpak() {
 		sudo_login 1
     sudo cp "$script_dir/files/${pref_file##*/}" "${pref_file%/*}/"
     printf "%s has been created. Installation of Flatpak and Flatpak packages is now disabled.\n" "$pref_file"
-		return
+		return 0
   fi
   if grep -q '^# Package:' "$pref_file"; then
 		sudo_login 1
@@ -96,15 +90,19 @@ disable_flatpak() {
   else
     printf "\nInstallation of Flatpak and Flatpak packages is already disabled.\n"
   fi
+	return 0
 }
 
 main() {
-  local noOpt opt optstr OPTARG OPTIND
+	local -r script="${0##*/}"
+	local -r version="1.6.26213"
+	local -i exit_code=0
+	local -r pref_file=/etc/apt/preferences.d/noflatpak.pref
+  local opt OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":dehs"
 	printf "Flatpack is "
 	flatpak_installed && printf "installed.\n" || printf "not installed.\n"
-	local -r pref_file="/etc/apt/preferences.d/noflatpak.pref"
-	noOpt=1
-	optstr=":dehs"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			d )
@@ -114,7 +112,7 @@ main() {
 				enable_flatpak "$pref_file"
 				;;
 			h )
-				help 0
+				help "$script" "$version" 0
 				;;
 			s )
 				printf "Installation of Flatpak and Flatpak packages is "
@@ -122,16 +120,15 @@ main() {
 				;;
 			? )
 				printf "\n%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
+		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
