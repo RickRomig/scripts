@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 31 Jul 2026
-# Version      : 5.6.26212
+# Updated      : 01 Aug 2026
+# Version      : 5.6.26213
 # Comments     : Mount points are at ~/mnt/ (HOME directory)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -94,7 +94,7 @@ unmount_share() {
 		printf "%s has been unmounted.\n" "$share"
 		return 0
  fi
-	printf "%s %s has not been unmounted." >&2 "$RED_ERROR" "$share"
+	printf "%s %s has not been unmounted." "$RED_ERROR" "$share" >&2
 	fail_msg "$share"
 	return "$E_DRIVE_ERROR"
 }
@@ -110,6 +110,10 @@ handle_mount() {
 	local -i ip
 	ip=$(local_ip)
 	[[ "$ip" == "$octet" ]] && die "Cannot mount/unmount local system." "$E_DRIVE_ERROR"
+	if [[ "$ip" == "$octet" ]]; then
+	printf "%s Cannot mount/unmount local system.\n" "$RED_ERROR" >&2
+	return "$E_DRIVE_ERROR"
+	fi
   if ! mounted "$share"; then
 		mount_share "$octet" "$share"
 		return "$?"
@@ -124,7 +128,7 @@ handle_mount() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.6.26184"
+	local -r version="5.6.26213"
 	local -i exit_code=0
   local opt share_name share_ip OPTARG OPTIND
 	local -i noOpt=1
