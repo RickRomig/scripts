@@ -1,44 +1,37 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : pingit
-# Description  : Checks if a host is on the local network
+# Description  : Pings a host is on the local network
 # Dependencies : ping
 # Arguments    : Last octet of target computer's IP address
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2023
-# Updated      : 24 Jun 2026
+# Updated      : 01 Aug 2026
+# Version      : 4.0.26213
 # Comments     : Assumes a /24 (Class C) network
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful,# but WITHOUT
+# ANY WARRANTY; without even the implied warranty of# MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="3.9.26175"
-EC=0
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local errcode="${1:-1}"
-	local updated="24 Jun 2026"
+  local -r script="$1"
+  local -r version="$2"
+	local -r errcode="${3:-1}"
+	local -r updated="01 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Pings an IP address on the local network.
@@ -58,56 +51,53 @@ _HELP_
 
 validIP() {
   local octet="$1"
-  local re="^[0-9]+$"
+  local -r re="^[0-9]+$"
   if [[ -z "$octet" ]]; then
-    printf "%s No argument passed. No host IP.\n" "$RED_ERROR" <&2
-    EC="$E_MISSING_ARG"
-  elif [[ $1 =~ $re ]] 2>/dev/null; then
-    # Argument is an integer value
-    if [[ "$octet" -gt 0 && "$octet" -lt 255 ]]; then
-      printf "%s.%s is a valid IP address.\n" "$LOCALNET" "$octet"
-      EC=0
-    else
-      printf "%s %s.%s is not a valid IP address.\n" "$RED_ERROR" "$LOCALNET" "$octet" <&2
-      EC="$E_INVALID_ARG"
-    fi
-  else
-    printf "%s Invalid argument - %s.\n" "$RED_ERROR" "$octet" <&2
-    EC="$E_INVALID_ARG"
+    printf "%s No argument passed.\n" "$RED_ERROR" <&2
+    return "$E_MISSING_ARG"
   fi
-  return "$EC"
+  if ! [[ $1 =~ $re ]] 2>/dev/null; then
+    printf "%s Invalid argument - %s (not an integer).\n" "$RED_ERROR" "$octet" <&2
+    return "$E_INVALID_ARG"
+  fi
+  # Argument is an integer value
+  if [[ "$octet" -gt 0 && "$octet" -lt 255 ]]; then
+    printf "%s.%s is a valid IP address.\n" "$LOCALNET" "$octet"
+    return 0
+  else
+    printf "%s %s.%s is not a valid IP address.\n" "$RED_ERROR" "$LOCALNET" "$octet" <&2
+    return "$E_INVALID_ARG"
+  fi
 }
 
 pingIP() {
-  local localip hostip
-  hostip="$1"
+  local -r hostip="$1"
+  local localip
   localip="$(local_ip)"
   # Attempt to ping the target IP address
   if [[ "$localip" == "$hostip" ]]; then
     printf "\n%s.%s is the computer you're pinging from.\n" >&2 "$LOCALNET" "$hostip"
-    EC="$E_INVALID_ARG"
-    return "$EC"
+    return "$E_INVALID_ARG"
   fi
   ping -c 5 "$LOCALNET.$hostip"
-  EC="$?"
-  return "$EC"
+  return "$?"
 }
 
 main() {
-	[[ "$1" = "-h" || "$1" = "--help" ]] && help "$EC"
-  local hostip="$1"
-  # validIP "$hostip" # Sets EC and displays status message
-  # [[ "$EC" -ne 0 ]] && help "$EC"
-  # pingIP "$hostip"  # Sets EC and displays information
+  local -r script="${0##*/}"
+  local -r version="4.0.26213"
+	local -i exit_code=0
+	[[ "$1" = "-h" || "$1" = "--help" ]] && help "$script" "$version" "$exit_code"
+  local -r hostip="$1"
+  printf "Pings an an IP address on the local network.\n"
   if validIP "$hostip"; then
     pingIP "$hostip"
   else
-    help "$?"
+    help "$script" "$version" "$?"
   fi
+  exit_code="$?"
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
