@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : purge-rc
 # Description  : Purges config files from packages in the 'rc' state
 # Dependencies : None
@@ -7,32 +7,30 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Updated      : 29 May 2026
+# Updated      : 02 Aug 2026
+# Version      : 4.14.26214
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful,# but WITHOUT
+# ANY WARRANTY; without even the implied warranty of# MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 list_rc_packages() {
   printf "Packages in the 'rc' state:\n"
   awk '/^rc/ {print $1,$2}' < <(dpkg --list) | sort -r
+  return 0
 }
 
 purge_rc_packages() {
@@ -41,23 +39,25 @@ purge_rc_packages() {
   if yes_or_no "Are you sure you want to purge the config files for these packages?"; then
     sudo_login 2
     printf "\n%sPurging obsolete configuration files...%s\n" "$green" "$normal"
-    # Can't use process substituion for this.
+    # Process substituion does not work here.
     for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
       sudo apt remove --purge "$rcpkg" -yy
     done
   else
     printf "\nNo action taken. No packages were purged.\n"
   fi
+  return 0
 }
 
 list_headers() {
   printf "\n%sInstalled linux headers and images:%s\n" "$green" "$normal"
   awk '/linux-image/ || /-headers-/ {print $2}' < <(dpkg --list) | sort -r
+  return 0
 }
 
 main() {
   local script="${0##*/}"
-  local -r version="4.13.26149"
+  local -r version="4.14.26214"
   if grep -q '^rc' < <(dpkg --list); then
     list_rc_packages
     purge_rc_packages
@@ -68,7 +68,5 @@ main() {
   over_line "$script $version"
   exit
 }
-
-## Execution ##
 
 main "$@"
