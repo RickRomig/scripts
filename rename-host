@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#############################################################################
+###############################################################################
 # Script Name  : rename-host
 # Description  : Changes the system hostname
 # Dependencies : None
@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Nov 2019
-# Updated      : 29 Apr 2026
+# Updated      : 02 Aug 2026
+# Version      : 6.3.26214
 # Comments     : Changes the hostname in both /etc/hostname and /etc/hosts.
 #              : Rules based on hostname(7) man page
 #              : Hostname length limited to 5-15 characters for NETBIOS compatibility.
@@ -15,23 +16,19 @@
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-#############################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful,# but WITHOUT
+# ANY WARRANTY; without even the implied warranty of# MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 hostname_rules() {
   cat << _RULES_
@@ -49,8 +46,8 @@ _RULES_
 get_new_hostname() {
   local -r old_host="${HOSTNAME:-$(hostname)}"
   local -l new_host=
-  local -r minLen=5
-  local -r maxLen=15
+  local -ri minLen=5
+  local -ri maxLen=15
   while true; do
     printf "\nCurrent hostname is %s\n\n" "$old_host"
     read -rp "Enter new hostname (press Enter to cancel): " new_host
@@ -100,6 +97,7 @@ get_new_hostname() {
     fi
   done
   change_hostname "$old_host" "$new_host"
+  return 0
 }
 
 change_hostname() {
@@ -111,11 +109,12 @@ change_hostname() {
   sudo hostnamectl set-hostname "$new_host"
   printf "Hostname changed. Reboot to ensure the change takes effect.\n"
   # sudo systemctl restart systemd-resolved.service
+  return 0
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="6.2.26119"
+  local -r version="6.3.26214"
   printf "Renames the system hostname.\n"
   hostname_rules
   get_new_hostname
