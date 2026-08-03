@@ -7,7 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 03 Jul 2026
+# Last updated : 03 Aug 2026
+# Version      : 3.5.26215
 # Comments     : Do not use with scripts or files inside git repos. Use gretire.sh instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,11 +25,8 @@
 # details.
 ###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source ~/bin/functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source ~/bin/functionlib.bash\n"; exit 1; }
 
 help() {
   local -r script="$1"
@@ -84,7 +82,7 @@ retire_script() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.5.26184"
+	local -r version="3.5.26215"
 	local -i exit_code=0
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
 	check_git_repo && die "This is a git repository. Use 'gretire.sh' to retire a script inside a git repository." 1
@@ -96,7 +94,5 @@ main() {
   over_line "$script $version"
 	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
