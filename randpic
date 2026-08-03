@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : randpic
 # Description  : Copies random image file from ~/Pictures to ~/Work/images
 # Dependencies : imagemagick
@@ -7,28 +7,25 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Jun 2019
-# Updated      : 08 Jun 2026
+# Updated      : 02 Aug 2026
+# Versions     : 6.3.26214
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it  under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 select_dest_dir() {
   local -r script="$1"
@@ -51,6 +48,7 @@ select_dest_dir() {
   done
 	dest_d=$($FMENU "Select image directory: " < <(printf "%s\n" "${dest_dirs[@]}"))
 	printf "%s" "$dest_d"
+  return 0
 }
 
 valid_folder() {
@@ -83,7 +81,7 @@ valid_image() {
 }
 
 select_images() {
-  local tmp_pics="$1"
+  local pic_hold_d="$1"
   local pic_dir pic_file pic_pid options _opt random_file sel_dir
 
   clear
@@ -102,10 +100,10 @@ select_images() {
     clearscreen
     box "Random Image Selector"
     printf "\n%sSelected image: %s%s/%s%s\n" "$blue" "$orange" "$sel_dir" "$pic_file" "$normal"
-    cp -p "$pic_dir/$pic_file" "$tmp_pics"
-    # /usr/bin/display -geometry +600+20 "$tmp_pics/$pic_file" &
-    /usr/bin/display -geometry +1000+20 -resize 800x600 "$tmp_pics/$pic_file" &
-    # kitten icat --clear --place 60x30@80x1 --scale-up "$tmp_pics/$pic_file"
+    cp -p "$pic_dir/$pic_file" "$pic_hold_d"
+    # /usr/bin/display -geometry +600+20 "$pic_hold_d/$pic_file" &
+    /usr/bin/display -geometry +1000+20 -resize 800x600 "$pic_hold_d/$pic_file" &
+    # kitten icat --clear --place 60x30@80x1 --scale-up "$pic_hold_d/$pic_file"
     pic_pid="$!"
     printf "\n%sOptions:%s\n" "$blue" "$normal"
     COLUMNS=12
@@ -133,21 +131,21 @@ select_images() {
           printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
           printf "\nSelecting another random image...\n"
           kill $pic_pid
-          rm "$tmp_pics/$pic_file"
+          rm "$pic_hold_d/$pic_file"
           sleep 2
           break
           ;;
         4 )
           printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
           kill $pic_pid
-          rm "$tmp_pics/$pic_file"
+          rm "$pic_hold_d/$pic_file"
           return
           ;;
         5 )
           printf "\n%sImage deleted:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
           printf "\nSelecting another random image...\n"
           kill $pic_pid
-          rm "$tmp_pics/$pic_file"
+          rm "$pic_hold_d/$pic_file"
           rm "$pic_dir/$pic_file"
           sleep 2
           break
@@ -157,11 +155,12 @@ select_images() {
       esac
     done
   done
+  return 0
 }
 
 main () {
   local -r script="${0##*/}"
-  local -r version="6.2.26159"
+  local -r version="6.3.26214"
   local dest_dir
   check_package imagemagick
   dest_dir=$(select_dest_dir "$script")
@@ -171,7 +170,5 @@ main () {
   over_line "$script $version"
   leave ""
 }
-
-## Execution ##
 
 main "$@"
