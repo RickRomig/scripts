@@ -7,37 +7,31 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jul 2022
-# Updated      : 31 May 2026
+# Updated      : 03 Aug 2026
+# Version      : 4.1.26215
 # Comments     : Adapted from a script by Dave McKay at howtogeek.com
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of# MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="4.0.26151"
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local errcode="${1:-1}"
-	local updated="31 May 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="03 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Scans a range of IP addresses to determine if they are online.
@@ -51,7 +45,7 @@ _HELP_
 }
 
 check_arg_values() {
-	# returns TRUE only if both octets are inegers within the valid range of valid IP addresses.
+	# returns TRUE only if both octets are integers within the valid range of valid IP addresses.
 	local ip1="$1"
 	local ip2="$2"
 	local re="^[0-9]+$"
@@ -67,15 +61,18 @@ scan_range() {
 	ip2="$2"
 	for (( ip=ip1; ip<=ip2; ip++ )); do
 		printf "%s.%d " "$LOCALNET" "$ip"
-		grep -E "0 response|0 packets received" < <(arping -c 1 "$LOCALNET.$ip") > /dev/null && printf "didn't respond.\n" || printf "responded.\n"
+		grep -E "0 response|0 packets received" < <(arping -c 1 "$LOCALNET.$ip") > /dev/null && printf "no response\n" || printf "responded\n"
 	done
+	return 0
 }
 
 main() {
-	[[ $# -lt 2 ]] && { printf "%s Too few arguments passed.\n" "$RED_ERROR" <&2; help "$E_MISSING_ARG"; }
+	local -r script="${0##*/}"
+	local -r version="4.1.26215"
+	[[ $# -lt 2 ]] && { printf "%s Too few arguments passed.\n" "$RED_ERROR" <&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	local addr1="$1"
 	local addr2="$2"
-	check_arg_values "$addr1" "$addr2" || help "$E_INVALID_ARG"
+	check_arg_values "$addr1" "$addr2" || help "$script" "$version" "$E_INVALID_ARG"
 	check_package iputils-arping
 	scan_range "$addr1" "$addr2"
 	over_line "$script $version"
