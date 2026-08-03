@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Nov 2019
-# Updated      : 03 Jul 2026
+# Updated      : 03 Aug 2026
+# Version      : 7.5.26215
 # Comments     : Extracts swap partition UUID from output of /usr/sbin/blkid
 #              : Debian requires sudo for blkid, in Mint, blkid gives more info with sudo
 #              : Run script only if you get an update-initramfs error message.
@@ -25,11 +26,8 @@
 # PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 print_message() {
   cat << _MESSAGE_
@@ -71,9 +69,9 @@ set_resume() {
 }
 
 main() {
-  local script="${0##*/}"
-  local -r version="7.4.26184"
-  local exit_code=0
+  local -r script="${0##*/}"
+  local -r version="7.5.26215"
+  local -i exit_code=0
   print_message
   set_resume
   exit_code="$?"
@@ -81,7 +79,5 @@ main() {
   [[ "$exit_code" -eq 0 ]] && reboot_system
   exit "$exit_code"
 }
-
-## Exexit_codeution ##
 
 main "$@"
