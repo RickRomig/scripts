@@ -7,38 +7,31 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 10 Aug 2025
-# Updated      : 26 Jun 2026
+# Updated      : 03 Aug 2026
+# Version      : 3.6.26215
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="3.5.26177"
-EC=0
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local errcode="${1:-1}"
-	local -r updated="26 Jun 2026"
+	local -r script="$1"
+	local -r version-"$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="03 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Synchronixe Git repositories and work directories between local computers.
@@ -54,7 +47,7 @@ _HELP_
 }
 
 valid_host() {
-	local local_host="$1"
+	local -r local_host="$1"
 	case "$local_host" in
 		hp-800g2-sff|hp-850-g3 )
 			return "$TRUE" ;;
@@ -64,25 +57,24 @@ valid_host() {
 }
 
 transfer_status() {
-  local xfr_status="$1"
+  local -i xfr_status="$1"
 	if [[ "$xfr_status" -gt 0 ]]; then
 		printf "%s A transfer failed. Code: %d. Check network status.\n" "$RED_ERROR" "$xfr_status" >&2
-		EC="$xfr_status"
-		return
+		return "$xfr_status"
 	fi
 	printf "Transfer successful\n"
+	return 0
 }
 
 transfer() {
-  local ip_addr host_ip remote_host
-  host_ip="$1"
-	remote_host="$2"
+  local -ri host_ip="$1"
+	local -r remote_host="$2"
+  local -i ip_addr
   ip_addr="$(local_ip)"
   # Skip local machine:
   if [[ "$ip_addr" == "$host_ip" ]]; then
     printf "%sSkipping %s (local client)%s\n\n" "$green" "$remote_host" "$normal"
-		EC="$E_INVALID_HOST"
-    return
+    return "$E_INVALID_HOST"
   fi
   # Check for machines and sync if on-line:
   printf "%sChecking for %s...%s\n" "$green" "$remote_host" "$normal"
@@ -93,58 +85,58 @@ transfer() {
   else
     printf "\n...Skipping %s! Not on network.\n\n" "$remote_host"
   fi
+	return 0
 }
 
 sync_script() {
-	local exit_status=0
-	local hostip="$1"
+	local -ri hostip="$1"
 
   printf "\n%sSyncing Git Repositories...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing Projects Repositories...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
 	printf "\n%sSyncing Deb Packages...%s\n" "$orange" "$normal"
 	rsync -avh --delete "$HOME"/debpkgs/  "$LOCALNET.$hostip":debpkgs/
-	exit_status="$?"
-	transfer_status "$exit_status"
+  transfer_status "$?"
 
-  printf "\n%sSyncing ~/Work ...%s\n" "$orange" "$normal"
-  rsync -avh --delete --exclude 'images' "$HOME"/Work/ "$LOCALNET.$hostip":Work/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  printf "\n%sSyncing ~/Work/dev/ ...%s\n" "$orange" "$normal"
+  rsync -avh --delete "$HOME"/Work/dev/ "$LOCALNET.$hostip":Work/dev/
+  transfer_status "$?"
+
+	return 0
 }
 
 main() {
-	local noOpt opt optstr local_host OPTARG OPTIND
-	local_host="${HOSTNAME:-$(hostname)}"
-	noOpt="1"
-	optstr=":ghlm"
+	local -r script="${0##*/}"
+	local -r version="3.6.26215"
+	local -i exit_code=0
+	local -r local_host="${HOSTNAME:-$(hostname)}"
+	local opt OPTARG OPTIND
+	local -i noOpt="1"
+	local -r optstr=":ghlm"
 	valid_host "$local_host" || { printf "%s Invalid host: %s\n" "$RED_ERROR" "$local_host" >&2; help "$E_INVALID_ARG"; }
 	check_package rsync
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			g ) transfer "16" "hp-8300-usdt" ;;
-			h ) help 0 ;;
+			h ) help "$script" "$version" 0 ;;
 			l ) transfer "22" "hp-850-g3" ;;
 			m ) transfer "10" "hp-800g2-sff" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
+		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	exit "$EC"
+	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
