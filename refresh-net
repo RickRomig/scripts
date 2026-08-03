@@ -7,55 +7,56 @@
 # Author       : Copyright (C) 2025, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : Unknown
-# Updated      : 30 May 2026
+# Updated      : 02 Aug 2026
+# Versions     : 2.4.26214
 # Comment      :
-# TODO (Rick)  :
+# TODO (Rick)  : Research for OpenRC and Runit
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify it  under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 restart_network() {
   local init_sys
+  local -i status
   init_sys=$(awk 'match($0, /(systemd|sysvinit)/) { print toupper(substr($0, RSTART, RLENGTH));exit; }' < <(strings /sbin/init))
   printf "Restarting network...\n"
   case "$init_sys" in
     "SYSTEMD" )
-      sudo systemctl restart NetworkManager.service ;;
+      sudo systemctl restart NetworkManager.service
+      status="$?" ;;
     "SYSVINIT" )
-      sudo service network-manager restart ;;
+      sudo service network-manager restart
+      status="$?" ;;
     * )
-      printf "Init system is undetermined.\n"
-      return
+      printf "Init system is undetermined.\n" >&2
+      status="$E_UNSUPPORTED"
   esac
   sleep 3
+  return "$status"
 }
 
 main() {
-	local script="${0##*/}"
-  local version="2.3.26150"
+	local -r script="${0##*/}"
+  local -r version="2.4.26214"
+  local -i exit_code=0
   sudo_login 2
   check_package strings
   restart_network
+  exit_code="$?"
   over_line "$script $version"
-  exit
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
