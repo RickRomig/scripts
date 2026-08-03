@@ -7,47 +7,42 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Feb 2025
-# Last updated : 09 Jun 2026
+# Updated      : 03 Aug 2026
+# Version      : 4.2.26215
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-EC=0
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 connect_server() {
-	local server="${1}.local"
+	local -r server="${1}.local"
 	printf "%sConnecting to %s ...%s\n" "$lightyellow" "$server" "$normal"
 	ssh "$server"
+	return 0
 }
 
 connect_server_x() {
-	local server="${1}.local"
+	local -r server="${1}.local"
 	printf "%sConnecting to %s (X11 forwarding) ...%s\n" "$lightyellow" "$server" "$normal"
 	ssh -X "$server"
+	return 0
 }
 
-fuzzy_server() {
-	local local_host="${HOSTNAME:-$(hostname)}"
+select_server() {
+	local -r local_host="${HOSTNAME:-$(hostname)}"
 	local FMENU="fzf --header=$script \
            --layout=reverse \
            --exact \
@@ -77,8 +72,8 @@ local -r servers=(
 	)
 	local server
 	server=$($FMENU "Choose the remote server: " < <(printf "%s\n" "${servers[@]}"))
-	[[ "$local_host" == "$server" ]] && { printf "Attempting to connect to local client.\n" >&2; EC="$E_INVALID_HOST"; return; }
-	[[ "$server" ]] || { printf "No server selected.\n"; return; }
+	[[ "$local_host" == "$server" ]] && { printf "Attempting to connect to local client.\n" >&2; return "$E_INVALID_HOST"; }
+	[[ "$server" ]] || { printf "No server selected.\n"; return "$E_MISSING_ARG"; }
 	if default_no "Enable X11 forwarding?"; then
 		printf '\e[A\e[K'
 		connect_server_x "$server"
@@ -86,18 +81,19 @@ local -r servers=(
 		printf '\e[A\e[K'
 		connect_server "$server"
 	fi
+	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.1.26160"
+	local -r version="4.2.26215"
+	local -i exit_code=0
 	check_package fzf
 	clearscreen
-	fuzzy_server
+	select_server
+	exit_code="$?"
   over_line "$script $version"
-	exit "$EC"
+	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
