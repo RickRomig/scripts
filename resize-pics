@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : resize-pics
 # Description  : Resizes and changes the compression of images in the current directory.
 # Dependencies : imagemagick
@@ -7,36 +7,25 @@
 # Author       : Copyright (c) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Jun 2022
-# Updated      : 01 Apr 2026
+# Updated      : 03 Aug 2026
+# Version      : 1.7.26215
 # Comments     : Must be run from the current working directory.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful,# but WITHOUT
+# ANY WARRANTY; without even the implied warranty of# MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 81
-fi
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 find_images() {
   local num_images
@@ -51,17 +40,20 @@ resize_pics() {
   printf "Creating resized images in ./resized...\n"
   for image in *.jpg; do
     convert "$image" -resize "$size"x"$size" resized/"${image%}"
+    printf "%s -> resized\n" "$image"
   done
+  return 0
 }
 
 rename_extensions() {
   # rename *.JPG, *.JPEG, *.jpeg -> *.jpg
   find . -maxdepth 1 -type f -iname "*.jp*g" -exec rename 's/\.JPE?G$/\.jpg/i' {}  \;
+  return 0
 }
 
 main() {
-	local script="${0##*/}"
-  local version="1.6.26091"
+	local -r script="${0##*/}"
+  local -r version="1.7.26215"
 	local size="${1:-800}"
   if find_images; then
     check_package imagemagick
@@ -73,7 +65,5 @@ main() {
   over_line "$script $version"
   exit
 }
-
-## Execution ##
 
 main "$@"
