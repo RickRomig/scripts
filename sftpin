@@ -6,39 +6,33 @@
 # Arguments    : Last octet of target host's IP address
 # Author       : Copyright (C) 2017, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Created      : 08 Dec 2017 (Joe Collins)
-# Updated      : 15 Jun 2026
+# Created      : 08 Dec 2017
+# Updated      : 03 Aug 2026
+# Version      : 2.8.26215
 # Comments     : Based on script by Joe Collins.
 #              : LOCALNET and valid_ip() are declared in functionlib
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="2.7.26166"
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local errcode="${1:-1}"
-  local updated="15 Jun 2026"
+  local -r script="$1"
+  local -r version="$2"
+  local -ri errcode="${3:-1}"
+  local -r updated="03 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Log in to a remote server using Secure File Transfer Protocol (SFTP).
@@ -52,23 +46,24 @@ _HELP_
 }
 
 sftp_in() {
-  local hostip="$1"
+  local -r hostip="$1"
   if valid_ip "$hostip"; then
     /usr/bin/sftp "$LOCALNET.$hostip"
   else
-    help "$?"
+    help "$script" "$version" "$?"
   fi
+  return 0
 }
 
 main() {
-  [[ "$1" == "-h" || "$1" == "--help" ]] && help 0
+  local -r script="${0##*/}"
+  local -r version="2.8.26215"
+  [[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
   local hostip="$1"
   [[ "$hostip" ]] || read -rp "Enter last octet of remote server's IP address: " hostip
   sftp_in "$hostip"
   over_line "$script $version"
   exit
 }
-
-## Execution ##
 
 main "$@"
