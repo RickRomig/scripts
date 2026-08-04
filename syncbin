@@ -30,6 +30,8 @@
 # shellcheck source=/home/rick/bin/functionlib.bash
 source functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
+SECONDS=0
+
 help() {
   local -r script="$1"
   local -r version="$2"
@@ -142,14 +144,13 @@ check_host() {
   ip_addr="$(local_ip)"
   printf "Host: %s%s%s at " "$lightyellow" "$local_host" "$normal"
   printf "%s%s%s\n\n" "$lightyellow" "$LOCALNET.$ip_addr" "$normal"
-  [[ "$local_host" == "$main_host" ]] || leave "Script must be run from $main_host!"
+  [[ "$local_host" == "$main_host" ]] && die "Script must be run from $main_host" "$E_INVALID_HOST"
   return 0
 }
 
 main() {
   local -r script="${0##*/}"
   local -r version="8.5.26215"
-  SECONDS=0
   check_package rsync
  if [[ "$#" -eq 0 ]]; then
     printf "%s No arguments passed.\n" "$RED_ERROR" >&2
@@ -170,7 +171,5 @@ main() {
   over_line "$script $version"
   exit
 }
-
-## Execution ##
 
 main "$@"
