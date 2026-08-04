@@ -7,8 +7,9 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Last updated : 22 Jul 2026
-# Comments     : Can sync to one, multiple, or all machines on the network.
+# Updated      : 03 Aug 2026
+# Version      : 8.5.26215
+# Comments     : Sync scripts to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
 #              : Restricted IP addresses are excluded.
@@ -26,7 +27,6 @@
 # A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
@@ -34,7 +34,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
   local -r errcode="${3:-1}"
-  local -r updated="22 Jul 2026"
+  local -r updated="03 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Synchronizes ~/bin with remote hosts.
@@ -63,22 +63,22 @@ _HELP_
 
 transfer_status() {
   local -i xfr_status="$1"
-  if [[ "$xfr_status" -eq 0 ]]; then
-		printf "Transfer successful\n"
-	else
+	if [[ "$xfr_status" -gt 0 ]]; then
 		printf "%s A transfer failed. Code: %d. Check network status.\n" "$RED_ERROR" "$xfr_status" >&2
+		return "$xfr_status"
 	fi
-  return 0
+	printf "Transfer successful\n"
+	return 0
 }
 
 transfer() {
+  local -ri host_ip="$1"
   local ip_addr
-  local -r host_ip="$1"
-  # Skip local machine:
   ip_addr="$(local_ip)"
+  # Skip local machine:
   if [[ "$ip_addr" == "$host_ip" ]]; then
     printf "%sSkipping Machine %s (local client)%s\n\n" "$green" "$host_ip" "$normal"
-    return 0
+    return "$E_INVALID_HOST"
   fi
   # Check for machines and sync if on-line:
   printf "%sChecking for %s...%s\n" "$green" "$host_ip" "$normal"
@@ -92,8 +92,7 @@ transfer() {
 }
 
 syncscript() {
-  local -i exit_status=0
-  local -r hostip="$1"
+  local -ri hostip="$1"
 
   case "$hostip" in
     1|2|3|4|5|6|7|8|9|10 )
@@ -102,8 +101,7 @@ syncscript() {
     16|22|153 )
       printf "\n%sSyncing Git Repositories...%s\n" "$orange" "$normal"
       rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
-      exit_status="$?"
-      transfer_status "$exit_status"
+      transfer_status "$?"
       printf "\n...Machine %s Synced!\n\n" "$hostip"
       ;;
     15|19 )
@@ -112,21 +110,20 @@ syncscript() {
    * )
       printf "\n%sSyncing ~/bin ...%s\n" "$orange" "$normal"
       rsync -avh --delete --exclude '.git' --exclude '.gitignore' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
-      exit_status="$?"
-      transfer_status "$exit_status"
+      transfer_status "$?"
       printf "\n...Machine %s Synced!\n\n" "$hostip"
   esac
   return 0
 }
 
 sync_one() {
-  local -r hostip="$1"
+  local -ri hostip="$1"
   transfer "$hostip"
   return 0
 }
 
 sync_some() {
-  local -r hostip="$1"
+  local hostip
   for hostip in "$@"; do transfer "$hostip"; done
   return 0
 }
@@ -139,9 +136,9 @@ sync_all() {
 }
 
 check_host() {
-  local ip_addr
   local -r main_host="hp-800g2-sff"
   local -r local_host="${HOSTNAME:-$(hostname)}"
+  local -i ip_addr
   ip_addr="$(local_ip)"
   printf "Host: %s%s%s at " "$lightyellow" "$local_host" "$normal"
   printf "%s%s%s\n\n" "$lightyellow" "$LOCALNET.$ip_addr" "$normal"
@@ -151,7 +148,7 @@ check_host() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="8.4.26203"
+  local -r version="8.5.26215"
   SECONDS=0
   check_package rsync
  if [[ "$#" -eq 0 ]]; then
