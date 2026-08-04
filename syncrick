@@ -7,188 +7,175 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Mar 2023
-# Updated      : 06 Jun 2026
+# Updated      : 03 Aug 2026
+# Version      : 4.11.26215
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+################################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source ~/bin/functionlib\n"; exit 1; }
-
-## Global Variables ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 SECONDS=0
 
-## Functions ##
-
 transfer_status() {
-  local xfr_status="$1"
-  if [[ "$xfr_status" -eq 0 ]]; then
-		printf "Transfer successful\n"
-	else
+  local -i xfr_status="$1"
+	if [[ "$xfr_status" -gt 0 ]]; then
 		printf "%s A transfer failed. Code: %d. Check network status.\n" "$RED_ERROR" "$xfr_status" >&2
+		return "$xfr_status"
 	fi
+	printf "Transfer successful\n"
+	return 0
 }
 
 syncscript() {
-  local hostip="$1"
+	local -ri hostip="$1"
 
   # Sync Audiobook files.
   printf "\n%sSyncing Audio Books...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Audiobooks/ "$LOCALNET.$hostip":Audiobooks/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing Blog directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/Blogs/ "$LOCALNET.$hostip":Documents/Blogs/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing Dreams directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/Dreams/ "$LOCALNET.$hostip":Documents/Dreams/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing Language directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/Language/ "$LOCALNET.$hostip":Documents/Language/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing Password Databases...%s\n" "$orange" "$normal"
   rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$LOCALNET.$hostip":Documents/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing ~/.local/share/doc ...%s\n" "$orange" "$normal"
   rsync -avh --delete --exclude 'leave.txt' "$HOME"/.local/share/doc/ "$LOCALNET.$hostip":.local/share/doc/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing MOSFANET directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/mosfanet/ "$LOCALNET.$hostip":Documents/mosfanet/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing Work directory...%s\n" "$orange" "$normal"
   rsync -avh --delete --exclude 'images' "$HOME"/Work/ "$LOCALNET.$hostip":Work/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing Wallpaper directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$hostip":Pictures/wallpaper/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing SFW Wallpaper directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Pictures/backgrounds/ "$LOCALNET.$hostip":Pictures/backgrounds/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing Quotes directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Documents/Quotes/ "$LOCALNET.$hostip":Documents/Quotes/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing Journals directory...%s\n" "$orange" "$normal"
   rsync -avh --delete --exclude='.~lock*' "$HOME"/Documents/Journals/ "$LOCALNET.$hostip":Documents/Journals/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing Tech Videos...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Videos/Tech/ "$LOCALNET.$hostip":Videos/Tech/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing cloned repositories...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Downloads/cloned-repositories/ "$LOCALNET.$hostip":Downloads/cloned-repositories/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing Code directory...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Downloads/Code/ "$LOCALNET.$hostip":Downloads/Code/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing Projects Repositories...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
 
   printf "\n%sSyncing Gitea Repositories...%s\n" "$orange" "$normal"
   rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
-  exit_status="$?"
-  transfer_status "$exit_status"
+  transfer_status "$?"
+
+	return 0
 }
 
 sync_to_laptop() {
-  local main_host="$1"
-  local laptop_host="$2"
-  local lap_ip="22"
-  local wifi_ip="153"
+  local -r main_host="$1"
+  local -r laptop_host="$2"
+  local -ri lap_ip="22"
+  local -ri wifi_ip="153"
   if ping -c 3 "$LOCALNET.$lap_ip" >/dev/null 2>&1; then
     printf "Syncing %s to %s ...\n" "$main_host" "$laptop_host"
     syncscript "$lap_ip"
     printf "\n%s synced with %s.\n" "$laptop_host" "$main_host"
+    over_line "Syncronization completed in $(format_time $SECONDS)" "-"
   elif ping -c 3 "$LOCALNET.$wifi_ip" >/dev/null 2>&1; then
     printf "Syncing %s to %s ...\n" "$main_host" "$laptop_host"
     syncscript "$wifi_ip"
     printf "\n%s synced with %s.\n" "$laptop_host" "$main_host"
-  else
+    over_line "Syncronization completed in $(format_time $SECONDS)" "-"
+else
     printf "\n%s is not on the netwwork.\n" "$laptop_host"
   fi
+	return 0
 }
 
 sync_to_main() {
-  local main_host="$1"
-  local laptop_host="$2"
-  local main_ip="10"
+  local -r main_host="$1"
+  local -r laptop_host="$2"
+  local -ri main_ip="10"
   if ping -c 3 "$LOCALNET.$main_ip" >/dev/null 2>&1; then
     default_no "Are you sure you want to sync to $main_host?" || leave "Sync to $main_host canceled."
     printf "Syncing %s to %s ...\n" "$laptop_host" "$main_host"
     syncscript "$main_ip"
     printf "\n%s synced with %s.\n" "$main_host" "$laptop_host"
+    over_line "Syncronization completed in $(format_time $SECONDS)" "-"
   else
     printf "\n%s is not on the netwwork.\n" "$main_host"
   fi
+	return 0
 }
 
 check_host() {
-  local local_host="${HOSTNAME:-$(hostname)}"
-  local main_host="hp-800g2-sff"
-  local laptop_host="hp-850-g3"
+  local -r local_host="${HOSTNAME:-$(hostname)}"
+  local -r main_host="hp-800g2-sff"
+  local -r laptop_host="hp-850-g3"
   printf "Synchronizes files between %s and %s.\n" "$main_host" "$laptop_host"
   if [[ "$local_host" == "$main_host" ]]; then
     sync_to_laptop "$main_host" "$laptop_host"
   elif [[ "$local_host" == "$laptop_host" ]]; then
     sync_to_main "$main_host" "$laptop_host"
   else
-    die "Invalid client. $script must be run from either $main_host or $laptop_host." "$E_INVALID_HOST"
+    printf "%s Invalid client. Script must be run from either %s or %s.\n" "$RED_ERROR" "$main_host" "$laptop_host"
+    return "$E_INVALID_HOST"
   fi
+	return 0
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.10.26157"
+  local -r version="4.11.26215"
+	local -i exit_code=0
   box "$script $version" "-"
   check_host
-  over_line "Syncronization completed in $(format_time $SECONDS)" "-"
-  printf "%s %s\n" "$script" "$version"
-  exit
+	exit_code="$?"
+	over_line "$script $version"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
