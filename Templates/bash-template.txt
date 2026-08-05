@@ -28,13 +28,9 @@
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-## Global Variables ##
-
 SCRIPT_DIR==$(dirname "$(readlink -f "${0}")"); readonly script_dir
 TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 TMP_DIR=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-
-## Functions ##
 
 help() {
   local -r script="$1"
@@ -95,11 +91,8 @@ main() {
   trap cleanup EXIT	# if temp files and directories
   # commands and function calls
   exit_code="$?"
-  # printf "%s %s\n" "$script" "$version"
   over_line "$script $version"
 	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
