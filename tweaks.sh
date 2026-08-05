@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : tweaks.sh
 # Description  : Create symbolic links for configuration files.
 # Dependencies : git
@@ -7,37 +7,31 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 22 Jun 2026
+# Last updated : 05 Aug 2026
+# Version      ; 4.6.26217
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+################################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="4.5.26173"
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local errcode="${1:-1}"
-	local -r updated="22 Jun 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="05 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Create symbolic links from configs and scripts repos and add tweaks to system settings.
@@ -59,10 +53,10 @@ _HELP_
 
 # Create symbolic links to dotfiles in the home directory
 link_dot_files() {
-	local dot_file dot_files old_configs
-	old_configs="$1"
+	local -r old_configs="$1"
 	[[ -d "$old_configs" ]] || mkdir -p "$old_configs"
-	dot_files=(
+	local dot_file
+	local -ra dot_files=(
 		.bash_aliases
 		.bashrc
 		.bash_logout
@@ -80,14 +74,17 @@ link_dot_files() {
 		[[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/"$dot_file" ~/"$dot_file"
 		[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/"$dot_file" ~/"$dot_file"
 	done
+	return 0
 }
 
 # Link configuration files to directories in ~/.config
 link_config_files() {
-	local cfg_file cfg_files old_configs
+	local -r old_configs="$1"
+	local cfg_file
 	old_configs="$1"
 	[[ -d "$old_configs" ]] || mkdir -p "$old_configs"
-	cfg_files=(
+	local cfg_file
+	local -ra cfg_files=(
 		"bat/config"
 		"dunst/dunstrc"
 		"fastfetch/config.jsonc"
@@ -122,6 +119,7 @@ link_config_files() {
 		fi
 	done
 	[[ -d "$HOME/.config/micro/plug/bookmark" ]] || micro -plugin install bookmark
+	return 0
 }
 
 set_reserved_space() {
@@ -137,42 +135,46 @@ set_reserved_space() {
 	[[ "$home_part" ]] && sudo /usr/sbin/tune2fs -m 0 "$home_part"
 	[[ "$data_part" ]] && sudo /usr/sbin/tune2fs -m 0 "$data_part"
 	printf "Partition reserved space set.\n"
+	return 0
 }
 
 set_swappiness() {
-	local repo_dir="$1"
+	local -r repo_dir="$1"
 	if grep -q 'vm.swappiness' /etc/sysctl.conf 2>/dev/null || [[ -f /etc/sysctl.d/90-swappiness.conf ]]; then
 		printf "Swappiness has already been set.\n"
-		return
+		return 0
 	fi
 	printf "Setting swappiness...\n"
 	sudo cp -v "$repo_dir"/90-swappiness.conf /etc/sysctl.d/
+	return "$?"
 }
 
 set_sleep() {
-	local repo_dir="$1"
+	local -r repo_dir="$1"
 	if [[ -f /etc/systemd/sleep.conf.d/99-sleep.conf ]]; then
 		printf "Sleep settings already set.\n"
-		return
+		return 0
 	fi
 	printf " Disabling sleep, hibrnation, suspend settings.\n"
 	[[ -d /etc/systemd/sleep.conf.d ]] || sudo mkdir -p /etc/systemd/sleep.conf.d
 	sudo cp -v "$repo_dir"/99-sleep.conf /etc/systemd/sleep.conf.d/
+	return "$?"
 }
 
 no_snaps() {
-	local repo_dir="$1"
+	local -r repo_dir="$1"
 	if [[ -f /etc/apt/preferences.d/nosnap.pref ]]; then
 		printf "Snap packages have already been disabled.\n"
-		retunn
+		retunn 0
 	fi
 	printf "Disabling installation of Snapd and Snap packages...\n"
 	sudo cp -v "$repo_dir"/apt/nosnap.pref /etc/apt/preferences.d/
+	return "$?"
 }
 
-# Add tweaks to /etc/sudoers.d directory and set swappiness
+# Add tweaks to /etc/sudoers.d directory
 sudoers_tweaks() {
-	local repo_dir="$1"
+	local -r repo_dir="$1"
 	printf "\e[93mApplying password feeback...\e[0m\n"
 	if [[ -f /etc/sudoers.d/0pwfeedback ]]; then
 		printf "Sudo password feedback is already enabled with 0pwfeedback\n"
@@ -187,26 +189,32 @@ sudoers_tweaks() {
 		sudo cp -v "$repo_dir"/sudoers/10-timeout /etc/sudoers.d/
 		sudo chmod 440 /etc/sudoers.d/10-timeout
 	fi
+	return 0
 }
 
 link_script_dir() {
 	if [[ -L ~/bin ]]; then
 		printf "Script directory is already linked to cloned repository.\n"
-		return
+		return 0
 	fi
 	printf "\e[93mLinking scripts repo to ~/bin...\e[0m\n"
 	[[ -d ~/bin ]] && rm -rf "${HOME:?}/bin"
 	[[ -d ~/gitea/scripts ]] && ln -sv ~/gitea/scripts/ ~/bin
 	[[ -d ~/Downloads/scripts ]] && ln -sv ~/Downloads/scripts/ ~/bin
+	return 0
 }
 
 main() {
-	local noOpt opt optstr OPTIND OPTARG
-	local old_configs=~/old-configs
+	local -r script="${0##*/}"
+	local -r version="4.6.26217"
+	local -i exit_code=0
+	local opt OPTIND OPTARG
+	local old_configs=~/.old-configs
 	local repo_dir=~/Downloads/configs
 	[[ -d ~/gitea/configs ]] && repo_dir=~/gitea/configs
-	noOpt=1
-	optstr=":cdhnprstw"
+	local opt OPTIND OPTARG
+	local -i noOpt=1
+	local -r optstr=":cdhnprstw"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c )
@@ -214,7 +222,7 @@ main() {
 			d )
 				link_dot_files "$old_configs" ;;
 			h )
-				help 0 ;;
+				help "$script" "$version" 0 ;;
 			n )
 				no_snaps "$repo_dir" ;;
 			p )
@@ -229,16 +237,15 @@ main() {
 				set_swappiness "$repo_dir" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
+		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
-  exit
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
