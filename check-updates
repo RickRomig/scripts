@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 04 Jul 2026
+# Updated      : 05 Aug 2026
+# Version      : 11.1.26217
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -15,27 +16,23 @@
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-## GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
   local -r script="$1"
   local -r version="$2"
-	local -r errcode="${3:-1}"
+	local -ri errcode="${3:-1}"
   local -r updated="04 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
@@ -67,8 +64,7 @@ _HEADER_
   return 0
 }
 
-# shellcheck disable=SC2317
-# Don't warn about unreachable commands in this function
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
   [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
@@ -99,13 +95,13 @@ check_disk_space() {
 }
 
 update_apt_cache() {
-  local cache_file current_time updated_time time_diff threshold
-  cache_file="/var/cache/apt/pkgcache.bin"
+  local -r cache_file="/var/cache/apt/pkgcache.bin"
+  # threshold values: 86400 = 24 hours, 43200 = 12 hours, 21600 = 6 hours 10800 = 3 hours, 3600 = 1 hour
+  local -ri threshold=3600
+  local current_time updated_time time_diff
   current_time=$(date +%s)
   updated_time=$(stat -c%Y "$cache_file")
   time_diff=$(( current_time - updated_time ))
-  # threshold values: 86400 = 24 hours, 43200 = 12 hours, 21600 = 6 hours 10800 = 3 hours, 3600 = 1 hour
-  threshold=3600
   if [[ "$time_diff" -le "$threshold" ]]; then
     printf "%sApt cache is up to date.%s\n" "$orange" "$normal"
     return 0
@@ -151,7 +147,7 @@ remove_orphans() {
 }
 
 update_complete() {
-  local num_updates="$1"
+  local -ri num_updates="$1"
   printf "\n%sUpdate complete. %d" "$orange" "$num_updates"
   (( num_updates != 1 )) && printf  " updates were" || printf  " update was"
   printf " installed.%s\n" "$normal"
@@ -159,7 +155,7 @@ update_complete() {
 }
 
 defer_updates() {
-  local num_updates="$1"
+  local -ri num_updates="$1"
   printf "\n%sNo updates installed. %d" "$orange" "$num_updates"
   (( num_updates != 1 )) && printf " updates were" || printf " update was"
   printf " deferred.%s\n" "$normal"
@@ -167,8 +163,8 @@ defer_updates() {
 }
 
 apt_menu() {
-  local nupd options _opt
-	nupd="$1"
+  local -r options _opt
+	local -ri nupd="$1"
 	COLUMNS=40
 	printf "\n%s%sUpdate options:%s\n" "$underline" "$green" "$normal"
 	PS3="Choose an option: "
@@ -215,6 +211,7 @@ apt_menu() {
 	done
   return 0
 }
+
 apt_update() {
   local nupd
   printf "%sChecking for updates...%s\n" "$orange" "$normal"
@@ -238,7 +235,7 @@ nala_update() {
     printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
     sudo nala autoremove
     printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
-    sudo nala autopurge --config
+    sudo nala autopurge --config  # purge configuration files
   else
     printf "Autoremove and autopurge deferred.\n"
   fi
@@ -266,7 +263,7 @@ check_flatpak() {
   local fp_count
   if ! installed flatpak; then
     printf "Flatpak is not installed.\n"
-    return
+    return 0
   fi
   fp_count=$(wc -l < <(flatpak list))
   if [[ $fp_count -eq 0 ]]; then
@@ -283,7 +280,6 @@ update_spices() {
   cinnamon-spice-updater --update-all
   return 0
 }
-
 
 check_spice_updates() {
   # called by -c flag only to check number of updates available
@@ -338,7 +334,7 @@ other_checks() {
 main() {
   SECONDS=0
   local -r script="${0##*/}"
-  local -r version="11.0.26185"
+  local -r version="11.1.26217"
   local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":achn"
@@ -383,13 +379,11 @@ main() {
 		esac
 		noOpt=0
   done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	(( noOpt == 1 )) && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && system_reboot
   exit
 }
-
-## Execution ##
 
 main "$@"
