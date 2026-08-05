@@ -8,50 +8,31 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
 # Updated      : 28 May 2026
+# Version      : 8.0.26217
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
-#              : Downloads to selected directory under ~/Videos/ (follows symlinkks)
+#              : Downloads to selected directory under ~/Videos/ (follows symlinks)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify  it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="7.10.26148"
-readonly updated="28 May 2026"
-FMENU="fzf --header=$script \
-           --layout=reverse \
-           --exact \
-           --border=bold \
-           --border=rounded \
-           --margin=5% \
-           --color=dark \
-           --height=95% \
-           --info=hidden \
-           --header-first \
-           --bind change:top \
-           --prompt"
-EC=0
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local errcode="${1:-1}"
+  local -r script="$1"
+  local -r version="$2"
+  local -r updated="$3"
+  local -ri errcode="${4:-1}"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Downloads YouTube videos.
@@ -67,7 +48,23 @@ _HELP_
   exit "$errcode"
 }
 
+check_arguments() {
+  if [[  $# -eq 0 ]]; then
+    printf "%s No argument passed.\n" "$RED_ERROR" >&2
+    help "$script" "$version" "$updated" "$E_MISSING_ARG"
+  elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
+    script_info "$script" "$version" "$updated"
+    exit 0
+  elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    help "$script" "$version" "$updated" 0
+  fi
+  return 0
+}
+
 script_info() {
+  local -r script="$1"
+  local -r version="$2"
+  local -r updated="$3"
   cat << _INFO_
   $script uses yt-dlp to download videos from YouTube and similar sites.
   The video URL or ID is passed to the script on the command line. The default
@@ -95,19 +92,34 @@ check_dependencies() {
   sleep 2
   printf '\e[A\e[K'
   check_packages "${packages[@]}"
+  return 0
 }
 
 extract_domain() {
   # Extract domain from url without www and .com
-  local domain fullurl
-  fullurl="$1"
-  domain=$(sed 's|^[^/]*//||;s|^www\.||;s|/.*$||;s|\..*$||' <<< "$fullurl")
+  local -r full_url="$1"
+  local domain
+  domain=$(sed 's|^[^/]*//||;s|^www\.||;s|/.*$||;s|\..*$||' <<< "$full_url")
+  [[ "$domain" == "youtu" ]] && domain="youtube"  # if using abbreviated YouTube URL
   printf "%s" "$domain"
+  return 0
 }
 
 select_directory() {
-	local vid_d selected_directory
-	local video_dir=~/Videos
+  local -r FMENU="fzf --header=$script \
+    --layout=reverse \
+    --exact \
+    --border=bold \
+    --border=rounded \
+    --margin=5% \
+    --color=dark \
+    --height=95% \
+    --info=hidden \
+    --header-first \
+    --bind change:top \
+    --prompt"
+	local -r video_dir=~/Videos
+	local selected_directory
   local directories=()
   for vid_d in $video_dir; do
     if [[ -L "$video_dir" ]]; then
@@ -118,51 +130,47 @@ select_directory() {
   done
   selected_directory=$($FMENU "Select destination directory: " < <(printf "%s\n" "${directories[@]}"))
 	printf "%s" "$selected_directory"
+  return 0
 }
 
 download_video() {
-  local site url destination
-  url="$1"
+  local -r url="$1"
+  local site destination ret_code
   site=$(extract_domain "$url")
   clear
 	destination=$(select_directory)
-  # center_text "== ${site^} Download =="
   color_header "${site^} Download" "BLUE"
   printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "${site^}"
 	printf "%s...%s\n" "$destination" "$normal"
-/usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$destination/%(title)s.%(ext)s" "$url"; EC="$?"
-  if [[ $EC -eq 0 ]]; then
+  /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$destination/%(title)s.%(ext)s" "$url"; ret_code="$?"
+  if [[ $ret_code -eq 0 ]]; then
     printf "Download successful.\n"
+    return "$ret_code"
   else
-    printf "Download failed. Error: %d\n" "$EC"
+    printf "Download failed. Error: %d\n" "$ret_code"
+    return "$ret_code"
   fi
 }
 
 main() {
-  local url
-  local re="^https?:\/\/.*"
+  local -r script="${0##*/}"
+  local -r version="8.0.26217"
+  local -r updated="05 Aug 2026"
+  local -i exit_code=0
+  local -r re="^https?:\/\/.*"
+  check_arguments "$@"
   check_dependencies
-  # Check arguments and fetch URL
-  if [[  $# -eq 0 ]]; then
-    printf "%s No argument passed.\n" "$RED_ERROR" >&2
-    help "$E_MISSING_ARG"
-  elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
-    script_info
-  elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    help 0
-  elif [[ $1 =~ $re ]]; then
+  if [[ $1 =~ $re ]]; then
     # match by regex, starts with http:// or https://
-    url=$*
-    download_video "$url"
- else
+    local -r url=$*
+  else
     # match by YouTube video ID
-    url="https://www.youtube.com/watch?v=$*"
-    download_video "$url"
+    local -r url="https://www.youtube.com/watch?v=$*"
   fi
+  download_video "$url"
+  exit_code="$?"
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
