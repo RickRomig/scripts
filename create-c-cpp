@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 07 Jul 2026
+# Last updated : 05 Aug 2026
+# Version      : 4.7.26217
 # Comments     : Creates code files in the current working directory
 #              : Templates include GNU GPL v2 license
 # TODO (rick)  :
@@ -23,17 +24,16 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-VERBOSE_MODE="$FALSE"
+VERBOSE="$FALSE"
 
 help() {
   local -r script="$1"
   local -r version="$2"
-  local errcode="${3:-1}"
-  local updated="07 Jul 2026"
+  local -ri errcode="${3:-1}"
+  local -r updated="05 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Creates a C/C++ source code file with descriptive comments (GPL v2.0 license)
@@ -52,8 +52,8 @@ _HELP_
 }
 
 show_message() {
-	local message="$1"
-	[[ "$VERBOSE_MODE" == "$TRUE" ]] && echo "$message"
+	local -r message="$1"
+	[[ "$VERBOSE" == "$TRUE" ]] && echo "$message"
 	return 0
 }
 
@@ -89,7 +89,7 @@ import_metadata() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.6.26188"
+  local -r version="4.7.26217"
 	local code_file opt template_file OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":c:hp:v"
@@ -112,7 +112,7 @@ main() {
 				template_file="cpp-template.txt"
 				;;
 			v )
-				VERBOSE_MODE="$TRUE"
+				VERBOSE="$TRUE"
 				show_message "Verbose mode enabled."
 				;;
 			: )
@@ -125,7 +125,7 @@ main() {
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	(( noOpt == 1 )) && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	import_metadata "$code_file" "$template_file"
 	edit_view_quit "$code_file"
