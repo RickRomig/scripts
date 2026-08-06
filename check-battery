@@ -7,31 +7,27 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 30 Jul 2020
-# Updated      : 16 May 2026
+# Updated      : 06 Aug 2026
+# Version      : 5.7.26218
 # Comments     : Obtains battery data from upower utility.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 BATTERY_DATA=
-
-## Functions ##
 
 # shellcheck disable=SC2317
 # Don't warn about unreachable commands in this function
@@ -43,11 +39,13 @@ cleanup() {
 battery_status() {
   printf "\n%sBattery charge:%s\n" "$orange" "$normal"
   grep --color=never -E "state|to\ full|to\ empty|percentage" "$BATTERY_DATA"
+  return 0
 }
 
 battery_capacity() {
   printf "\n%sBattery health:%s\n" "$orange" "$normal"
   grep --color=never -E "energy-full:|energy-full-design:|capacity:" "$BATTERY_DATA"
+  return 0
 }
 
 warning_level() {
@@ -59,12 +57,12 @@ warning_level() {
   else
     awk '/capacity/ {printf "%i", $2}' "$BATTERY_DATA"
   fi
+  return 0
 }
 
 battery_condition() {
   local warn warn_level
   warn_level="$(warning_level)"
-  # warn_level="$?"
   if [[ "$warn_level" -le "0" ]]; then
     warn="\U1F4A9"
     printf "%4s%sReplace the battery!%s  %s\n" " " "$red" "$normal" "$warn"
@@ -77,6 +75,7 @@ battery_condition() {
   else
     printf "%4s%sThe battery is in good condition.%s\n" " " "$green" "$normal"
   fi
+  return 0
 }
 
 battery_specs() {
@@ -90,6 +89,7 @@ battery_specs() {
   printf "%4sModel name:    %s\n" " " "$(awk '{$1=$1}1' <(awk -F: '/model/ {print $NF}' "$BATTERY_DATA"))"
   printf "%4sSerial number: %s\n" " " "$battery_serial"
   printf "%4sTechnology:    %s\n" " " "$battery_tech"
+  return 0
 }
 
 ac_status() {
@@ -99,6 +99,7 @@ ac_status() {
   printf "%4sLaptop is" " "
   [[ "$status" = "no" ]] && printf " not "
   printf "plugged in to AC power.\n"
+  return 0
 }
 
 hidpp_battery() {
@@ -112,19 +113,20 @@ hidpp_battery() {
   else
     printf "%4sNo HID++ battery present.\n" " "
   fi
+  return 0
 }
 
 battery_check() {
   printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
   if [[ ! -d /proc/acpi/button/lid/ ]]; then
     printf "\nThis system is not a laptop.\n" >&2
-    return
+    return "$E_UNSUPPORTED"
   fi
   if ! grep -q 'BAT' < <(/usr/bin/upower -e); then
     printf "\n%sNo battery detected.%s\n" "$lightred" "$normal" >&2
     ac_status
     hidpp_battery
-    return
+    return 0
   fi
   BATTERY_DATA=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_DIR"
   trap cleanup EXIT
@@ -136,18 +138,19 @@ battery_check() {
   battery_specs
   ac_status
   hidpp_battery
+  return 0
 }
 
 main() {
-  local script="${0##*/}"
-  local version="5.6.26136"
+  local -r script="${0##*/}"
+  local -r version="5.7.26218"
+  local -i exit_code=0
   clear
   check_package upower
   battery_check
+  exit_code="$?"
   over_line "$script $version"
-  exit
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
