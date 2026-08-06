@@ -56,6 +56,7 @@ declare -r E_DOWNLOAD=13
 declare -r E_NETWORK=14
 declare -r E_INVALID_HOST=15
 declare -r E_UNSUPPORTED=16
+declare -r E_NOT_DETECTED=17
 
 ## Colors ##
 
