@@ -7,89 +7,84 @@
 # Author       : Copyright (C) 2019,Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Apr 2019
-# Updated      : 04 May 2026
+# Updated      : 06 Aug 2026
+# Version      :
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+##############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="6.2.26124"
-readonly lhost="${HOSTNAME:-$(hostname)}"
-readonly bu_dir=~/.config/backup
-readonly cfg_dir=~/.config
+readonly BU_DIR=~/.config/backup
+readonly CFG_DIR=~/.config
 PS3="Select option: "
 COUNT=0
 
-## Functions ##
-
-res_home_cfg() {
-  local file="$1"
+restore_home_cfg() {
+  local -r file="$1"
   printf "\n%s" "$file"
-  if [[ -f "$bu_dir/$file" ]]; then
-    cp -p "$bu_dir/$file" ~/
+  if [[ -f "$BU_DIR/$file" ]]; then
+    cp -p "$BU_DIR/$file" ~/
     (( COUNT++ ))
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
   fi
   anykey
+  return 0
 }
 
-res_config_cfg() {
-  local folder="$1"
-	local file="$2"
+restore_config_cfg() {
+  local -r folder="$1"
+	local -r file="$2"
   printf "\n%s" "$file"
-  if [[ -f "$bu_dir/$folder/$file" ]]; then
-    [[ -d "$cfg_dir/$folder" ]] || mkdir -p "$cfg_dir/$folder"
-    cp -p "$bu_dir/$folder/$file" "$cfg_dir/$folder/"
+  if [[ -f "$BU_DIR/$folder/$file" ]]; then
+    [[ -d "$CFG_DIR/$folder" ]] || mkdir -p "$CFG_DIR/$folder"
+    cp -p "$BU_DIR/$folder/$file" "$CFG_DIR/$folder/"
     (( COUNT++ ))
     printf " restored from the backup directory.\n"
   else
     printf " not found in the backup directory.\n"
   fi
   anykey
+  return 0
 }
 
-res_misc_cfg() {
-  local folder="$1"
-	local file="$2"
+restore_misc_cfg() {
+  local -r folder="$1"
+	local -r file="$2"
   printf "\n %s/%s" "$folder" "$file"
-  if [[ -f "$bu_dir/$folder/$file" ]]; then
+  if [[ -f "$BU_DIR/$folder/$file" ]]; then
     [[ -d "$HOME/$folder/" ]] || mkdir -p "$HOME/$folder/"
-    cp -p "$bu_dir/$folder/$file" "$HOME/$folder/"
+    cp -p "$BU_DIR/$folder/$file" "$HOME/$folder/"
     (( COUNT++ ))
     printf " restored from the backup directory.\n"
  else
     printf " not found in the backup directory.\n"
   fi
   anykey
+  return 0
 }
 
-res_cinnamon_keybindings() {
+restore_cinnamon_keybindings() {
   if is_cinnamon; then
-    local cinn_kb="keybindings-backup.dconf"
-    if [[ -f "$bu_dir/$cinn_kb" ]]; then
-      dconf load /org/cinnamon/desktop/keybindings/ < "$bu_dir/$cinn_kb"
-      dconf dump /org/cinnamon/desktop/keybindings/ > "/$HOME/.config/$cinn_kb"
+    local -r cinn_keys_db=/org/cinnamon/desktop/keybindings/
+    local cinn_kb=keybindings-backup.dconf
+    if [[ -f "$BU_DIR/$cinn_kb" ]]; then
+      dconf load "$cinn_keys_db" < "$BU_DIR/$cinn_kb"
+      dconf dump "$cinn_keys_db" > "/$HOME/.config/$cinn_kb"
       (( COUNT++ ))
       printf "\nCinnamon Keybindings restored.\n"
     else
@@ -99,9 +94,12 @@ res_cinnamon_keybindings() {
     printf "\nThe desktop environment is not Cinnamon." >&2
   fi
   anykey
+  return 0
 }
 
 main_menu() {
+  local -r script="${0##*/}"
+  local -r version="6.2.26124"
 	local _opt options
   options=("System Configs" "Editor Configs" "i3 Configs" "Misc Configs" "Quit")
 	clear
@@ -111,18 +109,12 @@ main_menu() {
 	printf "\nConfiguration Classes\n"
 	select _opt in "${options[@]}"; do
 		case "$REPLY" in
-			1 )
-        sys_cfgs ;;
-			2 )
-        ed_cfgs ;;
-			3 )
-        i3_cfgs ;;
-			4 )
-        misc_cfgs ;;
-			5 )
-        break ;;
-			* )
-        echo "${lightred}Invalid choice${normal}" >&2
+			1 ) system_configs ;;
+			2 ) editor_configs ;;
+			3 ) i3_configs ;;
+			4 ) misc_configs ;;
+			5 ) break ;;
+			* ) echo "${lightred}Invalid choice${normal}" >&2
 		esac
 	done
 	printf "\nExiting the script...\n"
@@ -134,63 +126,63 @@ main_menu() {
 }
 
 # System configuration files
-sys_cfgs() {
+system_configs() {
   local _opt options
+  local -r lhost="${HOSTNAME:-$(hostname)}"
 	while true; do
 		options=(".bashrc" ".bash_aliases" ".bash_logout" ".bash_profile" ".profile" ".face" \
     "neofetch" "fastfetch" "Cinnamon keybindings" ".conkyrc" ".xinitrc" "System Info" "Main Menu")
 		clear
 		COLUMNS=40
-    printf "%s %s\n" "$script" "$version"
 		printf "\nSystem Configurations\n"
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
         1 )
-          res_home_cfg ".bashrc"
+          restore_home_cfg ".bashrc"
           break ;;
 				2 )
-          res_home_cfg ".bash_aliases"
+          restore_home_cfg ".bash_aliases"
           break ;;
         3 )
-          res_home_cfg ".bash_logout"
+          restore_home_cfg ".bash_logout"
           break ;;
 				4 )
-          res_home_cfg ".bash_profile"
+          restore_home_cfg ".bash_profile"
           break ;;
 				5 )
-          res_home_cfg ".profile"
+          restore_home_cfg ".profile"
           break ;;
 				6 )
-          res_home_cfg ".face"
+          restore_home_cfg ".face"
           break ;;
 				7 )
-          if [[ -f "$bu_dir/neofetch/config" ]]; then
-            res_config_cfg "neofetch" "config"
-          elif [[ -f "$bu_dir/neofetch/config.conf" ]]; then
-            res_config_cfg "neofetch" "config.conf"
+          if [[ -f "$BU_DIR/neofetch/config" ]]; then
+            restore_config_cfg "neofetch" "config"
+          elif [[ -f "$BU_DIR/neofetch/config.conf" ]]; then
+            restore_config_cfg "neofetch" "config.conf"
           else
             printf "No neofetch configuration file found.\n"
           fi
           break ;;
         8 )
-          res_config_cfg "fastfetch" "config.jsonc"
+          restore_config_cfg "fastfetch" "config.jsonc"
           break ;;
 				9 )
-          res_cinnamon_keybindings
+          restore_cinnamon_keybindings
           break ;;
 				10 )
-          if [[ -f "$bu_dir/.conkyrc" ]]; then
-            res_home_cfg ".conkyrc"
-          elif [[ -f "$bu_dir/conky/conky.conf" ]]; then
-            res_config_cfg "conky" "conky.conf"
+          if [[ -f "$BU_DIR/.conkyrc" ]]; then
+            restore_home_cfg ".conkyrc"
+          elif [[ -f "$BU_DIR/conky/conky.conf" ]]; then
+            restore_config_cfg "conky" "conky.conf"
           else
             printf "No conky configuration file found.\n"
           fi
           break ;;
         11 )
-          res_home_cfg ".xinitrc" ;;
+          restore_home_cfg ".xinitrc" ;;
 				12 )
-          res_home_cfg "$lhost.info"
+          restore_home_cfg "$lhost.info"
           break ;;
 				13 )
           break ;;
@@ -203,43 +195,42 @@ sys_cfgs() {
 }
 
 # Editor configuration files
-ed_cfgs() {
+editor_configs() {
   local _opt options
 	while true; do
 		local options=("Bluefish" "Geany" "Mark Text" "Micro" "Nano" "VSCodium" "Main Menu")
 		clear
 		COLUMNS=20
-    printf "%s %s\n" "$script" "$version"
 		printf "\nEditor Configurations\n"
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
 				1 )
-          res_misc_cfg ".bluefish" "rcfile-2.0"
+          restore_misc_cfg ".bluefish" "rcfile-2.0"
           break ;;
 				2 )
-          res_geany;
-          res_config_cfg "geany" "geany.conf"
-          res_config_cfg "geany" "keybindings.conf"
+          restore_geany;
+          restore_config_cfg "geany" "geany.conf"
+          restore_config_cfg "geany" "keybindings.conf"
           break ;;
         3 )
-          res_marktext;
-          res_config_cfg "marktext" "preferences.json"
+          restore_marktext;
+          restore_config_cfg "marktext" "preferences.json"
           break ;;
 				4 )
-          res_config_cfg "micro" "settings.json"
-          res_config_cfg "micro" "bindings.json"
+          restore_config_cfg "micro" "settings.json"
+          restore_config_cfg "micro" "bindings.json"
           break ;;
 				5 )
-          if [[ -f "$bu_dir/nano/nanorc" ]]; then
-            res_config_cfg "nano" "nanorc"
-          elif [[ -f "$bu_dir/.nanorc" ]]; then
-            res_home_cfg ".nanorc"
+          if [[ -f "$BU_DIR/nano/nanorc" ]]; then
+            restore_config_cfg "nano" "nanorc"
+          elif [[ -f "$BU_DIR/.nanorc" ]]; then
+            restore_home_cfg ".nanorc"
           else
             printf "No nano configuration file found.\n"
           fi
           break ;;
 				6 )
-          res_config_cfg "VSCodium/User" "settings.json"
+          restore_config_cfg "VSCodium/User" "settings.json"
           break ;;
         7 )
           break ;;
@@ -252,74 +243,73 @@ ed_cfgs() {
 }
 
 # i3 configuration files
-i3_cfgs() {
+i3_configs() {
   local _opt options
 	while true; do
 		local options=("i3 config" "sxhkdrc" "bindings.list" "i3status.conf" "polybar" "bar.conf"  "rules.conf" \
     "workspaces.conf" "autostart.sh" "backgrounds.sh" "logout" "rofi config" "rofi themes" "dunstrc" "Main Menu")
 		clear
 		COLUMNS=40
-    printf "%s %s\n" "$script" "$version"
 		printf "\ni3 Configurations\n"
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
 				1 )
-          res_config_cfg "i3" "config"
+          restore_config_cfg "i3" "config"
           break ;;
         2 )
-          if [[ -f "$bu_dir/i3/sxhkdrc" ]]; then
-            res_config_cfg "i3" "sxhkdrc"
-          elif [[ -f "$bu_dir/i3/sxhkd/sxhkdrc" ]]; then
-            res_config_cfg "i3/sxhkd" "sxhkdrc"
+          if [[ -f "$BU_DIR/i3/sxhkdrc" ]]; then
+            restore_config_cfg "i3" "sxhkdrc"
+          elif [[ -f "$BU_DIR/i3/sxhkd/sxhkdrc" ]]; then
+            restore_config_cfg "i3/sxhkd" "sxhkdrc"
           else
             printf "No sxhkdrc file found.\n"
           fi
           break ;;
         3 )
-          res_config_cfg "i3" "bindings.list"
+          restore_config_cfg "i3" "bindings.list"
           break ;;
 				4 )
-          if [[ -f "$bu_dir/polybar/config" ]]; then
-            res_config_cfg "polybar" "config"
-          elif [[ -f "$bu_dir/polybar/config.ini" ]]; then
-            res_config_cfg "polybar" "config.ini"
-          elif [[ -f "$bu_dir/polybar/i3bar.ini" ]]; then
-            res_config_cfg "polybar" "i3bar.ini"
+          if [[ -f "$BU_DIR/polybar/config" ]]; then
+            restore_config_cfg "polybar" "config"
+          elif [[ -f "$BU_DIR/polybar/config.ini" ]]; then
+            restore_config_cfg "polybar" "config.ini"
+          elif [[ -f "$BU_DIR/polybar/i3bar.ini" ]]; then
+            restore_config_cfg "polybar" "i3bar.ini"
           else
             printf "No polybar configuration file found.\n"
           fi
           break ;;
         5 )
-          res_config_cfg "i3" "i3status.conf"
+          restore_config_cfg "i3" "i3status.conf"
           break ;;
         6 )
-          res_config_cfg "i3" "bar.conf"
+          restore_config_cfg "i3" "bar.conf"
           break ;;
         7 )
-          res_config_cfg "i3" "rules.conf"
+          restore_config_cfg "i3" "rules.conf"
           break ;;
         8 )
-          res_config_cfg "i3" "workspaces.conf"
+          restore_config_cfg "i3" "workspaces.conf"
           break ;;
         9 )
-          res_config_cfg "i3" "autostart.sh"
+          restore_config_cfg "i3" "autostart.sh"
           break ;;
         10 )
-          res_config_cfg "i3" "backgrounds.sh"
+          restore_config_cfg "i3" "backgrounds.sh"
           break ;;
         11 )
-          res_config_cfg "i3" "logout"
+          restore_config_cfg "i3" "logout"
           break ;;
 				12 )
-          res_config_cfg "rofi" "config.rasi"
+          restore_config_cfg "rofi" "config.rasi"
           break ;;
 				13 )
-          res_rofi_theme;
-          res_config_cfg "rofi" "arc_dark_colors.rasi"
-          res_config_cfg "rofi" "arc_dark_transparent_colors.rasi"
+          restore_rofi_theme;
+          restore_config_cfg "rofi" "arc_dark_colors.rasi"
+          restore_config_cfg "rofi" "arc_dark_transparent_colors.rasi"
           break ;;
         14 )
-          res_config_cfg "dunst" "dunstrc"
+          restore_config_cfg "dunst" "dunstrc"
           break ;;
 				15 )
           break ;;
@@ -332,61 +322,60 @@ i3_cfgs() {
 }
 
 # Miscellaneous configuration files
-misc_cfgs() {
+misc_configs() {
   local _opt options
 	while true; do
 		options=("Bat" "gitconfig" "git-credentials" "KeepassXC" "Kitty" "Monitor Config" "Terminator" "imwheelrc" "Redshift" "Main Menu")
 		clear
 		COLUMNS=20
-    printf "%s %s\n" "$script" "$version"
 		printf "\nMiscellaneous Configurations\n"
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
 				1 )
-          res_config_cfg "bat" "config"
+          restore_config_cfg "bat" "config"
           break ;;
 				2 )
-          if [[ -f "$bu_dir/.gitconfig" ]];then
-            res_home_cfg ".gitconfig"
-          elif [[ -f "$bu_dir/git/config" ]]; then
-            res_config_cfg "git" "config"
+          if [[ -f "$BU_DIR/.gitconfig" ]];then
+            restore_home_cfg ".gitconfig"
+          elif [[ -f "$BU_DIR/git/config" ]]; then
+            restore_config_cfg "git" "config"
           else
             printf "No git configuration file found.\n"
           fi
           break ;;
 				3 )
-          if [[ -f "$bu_dir/git-credentials" ]];then
-            res_home_cfg ".git-credentials"
-          elif [[ -f "$bu_dir/git/credentials" ]]; then
-            res_config_cfg "git" "credentials"
+          if [[ -f "$BU_DIR/git-credentials" ]];then
+            restore_home_cfg ".git-credentials"
+          elif [[ -f "$BU_DIR/git/credentials" ]]; then
+            restore_config_cfg "git" "credentials"
           else
             printf "No git credentials file found.\n"
           fi
           break ;;
 				4 )
-          res_config_cfg "keepassxc" "keepassxc.ini"
+          restore_config_cfg "keepassxc" "keepassxc.ini"
           break ;;
 				5 )
-          res_config_cfg "kitty" "kitty.conf"
-          res_config_cfg "kitty" "bindings.list"
+          restore_config_cfg "kitty" "kitty.conf"
+          restore_config_cfg "kitty" "bindings.list"
           break ;;
         6 )
-          if [[ -f "$bu_dir/10-monitor.conf" ]]; then
+          if [[ -f "$BU_DIR/10-monitor.conf" ]]; then
             sudo_login 2
-            sudo cp pv "$bu_dir/10-monitor.conf" /etc/X11/xorg.conf.d/
+            sudo cp pv "$BU_DIR/10-monitor.conf" /etc/X11/xorg.conf.d/
             (( COUNT++ ))
           else
             printf "10-monitor.conf not found.\n"
           fi
           break ;;
 				7 )
-          res_config_cfg "terminator" "config"
+          restore_config_cfg "terminator" "config"
           break ;;
         8 )
-          res_home_cfg ".imwheelrc"
+          restore_home_cfg ".imwheelrc"
           break ;;
         9 )
-          res_misc_cfg "config" "redshift.conf"
+          restore_misc_cfg "config" "redshift.conf"
           break ;;
         10 )
           break ;;
@@ -397,7 +386,5 @@ misc_cfgs() {
     main_menu
 	done
 }
-
-## Execution ##
 
 main_menu "$@"
