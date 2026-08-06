@@ -7,42 +7,31 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 20 May 2026
+## Updated      : 06 Aug 2026
+# Version      : .26218
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##############################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A  PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="7.5.26140"
-user=$(whoami); readonly user
-readonly host="${HOSTNAME:-$(hostname)}"
-readonly mount_point="/media/$user/BU_Drive"
-readonly logfile="$HOME/.local/share/logs/BU.log"
-readonly E_BACKUP_ERROR=100
-readonly E_RESTORE_ERROR=101
-EXIT_CODE=0
+readonly L_HOST="${HOSTNAME:-$(hostname)}"
+readonly MOUNT_POINT="/media/$USER/BU_Drive"
+readonly LOGFILE="$HOME/.local/share/logs/BU.log"
 SECONDS=0
 DOTS_PID=
-
-## Functions ##
 
 drive_test() {
 	printf "%sChecking Backup USB Drive%s\n" "$green" "$normal"
@@ -54,48 +43,51 @@ drive_test() {
 	get_space_remaining
 	printf "USB Backup Drive checks completed.\n"
 	if default_yes "${lightgreen}Continue with the backup?${normal}"; then
-		return
+		return 0
 	else
-		log "BU operation canceled" "$logfile"
+		log "BU operation canceled" "$LOGFILE"
 		unmount_usb_drive
-		exit "$EXIT_CODE"
+		exit "$?"
 	fi
 }
 
 check_usb() {
 	if [[ $(grep 'usb' < <(lsblk -S -o TRAN)) = *usb* ]]; then
 		printf "A USB drive is connected.\n"
+		return 0
 	else
-		dielog "No USB drive connected!" "$logfile" "$E_DRIVE_ERROR"
+		dielog "No USB drive connected!" "$LOGFILE" "$E_DRIVE_ERROR"
 	fi
 }
 
 mount_bu() {
   local usbdrv
   usbdrv=$(awk -F/ '/BU_Drive/ {print $3}' /proc/mounts)
-  [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
+  [[ -d "$MOUNT_POINT" ]] || sudo mkdir -p "$MOUNT_POINT"
 	if [[ $usbdrv ]]; then
 		printf "BU_Drive mounted on /dev/%s\n" "$usbdrv"
 	elif [[ -z $usbdrv ]]; then
-		sudo mount /dev/"$usbdrv" "$mount_point"
+		sudo mount /dev/"$usbdrv" "$MOUNT_POINT"
 		printf "BU_Drive now mounted on /dev/%s\n" "$usbdrv"
 	else
-		dielog "BU_Drive not mounted. Check the drive." "$logfile" "$E_DRIVE_ERROR"
+		dielog "BU_Drive not mounted. Check the drive." "$LOGFILE" "$E_DRIVE_ERROR"
 	fi
+	return 0
 }
 
 bu_drive_label() {
 	local bu_label
 	bu_label=$(awk '$1 == "1" && $NF ~ "^BU_" {print $NF}' < <(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL))
-	[[ -z "$bu_label" ]] && dielog "No partition label." "$logfile" "$E_DRIVE_ERROR"
+	[[ -z "$bu_label" ]] && dielog "No partition label." "$LOGFILE" "$E_DRIVE_ERROR"
 	printf "USB drive label = %s \n" "$bu_label"
 	printf "Mount point = %s\n" "$(awk '/BU_Drive/ {print $2}' /proc/mounts)"
 	# If label != BU_Drive (ie BU_Drive1) then unmount drive and exit.
 	# Check mountpoints and remove BU_Drive directory from /media/<user>
 	if [[ "$bu_label" != "BU_Drive" ]]; then
 		unmount_usb_drive
-		dielog "Invalid partition label." "$logfile" "$E_DRIVE_ERROR"
+		dielog "Invalid partition label." "$LOGFILE" "$E_DRIVE_ERROR"
 	fi
+	return 0
 }
 
 bu_drive_fs() {
@@ -104,8 +96,9 @@ bu_drive_fs() {
 	if [[ "$fs_type" == "ext4" || "$fs_type" == "XFS" ]]; then
 		printf "BU_Drive format = %s\n" "$fs_type"
 	else
-		dielog "Incorrect format. Drive must be formatted with EXT4 or XFS." "$logfile" "$E_DRIVE_ERROR"
+		dielog "Incorrect format. Drive must be formatted with EXT4 or XFS." "$LOGFILE" "$E_DRIVE_ERROR"
 	fi
+	return 0
 }
 
 check_uuid() {
@@ -126,29 +119,33 @@ check_uuid() {
 		[hp-2560p]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
 		[e-475m]="aecf4050-4efd-43e8-bd4c-cef2edd34b11"
 	)
-	if [[ -L "$uuid_path/${uuid_list[$host]}" ]] ; then
-		printf "USB UUID for %s is correct\n" "$host"
+	if [[ -L "$uuid_path/${uuid_list[$L_HOST]}" ]] ; then
+		printf "USB UUID for %s is correct\n" "$L_HOST"
 	else
-		unmount_usb_drive; dielog "Incorrect backup drive." "$logfile" "$E_DRIVE_ERROR"
+		unmount_usb_drive
+		dielog "Incorrect backup drive." "$LOGFILE" "$E_DRIVE_ERROR"
 	fi
+	return 0
 }
 
 unmount_usb_drive() {
-	printf "Unmounting %s...\n" "$mount_point"
-	sudo umount "$mount_point"
+	printf "Unmounting %s...\n" "$MOUNT_POINT"
+	sudo umount "$MOUNT_POINT"
 	if grep -q 'BU_Drive' < <(mount); then
-		log "$RED_ERROR $mount_point failed to unmount. ($E_DRIVE_ERROR)" "$logfile"
-		EXIT_CODE="$E_DRIVE_ERROR"
+		log "$RED_ERROR $MOUNT_POINT failed to unmount. ($E_DRIVE_ERROR)" "$LOGFILE"
+		return "$E_DRIVE_ERROR"
 	else
 		printf "BU_Drive unmounted.\nIt is now safe to remove the USB drive.\n"
 	fi
 	pgrep -x nemo >/dev/null && nemo --quit	# If Nemo is running, close it.
+	return 0
 }
 
 flush_kb_buffer() {
 	while read -r -N 1 -t 0.01
 	do :
 	done
+	return 0
 }
 
 sync_drives() {
@@ -157,30 +154,34 @@ sync_drives() {
 	DOTS_PID="$!"
 	sync
 	kill_dots
+	return 0
 }
 
 get_space_remaining() {
 	local available
-	available="$(awk 'NR == 2 {print $4}' < <(df -h "$mount_point"))"
+	available="$(awk 'NR == 2 {print $4}' < <(df -h "$MOUNT_POINT"))"
 	printf "Space available on BU_Drive: %s\n" "$available"
+	return 0
 }
 
 trim_log() {
 	local loglen
-	loglen=$(wc -l < "$logfile")
+	loglen=$(wc -l < "$LOGFILE")
 	[[ "$loglen" -le 30 ]] && return
 	while [[ "$loglen" -gt 30 ]]; do
-		sed -i '1d' "$logfile"
+		sed -i '1d' "$LOGFILE"
 		(( loglen-- ))
 	done
+	return 0
 }
 
 bu_prep() {
-  printf "Changing ownership of BU_Drive to %s...\n" "$user"
-	sudo chown "$user" "$mount_point"
+  printf "Changing ownership of BU_Drive to %s...\n" "$USER"
+	sudo chown "$USER" "$MOUNT_POINT"
 	printf "Checking for/creating machine specific directories...\n"
-	[[ -d "$mount_point"/BU_Backups/"$host" ]] || mkdir -p "$mount_point"/BU_Backups/"$host"
+	[[ -d "$MOUNT_POINT"/BU_Backups/"$L_HOST" ]] || mkdir -p "$MOUNT_POINT"/BU_Backups/"$L_HOST"
 	printf "BU_Drive is ready.\n"
+	return 0
 }
 
 backup() {
@@ -188,66 +189,67 @@ backup() {
 	local excluded=('timeshift' 'lost+found' 'mnt' '.local/share/libvirt/' '.local/share/gnome-boxes/' '.cache/' '.local/share/Trash/' 'Downloads/ISO/')
 	local exclude_opts=()
 	for item in "${excluded[@]}"; do exclude_opts+=( --exclude="$item" ); done
-  printf "%sBacking up /etc and /home to BU_Drive/BU_Backups/%s/%s\n" "$green" "$host" "$normal"
-  if sudo rsync -aH --delete "${exclude_opts[@]}" --info=progress2 /etc /home "$mount_point"/BU_Backups/"$host"/ 2>>"$logfile"; then
+  printf "%sBacking up /etc and /home to BU_Drive/BU_Backups/%s/%s\n" "$green" "$L_HOST" "$normal"
+  if sudo rsync -aH --delete "${exclude_opts[@]}" --info=progress2 /etc /home "$MOUNT_POINT"/BU_Backups/"$L_HOST"/ 2>>"$LOGFILE"; then
     # Clear any accidental input during backup:
 		flush_kb_buffer
 		printf "%sBackup successfully completed.%s\n" "$green" "$normal"
-    rm -f /"$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
-    touch "$mount_point/BU_Backups/$host/BU Backup was successful: $(date '+%F')"
+    rm -f /"$MOUNT_POINT"/BU_Backups/"$L_HOST"/BU\ Backup* >/dev/null 2>&1
+    touch "$MOUNT_POINT/BU_Backups/$L_HOST/BU Backup was successful: $(date '+%F')"
 		get_space_remaining
+		log "Backup completed successfully." "$LOGFILE"
 	else
     # Clear any accidental input during backup:
 		flush_kb_buffer
-    rm -f "$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
-    touch "$mount_point/BU_Backups/$host/BU Backup had some errors: $(date '+%F')"
-		log "$RED_ERROR rsync exited with errors!" "$logfile"
+    rm -f "$MOUNT_POINT"/BU_Backups/"$L_HOST"/BU\ Backup* >/dev/null 2>&1
+    touch "$MOUNT_POINT/BU_Backups/$L_HOST/BU Backup had some errors: $(date '+%F')"
+		log "$RED_ERROR rsync exited with errors!" "$LOGFILE"
 		printf "* Try reinserting the backup drive and running the command again to correct them.\n" >&2
     printf "* If errors persist then you may have corrupt files or failing hardware.\n" >&2
-		EXIT_CODE="$E_BACKUP_ERROR"
   fi
 }
 
 restore() {
   # Restore host's /home directory.
-  if [[ -d "$mount_point"/BU_Backups/"$host"/ ]]; then
+  if [[ -d "$MOUNT_POINT"/BU_Backups/"$L_HOST"/ ]]; then
 	  printf "%s\n" "$RED_WARNING"
 		printf "Any new files created in /home since last backup WILL BE DELETED!\n"
 		if y_or_n "Are you sure you want to restore now? [y/n]"; then
 			printf "Close any running applications and press any key to continue.\n"
 			anykey
 			printf "\n%sRestoring /home... Please DO NOT open any applications.$s\n" "$green" "$normal"
-			if sudo rsync -aH --delete --exclude 'timeshift' --info=progress2 "$mount_point"/BU_Backups/"$host"/home/ /home/ 2>>"$logfile"; then
+			if sudo rsync -aH --delete --exclude 'timeshift' --info=progress2 "$MOUNT_POINT"/BU_Backups/"$L_HOST"/home/ /home/ 2>>"$LOGFILE"; then
 				# Clear any accidental input during restore:
 				flush_kb_buffer
 				printf "%sRestoration successfully complete!%s\n" "$green" "$normal"
 	      printf "Restart machine for all changes to take effect.\n"
-				else
+				log "Restore operation completed successfully." "$LOGFILE"
+			else
 				# If rsync fails, clear any accidental input during restore:
 				flush_kb_buffer
-				log "$RED_ERROR rsync exited with errors!" "$logfile"
+				log "$RED_ERROR rsync exited with errors!" "$LOGFILE"
 				printf "DO NOT DO ANYTHING UNTIL YOU:\n" >&2
 				printf "* Make sure BU_Drive USB is still plugged in.\n" >&2
 				printf "* Remount BU_Drive USB by unplugging it and plugging it back in.\n" >&2
 				printf "* Wait a few seconds and try running 'bu --restore' again.\n" >&2
 				printf "* You may need to manually restore your data if errors persist.\n" >&2
-	      EXIT_CODE="$E_RESTORE_ERROR"
 			fi
 		else
-			log "${orange}Restoration canceled.${normal}" "$logfile"
+			log "${orange}Restoration canceled.${normal}" "$LOGFILE"
 	  fi
 	else
-		log "$RED_ERROR Cannot find valid backup directory for $host!" "$logfile"
+		log "$RED_ERROR Cannot find valid backup directory for $L_HOST!" "$LOGFILE"
     printf "* This drive may not have been used to backup this machine.\n" >&2
-    printf "* BU_Backups/%s directory may have been moved or deleted.\n" "$host" >&2
+    printf "* BU_Backups/%s directory may have been moved or deleted.\n" "$L_HOST" >&2
     printf "* Hostname or username may have changed since last backup.\n" >&2
-    EXIT_CODE="$E_FILENOTFOUND"
 	fi
 }
 
 help() {
-	local errcode="${1:-1}"
-	local updated="20 May 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="20 May 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -268,6 +270,8 @@ _HELP_
 }
 
 drive_setup() {
+	local -r script="$1"
+	local -r version="$2"
 	cat << _SETUP_
  ${orange}BU_Drive Setup:${normal}
 	- Prepare the backup drive with a tool like Gparted or Gnome Disks.
@@ -283,24 +287,16 @@ _SETUP_
 	exit
 }
 
-log_status() {
-	case "$EXIT_CODE" in
-		0 ) log "Backup/Restore operation successful." "$logfile" ;;
-		81 ) log "Unable to find backup directory for restore." "$logfile" ;;
-		88 ) log "Failed to unmount BU_Drive." "$logfile" ;;
-		100 ) log "Backup operation had errors." "$logfile" ;;
-		101 ) log "Restore operation had errors." "$logfile" ;;
-		* ) log "Unknown error." "$logfile" ;;
-	esac
-}
-
 main() {
-	local noOpt optstr opt OPTARG OPTIND loglen
-	[[ -f "$logfile" ]] || echo "${logfile##*/}" > "$logfile"
-	clear
+	local -r script="${0##*/}"
+	local -r version="7.5.26140"
+	local -i exit_code=0
+	local  opt OPTARG OPTIND loglen
+	[[ -f "$LOGFILE" ]] || echo "${LOGFILE##*/}" > "$LOGFILE"
+	local -i noOpt=1
+	local -r optstr=":bhir"
+	clearscreen
 	box "${script^^} -- USB Backup Tool (Version $version)"
-	noOpt=1
-	optstr=":bhir"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			b )
@@ -313,10 +309,10 @@ main() {
 				unmount_usb_drive
 				;;
 			h )
-				help 0
+				help "$script" "$version" 0
 				;;
 			i )
-				drive_setup
+				drive_setup "$script" "$version"
 				;;
 			r )
 				sudo_login 2
@@ -328,18 +324,16 @@ main() {
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
+		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ "$noOpt" -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
-	log_status
 	trim_log
 	over_line "Backup completed in $(format_time $SECONDS)" "-"
-	exit "$EXIT_CODE"
+	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
