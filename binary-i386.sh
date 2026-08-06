@@ -7,7 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 15 Apr 2026
-# Last updated : 09 Jul 2026
+# Updated      : 06 Aug 2026
+# Version      : .26218
 # Comments     : Fixes main/binary-i386 error message for Google Chrome update
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -22,9 +23,8 @@
 # FOR A  PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 intro_message() {
 	cat <<- _INTRO_
@@ -33,6 +33,7 @@ intro_message() {
 	"https://dl.google.com/linux/chrome-stable/deb stable InRelease"
 	doesn't support architecture 'i386'${normal}
 	_INTRO_
+	return 0
 }
 
 check_google_chrome() {
