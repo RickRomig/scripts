@@ -7,32 +7,27 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jul 2020
-# Updated      : 16 May 2026
+# Updated      : 06 Aug 2026
+# Version      : 7.9.26218
 # Comments     : Uses data from /sys/class/power_supply/BAT*
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free s26100oftware; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 BATTERY_PATH=''
-
-## Functions ##
 
 battery_status() {
   local bat_status bat_charge
@@ -45,6 +40,7 @@ battery_status() {
   [[ "$bat_status" == "Discharging" && "$bat_charge" -le 25 ]] && warn="\U26A0\UFE0F"
   printf "%4s%sStatus:%s %s\n" " " "$lightgreen" "$normal" "$bat_status"
   printf "%4s%sCharge:%s %s%%%s\n" " " "$lightgreen" "$normal" "$bat_charge" "$warn"
+  return 0
 }
 
 battery_capacity() {
@@ -77,11 +73,12 @@ battery_capacity() {
   printf "%4s%sDesign capacity:%s %s %s\n" " " "$lightgreen" "$normal" "$actual_max" "$unit"
   printf "%4s%sBattery health%s   %s %%\n" " " "$lightgreen" "$normal" "$bat_health"
   battery_condition "$cap_percent"
+  return 0
 }
 
 battery_condition() {
-  local cap_pct c_pct warn_level warn
-  cap_pct="$1"
+  local -r cap_pct="$1"
+  local c_pct warn_level warn
   c_pct="${cap_pct%%.*}"
   if [[ "$c_pct" -eq 0 ]]; then
     warn_level=0
@@ -101,6 +98,7 @@ battery_condition() {
   else
     printf "%4s%sThe battery is in good condition.%s\n" " " "$green" "$normal"
   fi
+  return 0
 }
 
 battery_specs() {
@@ -113,6 +111,7 @@ battery_specs() {
   printf "%4s%sModel name:%s    %s\n" " " "$lightgreen" "$normal" "$(awk -F= '/MODEL/ {print $NF}' <<< "$battery_data")"
   printf "%4s%sSerial number:%s %s\n" " " "$lightgreen" "$normal" "$battery_serial"
   printf "%4s%sTechnology:%s    %s\n" " " "$lightgreen" "$normal" "$(awk -F= '/TECHNOLOGY/ {print $NF}' <<< "$battery_data")"
+  return 0
 }
 
 ac_power() {
@@ -129,6 +128,7 @@ ac_power() {
     * )
       printf "'s AC power status cannot be determined.\n"
   esac
+  return 0
 }
 
 hidpp_battery() {
@@ -143,6 +143,7 @@ hidpp_battery() {
       printf "%4sHID++ battery not present.\n" " "
     fi
   done
+  return 0
 }
 
 battery_check() {
@@ -150,7 +151,7 @@ battery_check() {
   printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
   if [[ ! -d /proc/acpi/button/lid/ ]]; then
     printf "\nThis system is not a laptop.\n" >&2
-    return
+    return "$E_UNSUPPORTED"
   fi
   BATTERY_PATH=$(find /sys/class/power_supply/ -name "BAT*")
   battery_name="${BATTERY_PATH##*/}"
@@ -158,7 +159,7 @@ battery_check() {
     printf "\n%sNo battery detected%s\n" "$lightred" "$normal" >&2
     ac_power
     hidpp_battery
-    return
+    return "$E_NOT_DETECTED"
   fi
   printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$battery_name"
   battery_status
@@ -166,18 +167,19 @@ battery_check() {
   battery_specs
   ac_power
   hidpp_battery
+  return 0
 }
 
 main() {
-  local script="${0##*/}"
-  local version="7.8.26136"
+  local -r script="${0##*/}"
+  local -r version="7.9.26218"
+  local -i exit_code=0
   clear
   check_package bc
   battery_check
+  exit_code="$?"
   over_line "$script $version"
-  exit
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
