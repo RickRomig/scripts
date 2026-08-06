@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-###############################################################################
+##############################################################################
 # Script Name  : check-logs
 # Description  : Displays selected log files and information.
 # Dependencies : functionlib
@@ -7,32 +7,27 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Aug 2019
-# Updated      : 02 Jun 2026
+# Updated      : 06 Aug 2026
+# Version      : x.y.26218
 # Comments     : sudo access required to view Timeshift snapshots
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+##############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-################################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 readonly LHOST="${HOSTNAME:-$(hostname)}"
-
-## Functions ##
 
 show_header() {
   clear
@@ -42,6 +37,7 @@ Displays the contents of selected log files.
 Not all logs will be available on all systems.
 _HEADER_
   printf "\n"
+	return 0
 }
 
 sysinfo() {
@@ -52,157 +48,157 @@ sysinfo() {
   else
     printf "%s%s.info not found on this system.%s\n" "$orange" "$LHOST" "$normal"
   fi
+	return 0
 }
 
 update_log() {
-  local log_dir log_file
-  log_dir="/var/log"
-  log_file="update.log"
-  if [[ -f "$log_dir/$log_file" ]]; then
+  local -r log_file=/var/log/update.log
+  if [[ -f "$log_file" ]]; then
     clear
-    viewtext "$log_dir/$log_file"
+    viewtext "$log_file"
   else
     printf "%sThe system update log does not exist on %s.%s\n" "$orange" "$LHOST" "$normal"
     printf "The job is"
-    [[ -x "/etc/cron.weekly/z-update" || -x "/opt/bin/z-update" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
+    [[ -x /etc/cron.weekly/z-update || -x /opt/bin/z-update ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
+	return 0
 }
 
 timeshift_snapshots() {
 	if ! installed timeshift; then
     printf "\n%sTimeshift is not installed on %s.%s\n" "$orange" "$LHOST" "$normal"
-		return
+		return "$E_NOT_DETECTED"
 	fi
 	if pgrep -x timeshift > /dev/null 2>&1; then
 	  printf "\n%sTimeshift is currently processing a snapshot.%s Try again later.\n" "$orange" "$normal"
-	  return
+	  return 0
 	fi
 	sudo_login 0
 	if [[ $(tail -n1 < <(sudo timeshift --list)) == "No snapshots found" ]]; then
 	  printf "\nNo Timeshift snapshots found.\n"
-		return
+		return 0
 	fi
 	clear
 	printf "%s%s - Timeshift Snapshots:%s\n" "$lightgreen" "$LHOST" "$normal"
 	awk 'NR!=1 && NR!=3' 2>/dev/null <(sudo timeshift --list)
+	return 0
 }
 
 defrag_log() {
-  local log_dir log_file
-  log_dir="/var/log"
-  log_file="defrag.log"
-  if [[ -f "$log_dir/$log_file" ]]; then
+  local -r log_file=/var/log/defrag.log
+  if [[ -f "$log_file" ]]; then
     clear
-    viewtext "$log_dir/$log_file"
+    viewtext "$log_file"
   else
     printf "%sThe defragmentation report does not exist on %s.%s\n" "$orange" "$LHOST" "$normal"
     printf "The job is"
-    [[ -x "/etc/cron.monthly/z-defrag" || -x "/opt/bin/z-defrag" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
+    [[ -x /etc/cron.monthly/z-defrag || -x /opt/bin/z-defrag ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
+	return 0
 }
 
 ytdlpupdate_log() {
-  local log_dir log_file entries
-  log_dir="/var/log"
-  log_file="ytdlpup.log"
-  if [[ -f "$log_dir/$log_file" ]]; then
+  local -r log_file=/var/log/ytdlpup.log
+	local -i entries
+  if [[ -f "$log_file" ]]; then
     clear
     printf "%s%s - yt-dlp Update Log:%s\n" "$lightgreen" "$LHOST" "$normal"
-    column -t -s "|" -N DATE,TIME,VERSION "$log_dir/$log_file"
+    column -t -s "|" -N DATE,TIME,VERSION "$log_file"
     print_line "-" "29"
-    entries=$(wc -l < "$log_dir/$log_file")
+    entries=$(wc -l < "$log_file")
     (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
   else
     printf "%sThe yt-dlp update log does not exist on %s.%s\n" "$orange" "$LHOST" "$normal"
     printf "The job is"
-    [[ -x "/etc/cron.daily/z-ytdlp-update" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
+    [[ -x /etc/cron.daily/z-ytdlp-update ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
+	return 0
 }
 
 script_archive_log() {
-  local log_dir log_file entries
-  log_dir="$HOME/.local/share/logs"
-	log_file="script-archive.log"
-  if [[ -f "$log_dir/$log_file" ]]; then
+	local -r log_file=~/.local/share/logs/script-archive.log
+	local -i entries
+  if [[ -f "$log_file" ]]; then
     clear
     printf "%s%s - Bash Script Archive Log:%s\n" "$lightgreen" "$LHOST" "$normal"
-    column -t -s "|" -N DAY,DATE,TIME,RESULT "$log_dir/$log_file"
+    column -t -s "|" -N DAY,DATE,TIME,RESULT "$log_file"
     print_line "-" "34"
-    entries=$(wc -l < "$log_dir/$log_file")
+    entries=$(wc -l < "$log_file")
     (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
   else
     printf "%sThe bash script archive log does not exist on %s.%s\n" "$orange" "$LHOST" "$normal"
     printf "The job is"
-    [[ -x "$HOME/.local/bin/scriptarchive.sh" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
+    [[ -x ~/.local/bin/scriptarchive.sh ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
+	return 0
 }
 
 password_log() {
-  local log_dir log_file entries
-  log_dir="$HOME/.local/share/logs"
-  log_file="password-db.log"
-  if [[ -f "$log_dir/$log_file" ]]; then
+  local -r log_file=~/.local/share/logs/password-db.log
+  local -i entries
+  if [[ -f "$log_file" ]]; then
     clear
     printf "%s%s - Password Database Change Log:%s\n" "$lightgreen" "$LHOST" "$normal"
-    column -t -s "|" -N DATE,TIME,STATUS "$log_dir/$log_file"
+    column -t -s "|" -N DATE,TIME,STATUS "$log_file"
     print_line "-" "28"
-    entries=$(wc -l < "$log_dir/$log_file")
+    entries=$(wc -l < "$log_file")
     (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
   else
     printf "%sThe Password Database Change Log does not exist on %s.%s\n" "$orange" "$LHOST" "$normal"
     printf "The job is"
-    [[ -x "$HOME/.local/bin/passwdsync.sh" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
+    [[ -x ~/.local/bin/passwdsync.sh ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
+	return 0
 }
 
 homebank_log() {
-  local log_dir log_file entries
-  log_dir="$HOME/.local/share/logs"
-	log_file="HomeBank-archive.log"
-  if [[ -f "$log_dir/$log_file" ]]; then
+	local -r log_file=~/.local/share/logs/HomeBank-archive.log
+  local -i entries
+  if [[ -f "$log_file" ]]; then
     clear
     printf "%s%s- HomeBank Archive Log:%s\n" "$lightgreen" "$LHOST" "$normal"
-    column -t -s "|" -N DAY,DATE,TIME,ARCHIVE,RESULT "$log_dir/$log_file"
+    column -t -s "|" -N DAY,DATE,TIME,ARCHIVE,RESULT "$log_file"
     print_line "-" "43"
-    entries=$(wc -l < "$log_dir/$log_file")
+    entries=$(wc -l < "$log_file")
     (( entries > 1 )) && printf "%s entries\n" "$entries" || printf "%s entry\n" "$entries"
   else
     printf "%sThe HomeBank archive log does not exist on %s.%s\n" "$orange" "$LHOST" "$normal"
     printf "The job is"
-    [[ -x "$HOME/.local/bin/hb-archive.sh" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
+    [[ -x ~/.local/bin/hb-archive.sh ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
+	return 0
 }
 
 trash_log() {
-  local log_dir="$HOME/.local/share/logs"
-  local log_file="trash.log"
-  if [[ -f "$log_dir/$log_file" ]]; then
+  local -r log_file=~/.local/share/logs/trash.log
+  if [[ -f "$log_file" ]]; then
     clear
-    viewtext "$log_dir/$log_file"
+    viewtext "$log_file"
     printf "\n"
   else
     printf "%sThe local trash log does not exist on %s.%s\n" "$orange" "$LHOST" "$normal"
     printf "The job is"
-    [[ -x "$HOME/.local/bin/empty-trash.sh" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
+    [[ -x ~/.local/bin/empty-trash.sh ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
+	return 0
 }
 
 repo_log() {
-  local log_dir="$HOME/.local/share/logs"
-  local log_file="repo-update.log"
-  if [[ -f "$log_dir/$log_file" ]]; then
+  local log_file=~/.local/share/logs/repo-update.log
+  if [[ -f "$log_file" ]]; then
     clear
-    viewtext "$log_dir/$log_file"
+    viewtext "$log_file"
     printf "\n"
   else
     printf "%sThe repository update log does not exist on %s.%s\n" "$orange" "$LHOST" "$normal"
     printf "The job is"
-    [[ -x "$HOME/.local/bin/repo-update.sh" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
+    [[ -x ~/.local/bin/repo-update.sh ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
+	return 0
 }
 
 git_snapshots() {
-  local log_dir="$HOME/Downloads/archives/gitea"
+  local -r log_dir=~/Downloads/archives/gitea
   if [[ -d "$log_dir" ]]; then
     clear
     printf "%s%s - Git Repository Snapshots:%s\n\n" "$lightgreen" "$LHOST" "$normal"
@@ -211,14 +207,15 @@ git_snapshots() {
   else
     printf "%sGit Repository Snapshots do not exist on %s.%s\n" "$orange" "$LHOST" "$normal"
     printf "The job is"
-    [[ -x "$HOME/.local/bin/gitea-backup.sh" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
+    [[ -x ~/.local/bin/gitea-backup.sh ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
+	return 0
 }
 
 incremental_backups() {
-  local bu_name="$1"
-  local sub_dir="$2"
-  local arc_dir="$HOME/Downloads/archives"
+  local -r bu_name="$1"
+  local -r sub_dir="$2"
+  local -r arc_dir=~/Downloads/archives
   declare -rA job_names=(
     [Finance]="fin-backup.sh"
     [Git]="gitea-bu.sh"
@@ -234,6 +231,7 @@ incremental_backups() {
     printf "The job is"
     [[ -x "$HOME/.local/bin/${job_names[$bu_name]}" ]] && printf " scheduled but has not run.\n" || printf " not scheduled to run.\n"
   fi
+	return 0
 }
 
 system_logs() {
@@ -274,6 +272,7 @@ system_logs() {
 			esac
 		done
 	done
+	return 0
 }
 
 local_logs() {
@@ -306,6 +305,7 @@ local_logs() {
 			esac
 		done
 	done
+	return 0
 }
 
 archive_logs() {
@@ -350,12 +350,13 @@ archive_logs() {
 			esac
 		done
 	done
+	return 0
 }
 
 main() {
-	local _opt options script version
-  script="${0##*/}"
-  version="10.17.26153"
+  local -r script="${0##*/}"
+  local -r version="10.17.26153"
+	local _opt options
 	options=( "System logs" "Local logs" "Archive Logs" "Quit")
 	while true; do
 		show_header
@@ -384,7 +385,5 @@ main() {
 	over_line "$script $version" "-"
 	exit
 }
-
-## Execution ##
 
 main "$@"
