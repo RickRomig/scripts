@@ -8,6 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Dec 2022
 # Updated      : 09 Jul 2026
+# Version      : 3.9.26218
 # Comments     : base script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
 #              : Uses default editor ($EDITOR) to edit to-do list.
 #              : Limit to-do list to 7 items to maintain proper formating.
@@ -25,9 +26,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 CALENDAR=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 
@@ -69,15 +69,15 @@ create_todo() {
 	return "$?"
 }
 
-print_months() {
-	local previous current next
-	local -i padding=6
-	printf -v previous "%*s%s%*s" "$padding" "" "$(date -d "$(date +%F) - 1 month" +'%b %Y')" "$padding" ""
-	printf -v current "%*s%s%*s" "$padding" "" "$(date +'%b %Y')" "$padding" ""
-	printf -v next "%*s%s%*s" "$padding" "" "$(date -d "$(date +%F) + 1 month" +'%b %Y')" "$padding" ""
-	printf "\n%s  %s  %s\n" "$previous" "$current" "$next"
-	return 0
-}
+# print_months() {
+# 	local previous current next
+# 	local -i padding=6
+# 	printf -v previous "%*s%s%*s" "$padding" "" "$(date -d "$(date +%F) - 1 month" +'%b %Y')" "$padding" ""
+# 	printf -v current "%*s%s%*s" "$padding" "" "$(date +'%b %Y')" "$padding" ""
+# 	printf -v next "%*s%s%*s" "$padding" "" "$(date -d "$(date +%F) + 1 month" +'%b %Y')" "$padding" ""
+# 	printf "\n%s  %s  %s\n" "$previous" "$current" "$next"
+# 	return 0
+# }
 
 show_one_month() {
 	local -r doc_dir="$1"
@@ -92,7 +92,7 @@ show_three_months() {
 	local -r doc_dir="$1"
 	local -r todolist="$2"
 	clear
-	print_months
+	# print_months
 	sed '1d' < <(cal -3) > "$CALENDAR"	# strips off the year (1st line) to line up todo list with the month.
 	paste "$CALENDAR" "$doc_dir/$todolist"
 	return "$?"
@@ -100,7 +100,7 @@ show_three_months() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.9.26190"
+	local -r version="3.9.26218"
 	local -i exit_code=0
 	local opt OPTARG OPTIND
 	local -r doc_dir=~/.local/share/doc
