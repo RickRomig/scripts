@@ -4,45 +4,41 @@
 # Description  : Bullshit Meter
 # Dependencies : none
 # Arguments    : None
-# Author       : Copyright (C) 2019, Richard B. Romig
+# Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Aug 2019
-# Last updated : 25 Jun 2026
+# Updated      : 06 Aug 2026
+# Version      : 5.10.26218
 # Comments     : For entertainiment purposes only.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A  PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 DOTS_PID=
-
-## Functions ##
 
 print_graph() {
   printf "\n%+42s%s%sBullshit Meter%s\n" "" "$bold" "$green" "$normal"
   scale_numbers
   scale_marks
+  return 0
 }
 
 scale_numbers() {
   # _i and _j are dummy variables used as indices in the for-loops.
-  local _i _j index
+  local -i _i _j index
   index=0
   printf "%s" "$index"
   for _i in {1..10}; do
@@ -53,11 +49,12 @@ scale_numbers() {
     printf "%s" "$index"
   done
   printf "\n"
+  return 0
 }
 
 scale_marks() {
   # _i and _j are dummy variables used as indices in the for-loops.
-  local _i _j
+  local -i _i _j
   printf "|"
   for _i in {1..10}; do
     for _j in {1..9}; do
@@ -66,20 +63,22 @@ scale_marks() {
     printf "|"
   done
   printf "\n"
+  return 0
 }
 
 print_indicator() {
-  local _i  # dummy variable
-  local level="$1"
+  local -r level="$1"
+  local -i _i  # dummy variable in for-loop
   printf "%s%s" "$bold" "$orange"
   for (( _i=0; _i <= "$level"; _i++ )); do
     printf "*"
   done
   printf "%s\n" "$normal"
+  return 0
 }
 
 print_analysis() {
-  local level="$1"
+  local -r level="$1"
   printf "\nYour statement has been analyzed and found to be %s%% bullshit -- " "$level"
   case "$level" in
     0 )
@@ -99,6 +98,7 @@ print_analysis() {
     * )
       printf "absolutely false!\n"
   esac
+  return 0
 }
 
 print_intro() {
@@ -107,12 +107,13 @@ print_intro() {
   center_text "Once its bullshit content has been determined, the results will be displayed."
   center_text "This program is for entertainment purposes only and its accuracy cannot be guaranteed."
   printf "\n"
+  return 0
 }
 
 main() {
+  local -r script="${0##*/}"
+  local -r version="5.10.26218"
   local _statement bs_level
-  local script="${0##*/}"
-  local version="5.9.26176"
   bs_level=$(shuf -i 0-100 -n 1)
   clear
   print_intro
@@ -128,7 +129,5 @@ main() {
   over_line "$script $version"
   exit
 }
-
-## Execution ##
 
 main "$@"
