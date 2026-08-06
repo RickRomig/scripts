@@ -1,35 +1,31 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : clean-apt-cache
 # Description  : Cleans APT cache after 400 Bad Request or Hash Sum Mismatch error
 # Dependencies : None
-# Arguments    : See help() function for available options.
+# Arguments    : None
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 10 Apr 2026
-# Last updated : 10 Apr 2026
-# Version      : 1.0.26100
+# Last updated : 06 Aug 2026
+# Version      : 1.1.26218
 # Comments     : https://oneuptime.com/blog/post/2026-03-02-troubleshoot-hash-sum-mismatch-errors-apt-ubuntu/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 clean_apt_cache() {
   sudo_login 1
@@ -39,16 +35,15 @@ clean_apt_cache() {
   sudo apt clean
   printf "Updating and reloading the APT cache...\n"
   sudo apt update
+  return 0
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.0.26100"
+  local -r version="1.1.26218"
   clean_apt_cache
   over_line "$script $version"
 	exit
 }
-
-## Execution ##
 
 main "$@"
