@@ -7,29 +7,26 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 22 Nov 2023
-# Last updated : 01 Jul 2026
+# Updated      : 06 Aug 2026
+# Version      : 4.2.26218
 # Comments     : Based on a script by Kris Occipinti, https://filmsbykris.com/v7/
 #              : https://gitlab.com/metalx1000/MyBin/-/blob/master/linux/shell/apt-search
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; w|ithout even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Funtions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 run_query() {
 	local -r query="$1"
@@ -49,10 +46,9 @@ run_query() {
 
 main() {
 	local script="${0##*/}"
-	local version="4.2.26182"
+	local version="4.2.26218"
 	local query="$1"
 	check_package fzf
-
 	[[ "$query" ]] || read -rp "Enter search query: " query
 	if [[ "$query" ]]; then
 		run_query "$query"
@@ -62,7 +58,5 @@ main() {
 	over_line "$script $version"
 	exit
 }
-
-## Execution ##
 
 main "$@"
