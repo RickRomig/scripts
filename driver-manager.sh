@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+##############################################################################
 # Script Name  : driver-manager.sh
 # Description  : Installs the Linu Mint Driver Manager on LMDE 7 (Gigi) & Debian 13 (Trixie)
 # Dependencies : gdebi wget
@@ -7,38 +7,39 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 05 Nov 2025
-# Last updated : 16 Apr 2026
+# Updated      : 07 Aug 2026
+# Version      : 1.6.26219
 # Comments     : Based on instructions provided by Andrea Borman
 #              : YouTube - https://www.youtube.com/watch?v=-Q_U5lLTxmU
+#              : CAUTION! Use at your own risk.
 #              : I don't know of a way to verify or update packages.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+##############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-## Global Variables ##
-
-TMP_DIR=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-
-## Functions ##
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+cleanup() {
+	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
+}
 
 check_dependencies() {
   local packages=( gdebi wget )
   check_packages "${packages[@]}"
+  return 0
 }
 
 check_codename() {
@@ -49,15 +50,8 @@ check_codename() {
   esac
 }
 
-# shellcheck disable=SC2317
-# Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-cleanup() {
-	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
-}
-
 install_packages() {
-	local idx
+	local -i idx
   local urls=(
     "http://packages.linuxmint.com/pool/main/m/mint-info"
     "http://packages.linuxmint.com/pool/main/m/mintsystem"
@@ -76,29 +70,31 @@ install_packages() {
   for (( idx=0; idx < "${#urls[@]}"; idx++ )); do
 	  printf "Installing %s...\n" "${packages[idx]}"
     wget -q -P "$TMP_DIR" "${urls[idx]}/${packages[idx]}"
-    sudo gdebi -n "$TMP_DIR/${packages[idx]}"
-    # sudo dpkg -i "$TMP_DIR/${packages[idx]}"; sudo apt-get install --fix-broken
+    # sudo gdebi -n "$TMP_DIR/${packages[idx]}"
+    sudo dpkg -i "$TMP_DIR/${packages[idx]}"; sudo apt-get install --fix-broken
     printf "%s installed.\n" "${packages[idx]}"
   done
   printf "Mint Driver Manager installed.\n"
-}
-
-exit_script() {
-  local -r script="${0##*/}"
-  local -r version="1.5.26106"
-  over_line "$script $version"
-  exit
+  return 0
 }
 
 main() {
+  local -r script="${0##*/}"
+  local -r version="1.6.26219"
+  local -i exit_code=0
   trap cleanup EXIT
   printf "Installs the Linux Mint Driver Manager on LMDE 7 (Gigi) & Debian 13 (Trixie)\n"
-  check_codename || { printf "Only Debian 13 and LMDE 7 are supported at this time.\n"; exit_script; }
-  check_dependencies
-	install_packages
-  exit_script
+  if check_codename; then
+    check_dependencies
+    TMP_DIR=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+    trap cleanup EXIT
+	  install_packages
+  else
+    printf "Only Debian 13 and LMDE 7 are supported at this time.\n"
+    exit_code="$E_UNSUPPORTED"
+  fi
+  over_line "$script $version"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
