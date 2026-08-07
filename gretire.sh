@@ -1,47 +1,44 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : gretire.sh
 # Description  : remove a file from a git repo and archive it.
 # Dependencies : git zip
-# Arguments    : file to be removed
+# Arguments    : file to be removed/retired
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 02 Jul 2026
+# Updated      : 07 Aug 2026
+# Version      : 4.6.26219"
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
 #              : If file has been changed, commit the change before retiring.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
   local -r script="$1"
   local -r version="$2"
-	local -r errcode="${3:-1}"
-	local updated="02 Jul 2026"
+	local -ri errcode="${3:-1}"
+	local updated="07 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Retires a script in a Git repo by moving it to a zipped archive.
 
-${green}Usage:${normal} $script [script-name] [OPTION]
+${green}Usage:${normal} $script [script-name] [-h|--help]
 ${orange}Available options:${normal}
   -h | --help  Show this help message and exit
 ${bold}NOTES:${normal}
@@ -62,8 +59,8 @@ is_git_repo() {
 }
 
 retire_script() {
-  local filename="$1"
-  archive=~/Downloads/archives/retired-scripts.zip
+  local -r filename="$1"
+  local -r archive=~/Downloads/archives/retired-scripts.zip
   printf "Archiving %s..." "$filename"
   zip -u "$archive" "$filename"
   git rm "$filename"
@@ -85,8 +82,8 @@ check_args() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.5.26183"
-  local exit_code=0
+  local -r version="4.6.26219"
+  local -i exit_code=0
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
   local filename="$1"
   if is_git_repo; then
@@ -96,12 +93,10 @@ main() {
   else
     printf "%s This is not a git repositiory.\n" "$RED_WARNING" >&2
     printf "Run 'retire-script.sh' to retire scripts that are not in a git repository.\n" >&2
-    exit_code="$E_INVALID_ARG"
+    exit_code="$E_UNSUPPORTED"
   fi
   over_line "$script $version"
   exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
