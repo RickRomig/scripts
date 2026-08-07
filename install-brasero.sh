@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Script Name  : install-brasero.sh
-# Description  : installs Braseo with added permisions
-# Dependencies :
+# Description  : installs Braseo with added permisions & settings
+# Dependencies : None
 # Arguments    : See help() function for available options.
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 14 Feb 2026
-# Updated      : 10 Jul 2026
+# Updated      : 07 Aug 2026
+# Version      : 2.0.26219
 # Comments     : Thanks to Joe Collins and Matt Hartley for the fix to the permissions problem.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,15 +24,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
-	local -r errcode="${3:-1}"
-	local -r updated="10 Jul 2026"
+	local -ri errcode="${3:-1}"
+	local -r updated="07 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs Brasero CD/DVD writeer
@@ -65,24 +65,29 @@ set_permissions() {
 	return 0
 }
 
-add_mimeapps() {
+append_mimeapps() {
 	local -r applications_dir=~/.local/share/applications
+	local -r brasero_mimes=("x-content/blank-cd=brasero.desktop;" "x-content/blank-dvd=brasero.desktop;")
 	[[ -d "$applications_dir" ]] || mkdir -p "$applications_dir"
 	[[ -f "$applications_dir/mimeapps.list" ]] || touch "$applications_dir/mimeapps.list"
-	local -r set_brasero=("x-content/blank-cd=brasero.desktop;" "x-content/blank-dvd=brasero.desktop;")
   printf  "Updating mimeapps.iist...\n"
-	tee -a "$applications_dir/mimeapps.list" < <(printf "%s\n" "${set_brasero[@]}")
+	tee -a "$applications_dir/mimeapps.list" < <(printf "%s\n" "${brasero_mimes[@]}")
 	grep -w brasero "$applications_dir/mimeapps.list"
 	return 0
 }
 
-# Sound 'pop and click' fix. Set sound card to stay powered on all the time
-pop_and_click() {
+# Sound 'pop and click' fix. Set sound card to stay powered on all the time.
+pop_and_click_fix() {
 	sudo tee -a /etc/modprobe.d/alsa-base.conf >/dev/null <<< "options snd-hda-intel power_save=0 power_save_controler=N"
 	return "$?"
 }
 
 install_brasero() {
+	if installed brasero; then
+		printf "Brasero %s is already installed.\n" "$(brasero_version)" >&2
+		return "$E_INSTALLATION"
+	fi
+	check_dependencies
 	printf "Installing Brasero CD/DVD burning application...\n"
 	sudo apt-get install -y brasero brasero-common
 	is_debian && sudo apt-get install -y brasero-cdrkit
@@ -90,16 +95,19 @@ install_brasero() {
 		printf "%s Brasero installation failed.\n" "$RED_ERROR" >&2
 		return "$E_INSTALLATION"
 	fi
-	check_dependencies
 	set_permissions
-	add_mimeapps
-	pop_and_click
+	append_mimeapps
+	pop_and_click_fix
 	printf "Brasero %s installed.\n" "$(brasero_version)"
 	return 0
 }
 
 remove_brasero() {
 	local -r applications_dir=~/.local/share/applications
+	if ! installed brasero; then
+		printf "Brasero is not installed.\n" >&2
+		return "$E_INSTALLATION"
+	fi
 	printf "Removing Braseror %s...\n" "$(brasero_version)"
 	sudo apt-get remove brasero brasero-common brasero-cdrkit
 	sed -i '/brasero.desktop/d' "$applications_dir/mimeapps.list"
@@ -109,30 +117,20 @@ remove_brasero() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.6.26191"
+	local -r version="2.0.26219"
 	local -i exit_code=0
-	local opt  OPTARG OPTIND
+	local -i reboot_flag="$FALSE"
+	local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":hir"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
-				help "$script" "$version" 0
-				;;
+				help "$script" "$version" 0 ;;
 			i )
-				if installed brasero; then
-					printf "Brasero %s is already installed.\n" "$(brasero_version)"
-				else
-					install_brasero
-				fi
-				;;
+				install_brasero && reboot_flag="$TRUE" ;;
 			r )
-				if installed brasero; then
-					remove_brasero
-				else
-					printf "Brasero is not installed.\n"
-				fi
-				;;
+				remove_brasero ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
@@ -140,10 +138,13 @@ main() {
 		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	[[ $exit_code -eq 0 ]] && reboot_system
+	(( reboot_flag == 0 )) && reboot_system
 	exit "$exit_code"
 }
 
