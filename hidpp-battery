@@ -7,7 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Sep 2023
-# Last updated : 04 Jul 2026
+# Updated      : 07 Aug 2026
+# Version      : 1.10.26219"
 # Comments     : Defaults to using /sys/class/power_supply
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -15,24 +16,22 @@
 ###############################################################################
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later version.
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local errcode="${3:-1}"
-	local updated="04 Jul 2026"
+	local updated="07 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Displays HIDPP battery status.
@@ -84,7 +83,7 @@ upower_data() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.10.26185"
+	local -r version="1.10.26219"
 	local exit_code=0
 	local opt OPTARG OPTIND
 	local -i noOpt=1
@@ -106,7 +105,5 @@ main() {
 	over_line "$script $version"
 	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
