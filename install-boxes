@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 19 Jun 2026
+# Updated      : 07 Aug 2026
+# Version      : 4.3.26219
 # Comments     : Based on instructions from Joe Collins.
 # TODO (Rick)  : check entry in flatpak list, does Flatpak include all dependencies?
 # License      : GNU General Public License, version 2.0
@@ -22,22 +23,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="4.2.26170"
-readonly E_BIOS_SETTING=100
-EC=0
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local errcode="${1:-1}"
-	local updated="19 Jun 2026"
+  local -r script="$1"
+  local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="07 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Install Gnome Boxes from either distribution repositories or flatpak from Flathub.
@@ -57,6 +50,7 @@ boxes_version() {
   elif grep -qi 'Gnome-Boxes' < <(flatpak list); then
     awk '/Gnome-Boxes/ {print "$NF-2"}' 'gnome-boxes' < <(flatpak list)
   fi
+  return 0
 }
 
 check_bios() {
@@ -68,8 +62,7 @@ check_bios() {
   if [[ $vcpu -eq 0 ]]; then
     printf "not enabled in the BIOS.\n" >&2
     printf "Enable virtualization before installing Gnome Boxes.\n" >&2
-    EC="$E_BIOS_SETTING"
-    return
+    return "$E_UNSUPPORTED"
   fi
   printf "enabled in the BIOS. (%d threads)\n" "$vcpu"
   vmx_svm=$(grep -E -m 1 'vmx|svm' /proc/cpuinfo )
@@ -82,12 +75,14 @@ check_bios() {
       sudo tee -a "$qemu_sys_conf" >/dev/null <<< "options kvm_amd nested=1"
   esac
   sudo tee -a "$qemu_sys_conf" >/dev/null <<< "group=kvm"
+  return 0
 }
 
 enable_libvirtd() {
   sudo systemctl enable libvirtd.service
   sudo systemctl start libvirtd.service
   printf "libvirtd started.\n"
+  return "$?"
 }
 
 add_to_kvm_group() {
@@ -109,6 +104,7 @@ add_to_kvm_group() {
   # else
   #   printf "/etc/libvirt/qemu.conf not found!\n" >&2
   # fi
+  return 0
 }
 
 add_to_libvirt_group() {
@@ -124,6 +120,7 @@ add_to_libvirt_group() {
     printf "added to "
   fi
   printf "the libvirt group.\n"
+  return 0
 }
 
 link_data_drive() {
@@ -132,40 +129,38 @@ link_data_drive() {
   # [[ -d ~/.local/share/gnome-boxes ]] && mv ~/.local/share/gnome-boxes /data/
   ln -vs /data/gnome-boxes ~/.local/share/gnome-boxes
   printf "Gnome-boxes images linked to data drive.\n"
+  return 0
 }
 
 install_from_deb() {
-  [[ EC -ne 0 ]] && return
   printf "\nInstalling GNOME Boxes (distro)...\n"
   sudo apt update -qq
   sudo apt install -yy gnome-boxes
   sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virt-manager
+  if ! installed gnome-boxes; then
+    printf "%s Gnome-boxes installation failed.\n" "$RED_ERROR" >&2
+    return "$E_INSTALLATION"
+  fi
+  printf "Gnome-boxes installed.\n"
   sudo modprobe kvm
   if [[ $(awk '/Vendor ID:/ {print $NF}' < <(lscpu)) == "GueuineIntel" ]]; then
     sudo modprobe kvm_intel
   else
     sudo modprobe kvm_amd
   fi
-  if ! installed gnome-boxes; then
-    printf "%s Gnome-boxes installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
-  fi
-  printf "Gnome-boxes installed.\n"
   add_to_kvm_group
   add_to_libvirt_group
   enable_libvirtd
   link_data_drive
+  return 0
 }
 
 install_from_flatpak() {
-  [[ EC -ne 0 ]] && return
   printf "\nInstalling GNOME Boxes (flatpak)...\n"
   flatpak install --user flathub org.gnome.Boxes
   if ! grep -qi 'boxes' < <(flatpak list); then
     printf "%s Gnome-boxes installation failed.\n" "$RED_ERROR" >&2
-    EC="$E_INSTALLATION"
-    return
+    return "$E_INSTALLATION"
   fi
   printf "Gnome-Boxes installed.\n"
   add_to_kvm_group
@@ -174,9 +169,12 @@ install_from_flatpak() {
 }
 
 main() {
-  local noOpt opt optstr OPTARG OPTIND
-	noOpt=1
-	optstr=":dfh"
+  local -r script="${0##*/}"
+  local -r version="4.3.26219"
+  local -i exit_code=0
+  local opt OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":dfh"
 	while getopts "$optstr" opt; do
     case "$opt" in
       d )
@@ -184,8 +182,7 @@ main() {
           printf "Gnome-Boxes is already installed (Version: %s).\n" "$(boxes_version)"
         else
           sudo_login 2
-          check_bios
-          install_from_deb
+          check_bios && install_from_deb
         fi
         ;;
       f )
@@ -193,26 +190,23 @@ main() {
           printf "Gnome-Boxes is already installed (Version: %s).\n" "$(boxes_version)"
         else
           sudo_login 2
-          check_bios
-          install_from_flatpak
+          check_bios && install_from_flatpak
         fi
         ;;
       h )
-        help 0
+        help "$script" "$version" 0
         ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$E_INVALID_ARG"
+        help "$script" "$version" "$E_INVALID_ARG"
     esac
+    exit_code="$?"
     noOpt=0
   done
-	[[ $noOpt -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	[[ $noOpt -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
-  # [[ $EC -eq 0 ]] && printf "Gnome boxes installed and configured.\n"
   over_line "$script $version"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
