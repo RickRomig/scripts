@@ -7,45 +7,30 @@
 # Author       : Copyright © 2018, Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2018
-# Updated      : 07 Feb 2026
+# Updated      : 08 Aug 2026
+# Version      : 3.6.26219
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+################################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
-## Source function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-  exit 1
-fi
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="3.5.26038"
-EC=0
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local errcode="${1:-1}"
-	local updated="07 Feb 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="07 Feb 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Renames filenames in the current directory to all lowercase.
@@ -62,62 +47,64 @@ _HELP_
 }
 
 upper_to_lower() {
-	local filename="$1"
-	if [[ -f "$filename" ]]; then
-		rename -v 'y/A-Z/a-z/' "$filename"
-	else
-		printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
-		EC="$E_FILENOTFOUND"
-	fi
+	local -r filename="$1"
+	rename -v 'y/A-Z/a-z/' "$filename"
+	return 0
 }
 
 lc_all() {
 	printf "Renaming all files in the current directory to lowercase.\n"
 	sed 's/\.\///g' < <(find . -maxdepth 1 -type f -exec rename -v 'y/A-Z/a-z/' {} +)
+	return "$?"
 }
 
 lc_one() {
-	local file_name
-	file_name="$1"
-	printf "Renaming %s to lowercase.\n" "$file_name"
-	upper_to_lower "$file_name"
+	local -r filename="$1"
+	if [[ ! -f "$filename" ]]; then
+		printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
+		return "$E_FILENOTFOUND"
+	fi
+	printf "Renaming %s to lowercase.\n" "$filename"
+	upper_to_lower "$filename"
+	return 0
 }
 
 lc_selected() {
 	printf "Renaming selected files to lowercase.\n"
-	for file_name in "$@"; do
-		upper_to_lower "$file_name"
+	for filename in "$@"; do
+		[[ ! -f "$filename" ]] && printf "%s not found.\n" "$filename" >&2
+		upper_to_lower "$filename"
 	done
+	return "$?"
 }
 
 main() {
-	local file_name
+	local -r script="${0##*/}"
+	local -r version="3.6.26219"
+	local -i exit_code=0
+	check_package rename
 	if [[ $# -eq 0 ]]; then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$E_MISSING_ARG"
+		help "$script" "$version" "$E_MISSING_ARG"
 	elif [[ $# -eq 1 ]]; then
 		case "$1" in
 			-a|--all )
-				lc_all
-				;;
+				lc_all ;;
 			-h|--help )
-				help 0
-				;;
+				help "$script" "$version" 0 ;;
 			-* )
 				printf "%s Invalid argument, %s\n" "$RED_ERROR" "$1" >&2
-				help "$E_INVALID_ARG"
-				;;
+				help "$script" "$version" "$E_INVALID_ARG" ;;
 			* )
-				file_name="$1"
-				lc_one "$file_name"
+				local -r filename="$1"
+				lc_one "$filename"
 		esac
 	else
 		lc_selected "$@"
 	fi
+	exit_code="$?"
 	over_line "$script $version"
-	exit "$EC"
+	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
