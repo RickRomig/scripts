@@ -7,7 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jan 2025
-# Updated      : 12 Jul 2026
+# Updated      : 07 Aug 2026
+# Version      : 4.9.26219
 # Comments     : Option to disable current swap && install ZRam.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,9 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 find_current_swap() {
   local swap_dev
@@ -44,16 +44,18 @@ disable_swap() {
 }
 
 install_zram() {
-  local script_dir sed_file
+  local script_dir
   script_dir=$(dirname "$(readlink -f "${0}")")
-  sed_file="zramswap.sed"
+  local -r sed_file=zramswap.sed
   sudo_login 2
 	sudo apt install -y zram-tools
   if ! installed zram-tools; then
     printf "zram-tools installation failed!\n"
     return "$E_INSTALLATION"
   elif [[ ! -f "$script_dir/files/$sed_file" ]]; then
-    printf "%s not found.\n" "$sed_file" >&2
+    printf "%s not found.\nDefault configuration used.\n" "$sed_file" >&2
+    # Change to: ALGO-zstd PERCENT=25 PRIORITY=100
+    sudo systemctl restart zramswap.service
     return "$E_FILENOTFOUND"
   fi
   sudo sed -i.bak -f "$script_dir/files/$sed_file" /etc/default/zramswap
@@ -89,7 +91,7 @@ check_for_swap() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.8.26193"
+  local -r version="4.9.26219"
   exit_code=0
   check_for_swap
   exit_code="$?"
