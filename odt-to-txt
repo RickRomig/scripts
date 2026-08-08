@@ -7,41 +7,31 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 May 2019
-# Updated      : 26 Mar 2026
+# Updated      : 08 Aug 2026
+# Version      : 3.3.26219
 # Comments     : Run from a directory containing .odt files to be converted.
 #              : Leaves original .odt files intact.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
-
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 81
-fi
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 check_dependencies() {
   local packages=(fzf odt2txt)
   check_packages "${packages[@]}"
+  return 0
 }
 
 convert_2_txt() {
@@ -49,6 +39,7 @@ convert_2_txt() {
   local txt_file="${odt_file%%.*}.txt"
   /usr/bin/odt2txt "$odt_file" > "$txt_file"
   echo "$odt_file -> $txt_file"
+  return 0
 }
 
 convert_2_md() {
@@ -56,29 +47,33 @@ convert_2_md() {
   local md_file="${odt_file%%.*}.md"
   /usr/bin/odt2txt "$odt_file" > "$md_file"
   echo "$odt_file -> $md_file"
+  return 0
 }
 
 odt_files_found() {
   local num_files
   num_files=$(wc -l < <(find . -maxdepth 1 -type f -iname "*.odt"))
   (( num_files > 0 )) && return "$TRUE" || return "$FALSE"
+  return 0
 }
 
 list_odt_files() {
   printf ".odt filse in %s:\n\n" "$PWD"
   sed 's/^\.\///' < <(find ./ -maxdepth 1 -type f -name "*.odt") | sort
+  return 0
 }
 
 select_odt_file() {
   local odt_file
   odt_file=$(sed 's/^\.\///' < <(find . -maxdepth 1 -type f -name "*.odt") | sort -d | fzf --height 40% --reverse --prompt "Select the file to convert: ")
   echo "$odt_file"
+  return 0
 }
 
 main() {
+  local -r script="${0##*/}"
+  local -r version="3.3.26219"
   local options _opt ofile
-  local script="${0##*/}"
-  local version="3.2.26085"
 
   check_dependencies
 
@@ -140,16 +135,15 @@ main() {
           ;;
         5 )
           printf "All done! Exiting the script.\n"
-          over_line "$script $version"
-          exit
+          break 2
           ;;
         * )
           echo "${lightred}Invalid Option!${normal} Choose 1 - 5" >&2
       esac
     done
   done
+  over_line "$script $version"
+  exit
 }
-
-## Execution ##
 
 main "$@"
