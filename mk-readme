@@ -7,47 +7,33 @@
 # Author       : Copyright © 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
 # Created      : 09 Apr 2019
-# Updated      : 11 Mar 2026
+# Updated      : 08 Aug 2026
+# Version      : 3.4.26219
 # Comment      : Should be run from the project's main directory.'
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-## Load function library ##
-
-if [[ -x "$HOME/bin/functionlib" ]]; then
-  source "$HOME/bin/functionlib"
-else
-  echo -e "\e[91mERROR:\e[0m functionlib not found!" >&2
-  exit 81
-fi
-
-## Global Variables ##
-
-script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
-readonly script="${0##*/}"
-readonly version="3.3.26070"
-verbose_mode="$FALSE"
-
-## Functions ##
+VERBOSE="$FALSE"
 
 help() {
-  local errcode="${1:-2}"
-  local updated="11 Mar 2026"
+  local -r script="$1"
+  local -r version="$2"
+  local -ri errcode="${3:-1}"
+  local -r updated="08 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, updated: $updated
 Creates a README file for a project.
@@ -65,14 +51,14 @@ _HELP_
 
 show_message() {
 	local message="$1"
-	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+	[[ "$VERBOSE" == "$TRUE" ]] && echo "$message"
 }
 
 create_readme() {
-  local today
-  project="$1"
+  local -r project="$1"
+  local today script_dir
   today=$(date +"%d %B %Y")
-
+  script_dir=$(dirname "$(readlink -f "${0}")")
   show_message "Importing data into README.md"
   # Information to be inserted into README template
   # For sed, forward slashes have to be escaped with backslashes
@@ -81,19 +67,22 @@ create_readme() {
     -e "s/<DATE>/$today/" "$script_dir/Templates/readme.txt" > README.md
   printf "The README.md for %s$project has been created." "$$project"
   edit_view_quit README.md
+  return 0
 }
 
 main() {
-  local noOpt opt optstr project_name OPTARG OPTIND
-  noOpt=1
-  optstr=":c:hv"
+  local -r script="${0##*/}"
+  local -r version="3.4.26219"
+  local opt OPTARG OPTIND project_name
+  local -i noOpt=1
+  local -r optstr=":c:hv"
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
         project_name="$OPTARG"
         if [[ -f README.md ]]; then
           printf "%s README.md already exists.\n" "$RED_ERROR" >&2
-          help "$E_FILE_EXISTS"
+          help "$script" "$version" "$E_FILE_EXISTS"
         else
           show_message "Creating README for $project_name"
           create_readme "$project_name"
@@ -103,20 +92,23 @@ main() {
 				help 0
 			  ;;
 			v )
-				verbose_mode="$TRUE"
+				VERBOSE="$TRUE"
 				show_message "Verbose mode enabled."
 			  ;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_MISSING_ARG"
+				help "$script" "$version" "$E_MISSING_ARG"
         ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
     esac
     noOpt=0
   done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit
