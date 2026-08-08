@@ -8,7 +8,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 29 Jan 2019
-# Updated      : 11 Apr 2026
+# Updated      : 07 Aug 2026
+# Version      : 3.4.26219
 # Comments     : Processes one C/C++ source file and matching header.
 # TODO (rick)  : Process multiple source & header files in a project.
 # License      : GNU General Public License, version 2.0
@@ -25,15 +26,15 @@
 # GNU General Public License for more details.
 #####################################################################
 
-readonly script="${0##*/}"
-readonly version="3.3.26101"
-readonly E_FILENOTFOUND=81
-readonly E_MISSING_ARG=84
-readonly E_INVALID_ARG=85
+readonly E_FILENOTFOUND=3
+readonly E_MISSING_ARG=6
+readonly E_INVALID_ARG=7
 
 help() {
-  local errcode="${1:-1}"
-  local updated="31 Mar 2026"
+  local -r script="$1"
+  local -r version="$2"
+  local -i errcode="${3:-1}"
+  local -r updated="07 Aug 2026"
   printf "%s %s, updated %s\n" "$script" "$version" "$updated"
   printf "Usage: %s sourcefile\n" "$script"
   printf "Acceptable file extensions are: .c .cpp .cc .h .hh\n"
@@ -41,34 +42,39 @@ help() {
 }
 
 process_source() {
-  local cSource="$1"
-  local locFile="$2"
-  local baseFile="${cSource%%.*}"
+  local -r cSource="$1"
+  local -r locFile="$2"
+  local -r baseFile="${cSource%%.*}"
   tee "$locFile" < <(/usr/local/bin/fnloc "$cSource")
   # Process matching header file if it exists
   [[ -f "$baseFile.h" ]] && process_header "$baseFile.h" "$locFile"
   [[ -f "$baseFile.hh" ]] && process_header "$baseFile.hh" "$locFile"
+  return 0
 }
 
 process_header() {
-  local headerFile="$1"
-  local locFile="$2"
+  local -r headerFile="$1"
+  local -r locFile="$2"
   tee -a "$locFile" < <(/usr/local/bin/lloc "$headerFile")
+  return 0
 }
 
 print_title() {
+  local -r script="$1"
+  local -r version="$2"
   local -r copyright="Copyright 2018-2026"
   local -r author="Richard B. Romig"
   printf "%s\n" "$script $version"
-  printf "%s\n" "$copyright, $author"
+  printf "%s, %s\n" "$copyright" "$author"
   printf "%s\n" "====================================="
+  return 0
 }
 
 begin_process() {
-  local cSource="$1"
-  local locFile="${cSource%%.*}.loc"
-  local ext="${cSource##*.}"
-  print_title
+  local -r cSource="$1"
+  local -r locFile="${cSource%%.*}.loc"
+  local -r ext="${cSource##*.}"
+  print_title "$script" "$version"
   printf "Writing LOC data to %s...\n" "$locFile"
   case "$ext" in
     c|cc|cpp )
@@ -81,20 +87,22 @@ begin_process() {
       ;;
     * )
       printf "\e[91mError:\e[0m Invalid file extension." >&2
-      help "$E_INVALID_ARG"
+      return "$E_INVALID_ARG"
   esac
 }
 
 main() {
-  local cSource="$1"
+  local -r script="${0##*/}"
+  local -r version="3.4.26219"
+  local -r cSource="$1"
   if [[ $# -eq 0 ]]; then
     printf "\e[91mError:\e[0m No argument provided.\n" >&2
-    help "$E_MISSING_ARG"
+    help "$script" "$version" "$E_MISSING_ARG"
   elif [[ ! -f "$cSource" ]]; then
     printf "\e[91mError:\e[0m %s not found.\n" "$1" >&2
-    help "$E_FILENOTFOUND"
+    help "$script" "$version" "$E_FILENOTFOUND"
   fi
-  begin_process "$cSource"
+  begin_process "$cSource" || help "$script" "$version" "$E_INVALID_ARG"
   exit
 }
 
