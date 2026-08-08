@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 04 May 2019
-# Updated      : 03 Jul 2026
+# Updated      : 08 Aug 2026
+# Version      : 2.3.26219
 # Comments     :
 # License      : GNU General Public License, version 2.0
 ## License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -23,15 +24,13 @@
 ###############################################################################
 
 ## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
   local -r script="$1"
   local -r version="$2"
-  local -r errcode="${3:-1}"
+  local -ri errcode="${3:-1}"
   local -r updated="03 Jul 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, updated: $updated
@@ -44,9 +43,22 @@ _HELP_
   exit "$errcode"
 }
 
+check_arguments() {
+  local -r script="$1"
+  local -r version="$2"
+  if [[ "$#" -eq 0  ]]; then
+    printf "%s No argument passed." >&2 "$RED_ERROR"
+    help "$script" "$version" "$E_MISSING_ARG"
+  elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+    help "$script" "$version" 0
+  else
+    return 0
+  fi
+}
+
 create_cookie_file() {
-  local cookiefile="$1"
-  local -r fortunes_d="/usr/share/games/fortunes"
+  local -r cookiefile="$1"
+  local -r fortunes_d=/usr/share/games/fortunes
   sudo_login 2
   printf "Creating %s.dat...\n" "$cookiefile"
   if strfile -c % "$cookiefile" "$cookiefile.dat"; then
@@ -55,30 +67,25 @@ create_cookie_file() {
     return 0
   else
     printf "Fortune cookie operation failed.\n"
-    return 1
+    return "$E_FILE_ERROR"
   fi
 }
 
 main() {
   local script="${0##*/}"
-  local version="2.2.26184"
-  exit_code=0
-  if [[ "$#" -eq 0 ]]; then
-    printf "%s No argument passed." >&2 "$RED_ERROR"
-    help "$script" "$version" "$E_MISSING_ARG"
-  elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-    help "$script" "$version" 0
-  else
-    local cookiefile="$1"
-    [[ -f "$cookiefile" ]] || { printf "%s %s not found.\n" "$RED_ERROR" "$cookiefile" >&2; help "$script" "$version" "$E_FILENOTFOUND"; }
-    check_package fortune-mod
-    create_cookie_file "$cookiefile"
-    exit_code="$?"
-	  over_line "$script $version"
-	  exit "$exit_code"
+  local version="2.3.26219"
+  local -i exit_code=0
+  check_arguments "$script" "$version"
+  local -r cookiefile="$1"
+  if [[ -f "$cookiefile" ]]; then
+    printf "%s %s not found.\n" "$RED_ERROR" "$cookiefile" >&2
+    help "$script" "$version" "$E_FILENOTFOUND"
   fi
+  check_package fortune-mod
+  create_cookie_file "$cookiefile"
+  exit_code="$?"
+	over_line "$script $version"
+	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
