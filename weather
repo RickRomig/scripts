@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : weather
 # Description  : Displays local weather conditions in the terminal.
 # Dependencies : curl, jq (JSON processor)
@@ -7,48 +7,37 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 12 May 2026
+# Updated      : 09 Aug 2026
+# Version      : 7.3.26219
 # Comments     : Based on a script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+################################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="7.2.26132"
 TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 
-## Functions ##
-
 help() {
-  local -r updated="12 May 2026"
   clear
 	cat << _HELP_
-${orange}$script${normal} $version, Upated: $updated
-Displays current weather and 3-day forecast for a location.
-
-${green}Usage:${normal} $script [location]
+${green}Usage:${normal} weather [location]
 ${orange}Examples:${normal}
-$script  # No argument uses default location
-$script Cincinnati
-$script New+York
-$script "Los Angeles"
+weather  # No argument uses default location
+weather Cincinnati
+weather New+York
+weather "Los Angeles"
 
 * Locations with spaces must have a '+' in place of the space or be enclosed in double quotes.
 * A US state can be indicated with a comma after the city name.
@@ -56,14 +45,15 @@ $script "Los Angeles"
 * If no location is passed, the default location will be used.
 * 3-digit airport codes can be used as a location (LAX, ATL, DAY).
 * Menu options include current conditions, 3-day forecast, change locations, and help.
-* For help: $script -h or $script --help or Choice 4 in the menu.
 
 _HELP_
+  return 0
 }
 
 check_dependencies() {
   local packages=( curl jq )
   check_packages "${packages[@]}"
+  return 0
 }
 
 # Don't warn about unreachable commands in this function
@@ -77,31 +67,27 @@ timeout_exit() {
   local wx_loc="${1//[+_]/ }"
   printf "Current weather data for %s is not available.\n" "$wx_loc"
   printf "Try again later.\n\n"
-}
-
-exit_script() {
-  over_line "$script $version"
-  printf "%sMOTD:%s " "$darkgray" "$normal"
-  leave ""
+  return 0
 }
 
 wx_forecast() {
-  local url="$1"
-  local wx_loc="$2"
+  local -r url="$1"
+  local -r wx_loc="$2"
   clear
   if curl -so "$TMP_FILE" "$url/${wx_loc}?uA"; then
     sed '1,7d;/Follow/d' "$TMP_FILE"
   else
     timeout_exit "$wx_loc"
   fi
+  return 0
 }
 
 current_wx() {
+  local url="$1"
+  local -r wx_loc="$2"
   local city state latitude longitude description temp_F temp_C feels_F feels_C humidity pressure wind_dir wind_spd precip uv_index sunrise sunset
   local json tcolor fcolor ucolor uvwarn
-  local url="$1"
-  local wx_loc="$2"
-  local url="$url/${wx_loc}?format=j1"
+  url="$url/${wx_loc}?format=j1"
   json=$(curl -s "$url")
   grep -q 'Unknown location' <<< "$json" && { echo "Location data not available from http://wttr.in. Try again later."; return 1; }
 
@@ -153,6 +139,7 @@ current_wx() {
   else
     timeout_exit "$wx_loc"
   fi
+  return 0
 }
 
 temp_color() {
@@ -171,6 +158,7 @@ temp_color() {
     tcolor=${default} # Temperature is between 50 and 75 degrees Fahrenheit
   fi
   echo "$tcolor"
+  return 0
 }
 
 feels_color() {
@@ -189,6 +177,7 @@ feels_color() {
     fcolor=${default} # Temperature is between 50 and 75 degrees Fahrenheit
   fi
   echo "$fcolor"
+  return 0
 }
 
 uv_color() {
@@ -207,6 +196,7 @@ uv_color() {
     ucolor=${default}  # UV index is less than 3
   fi
   echo "$ucolor"
+  return 0
 }
 
 uv_warning() {
@@ -225,6 +215,7 @@ uv_warning() {
     uvwarn="Low Risk"  # UV index is less than 3
   fi
   echo "$uvwarn"
+  return 0
 }
 
 menu() {
@@ -256,7 +247,7 @@ menu() {
         3 )
           printf "\nChange location.\n"
           printf "Replace any spaces with + or _\n"
-          printf "Just pressing ENTER will use location based on public IP.\n"
+          printf "Just pressing ENTER will use location based on the public IP.\n"
           read -rp "New location: " location
           break ;;
         4 )
@@ -264,25 +255,33 @@ menu() {
           anykey
           break ;;
         5 )
+          # Quit
           break 2 ;;
         * )
           printf "%s Invalid choice. Choose 1, 2, 3, 4, or 5\n" "$RED_ERROR" >&2
       esac
     done
   done
-  return
+  return 0
 }
 
 main() {
+  local -r script="${0##*/}"
+  local -r version="7.3.26219"
+  local -r wx_url="https://wttr.in"
   local location="${1:-Huber+Heights}"
-  local wx_url="https://wttr.in"
   trap cleanup EXIT
   check_dependencies
-  url_reachable "$wx_url" || { printf "%s is not accessible.\nTry again later.\n" "$wx_url" ; exit_script; }
-  menu "$wx_url" "$location"
-  exit_script
+  if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    help
+  elif url_reachable "$wx_url"; then
+    printf "%s is not accessible.\nTry again later.\n" "$wx_url"
+  else
+    menu "$wx_url" "$location"
+  fi
+  over_line "$script $version"
+  printf "%sMOTD:%s " "$darkgray" "$normal"
+  leave ""
 }
-
-## Execution ##
 
 main "$@"
