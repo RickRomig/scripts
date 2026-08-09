@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 01 Jun 2026
+# Updated      : 09 Aug 2026
+# Version      : 14.0.26221
 # Comments     : Testing indicates USB drive needs to be mounted.
 #              : Works with fuzzy finder (fzf).
 #              : To test without writing to USB drive, use the -d option to enable a dry run.
@@ -15,49 +16,40 @@
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+################################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="8.0.26152"
-user=$(whoami); readonly user
-dryrun="$FALSE"
-FMENU="fzf --header=$script \
-           --layout=reverse \
-           --exact \
-           --border=bold \
-           --border=rounded \
-           --margin=5% \
-           --color=dark \
-           --height=95% \
-           --info=hidden \
-           --header-first \
-           --bind change:top \
-           --prompt"
+readonly FMENU="fzf --header=Write-ISO \
+  --layout=reverse \
+  --exact \
+  --border=bold \
+  --border=rounded \
+  --margin=5% \
+  --color=dark \
+  --height=95% \
+  --info=hidden \
+  --header-first \
+  --bind change:top \
+  --prompt"
+DRYRUN="$FALSE"
 DOTS_PID=
-EC=0
-E_WRITE_FAILED=101
-
-## Functions ##
 
 help() {
-	local errcode="${1:-1}"
-	local updated="01 Jun 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="09 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
@@ -72,13 +64,9 @@ _HELP_
   exit "$errcode"
 }
 
-check_usb_drive() {
-	[[ $(grep 'usb' < <(lsblk -S -o TRAN)) = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$script $version"
-}
-
 select_directory() {
+	local -r iso_dir="$1"
 	local dist_d selected_dir
-	local iso_dir="$1"
 	local iso_dirs=()
 	for dist_d in $iso_dir; do
 		if [[ -L "$iso_dir" ]]; then
@@ -89,17 +77,19 @@ select_directory() {
 	done
 	selected_dir=$($FMENU "Select distribution directory: " < <(printf "%s\n" "${iso_dirs[@]}"))
 	printf "%s" "$selected_dir"
+	return 0
 }
 
 select_iso() {
-	local iso_d selected_iso
-	iso_d="$1"
+	local -r iso_d="$1"
+	local selected_iso
 	local iso_files=()
 	for iso_files in $iso_d; do
 		iso_files+=("$(sort -d < <(find "$iso_d" -type f -iname "*.iso" -printf "%f\n"))")
 	done
 	selected_iso=$($FMENU "Select ISO file: " < <(printf "%s\n" "${iso_files[@]}"))
 	printf "%s" "$selected_iso"
+	return 0
 }
 
 select_usb() {
@@ -108,64 +98,83 @@ select_usb() {
 	$FMENU "Select the USB drive to write to: ")
 	usb_device=$(awk '{print $2}' <<< "$usb_device")
 	echo "$usb_device"
+	return 0
 }
 
 mount_usb() {
-	local mount_name usbpart
-	mount_name="$1"
-	usbpart="$2"
-  [[ -d "/media/$user/$mount_name" ]] || sudo mkdir -p "/media/$user/$mount_name"
-	sudo mount "/dev/$usbpart" "/media/$user/$mount_name" 2>/dev/null
-	printf "USB drive /dev/%s is mounted at /media/$user/%s\n" "$usbpart" "$mount_name"
+	local -r mount_name="$1"
+	local -r usbpart="$2"
+  [[ -d "/media/$USER/$mount_name" ]] || sudo mkdir -p "/media/$USER/$mount_name"
+	sudo mount "/dev/$usbpart" "/media/$USER/$mount_name" 2>/dev/null
+	printf "USB drive /dev/%s is mounted at /media/$USER/%s\n" "$usbpart" "$mount_name"
+	return 0
 }
 
 unmount_usb() {
-	local mount_name="$1"
-	local usbpart="$2"
-	sudo umount "/dev/$usbpart" && printf "USB drive unmounted.\n" # /media/$user/"$mount_name"
-	[[ -d "/media/$user/$mount_name" ]] && sudo rmdir "/media/$user/$mount_name"
+	local -r mount_name="$1"
+	local -r usbpart="$2"
+	sudo umount "/dev/$usbpart" && printf "USB drive unmounted.\n" # /media/$USER/"$mount_name"
+	[[ -d "/media/$USER/$mount_name" ]] && sudo rmdir "/media/$USER/$mount_name"
 	pgrep -x nemo >/dev/null && nemo --quit	# If Nemo is running, close it.
 	printf "It's now safe to remove the USB drive.\n"
+	return 0
 }
 
 list_usb_contents() {
-	local drvlabel usbdevice usbpart
-	usbpart="$1"
+	local -r usbpart="$1"
+	local drvlabel # usbdevice
 	drvlabel=$(awk -v pat="$usbpart" -F/ '$0 ~ pat {print $NF}' < <(lsblk))
   printf "\nContents of /dev/%s:\n" "$usbpart"
 	printf "Disk label: %s\n" "$drvlabel"
-  ls -F "/media/$user/$drvlabel"
+  ls -F "/media/$USER/$drvlabel"
+	return 0
 }
 
 simulate_dd() {
-	local iso="$1"
-	local usb="$2"
-	local mount_name="$3"
+	local -r iso="$1"
+	local -r usb="$2"
+	local -r mount_name="$3"
   printf "\nWriting %s to /dev/%s (SIMULATED) ..." "${iso##*/}" "$usb"
   dots "." &
 	DOTS_PID="$!"
   sleep 15
   kill_dots
   printf "%s written to /dev/%s (SIMULATED)\n"  "${iso##*/}" "$usb"
+	return 0
 }
 
 write_dd() {
-	local iso="$1"
-	local usb="$2"
-	local mount_name="$3"
+	local -r iso="$1"
+	local -r usb="$2"
+	local -r mount_name="$3"
 	printf "\nWriting %s to /dev/%s...\n" "${iso##*/}" "$usb"
 	if sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync; then
 	  printf "%s written to /dev/%s.\n" "${iso##*/}" "$usb"
+		return 0
 	else
 		printf "%s %s write to /dev/%s failed.\n" "$RED_ERROR" "$iso" "$usb"
-		EC="$E_WRITE_FAILED"
+		return "$E_FILE_ERROR"
   fi
 }
 
+select_iso_usb() {
+	local -r isoDir="$1"
+	local iso_dir iso_file usb_device
+	iso_dir=$(select_directory "$isoDir")
+	[[ "$iso_dir" ]] || { printf "%s No ISO directory selected.\n" "$RED_ERROR" >&2; return "$E_MISSING_ARG"; }
+	iso_file=$(select_iso "$iso_dir")
+	[[ "$isofile" ]] || { printf "%s No ISO file selected.\n" "$RED_ERROR" >&2; return "$E_MISSING_ARG"; }
+	usb_device=$(select_usb)
+	[[ "$usb_device" ]] || { printf "%s No USB drive selected.\n" "$RED_ERROR" >&2; return "$E_MISSING_ARG"; }
+	write_iso "$iso_dir/$iso_file" "$usb_device"
+	return "$?"
+}
+
 write_iso() {
-	local isofile usbdevice usbpart usbsize mount_name
-	isofile="$1"
-	usbdevice="$2"
+	local -r isofile="$1"
+	local -r usbdevice="$2"
+	local -i status=0
+	local usbpart usbsize mount_name
 	usbsize=$(awk -v pat="$usbdevice" '$0~pat{print$4;exit}' < <(lsblk))
 	printf "%-16s %s\n" "Selected ISO:" "${isofile##*/}"
 	printf "%-16s /dev/%s [%s]\n" "Selected device:" "$usbdevice" "$usbsize"
@@ -181,7 +190,7 @@ write_iso() {
 	fi
 	list_usb_contents "$usbpart" # "$mount_name"
 	# Confirm action or cancel
-	if [[ "$dryrun" == "$TRUE" ]]; then
+	if [[ "$DRYRUN" == "$TRUE" ]]; then
 		simulate_dd "$isofile" "$usbdevice" "$mount_name"
 	else
 		printf "\n%sIf you continue, ALL data will be erased from device %s.%s\n\n" "$orange" "$usbdevice" "$normal"
@@ -189,50 +198,55 @@ write_iso() {
 		if yes_or_no "Write ${isofile##*/} to /dev/$usb_device?"; then
 			sudo_login 2
 			write_dd "$isofile" "$usbdevice" "$mount_name"
+			status="$?"
 			grep -q "/dev/$usbpart" < <(mount) > /dev/null 2>&1 && unmount_usb "$mount_name" "$usbpart"
 		else
 			printf "Operation canceled. No action taken.\n"
 		fi
 	fi
+	return "$status"
 }
 
 main() {
-  local noOpt opt optstr iso_dir iso_file usb_device OPTARG OPTIND
-	local isoDir=~/Downloads/ISO
-	[[ -d "$isoDir" ]] || { printf "%s ISO directory not found.\n" "$RED_ERROR"; EC="$E_FILENOTFOUND"; return; }
-	noOpt=1
-	optstr=":dhw"
+	local -r script="${0##*/}"
+	local -r version="14.0.26221"
+	local -i exit_code=0
+	local -r isoDir=~/Downloads/ISO
+  local opt OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":dhw"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			d )
-				dryrun="$TRUE"
-				printf "%sPerforming a dryrun. The ISO will NOT be written to USB drive.%s\n\n" "$orange" "$normal"
+				DRYRUN="$TRUE"
+				printf "%sPerforming a dryrun simulation.\n" "$orange" "$normal"
+				printf "The ISO will NOT be written to USB drive.%s\n\n" "$normal"
 				;;
 			h )
-				help 0
+				help "$script" "$version" 0
 				;;
 			w )
-				box "$script v$version"
+				box "$script $version" "-"
 				printf "Writes ISO to a USB drive.\n\n"
 				check_package fzf
-				check_usb_drive
-				iso_dir=$(select_directory "$isoDir")
-				iso_file=$(select_iso "$iso_dir")
-				usb_device=$(select_usb)
-				write_iso "$iso_dir/$iso_file" "$usb_device"
+				[[ $(grep 'usb' < <(lsblk -S -o TRAN)) = *usb* ]] || die "No USB drive connected." "$E_NOT_DETECTED"
+				[[ -d "$isoDir" ]] || die "Main ISO directory not found." "$E_FILENOTFOUND"
+				select_iso_usb "$isoDir"
 				;;
 			? )
 				printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$E_INVALID_ARG"
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
+		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-	exit "$EC"
+	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
