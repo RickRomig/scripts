@@ -7,44 +7,37 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Nov 2019
-# Updated      : 14 Apr 2026
+# Updated      : 09 Aug 2026
+# Version      : 3.8.26221
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to current working directory
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-###############################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+################################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="3.7.260104"
-EC=0
-
-## Functions
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local errcode="${1:-1}"
-  local -r updated="14 Apr 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="09 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
-Downloads mp3 audio from YouTube videos to current working diretory.
+Downloads mp3 audio from YouTube videos to the current working diretory.
 
-${green}Usage:${normal} $script [-h] [video-url] [video-ID]
+${green}Usage:${normal} $script [-h|--help] [video-url] [video-ID]
 ${orange}Available options:${normal}
   -h | --help  Show this help message and exit.
 
@@ -61,29 +54,34 @@ check_dependencies() {
   sleep 2
   printf '\e[A\e[K'
   check_package ffmpeg
+  return 0
 }
 
 download_audio() {
-  local url"$1"
-  # box "* YouTube Audio Download *" "*"
+  local -r url"$1"
+  local -i exit_code=0
   color_header "YouTube Audio Download" "ORANGE"
   printf "\nDownloading mp3 audio from %s to %s...\n" "$url" "$PWD"
-  /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" "$url"; EC="$?"
-  if [[ $EC -eq 0 ]]; then
-    printf "Download successful.\n"
+  /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" "$url"; exit_code="$?"
+  if [[ "$exit_code" -ne 0 ]]; then
+    printf "Download failed. Error: %d" "$exit_code"
   else
-    printf "Download failed. Error: %d" "$EC"
+    printf "Download successful.\n"
   fi
+  return "$exit_code"
 }
 
 main() {
+  local -r script="${0##*/}"
+  local -r version="3.8.26221"
+	local -i exit_code=0
   local audio_url
   local re="^https?:\/\/.*"
   if [[ "$#" = 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
-    help "$E_MISSING_ARG"
+    help "$script" "$version" "$E_MISSING_ARG"
   elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    help 0
+    help "$script" "$version" 0
   elif [[ $1 =~ $re ]]; then
     # match by regex, starts with http:// or https://
     audio_url="$*"
@@ -93,10 +91,9 @@ main() {
   fi
   check_dependencies
   download_audio "$audio_url"
+  exit_code="$?"
   over_line "$script $version" "-"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-# Execution
 
 main "$@"
