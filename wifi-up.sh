@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+################################################################################
 # Script Name  : wifi-up.sh
 # Description  : Checks wifi connection & if down, bring it up.
 # Dependencies : none
@@ -7,34 +7,32 @@
 # Author       : Copyright © 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Jan 2022
-# Updated      : 13 May 2026
+# Updated      : 08 Aug 2026
+# Version      : 3.4.26219
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+################################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 get_wifi_interface() {
   local wifi_int
   wifi_int=$(awk -F: '/wl/ {print $2}' < <(ip addr show))
   wifi_int="${wifi_int# }"  # Remove leading space
   echo "$wifi_int"
+  return 0
 }
 
 get_ip_address() {
@@ -42,6 +40,7 @@ get_ip_address() {
   wifi_ip=$(awk '/wl/ {print $4}' < <(ip -o -4 addr show))
   wifi_ip="${wifi_ip%%/*}"  # Remove CIDR notation
   echo "$wifi_ip"
+  return 0
 }
 
 wifi_down() {
@@ -55,9 +54,10 @@ wifi_down() {
   wifi_ip=$(get_ip_address)
   if [[ -z "$wifi_ip" ]]; then
     printf "No IP address found. Begin troubleshooting.\n" >&2
-    return
+    return "$E_NETWORK"
   fi
   printf "Wireless IP - %s\n" "$wifi_ip"
+  return 0
 }
 
 show_wifi_ip() {
@@ -65,7 +65,7 @@ show_wifi_ip() {
   wifi_int=$(get_wifi_interface)
   if [[ -z "$wifi_int" ]]; then
     printf "No wireless interface found.\n"  >&2
-    return
+    return "$E_NETWORK"
   fi
   wifi_ip=$(get_ip_address)
   if [[ "$wifi_ip" ]]; then
@@ -73,16 +73,17 @@ show_wifi_ip() {
   else
     wifi_down "$wifi_int"
   fi
+  return "$?"
 }
 
 main() {
-  local script="${0##*/}"
-  local -r version="3.3.26133"
+  local -r script="${0##*/}"
+  local -r version="3.4.26219"
+	local -i exit_code=0
   show_wifi_ip
+	exit_code="$?"
   over_line "$script $version" "-"
-  exit
+	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
