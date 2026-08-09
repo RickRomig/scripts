@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : verify-iso
 # Description  : Verifies SHA1, SHA256, SHA512, and MD5 checksums of ISO files
 # Dependencies : fzf
@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 01 Jun 2026
+# Updated      : 08 Aug 2026
+# Version      : 13.1.26219
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
@@ -15,46 +16,39 @@
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+################################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="13.0.26152"
-FMENU="fzf --header=$script \
-           --layout=reverse \
-           --exact \
-           --border=bold \
-           --border=rounded \
-           --margin=5% \
-           --color=dark \
-           --height=95% \
-           --info=hidden \
-           --header-first \
-           --bind change:top \
-           --prompt"
+readonly FMENU="fzf --header=Verifiy-ISO \
+  --layout=reverse \
+  --exact \
+  --border=bold \
+  --border=rounded \
+  --margin=5% \
+  --color=dark \
+  --height=95% \
+  --info=hidden \
+  --header-first \
+  --bind change:top \
+  --prompt"
 SPIN_PID=
-EC=0
-
-## Functions ##
 
 help() {
-	local errcode="${1:-1}"
-	local -r updated="01 Jun 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="08 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.
@@ -71,8 +65,8 @@ _HELP_
 }
 
 select_directory() {
+	local -r iso_dir="$1"
 	local dist_d selected_dir
-	local iso_dir="$1"
 	local iso_dirs=()
 	for dist_d in $iso_dir; do
 		if [[ -L "$iso_dir" ]]; then
@@ -83,11 +77,12 @@ select_directory() {
 	done
 	selected_dir=$($FMENU "Select distribution directory: " < <(printf "%s\n" "${iso_dirs[@]}"))
 	printf "%s" "$selected_dir"
+	return 0
 }
 
 select_iso() {
-	local iso_d selected_iso
-	iso_d="$1"
+	local -r iso_d="$1"
+	local selected_iso
 	local iso_files=()
 	for iso_files in $iso_d; do
 		iso_files+=("$(sort -d < <(find "$iso_d" -type f -name "*.iso" -printf "%f\n"))")
@@ -97,20 +92,21 @@ select_iso() {
 }
 
 select_checksum() {
-	local iso_d selected_chksum
-	iso_d="$1"
+	local -r iso_d="$1"
+	local selected_chksum
 	local chksum_files=()
 	for chksum_files in $iso_d; do
 		[[ -d "$iso_d" ]] && chksum_files+=("$(sort -d < <(find "$iso_d" -type f \( -name "*.md5" -or -name "*.sha*" \) -printf "%f\n"))")
 	done
 	selected_chksum=$($FMENU "Select Checksum file: " < <(printf "%s\n" "${chksum_files[@]}"))
 	printf "%s" "$selected_chksum"
+	return 0
 }
 
 verify_checksums() {
-	local iso="$1"
-	local checksum="$2"
-	local ext="${checksum##*.}"
+	local -r iso="$1"
+	local -r checksum="$2"
+	local -r ext="${checksum##*.}"
 	local iso_sum chk_sum
 	printf "Verifying checksums.\n"
 	spin &
@@ -131,27 +127,30 @@ verify_checksums() {
 	printf "ISO checksum:\n\t%s\n" "$iso_sum"
 	printf "%s checksum:\n\t%s\n" "${ext^^}" "$chk_sum"
 	[[ "$iso_sum" == "$chk_sum" ]] && return "$TRUE" || return "$FALSE"
+	return 0
 }
 
 status_msg() {
-  local status="${1:-0}"
+  local -ri status="${1:-0}"
   if [[ "$status" -eq 0 ]]; then
 		printf "%sThe checksums match.%s\n" "$green" "$normal"
+		return 0
   else
 		printf "%sThe checksums do not match.%s\n" "$lightred" "$normal"
 		printf "Verify checksum with the ISO download site.\n"
+		return "$E_FILE_ERROR"
   fi
 }
 
 check_checksum() {
-	local file lines
-  file="$1"
+  local -r file="$1"
+	local lines
   lines=$(wc -l < "$file")
   [[ "$lines" -eq 1 ]] && return "$TRUE" || return "$FALSE"
 }
 
 check_extension() {
-	local chksum_ext="${1##*.}"
+	local -r chksum_ext="${1##*.}"
 	case "$chksum_ext" in
 		md5|sha1|sha256|sha512 ) return "$TRUE" ;;
 		* ) return "$FALSE"
@@ -159,41 +158,47 @@ check_extension() {
 }
 
 verify_iso() {
-	local checksum isofile iso_dir isoDir
-	isoDir=~/Downloads/ISO
-	[[ -d "$isoDir" ]] || { printf "%s ISO directory not found.\n" "$RED_ERROR"; "$E_FILENOTFOUND"; return; }
+	local checksum isofile iso_dir
+	local -r isoDir=~/Downloads/ISO
+	# Select ISO, ISO file, and checksum file...
+	[[ -d "$isoDir" ]] || { printf "%s The main ISO directory not found.\n" "$RED_ERROR" >&2; return "$E_FILENOTFOUND"; }
 	iso_dir=$(select_directory "$isoDir")
+	[[ "$iso_dir" ]] || { printf "%s No ISO directory selected.\n" "$RED_ERROR" >&2; return "$E_MISSING_ARG"; }
 	isofile=$(select_iso "$iso_dir")
-	[[ "$isofile" ]] || { printf "%s No ISO file selected.\n" "$RED_ERROR" >&2; EC="$E_MISSING_ARG"; return; }
+	[[ "$isofile" ]] || { printf "%s No ISO file selected.\n" "$RED_ERROR" >&2; return "$E_MISSING_ARG"; }
 	checksum=$(select_checksum "$iso_dir")
-	[[ "$checksum" ]] || { printf "%s No checksum file selected.\n" "$RED_ERROR" >&2; EC="$E_MISSING_ARG"; return; }
+	[[ "$checksum" ]] || { printf "%s No checksum file selected.\n" "$RED_ERROR" >&2 return "$E_MISSING_ARG"; }
+	# Dipslay selected information...
 	printf "Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.\n"
 	printf "\n%-18s %s\n" "Selected Distro:" "${iso_dir##*/}"
 	printf "%-18s %s\n" "Selected ISO:" "$isofile"
 	printf "%-18s %s\n\n" "Selected Checksum:" "$checksum"
+	# Check if checksum file extension is correct and checksum is a single line...
 	if ! check_extension "$checksum"; then
 		printf "%s Invalid checksum extension.\nExtension must be one of the following: .md5 .sha1 .sha256 .sha512\n" "$RED_ERROR" >&2
-		EC="$E_INVALID_ARG"
-		return
+		return "$E_INVALID_ARG"
 	fi
 	if ! check_checksum "$iso_dir/$checksum"; then
-		printf "%s Too many lines in checksum file.\nReduce the file to a single line.\n" "$RED_ERROR" >&2
-		EC="$E_FILE_ERROR"
-		return
+		printf "%s Too many lines in checksum file.\n" "$RED_ERROR" >&2
+		printf "Reduce the file to a single line corresponding to the selected ISO.\n" >&2
+		return "$E_FILE_ERROR"
 	fi
+	# Check ISO and checksum files...
 	verify_checksums "$iso_dir/$isofile" "$iso_dir/$checksum"
-	EC="$?"
-	status_msg "$EC"
+	local -i status="$?"
+	status_msg "$status"
 }
 
 main() {
-	[[ "$1" == "-h" || "$1" == "--help" ]] && help 0;
+	# local -r script="${0##*/}"
+	local -r version="13.1.26219"
+	local -i exit_code=0
+	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0;
 	check_package fzf
 	verify_iso
-	over_line "$script $version"
-	exit "$EC"
+	exit_code="$?"
+  over_line "$script $version" "-"
+	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
