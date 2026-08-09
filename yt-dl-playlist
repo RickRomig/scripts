@@ -7,7 +7,8 @@
 # Author       : Copyright © 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 May 2020
-# Updated      : 14 Apr 2026
+# Updated      : 09 Aug 2026
+# Version      : 3.5.26221
 # Comments     : Accepts only full URL
 #              : Downloads to current working directory
 #              : Video Playlist
@@ -15,33 +16,25 @@
 # TODO (Rick)  : Hangs after first file in playlist is downloaded.
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-###############################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+################################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Load function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
-
-## Global Variables ##
-
-readonly script="${0##*/}"
-readonly version="3.4.260104"
-EC=0
-
-## Functions ##
+# shellcheck source=/home/rick/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local errcode="${1:-1}"
-  local updated="14 Apr 2026"
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="09 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Downloads mp3 audio from a playlist of YouTube videos to current working directory.
@@ -59,40 +52,45 @@ check_dependencies() {
   sleep 2
   printf '\e[A\e[K'
   check_package ffmpeg
+  return 0
 }
 
 download_playlist() {
-  local playlist_url="$1"
+  local -r playlist_url="$1"
+  local -i exit_code=0
   color_header "YouTube Audio Playlist Download" "GRAY"
   printf "\nDownloading mp3 audio for %s\n" "$playlist_url"
   # if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s"  --yes-playlist "$url"
-  /usr/local/bin/yt-dlp --ignore-errors --format bestaudio --extract-audio --restrict-filename --audio-format mp3 --audio-quality 160K --output "%(title)s.%(ext)s" --yes-playlist "$playlist_url"; EC="$?"
-  if [[ $EC -eq 0 ]]; then
-    printf "Download successful\n"
+  /usr/local/bin/yt-dlp --ignore-errors --format bestaudio --extract-audio --restrict-filename --audio-format mp3 --audio-quality 160K --output "%(title)s.%(ext)s" --yes-playlist "$playlist_url"; exit_code="$?"
+  if [[ "$exit_code" -ne 0 ]]; then
+    printf "Download failed. Error: %d" "$exit_code"
   else
-    printf "Download failed. Error: %d" "$EC"
+    printf "Download successful.\n"
   fi
+  return "$exit_code"
 }
 
 main() {
-  local re="^https?:\/\/.*"
+  local -r script="${0##*/}"
+  local -r version="3.5.26221"
+	local -i exit_code=0
+  local -r re="^https?:\/\/.*"
   if [[ "$#" -eq 0 ]]; then
     printf "%s No argument passed \n" "$RED_ERROR" >&2
-    help "$E_MISSING_ARG"
+    help "$script" "$version" "$E_MISSING_ARG"
   elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    help 0
+    help "$script" "$version" 0
   elif [[ $1 =~ $re ]]; then
-    local url="$*"
+    local -r url="$*"
   else
     printf "%s Invalid argument. Must be full URL.\n" "$RED_ERROR" >&2
-    help "$E_INVALID_ARG"
+    help "$script" "$version" "$E_INVALID_ARG"
   fi
   check_dependencies
   download_playlist "$url"
+  exit_code="$?"
   over_line "$script $version" "-"
-  exit "$EC"
+  exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
