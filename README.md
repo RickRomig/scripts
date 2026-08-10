@@ -10,28 +10,29 @@ Programs in this repository are licensed under the GNU General Public Licencse, 
 
 ## Function Library
 
-The `functionlib` script is a collection of commonly used functions used in many of my scripts. To use it, simply source it near the beginning of the script, immediately after the header comments and license information.
+The `functionlib.bash` script is a collection of commonly used functions and global variables  that I use in many of my scripts. To use it, simply source it near the beginning of the script, before variable declarations, functions, or any executed code.
 
-Ideally, the `functionlib` script should be located in `~/bin` or a directory linked to `~/bin`.
+Ideally, `functionlib.bash` should be located in `~/bin` or a directory linked to `~/bin`.
 
 ### Shellcheck
 
-If you use Shellcheck to check syntax, include Shellcheck directives to tell Shellcheck the location of the script and to disable the error message it gives about it. Place the following Shellcheck directies directly beneath the header information:
+If you use ShellCheck to check syntax, include ShellCheck directives to tell Shellcheck the location of the script and to disable associated error messages. Place the following Shellcheck directies directly beneath the header information:
 ```bash
 ## Shellcheck Directives ##
-# shellcheck source=/home/rick/bin/functionlib
+# shellcheck source=/home/<user>/bin/functionlib.bash
 # shellcheck disable=SC1091
 ```
-Disabling SC1091 is not required if using `shellcheck -x` to check syntax or if `external-sources=true` is set in `~/.config/shellcheckrc'.
-If sorurcing from outside the `~/bin` directory, change the path in the directive. Use the full path, i.e., `/home/username/script-directory`.
+* Disabling SC1091 is not required if using `shellcheck -x` to check syntax or if `external-sources=true` is set in `~/.config/shellcheckrc'.
+* In the ShellCheck source directive, the full path to the sourced file must be given becaause ShellCheck is not able to include sourced files from paths that are determined at runtime.
+* If sourcing from outside the `~/bin` directory, change the path in the directive or configuration file. Use the full path, i.e., `/home/username/script-directory`.
 
 ### Sourcing the function library
 
-Source `functionlib` before any any other code. Edit the path if running it from a directory other than `~/bin`.
+Source `functionlib.bash` before any any other code. Edit the path if running it from a directory other than `~/bin`.
 ```bash
 ## Source function library ##
-# shellcheck source=/home/rick/bin/functionlib
-source ~/bin/functionlib || { printf "\e[91mERROR:\e[0m Unable to source functionlib\n"; exit 1; }
+# shellcheck source=/home/<user>/bin/functionlib.bash
+source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 ```
 
 ## Directories
@@ -42,7 +43,7 @@ Contains scripts that are run as user or system cron jobs.
 
 ### docs
 
-Supporting markdown documentation for functions contained in `functionlib`, `.bashrc`, and `.bash_aliases`. The directory also contains examples of commonly used routines in my scripts that are not in functions.
+Supporting markdown documentation for functions contained in `functionlib.bash`, `~/.bashrc`, and `~/.bash_aliases`. The directory also contains examples of commonly used routines in my scripts that are not in functions.
 
 ### files
 
@@ -63,4 +64,4 @@ These programs are free software; you can redistribute them and/or modify them u
 These programs are distributed in the hope that they will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 #### Rick Romig (*The Luddite Geek*)
-##### 22 Jun 2026
+##### 10 August 2026
