@@ -25,15 +25,13 @@
 $ FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
+VERBOSE="$FALSE"
 SCRIPT_DIR==$(dirname "$(readlink -f "${0}")"); readonly script_dir
-VERBOSE_MODE="$FALSE"
 TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 TMP_DIR=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-## Functions ##
 
 help() {
   local -r script="$1"
@@ -71,13 +69,39 @@ cleanup() {
 
 app_version() {
 	application --version
-# 	awk '/ii/ {print $3}' < <(dpkg -l application 2>/dev/null) | sed 's/[~+-].*//'
+	# awk '/ii/ {print $3}' < <(dpkg -l application 2>/dev/null) | sed 's/[~+-].*//'
 	return 0
 }
 
 show_message() {
 	local message="$1"
 	[[ "$VERBOSE_MODE" == "$TRUE" ]] && echo "$message"
+	return 0
+}
+
+install_applilcation() {
+	if installed application; then
+		printf "Application is already installed.\n"
+		return 0
+	fi
+	sudo apt-get install -y application
+  if ! installed audacious; then
+    printf "%s application installation failed.\n" "$RED_ERROR" >&2
+    return "$E_INSTALLATION"
+  fi
+  printf application installed.\n"
+  return 0
+}
+
+remove_application() {
+	if ! installed application; then
+	  printf application is not installed.\n"
+	  return 0
+	fi
+	sudo_login 2
+	printf "Removingapplication....\n"
+	sudo apt remove --autoremove application
+	printf "application removed.\n"
 	return 0
 }
 
@@ -96,40 +120,21 @@ main() {
 			;;
 			i )
 				# argI="$OPTARG"
-				if installed application; then
-					printf "Application %s is already installed.\n" "$(app_version)"
-				else
-					trap cleanup EXIT	# for temp files and directories
-					install_application
-					exit_code="$?"
-					apply_settings	# optional custom configuration
-				fi
+				trap cleanup EXIT	# for temp files and directories
+				install_application && apply_settings	# optional custom configuration
 				;;
 			r )
 				# argR="$OPTARG"
-				if installed application; then
-					remove_application
-					exit_code="$?"
-				else
-					printf "Application is not installed.\n"
-				fi
+				remove_application
 				;;
 			s )
-				if installed application; then
-					apply_settings
-				else
-					printf "Application is not installed.\n"
-				fi
+				apply_settings
 				;;
 			u )
-				if installed application; then
-					update_application
-				else
-					printf "Application is not installed.\n"
-				fi
+				update_application
 				;;
 			v )
-				VERBOSE_MODE="$TRUE"
+				VERBOSE="$TRUE"
 				show_message "Verbose mode enabled."
 				;;
 			: )

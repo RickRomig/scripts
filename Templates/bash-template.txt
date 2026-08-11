@@ -24,7 +24,6 @@
 # PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
@@ -68,11 +67,7 @@ app_version() {
 	return 0
 }
 
-main() {
-  local -r script="${0##*/}"
-  local -r version="<VERSION>"
-  local exit_code=0
-  # Check arguments
+check_arguments() {
   if [[ "$#" -eq 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
     help "$script" "$version" "$E_MISSING_ARG"
@@ -87,8 +82,17 @@ main() {
   else
     filename="$1"
   fi
-	check_dependencies
+
+}
+
+main() {
+  local -r script="${0##*/}"
+  local -r version="<VERSION>"
+  local -i exit_code=0
   trap cleanup EXIT	# if temp files and directories
+  check_arguments "$@"
+	check_dependencies
+  filename="$1"
   # commands and function calls
   exit_code="$?"
   over_line "$script $version"
