@@ -7,8 +7,9 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2020
-# Updated      : 27 Jul 2026
-# Comments     : Does not support installation from Ubuntu PPAs or flatpak.
+# Updated      : 11 Aug 2026
+# Version      : 2.11.26223
+# Comments     : Script does not currently support installation from Ubuntu PPAs or flatpak.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -22,15 +23,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
   local -r script="$1"
   local -r version="$2"
-  local errcode="${3:-1}"
-  local updated="27 Jul 2026"
+  local -ri errcode="${3:-1}"
+  local -r updated="11 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Install or remove Audacious audio player
@@ -45,8 +45,12 @@ _HELP_
 }
 
 install_audacious() {
+  if installed audacious; then
+    printf "Audacious audio player is already installed.\n"
+    return 0
+  fi
   if ! in_repos audacious; then
-    printf "Audacious is not in repositories. Audacious audio player not installed.\n"
+    printf "Audacious is not in repositories. Audacious audio player not installed.\n" >&2
     return "$E_UNSUPPORTED"
   fi
   sudo_login 2
@@ -62,6 +66,10 @@ install_audacious() {
 }
 
 remove_audacious() {
+  if ! installed audacious; then
+    printf "Audacious audio player is not installed.\n"
+    return 0
+  fi
   sudo_login 2
   printf "Removing Audacious audio player....\n"
   sudo apt remove --autoremove audacious audacious-plugins
@@ -71,30 +79,19 @@ remove_audacious() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.10.26208"
+  local -r version="2.11.26223"
   local -i exit_code=0
-  local opt  OPTARG OPTIND
+  local opt OPTARG OPTIND
   local -i noOpt=1
   local -r optstr=":hir"
   while getopts "$optstr" opt; do
 	  case "$opt" in
 		  h )
-			  help "$script" "$version" 0
-		    ;;
+			  help "$script" "$version" 0 ;;
       i )
-        if installed audacious; then
-          printf "Audacious audio player is already installed.\n"
-        else
-          install_audacious
-        fi
-        ;;
+          install_audacious ;;
       r )
-        if installed audacious; then
-          remove_audacious
-        else
-          printf "Audacious audio player is not installed."
-        fi
-        ;;
+          remove_audacious ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help "$script" "$version" "$E_INVALID_ARG"
@@ -102,7 +99,10 @@ main() {
     exit_code="$?"
     noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   exit "$exit_code"
