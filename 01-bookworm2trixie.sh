@@ -51,8 +51,8 @@ upgrade_packages() {
 	printf "%sUpdating current Debian 12 packages.%s\n" "$orange" "$normal"
 	sudo_login 2
 	printf "%sCreating a Timeshift snapshot of current system state.%s\n" "$orange" "$normal"
-	installed timeshift && sudo timeshift --create --comments "pre-Trixie update" --tags O
-	printf "%sUpdating Bookworm packages and cleaning up.%w\n" "$orange" "$normal"
+	installed timeshift && sudo timeshift --create --comments "pre-Trixie update"
+	printf "%sUpdating Bookworm packages and cleaning up.%s\n" "$orange" "$normal"
 	sudo apt update
 	sudo apt full-upgrade -y
 	sudo apt autoclean
