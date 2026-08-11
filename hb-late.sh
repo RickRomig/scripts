@@ -8,13 +8,13 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Use only if hb-archive.sh fails to run on 1st of the month.
 # Created      : 02 Sep 2019
-# Updated      : 07 Aug 2026
-# Version      : 4.2.26219"
+# Updated      : 11 Aug 2026
+# Version      : 4.2.26223"
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
-This program is free software; you can redistribute it and/or modify it under
+# This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
 # Foundation; either version 2 of the License, or (at your option) any later
 # version.
@@ -81,7 +81,7 @@ monthly_archive() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.2.26219"
+  local -r version="4.2.26223"
   local -r lhost="${HOSTNAME:-$(hostname)}"
   local -r fhost="hp-800g2-sff"
   local -i exit_code=0
