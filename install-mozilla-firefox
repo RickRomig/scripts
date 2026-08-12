@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 ###############################################################################
-# Script Name  : install-firefox-deb
+# Script Name  : install-mozilla-firefox
 # Description  : install Firefox .deb package from Mozilla repos
 # Dependencies : wget
 # Arguments    : none
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Updated      : 20 Jul 2026
+# Updated      : 12 Aug 2026
+# Version      : 7.0.26224
 # Comments     : Remove Distro, Flatpak, or Snap version before installing.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,15 +24,16 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+
+VERBOSE="FALSE"
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
-	local errcode="${3:-1}"
-	local -r updated="20 Jul 2026"
+	local -ri errcode="${3:-1}"
+	local -r updated="12 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/Removes Mozilla repository version of Firefox.
@@ -49,6 +51,7 @@ _HELP_
 show_message() {
 	local message="$1"
 	[[ "$VERBOSE" == "$TRUE" ]] && echo "$message"
+	return 0
 }
 
 firefox_version() {
@@ -61,12 +64,18 @@ mozilla_deb() {
 }
 
 other_firefox() {
-	grep -q '^ii' < <(dpkg -l firefox-esr) && return "$TRUE"
-	grep -q 'ii.*linuxmint' < <(dpkg -l firefox) && return "$TRUE"
-	if exist flatpak; then
-		grep -q firefox < <(flatpak list) && return "$TRUE"
+	if grep -q '^ii' < <(dpkg -l firefox-esr); then
+		printf "Firefox ESR\n"
+		return "$TRUE"
+	elif grep -q 'ii.*linuxmint' < <(dpkg -l firefox); then
+		printf "Linux Mint Firefox\n"
+		return "$TRUE"
+	elif installed flatpak || installed snapd; then
+		grep -q firefox < <(flatpak list 2>/dev/null) && { printf "Flatpak Firefox\n"; return "$TRUE"; }
+		snap list firefox 2>/dev/null && { printf "Snap Firefox\n"; return "$TRUE"; }
+	else
+		return "$FALSE"
 	fi
-	return "$FALSE"
 }
 
 create_preference_file() {
@@ -94,7 +103,7 @@ set_gpg_key() {
 set_sources() {
 	local -r mozilla_asc="$1"
 	local -r mozilla_sources=/etc/apt/sources.list.d/mozilla.sources
-	local -r sources_url="https://packages.mozilla.org/apt"
+	local -r sources_uri="https://packages.mozilla.org/apt"
 	if [[ -f /etc/apt/sources.list.d/mozilla.list ]]; then
 		show_message "Renaming old source list file..."
 		sudo mv /etc/apt/sources.list.d/mozilla.list /etc/apt/sources.list.d/mozilla.list.bak
@@ -102,17 +111,20 @@ set_sources() {
 	show_message "Creating Mozilla APT sources..."
 	sudo tee $mozilla_sources <<< \
 "Types: deb
-URIs: $sources_url
+URIs: $sources_uri
 Suites: mozilla
 Components: main
 Signed-By: $mozilla_asc"
 	return 0
 }
 
-install_mozilla_deb() {
+install_mozilla_firefox() {
+	if mozilla_deb; then
+		printf "%s DEB package is already installed.\n" "$(firefox_version)" >&2
+		return 0
+	fi
 	if other_firefox; then
-		printf "Another version of Firefox is already installed.\n" >&2
-		printf "Remove it before installing the Mozilla package.\n" >&2
+		printf "Remove other versions before installing the Mozilla package.\n"
 		return 0
 	fi
 	local -r mozilla_asc="/etc/apt/keyrings/packages.mozilla.org.asc"
@@ -133,6 +145,10 @@ install_mozilla_deb() {
 }
 
 remove_mozilla_firefox() {
+	if ! mozilla_deb; then
+		printf "Mozilla Firefox DEB package is not installed.\n"
+		return 0
+	fi
 	printf "Removing %s..." "$(firefox_version)"
 	sudo apt-get remove -y firefox
 	show_message "Removing source.list, preference, & keyring files..."
@@ -146,7 +162,7 @@ remove_mozilla_firefox() {
 main() {
 	VERBOSE="$FALSE"
 	local -r script="${0##*/}"
-	local -r version="6.9.26201"
+	local -r version="7.0.26224"
 	local -i exit_code=0
 	local opt OPTARG OPTIND
 	local -i noOpt=1
@@ -157,18 +173,10 @@ main() {
 				help "$script" "$version" 0
 				;;
 			i )
-				if mozilla_deb; then
-					printf "%s DEB package is already installed.\n" "$(firefox_version)" >&2
-				else
-					install_mozilla_deb
-				fi
+				install_mozilla_firefox
 				;;
 			r )
-				if mozilla_deb; then
-					remove_mozilla_firefox
-				else
-					printf "Mozilla Firefox DEB package is not installed.\n" >&2
-				fi
+				remove_mozilla_firefox
 				;;
 			v )
 				VERBOSE="$TRUE"
@@ -181,7 +189,10 @@ main() {
 		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit "$exit_code"
