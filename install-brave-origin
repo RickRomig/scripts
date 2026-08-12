@@ -7,9 +7,9 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Jul 2026
-# Updated      : 15 Jul 2026
-# Version      : 1.1.26196
-# Comments     : Does not overwrite current Brave version
+# Updated      : 12 Aug 2026
+# Version      : 1.2.26224
+# Comments     : Does not overwrite current Brave Browser version
 #              : To downgrade to the original standard Brave:
 #              : Go to brave://flags/#brave-origin and change flag to Disabled
 # TODO (Rick)  :
@@ -18,22 +18,24 @@
 ###############################################################################
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later version.
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+
+VERBOSE="$FALSE"
 
 help() {
   local -r script="$1"
   local -r version="$2"
-	local errcode="${3:-1}"
-	local -r updated="13 Jul 2026"
+	local -ri errcode="${3:-1}"
+	local -r updated="12 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/Removes Brave Origin
@@ -48,6 +50,15 @@ ${orange}NOTE:${normal}
 Upgrade to Brave Origin for free by clicking 'Proceed with Origin for free on Linux' on the desktop Settings page.
 _HELP_
   exit "$errcode"
+}
+
+check_dependencies() {
+  if [[ ! $(uname -m) == "x86_64" ]]; then
+    printf "%s System architecture is not 64-bit.\n" "$RED_ERROR" >&2
+    return "$E_UNSUPPORTED"
+  fi
+	check_package curl
+	return 0
 }
 
 brave_version() {
@@ -84,6 +95,11 @@ set_sources() {
 }
 
 install_brave_origin() {
+  if installed brave-browser; then
+    printf "%s is already installed." "$(brave_ver)"
+    return 0
+  fi
+  sudo_login 2
   printf "Installing the Brave Browser ...\n"
   set_gpg_key
   set_sources
@@ -99,6 +115,11 @@ install_brave_origin() {
 }
 
 remove_brave_origin() {
+  if ! installed brave-browser; then
+    printf "Brave Browser is not installed.\n"
+    return 0
+  fi
+  sudo_login 2
   printf "Uninstalling %s...\n" "$(brave_version)"
 	sudo apt-get remove brave-browser brave-keyring
   show_message "Removing Brave sources..."
@@ -112,9 +133,8 @@ remove_brave_origin() {
 }
 
 main() {
-	VERBOSE="$FALSE"
   local -r script="${0##*/}"
-  local -r version="1.1.26196"
+  local -r version="1.2.26224"
   local exit_code=0
 	local opt OPTARG OPTIND
 	local -i noOpt=1
@@ -122,30 +142,14 @@ main() {
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
-				help "$script" "$version" 0
-			;;
+        help "$script" "$version" 0 ;;
 			i )
-				if installed brave-origin; then
-					printf "%s is already installed.\n" "$(brave_version)"
-				else
-					[[ $(uname -m) == "x86_64" ]] || die "System architecture is not 64-bit." 1
-          sudo_login 2
-					check_package curl
-					install_brave_origin
-				fi
-				;;
+        check_dependencies && install_brave_origin ;;
 			r )
-				if installed brave-origin; then
-          sudo_login 2
-					remove_brave_origin
-				else
-					printf "Brave Origin is not installed.\n"
-				fi
-				;;
+				remove_brave_origin ;;
 			v )
 				VERBOSE="$TRUE"
-				show_message "Verbose mode enabled."
-				;;
+				show_message "Verbose mode enabled." ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
@@ -153,7 +157,10 @@ main() {
 		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit "$exit_code"
