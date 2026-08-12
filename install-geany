@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 26 Jul 2026
+# Updated      : 12 Aug 2026
+# Version      : 4.0.26224
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,15 +24,17 @@
 # FOR A PARTICULAR PURPOSE. See the# GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+
+VERBOSE="$FALSE"
+TMP_DIR=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 
 help() {
   local -r script="$1"
   local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local updated=" 26 Jul 2026"
+	local -r updated="12 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes Geany text editor and themes
@@ -44,9 +47,16 @@ ${orange}Available options:${normal}
   -r  Remove the Geany editor.
   -t  Install Geany themes.
   -v  Enable verbose mode. If used, must precede other flags.
-NOTE: for a full installation with cofniguation and themes, enter '$script =ict'
+NOTE: For a full installation with configuation and themes,
+enter '$script -ict' or '$script -vict'
 _HELP_
   exit "$errcode"
+}
+
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
+cleanup() {
+	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
 }
 
 geany_version() {
@@ -55,6 +65,10 @@ geany_version() {
 }
 
 geany_config() {
+  if ! installed geany; then
+    printf "Configuration files cannot be installed because Geany is not installed.\n"
+    return 0
+  fi
   local -r geany_cfg_d=~/.config/geany
   local repository=~/Downloads/configs/geany
   [[ -d ~/gitea/configs/geany ]] && repository=~/gitea/configs/geany
@@ -70,21 +84,28 @@ geany_config() {
 }
 
 clone_themes() {
+  if ! installed geany; then
+    printf "Themes cannot be installed because Geany is not installed.\n"
+    return 0
+  fi
   local -r themes_url="https://github.com/geany/geany-themes.git"
   local -r colorschemes_dir=~/.config/geany/colorschemes
-  local -r cloned_dir=~/Downloads/geany-themes
   [[ -d "$colorschemes_dir" ]] || mkdir -p "$colorschemes_dir"
   show_message "Cloning Geany themes..."
-  git clone "$themes_url" "$cloned_dir"
+  git clone "$themes_url" "$TMP_DIR"
   show_message "Copying Geany colorschemes..."
-  awk -F"/" '{print "=> " $NF}' < <(cp -av "$cloned_dir"/colorschemes/. "$colorschemes_dir/") | sed "s/'//"
+  awk -F"/" '{print "=> " $NF}' < <(cp -av "$TMP_DIR"/colorschemes/. "$colorschemes_dir/") | sed "s/'//"
   printf "Geany themes installed.\n"
   return 0
 }
 
 install_geany() {
+  if installed geany; then
+    printf "Geany is already installed.\n"
+    return 0
+  fi
   sudo_login 2
-  show_message "Installing Geany from repositories..."
+  show_message "Installing Geany..."
   sudo apt-get install -y geany
   if ! installed geany; then
     printf "%s Geany installation failed.\n" "$RED_ERROR" >&2
@@ -95,6 +116,10 @@ install_geany() {
 }
 
 remove_geany() {
+  if ! installed geany; then
+    printf "Geany is not installed.\n"
+    return 0
+  fi
   sudo_login 2
   show_message "Removing Geany $(geany_version)..."
   sudo apt-get purge -y geany
@@ -112,47 +137,26 @@ show_message() {
 }
 
 main() {
-  VERBOSE="$FALSE"
   local -r script="${0##*/}"
-  local -r version="3.4.26145"
+  local -r version="4.0.26224"
   local -i exit_code=0
   local opt OPTARG OPTIND
   local -i noOpt=1
   local -r optstr=":chirtv"
+  trap cleanup EXIT
   check_package git
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
-        if installed geany; then
-          geany_config
-        else
-          printf "Geany is not installed.\n"
-        fi
-       ;;
+        geany_config ;;
       h )
-        help "$script" "$version" 0
-        ;;
+        help "$script" "$version" 0 ;;
       i )
-        if installed geany; then
-          printf "Geany %s is already installed.\n" "$(geany_version)"
-        else
-          install_geany
-        fi
-        ;;
+        install_geany ;;
       r )
-        if installed geany; then
-          remove_geany
-        else
-          printf "Geany is not installed.\n"
-        fi
-        ;;
+        remove_geany ;;
       t )
-        if installed geany; then
-          clone_themes
-        else
-          printf "Geany is not installed.\n"
-        fi
-        ;;
+        clone_themes ;;
       v )
         VERBOSE="$TRUE"
 			  show_message "Verbose mode enabled."
@@ -164,7 +168,10 @@ main() {
     exit_code="$?"
     noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   exit "$exit_code"
