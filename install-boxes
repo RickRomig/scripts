@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 07 Aug 2026
-# Version      : 4.3.26219
+# Updated      : 13 Aug 2026
+# Version      : 4.4.26225
 # Comments     : Based on instructions from Joe Collins.
 # TODO (Rick)  : check entry in flatpak list, does Flatpak include all dependencies?
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="07 Aug 2026"
+	local -r updated="13 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Install Gnome Boxes from either distribution repositories or flatpak from Flathub.
@@ -44,10 +44,15 @@ _HELP_
   exit "$errcode"
 }
 
+flatpak_boxes() {
+  installed flatpak || return "$FALSE"
+  grep -qi 'Gnome-Boxes' < <(flatpak list) && return "$TRUE" || return "$FALSE"
+}
+
 boxes_version() {
   if installed gnome-boxes; then
     gnome-boxes --version
-  elif grep -qi 'Gnome-Boxes' < <(flatpak list); then
+  elif flatpak_boxes; then
     awk '/Gnome-Boxes/ {print "$NF-2"}' 'gnome-boxes' < <(flatpak list)
   fi
   return 0
@@ -56,6 +61,7 @@ boxes_version() {
 check_bios() {
   local vcpu vmx_svm
   local -r qemu_sys_conf="/etc/modprobe.d/qemu-system-x86.conf"
+  sudo_login 2
   printf "Checking if virtualization is enabled in BIOS...\n"
   vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo)
   printf "Virtualization is "
@@ -79,6 +85,7 @@ check_bios() {
 }
 
 enable_libvirtd() {
+  sudo_login 2
   sudo systemctl enable libvirtd.service
   sudo systemctl start libvirtd.service
   printf "libvirtd started.\n"
@@ -91,6 +98,7 @@ add_to_kvm_group() {
   user=$(whoami)
   in_kvm_grp=$(awk '/kvm:/ && /'"$user"'/' /etc/group)
   printf "User %s " "$user"
+  sudo_login 2
   if [[ "$in_kvm_grp" ]]; then
     printf "is already a member of "
   else
@@ -112,6 +120,7 @@ add_to_libvirt_group() {
   grep libvirt /etc/group &>/dev/null || sudo groupadd --system libvirt
   user=$(whoami)
   in_libvirt_grp=$(awk '/libvirt/ && /'"$user"'/' /etc/group)
+  sudo_login 2
   printf "User %s " "$user"
   if [[ "$in_libvirt_grp" ]]; then
     printf "is already a member of "
@@ -133,6 +142,11 @@ link_data_drive() {
 }
 
 install_from_deb() {
+  if installed gnome-boxes || flatpak_boxes; then
+    printf "Gnome-Boxes is already installed (Version: %s).\n" "$(boxes_version)" >&2
+    return 1
+  fi
+  sudo_login 2
   printf "\nInstalling GNOME Boxes (distro)...\n"
   sudo apt update -qq
   sudo apt install -yy gnome-boxes
@@ -156,6 +170,11 @@ install_from_deb() {
 }
 
 install_from_flatpak() {
+  if installed gnome-boxes || flatpak_boxes; then
+    printf "Gnome-Boxes is already installed (Version: %s).\n" "$(boxes_version)" >&2
+    return 1
+  fi
+  sudo_login 2
   printf "\nInstalling GNOME Boxes (flatpak)...\n"
   flatpak install --user flathub org.gnome.Boxes
   if ! grep -qi 'boxes' < <(flatpak list); then
@@ -170,7 +189,7 @@ install_from_flatpak() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.3.26219"
+  local -r version="4.4.26225"
   local -i exit_code=0
   local opt OPTARG OPTIND
 	local -i noOpt=1
@@ -178,24 +197,11 @@ main() {
 	while getopts "$optstr" opt; do
     case "$opt" in
       d )
-        if installed gnome-boxes || grep -qi 'boxes' < <(flatpak list); then
-          printf "Gnome-Boxes is already installed (Version: %s).\n" "$(boxes_version)"
-        else
-          sudo_login 2
-          check_bios && install_from_deb
-        fi
-        ;;
+        check_bios && install_from_deb ;;
       f )
-        if installed gnome-boxes || grep -qi 'boxes' < <(flatpak list); then
-          printf "Gnome-Boxes is already installed (Version: %s).\n" "$(boxes_version)"
-        else
-          sudo_login 2
-          check_bios && install_from_flatpak
-        fi
-        ;;
+        check_bios && install_from_flatpak ;;
       h )
-        help "$script" "$version" 0
-        ;;
+        help "$script" "$version" 0 ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help "$script" "$version" "$E_INVALID_ARG"
@@ -203,7 +209,10 @@ main() {
     exit_code="$?"
     noOpt=0
   done
-	[[ $noOpt -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   exit "$exit_code"
