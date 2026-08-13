@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Jul 2026
-# Updated      : 12 Aug 2026
-# Version      : 1.2.26224
+# Updated      : 13 Aug 2026
+# Version      : 1.3.26225
 # Comments     : Does not overwrite current Brave Browser version
 #              : To downgrade to the original standard Brave:
 #              : Go to brave://flags/#brave-origin and change flag to Disabled
@@ -35,7 +35,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="12 Aug 2026"
+	local -r updated="13 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/Removes Brave Origin
@@ -97,7 +97,7 @@ set_sources() {
 install_brave_origin() {
   if installed brave-browser; then
     printf "%s is already installed." "$(brave_ver)"
-    return 0
+    return 1
   fi
   sudo_login 2
   printf "Installing the Brave Browser ...\n"
@@ -117,7 +117,7 @@ install_brave_origin() {
 remove_brave_origin() {
   if ! installed brave-browser; then
     printf "Brave Browser is not installed.\n"
-    return 0
+    return 1
   fi
   sudo_login 2
   printf "Uninstalling %s...\n" "$(brave_version)"
@@ -134,7 +134,7 @@ remove_brave_origin() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.2.26224"
+  local -r version="1.3.26225"
   local -i exit_code=0
 	local opt OPTARG OPTIND
 	local -i noOpt=1
