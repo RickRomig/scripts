@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2020
-# Updated      : 11 Aug 2026
-# Version      : 2.11.26223
+# Updated      : 13 Aug 2026
+# Version      : 2.12.26225
 # Comments     : Script does not currently support installation from Ubuntu PPAs or flatpak.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
   local -ri errcode="${3:-1}"
-  local -r updated="11 Aug 2026"
+  local -r updated="13 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Install or remove Audacious audio player
@@ -46,8 +46,8 @@ _HELP_
 
 install_audacious() {
   if installed audacious; then
-    printf "Audacious audio player is already installed.\n"
-    return 0
+    printf "Audacious audio player is already installed.\n" >&2
+    return 1
   fi
   if ! in_repos audacious; then
     printf "Audacious is not in repositories. Audacious audio player not installed.\n" >&2
@@ -67,8 +67,8 @@ install_audacious() {
 
 remove_audacious() {
   if ! installed audacious; then
-    printf "Audacious audio player is not installed.\n"
-    return 0
+    printf "Audacious audio player is not installed.\n" >&2
+    return 1
   fi
   sudo_login 2
   printf "Removing Audacious audio player....\n"
@@ -79,7 +79,7 @@ remove_audacious() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.11.26223"
+  local -r version="2.12.26225"
   local -i exit_code=0
   local opt OPTARG OPTIND
   local -i noOpt=1
