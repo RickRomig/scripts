@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 28 Jul 2026
-# Version      : 7.6.26209
+# Updated      : 13 Aug 2026
+# Version      : 7.7.26225
 # Comments     : By default, Terminator is configured as a login shell (Debian, Antix, MX Linux, LMDE)
 #              : Login shell is disabled for other distributions (Linux Mint)
 # TODO (Rick)  :
@@ -17,7 +17,8 @@
 ###############################################################################
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later version.
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -31,7 +32,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="26 May 2026"
+	local -r updated="13 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Terminator terminal emulator
@@ -55,6 +56,10 @@ terminator_version() {
 }
 
 install_terminator() {
+  if installed terminator; then
+    printf "Terminator %s is installed.\n" "$(terminator_version)" >&2
+    return 1
+  fi
   printf "Installing terminator...\n"
   sudo_login 2
   sudo apt-get -yq update
@@ -68,6 +73,10 @@ install_terminator() {
 }
 
 remove_terminator() {
+  if ! installed terminator; then
+    printf "Terminator is not installed.\n" >&2
+    return 1
+  fi
   printf "Removing terminator %s and configuration files...\n" "$(terminator_version)"
   sudo_login 2
   sudo apt-get purge terminator
@@ -79,10 +88,14 @@ remove_terminator() {
 }
 
 apply_config() {
+  if installed terminator; then
+    printf "Terminator %s is installed.\n" "$(terminator_version)" >&2
+    return 1
+  fi
   if bunsenlabs; then
     printf "BunsenLabs uses its own profiles based on the version of the distribution.\n"
     printf "Configuration changes should be made through the Terminator Preferences menu.\n"
-    return 0
+    return 1
   fi
   local repository=~/Downloads/ccnfigs/
   [[ -d ~/gitea/configs ]] && repository=~/gitea/configs
@@ -106,7 +119,7 @@ apply_config() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="7.6.26209"
+  local -r version="7.7.26225"
   local -i exit_code=0
   local opt OPTARG OPTIND
   local -i noOpt=1
@@ -114,29 +127,13 @@ main() {
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
-        if installed terminator; then
-          apply_config
-        else
-          printf "Terminator is not installed.\nConfiguration cannot be applied.\n" >&2
-        fi
-        ;;
+        apply_config ;;
       h )
-        help "$script" "$version" 0
-        ;;
+        help "$script" "$version" 0 ;;
       i )
-        if installed terminator; then
-          printf "Terminator %s is installed.\nInstallation canceled.\n" "$(terminator_version)" >&2
-        else
-          install_terminator && apply_config
-        fi
-        ;;
+        install_terminator && apply_config ;;
       r )
-        if installed terminator; then
-          remove_terminator
-        else
-          printf "Terminator is not installed.\nOperation canceled.\n" >&2
-        fi
-        ;;
+        remove_terminator ;;
       ? )
       printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
       help "$script" "$version" "$E_INVALID_ARG"
@@ -144,7 +141,10 @@ main() {
     exit_code="$?"
     noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   exit "$exit_code"
