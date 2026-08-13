@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 12 Aug 2026
-# Version      : 4.0.26224
+# Updated      : 13 Aug 2026
+# Version      : 4.1.26225
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -34,7 +34,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="12 Aug 2026"
+	local -r updated="13 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes Geany text editor and themes
@@ -67,7 +67,7 @@ geany_version() {
 geany_config() {
   if ! installed geany; then
     printf "Configuration files cannot be installed because Geany is not installed.\n"
-    return 0
+    return 1
   fi
   local -r geany_cfg_d=~/.config/geany
   local repository=~/Downloads/configs/geany
@@ -86,7 +86,7 @@ geany_config() {
 clone_themes() {
   if ! installed geany; then
     printf "Themes cannot be installed because Geany is not installed.\n"
-    return 0
+    return 1
   fi
   local -r themes_url="https://github.com/geany/geany-themes.git"
   local -r colorschemes_dir=~/.config/geany/colorschemes
@@ -102,7 +102,7 @@ clone_themes() {
 install_geany() {
   if installed geany; then
     printf "Geany is already installed.\n"
-    return 0
+    return 1
   fi
   sudo_login 2
   show_message "Installing Geany..."
@@ -118,7 +118,7 @@ install_geany() {
 remove_geany() {
   if ! installed geany; then
     printf "Geany is not installed.\n"
-    return 0
+    return 1
   fi
   sudo_login 2
   show_message "Removing Geany $(geany_version)..."
@@ -138,7 +138,7 @@ show_message() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.0.26224"
+  local -r version="4.1.26225"
   local -i exit_code=0
   local opt OPTARG OPTIND
   local -i noOpt=1
