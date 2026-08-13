@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Updated      : 28 Jul 2026
-# Version      : 3.7.26209
+# Updated      : 13 Aug 2026
+# Version      : 3.8.26225
 # Comments     : Default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -16,7 +16,8 @@
 ###############################################################################
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later version.
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -28,9 +29,12 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 
 get_snapshot_uuid() {
   local target_uuid
-  target_uuid=$(awk '/data/ {print $(NF-3)}' < <(lsblk -f))                         # if /data partition exists
-  [[ "$target_uuid" ]] || target_uuid=$(awk '/home/ {print $(NF-3)}' < <(lsblk -f)) # home partition if no /data partition
-  [[ "$target_uuid" ]] || target_uuid=$(awk '/\/$/ {print $NF-3}' < <(lsblk -f))    # root partition if no /home partition
+  # set UUID to /data partition if it exists
+  target_uuid=$(awk '/data/ {print $(NF-3)}' < <(lsblk -f))
+  # set UUID to home partition if no /data partition exists
+  [[ "$target_uuid" ]] || target_uuid=$(awk '/home/ {print $(NF-3)}' < <(lsblk -f))
+  # set UUID to root partition if no /home or /data partition exists
+  [[ "$target_uuid" ]] || target_uuid=$(awk '/\/$/ {print $NF-3}' < <(lsblk -f))
   printf "%s" "$target_uuid"
   return 0
 }
@@ -46,15 +50,23 @@ configure_timeshift() {
   fi
   printf "Configuring Timeshift...\n"
   ts_uuid=$(get_snapshot_uuid)
-  sudo cp -v "$ts_dir/default.json" "$ts_dir/timeshift.json"                      # copy default json file
-  sudo sed -i -f "$ts_sed" "$ts_dir/timeshift.json"                               # configure settings
-  sudo sed -i "/backup_device_uuid/ s/\",/$ts_uuid\",/" "$ts_dir/timeshift.json"  # insert UUID for snapshot location
-  sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/timeshift.json"                # adjust leading spaces in json file
+  # copy default json file
+  sudo cp -v "$ts_dir/default.json" "$ts_dir/timeshift.json"
+  # configure settings
+  sudo sed -i -f "$ts_sed" "$ts_dir/timeshift.json"
+  # insert UUID for snapshot location
+  sudo sed -i "/backup_device_uuid/ s/\",/$ts_uuid\",/" "$ts_dir/timeshift.json"
+  # adjust leading spaces in json file
+  sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/timeshift.json"
   printf "Timeshift configured.\n"
   return 0
 }
 
 install_timeshift() {
+  if installed timeeshift; then
+    printf "%s is already installed.\n" "$(timeshift --version)"
+    return 1
+  fi
   sudo_login 2
   printf "Installing Timeshift...\n"
   sudo apt-get install -y timeshift
@@ -68,13 +80,9 @@ install_timeshift() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.7.26209"
+  local -r version="3.8.26225"
   local -i exit_code=0
-  if installed timeeshift; then
-    printf "%s is already installed.\n" "$(timeshift --version)"
-  else
-    install_timeshift && configure_timeshift
-  fi
+  install_timeshift && configure_timeshift
   exit_code="$?"
   over_line "$script $version"
   exit "$exit_code"
