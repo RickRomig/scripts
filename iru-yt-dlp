@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 21 Jul 2026
+# Updated      : 13 Aug 2026
+# Version      : 3.1.26225
 # Comments     : Removes distro repo version if installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,14 +24,13 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
   local -r script="$1"
   local -r version="$2"
-	local -r errcode="${3:-1}"
+	local -ri errcode="${3:-1}"
 	local -r updated="21 Jul 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
@@ -87,22 +87,22 @@ update_ytdlp() {
 install_updater() {
 	local script_dir
 	script_dir=$(dirname "$(readlink -f "${0}")")
-	local -r updater="$script_dir/cronjobs/z-ytdlp-update"
-	local -r cleanup="$script_dir/files/ytdlp-uplog.sed"
-	[[ -x "$updater" ]] || return "$E_FILENOTFOUND"
-	[[ -f "$cleanup" ]] || return "$E_FILENOTFOUND"
-	sudo cp -v "$updater" /etc/cron.daily/
-  sudo cp -v "$cleanup" /usr/share/misc/
+	local -r update_script="$script_dir/cronjobs/z-ytdlp-update"
+	local -r cleanup_script="$script_dir/files/ytdlp-uplog.sed"
+	[[ -x "$update_script" ]] || return "$E_FILENOTFOUND"
+	[[ -f "$cleanup_script" ]] || return "$E_FILENOTFOUND"
+	sudo cp -v "$update_script" /etc/cron.daily/
+  sudo cp -v "$cleanup_script" /usr/share/misc/
 	printf "yt-dlp updater script installed.\n"
   return 0
 }
 
 remove_updater() {
-	local -r sed_file=/usr/share/misc/ytdlp-uplog.sed
-	local -r updater=/etc/cron.daily/z-ytdlp-update
+	local -r cleanup_script=/usr/share/misc/ytdlp-uplog.sed
+	local -r update_script=/etc/cron.daily/z-ytdlp-update
 	printf "Removing yt-dlp updater files...\n"
-	[[ -f "$sed_file" ]] && sudo rm -f "$sed_file"
-	[[ -x "$updater" ]] && sudo rm -f "$updater"
+	[[ -f "$cleanup_script" ]] && sudo rm -f "$cleanup_script"
+	[[ -x "$update_script" ]] && sudo rm -f "$update_script"
   return 0
 }
 
@@ -166,8 +166,8 @@ remove_ytdlp_deb() {
 
 remove_ytdlp_bin() {
   # Removes the yt-dl.org version
-  printf "Removing yt-dlp %s installed from yt-dlp.org...\n" "$(bin_version)"
 	sudo_login 2
+  printf "Removing yt-dlp %s installed from yt-dlp.org...\n" "$(bin_version)"
 	[[ -L "$HOME/.local/bin/yt-dlp" ]] && unlink "$HOME/.local/bin/yt-dlp"
   sudo rm /usr/local/bin/yt-dlp
   remove_configs
@@ -198,7 +198,7 @@ _REMOVAL_
 
 main() {
 	local -r  script="${0##*/}"
-	local -r  version="3.0.26202"
+	local -r  version="3.1.26225"
 	local -i exit_code=0
   local opt OPTARG OPTIND
 	local -i noOpt=1
@@ -246,7 +246,10 @@ main() {
 		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit "$exit_code"
