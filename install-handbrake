@@ -7,10 +7,10 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Feb 2019
-# Updated      : 27 Jul 2026
-# Version      : 3.4.26208
+# Updated      : 13 Aug 2026
+# Version      : 3.5.26225
 # Comment      : Handbrake rips DVD movies
-#              : Available as a flatpak via Flathub and Mint Software Manager
+#              : Available as a flatpak via Flathub or Mint Software Manager
 #              : https://dl.flathub.org/repo/appstream/fr.handbrake.ghb.flatpakref
 #              : flatpak install fr.handbrake.ghb
 #              : flakpak may not be able to access certain codecs for DRM.
@@ -35,7 +35,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="27 Jul 2026"
+	local -r updated="13 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Install/Remove Handbrake video transcorder
@@ -50,6 +50,10 @@ _HELP_
 }
 
 install_handbrake() {
+  if exists ghb; then
+    printf "Handbrake is alredy installed.\n"
+    return 1
+  fi
   sudo_login 2
   sudo apt install -yy handbrake handbrake-cli
   if ! exists ghb || ! exists HandbrakeCLI; then
@@ -61,6 +65,10 @@ install_handbrake() {
 }
 
 remove_handbrake() {
+  if ! exists ghb; then
+    printf "Handbake is not instaled.\n"
+    return 1
+  fi
   sudo_login 2
   sudo apt autoremove handbrake handbrake-cli -yy
   printf  "Handbrake removed from system.\n"
@@ -70,24 +78,19 @@ remove_handbrake() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.4.26208"
-  local -ri exit_code=0
+  local -r version="3.5.26225"
+  local -i exit_code=0
   local opt OPTARG OPTIND
   local -i noOpt=1
   local -r optstr=":hir"
   while getopts "$optstr" opt; do
     case "$opt" in
       h )
-        help "$script" "$version" 0
-        ;;
+        help "$script" "$version" 0 ;;
       i )
-        exists ghb && leave "Handbrake already installed."
-        install_handbrake
-        ;;
+        install_handbrake ;;
       r )
-        exists ghb || leave "Handbrake is not installed."
-        remove_handbrake
-        ;;
+        remove_handbrake ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help "$script" "$version" "$E_INVALID_ARG"
@@ -95,7 +98,10 @@ main() {
     exit_code="$?"
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   exit "$exit_code"
