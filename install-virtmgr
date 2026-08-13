@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2011, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Feb 2021
-# Updated      : 28 Jul 2026
-# Version      : 3.3.26209
+# Updated      : 13 Aug 2026
+# Version      : 4.0.26225
 # Comments     : Based on Chris Titus video for installing virt-manager:
 #              : https://www.youtube.com/watch?v=ozYKkaVK0_A
 # TODO (Rick)  : Set up default image pool in home directory.
@@ -36,7 +36,7 @@ check_kernel() {
     return 0
   else
 	  printf "not 64-bit.\n"
-	  return 1
+	  return "$E_UNSUPPORTED"
   fi
 }
 
@@ -49,7 +49,7 @@ check_processor() {
     return 0
   else
 	  printf "not 64-bit.\n"
-	  return 1
+	  return "$E_UNSUPPORTED"
   fi
 }
 
@@ -62,22 +62,22 @@ check_bios() {
     return 0
   else
     printf "not enabled in the BIOS.\n "
-	  return 1
+	  return "$E_UNSUPPORTED"
   fi
 }
 
 check_requirements() {
   local -i virt_flag=0
-  is_systemd  || (( virt_flag++ ))
-  check_kernel || (( virt_flag++ ))
-  check_processor || (( virt_flag++ ))
-  check_bios || (( virt_flag++ ))
+  is_systemd || virt_flag="$E_UNSUPPORTED"
+  check_kernel || virt_flag="$E_UNSUPPORTED"
+  check_processor || virt_flag="$E_UNSUPPORTED"
+  check_bios || virt_flag="$E_UNSUPPORTED"
   if [[ "$virt_flag" -ne 0 ]]; then
     printf "\nSystem does not meet all requirements to install KVM/QEMU.\n" >&2
 	  printf "KVM/QEMU requires a 64-bit kernel, a 64-bit processor,\n" >&2
 	  printf "and virtualization to be enabled in the BIOS.\n" >&2
     printf "Systemd is required to run background services.\n" >&2
-    return 1
+    return "$E_UNSUPPORTED"
   fi
   printf "\nSystem meets all requirements to install KVM/QEMU.\n"
   return 0
@@ -160,22 +160,29 @@ install_packages() {
   return "$?"
 }
 
+install_and_setup() {
+  sudo_login 2
+  if ! install_packages; then
+    printf "%s Installation failed.\n" "$RED_ERROR" >&2
+    return "$E_INSTALLATION"
+  fi
+  start_networking
+  printf "Adding %s to libvirt, libvirt-qemu, and kvm groups...\n" "$USER"
+  add_to_libvirt
+  add_to_libvirtqemu
+  add_to_kvm
+  enable_libvirtd
+  printf "Virt-Manager installed. %s added to libvirt, libvirt-qemu, and kvm groups." "$USER"
+}
+
 main() {
   local -r script="${0##*/}"
-  local -r version="3.3.26209"
+  local -r version="4.0.26225"
   local -i exit_code=0
   printf "Installs Virt-Manager and KVM/QEMU...\n\n"
   if check_requirements; then
-    sudo_login 2
-    install_packages
+    install_and_setup
     exit_code="$?"
-    start_networking
-    printf "Adding %s to libvirt, libvirt-qemu, and kvm groups...\n" "$USER"
-    add_to_libvirt
-    add_to_libvirtqemu
-    add_to_kvm
-    enable_libvirtd
-    printf "Virt-Manager installed. %s added to libvirt, libvirt-qemu, and kvm groups." "$USER"
   else
     printf "KVM/QEMU cannot be installed.\n" >&2
     exit_code="$E_INSTALLATION"
