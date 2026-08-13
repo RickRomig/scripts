@@ -7,11 +7,12 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Nov 2018
-# Updated      : 27 Jul 2026
-# Version      : 7.0.26208
+# Updated      : 13 Aug 2026
+# Version      : 7.1.26225
 # Comments     : Available as a flatpak (preferred method)
 #              : https://flathub.org/apps/details/fr.free.Homebank
 #              : Linux Mint Sofware Manager
+#              : Ubuntu PPA not supported by this script.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -33,7 +34,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="26 May 2026"
+	local -r updated="13 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes HomeBank Personal Finance Software.
@@ -63,6 +64,10 @@ homebank_version() {
 }
 
 install_flatpak_homebank() {
+  if installed homebank || flatpak_homebank_installed; then
+    printf "HomeBank %s is already installed.\n" "$(homebank_version)"
+    retun 1
+  fi
   printf "Install the HomeBank flatpak...\n"
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   flatpak install --user flathub fr.free.Homebank
@@ -75,6 +80,10 @@ install_flatpak_homebank() {
 }
 
 install_deb_homebank() {
+  if installed homebank || flatpak_homebank_installed; then
+    printf "HomeBank %s is already installed.\n" "$(homebank_version)"
+    retun 1
+  fi
   sudo_login 2
   sudo apt-get install-yyq homebank
   if ! installed homebank; then
@@ -90,12 +99,16 @@ remove_homebank() {
     printf "Removing HomeBank %s...\n" "$(homebank_version)"
     sudo_login 2
     sudo apt-get remove homebank -yy > /dev/null 2>&1
-  else
+  elif flatpak_homebank_installed; then
     printf "Removing HomeBank %s...\n" "$(homebank_version)"
     flatpak uninstall --oninteractive --assumeyes fr.free.Homebank
     [[ -d "$HOME/.var/app/fr.free.Homebank" ]] && rm -rf "$HOME/.var/app/fr.free.Homebank"
+  else
+    printf "HomeBank is not installed.\n"
+    return 1
   fi
   remove_homebank_configs
+  return 0
 }
 
 apply_preferences() {
@@ -106,7 +119,7 @@ apply_preferences() {
     return "$E_FILENOTFOUND"
   fi
   local config_dir=~/.config
-  flatpak_homebank && config_dir=~/.var/app/fr.free.Homebank/config
+  flatpak_homebank_installed && config_dir=~/.var/app/fr.free.Homebank/config
   [[ -d "$config_dir" ]] || mkdir -p "$config_dir"
   cp -v "$repository"/homebank/preferences "$config_dir"/homebank/
   printf "HomeBank preferences applied.\n"
@@ -123,41 +136,26 @@ remove_homebank_configs() {
   else
     printf "User configurations files left intact.\n"
   fi
+  return 0
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="7.0.26208"
+  local -r version="7.1.26225"
   local -i exit_code=0
   local opt OPTARG OPTIND
-  loccal -i noOpt=1
+  local -i noOpt=1
   local -r optstr=":fhir"
   while getopts "$optstr" opt; do
     case "$opt" in
       f )
-        if installed homebank || flatpak_homebank_installed; then
-          printf "HomeBank %s is already installed.\n" "$(homebank_version)"
-        else
-          install_flatpak_homebank && apply_preferences
-        fi
-        ;;
+        install_flatpak_homebank && apply_preferences ;;
       h )
-        help "$script" "$version" 0
-        ;;
+        help "$script" "$version" 0 ;;
       i )
-        if installed homebank || flatpak_homebank_installed; then
-          printf "HomeBank %s is already installed.\n" "$(homebank_version)"
-        else
-          install_deb_homebank && apply_preferences
-        fi
-        ;;
+        install_deb_homebank && apply_preferences ;;
       r )
-        if installed homebank || flatpak_homebank_installed; then
-          remove_homebank
-        else
-          printf "HomeBank is not installed.\n"
-        fi
-        ;;
+        remove_homebank ;;
       ? )
         printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help "$script" "$version" "$E_INVALID_ARG"
@@ -165,7 +163,10 @@ main() {
     exit_code="$?"
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   exit "$exit_code"
