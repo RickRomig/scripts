@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 20 Jul 2026
+# Updated      : 13 Aug 2026
+# Version      : 5.2.26225
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,15 +24,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ################################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
   local -r script="$1"
   local -r version="$2"
-	local -r errcode="${3:-1}"
-	local -r updated="20 Jul 2026"
+	local -ri errcode="${3:-1}"
+	local -r updated="13 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removed Glow Markdown reader
@@ -79,8 +79,12 @@ Signed-By: $key_file"
 }
 
 install_glow() {
+  if installed glow; then
+    printf "Glow %s is alredy installed.\n" "$(glow_version)"
+    return 1
+  fi
   local -r charm_url="https://repo.charm.sh/apt"
-  local -r charm_key="/etc/apt/keyrings/charm.gpg"
+  local -r charm_key=/etc/apt/keyrings/charm.gpg
   printf "Installing the Glow markdown reader...\n"
   sudo_login 2
   set_gpg_key "$charm_url" "$charm_key"
@@ -96,6 +100,10 @@ install_glow() {
 }
 
 remove_glow() {
+  if ! installed glow; then
+    printf "Glow is not installed.\n"
+    return 1
+  fi
   printf "Removing the Glow markdown reader...\n"
   sudo_login 2
   sudo apt-get -y purge glow
@@ -107,6 +115,10 @@ remove_glow() {
 }
 
 glow_config() {
+  if ! installed glow; then
+    printf "Glow is not installed.\n"
+    return 1
+  fi
   if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
 		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
 		return "$E_FILENOTFOUND"
@@ -122,7 +134,7 @@ glow_config() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.1.26200"
+	local -r version="5.2.26225"
 	local -i exit_code=0
   local opt OPTARG OPTIND
 	local -i noOpt=1
@@ -130,29 +142,13 @@ main() {
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
-        if installed glow; then
-          glow_config
-        else
-          printf "Glow is not installed.\n"
-        fi
-        ;;
+        glow_config ;;
       h )
-        help "$script" "$version" 0
-        ;;
+        help "$script" "$version" 0 ;;
       i )
-        if installed glow; then
-          printf "Glow %s is already installed.\n" "$(glow_version)"
-        else
-          install_glow
-        fi
-        ;;
+        install_glow && glow_config ;;
       r )
-        if installed glow; then
-          remove_glow
-        else
-          printf "Glow is not installed.\n"
-        fi
-        ;;
+        remove_glow ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help "$script" "$version" "$E_INVALID_ARG"
@@ -160,7 +156,10 @@ main() {
 		exit_code="$?"
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   exit "$exit_code"
