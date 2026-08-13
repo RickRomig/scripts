@@ -3,11 +3,12 @@
 # Script Name  : install-keepassxc
 # Description  : Installs/removes KeePassXC from Flathub or distro repos
 # Dependencies : wget
-# Arguments    : -c -d -f -h -r (see help function)
+# Arguments    : see help function
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Jan 2021
-# Updated      : 25 Jul 2026
+# Updated      : 13 Aug 2026
+# Version      : 4.8.26225
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,7 +24,6 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
@@ -62,6 +62,10 @@ keepass_version() {
 }
 
 install_flathub_keepassxc() {
+  if installed keepassxc || flatpak_keepassxc; then
+    printf "KeePassXC version %s is already installed.\n" "$(keepass_version)"
+    return 1
+  fi
   sudo_login 2
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   flatpak install --user flathub org.keepassxc.KeePassXC
@@ -75,6 +79,10 @@ install_flathub_keepassxc() {
 }
 
 install_deb_keepassxc() {
+  if installed keepassxc || flatpak_keepassxc; then
+    printf "KeePassXC version %s is already installed.\n" "$(keepass_version)"
+    return 1
+  fi
   sudo_login 2
   sudo apt-get install keepassxc -yy
   if ! installed keepassxc; then
@@ -87,6 +95,10 @@ install_deb_keepassxc() {
 }
 
 remove_keepassxc() {
+  if ! installed keepassxc && ! flatpak_keepassxc; then
+    printf "KeePassXC is not installed.\n"
+    return 1
+  fi
   sudo_login 2
   printf "Removing KeePassXC ...\n"
   flatpak_keepassxc && flatpak uninstall --noninteractive --assumeyes org.keepassxc.KeePassXC
@@ -99,6 +111,10 @@ remove_keepassxc() {
 }
 
 apply_keepassxc_ini() {
+  if ! installed keepassxc && ! flatpak_keepassxc; then
+    printf "KeePassXC is not installed.\n"
+    return 1
+  fi
   local repository=~/Downloads/configs/keepassxc
   [[ -d ~/gitea/configs/keepassxc ]] && repository=~/gitea/configs/keepassxc
   if [[ ! -d "$repository" ]]; then
@@ -117,7 +133,7 @@ apply_keepassxc_ini() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.7.26206"
+  local -r version="4.8.26225"
   local -i exit_code=0
   local opt OPTARG OPTIND
   local -i noOpt=1
@@ -125,34 +141,15 @@ main() {
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
-        if installed keepassxc || flatpak_keepassxc; then
-          apply_keepassxc_ini
-        fi
-        ;;
+        apply_keepassxc_ini ;;
       d )
-        if installed keepassxc || flatpak_keepassxc; then
-          printf "KeePassXC version %s is already installed.\n" "$(keepass_version)"
-        else
-          install_deb_keepassxc
-        fi
-        ;;
+        install_deb_keepassxc && apply_keepassxc_ini ;;
       f )
-        if installed keepassxc || flatpak_keepassxc; then
-          printf "KeePassXC version %s is already installed.\n" "$(keepass_version)"
-        else
-          install_flathub_keepassxc
-        fi
-        ;;
+        install_flathub_keepassxc apply_keepassxc_ini ;;
       h )
-        help "$script" "$version" 0
-        ;;
+        help "$script" "$version" 0 ;;
       r )
-        if installed keepassxc || flatpak_keepassxc; then
-          remove_keepassxc
-        else
-          printf "KeePassXC is not installed.\n"
-        fi
-        ;;
+        remove_keepassxc ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help "$script" "$version"  "$E_INVALID_ARG"
