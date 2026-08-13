@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 27 Jul 2026
-# Version      : 2.8.26208
+# Updated      : 13 Aug 2026
+# Version      : 2.9.26225
 # Comments     : Configures as a login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="30 Jun 2026"
+	local -r updated="13 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes/Configures Kitty terminal emulator
@@ -50,6 +50,11 @@ kitty_version() {
 }
 
 install_kitty() {
+  if installed kitty; then
+    printf "Kitty %s already installed.\n" "$(kitty_version)"
+    return 1
+  fi
+  sudo_login 2
   printf "Installing the kitty terminal emulator.\n"
   sudo apt-get install -y kitty imagemagick
   if ! installed kitty; then
@@ -57,11 +62,15 @@ install_kitty() {
     return "$E_INSTALLATION"
   fi
   printf "Kitty %s installed.\n" "$(kitty_version)"
-  kitty_config
   return "$?"
 }
 
 remove_kitty() {
+  if ! installed kitty; then
+    printf "Kitty is not installed.\n"
+    return 1
+  fi
+  sudo_login 2
   printf "Purging the Kitty %s terminal emulator...\n" "$(kitty_version)"
   sudo apt-get purge kitty -yy
   [[ -L ~/.config/kitty/kitty.conf ]] && unlink ~/.config/kitty/kitty.conf
@@ -91,31 +100,18 @@ main() {
   check_package git
   local opt OPTARG OPTIND
   local -r script="${0##*/}"
-  local -r version="2.8.26208"
+  local -r version="2.9.26225"
   local -i exit_code=0
   local -i noOpt=1
   local -r optstr=":hir"
   while getopts "$optstr" opt; do
     case "$opt" in
       h )
-        help "$script" "$version" 0
-        ;;
+        help "$script" "$version" 0 ;;
       i )
-        if installed kitty; then
-          printf "Kitty %s already installed.\n" "$(kitty_version)"
-        else
-          sudo_login 2
-          install_kitty
-        fi
-        ;;
+        install_kitty && kitty_config ;;
       r )
-        if installed kitty; then
-          sudo_login 2
-          remove_kitty
-        else
-          printf "Kitty is not installed.\n"
-        fi
-        ;;
+        remove_kitty;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help "$script" "$version" "$E_INVALID_ARG"
@@ -123,12 +119,13 @@ main() {
     exit_code="$?"
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
   shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
