@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 12 Aug 2026
-# Version      : 7.4.26224
+# Updated      : 13 Aug 2026
+# Version      : 7.5.26225
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -34,7 +34,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
   local -ri errcode="${3:-1}"
-  local -r updated="12 Aug 2026"
+  local -r updated="13 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Updated: ($updated)
 Installs/Removes the Brave browser
@@ -105,7 +105,7 @@ Signed-By: $key_file"
 install_brave() {
   if installed brave-browser; then
     printf "%s is already installed." "$(brave_ver)"
-    return 0
+    return 1
   fi
   local -r brave_key=/usr/share/keyrings/brave-browser-archive-keyring.gpg
   sudo_login 2
@@ -126,7 +126,7 @@ install_brave() {
 remove_brave() {
   if ! installed brave-browser; then
     printf "Brave Browser is not installed.\n"
-    return 0
+    return 1
   fi
   sudo_login 2
   printf "Uninstalling %s...\n" "$(brave_ver)"
@@ -143,7 +143,7 @@ remove_brave() {
 
 main(){
   local -r script="${0##*/}"
-  local -r version="7.4.26224"
+  local -r version="7.5.26225"
   local -i exit_code=0
   local opt OPTARG OPTIND
   local -i noOpt=1
