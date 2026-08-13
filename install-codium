@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 12 Aug 2026
-# Version      : 5.3.26224
+# Updated      : 13 Aug 2026
+# Version      : 5.4.26225
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  : add flatpak installation...
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -f updated="12 Aug 2026"
+	local -f updated="13 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, updated: ($updated)
 Install/Remove VSCodium and apply settings
@@ -99,7 +99,7 @@ Signed-By: $key_file"
 install_vscodium() {
 	if installed codium; then
     printf "VSCodium %s is already installed." "$(codium_version)"
-    return 0
+    return 1
 	fi
 	local -r key_file="$1"
 	sudo_login 2
@@ -121,7 +121,7 @@ install_vscodium() {
 apply_settings() {
 	if installed codium; then
     printf "VSCodium %s is already installed." "$(codium_version)"
-    return 0
+    return 1
 	fi
 	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
 		printf "%s Repository not found!\n" "$RED_WARNING" >&2
@@ -163,7 +163,7 @@ show_message() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.3.26224"
+	local -r version="5.4.26225"
 	local -i exit_code=0
 	local -r key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
   local opt OPTARG OPTIND
@@ -181,22 +181,17 @@ main() {
 				fi
 				;;
 			h )
-				help "$script" "$version" 0
-				;;
+				help "$script" "$version" 0 ;;
 			i )
-					check_dependencies
-					install_vscodium "$key_file" && apply_settings
-				;;
+				check_dependencies
+				install_vscodium "$key_file" && apply_settings ;;
 			r )
-				remove_vscodium
-				;;
+				remove_vscodium ;;
 			s )
-					apply_settings
-				;;
+				apply_settings ;;
 			v )
 				VERBOSE="$TRUE"
-				show_message "Verbose mode enabled."
-				;;
+				show_message "Verbose mode enabled." ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
