@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 22 Jul 2026
-# Last updated : 22 Jul 2026
-# Version      : 1.0.26203
+# Last updated : 14 Aug 2026
+# Version      : 1.1.26226
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -24,7 +24,6 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
@@ -32,16 +31,16 @@ update_firmware() {
 	# Check if in UEFI mode
 	# if test -d /sys/firmware/efi; then
 	if [[ -d /sys/firmware/efi ]]; then
-		echo "UEFI OK"
+		printf "UEFI OK\n"
 	else
-		echo "Legacy - fwupd will not flash"
-		return 0
+		printf "Legacy - fwupd will not flash\n"
+		return "$E_UNSUPPORTED"
 	fi
 	# Check for available updates
-	sudo_login 2
+	sudo_login 1
 	sudo fwupdmgr get-updates
 	# Refresh LVFS metadata
-	udo fwupdmgr refresh --force
+	sudo fwupdmgr refresh --force
 	# Apply updates
 	sudo fwupdmgr update && verify_update
 	return "$?"
@@ -55,7 +54,7 @@ verify_update() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.0.26203"
+	local -r version="1.1.26226"
 	local -i exit_code=0
 	check_package fwupd
 	update_firmware
