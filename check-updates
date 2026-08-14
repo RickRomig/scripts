@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 05 Aug 2026
-# Version      : 11.1.26217
+# Updated      : 14 Aug 2026
+# Version      : 11.2.26226
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -33,7 +33,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -ri errcode="${3:-1}"
-  local -r updated="04 Jul 2026"
+  local -r updated="14 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt-get or Nala.
@@ -104,10 +104,10 @@ update_apt_cache() {
   time_diff=$(( current_time - updated_time ))
   if [[ "$time_diff" -le "$threshold" ]]; then
     printf "%sApt cache is up to date.%s\n" "$orange" "$normal"
-    return 0
+  else
+    printf "%sUpdating apt cache...%s\n" "$orange" "$normal"
+    sudo apt-get update
   fi
-  printf "%sUpdating apt cache...%s\n" "$orange" "$normal"
-  sudo apt-get update
   return 0
 }
 
@@ -125,13 +125,13 @@ count_updates() {
 install_updates() {
   printf "\n%sInstalling updates...%s\n" "$orange" "$normal"
   sudo apt-get dist-upgrade -yy
-  return 0
+  return "$?"
 }
 
 clean_apt_cache() {
   printf "\n%sCleaning up apt cache...%s\n" "$orange" "$normal"
   sudo apt-get autoclean
-  return 0
+  return "$?"
 }
 
 remove_orphans() {
@@ -143,7 +143,7 @@ remove_orphans() {
   else
     printf "No packages to be removed.\n"
   fi
-  return 0
+  return "$?"
 }
 
 update_complete() {
@@ -214,6 +214,7 @@ apt_menu() {
 
 apt_update() {
   local nupd
+  sudo_login 1
   printf "%sChecking for updates...%s\n" "$orange" "$normal"
   update_apt_cache
   apt-get dist-upgrade -s > "$TMP_FILE"
@@ -222,13 +223,14 @@ apt_update() {
   sed '1d' < <(sed -ne '/^Calculating/,/newly/p' "$TMP_FILE")
   if [[ nupd -eq 0 ]]; then
     printf "\nPackages are up to date\n"
-    return 0
+  else
+    apt_menu "$nupd"
   fi
-  apt_menu "$nupd"
   return 0
 }
 
 nala_update() {
+  sudo_login 1
   printf "%sChecking for updates...%s\n" "$orange" "$normal"
   sudo nala upgrade
   if default_no "Run autoremove/autopurge?"; then
@@ -245,7 +247,7 @@ nala_update() {
 
 update_flatpaks() {
   local fp_updates
-  fp_updates=$(grep -c 'updatable' <(flatpak update --app --noninteractive))
+  fp_updates=$(grep -c 'updatable' < <(flatpak update --app --noninteractive))
   if [[ "$fp_updates" -eq 0 ]]; then
     printf "No flatpak updates currently available\n"
     return 0
@@ -263,14 +265,14 @@ check_flatpak() {
   local fp_count
   if ! installed flatpak; then
     printf "Flatpak is not installed.\n"
-    return 0
+    return "$E_NOT_DETECTED"
   fi
   fp_count=$(wc -l < <(flatpak list))
   if [[ $fp_count -eq 0 ]]; then
     printf "No Flatpak packages installed.\n"
-    return 0
+  else
+    update_flatpaks
   fi
-  update_flatpaks
   return 0
 }
 
@@ -308,6 +310,7 @@ check_flatpak_updates() {
 check_for_updates() {
   # called by -c flag only to check number of updates available
   local upgrades numup
+  sudo_login 1
   upgrades=$(tail -n1 < <(sudo apt update 2>/dev/null))
   printf "%s\nChecking for updates...%s\n" "$orange" "$normal"
   numup=$(awk '{print $1}' <<< "$upgrades")
@@ -316,7 +319,6 @@ check_for_updates() {
   else
     printf "Packages that can be upgraded: %d\n" "$numup"
     sed '1d' < <(apt list --upgradable 2>/dev/null)
-    # apt list --upgradable
   fi
   return 0
 }
@@ -334,7 +336,7 @@ other_checks() {
 main() {
   SECONDS=0
   local -r script="${0##*/}"
-  local -r version="11.1.26217"
+  local -r version="11.2.26226"
   local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":achn"
@@ -345,13 +347,11 @@ main() {
         trap cleanup EXIT
         show_header "$script" "$version"
         check_disk_space
-        sudo_login 1
         apt_update
         other_checks
         ;;
       c )
         show_header "$script" "$version"
-        sudo_login 1
         check_for_updates
         exists flatpak && check_flatpak_updates
         exists cinnamon-spice-updater && check_spice_updates
@@ -362,7 +362,6 @@ main() {
       n )
         show_header "$script" "$version"
         check_disk_space
-        sudo_login 1
         if exists nala; then
           nala_update
         else
