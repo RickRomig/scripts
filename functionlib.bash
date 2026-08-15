@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 19 Jul 2026
+# Last updated : 15 Aug 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -31,14 +31,15 @@
 
 ## Global variables ##
 
-declare -r TRUE=0
-declare -r FALSE=1
+declare -ri TRUE=0
+declare -ri FALSE=1
 declare -r GITEA_URL="http://192.168.0.16:3000/Nullifidian"
 declare -r GITHUB_URL="https://github.com/RickRomig"
 RED_ERROR=$(printf "\e[91mERROR:\e[0m"); declare -r RED_ERROR
 RED_WARNING=$(printf "\e[91mWARNING!\e[0m"); declare -r RED_WARNING
 
-# Get the local network from the first three octets of the default gateway address. Assumes a /24 (class C) private network.
+# Get the local network from the first three octets of the default gateway address.
+# Assumes a /24 (class C) private network.
 LOCALNET=$(awk 'NR==1 {print $3}' < <(ip route get 1.2.3.4)); LOCALNET="${LOCALNET%.*}"; declare -r LOCALNET
 
 # Custom Exit Codes (3-63)
@@ -111,7 +112,7 @@ DEFAULT=$(echo -en "\e[49m")
 ## Functions ##
 
 die() {
-  local -r errmsg="${1:-You screwed up}"
+  local -r errmsg="$1"
   local -r errcode="${2:-1}"
   printf "\e[91mERROR:\e[0m %s (%d)\n" "$errmsg" "$errcode" >&2
   exit "$errcode"
@@ -124,7 +125,7 @@ diehard() {
 }
 
 dielog() {
-  local message="${1:-You screwed up}"
+  local message="$1"
   local log_file="$2"
   local err_code="${3:-1}"
   tee -a "$log_file" < <(printf "%(%F %R)T: \e[91mERROR:\e[0m %s (%d)\n" -1 "$message" "$err_code")
@@ -139,9 +140,10 @@ error_handler() {
 }
 
 log() {
-  local message="${1:-Something happened}"
+  local message="$1"
   local log_file="$2"
   tee -a "$log_file" < <(printf "%(%F %R)T: %s\n" -1 "$message")
+	return 0
 }
 
 debug() {
@@ -162,15 +164,17 @@ user_exists() {
 sudo_login() {
   local delay="${1:-2}"
   grep -qw sudo <(id -nG "$USER") || die "$USER is not a member of the sudo group. Access denied." 1
-	sudo -vn 2>/dev/null && return  # returns if sudo is already active and extends the sudo timeout
+	sudo -vn 2>/dev/null && return 0  # returns if sudo is already active and extends the sudo timeout
 	sudo ls &>/dev/null
   [[ $delay -gt 0 ]] && sleep "$delay"
   printf '\e[A\e[K'
+	return 0
 }
 
 clearscreen() {
   # clears the terminal screen without scrollback (Kittty)
   printf '\e[H\e[2J\e[3J'
+	return 0
 }
 
 bin_in_path() {
@@ -191,6 +195,7 @@ get_distribution() {
   local distro
   distro=$(/usr/bin/lsb_release --description --short 2>/dev/null)
   echo "$distro"
+	return 0
 }
 
 is_debian() {
@@ -280,6 +285,7 @@ local_ip() {
   octet=$(awk '{print $7}' <(ip route get 1.2.3.4))
   [[ "$octet" ]] || die "No IP address found. Check network status." "$E_NETWORK"
   printf "%s" "${octet##*.}"
+	return 0
 }
 
 valid_ip() {
@@ -345,6 +351,7 @@ edit_view_quit() {
         printf "%sInvalid choice. Try again.%s\n" "$orange" "$normal" >&2
     esac
   done
+	return 0
 }
 
 viewtext() {
@@ -353,14 +360,17 @@ viewtext() {
   catmax=$(( $(tput lines)*87/100 ))
   filelines=$(wc -l < "$file")
   if [[ "$filelines" -gt "$catmax" ]]; then less "$file"; else cat "$file"; fi
+	return 0
 }
 
 remove_tilde() {
   find . -maxdepth 1 -type f -regex '\./.*~$' -exec rm {} \;
+	return 0
 }
 
 anykey() {
   read -rsn1 -p "Press any key to continue"; echo
+	return 0
 }
 
 print_line() {
@@ -369,6 +379,7 @@ print_line() {
   char="${char::1}"
   width="${2:-$(tput cols)}"
   sed "s/ /$char/g" <(printf "%${width}s\n")
+	return 0
 }
 
 # shellcheck disable=SC2001
@@ -380,6 +391,7 @@ box() {
   title="$char $1 $char"
   edge=$(sed "s/./$char/g" <<< "$title")
   printf "%s\n%s\n%s\n" "$edge" "$title" "$edge"
+	return 0
 }
 
 # shellcheck disable=SC2001
@@ -391,6 +403,7 @@ under_line() {
   char="${char::1}"
   line=$(sed "s/./$char/g" <<< "$title")
   printf "%s\n%s\n" "$title" "$line"
+	return 0
 }
 
 # shellcheck disable=SC2001
@@ -402,6 +415,7 @@ over_line() {
   char="${char::1}"
   line=$(sed "s/./$char/g" <<< "$title")
   printf "%s\n%s\n"  "$line" "$title"
+	return 0
 }
 
 center_file() {
@@ -411,6 +425,7 @@ center_file() {
 	while IFS= read -r line; do
 		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
 	done < "$file"
+	return 0
 }
 
 center_text() {
@@ -420,6 +435,7 @@ center_text() {
 	while IFS= read -r line; do
 		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
 	done <<< "$text_string"
+	return 0
 }
 
 color_header() {
@@ -444,6 +460,7 @@ color_header() {
 	printf -v centered_line "%*s%s%*s" "$padding_length" "" "$message" "$padding_length" ""
 	[[ ${#centered_line} -lt $columns ]] && centered_line="${centered_line} "
 	printf "%s%s%s\n" "$colors" "$centered_line" "$normal"
+	return 0
 }
 
 leave() {
@@ -461,6 +478,7 @@ format_time() {
   ((m=(ET%3600)/60))
   ((s=ET%60))
   printf "%02d:%02d:%02d\n" $h $m $s
+	return 0
 }
 
 check_for_file() {
@@ -471,6 +489,7 @@ check_for_file() {
     printf "%s [OK]\n" "$target_file"
     sleep 1
     printf '\e[A\e[K'
+	  return 0
   else
     die "$target_file not found!" "$E_FILENOTFOUND"
   fi
@@ -487,6 +506,7 @@ check_package() {
     sudo_login 1
     sudo apt-get install "$package" -yyq
   fi
+	return 0
 }
 
 check_packages() {
@@ -503,6 +523,7 @@ check_packages() {
 			sudo apt-get install "$package" -yyq
 		fi
 	done
+	return 0
 }
 
 in_repos() {
@@ -528,6 +549,7 @@ mount_server() {
     sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:/home/rick" "$HOME/mnt/$share/"
     echo "$share has been created and mounted."
   fi
+	return 0
 }
 
 # shellcheck disable=SC2154
@@ -544,6 +566,7 @@ unmount_server() {
   else
     printf "%s is not mounted.\n" "$share" >&2
   fi
+	return 0
 }
 
 mount_nas() {
@@ -564,6 +587,7 @@ mount_nas() {
     sshfs -o follow_symlinks rick@"$LOCALNET.$server_ip:" "$HOME/mnt/$share/"
     echo "$share has been created and mounted."
   fi
+	return 0
 }
 
 unmount_nas() {
@@ -578,6 +602,7 @@ unmount_nas() {
   else
     printf "%s is not mounted.\n" "$share" >&2
   fi
+	return 0
 }
 
 assign_cfg_repo() {
@@ -597,6 +622,7 @@ assign_cfg_repo() {
 			fi
 	esac
 	printf "%s" "$repo_dir"
+	return 0
 }
 
 dots() {
@@ -607,6 +633,7 @@ dots() {
 		printf '%s' "$char"
 		sleep .5
 	done
+	return 0
 }
 
 # DOTS_PID must be declared as a global variable in the calling script
@@ -616,6 +643,7 @@ kill_dots() {
 		printf "done\n"
 	fi
 	tput cnorm
+	return 0
 }
 
 spin() {
@@ -628,6 +656,7 @@ spin() {
 			sleep .2
 		done
 	done
+	return 0
 }
 
 # SPIN_PID must be declared as a global variable in the calling script
@@ -638,6 +667,7 @@ kill_spin() {
 	printf "\n"
 	printf '\e[A\e[K'
 	tput cnorm
+	return 0
 }
 
 y_or_n() {
@@ -724,4 +754,5 @@ reboot_system() {
   else
     printf "\n%s Please reboot your system as soon as practical.\n" "$RED_WARNING"
   fi
+	return 0
 }
