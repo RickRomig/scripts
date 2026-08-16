@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Feb 2026
-# Updated      : 03 Aug 2026
-# Version      :
+# Updated      : 16 Aug 2026
+# Version      : 1.4.26228
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ show_linux_headers() {
   local header_list
   printf "\n%sCurrently installed Linux headers:%s\n" "$green" "$normal"
   header_list=$(awk '/^ii/ && /-headers-/ {print $2}' < <(dpkg --list) | grep -v 'tools' | sort -r)
-  [[ "$header_list" ]] || { printf "No Linux headers installed.\n"; return; }
+  [[ "$header_list" ]] || { printf "No Linux headers installed.\n"; return 0; }
   printf "%s\n" "$header_list"
   return 0
 }
@@ -45,13 +45,11 @@ show_linux_images() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.3.26165"
+  local -r version="1.4.26228"
   show_linux_images
   show_linux_headers
   over_line "$script $version"
 	exit
 }
-
-## Execution ##
 
 main "$@"
