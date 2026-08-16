@@ -8,8 +8,8 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Mar 2018
-# Updated      : 03 Aug 2026
-# Version      : 6.7.26215
+# Updated      : 16 Aug 2026
+# Version      : 6.8.26228
 # Comments     : Requires sudo privileges
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,10 +29,9 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 anacron_jobs() {
-  local count
   local -r interval="$1"
   local -r cron_dir="/etc/cron.$interval"
-  local count
+  local -i count
   count=$(wc -l < <(find "$cron_dir" -maxdepth 1 -type f -iname \*))
   (( count > 0 )) && return "$TRUE" || return "$FALSE"
 }
@@ -65,7 +64,8 @@ show_anacron() {
 }
 
 show_user_cron() {
-  local max_users norm_user num_users
+  local -i max_users num_users
+  local norm_user
   num_users=$(awk -F: '$3 >= 1000 && !($1 == "nobody" && $3 == 65534) {SUM+=1} END {print SUM}' /etc/passwd)
   local -i index=1000  # starting point for regular users
   max_users=$(( num_users + index ))
@@ -89,8 +89,8 @@ show_root_cron() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="6.7.26215"
-  local lhost="${HOSTNAME:-$(hostname)}"
+  local -r version="6.8.26228"
+  local -r lhost="${HOSTNAME:-$(hostname)}"
   sudo_login 0
   clearscreen
   printf "%s%sAnacron and Cron Jobs for %s%s\n" "$bold" "$green" "$lhost" "$normal"
