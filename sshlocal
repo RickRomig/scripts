@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Feb 2025
-# Updated      : 03 Aug 2026
-# Version      : 4.2.26215
+# Updated      : 17 Aug 2026
+# Version      : 4.3.26229
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -43,19 +43,19 @@ connect_server_x() {
 
 select_server() {
 	local -r local_host="${HOSTNAME:-$(hostname)}"
-	local FMENU="fzf --header=$script \
-           --layout=reverse \
-           --exact \
-           --border=bold \
-           --border=rounded \
-           --margin=5% \
-           --color=dark \
-           --height=95% \
-           --info=hidden \
-           --header-first \
-           --bind change:top \
-           --prompt"
-local -r servers=(
+	local -r fmenu="fzf --header=${lightyellow}MosfaNet${normal} \
+		--layout=reverse \
+		--exact \
+		--border=bold \
+		--border=rounded \
+		--margin=5% \
+		--color=dark \
+		--height=95% \
+		--info=hidden \
+		--header-first \
+		--bind change:top \
+		--prompt"
+	local -r servers=(
 		hp-800g2-sff
 		hp-6005
 		e6500-deb
@@ -71,9 +71,15 @@ local -r servers=(
 		hp-2560p e-475m
 	)
 	local server
-	server=$($FMENU "Choose the remote server: " < <(printf "%s\n" "${servers[@]}"))
-	[[ "$local_host" == "$server" ]] && { printf "Attempting to connect to local client.\n" >&2; return "$E_INVALID_HOST"; }
-	[[ "$server" ]] || { printf "No server selected.\n"; return "$E_MISSING_ARG"; }
+	server=$($fmenu "Choose the remote server: " < <(printf "%s\n" "${servers[@]}"))
+	if [[ "$local_host" == "$server" ]]; then
+		printf "Attempting to connect to local client.\n" >&2
+		return "$E_INVALID_HOST"
+	fi
+	if [[ -z "$server" ]]; then
+		printf "No server selected.\n"
+		return "$E_MISSING_ARG"
+	fi
 	if default_no "Enable X11 forwarding?"; then
 		printf '\e[A\e[K'
 		connect_server_x "$server"
@@ -86,7 +92,7 @@ local -r servers=(
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.2.26215"
+	local -r version="4.3.26229"
 	local -i exit_code=0
 	check_package fzf
 	clearscreen
