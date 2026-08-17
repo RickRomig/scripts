@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Feb 2019
-# Updated      : 20 Jul 2026
+# Updated      : 17 Aug 2026
+# Version      : 5.4.26229
 # Comments     : Some systems require to access to use iw to get ssid & signal strength.
 #              : If necesary, add applicable hostnames to sudo_required().
 # TODO (rick)  : format printf statements for devices.
@@ -24,7 +25,6 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
@@ -143,7 +143,7 @@ show_bridge() {
 	br_int=$(awk '/bridge / {print $1}' < <(/usr/bin/nmcli dev))
 	[[ "$br_int" ]] || return 0
   # interface data
-  printf -v br_str "%s%12s:%s" "$lightgreen" "Wireless" "$normal"
+  printf -v br_str "%s%12s:%s" "$lightgreen" "Bridge" "$normal"
   br_state=$(< "/sys/class/net/$br_int/operstate")
   br_ip=$(awk '/vir/ && /brd/ {print $2}' < <(ip addr show))
   br_mac=$(< "/sys/class/net/$br_int/address")
@@ -199,7 +199,7 @@ show_dns() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.3.26201"
+  local -r version="5.4.26229"
   local -r lhost="${HOSTNAME:-$(hostname)}"
   sudo_required "$lhost" && sudo_login 2
   check_dependencies
