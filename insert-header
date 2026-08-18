@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 07 Aug 2026
-# Version      : 4.11.26219
+# Updated      : 17 Aug 2026
+# Version      : 4.12.26229
 # Comments     : Assumes first line of the target file is either a hash-bang or a C/C++ comment
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -96,7 +96,7 @@ insert_header() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.11.26219"
+  local -r version="4.12.26229"
 	local code_file code_type template_file opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":c:hp:s:v"
@@ -133,7 +133,10 @@ main() {
     esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 	trap cleanup EXIT
