@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 22 Jul 2026
+# Updated      : 17 Aug 2026
+# Version      : 4.11.26229
 # Comments     : Inserts the license immediately after the file's header.
 #              : Assumes the standard script or C/C++ header is present.
 # TODO (rick)  :
@@ -23,7 +24,6 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib,bash\n"; exit 1; }
 
@@ -33,8 +33,8 @@ LICENSE_TYPE=
 help() {
   local -r script="$1"
   local -r version="$2"
-  local errcode="${3:-1}"
-  local updated="22 Jul 2026"
+  local -ri errcode="${3:-1}"
+  local -r updated="17 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts an Open Source license into a shell script or a C/C++ source code file.
@@ -118,7 +118,7 @@ insert_license() {
 
 main() {
 	local -r script="${0##*/}"
-  local -r version="4.10.26187"
+  local -r version="4.11.26229"
 	local opt code_file code_type OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":c:hp:s:"
@@ -155,7 +155,10 @@ main() {
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 	trap cleanup EXIT
