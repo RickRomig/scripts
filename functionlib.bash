@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 15 Aug 2026
+# Last updated : 21 Aug 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -323,8 +323,8 @@ valid_ip() {
 }
 
 edit_view_quit() {
-  local filename _opt
-  filename="$1"
+  local -r filename="$1"
+  local _opt
   printf "\nYou may edit or view %s at this time.\n" "$filename"
   PS3="Choose an option: "
   select _opt in Edit View Quit; do
@@ -355,8 +355,8 @@ edit_view_quit() {
 }
 
 viewtext() {
-  local catmax file filelines
-  file="$1"
+  locl -r file="$1"
+  local catmax filelines
   catmax=$(( $(tput lines)*87/100 ))
   filelines=$(wc -l < "$file")
   if [[ "$filelines" -gt "$catmax" ]]; then less "$file"; else cat "$file"; fi
@@ -383,7 +383,7 @@ print_line() {
 }
 
 # shellcheck disable=SC2001
-# See if you can use ${variable//search/replace} instead. (sed is necesary to replace all charcters)
+# See if you can use ${variable//search/replace} instead. (sed is necesary to replace all characters)
 box() {
   local char edge title
   char="${2:-*}"
@@ -395,10 +395,10 @@ box() {
 }
 
 # shellcheck disable=SC2001
-# See if you can use ${variable//search/replace} instead.. (sed is necesary to replace all charcters)
+# See if you can use ${variable//search/replace} instead.. (sed is necesary to replace all characters)
 under_line() {
   local char line title
-  title="$1"
+  local -r title="$1"
   char="${2:--}"
   char="${char::1}"
   line=$(sed "s/./$char/g" <<< "$title")
@@ -407,7 +407,7 @@ under_line() {
 }
 
 # shellcheck disable=SC2001
-# See if you can use ${variable//search/replace} instead.. (sed is necesary to replace all charcters)
+# See if you can use ${variable//search/replace} instead.. (sed is necesary to replace all characters)
 over_line() {
   local char line title
   title="$1"
@@ -419,8 +419,8 @@ over_line() {
 }
 
 center_file() {
-  local columns line file
-  file="$1"
+  local -r file="$1"
+  local columns line
 	columns="$(tput cols)"
 	while IFS= read -r line; do
 		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
@@ -429,8 +429,8 @@ center_file() {
 }
 
 center_text() {
-  local columns line text_string
-  text_string="$1"
+  local -r text_string="$1"
+  local columns line
 	columns="$(tput cols)"
 	while IFS= read -r line; do
 		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
