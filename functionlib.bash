@@ -355,7 +355,7 @@ edit_view_quit() {
 }
 
 viewtext() {
-  locl -r file="$1"
+  local -r file="$1"
   local catmax filelines
   catmax=$(( $(tput lines)*87/100 ))
   filelines=$(wc -l < "$file")
