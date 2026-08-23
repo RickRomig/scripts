@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 14 Aug 2026
-# Version      : 11.2.26226
+# Updated      : 23 Aug 2026
+# Version      : 11.3.26235
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -33,7 +33,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -ri errcode="${3:-1}"
-  local -r updated="14 Aug 2026"
+  local -r updated="23 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt-get or Nala.
@@ -62,12 +62,6 @@ Distro: $(get_distribution)
 Kernel: $(uname -sr)${normal}
 _HEADER_
   return 0
-}
-
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-cleanup() {
-  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
 }
 
 system_reboot() {
@@ -336,15 +330,14 @@ other_checks() {
 main() {
   SECONDS=0
   local -r script="${0##*/}"
-  local -r version="11.2.26226"
+  local -r version="11.3.26235"
   local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":achn"
 	while getopts "$optstr" opt; do
     case "$opt" in
       a )
-        TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
-        trap cleanup EXIT
+        create_tmp "file"
         show_header "$script" "$version"
         check_disk_space
         apt_update
@@ -365,8 +358,7 @@ main() {
         if exists nala; then
           nala_update
         else
-          TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
-          trap cleanup EXIT
+          create_tmp "file"
           printf "Nala is not installed. Reverting to apt-get ...\n"
           apt_update
         fi
