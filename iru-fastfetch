@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Updated      : 07 Aug 2026
-# Version      : 4.7.26219
+# Updated      : 23 Aug 2026
+# Version      : 4.8.26235
 # Comments     : .png logo does not work with Terminator.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -r errcode="${3:-1}"
-	local -r updated="20 Jul 2026"
+	local -r updated="23 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, removes, updates FastFetch
@@ -62,14 +62,14 @@ ff_version() {
 convert_compare() {
   local -r newVer="$1"
   local -r curVer="$2"
-  local newer="$FALSE"
+  local -i newer="$FALSE"
 	local new_arr=()
 	local cur_arr=()
   local -i index
 	IFS="." read -ra new_arr <<< "$newVer"
 	IFS="." read -ra cur_arr <<< "$curVer"
 	for (( index=0; index <=2; index++)) ; do
-		if [[ "${new_arr[index]}" > "${cur_arr[index]}" ]]; then
+    if (( "${new_arr[index]}" > "${cur_arr[index]}" )); then
       newer="$TRUE"
       break
     fi
@@ -162,7 +162,7 @@ fastfetch_config() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r  version="4.7.26219"
+	local -r  version="4.8.26235"
 	local -i exit_code=0
 	local -r gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
   local opt new_ver OPTARG OPTIND
@@ -212,12 +212,13 @@ main() {
 		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
