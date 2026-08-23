@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 12 May 2021
-# Updated      : 05 Aug 2026
-# Version      : 5.0.26217
+# Updated      : 22 Aug 2026
+# Version      : 5.1.26234
 # Comments     : Cinnamon keybindings backup file stored in ~/.config
 #              : Tested with Cinnamon DE on Mint 19+, LMDE 5+, Debian 10+
 # TODO (Rick)  :
@@ -28,14 +28,11 @@
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-readonly CONFIG_DIR=~/.config
-readonly KEYBINDS=keybindings-backup.dconf
-
 help() {
   local -r script="$1"
   local -r version="$2"
   local -ri errcode="${3:-1}"
-  local -r updated="05 Aug 2026"
+  local -r updated="22 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Manage Cinnamon keybinding backup.
@@ -52,29 +49,35 @@ _HELP_
 
 dump_to_backup() {
   local -r keybinds_db="$1"
-  printf "Dumping current keybindings to %s/%s.\n" "${CONFIG_DIR##*/}" "$KEYBINDS"
-  dconf dump "$keybinds_db" > "$CONFIG_DIR/$KEYBINDS"
-  printf "Cinnamon Keybindings dumped to %s/%s\n" "${CONFIG_DIR##*/}" "$KEYBINDS"
+  local -r config_dir="$2"
+  local -r keybinds="$3"
+  printf "Dumping current keybindings to %s/%s.\n" "${config_dir##*/}" "$keybinds"
+  dconf dump "$keybinds_db" > "$config_dir/$keybinds"
+  printf "Cinnamon Keybindings dumped to %s/%s\n" "${config_dir##*/}" "$keybinds"
   return 0
 }
 
 load_from_backup() {
   local -r keybinds_db="$1"
-  printf "Loading saved keybindings from %s/%s.\n" "${CONFIG_DIR##*/}" "$KEYBINDS"
-  dconf load "$keybinds_db" < "$CONFIG_DIR/$KEYBINDS"
-  printf "Cinnamon Keybindings loaded from %s/%s\n" "${CONFIG_DIR##*/}" "$KEYBINDS"
+  local -r config_dir="$2"
+  local -r keybinds="$3"
+  printf "Loading saved keybindings from %s/%s.\n" "${config_dir##*/}" "$keybinds"
+  dconf load "$keybinds_db" < "$config_dir/$keybinds"
+  printf "Cinnamon Keybindings loaded from %s/%s\n" "${config_dir##*/}" "$keybinds"
   return 0
 }
 
 copy_from_repo() {
+  local -r config_dir="$1"
+  local -r keybinds="$2"
   local -r gh_url="https://raw.githubusercontent.com/RickRomig/configs/refs/heads/main/mint"
   local repository=~/Downloads/configs/mint
   [[ -d ~/gitea/configs/mint ]] && repository=~/gitea/configs/mint
   printf "Copying Cinnamon keybindings from repository...\n"
   if [[ -d $repository ]]; then
-    cp -v "$repository/$KEYBINDS" "$CONFIG_DIR/"
+    cp -v "$repository/$keybinds" "$config_dir/"
   else
-    curl -so "$CONFIG_DIR/$KEYBINDS" "$gh_url/$KEYBINDS"
+    curl -so "$config_dir/$keybinds" "$gh_url/$keybinds"
   fi
   printf "Cinnamon keybindings copied from respository.\n"
   return 0
@@ -82,43 +85,44 @@ copy_from_repo() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="5.0.26217"
+  local -r version="5.1.26234"
   if ! is_cinnamon; then
     printf "Cinnnamon is not the current desktop environment.\n"
     over_line "$script $version"
     exit "$E_UNSUPPORTED"
   fi
   local -r keybinds_db=/org/cinnamon/desktop/keybindings/   # stored in the dconf database
+  local -r config_dir=~/.config
+  local -r keybinds=keybindings-backup.dconf
   local opt OPTARG OPTIND
   local -i noOpt=1
   local -r optstr=":cdhl"
   while getopts "$optstr" opt; do
     case "$opt" in
       c )
-        copy_from_repo
-        load_from_backup "$keybinds_db"
-      ;;
+        copy_from_repo "$config_dir" "$keybinds"
+        load_from_backup "$keybinds_db" "$config_dir" "$keybinds" ;;
       d )
-        dump_to_backup "$keybinds_db"
-      ;;
+        dump_to_backup "$keybinds_db" "$config_dir" "$keybinds" ;;
       h )
-        help "$script" "$version" 0
-      ;;
+        help "$script" "$version" 0 ;;
       l )
-        if [[ -f "$CONFIG_DIR/$KEYBINDS" ]]; then
-          load_from_backup "$keybinds_db"
+        if [[ -f "$config_dir/$keybinds" ]]; then
+          load_from_backup "$keybinds_db" "$config_dir" "$keybinds"
         else
           printf "Cinnamon Keybindings backup does not exist.\n" >&2
           help "$script" "$version" "$E_FILENOTFOUND"
-        fi
-      ;;
+        fi ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help "$script" "$version" "$E_INVALID_ARG"
     esac
     noOpt=0
   done
-  [[ $noOpt = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
   over_line "$script $version"
   exit
 }
