@@ -8,7 +8,8 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 20 Jul 2026
+# Updated      : 23 Aug 2026
+# Version      : 21.6.26235
 # Comments     : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
 #              : Chromium browser does not create config directory until opened once.
 # TODO (Rick)  :
@@ -25,15 +26,10 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-## Global Variables ##
-
 TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
-
-## Functions ##
 
 # shellcheck disable=SC2317
 # Don't warn about unreachable commands in this function
@@ -43,7 +39,7 @@ cleanup() {
 }
 
 installed_version() {
-  local package="$1"
+  local -r package="$1"
   local cur_ver
   [[ "$package" == "fresh-editor" ]] && package="fresh"
   case "$package" in
@@ -60,16 +56,16 @@ installed_version() {
 }
 
 convert_compare() {
-  local newVer="$1"
-  local curVer="$2"
-  local newer="$FALSE"
+  local -r newVer="$1"
+  local -r curVer="$2"
+  local -i newer="$FALSE"
 	local new_arr=()
 	local cur_arr=()
   local -i index
 	IFS="." read -ra new_arr <<< "$newVer"
 	IFS="." read -ra cur_arr <<< "$curVer"
 	for (( index=0; index <=2; index++)) ; do
-		if [[ "${new_arr[index]}" > "${cur_arr[index]}" ]]; then
+		if (( "${new_arr[index]}" > "${cur_arr[index]}" )); then
       newer="$TRUE"
       break
     fi
@@ -92,7 +88,7 @@ show_versions() {
 }
 
 get_release_path() {
-	local package="$1"
+	local -r package="$1"
 	declare -rA releases_path=(
 		[bat]="sharkdp/bat/releases"
 		[codium]="VSCodium/vscodium/releases"
@@ -104,8 +100,8 @@ get_release_path() {
 }
 
 get_new_version() {
-	local package="$1"
-	local release_path="$2"
+	local -r package="$1"
+	local -r release_path="$2"
 	local new_ver
 	local -r github_url="https://github.com"
   curl -s -o "$TMP_FILE" "$github_url/$release_path"
@@ -126,8 +122,8 @@ get_new_version() {
 }
 
 github_packages() {
-  local cur_ver new_ver package packages release_path
-  packages=( bat codium fastfetch fresh-editor micro )
+  local cur_ver new_ver package release_path
+  local -r packages=( bat codium fastfetch fresh-editor micro )
   printf "%-16s%-16s%s\n" "GitHub Package" "Latest version" "Installed version"
   for package in "${packages[@]}"; do
     cur_ver=$(installed_version "$package")
@@ -151,36 +147,32 @@ github_packages() {
 }
 
 utility_packages() {
-	local packages package
-  packages=( bash dsh flatpak fzf git gitea keepassxc nala picom zoom )
+  local -r packages=( bash dsh flatpak fzf git gitea keepassxc nala picom zoom )
 	printf "%-15s%s\n" "Package" "Version"
 	show_versions "${packages[@]}"
 }
 
 text_editors() {
-  local package packages
-  packages=( batcat bluefish featherpad geany gedit glow mousepad nano shellcheck xed )
+  local -r packages=( batcat bluefish featherpad geany gedit glow mousepad nano shellcheck xed )
 	printf "%-15s%s\n" "Package" "Version"
 	show_versions "${packages[@]}"
 }
 
 terminals() {
-	local packages package
-  packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
+  local -r packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
 	printf "%-15s%s\n" "Terminal" "Version"
 	show_versions "${packages[@]}"
 }
 
 browsers() {
-	local packages package
-  packages=( brave-browser chromium firefox google-chrome librewolf )
+  local -r packages=( brave-browser chromium firefox google-chrome librewolf )
 	printf "%-15s%s\n" "Browser" "Version"
 	show_versions "${packages[@]}"
 }
 
 main() {
-  local script="${0##*/}"
-  local version="21.5.26201"
+  local -r script="${0##*/}"
+  local -r version="21.6.26235"
   trap cleanup EXIT
   check_package curl
   clearscreen
@@ -193,7 +185,5 @@ main() {
   utility_packages
   leave ""
 }
-
-## Execution ##
 
 main "$@"
