@@ -30,7 +30,7 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 help() {
   local -r script="$1"
   local -r version="$2"
-	local -r errcode="${3:-1}"
+	local -ri errcode="${3:-1}"
 	local -r updated="23 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
@@ -44,6 +44,13 @@ ${orange}Available options:${normal}
   -u  Update Fastfetch to the latest GitHub release
 _HELP_
   exit "$errcode"
+}
+
+create_temp() {
+  TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
+  TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+	trap cleanup EXIT
+  return 0
 }
 
 # Don't warn about unreachable commands in this function
@@ -178,9 +185,7 @@ main() {
 					printf "Fastfetch %s is already installed.\n" "$(ff_version)" >&2
 				else
 					check_package wget
-					TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
-					TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-					trap cleanup EXIT
+          create_temp
 					new_ver="$(newest_version "$gh_url")"
 					printf "%sInstalling Fastfetch version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
 					install_fastfetch "$new_ver" "$gh_url" && fastfetch_config
@@ -196,9 +201,7 @@ main() {
 			u )
 				if installed fastfetch; then
 					check_package wget
-					TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
-          TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-					trap cleanup EXIT
+          create_temp
 					new_ver="$(newest_version "$gh_url")"
 					compare_versions "$new_ver" "$gh_url"
 				else
