@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2025
-# Updated      : 21 Jun 2026
+# Updated      : 23 Aug 2026
+# Version      : 2.10.26235
 # Comments     : Beginning with version 0.3.12, installs to /usr/bin/fresh
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,15 +24,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
   local -r script="$1"
   local -r version="$2"
-	local -r errcode="${3:-1}"
-	local -r updated="21 Jul 2026"
+	local -ri errcode="${3:-1}"
+	local -r updated="23 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Fresh Editor.
@@ -60,16 +60,16 @@ fresh_version() {
 }
 
 convert_compare() {
-  local newVer="$1"
-  local curVer="$2"
-  local newer="$FALSE"
+  local -r newVer="$1"
+  local -r curVer="$2"
+  local -i newer="$FALSE"
 	local new_arr=()
 	local cur_arr=()
   local -i index
 	IFS="." read -ra new_arr <<< "$newVer"
 	IFS="." read -ra cur_arr <<< "$curVer"
 	for (( index=0; index <=2; index++)) ; do
-		if [[ "${new_arr[index]}" > "${cur_arr[index]}" ]]; then
+    if (( "${new_arr[index]}" > "${cur_arr[index]}" )); then
       newer="$TRUE"
       break
     fi
@@ -79,6 +79,7 @@ convert_compare() {
 
 newest_version() {
   local -r gh_url="$1"
+	local new_ver
   wget -qO "$TMP_FILE" "$gh_url"
   new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$TMP_FILE"))
   echo "$new_ver"
@@ -153,7 +154,7 @@ fresh_config() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.9.26202"
+  local -r version="2.10.26235"
 	local -i exit_code=0
   local -r gh_url="https://github.com/sinelaw/fresh/releases"
   local opt new_ver OPTARG OPTIND
@@ -203,7 +204,10 @@ main() {
 		exit_code="$?"
 	  noOpt=0
   done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
   shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
   exit "$exit_code"
