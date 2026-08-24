@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 13 Aug 2026
-# Version      : 4.1.26225
+# Updated      : 24 Aug 2026
+# Version      : 4.2.26236
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,13 +28,12 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 VERBOSE="$FALSE"
-TMP_DIR=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 
 help() {
   local -r script="$1"
   local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="13 Aug 2026"
+	local -r updated="24 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes Geany text editor and themes
@@ -51,12 +50,6 @@ NOTE: For a full installation with configuation and themes,
 enter '$script -ict' or '$script -vict'
 _HELP_
   exit "$errcode"
-}
-
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
-cleanup() {
-	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
 }
 
 geany_version() {
@@ -91,6 +84,7 @@ clone_themes() {
   local -r themes_url="https://github.com/geany/geany-themes.git"
   local -r colorschemes_dir=~/.config/geany/colorschemes
   [[ -d "$colorschemes_dir" ]] || mkdir -p "$colorschemes_dir"
+  create_tmp "dir"
   show_message "Cloning Geany themes..."
   git clone "$themes_url" "$TMP_DIR"
   show_message "Copying Geany colorschemes..."
@@ -138,12 +132,11 @@ show_message() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.1.26225"
+  local -r version="4.2.26236"
   local -i exit_code=0
   local opt OPTARG OPTIND
   local -i noOpt=1
   local -r optstr=":chirtv"
-  trap cleanup EXIT
   check_package git
   while getopts "$optstr" opt; do
     case "$opt" in
@@ -159,8 +152,7 @@ main() {
         clone_themes ;;
       v )
         VERBOSE="$TRUE"
-			  show_message "Verbose mode enabled."
-        ;;
+			  show_message "Verbose mode enabled." ;;
       ? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help "$script" "$version" "$E_INVALID_ARG"
