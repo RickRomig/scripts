@@ -7,7 +7,8 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 28 Oct 2025
-# Last updated : 19 Jul 2026
+# Updated      : 24 Aug 2026
+# Version      : 3.1.26236
 # Comments     : Tested with Debian 12 (bookworm) & Debian 13 (trixie)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,15 +25,8 @@
 # details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
-
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-cleanup() {
-	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
-}
 
 install_keyring() {
 	local -r keyring_url="https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring"
@@ -85,10 +79,9 @@ install_multimedia() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.0.26200"
+  local -r version="3.1.26236"
 	local -i exit_code=0
-	TMP_DIR=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-  trap cleanup EXIT
+	create_tmp "file"
 	install_multimedia
 	exit_code="$?"
 	over_line "$script $version"
