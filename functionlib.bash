@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 21 Aug 2026
+# Last updated : 24 Aug 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -694,7 +694,7 @@ create_tmp() {
 			TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 			TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE" ;;
 		* )
-			die "%s Invalid option. No temporary file/directory created." "$E_INVALID_ARG"
+			die "Invalid option. No temporary file/directory created." "$E_INVALID_ARG"
 	esac
 	trap cleanup EXIT
   return 0
