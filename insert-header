@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 17 Aug 2026
-# Version      : 4.12.26229
+# Updated      : 24 Aug 2026
+# Version      : 4.13.26236
 # Comments     : Assumes first line of the target file is either a hash-bang or a C/C++ comment
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
   local -ri errcode="${3:-1}"
-  local -r updated="06 Jul 2026"
+  local -r updated="24 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts a header into a shell script or a C/C++ source file.
@@ -48,12 +48,6 @@ _HELP_
   exit "$errcode"
 }
 
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-cleanup() {
-  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
-}
-
 check_code_file() {
 	local -r codefile="$1"
 	if [[ -f "$codefile" ]]; then
@@ -64,11 +58,11 @@ check_code_file() {
 }
 
 insert_header() {
-	local cur_yr today
 	local -r code_file="$1"
 	local -r code_type="$2"
 	local -r template_file="$3"
 	local -r template_dir=~/bin/Templates
+	local cur_yr today
 	today=$(date +"%d %b %Y")
   cur_yr=$(printf "\UA9 %(%Y)T")
 
@@ -96,7 +90,7 @@ insert_header() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="4.12.26229"
+  local -r version="4.13.262369"
 	local code_file code_type template_file opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":c:hp:s:v"
@@ -138,8 +132,7 @@ main() {
 		help "$script" "$version" "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
-	TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
-	trap cleanup EXIT
+  create_tmp "file"
 	insert_header "$code_file" "$code_type" "$template_file"
 	edit_view_quit "$code_file"
 	over_line "$script $version"
