@@ -46,21 +46,6 @@ _HELP_
   exit "$errcode"
 }
 
-create_temp() {
-  TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
-  TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-	trap cleanup EXIT
-  return 0
-}
-
-# Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-# shellcheck disable=SC2317
-cleanup() {
-	[[ -f "$TMP_FILE" ]] && rm "$TMP_FILE"
-	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
-}
-
 ff_version() {
 	fastfetch --version-raw
   return 0
@@ -185,7 +170,7 @@ main() {
 					printf "Fastfetch %s is already installed.\n" "$(ff_version)" >&2
 				else
 					check_package wget
-          create_temp
+          create_tmp "dirfile"
 					new_ver="$(newest_version "$gh_url")"
 					printf "%sInstalling Fastfetch version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
 					install_fastfetch "$new_ver" "$gh_url" && fastfetch_config
@@ -201,7 +186,7 @@ main() {
 			u )
 				if installed fastfetch; then
 					check_package wget
-          create_temp
+          create_tmp "dirfile"
 					new_ver="$(newest_version "$gh_url")"
 					compare_versions "$new_ver" "$gh_url"
 				else
