@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Sep 2023
-# Last updated : 26 Jul 2026
-# Version      : 2.0.26207
+# Last updated : 24 Aug 2026
+# Version      : 2.1.26236
 # Comments     : system install directory = /usr/local/share/fonts
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,16 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
-
-# shellcheck disable=SC2317
-# Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-cleanup() {
-  [[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
-}
 
 install_NerdFonts() {
   local -r font_dir="$1"
@@ -41,6 +33,7 @@ install_NerdFonts() {
   local -r font_repo="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0"
   local font fonts
   fonts=( "FiraCode" "Go-Mono" "Hack" "Inconsolata" "Iosevka" "JetBrainsMono" "Mononoki" "RobotoMono" "SourceCodePro" )
+  create_tmp "dir"
   for font in "${fonts[@]}"; do
     printf "\e[03mInstalling %s ...\e[0m\n" "$font"
     wget -q -P "$TMP_DIR" "$font_repo/$font.tar.xz"
@@ -71,21 +64,19 @@ install_SymbolNerdFonts() {
   return 0
 }
 
-NerdFont_inatall() {
+NerdFont_install() {
   local -r font_dir=~/.local/share/fonts
   [[ -d "$font_dir" ]] || mkdir -p "$font_dir"
-  TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-  trap cleanup EXIT
   install_NerdFonts "$font_dir" && install_SymbolNerdFonts "$font_dir"
   return "$?"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="2.0.26207"
+  local -r version="2.1.26236"
   local -i exit_code=0
   check_packages wget
-  NerdFont_inatall
+  NerdFont_install
   exit_code="$?"
   fc-cache
   over_line "$script $version"
