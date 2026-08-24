@@ -46,14 +46,6 @@ _HELP_
   exit "$errcode"
 }
 
-# Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-# shellcheck disable=SC2317
-cleanup() {
-  [[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
-  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
-}
-
 fresh_version() {
   cut -d' ' -f2 < <(fresh --version)
   return 0
@@ -170,9 +162,7 @@ main() {
           printf "Fresh-editor %s is already installed.\n" "$(fresh_version)" >&2
         else
           check_package wget
-          TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
-          TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-          trap cleanup EXIT
+          create_tmp "dirfile"
 					new_ver="$(newest_version "$gh_url")"
           printf "%sInstalling Bat version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
           install_fresh "$new_ver" "$gh_url" && fresh_config
@@ -188,9 +178,7 @@ main() {
       u )
         if installed fresh-editor; then
           check_package wget
-          TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
-          TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-          trap cleanup EXIT
+          create_tmp "dirfile"
           new_ver="$(newest_version "$gh_url")"
           compare_versions "$new_ver" "$gh_url"
         else
