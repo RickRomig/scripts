@@ -54,13 +54,6 @@ check_dependencies() {
   return 0
 }
 
-# Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
-# shellcheck disable=SC2317
-cleanup() {
-  [[ -f "$TMP_FILE" ]] && rm "$TMP_FILE"
-}
-
 timeout_exit() {
   local wx_loc="${1//[+_]/ }"
   printf "Current weather data for %s is not available.\n" "$wx_loc"
