@@ -684,7 +684,7 @@ reboot_system() {
 }
 
 create_tmp() {
-	tmp_type="$1"
+	local -r tmp_type="${1:-dirfile}"
 	case "$tmp_type" in
 		dir )
 			TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR" ;;
