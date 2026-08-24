@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 10 Aug 2026
-# Version      : 14.1.26222
+# Updated      : 24 Aug 2026
+# Version      : 14.2.26236
 # Comments     : Testing indicates USB drive needs to be mounted.
 #              : To test without writing to USB drive, dnter -d or --dryrun option to enable a dry run.
 #              : After a dryrun, USB drive will remain mounted.
@@ -42,13 +42,12 @@ readonly FMENU="fzf --header=Write-ISO \
   --bind change:top \
   --prompt"
 DRYRUN="$FALSE"
-DOTS_PID=
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="10 Aug 2026"
+	local -r updated="24 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes an ISO image to a USB drive
@@ -91,8 +90,8 @@ select_iso() {
 
 select_usb() {
 	local usb_device
-	usb_device=$(awk '$2 == "disk" && $1 == "1" {print $2,$3,$4,$5}' < <(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL) | \
-	$FMENU "Select the USB drive to write to: ")
+	usb_device=$(awk '$2 == "disk" && $1 == "1" {print $2,$3,$4,$5}' < <(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL) |
+$FMENU "Select the USB drive to write to: ")
 	usb_device=$(awk '{print $2}' <<< "$usb_device")
 	echo "$usb_device"
 	return 0
@@ -131,14 +130,11 @@ simulate_dd() {
 	local -r iso="$1"
 	local -r usb="$2"
 	local -r mount_name="$3"
-	printf "\n%sPerforming a dryrun simulation.\n" "$orange" "$normal"
+	printf "\n%sPerforming a dryrun simulation.\n" "$orange"
 	printf "The ISO will NOT be written to USB drive.%s\n" "$normal"
-  printf "\nWriting %s to /dev/%s (SIMULATED) ..." "${iso##*/}" "$usb"
-  dots "." &
-	DOTS_PID="$!"
-  sleep 15
-  kill_dots
-  printf "%s written to /dev/%s (SIMULATED)\n" "${iso##*/}" "$usb"
+  printf "\nWriting %s to /dev/%s (%sSIMULATED%s) ...\n" "${iso##*/}" "$usb" "$lightyellow" "$normal"
+	dd if="$iso" of=/dev/null bs=16M status=progress
+  printf "%s written to /dev/%s (%sSIMULATED%s)\n" "${iso##*/}" "$usb" "$lightyellow" "$normal"
 	return 0
 }
 
@@ -188,10 +184,10 @@ write_iso() {
 		mount_usb "$usbpart"
 	fi
 	list_usb_contents "$usbpart" # "$mount_name"
-	# Confirm action or cancel
 	if [[ "$DRYRUN" == "$TRUE" ]]; then
 		simulate_dd "$isofile" "$usbdevice" "$mount_name"
 	else
+		# Confirm action or cancel
 		printf "\n%sIf you continue, ALL data will be erased from device %s.%s\n\n" "$orange" "$usbdevice" "$normal"
 		printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\n\n" "$bold" "$orange" "$normal"
 		if yes_or_no "Write ${isofile##*/} to /dev/$usb_device?"; then
@@ -208,7 +204,7 @@ write_iso() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="14.1.26222"
+	local -r version="14.2.26236"
 	local -i exit_code=0
 	local -r isoDir=~/Downloads/ISO
 	case "$1" in
