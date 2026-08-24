@@ -29,15 +29,6 @@
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
-
-# shellcheck disable=SC2317
-# Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
-cleanup() {
-	[[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
-}
-
 installed_version() {
   local package="$1"
   local cur_ver
@@ -173,7 +164,7 @@ browsers() {
 main() {
   local -r script="${0##*/}"
   local -r version="21.6.26235"
-  trap cleanup EXIT
+  create_tmp "file"
   check_package curl
   clearscreen
   box "$script $version"
