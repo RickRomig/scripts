@@ -81,7 +81,7 @@ main() {
   local -r script="${0##*/}"
   local -r version="3.1.26236"
 	local -i exit_code=0
-	create_tmp "file"
+	create_tmp "dir"
 	install_multimedia
 	exit_code="$?"
 	over_line "$script $version"
