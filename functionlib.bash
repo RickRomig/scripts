@@ -690,7 +690,7 @@ create_tmp() {
 			TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR" ;;
 		file )
 			TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE" ;;
-		both )
+		dirfile )
 			TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 			TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE" ;;
 		* )
