@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 19 Aug 2026
-# Version      : 5.1.26231
+# Updated      : 24 Aug 2026
+# Version      : 5.2.26236
 # Comments     : Inserts the license immediately after the file's header.
 #              : Assumes the standard script or C/C++ header is present.
 # TODO (rick)  :
@@ -47,12 +47,6 @@ ${orange}Available licenses:${normal}
       $script -s <shell-script>
 _HELP_
   exit "$errcode"
-}
-
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
-cleanup() {
-  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
 }
 
 check_code_file() {
@@ -139,7 +133,7 @@ insert_license() {
 
 main() {
 	local -r script="${0##*/}"
-  local -r version="5.1.26231"
+  local -r version="5.2.26236"
 	local -i exit_code=0
 	local opt code_file code_type OPTARG OPTIND
 	local -i noOpt=1
@@ -182,8 +176,7 @@ main() {
 		help "$script" "$version" "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
-	TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
-	trap cleanup EXIT
+  create_tmp "file"
 	insert_license "$code_type" "$code_file"
 	exit_code="$?"
 	over_line "$script $version"
