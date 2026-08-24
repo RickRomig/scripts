@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 04 Aug 2026
-# Versin       : 7.3.26216
+# Updated:     : 24 Aug 2026
+# Versin       : 7.4.26236
 # Comments     : Should be run locally, not remotely. (DESKTOP_SESSION)
 #              : Will not get desktop session info in an SSH connection.
 # TODO (Rick)  :
@@ -42,7 +42,7 @@ check_dependencies() {
 
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-cleanup() {
+clean_up() {
   [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
   [[ -f "$HD_DATA" ]] && rm -f "$HD_DATA"
 }
@@ -301,8 +301,8 @@ battery_info() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="7.3.26216"
-  trap cleanup EXIT
+  local -r version="7.4.26236"
+  trap clean_up EXIT
   sudo_login 2
   check_dependencies
   clearscreen
