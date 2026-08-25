@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 23 Aug 2026
-# Version      : 7.8.26235
+# Updated      : 24 Aug 2026
+# Version      : 7.9.26236
 # Comments     : Use install-batcat if distro version has same base version number as latest GitHub release.
 #              : Mint 22 installs version 0.24.0 with the Ubuntu version appended.
 #              : Debian 13 installs version 0.25.0 with the Debian version appended.
@@ -34,7 +34,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -r errcode="${3:-1}"
-	local -r updated="23 Aug 2026"
+	local -r updated="24 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Bat utililty.
@@ -49,16 +49,12 @@ _HELP_
   exit "$errcode"
 }
 
-# Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-# shellcheck disable=SC2317
-cleanup() {
-  [[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
-  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
-}
-
 bat_version() {
-  cut -d' ' -f2 < <(bat --version)
+  if exists batcat; then
+    cut -d' ' -f2 < <(batcat --version)
+  else
+    cut -d' ' -f2 < <(bat --version)
+  fi
   return 0
 }
 
@@ -135,6 +131,10 @@ install_bat() {
 }
 
 remove_bat() {
+	if ! installed bat; then
+		printf "Bat (Batcat) is not installed.\n"
+		return "$E_NOT_DETECTED"
+	fi
   sudo_login 2
   printf "Removing Bat %s...\n" "$(bat_version)"
   sudo dpkg --remove bat
@@ -164,7 +164,7 @@ bat_config() {
 
 main() {
   local -r  script="${0##*/}"
-  local -r version="7.8.26235"
+  local -r version="7.9.26236"
 	local -i exit_code=0
   local -r gh_url="https://github.com/sharkdp/bat/releases"
   local opt new_ver OPTARG OPTIND
@@ -176,31 +176,23 @@ main() {
         help "$script" "$version" 0
         ;;
       i )
-        if exists bat || exists batcat; then
+        if installed bat; then
           printf "Bat %s is already installed.\n" "$(bat_version)"
         else
 					check_package wget
-          TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
-          TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-          trap cleanup EXIT
+          create_tmp "dirfile"
 					new_ver="$(newest_version "$gh_url")"
           printf "%sInstalling Bat version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
           install_bat "$new_ver" "$gh_url" && bat_config
         fi
         ;;
       r )
-        if exist bat || exists batcat; then
-          remove_bat
-        else
-          printf "Bat is not installed.\n"
-        fi
+        remove_bat
         ;;
       u )
-        if exists bat || exists batcat; then
+        if installed bat; then
           check_dependencies
-          TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE"
-          TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-          trap cleanup EXIT
+          create_tmp "dirfile"
           new_ver="$(newest_version "$gh_url")"
           compare_versions "$new_ver" "$gh_url"
         else
@@ -222,7 +214,5 @@ main() {
 	over_line "$script $version"
   exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
