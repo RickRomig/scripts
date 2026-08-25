@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 ###############################################################################
-# Script Name  : rm-duplicates.sh
+# Script Name  : find-duplicates.sh
 # Description  : Find file sizes & use to potentially ID duplicate files
 # Dependencies :
 # Arguments    : None (-h or --help for usage)
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Feb 2026
-# Updated      : 03 Aug 2026
-# Version      : 0.2.26215 (ALPHA)
+# Updated      : 25 Aug 2026
+# Version      : 0.3.26237 (ALPHA)
 # Comments     :
 # TODO (Rick)  : Still needs work.
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,6 @@
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
-
 help() {
 	local -r script="$1"
   local -r version="$2"
@@ -43,23 +41,24 @@ _HELP_
   exit "$errcode"
 }
 
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-cleanup() {
-  [[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
-}
-
-main() {
-  local -r script="${0##*/}"
-  local -r version="0.2.26215"
-  trap cleanup EXIT
-  [[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
+find_filter_duplicates() {
   # find file sizes
   awk '{print $5, $9}' < <(find . -type f -size +1M -exec ls -l {} \;) | sort -n > "$TMP_FILE"
   # filter duplicates
   awk 'NR==FNR{count[$1]++; next} count[$1]>1' "$TMP_FILE" "$TMP_FILE" | less -N
+  return "$?"
+}
+
+main() {
+  local -r script="${0##*/}"
+  local -r version="0.3.26237 (ALPHA)"
+  local -i exit_code=0
+  [[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
+  create_tmp "file"
+  find_filter_duplicates
+  exit_code="$?"
   over_line "$script $version"
-	exit
+	exit "$exit_code"
 }
 
 main "$@"
