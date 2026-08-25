@@ -2,13 +2,13 @@
 ##############################################################################
 # Script Name  : driver-manager.sh
 # Description  : Installs the Linu Mint Driver Manager on LMDE 7 (Gigi) & Debian 13 (Trixie)
-# Dependencies : gdebi wget
+# Dependencies : wget
 # Arguments    : None
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 05 Nov 2025
-# Updated      : 07 Aug 2026
-# Version      : 1.6.26219
+# Updated      : 25 Aug 2026
+# Version      : 1.7.26237
 # Comments     : Based on instructions provided by Andrea Borman
 #              : YouTube - https://www.youtube.com/watch?v=-Q_U5lLTxmU
 #              : CAUTION! Use at your own risk.
@@ -29,18 +29,6 @@
 
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
-
-# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-cleanup() {
-	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
-}
-
-check_dependencies() {
-  local packages=( gdebi wget )
-  check_packages "${packages[@]}"
-  return 0
-}
 
 check_codename() {
   codename=$(/usr/bin/lsb_release --codename --short)
@@ -70,7 +58,6 @@ install_packages() {
   for (( idx=0; idx < "${#urls[@]}"; idx++ )); do
 	  printf "Installing %s...\n" "${packages[idx]}"
     wget -q -P "$TMP_DIR" "${urls[idx]}/${packages[idx]}"
-    # sudo gdebi -n "$TMP_DIR/${packages[idx]}"
     sudo dpkg -i "$TMP_DIR/${packages[idx]}"; sudo apt-get install --fix-broken
     printf "%s installed.\n" "${packages[idx]}"
   done
@@ -80,17 +67,16 @@ install_packages() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.6.26219"
+  local -r version="1.7.26237"
   local -i exit_code=0
   trap cleanup EXIT
   printf "Installs the Linux Mint Driver Manager on LMDE 7 (Gigi) & Debian 13 (Trixie)\n"
   if check_codename; then
-    check_dependencies
-    TMP_DIR=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
-    trap cleanup EXIT
+    check_package wget
+    create_tmp "dir"
 	  install_packages
   else
-    printf "Only Debian 13 and LMDE 7 are supported at this time.\n"
+    printf "Only Debian 13 and LMDE 7 are supported at this time.\n" >&2
     exit_code="$E_UNSUPPORTED"
   fi
   over_line "$script $version"
