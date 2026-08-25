@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Updated      : 13 Aug 2026
-# Version      : 2.14.26225
+# Updated      : 24 Aug 2026
+# Version      : 2.15.26236
 # Comments     : executable and its manpage will be renamed from ‘bat’ to ‘batcat’
 #              : because of a file name clash with another Debian package.
 #              : Mint 22 installs version 0.24.0 with suffix.
@@ -35,7 +35,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="13 Aug 2026"
+	local -r updated="24 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Installs/removes/configures bat/batcat
@@ -51,7 +51,11 @@ _HELP_
 }
 
 bat_version() {
-	cut -d' ' -f2 < <(bat --version)
+  if exists batcat; then
+    cut -d' ' -f2 < <(batcat --version)
+  else
+    cut -d' ' -f2 < <(bat --version)
+  fi
 	return 0
 }
 
@@ -73,7 +77,7 @@ install_batcat() {
 remove_batcat() {
 	if ! installed bat; then
 		printf "Bat (Batcat) is not installed.\n"
-		return 1
+		return "$E_NOT_DETECTED"
 	fi
 	sudo_login 2
   printf "Removing Bat %s...\n" "$(bat_version)"
@@ -95,7 +99,7 @@ remove_batcat() {
 bat_config() {
 	if ! installed bat; then
 		printf "Bat (Batcat) is not installed.\n"
-		return 1
+		return "$E_NOT_DETECTED"
 	fi
 	[[ -d ~/.config/bat ]] || mkdir -p ~/.config/bat
 	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
@@ -116,7 +120,7 @@ bat_config() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.14.26225"
+	local -r version="2.15.26236"
 	local -i exit_code=0
 	local opt OPTARG OPTIND
 	local -i noOpt=1
