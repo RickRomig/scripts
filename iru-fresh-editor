@@ -2,13 +2,13 @@
 ##########################################################################
 # Script Name  : iru-fresh-editor
 # Description  : Installs, updates, and removes the Fresh Editor.
-# Dependencies : wget
+# Dependencies : git, wget
 # Arguments    : See the help function for details.
 # Author       : Copyright (C) 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2025
-# Updated      : 23 Aug 2026
-# Version      : 2.10.26235
+# Updated      : 24 Aug 2026
+# Version      : 2.11.26236
 # Comments     : Beginning with version 0.3.12, installs to /usr/bin/fresh
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="23 Aug 2026"
+	local -r updated="24 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Fresh Editor.
@@ -44,6 +44,12 @@ ${orange}Available options:${normal}
   -u  Updates the Fresh Editor to the latest GitHub release.
 _HELP_
   exit "$errcode"
+}
+
+check_dependencies() {
+  local packages=( git wget )
+  check_packages "${packages[@]}"
+  return 0
 }
 
 fresh_version() {
@@ -121,6 +127,10 @@ install_fresh() {
 }
 
 remove_fresh() {
+  if ! installed fresh-editor; then
+    printf "Fresh-editor is not installed.\n" >&2
+    return "$E_NOT_DETECTED"
+  fi
   sudo_login 2
   printf "Removing Fresh-editor %s...\n" "$(fresh_version)"
   sudo dpkg --remove fresh-editor
@@ -161,7 +171,7 @@ main() {
         if installed fresh-editor; then
           printf "Fresh-editor %s is already installed.\n" "$(fresh_version)" >&2
         else
-          check_package wget
+          check_dependencies
           create_tmp "dirfile"
 					new_ver="$(newest_version "$gh_url")"
           printf "%sInstalling Bat version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
@@ -169,15 +179,11 @@ main() {
         fi
         ;;
       r )
-        if installed fresh-editor; then
-          remove_fresh
-        else
-          printf "Fresh-editor is not installed.\n" >&2
-        fi
+        remove_fresh
         ;;
       u )
         if installed fresh-editor; then
-          check_package wget
+          check_dependencies
           create_tmp "dirfile"
           new_ver="$(newest_version "$gh_url")"
           compare_versions "$new_ver" "$gh_url"
