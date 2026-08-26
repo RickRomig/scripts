@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 14 Feb 2026
-# Updated      : 13 Aug 2026
-# Version      : 2.1.26225
+# Updated      : 26 Aug 2026
+# Version      : 2.2.26238
 # Comments     : Thanks to Joe Collins and Matt Hartley for the fix to the permissions problem.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -85,7 +85,7 @@ pop_and_click_fix() {
 install_brasero() {
 	if installed brasero; then
 		printf "Brasero %s is already installed.\n" "$(brasero_version)" >&2
-		return 1
+		return "$E_FILE_EXISTS"
 	fi
 	check_dependencies
 	printf "Installing Brasero CD/DVD burning application...\n"
@@ -105,7 +105,7 @@ install_brasero() {
 remove_brasero() {
 	if ! installed brasero; then
 		printf "Brasero is not installed.\n" >&2
-		return 1
+		return "$E_FILENOTFOUND"
 	fi
 	local -r applications_dir=~/.local/share/applications
 	printf "Removing Braseror %s...\n" "$(brasero_version)"
@@ -117,7 +117,7 @@ remove_brasero() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.1.26225"
+	local -r version="2.2.26238"
 	local -i exit_code=0
 	local -i reboot_flag="$FALSE"
 	local opt OPTARG OPTIND
