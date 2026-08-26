@@ -8,10 +8,9 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Updated      : 23 Aug 2026
-# Version      : 21.6.26235
-# Comments     : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
-#              : Chromium browser does not create config directory until opened once.
+# Updated      : 25 Aug 2026
+# Version      : 21.7.26237
+# Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -36,7 +35,7 @@ installed_version() {
   case "$package" in
     bat|fastfetch )
       cur_ver=$(cut -d' ' -f2 < <("$package"  --version 2>/dev/null)) ;;
-    codium|dsh|fresh|micro )
+    codium|fresh|micro )
       cur_ver=$(awk 'NR==1 {print $NF}' < <("$package" --version 2>/dev/null)) ;;
     firefox|gitea )
       cur_ver=$(cut -d' ' -f3 < <("$package"  --version 2>/dev/null)) ;;
@@ -44,6 +43,22 @@ installed_version() {
       cur_ver=$(awk '/^ii/ {print $3}' < <(dpkg -l "$package" 2>/dev/null) | sed 's/[~+ud].*//')
   esac
   echo "$cur_ver"
+  return 0
+}
+
+show_versions() {
+	local package
+	local -r packages=("$@")
+	for package in "${packages[@]}"; do
+		if exists "$package"; then
+			printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
+			[[ "$package" == "batcat" ]] && package="bat"
+			[[ "$package" == "google-chrome" ]] && package+="-stable"
+      printf "%s\n" "$(installed_version "$package")"
+		fi
+	done
+	printf "%s\n" "$normal"
+  return 0
 }
 
 convert_compare() {
@@ -64,20 +79,6 @@ convert_compare() {
 	return "$newer"
 }
 
-show_versions() {
-	local package packages
-	packages=("$@")
-	for package in "${packages[@]}"; do
-		if exists "$package"; then
-			printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
-			[[ "$package" == "batcat" ]] && package="bat"
-			[[ "$package" == "google-chrome" ]] && package+="-stable"
-      printf "%s\n" "$(installed_version "$package")"
-		fi
-	done
-	printf "%s\n" "$normal"
-}
-
 get_release_path() {
 	local -r package="$1"
 	declare -rA releases_path=(
@@ -88,6 +89,7 @@ get_release_path() {
 		[micro]="micro-editor/micro/releases"
 	)
 	echo "${releases_path[$package]}"
+  return 0
 }
 
 get_new_version() {
@@ -110,6 +112,7 @@ get_new_version() {
       new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$TMP_FILE"))
   esac
   echo "$new_ver"
+  return 0
 }
 
 github_packages() {
@@ -135,30 +138,35 @@ github_packages() {
 	  fi
   done
   printf "%s\n" "${normal}"
+  return 0
 }
 
 utility_packages() {
-  local -r packages=( bash dsh flatpak fzf git gitea keepassxc nala picom zoom )
-	printf "%-15s%s\n" "Package" "Version"
+  local -r packages=( bash dsh flatpak fzf gitea keepassxc nala picom zoom )
+	printf "%-15s%s\n" "Other Packages" "Version"
 	show_versions "${packages[@]}"
+  return 0
 }
 
 text_editors() {
-  local -r packages=( batcat bluefish featherpad geany gedit glow mousepad nano shellcheck xed )
-	printf "%-15s%s\n" "Package" "Version"
+  local -r packages=( batcat bluefish featherpad geany gedit git glow mousepad nano shellcheck xed )
+	printf "%-15s%s\n" "Programming" "Version"
 	show_versions "${packages[@]}"
+  return 0
 }
 
 terminals() {
   local -r packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
 	printf "%-15s%s\n" "Terminal" "Version"
 	show_versions "${packages[@]}"
+  return 0
 }
 
 browsers() {
   local -r packages=( brave-browser chromium firefox google-chrome librewolf )
 	printf "%-15s%s\n" "Browser" "Version"
 	show_versions "${packages[@]}"
+  return 0
 }
 
 main() {
@@ -174,7 +182,7 @@ main() {
   browsers
   terminals
   utility_packages
-  leave ""
+  printf "MOTD: "; leave ""
 }
 
 main "$@"
