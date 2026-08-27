@@ -19,7 +19,7 @@ while true; do
 	esac
 done
 ```
-#### Type in foll reply, case sensitive
+#### Type in full reply, case sensitive
 ```bash
 while true; do
   read -rp "Do you wish to continue? [yes/no]? " yesno
