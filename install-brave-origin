@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Jul 2026
-# Updated      : 13 Aug 2026
-# Version      : 1.3.26225
+# Updated      : 26 Aug 2026
+# Version      : 1.4.26238
 # Comments     : Does not overwrite current Brave Browser version
 #              : To downgrade to the original standard Brave:
 #              : Go to brave://flags/#brave-origin and change flag to Disabled
@@ -35,7 +35,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="13 Aug 2026"
+	local -r updated="26 Aug 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs/Removes Brave Origin
@@ -73,7 +73,7 @@ show_message() {
 }
 
 set_gpg_key() {
-  local -r brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
+  local -r brave_key=/usr/share/keyrings/brave-browser-archive-keyring.gpg
 	local -r key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
   show_message "Importing public key for verification of the APT repository"
   sudo curl -fsSLo "$brave_key" "$key_url"
@@ -83,10 +83,11 @@ set_gpg_key() {
 
 set_sources() {
 	local -r sources_uri="https://brave-browser-apt-release.s3.brave.com/brave-browser.sources"
-	local -r sources_file="/etc/apt/sources.list.d/brave-browser-release.sources https://brave-browser-apt-release.s3.brave.com/brave-browser.sources"
-  if [[ -f /etc/apt/sources.list.d/brave-browser-release.list ]]; then
+	local -r sources_file=/etc/apt/sources.list.d/brave-browser-release.sources
+  local -r sources_list=/etc/apt/sources.list.d/brave-browser-release.list
+  if [[ -f "$sources_list" ]]; then
     show_message "Renaming old source list file..."
-    sudo mv /etc/apt/sources.list.d/brave-browser-release.list /etc/apt/sources.list.d/brave-browser-release.list.bak
+    sudo mv "$sources_list"
   fi
 	show_message "Creating the sources file..."
 	sudo curl -fsSLo "$sources_file" "$sources_uri"
@@ -95,10 +96,6 @@ set_sources() {
 }
 
 install_brave_origin() {
-  if installed brave-browser; then
-    printf "%s is already installed." "$(brave_ver)"
-    return 1
-  fi
   sudo_login 2
   printf "Installing the Brave Browser ...\n"
   set_gpg_key
@@ -117,7 +114,7 @@ install_brave_origin() {
 remove_brave_origin() {
   if ! installed brave-browser; then
     printf "Brave Browser is not installed.\n"
-    return 1
+    return "$E_NOT_INSTALLED"
   fi
   sudo_login 2
   printf "Uninstalling %s...\n" "$(brave_version)"
@@ -134,7 +131,7 @@ remove_brave_origin() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="1.3.26225"
+  local -r version="1.4.26238"
   local -i exit_code=0
 	local opt OPTARG OPTIND
 	local -i noOpt=1
