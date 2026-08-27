@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 13 Aug 2026
-# Version      : 7.5.26225
+# Updated      : 26 Aug 2026
+# Version      : 7.6.26238
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -75,11 +75,11 @@ set_gpg_key() {
   local -r key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
   if [[ -f "$brave_key" ]]; then
     printf "%s already exists.\n" "${brave_key##*/}"
-    return 0
+  else
+    show_message "Importing public key for verification of the APT repository"
+    sudo curl -fsSLo "$brave_key" "$key_url"
+	  show_message "GPG key is set."
   fi
-  show_message "Importing public key for verification of the APT repository"
-  sudo curl -fsSLo "$brave_key" "$key_url"
-	show_message "GPG key is set."
   return 0
 }
 
@@ -87,9 +87,10 @@ set_sources() {
   local -r key_file="$1"
   local -r sources_uri="https://brave-browser-apt-release.s3.brave.com/"
   local -r sources_file=/etc/apt/sources.list.d/brave-browser-release.sources
-  if [[ -f /etc/apt/sources.list.d/brave-browser-release.list ]]; then
+  local -r sources_list=/etc/apt/sources.list.d/brave-browser-release.list
+  if [[ -f "$sources_list" ]]; then
     show_message "Renaming old source list file..."
-    sudo mv /etc/apt/sources.list.d/brave-browser-release.list /etc/apt/sources.list.d/brave-browser-release.list.bak
+    sudo mv -v "$sources_list"
   fi
 	show_message "Creating the source list file..."
   sudo tee $sources_file <<< \
@@ -102,10 +103,10 @@ Signed-By: $key_file"
   return 0
 }
 
-install_brave() {
+install_brave_browser() {
   if installed brave-browser; then
     printf "%s is already installed." "$(brave_ver)"
-    return 1
+    return "$E_FILE_EXISTS"
   fi
   local -r brave_key=/usr/share/keyrings/brave-browser-archive-keyring.gpg
   sudo_login 2
@@ -126,7 +127,7 @@ install_brave() {
 remove_brave() {
   if ! installed brave-browser; then
     printf "Brave Browser is not installed.\n"
-    return 1
+    return "$E_NOT_INSTALLED"
   fi
   sudo_login 2
   printf "Uninstalling %s...\n" "$(brave_ver)"
@@ -143,7 +144,7 @@ remove_brave() {
 
 main(){
   local -r script="${0##*/}"
-  local -r version="7.5.26225"
+  local -r version="7.6.26238"
   local -i exit_code=0
   local opt OPTARG OPTIND
   local -i noOpt=1
@@ -153,7 +154,7 @@ main(){
       h )
         help "$script" "$version" 0 ;;
       i )
-        check_dependencies && install_brave ;;
+        check_dependencies && install_brave_browser ;;
       r )
         remove_brave ;;
 			v )
