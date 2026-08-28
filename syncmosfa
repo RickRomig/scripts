@@ -7,10 +7,10 @@
 # Author       : Copyright (C) 2020 Richard Romig, 29 Sep 2020
 # Email        : rick.romig@gmail.com
 # Created      : 29 Sep 2020
-# Updated      : 03 Aug 2026
-# Version      : 4.8.26215
+# Updated      : 28 Aug 2026
+# Version      : 4.9.26240
 # Comments     : Can sync to one, some, or all machines on the network.
-#              : LOCALNET is declared in functionlib
+#              : LOCALNET is declared in functionlib.bash
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -34,7 +34,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local updated="03 Aug 2026"
+	local updated="28"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Syncs directories with machines on the network via SSH
@@ -134,7 +134,7 @@ syncscript() {
       transfer_status "$?"
 
       printf "\n%sSyncing ~/Work ...%s\n" "$orange" "$normal"
-      rsync -avh --delete --exclude 'images' "$HOME"/Work/ "$LOCALNET.$hostip":Work/
+      rsync -avh --delete --exclude '*.log' --exclude 'images' "$HOME"/Work/ "$LOCALNET.$hostip":Work/
       transfer_status "$?"
       ;;
     * )
@@ -153,7 +153,7 @@ sync_one() {
   elif valid_ip "$hostip"; then
     printf "Synchronizing bin and template directories with %s:\n\n" "$LOCALNET.$hostip"
     transfer "$hostip"
-    return 0
+    return "$?"
   else
     help "$script" "$version" "$?"
   fi
@@ -167,16 +167,17 @@ sync_some() {
       case "$hostip" in
         1|2|3|4|5|6|7|8|9 )
           printf "%s %s is a restricted address. Access denied.\n" "$RED_WARNING" "$LOCALNET.$hostip"
+          return "$?"
           ;;
         * )
           transfer "$hostip"
+          return "$?"
       esac
     else
       printf "%s Invalid argument: %s\n\n" "$RED_ERROR" "$hostip" >&2
       return "$E_INVALID_ARG"
     fi
   done
-  return 0
 }
 
 sync_all() {
@@ -186,7 +187,7 @@ sync_all() {
   for hostip in "${octets[@]}"; do
     transfer "$hostip"
   done
-  return 0
+  return "$?"
 }
 
 check_host() {
@@ -202,6 +203,7 @@ check_host() {
 main() {
   local -r script="${0##*/}"
   local -r version="4.8.26215"
+  local -i exit_code=0
   check_package rsync
   if [[ "$#" -eq 0 ]]; then
     printf "%s No arguments passed.\n" "$RED_ERROR" >&2
@@ -218,9 +220,10 @@ main() {
     check_host
     sync_one "$1"
   fi
+  exit_code="$?"
   over_line "Script completed in $(format_time $SECONDS)"
   over_line "$script $version"
-  exit
+  exit "$exit_code"
 }
 
 main "$@"
