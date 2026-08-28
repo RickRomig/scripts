@@ -7,13 +7,13 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Updated      : 03 Aug 2026
-# Version      : 8.5.26215
+# Updated      : 28 Aug 2026
+# Version      : 8.6.26240
 # Comments     : Sync scripts to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
 #              : Restricted IP addresses are excluded.
-#              : LOCALNET variable is defined & declared in functionlib.
+#              : LOCALNET variable is defined & declared in functionlib.bash
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -35,8 +35,8 @@ SECONDS=0
 help() {
   local -r script="$1"
   local -r version="$2"
-  local -r errcode="${3:-1}"
-  local -r updated="03 Aug 2026"
+  local -ri errcode="${3:-1}"
+  local -r updated="28 Aug 2026"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Synchronizes ~/bin with remote hosts.
@@ -90,7 +90,7 @@ transfer() {
   else
     printf "\n...Skipping %s! Not on network.\n\n" "$host_ip"
   fi
-  return 0
+  return "$?"
 }
 
 syncscript() {
@@ -111,30 +111,30 @@ syncscript() {
       ;;
    * )
       printf "\n%sSyncing ~/bin ...%s\n" "$orange" "$normal"
-      rsync -avh --delete --exclude '.git' --exclude '.gitignore' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
+      rsync -avh --delete --exclude '.git' --exclude '.gitignore' --exclude '*.log' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
       transfer_status "$?"
       printf "\n...Machine %s Synced!\n\n" "$hostip"
   esac
-  return 0
+  return "$?"
 }
 
 sync_one() {
   local -ri hostip="$1"
   transfer "$hostip"
-  return 0
+  return "$?"
 }
 
 sync_some() {
   local hostip
   for hostip in "$@"; do transfer "$hostip"; done
-  return 0
+  return "$?"
 }
 
 sync_all() {
   local octets hostip
   octets=(11 12 13 14 16 17 18 20 21 22 23 24 25)
   for hostip in "${octets[@]}"; do transfer "$hostip"; done
-  return 0
+  return "$?"
 }
 
 check_host() {
@@ -145,12 +145,13 @@ check_host() {
   printf "Host: %s%s%s at " "$lightyellow" "$local_host" "$normal"
   printf "%s%s%s\n\n" "$lightyellow" "$LOCALNET.$ip_addr" "$normal"
   [[ "$local_host" != "$main_host" ]] && die "Script must be run from $main_host" "$E_INVALID_HOST"
-  return 0
+  return "$?"
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="8.5.26215"
+  local -r version="8.6.26240"
+  local -i exit_code=0
   check_package rsync
  if [[ "$#" -eq 0 ]]; then
     printf "%s No arguments passed.\n" "$RED_ERROR" >&2
@@ -167,9 +168,10 @@ main() {
     check_host
     sync_one "$1"
   fi
+  exit_code="$?"
   over_line "Script completed in $(format_time $SECONDS)"
   over_line "$script $version"
-  exit
+  exit "$exit_code"
 }
 
 main "$@"
