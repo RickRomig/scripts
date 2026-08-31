@@ -7,14 +7,14 @@
 # Author       : Copyright (C) 2025, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : Unknown
-# Updated      : 02 Aug 2026
-# Versions     : 2.4.26214
+# Updated      : 31 Aug 2026
+# Versions     : 2.5.26243
 # Comment      :
 # TODO (Rick)  : Research for OpenRC and Runit
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
-# This program is free software; you can redistribute it and/or modify it  under
+# This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
 # Foundation; either version 2 of the License, or (at your option) any later
 # version.
@@ -29,27 +29,27 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 
 restart_network() {
   local init_sys
-  local -i status
+  local -i code
   init_sys=$(awk 'match($0, /(systemd|sysvinit)/) { print toupper(substr($0, RSTART, RLENGTH));exit; }' < <(strings /sbin/init))
   printf "Restarting network...\n"
   case "$init_sys" in
     "SYSTEMD" )
       sudo systemctl restart NetworkManager.service
-      status="$?" ;;
+      code="$?" ;;
     "SYSVINIT" )
       sudo service network-manager restart
-      status="$?" ;;
+      code="$?" ;;
     * )
       printf "Init system is undetermined.\n" >&2
-      status="$E_UNSUPPORTED"
+      code="$E_UNSUPPORTED"
   esac
   sleep 3
-  return "$status"
+  return "$code"
 }
 
 main() {
 	local -r script="${0##*/}"
-  local -r version="2.4.26214"
+  local -r version="2.5.26243"
   local -i exit_code=0
   sudo_login 2
   check_package strings
