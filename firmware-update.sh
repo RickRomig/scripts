@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 22 Jul 2026
-# Last updated : 14 Aug 2026
-# Version      : 1.1.26226
+# Last updated : 02 Sep 2026
+# Version      : 2.0.26245
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -27,37 +27,42 @@
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-update_firmware() {
-	# Check if in UEFI mode
-	# if test -d /sys/firmware/efi; then
-	if [[ -d /sys/firmware/efi ]]; then
-		printf "UEFI OK\n"
-	else
-		printf "Legacy - fwupd will not flash\n"
-		return "$E_UNSUPPORTED"
+bios_version() {
+	sudo dmidecode -s bios-version
+}
+
+check_uefi() {
+	if [[ ! -d /sys/firmware/efi ]]; then
+		printf "BIOS in legacy mode, fwupd will not flash.\n" >&2
+		return "$FALSE"
 	fi
-	# Check for available updates
+	return "$TRUE"
+}
+
+update_firmware() {
 	sudo_login 1
+	printf "%sBIOS version:%s %s\n" "$lightgreen" "$normal" "$(bios_version)"
+	printf "%sChecking for updates...%s\n" "$lightgreen" "$normal"
 	sudo fwupdmgr get-updates
-	# Refresh LVFS metadata
+	printf "%sRefreshing LVFS metadata...%s\n" "$lightgreen" "$normal"
 	sudo fwupdmgr refresh --force
-	# Apply updates
+	printf "%sApplying and verifying updates...%s\n" "$lightgreen" "$normal"
 	sudo fwupdmgr update && verify_update
 	return "$?"
 }
 
 verify_update() {
-	sudo dmidecode -s bios-version
+	printf "BIOS version: %s\n" "$(bios_version)"
 	sudo fwupdmgr get-updates
 	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.1.26226"
+	local -r version="2.0.26245"
 	local -i exit_code=0
 	check_package fwupd
-	update_firmware
+	check_uefi && update_firmware
 	exit_code="$?"
 	over_line "$script $version"
 	exit "$exit_code"
