@@ -290,3 +290,16 @@ $ sudo mount -a   # if no output, it's okay
 $ sudo findmt --verify
 Success, no errors or warnings detected
 ```
+### pushd/popd
+To force `pushd/popd` to not display output, redirect to `/dev/null` or create functions in your script.
+```bash
+#!/usr/bin/env bash
+
+pushd() {
+  command pushd "$@" > /dev/null
+}
+
+popd() {
+  command popd "$@" > /dev/null
+}
+```
