@@ -7,10 +7,10 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Apr 2024
-# Last updated : 13 Aug 2026
-# Version      : 3.5.26225
+# Last updated : 02 Sep 2026
+# Version      : 3.6.26245"
 # Comments     : Intended for installation on main system
-# TODO (Rick)  :
+# TODO (Rick)  : Add getopts & remove function?
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
@@ -36,7 +36,7 @@ copy_group_list() {
 	local -r repository="$1"
   local -r group_list="$2"
   printf "Copying %s list to /etc/dsh/group ...\n" "$group_list"
-  sudo cp "$repository/dsh/group/$group_list" /etc/dsh/group/
+  awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/group/$group_list" /etc/dsh/group/) | sed "s/'//"
   printf "The %s list added to /etc/dsh/group\n" "$group_list"
   return 0
 }
@@ -45,17 +45,17 @@ copy_machines_list() {
 	local -r repository="$1"
   local -r file="machines.list"
   printf "Copying %s to /etc/dsh/ ...\n" "$file"
-  sudo cp "$repository/dsh/$file" /etc/dsh/
+  awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/$file" /etc/dsh/)
   printf "%s copied to /etc/dsh/\n" "$file"
   printf "Creating symbolic link from %s to /etc/dsh/group/all\n" "$file"
-  [[ -L /etc/dsh/group/all ]] || sudo ln -s /etc/dsh/machines.list /etc/dsh/group/all
+  [[ -L /etc/dsh/group/all ]] || sudo ln -sv /etc/dsh/machines.list /etc/dsh/group/all
   return 0
 }
 
 install_dsh() {
   if installed dsh; then
     printf "DSH %s is already installed.\n" "$(dsh_version)"
-    return 1
+    return 2
   fi
   sudo_login 2
   sudo apt-get -y install dsh
@@ -80,8 +80,8 @@ install_dsh() {
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.5.26225"
-  exit_code=0
+  local -r version="3.6.26245"
+  local -i exit_code=0
   check_package git
   install_dsh
   exit_code="$?"
