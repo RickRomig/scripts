@@ -85,7 +85,7 @@ install_applilcation() {
 		return 0
 	fi
 	sudo apt-get install -y application
-  if ! installed audacious; then
+  if ! installed application; then
     printf "%s application installation failed.\n" "$RED_ERROR" >&2
     return "$E_INSTALLATION"
   fi
@@ -95,12 +95,12 @@ install_applilcation() {
 
 remove_application() {
 	if ! installed application; then
-	  printf application is not installed.\n"
-	  return 0
+	  printf application is not installed.\n" >&2
+	  return "$E_NOT_INSTALLED"
 	fi
 	sudo_login 2
-	printf "Removingapplication....\n"
-	sudo apt remove --autoremove application
+	printf "Removing application....\n"
+	sudo apt-get remove --autoremove application
 	printf "application removed.\n"
 	return 0
 }
