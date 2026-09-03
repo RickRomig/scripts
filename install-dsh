@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Script Name  : install-dsh
-# Description  : Installs & configures DSH
+# Description  : Installs, configures, and removes DSH (Dancers Shell)
 # Dependencies : git (used by assign_cfg_repo() in functionlib.bash)
 # Arguments    : None
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Apr 2024
-# Last updated : 02 Sep 2026
-# Version      : 3.6.26245"
+# Last updated : 03 Sep 2026
+# Version      : 4.0.26246
 # Comments     : Intended for installation on main system
 # TODO (Rick)  : Add getopts & remove function?
 # License      : GNU General Public License, version 2.0
@@ -27,34 +27,64 @@
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
+help() {
+  local -r script="$1"
+  local -r version="$2"
+	local -r errcode="${3:-1}"
+	local -r updated="03 Sep 2026"
+	cat <<- _HELP_
+${orange}$script${normal} $version, Upated: $updated
+Installs, configures, removes DSH (Dancers Shell)
+
+${green}Usage:${normal} $script [-hirsu] [-v option]
+${orange}Available options:${normal}
+	-h  Show this help message and exit.
+	-i  Install DSH.
+	-r  Remove DSH.
+_HELP_
+  exit "$errcode"
+}
+
 dsh_version() {
   awk 'NR==1 {print $NF}' < <(dsh --version)
   return 0
 }
 
-copy_group_list() {
+copy_machines_list() {
 	local -r repository="$1"
-  local -r group_list="$2"
-  printf "Copying %s list to /etc/dsh/group ...\n" "$group_list"
-  awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/group/$group_list" /etc/dsh/group/) | sed "s/'//"
-  printf "The %s list added to /etc/dsh/group\n" "$group_list"
+  printf "Copying machines.list to /etc/dsh/ ...\n"
+  awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/machines.list" /etc/dsh/)
   return 0
 }
 
-copy_machines_list() {
+copy_machine_lists() {
 	local -r repository="$1"
-  local -r file="machines.list"
-  printf "Copying %s to /etc/dsh/ ...\n" "$file"
-  awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/$file" /etc/dsh/)
-  printf "%s copied to /etc/dsh/\n" "$file"
-  printf "Creating symbolic link from %s to /etc/dsh/group/all\n" "$file"
+	local machine_list
+	local -r machine_lists=(desktops i3wm laptops)
+  [[ -d /etc/dsh/group ]] || sudo mkdir -p /etc/dsh/group
+  printf "Creating symbolic link from /etc/dsh/machines.list to /etc/dsh/group/all\n"
   [[ -L /etc/dsh/group/all ]] || sudo ln -sv /etc/dsh/machines.list /etc/dsh/group/all
+  for machine_list in "${machine_lists[@]}"; do
+    printf "Copying the %s list to /etc/dsh/group ...\n" "$machine_list"
+    awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/group/$machine_list" /etc/dsh/group/) | sed "s/'//"
+  done
+  return 0
+}
+
+configure_dsh() {
+	repository=$(assign_cfg_repo); local -r repository
+  printf "Backing up and copying dsh.conf...\n"
+  awk -F"/" '{print "=> " $NF}' < <(sudo cp -v /etc/dsh/dsh.conf /etc/dsh/dsh.conf.bak)
+	awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/dsh.conf" /etc/dsh/)
+  prinf "Copying machine and group lists...\n"
+  copy_machines_list "$repository"
+  copy_machine_lists "$repository"
   return 0
 }
 
 install_dsh() {
   if installed dsh; then
-    printf "DSH %s is already installed.\n" "$(dsh_version)"
+    printf "DSH %s is already installed.\n" "$(dsh_version)" >&2
     return 2
   fi
   sudo_login 2
@@ -63,28 +93,54 @@ install_dsh() {
     printf "%s DSH installation failed.\n" "$RED_ERROR" >&2
     return "$E_INSTALLATION"
   fi
-  local group_list group_lists repository
   printf "DSH version %s installed.\n" "$(dsh_version)"
-  [[ -d /etc/dsh/group ]] || sudo mkdir -p /etc/dsh/group
-	repository=$(assign_cfg_repo)
-  group_lists=( desktops i3wm laptops )
-  printf "Changing remote shell from rsh to ssh.\n"
-  sudo sed -i '/remoteshell/s/rsh/ssh/' /etc/dsh/dsh.conf
-  prinf "Copying machine and group lists...\n"
-  copy_machines_list "$repository"
-  for group_list in "${group_lists[@]}"; do
-    copy_group_list "$repository" "$group_list"
-  done
+  configure_dsh
   return 0
+}
+
+remove_dsh() {
+	if ! installed dsh; then
+		printf "DSH is not installed.\n" >&2
+		return "$E_NOT_INSTALLED"
+	fi
+	sudo_login 2
+	printf "Removing DSH %s...\n" "$(dsh_version)"
+	sudo apt-get remove -yy dsh
+	[[ -d /etc/dsh ]] && sudo rm -rf /etc/dsh
+	[[ -f /usr/share/man/man1/dsh.1.gz ]] && sudo rm /usr/share/man/man1/dsh.1.gz
+	[[ -f /usr/share/man/man5/dsh.conf.5.gz ]] && sudo rm /usr/share/man/man5/dsh.conf.5.gz
+	printf "DSH has been removed.\n"
+	return 0
 }
 
 main() {
   local -r script="${0##*/}"
-  local -r version="3.6.26245"
+  local -r version="4.0.26246"
   local -i exit_code=0
-  check_package git
-  install_dsh
-  exit_code="$?"
+	local -i noOpt=1
+	local -r optstr=":hir"
+	local opt OPTARG OPTIND
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			h )
+				help "$script" "$version" 0 ;;
+			i )
+				check_package git
+				install_dsh ;;
+			r )
+				remove_dsh ;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$script" "$version" "$E_INVALID_ARG"
+		esac
+		exit_code="$?"
+		noOpt=0
+	done
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
+	shift "$(( OPTIND - 1 ))"
   over_line "$script $version"
   exit "$exit_code"
 }
