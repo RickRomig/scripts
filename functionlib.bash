@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 26 Aug 2026
+# Last updated : 02 Sep 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -540,10 +540,10 @@ assign_cfg_repo() {
 			repo_dir="$HOME/gitea/configs" ;;
 		* )
 			if [[ -d "$repo_dir" ]]; then
-				pushd "$repo_dir" || die "pushd failed" "$E_POPD_PUSHD"
+				pushd "$repo_dir" >/dev/null || die "pushd failed" "$E_POPD_PUSHD"
         git checkout .
 				git pull --quiet
-				popd || die "popd failed" "$E_POPD_PUSHD"
+				popd >/dev/null || die "popd failed" "$E_POPD_PUSHD"
 			else
 				git clone --quiet "$GITHUB_URL/configs.git" "$repo_dir/"
 			fi
