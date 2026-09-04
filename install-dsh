@@ -28,8 +28,8 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -r errcode="${3:-1}"
 	local -r updated="03 Sep 2026"
 	cat <<- _HELP_
@@ -46,56 +46,56 @@ _HELP_
 }
 
 dsh_version() {
-  awk 'NR==1 {print $NF}' < <(dsh --version)
-  return 0
+	awk 'NR==1 {print $NF}' < <(dsh --version)
+	return 0
 }
 
 copy_machines_list() {
 	local -r repository="$1"
-  printf "Copying machines.list to /etc/dsh/ ...\n"
-  awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/machines.list" /etc/dsh/)
-  return 0
+	printf "Copying machines.list to /etc/dsh/ ...\n"
+	awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/machines.list" /etc/dsh/)
+	return 0
 }
 
 copy_machine_lists() {
 	local -r repository="$1"
 	local machine_list
 	local -r machine_lists=(desktops i3wm laptops)
-  [[ -d /etc/dsh/group ]] || sudo mkdir -p /etc/dsh/group
-  printf "Creating symbolic link from /etc/dsh/machines.list to /etc/dsh/group/all\n"
-  [[ -L /etc/dsh/group/all ]] || sudo ln -sv /etc/dsh/machines.list /etc/dsh/group/all
-  for machine_list in "${machine_lists[@]}"; do
-    printf "Copying the %s list to /etc/dsh/group ...\n" "$machine_list"
-    awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/group/$machine_list" /etc/dsh/group/) | sed "s/'//"
-  done
-  return 0
+	[[ -d /etc/dsh/group ]] || sudo mkdir -p /etc/dsh/group
+	printf "Creating symbolic link from /etc/dsh/machines.list to /etc/dsh/group/all\n"
+	[[ -L /etc/dsh/group/all ]] || sudo ln -sv /etc/dsh/machines.list /etc/dsh/group/all
+	for machine_list in "${machine_lists[@]}"; do
+		printf "Copying the %s list to /etc/dsh/group ...\n" "$machine_list"
+		awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/group/$machine_list" /etc/dsh/group/) | sed "s/'//"
+	done
+	return 0
 }
 
 configure_dsh() {
 	repository=$(assign_cfg_repo); local -r repository
-  printf "Backing up and copying dsh.conf...\n"
-  awk -F"/" '{print "=> " $NF}' < <(sudo cp -v /etc/dsh/dsh.conf /etc/dsh/dsh.conf.bak)
+	printf "Backing up and copying dsh.conf...\n"
+	awk -F"/" '{print "=> " $NF}' < <(sudo cp -v /etc/dsh/dsh.conf /etc/dsh/dsh.conf.bak)
 	awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/dsh.conf" /etc/dsh/)
-  prinf "Copying machine and group lists...\n"
-  copy_machines_list "$repository"
-  copy_machine_lists "$repository"
-  return 0
+	prinf "Copying machine and group lists...\n"
+	copy_machines_list "$repository"
+	copy_machine_lists "$repository"
+	return 0
 }
 
 install_dsh() {
-  if installed dsh; then
-    printf "DSH %s is already installed.\n" "$(dsh_version)" >&2
-    return 2
-  fi
-  sudo_login 2
-  sudo apt-get -y install dsh
-  if ! installed dsh; then
-    printf "%s DSH installation failed.\n" "$RED_ERROR" >&2
-    return "$E_INSTALLATION"
-  fi
-  printf "DSH version %s installed.\n" "$(dsh_version)"
-  configure_dsh
-  return 0
+	if installed dsh; then
+		printf "DSH %s is already installed.\n" "$(dsh_version)" >&2
+		return 2
+	fi
+	sudo_login 2
+	sudo apt-get -y install dsh
+	if ! installed dsh; then
+	printf "%s DSH installation failed.\n" "$RED_ERROR" >&2
+	return "$E_INSTALLATION"
+	fi
+	printf "DSH version %s installed.\n" "$(dsh_version)"
+	configure_dsh
+	return 0
 }
 
 remove_dsh() {
@@ -114,9 +114,9 @@ remove_dsh() {
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="4.0.26246"
-  local -i exit_code=0
+	local -r script="${0##*/}"
+	local -r version="4.0.26246"
+	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hir"
 	local opt OPTARG OPTIND
@@ -141,8 +141,8 @@ main() {
 		help "$script" "$version" "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
-  over_line "$script $version"
-  exit "$exit_code"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
