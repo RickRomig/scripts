@@ -480,7 +480,6 @@ format_time() {
 }
 
 check_for_file() {
-	local file_dir
 	local -r target_file="${1:-foo.bar}"
 	local -r file_dir=~/bin/files
 	if [[ -f "$file_dir/$target_file" ]]; then
@@ -634,7 +633,7 @@ default_yes() {
 	local -r yn_prompt="$1"
 	local yn
 	while true; do
-		read -rp "$yn_prompt [yes/no] " yn
+		read -rp "$yn_prompt [Y/n] " yn
 		case "${yn,,}" in
 			[Yy]*|'' )
 				return "$TRUE" ;;
@@ -650,7 +649,7 @@ default_no() {
 	local -r yn_prompt="$1"
 	local yn
 	while true; do
-		read -rp "$yn_prompt [yes/no] " yn
+		read -rp "$yn_prompt [y/N] " yn
 		case "${yn,,}" in
 			[Yy]* )
 				return "$TRUE" ;;
