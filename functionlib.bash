@@ -126,8 +126,8 @@ diehard() {
 }
 
 dielog() {
-  local -r message="$1"
-  local -r log_file="$2"
+	local -r message="$1"
+	local -r log_file="$2"
 	local -ri err_code="${3:-1}"
 	tee -a "$log_file" < <(printf "%(%F %R)T: \e[91mERROR:\e[0m %s (%d)\n" -1 "$message" "$err_code")
 	exit "$err_code"
@@ -141,7 +141,7 @@ error_handler() {
 }
 
 log() {
-  local -r message="$1"
+	local -r message="$1"
 	local -r log_file="$2"
 	tee -a "$log_file" < <(printf "%(%F %R)T: %s\n" -1 "$message")
 	return 0
