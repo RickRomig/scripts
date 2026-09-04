@@ -7,8 +7,8 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Nov 2019
-# Updated      : 09 Aug 2026
-# Version      : 3.8.26221
+# Updated      : 04 Sep 2026
+# Version      : 3.9.26247
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to current working directory
 # TODO (Rick)  :
@@ -32,8 +32,8 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="09 Aug 2026"
-  cat << _HELP_
+	local -r updated="04 Sep 2026"
+	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Downloads mp3 audio from YouTube videos to the current working diretory.
 
@@ -49,51 +49,51 @@ _HELP_
 }
 
 check_dependencies() {
-  [[ -x /usr/local/bin/yt-dlp ]] || die "yt-dlp is not installed." "$E_FILENOTFOUND"
-  printf "yt-dlp [OK]\n"
-  sleep 2
-  printf '\e[A\e[K'
-  check_package ffmpeg
-  return 0
+	[[ -x /usr/local/bin/yt-dlp ]] || die "yt-dlp is not installed." "$E_FILENOTFOUND"
+	printf "yt-dlp [OK]\n"
+	sleep 2
+	printf '\e[A\e[K'
+	check_package ffmpeg
+	return 0
 }
 
 download_audio() {
-  local -r url"$1"
-  local -i exit_code=0
-  color_header "YouTube Audio Download" "ORANGE"
-  printf "\nDownloading mp3 audio from %s to %s...\n" "$url" "$PWD"
-  /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" "$url"; exit_code="$?"
-  if [[ "$exit_code" -ne 0 ]]; then
-    printf "Download failed. Error: %d" "$exit_code"
-  else
-    printf "Download successful.\n"
-  fi
-  return "$exit_code"
+	local -r url="$1"
+	local -i exit_code=0
+	color_header "YouTube Audio Download" "ORANGE"
+	printf "\nDownloading mp3 audio from %s to %s...\n" "$url" "$PWD"
+	/usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" "$url"; exit_code="$?"
+	if [[ "$exit_code" -ne 0 ]]; then
+		printf "Download failed. Error: %d" "$exit_code"
+	else
+		printf "Download successful.\n"
+	fi
+	return "$exit_code"
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="3.8.26221"
+	local -r script="${0##*/}"
+	local -r version="3.9.26247"
 	local -i exit_code=0
-  local audio_url
-  local re="^https?:\/\/.*"
-  if [[ "$#" = 0 ]]; then
-    printf "%s No argument passed.\n" "$RED_ERROR" >&2
-    help "$script" "$version" "$E_MISSING_ARG"
-  elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    help "$script" "$version" 0
-  elif [[ $1 =~ $re ]]; then
-    # match by regex, starts with http:// or https://
-    audio_url="$*"
-  else
-    # match by YouTube video ID
-    audio_url="https://www.youtube.com/watch?v=$*"
-  fi
-  check_dependencies
-  download_audio "$audio_url"
-  exit_code="$?"
-  over_line "$script $version" "-"
-  exit "$exit_code"
+	local audio_url
+	local -r re="^https?:\/\/.*"
+	if [[ "$#" -eq 0 ]]; then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
+		help "$script" "$version" 0
+	elif [[ $1 =~ $re ]]; then
+		# match by regex, starts with http:// or https://
+		audio_url="$*"
+	else
+		# match by YouTube video ID
+		audio_url="https://www.youtube.com/watch?v=$*"
+	fi
+	check_dependencies
+	download_audio "$audio_url"
+	exit_code="$?"
+	over_line "$script $version" "-"
+	exit "$exit_code"
 }
 
 main "$@"
