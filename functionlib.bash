@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 03 Sep 2026
+# Last updated : 04 Sep 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -201,7 +201,7 @@ get_distribution() {
 
 is_debian() {
 	local codename
-  codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
+	codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
 	case "$codename" in
 		trixie|bookworm|gigi ) return "$TRUE" ;;
 		* ) return "$FALSE"
@@ -291,7 +291,7 @@ local_ip() {
 
 valid_ip() {
 	local localip
-  local -r octet="$1"
+	local -r octet="$1"
 	local -r re="^[0-9]+$"
 	local -i status=0
 	localip="$(local_ip)"
@@ -362,7 +362,7 @@ viewtext() {
 }
 
 remove_tilde() {
-  find . -maxdepth 1 -type f -regex '\./.*~$' -exec rm {} \;
+	find . -maxdepth 1 -type f -regex '\./.*~$' -exec rm {} \;
 	return 0
 }
 
@@ -584,9 +584,7 @@ spin() {
 
 # SPIN_PID must be declared as a global variable in the calling script
 kill_spin() {
-	if [[ -n "$SPIN_PID" ]]; then
-		kill "$SPIN_PID"
-	fi
+	if [[ -n "$SPIN_PID" ]]; then kill "$SPIN_PID"; fi
 	printf "\n"
 	printf '\e[A\e[K'
 	tput cnorm
