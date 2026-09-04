@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-## Updated      : 06 Aug 2026
-# Version      : .26218
+# Updated      : 03 Sep 2026
+# Version      : 7.6.26246
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,8 +38,8 @@ drive_test() {
 	check_usb
 	mount_bu
 	bu_drive_label
-  bu_drive_fs
-  check_uuid
+	bu_drive_fs
+	check_uuid
 	get_space_remaining
 	printf "USB Backup Drive checks completed.\n"
 	if default_yes "${lightgreen}Continue with the backup?${normal}"; then
@@ -61,9 +61,9 @@ check_usb() {
 }
 
 mount_bu() {
-  local usbdrv
-  usbdrv=$(awk -F/ '/BU_Drive/ {print $3}' /proc/mounts)
-  [[ -d "$MOUNT_POINT" ]] || sudo mkdir -p "$MOUNT_POINT"
+	local usbdrv
+	usbdrv=$(awk -F/ '/BU_Drive/ {print $3}' /proc/mounts)
+	[[ -d "$MOUNT_POINT" ]] || sudo mkdir -p "$MOUNT_POINT"
 	if [[ $usbdrv ]]; then
 		printf "BU_Drive mounted on /dev/%s\n" "$usbdrv"
 	elif [[ -z $usbdrv ]]; then
@@ -91,7 +91,7 @@ bu_drive_label() {
 }
 
 bu_drive_fs() {
-  local fs_type
+	local fs_type
 	fs_type=$(awk '/BU_Drive/ {print $3}' /proc/mounts)
 	if [[ "$fs_type" == "ext4" || "$fs_type" == "XFS" ]]; then
 		printf "BU_Drive format = %s\n" "$fs_type"
@@ -176,7 +176,7 @@ trim_log() {
 }
 
 bu_prep() {
-  printf "Changing ownership of BU_Drive to %s...\n" "$USER"
+	printf "Changing ownership of BU_Drive to %s...\n" "$USER"
 	sudo chown "$USER" "$MOUNT_POINT"
 	printf "Checking for/creating machine specific directories...\n"
 	[[ -d "$MOUNT_POINT"/BU_Backups/"$L_HOST" ]] || mkdir -p "$MOUNT_POINT"/BU_Backups/"$L_HOST"
@@ -189,30 +189,30 @@ backup() {
 	local excluded=('timeshift' 'lost+found' 'mnt' '.local/share/libvirt/' '.local/share/gnome-boxes/' '.cache/' '.local/share/Trash/' 'Downloads/ISO/')
 	local exclude_opts=()
 	for item in "${excluded[@]}"; do exclude_opts+=( --exclude="$item" ); done
-  printf "%sBacking up /etc and /home to BU_Drive/BU_Backups/%s/%s\n" "$green" "$L_HOST" "$normal"
-  if sudo rsync -aH --delete "${exclude_opts[@]}" --info=progress2 /etc /home "$MOUNT_POINT"/BU_Backups/"$L_HOST"/ 2>>"$LOGFILE"; then
-    # Clear any accidental input during backup:
+	printf "%sBacking up /etc and /home to BU_Drive/BU_Backups/%s/%s\n" "$green" "$L_HOST" "$normal"
+	if sudo rsync -aH --delete "${exclude_opts[@]}" --info=progress2 /etc /home "$MOUNT_POINT"/BU_Backups/"$L_HOST"/ 2>>"$LOGFILE"; then
+		# Clear any accidental input during backup:
 		flush_kb_buffer
 		printf "%sBackup successfully completed.%s\n" "$green" "$normal"
-    rm -f /"$MOUNT_POINT"/BU_Backups/"$L_HOST"/BU\ Backup* >/dev/null 2>&1
-    touch "$MOUNT_POINT/BU_Backups/$L_HOST/BU Backup was successful: $(date '+%F')"
+		rm -f /"$MOUNT_POINT"/BU_Backups/"$L_HOST"/BU\ Backup* >/dev/null 2>&1
+		touch "$MOUNT_POINT/BU_Backups/$L_HOST/BU Backup was successful: $(date '+%F')"
 		get_space_remaining
 		log "Backup completed successfully." "$LOGFILE"
 	else
-    # Clear any accidental input during backup:
+		# Clear any accidental input during backup:
 		flush_kb_buffer
-    rm -f "$MOUNT_POINT"/BU_Backups/"$L_HOST"/BU\ Backup* >/dev/null 2>&1
-    touch "$MOUNT_POINT/BU_Backups/$L_HOST/BU Backup had some errors: $(date '+%F')"
+		rm -f "$MOUNT_POINT"/BU_Backups/"$L_HOST"/BU\ Backup* >/dev/null 2>&1
+		touch "$MOUNT_POINT/BU_Backups/$L_HOST/BU Backup had some errors: $(date '+%F')"
 		log "$RED_ERROR rsync exited with errors!" "$LOGFILE"
 		printf "* Try reinserting the backup drive and running the command again to correct them.\n" >&2
-    printf "* If errors persist then you may have corrupt files or failing hardware.\n" >&2
-  fi
+		printf "* If errors persist then you may have corrupt files or failing hardware.\n" >&2
+	fi
 }
 
 restore() {
-  # Restore host's /home directory.
-  if [[ -d "$MOUNT_POINT"/BU_Backups/"$L_HOST"/ ]]; then
-	  printf "%s\n" "$RED_WARNING"
+	# Restore host's /home directory.
+	if [[ -d "$MOUNT_POINT"/BU_Backups/"$L_HOST"/ ]]; then
+		printf "%s\n" "$RED_WARNING"
 		printf "Any new files created in /home since last backup WILL BE DELETED!\n"
 		if y_or_n "Are you sure you want to restore now? [y/n]"; then
 			printf "Close any running applications and press any key to continue.\n"
@@ -222,7 +222,7 @@ restore() {
 				# Clear any accidental input during restore:
 				flush_kb_buffer
 				printf "%sRestoration successfully complete!%s\n" "$green" "$normal"
-	      printf "Restart machine for all changes to take effect.\n"
+				printf "Restart machine for all changes to take effect.\n"
 				log "Restore operation completed successfully." "$LOGFILE"
 			else
 				# If rsync fails, clear any accidental input during restore:
@@ -236,12 +236,12 @@ restore() {
 			fi
 		else
 			log "${orange}Restoration canceled.${normal}" "$LOGFILE"
-	  fi
+		fi
 	else
 		log "$RED_ERROR Cannot find valid backup directory for $L_HOST!" "$LOGFILE"
-    printf "* This drive may not have been used to backup this machine.\n" >&2
-    printf "* BU_Backups/%s directory may have been moved or deleted.\n" "$L_HOST" >&2
-    printf "* Hostname or username may have changed since last backup.\n" >&2
+		printf "* This drive may not have been used to backup this machine.\n" >&2
+		printf "* BU_Backups/%s directory may have been moved or deleted.\n" "$L_HOST" >&2
+		printf "* Hostname or username may have changed since last backup.\n" >&2
 	fi
 }
 
@@ -250,7 +250,7 @@ help() {
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
 	local -r updated="20 May 2026"
-	cat << _HELP_
+	cat <<- _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
 
@@ -266,13 +266,13 @@ ${orange}Notes:${normal}
   - The backup partition must be labeled 'BU_Drive'
   - The decicated backup drive can be only used on the system it's associated with.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 drive_setup() {
 	local -r script="$1"
 	local -r version="$2"
-	cat << _SETUP_
+	cat <<- _SETUP_
  ${orange}BU_Drive Setup:${normal}
 	- Prepare the backup drive with a tool like Gparted or Gnome Disks.
 	- This can be any USB storage device. Recommend an external hard drive or SSD.
@@ -289,7 +289,7 @@ _SETUP_
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.5.26140"
+	local -r version="7.6.26246"
 	local -i exit_code=0
 	local  opt OPTARG OPTIND loglen
 	[[ -f "$LOGFILE" ]] || echo "${LOGFILE##*/}" > "$LOGFILE"
@@ -329,7 +329,10 @@ main() {
 		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" -eq 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	trim_log
 	over_line "Backup completed in $(format_time $SECONDS)" "-"
