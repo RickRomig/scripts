@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 02 Sep 2026
+# Last updated : 03 Sep 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -113,37 +113,37 @@ DEFAULT=$(echo -en "\e[49m")
 ## Functions ##
 
 die() {
-  local -r errmsg="$1"
-  local -r errcode="${2:-1}"
-  printf "\e[91mERROR:\e[0m %s (%d)\n" "$errmsg" "$errcode" >&2
-  exit "$errcode"
+	local -r errmsg="$1"
+	local -ri errcode="${2:-1}"
+	printf "\e[91mERROR:\e[0m %s (%d)\n" "$errmsg" "$errcode" >&2
+	exit "$errcode"
 }
 
 diehard() {
-  local line
+	local line
 	printf "\e[91mERROR:\e[0m "
 	exec 2>&1; for line; do printf "%s\n" "$line"; done; exit 1
 }
 
 dielog() {
-  local message="$1"
-  local log_file="$2"
-  local err_code="${3:-1}"
-  tee -a "$log_file" < <(printf "%(%F %R)T: \e[91mERROR:\e[0m %s (%d)\n" -1 "$message" "$err_code")
-  exit "$err_code"
+  local -r message="$1"
+  local -r log_file="$2"
+	local -ri err_code="${3:-1}"
+	tee -a "$log_file" < <(printf "%(%F %R)T: \e[91mERROR:\e[0m %s (%d)\n" -1 "$message" "$err_code")
+	exit "$err_code"
 }
 
 error_handler() {
-  local -r err_code="$1"
-  local -r line_nr="$2"
-  printf "\e[91mERROR:\e[0m (%s) occurred on line %s\n" "$err_code" "$line_nr" >&2
-  exit "$err_code"
+	local -ri err_code="$1"
+	local -ri line_nr="$2"
+	printf "\e[91mERROR:\e[0m (%s) occurred on line %s\n" "$err_code" "$line_nr" >&2
+	exit "$err_code"
 }
 
 log() {
-  local message="$1"
-  local log_file="$2"
-  tee -a "$log_file" < <(printf "%(%F %R)T: %s\n" -1 "$message")
+  local -r message="$1"
+	local -r log_file="$2"
+	tee -a "$log_file" < <(printf "%(%F %R)T: %s\n" -1 "$message")
 	return 0
 }
 
@@ -154,213 +154,210 @@ debug() {
 # Usage:  place 'debug' messages in script; run DEBUG=1 <script>; unset DEBUG
 
 root_user() {
-  [[ "$(id -u)" -eq "0" ]] && return "$TRUE" || return "$FALSE"
+	[[ "$(id -u)" -eq "0" ]] && return "$TRUE" || return "$FALSE"
 }
 
 user_exists() {
-  local U="$1"
-  grep -q "^${U}" /etc/passwd && return "$TRUE" || return "$FALSE"
+	local -r U="$1"
+	grep -q "^${U}" /etc/passwd && return "$TRUE" || return "$FALSE"
 }
 
 sudo_login() {
-  local delay="${1:-2}"
-  grep -qw sudo <(id -nG "$USER") || die "$USER is not a member of the sudo group. Access denied." 1
+	local -ri delay="${1:-2}"
+	grep -qw sudo <(id -nG "$USER") || die "$USER is not a member of the sudo group. Access denied." 1
 	sudo -vn 2>/dev/null && return 0  # returns if sudo is already active and extends the sudo timeout
 	sudo ls &>/dev/null
-  [[ $delay -gt 0 ]] && sleep "$delay"
-  printf '\e[A\e[K'
+	[[ $delay -gt 0 ]] && sleep "$delay"
+	printf '\e[A\e[K'
 	return 0
 }
 
 clearscreen() {
-  # clears the terminal screen without scrollback (Kittty)
-  printf '\e[H\e[2J\e[3J'
+	# clears the terminal screen without scrollback (Kittty)
+	printf '\e[H\e[2J\e[3J'
 	return 0
 }
 
 bin_in_path() {
-  grep -q "$HOME/bin" <<< "$PATH" && return $TRUE || return $FALSE
+	grep -q "$HOME/bin" <<< "$PATH" && return $TRUE || return $FALSE
 }
 
 exists() {
-  # checks if program/application is in user's path
-  command -v "$1" &>/dev/null && return "$TRUE" || return "$FALSE"
+	# checks if program/application is in user's path
+	command -v "$1" &>/dev/null && return "$TRUE" || return "$FALSE"
 }
 
 installed() {
-  # checks if program/appliation was installed by apt/dpkg and is still installed
-  grep -q '^ii' < <(dpkg -l "$1" 2>/dev/null) && return "$TRUE" || return "$FALSE"
+	# checks if program/appliation was installed by apt/dpkg and is still installed
+	grep -q '^ii' < <(dpkg -l "$1" 2>/dev/null) && return "$TRUE" || return "$FALSE"
 }
 
 get_distribution() {
-  local distro
-  distro=$(/usr/bin/lsb_release --description --short 2>/dev/null)
-  echo "$distro"
+	local distro
+	distro=$(/usr/bin/lsb_release --description --short 2>/dev/null)
+	echo "$distro"
 	return 0
 }
 
 is_debian() {
-  local codename
+	local codename
   codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
-  case "$codename" in
-    trixie|bookworm|gigi ) return "$TRUE" ;;
-    * ) return "$FALSE"
-  esac
+	case "$codename" in
+		trixie|bookworm|gigi ) return "$TRUE" ;;
+		* ) return "$FALSE"
+	esac
 }
 
 debian_based() {
-  grep -qw debian < <(grep -E -w 'ID|ID_LIKE' /etc/os-release) && return "$TRUE" || return "$FALSE"
+	grep -qw debian < <(grep -E -w 'ID|ID_LIKE' /etc/os-release) && return "$TRUE" || return "$FALSE"
 }
 
 is_noble() {
-  [[ $(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release) == "noble" ]] && return "$TRUE" || return "$FALSE"
+	[[ $(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release) == "noble" ]] && return "$TRUE" || return "$FALSE"
 }
 
 support_ppa() {
-  local codename
-  codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
-  case "$codename" in
-    noble|wilma|xia|zara|zena ) return "$TRUE" ;;
-    * ) return "$FALSE"
-  esac
+	local codename
+	codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
+	case "$codename" in
+		noble|wilma|xia|zara|zena ) return "$TRUE" ;;
+		* ) return "$FALSE"
+	esac
 }
 
 antix_mx() {
-  local dist_id
+	local dist_id
 	[[ -f /etc/lsb-release ]] || return "$FALSE"
-  dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2>/dev/null)
-  [[ "$dist_id" == "antiX" || "$dist_id" == "MX" ]] && return "$TRUE" || return "$FALSE"
+	dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2>/dev/null)
+	[[ "$dist_id" == "antiX" || "$dist_id" == "MX" ]] && return "$TRUE" || return "$FALSE"
 }
 
 bunsenlabs() {
-  [[ $(/usr/bin/lsb_release --id --short) == "BunsenLabs" ]] && return "$TRUE" || return "$FALSE"
+	[[ $(/usr/bin/lsb_release --id --short) == "BunsenLabs" ]] && return "$TRUE" || return "$FALSE"
 }
 
 is_arch() {
-  [[ -d /etc/pacman.d ]] && return "$TRUE" || return "$FALSE"
+	[[ -d /etc/pacman.d ]] && return "$TRUE" || return "$FALSE"
 }
 
 is_systemd() {
-  [[ $(cat /proc/1/comm) == "systemd" ]] && return "$TRUE" || return "$FALSE"
+	[[ $(cat /proc/1/comm) == "systemd" ]] && return "$TRUE" || return "$FALSE"
 }
 
 is_sysv() {
-  [[ $(awk '{print $1}' < <(/sbin/init --version 2>/dev/null)) == "SysV" ]] && return "$TRUE" || return "$FALSE"
+	[[ $(awk '{print $1}' < <(/sbin/init --version 2>/dev/null)) == "SysV" ]] && return "$TRUE" || return "$FALSE"
 }
 
 is_openrc() {
-  [[ -f /sbin/openrc ]] && return "$TRUE" || return "$FALSE"
+	[[ -f /sbin/openrc ]] && return "$TRUE" || return "$FALSE"
 }
 
 is_runit() {
-  [[ $(cat /proc/1/comm) == "runit" ]] && return "$TRUE" || return "$FALSE"
+	[[ $(cat /proc/1/comm) == "runit" ]] && return "$TRUE" || return "$FALSE"
 }
 
 is_cinnamon() {
-  [[ -f /usr/bin/cinnamon-session ]] && return "$TRUE" || return "$FALSE"
+	[[ -f /usr/bin/cinnamon-session ]] && return "$TRUE" || return "$FALSE"
 }
 
 is_i3wm() {
-  # [[ $(awk '/Name/ {print $NF}' < <(wmctrl -m 2>/dev/null)) == "i3" ]] && return "$TRUE" || return "$FALSE" # Not via SSH
-  # exists i3 && return "$TRUE" || return "$FALSE"
-  installed i3 && return "$TRUE" || return "$FALSE"
+	# [[ $(awk '/Name/ {print $NF}' < <(wmctrl -m 2>/dev/null)) == "i3" ]] && return "$TRUE" || return "$FALSE" # Not via SSH
+	# exists i3 && return "$TRUE" || return "$FALSE"
+	installed i3 && return "$TRUE" || return "$FALSE"
 }
 
 is_xfce() {
-  [[ -f /usr/bin/xfce4-session ]] && return "$TRUE" || return "$FALSE"
+	[[ -f /usr/bin/xfce4-session ]] && return "$TRUE" || return "$FALSE"
 }
 
 is_laptop() {
-  [[ -d /proc/acpi/button/lid/ ]] && return "$TRUE" || return "$FALSE"
+	[[ -d /proc/acpi/button/lid/ ]] && return "$TRUE" || return "$FALSE"
 }
 
 leapyear() {
-  local year="$1"
-  [[ $(( year % 4 )) -ne 0 ]] && return "$FALSE"
-  [[ $(( year % 400 )) -eq 0 ]] && return "$TRUE"
-  [[ $(( year % 100 )) -eq 0 ]] && return "$FALSE" || return "$TRUE"
+	local -ri year="$1"
+	[[ $(( year % 4 )) -ne 0 ]] && return "$FALSE"
+	[[ $(( year % 400 )) -eq 0 ]] && return "$TRUE"
+	[[ $(( year % 100 )) -eq 0 ]] && return "$FALSE" || return "$TRUE"
 }
 
 local_ip() {
-  local octet
-  octet=$(awk '{print $7}' <(ip route get 1.2.3.4))
-  [[ "$octet" ]] || die "No IP address found. Check network status." "$E_NETWORK"
-  printf "%s" "${octet##*.}"
+	local octet
+	octet=$(awk '{print $7}' <(ip route get 1.2.3.4))
+	[[ "$octet" ]] || die "No IP address found. Check network status." "$E_NETWORK"
+	printf "%s" "${octet##*.}"
 	return 0
 }
 
 valid_ip() {
-  local octet status localip re
-  octet="$1"
-  re="^[0-9]+$"
-  status=0
-  localip="$(local_ip)"
-  if [[ -z "$octet" ]]; then
-    status="$E_MISSING_ARG"
-    printf "%s No argument passed. No host IP.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" >&2
-  elif [[ $1 =~ $re ]]; then
-    # Argument is an integer value
-    if (( octet > 0 )) && (( octet < 255 )); then
-      # Valid address - test if reachable or local machine
-      if [[ "$localip" -eq "$octet" ]]; then
-        status="$E_NETWORK"
-        printf "%s %s.%s is the local client.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
-      elif ping -c 1 "$LOCALNET.$octet" > /dev/null 2>&1; then
-        status=0
-        printf "%s.%s is a valid and reachable IP address.\n" "$LOCALNET" "$octet"
-      else
-        status="$E_NETWORK"
-        printf "%s %s.%s is valid IP address but is unreachable.\nCheck to see if it is on the network.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
-      fi
-    else
-      status="$E_INVALID_ARG"
-      printf "%s %s.%s is not a valid IP address.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
-    fi
-  else
-    status="$E_INVALID_ARG"
-    printf "%s Invalid argument: %s\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$octet" >&2
-  fi
-  return "$status"
+	local localip
+  local -r octet="$1"
+	local -r re="^[0-9]+$"
+	local -i status=0
+	localip="$(local_ip)"
+	if [[ -z "$octet" ]]; then
+		status="$E_MISSING_ARG"
+		printf "%s No argument passed. No host IP.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" >&2
+	elif [[ $1 =~ $re ]]; then
+		# Argument is an integer value
+		if (( octet > 0 )) && (( octet < 255 )); then
+			# Valid address - test if reachable or local machine
+			if [[ "$localip" -eq "$octet" ]]; then
+				status="$E_NETWORK"
+				printf "%s %s.%s is the local client.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+			elif ping -c 1 "$LOCALNET.$octet" > /dev/null 2>&1; then
+				status=0
+				printf "%s.%s is a valid and reachable IP address.\n" "$LOCALNET" "$octet"
+			else
+				status="$E_NETWORK"
+				printf "%s %s.%s is valid IP address but is unreachable.\nCheck to see if it is on the network.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+			fi
+		else
+			status="$E_INVALID_ARG"
+			printf "%s %s.%s is not a valid IP address.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+		fi
+	else
+		status="$E_INVALID_ARG"
+		printf "%s Invalid argument: %s\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$octet" >&2
+	fi
+	return "$status"
 }
 
 edit_view_quit() {
-  local -r filename="$1"
-  local _opt
-  printf "\nYou may edit or view %s at this time.\n" "$filename"
-  PS3="Choose an option: "
-  select _opt in Edit View Quit; do
-    case "$REPLY" in
-      1 )
-        $EDITOR "$filename" || /usr/bin/nano "$filename"
-        break
-        ;;
-      2 )
-        if exists batcat; then
-          "$HOME"/.local/bin/bat "$filename"
-        elif exists bat; then
-          /usr/bin/bat "$filename"
-        else
-          viewtext "$filename"
-        fi
-        break
-        ;;
-      3 )
-        printf "\nExiting.\n"
-        break
-        ;;
-      * )
-        printf "%sInvalid choice. Try again.%s\n" "$orange" "$normal" >&2
-    esac
-  done
+	local -r filename="$1"
+	local _opt
+	printf "\nYou may edit or view %s at this time.\n" "$filename"
+	PS3="Choose an option: "
+	select _opt in Edit View Quit; do
+		case "$REPLY" in
+			1 )
+				$EDITOR "$filename" || /usr/bin/nano "$filename"
+				break ;;
+			2 )
+				if exists batcat; then
+					"$HOME"/.local/bin/bat "$filename"
+				elif exists bat; then
+					/usr/bin/bat "$filename"
+				else
+					viewtext "$filename"
+				fi
+				break ;;
+			3 )
+				printf "\nExiting.\n"
+				break ;;
+			* )
+				printf "%sInvalid choice. Try again.%s\n" "$orange" "$normal" >&2
+		esac
+	done
 	return 0
 }
 
 viewtext() {
-  local -r file="$1"
-  local catmax filelines
-  catmax=$(( $(tput lines)*87/100 ))
-  filelines=$(wc -l < "$file")
-  if [[ "$filelines" -gt "$catmax" ]]; then less "$file"; else cat "$file"; fi
+	local -r file="$1"
+	local catmax filelines
+	catmax=$(( $(tput lines)*87/100 ))
+	filelines=$(wc -l < "$file")
+	if [[ "$filelines" -gt "$catmax" ]]; then less "$file"; else cat "$file"; fi
 	return 0
 }
 
@@ -370,58 +367,58 @@ remove_tilde() {
 }
 
 anykey() {
-  read -rsn1 -p "Press any key to continue"; echo
+	read -rsn1 -p "Press any key to continue"; echo
 	return 0
 }
 
 print_line() {
-  local char width
-  char="${1:-=}"
-  char="${char::1}"
-  width="${2:-$(tput cols)}"
-  sed "s/ /$char/g" <(printf "%${width}s\n")
+	local char width
+	char="${1:-=}"
+	char="${char::1}"
+	width="${2:-$(tput cols)}"
+	sed "s/ /$char/g" <(printf "%${width}s\n")
 	return 0
 }
 
 # shellcheck disable=SC2001
 # See if you can use ${variable//search/replace} instead. (sed is necesary to replace all characters)
 box() {
-  local char edge title
-  char="${2:-*}"
-  char="${char::1}"
-  title="$char $1 $char"
-  edge=$(sed "s/./$char/g" <<< "$title")
-  printf "%s\n%s\n%s\n" "$edge" "$title" "$edge"
+	local char edge title
+	char="${2:-*}"
+	char="${char::1}"
+	title="$char $1 $char"
+	edge=$(sed "s/./$char/g" <<< "$title")
+	printf "%s\n%s\n%s\n" "$edge" "$title" "$edge"
 	return 0
 }
 
 # shellcheck disable=SC2001
 # See if you can use ${variable//search/replace} instead.. (sed is necesary to replace all characters)
 under_line() {
-  local char line title
-  local -r title="$1"
-  char="${2:--}"
-  char="${char::1}"
-  line=$(sed "s/./$char/g" <<< "$title")
-  printf "%s\n%s\n" "$title" "$line"
+	local char line
+	local -r title="$1"
+	char="${2:--}"
+	char="${char::1}"
+	line=$(sed "s/./$char/g" <<< "$title")
+	printf "%s\n%s\n" "$title" "$line"
 	return 0
 }
 
 # shellcheck disable=SC2001
 # See if you can use ${variable//search/replace} instead.. (sed is necesary to replace all characters)
 over_line() {
-  local char line title
-  title="$1"
-  char="${2:--}"
-  char="${char::1}"
-  line=$(sed "s/./$char/g" <<< "$title")
-  printf "%s\n%s\n"  "$line" "$title"
+	local char line
+	local -r title="$1"
+	char="${2:--}"
+	char="${char::1}"
+	line=$(sed "s/./$char/g" <<< "$title")
+	printf "%s\n%s\n"  "$line" "$title"
 	return 0
 }
 
 center_file() {
-  local -r file="$1"
-  local columns line
+	local -r file="$1"
+	local columns line
 	columns="$(tput cols)"
 	while IFS= read -r line; do
 		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
@@ -430,8 +427,8 @@ center_file() {
 }
 
 center_text() {
-  local -r text_string="$1"
-  local columns line
+	local -r text_string="$1"
+	local columns line
 	columns="$(tput cols)"
 	while IFS= read -r line; do
 		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
@@ -465,62 +462,62 @@ color_header() {
 }
 
 leave() {
-  local message message_file
-  message_file="$HOME/.local/share/doc/leave.txt"
-  message="${1:-$(shuf -n 1 "$message_file")}"
-  printf "%s\n" "$message"
-  exit 0
+	local -r message_file=~/.local/share/doc/leave.txt
+	local message
+	message="${1:-$(shuf -n 1 "$message_file")}"
+	printf "%s\n" "$message"
+	exit 0
 }
 
 format_time() {
-  local ET h m s
-  ET="$1"
-  ((h=ET/3600))
-  ((m=(ET%3600)/60))
-  ((s=ET%60))
-  printf "%02d:%02d:%02d\n" $h $m $s
+	local -ri ET="$1"
+	local h m s
+	((h=ET/3600))
+	((m=(ET%3600)/60))
+	((s=ET%60))
+	printf "%02d:%02d:%02d\n" $h $m $s
 	return 0
 }
 
 check_for_file() {
-  local file_dir target_file
-  target_file="${1:-foo.bar}"
-  file_dir="$HOME/bin/files"
-  if [[ -f "$file_dir/$target_file" ]]; then
-    printf "%s [OK]\n" "$target_file"
-    sleep 1
-    printf '\e[A\e[K'
-	  return 0
-  else
-    die "$target_file not found!" "$E_FILENOTFOUND"
-  fi
+	local file_dir
+	local -r target_file="${1:-foo.bar}"
+	local -r file_dir=~/bin/files
+	if [[ -f "$file_dir/$target_file" ]]; then
+		printf "%s [OK]\n" "$target_file"
+		sleep 1
+		printf '\e[A\e[K'
+		return 0
+	else
+		die "$target_file not found!" "$E_FILENOTFOUND"
+	fi
 }
 
 check_package() {
-  local package="$1"
-  if grep -q '^ii' < <(dpkg -l "$package" 2>/dev/null); then
-    printf "%s [OK]\n" "$package"
-    sleep 1
-    printf '\e[A\e[K'
-  else
-    printf "Installing %s ...\n" "$package"
-    sudo_login 1
-    sudo apt-get install "$package" -yyq
-  fi
+	local -r package="$1"
+	if grep -q '^ii' < <(dpkg -l "$package" 2>/dev/null); then
+		printf "%s [OK]\n" "$package"
+		sleep 1
+		printf '\e[A\e[K'
+	else
+		printf "Installing %s ...\n" "$package"
+		sudo_login 1
+		sudo apt-get install "$package" -yyq
+	fi
 	return 0
 }
 
 check_packages() {
-	local package packages
-  packages=("$@")
+	local -r packages=("$@")
+	local package
 	for package in "${packages[@]}"; do
-    if grep -q '^ii' < <(dpkg -l "$package" 2>/dev/null); then
-		  printf "%s [OK]\n" "$package"
-      sleep 1
-      printf '\e[A\e[K'
+		if grep -q '^ii' < <(dpkg -l "$package" 2>/dev/null); then
+			printf "%s [OK]\n" "$package"
+			sleep 1
+			printf '\e[A\e[K'
 		else
 			printf "Installing %s ...\n" "$package"
-      sudo_login 1
+			sudo_login 1
 			sudo apt-get install "$package" -yyq
 		fi
 	done
@@ -528,8 +525,8 @@ check_packages() {
 }
 
 in_repos() {
-  local package="$1"
-  [[ "$(awk '/Package:/ {print $NF}' < <(apt-cache show "$package" 2>/dev/null))" ]] && return "$TRUE" || return "$FALSE"
+	local -r package="$1"
+	[[ "$(awk '/Package:/ {print $NF}' < <(apt-cache show "$package" 2>/dev/null))" ]] && return "$TRUE" || return "$FALSE"
 }
 
 assign_cfg_repo() {
@@ -541,7 +538,7 @@ assign_cfg_repo() {
 		* )
 			if [[ -d "$repo_dir" ]]; then
 				pushd "$repo_dir" >/dev/null || die "pushd failed" "$E_POPD_PUSHD"
-        git checkout .
+				git checkout .
 				git pull --quiet
 				popd >/dev/null || die "popd failed" "$E_POPD_PUSHD"
 			else
@@ -554,7 +551,7 @@ assign_cfg_repo() {
 
 dots() {
 	local char="${1:-.}"
-  char="${char::1}"
+	char="${char::1}"
 	tput civis
 	while true; do
 		printf '%s' "$char"
@@ -575,7 +572,7 @@ kill_dots() {
 
 spin() {
 	local c
-	local chars=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
+	local -r chars=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
 	tput civis
 	while true; do
 		for c in "${chars[@]}"; do
@@ -598,89 +595,89 @@ kill_spin() {
 }
 
 y_or_n() {
-  local yn yn_prompt
-  yn_prompt="$1"
-  while true; do
+	local -r yn_prompt="$1"
+	local yn
+	while true; do
     read -rp "$yn_prompt [y/n] " yn
-    case "$yn" in
-      [Yy]* )
-        return "$TRUE" ;;
-      [Nn]* )
-        return "$FALSE" ;;
-      '' )
-        printf "%s Response required -- try again.\n" "$RED_WARNING" >&2 ;;
-      * )
-        printf "%s Invalid choice. Enter y or n.\n" "$RED_ERROR" >&2
-    esac
-  done
+		case "$yn" in
+			[Yy]* )
+				return "$TRUE" ;;
+			[Nn]* )
+				return "$FALSE" ;;
+			'' )
+				printf "%s Response required -- try again.\n" "$RED_WARNING" >&2 ;;
+			* )
+				printf "%s Invalid choice. Enter y or n.\n" "$RED_ERROR" >&2
+		esac
+	done
 }
 
 yes_or_no() {
-  local yn yn_prompt
-  yn_prompt="$1"
-  while true; do
-    read -rp "$yn_prompt [yes/no] " yn
-    case "${yn,,}" in
-      yes )
-        return "$TRUE" ;;
-      no )
-        return "$FALSE" ;;
-      '' )
-        printf "%s Response required -- try again.\n" "$RED_WARNING" >&2 ;;
-      * )
-        printf "%s Invalid choice. Enter yes or no.\n" "$RED_ERROR" >&2
-    esac
-  done
+	local -r yn_prompt="$1"
+	local yn
+	while true; do
+		read -rp "$yn_prompt [yes/no] " yn
+		case "${yn,,}" in
+			yes )
+				return "$TRUE" ;;
+			no )
+				return "$FALSE" ;;
+			'' )
+				printf "%s Response required -- try again.\n" "$RED_WARNING" >&2 ;;
+			* )
+				printf "%s Invalid choice. Enter yes or no.\n" "$RED_ERROR" >&2
+		esac
+	done
 }
 
 default_yes() {
-  local yn yn_prompt
-  yn_prompt="$1"
-  while true; do
-    read -rp "$yn_prompt [Y/n] " yn
-    case "$yn" in
-      [Yy]*|'' )
-        return "$TRUE" ;;
-      [Nn]* )
-        return "$FALSE" ;;
-      * )
-        printf "%s Invalid choice. Enter y or n.\n" "$RED_ERROR" >&2
-    esac
-  done
+	local -r yn_prompt="$1"
+	local yn
+	while true; do
+		read -rp "$yn_prompt [yes/no] " yn
+		case "${yn,,}" in
+			[Yy]*|'' )
+				return "$TRUE" ;;
+			[Nn]* )
+				return "$FALSE" ;;
+			* )
+				printf "%s Invalid choice. Enter yes or no.\n" "$RED_ERROR" >&2
+		esac
+	done
 }
 
 default_no() {
-  local yn yn_prompt
-  yn_prompt="$1"
-  while true; do
-    read -rp "$yn_prompt [y/N] " yn
-    case "$yn" in
-      [Yy]* )
-        return "$TRUE" ;;
-      [Nn]*|'' )
+	local -r yn_prompt="$1"
+	local yn
+	while true; do
+		read -rp "$yn_prompt [yes/no] " yn
+		case "${yn,,}" in
+			[Yy]* )
+				return "$TRUE" ;;
+			[Nn]*|'' )
         return "$FALSE" ;;
-      * )
-        printf "%s Invalid choice. Enter y or n.\n" "$RED_ERROR" >&2
-    esac
-  done
+			* )
+				printf "%s Invalid choice. Enter yes or no.\n" "$RED_ERROR" >&2
+		esac
+	done
 }
 
 url_reachable() {
-  local url result
-  url="$1"
-  result=$(curl --head --connect-timeout 8 --max-time 14 --silent --output /dev/null --write-out '%{http_code}' "$url")
-  [[ "$result" -eq 200 ]] && return "$TRUE" || return "$FALSE"
+	local result
+	local -r url="$1"
+	result=$(curl --head --connect-timeout 8 --max-time 14 --silent --output /dev/null --write-out '%{http_code}' "$url")
+	[[ "$result" -eq 200 ]] && return "$TRUE" || return "$FALSE"
 }
 
 reboot_system() {
-  printf "%sThe system needs to be rebooted for the change to take effect.%s\n" "$orange" "$normal"
-  if default_no "Do you want to reboot now?"; then
-    printf "Rebooting...\n"
-    sleep 10
-    sudo systemctl reboot
-  else
-    printf "\n%s Please reboot your system as soon as practical.\n" "$RED_WARNING"
-  fi
+	printf "%sThe system needs to be rebooted for the change to take effect.%s\n" "$orange" "$normal"
+	if default_no "Do you want to reboot now?"; then
+		printf "Rebooting...\n"
+		sleep 10
+		sudo systemctl reboot
+	else
+		printf "\n%s Please reboot your system as soon as practical.\n" "$RED_WARNING"
+	fi
 	return 0
 }
 
@@ -698,7 +695,7 @@ create_tmp() {
 			die "Invalid option. No temporary file/directory created." "$E_INVALID_ARG"
 	esac
 	trap cleanup EXIT
-  return 0
+	return 0
 }
 
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
