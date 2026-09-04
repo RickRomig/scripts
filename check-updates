@@ -7,12 +7,12 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 23 Aug 2026
-# Version      : 11.3.26235
+# Updated      : 04 Sep 2026
+# Version      : 12.0.26247
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
-# TODO (rick)  :
+# TODO (rick)  : Test when flathub updates are available
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
@@ -30,10 +30,10 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -ri errcode="${3:-1}"
-  local -r updated="23 Aug 2026"
+	local -r updated="04 Sep 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using either Apt-get or Nala.
@@ -41,40 +41,39 @@ Performs a system update using either Apt-get or Nala.
 ${green}Usage:${normal} $script [-achn]
 ${orange}Available options:${normal}
   -a  Perform a system upgrade using apt-get
-  -c  Check for updates (No upgrade)
   -h  Show this help message and exit
   -n  Perform a system upgrade using nala
 ${orange}Notes:${normal}
   If nala is not installed, -n defers to using apt-get
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 show_header() {
-  local -r script="$1"
-  local -r version="$2"
-  local -r local_host="${HOSTNAME:-$(hostname)}"
-  clearscreen
-  cat << _HEADER_
+	local -r script="$1"
+	local -r version="$2"
+	local -r local_host="${HOSTNAME:-$(hostname)}"
+	clearscreen
+	cat << _HEADER_
 ${bold}${orange}$script $version
 System: $local_host (ip: $(local_ip))
 Distro: $(get_distribution)
 Kernel: $(uname -sr)${normal}
 _HEADER_
-  return 0
+	return 0
 }
 
 system_reboot() {
-  [[ -f /var/run/reboot-required.pkgs ]] && cat /var/run/reboot-required.pkgs
-  printf "\n%s*** REBOOT REQUIRED ***%s\n" "$orange" "$normal"
-  if default_no "Do you want to reboot now?"; then
-    printf "Rebooting the system...\n"
-    sleep 10
-    sudo systemctl reboot
-  else
-    printf "\n%s Please reboot your system as soon as possible.\n" "$RED_WARNING"
-    return 0
-  fi
+	[[ -f /var/run/reboot-required.pkgs ]] && cat /var/run/reboot-required.pkgs
+	printf "\n%s*** REBOOT REQUIRED ***%s\n" "$orange" "$normal"
+	if default_no "Do you want to reboot now?"; then
+		printf "Rebooting the system...\n"
+		sleep 10
+		sudo systemctl reboot
+	else
+		printf "\n%s Please reboot your system as soon as possible.\n" "$RED_WARNING"
+		return 0
+	fi
 }
 
 check_disk_space() {
@@ -84,25 +83,25 @@ check_disk_space() {
 	r_used=$(cut -d ' ' -f2 <<< "$df_stats")
 	r_avail=$(cut -d ' ' -f3 <<< "$df_stats")
 	r_perc=$(cut -d ' ' -f4 <<< "$df_stats")
-  printf "\nDisk space used (root): %s / %s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
-  return 0
+	printf "\nDisk space used (root): %s / %s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
+	return 0
 }
 
 update_apt_cache() {
-  local -r cache_file="/var/cache/apt/pkgcache.bin"
-  # threshold values: 86400 = 24 hours, 43200 = 12 hours, 21600 = 6 hours 10800 = 3 hours, 3600 = 1 hour
-  local -ri threshold=3600
-  local current_time updated_time time_diff
-  current_time=$(date +%s)
-  updated_time=$(stat -c%Y "$cache_file")
-  time_diff=$(( current_time - updated_time ))
-  if [[ "$time_diff" -le "$threshold" ]]; then
-    printf "%sApt cache is up to date.%s\n" "$orange" "$normal"
-  else
-    printf "%sUpdating apt cache...%s\n" "$orange" "$normal"
-    sudo apt-get update
-  fi
-  return 0
+	local -r cache_file="/var/cache/apt/pkgcache.bin"
+	# threshold values: 86400 = 24 hours, 43200 = 12 hours, 21600 = 6 hours 10800 = 3 hours, 3600 = 1 hour
+	local -ri threshold=3600
+	local current_time updated_time time_diff
+	current_time=$(date +%s)
+	updated_time=$(stat -c%Y "$cache_file")
+	time_diff=$(( current_time - updated_time ))
+	if [[ "$time_diff" -le "$threshold" ]]; then
+		printf "%sApt cache is up to date.%s\n" "$orange" "$normal"
+	else
+		printf "%sUpdating apt cache...%s\n" "$orange" "$normal"
+		sudo apt-get update
+	fi
+	return 0
 }
 
 count_updates() {
@@ -117,47 +116,47 @@ count_updates() {
 }
 
 install_updates() {
-  printf "\n%sInstalling updates...%s\n" "$orange" "$normal"
-  sudo apt-get dist-upgrade -yy
-  return "$?"
+	printf "\n%sInstalling updates...%s\n" "$orange" "$normal"
+	sudo apt-get dist-upgrade -yy
+	return "$?"
 }
 
 clean_apt_cache() {
-  printf "\n%sCleaning up apt cache...%s\n" "$orange" "$normal"
-  sudo apt-get autoclean
-  return "$?"
+	printf "\n%sCleaning up apt cache...%s\n" "$orange" "$normal"
+	sudo apt-get autoclean
+	return "$?"
 }
 
 remove_orphans() {
-  local npkgs
-  npkgs=$(awk '$2 == "upgraded," {print $6}' <(apt-get autoremove -s))
-  printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
-  if [[ "$npkgs" -gt 0 ]]; then
-    sudo apt-get autoremove --purge -yy
-  else
-    printf "No packages to be removed.\n"
-  fi
-  return "$?"
+	local -i npkgs
+	npkgs=$(awk '$2 == "upgraded," {print $6}' <(apt-get autoremove -s))
+	printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
+	if [[ "$npkgs" -gt 0 ]]; then
+		sudo apt-get autoremove --purge -yy
+	else
+		printf "No packages to be removed.\n"
+	fi
+	return "$?"
 }
 
 update_complete() {
-  local -ri num_updates="$1"
-  printf "\n%sUpdate complete. %d" "$orange" "$num_updates"
-  (( num_updates != 1 )) && printf  " updates were" || printf  " update was"
-  printf " installed.%s\n" "$normal"
-  return 0
+	local -ri num_updates="$1"
+	printf "\n%sUpdate complete. %d" "$orange" "$num_updates"
+	(( num_updates != 1 )) && printf " updates were" || printf  " update was"
+	printf " installed.%s\n" "$normal"
+	return 0
 }
 
 defer_updates() {
-  local -ri num_updates="$1"
-  printf "\n%sNo updates installed. %d" "$orange" "$num_updates"
-  (( num_updates != 1 )) && printf " updates were" || printf " update was"
-  printf " deferred.%s\n" "$normal"
-  return 0
+	local -ri num_updates="$1"
+	printf "\n%sNo updates installed. %d" "$orange" "$num_updates"
+	(( num_updates != 1 )) && printf " updates were" || printf " update was"
+	printf " deferred.%s\n" "$normal"
+	return 0
 }
 
 apt_menu() {
-  local options _opt
+	local options _opt
 	local -ri nupd="$1"
 	COLUMNS=40
 	printf "\n%s%sUpdate options:%s\n" "$underline" "$green" "$normal"
@@ -174,207 +173,147 @@ apt_menu() {
 			1 )
 				install_updates
 				update_complete "$nupd"
-				break
-			  ;;
+				break ;;
 			2 )
 				install_updates
 				clean_apt_cache
 				update_complete "$nupd"
-				break
-			  ;;
+				break ;;
 			3 )
 				install_updates
 				remove_orphans
 				update_complete "$nupd"
-				break
-			  ;;
+				break ;;
 			4 )
 				install_updates
 				clean_apt_cache
 				remove_orphans
 				update_complete "$nupd"
-				break
-			  ;;
+				break ;;
 			5 )
 				defer_updates "$nupd"
-				break
-			  ;;
+				break ;;
 			* )
 				printf "%sInvalid option!%s Select 1..%d\n" "$lightred" "$normal" "${#options[@]}" >&2
 		esac
 	done
-  return 0
+	return 0
 }
 
 apt_update() {
-  local nupd
-  sudo_login 1
-  printf "%sChecking for updates...%s\n" "$orange" "$normal"
-  update_apt_cache
-  apt-get dist-upgrade -s > "$TMP_FILE"
-  nupd=$(count_updates)
-  printf "%sSummary:%s\n" "$orange" "$normal"
-  sed '1d' < <(sed -ne '/^Calculating/,/newly/p' "$TMP_FILE")
-  if [[ nupd -eq 0 ]]; then
-    printf "\nPackages are up to date\n"
-  else
-    apt_menu "$nupd"
-  fi
-  return 0
+	local nupd
+	sudo_login 1
+	printf "%sChecking for updates...%s\n" "$orange" "$normal"
+	update_apt_cache
+	apt-get dist-upgrade -s > "$TMP_FILE"
+	nupd=$(count_updates)
+	printf "%sSummary:%s\n" "$orange" "$normal"
+	sed '1d' < <(sed -ne '/^Calculating/,/newly/p' "$TMP_FILE")
+	if [[ nupd -eq 0 ]]; then
+		printf "\nPackages are up to date\n"
+	else
+		apt_menu "$nupd"
+	fi
+	return 0
 }
 
 nala_update() {
-  sudo_login 1
-  printf "%sChecking for updates...%s\n" "$orange" "$normal"
-  sudo nala upgrade
-  if default_no "Run autoremove/autopurge?"; then
-    printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
-    sudo nala autoremove
-    printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
-    sudo nala autopurge --config  # purge configuration files
-  else
-    printf "Autoremove and autopurge deferred.\n"
-  fi
-  printf "\n"
-  return 0
+	sudo_login 1
+	printf "%sChecking for updates...%s\n" "$orange" "$normal"
+	sudo nala upgrade
+	if default_no "Run autoremove/autopurge?"; then
+		printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
+		sudo nala autoremove
+		printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
+		sudo nala autopurge --config  # purge configuration files
+	else
+		printf "Autoremove and autopurge deferred.\n"
+	fi
+	printf "\n"
+	return 0
 }
 
 update_flatpaks() {
-  local fp_updates
-  fp_updates=$(grep -c 'updatable' < <(flatpak update --app --noninteractive))
-  if [[ "$fp_updates" -eq 0 ]]; then
-    printf "No flatpak updates currently available\n"
-    return 0
-  fi
-  printf "Updating flatpaks...\n"
-  printf "User installations...\n"
-  sed '/^$/d' < <(flatpak update --user --noninteractive --force-remove --assumeyes 2>/dev/null)
-  printf "System-wide installations...\n"
-  sed '/^$/d' < <(flatpak update --system --noninteractive --force-remove --assumeyes 2>/dev/null)
-  return 0
-}
-
-check_flatpak() {
-  # check if Flatpak is installed or if packages are installed
-  local fp_count
-  if ! installed flatpak; then
-    printf "Flatpak is not installed.\n"
-    return "$E_NOT_DETECTED"
-  fi
-  fp_count=$(wc -l < <(flatpak list))
-  if [[ $fp_count -eq 0 ]]; then
-    printf "No Flatpak packages installed.\n"
-  else
-    update_flatpaks
-  fi
-  return 0
+	local -i fp_count
+	local -i fp_updates
+	fp_count=$(wc -l < <(flatpak list))
+	fp_updates=$(wc -l < <(flatpak remote-ls --updates))
+	printf "\n%sFlatpak:%s\n" "$orange" "$normal"
+	if [[ $fp_count -eq 0 ]]; then
+		printf "No Flatpak packages installed.\n"
+	else
+		printf "Updating flatpaks...\n"
+		if [[ "$fp_updates" -gt 0 ]]; then
+			printf "User installations...\n"
+			sed '/^$/d' < <(flatpak update --user --noninteractive --force-remove --assumeyes 2>/dev/null)
+			printf "System-wide installations...\n"
+			sed '/^$/d' < <(flatpak update --system --noninteractive --force-remove --assumeyes 2>/dev/null)
+		else
+			printf "No flatpak updates available.\n"
+		fi
+	fi
+	return 0
 }
 
 update_spices() {
-  # update Cinnamon Spices for Cinnamon DE
-  printf "\n%sCinnamon Spices:%s\n" "$orange" "$normal"
-  cinnamon-spice-updater --update-all
-  return 0
-}
-
-check_spice_updates() {
-  # called by -c flag only to check number of updates available
-  local type types num
-  types=(applet desklet extension theme)
-  for type in "${types[@]}"; do
-    num=$(wc -l < <(cinnamon-spice-updater --list-simple "$type"))
-    printf "%d spice %s " "$num" "$type"
-    [[ "$num" -ne 1 ]] && printf "updates " || printf "uppdate "
-    printf "available.\n"
-  done
-  return 0
-}
-
-check_flatpak_updates() {
-  # called by -c flag only to check number of updates available
-  [[ $(wc -l < <(flatpak list)) -eq 0 ]] && { printf "No flatpak packages installed.\n"; return; }
-  local fp_updates
-  fp_updates=$(grep -c 'updatable'< <(flatpak update --app --noninteractive))
-  printf "%d flatpak " "$fp_updates"
-  [[ "$fp_updates" -ne 1 ]] && printf "updates " || printf "uppdate "
-  printf "available\n"
-  return 0
-}
-
-check_for_updates() {
-  # called by -c flag only to check number of updates available
-  local upgrades numup
-  sudo_login 1
-  upgrades=$(tail -n1 < <(sudo apt update 2>/dev/null))
-  printf "%s\nChecking for updates...%s\n" "$orange" "$normal"
-  numup=$(awk '{print $1}' <<< "$upgrades")
-  if [[ "$numup" == "All" ]]; then
-    printf "%s\n" "$upgrades"
-  else
-    printf "Packages that can be upgraded: %d\n" "$numup"
-    sed '1d' < <(apt list --upgradable 2>/dev/null)
-  fi
-  return 0
+	# update Cinnamon Spices for Cinnamon DE
+	printf "%sCinnamon Spices:%s\n" "$orange" "$normal"
+	cinnamon-spice-updater --update-all
+	return 0
 }
 
 other_checks() {
-  # called by -a (apt) and -n (nala) flags
-  exists cinnamon-spice-updater && update_spices
-  printf "\n%sFlatpak:%s\n" "$orange" "$normal"
-  check_flatpak
-  check_disk_space
-  over_line "Update completed in $(format_time $SECONDS)"
-  return 0
+	# called by -a (apt) and -n (nala) flags
+	exists cinnamon-spice-updater && update_spices
+	installed flatpak && update_flatpaks
+	check_disk_space
+	over_line "Update completed in $(format_time $SECONDS)"
+	return 0
 }
 
 main() {
-  SECONDS=0
-  local -r script="${0##*/}"
-  local -r version="11.3.26235"
-  local opt OPTARG OPTIND
+	SECONDS=0
+	local -r script="${0##*/}"
+	local -r version="12.0.26247"
+	local -i exit_code=0
 	local -i noOpt=1
-	local -r optstr=":achn"
+	local -r optstr=":ahn"
+	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
-    case "$opt" in
-      a )
-        create_tmp "file"
-        show_header "$script" "$version"
-        check_disk_space
-        apt_update
-        other_checks
-        ;;
-      c )
-        show_header "$script" "$version"
-        check_for_updates
-        exists flatpak && check_flatpak_updates
-        exists cinnamon-spice-updater && check_spice_updates
-        ;;
-      h )
-        help "$script" "$version" 0
-        ;;
-      n )
-        show_header "$script" "$version"
-        check_disk_space
-        if installed nala; then
-          nala_update
-        else
-          create_tmp "file"
-          printf "Nala is not installed. Reverting to apt-get ...\n"
-          apt_update
-        fi
-        other_checks
-        ;;
+		case "$opt" in
+			a )
+				create_tmp "file"
+				show_header "$script" "$version"
+				check_disk_space
+				apt_update
+				other_checks ;;
+			h )
+				help "$script" "$version" 0 ;;
+			n )
+				show_header "$script" "$version"
+				check_disk_space
+				if installed nala; then
+					nala_update
+				else
+					create_tmp "file"
+					printf "Nala is not installed. Reverting to apt-get ...\n"
+					apt_update
+				fi
+				other_checks ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
+		exit_code="$?"
 		noOpt=0
-  done
-	(( noOpt == 1 )) && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
-	shift "$(( OPTIND - 1 ))"
-  over_line "$script $version"
-  [[ -f /var/run/reboot-required || -f /run/reboot-required ]] && system_reboot
-  exit
+	done
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
+	over_line "$script $version"
+	[[ -f /var/run/reboot-required || -f /run/reboot-required ]] && system_reboot
+	exit "$exit_code"
 }
 
 main "$@"
