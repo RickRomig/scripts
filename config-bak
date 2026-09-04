@@ -7,8 +7,8 @@
 # Author       : Cepyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2019
-# Updated      : 06 Aug 2026
-# Version      : 6.8.26218
+# Updated      : 03 Sep 2026
+# Version      : 6.9.26246
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -35,9 +35,9 @@ bu_home_cfg(){
 	local -r file="$1"
 	if [[ -f "$HOME/$file" && -f "$BU_DIR/$file" ]]; then
 		if [[ "$BU_DIR/$file" -ot "$HOME/$file" ]]; then
-	    awk -F"/" '{print "==> " $NF}' < <(cp -pv "$HOME/$file" "$BU_DIR/") | sed "s/'$//"
+			awk -F"/" '{print "==> " $NF}' < <(cp -pv "$HOME/$file" "$BU_DIR/") | sed "s/'$//"
 			(( BU_COUNT++ ))
-	  fi
+		fi
 	elif [[ -f "$HOME/$file" ]]; then
 		awk -F"/" '{print "==> " $NF}' < <(cp -pv "$HOME/$file" "$BU_DIR/") | sed "s/'$//"
 		(( BU_COUNT++ ))
@@ -58,7 +58,7 @@ bu_config_cfg() {
 		[[ -d "$BU_DIR/$folder" ]] || mkdir -p "$BU_DIR/$folder"
 		printf "==> "
 		awk '{print $NF}' < <(cp -pv "$CFG_DIR/$folder/$file" "$BU_DIR/$folder/") | cut -d'/' -f6- | sed "s/'$//"
-	(( BU_COUNT++ ))
+		(( BU_COUNT++ ))
 	fi
 	return 0
 }
@@ -67,11 +67,11 @@ bu_misc_cfg() {
 	local -r folder="$1"
 	local -r file="$2"
 	if [[ -f "$HOME/$folder/$file" && -f "$BU_DIR/$folder/$file" ]]; then
-	  if [[ "$BU_DIR/$folder/$file" -ot "$HOME/$folder/$file" ]]; then
+		if [[ "$BU_DIR/$folder/$file" -ot "$HOME/$folder/$file" ]]; then
 			printf "==> "
 			awk '{print $NF}' < <(cp -pv "$HOME/$folder/$file" "$BU_DIR/$folder/") | cut -d'/' -f6- | sed "s/'$//"
 			(( BU_COUNT++ ))
-	  fi
+		fi
 	elif [[ -f "$HOME/$folder/$file" ]]; then
 		[[ -d "$BU_DIR/$folder" ]] || mkdir -p "$BU_DIR/$folder"
 		printf "==> "
@@ -101,16 +101,16 @@ bu_etc_cfg() {
 bu_cinnamon_keybindings() {
 	local -r keybind_bu="$1"
 	if [[ -f "$CFG_DIR/$keybind_bu" && -f "$BU_DIR/$keybind_bu" ]]; then
-	  if [[ "$BU_DIR/$keybind_bu" -ot "$CFG_DIR/$keybind_bu" ]]; then
+		if [[ "$BU_DIR/$keybind_bu" -ot "$CFG_DIR/$keybind_bu" ]]; then
 			awk -F"/" '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$keybind_bu" "$BU_DIR/") | sed "s/'$//"
 			(( BU_COUNT++ ))
-	  fi
+		fi
 	elif [[ -f "$CFG_DIR/$keybind_bu" ]]; then
 		awk -F"/" '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$keybind_bu" "$BU_DIR/") | sed "s/'$//"
 		(( BU_COUNT++ ))
 	elif is_cinnamon; then
-	  dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$keybind_bu"
-	  cp -pv "$CFG_DIR/$keybind_bu" "$BU_DIR/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$S//"
+		dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$keybind_bu"
+		cp -pv "$CFG_DIR/$keybind_bu" "$BU_DIR/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$S//"
 		awk -F"/" '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$keybind_bu" "$BU_DIR/") | sed "s/'$//"
 		(( BU_COUNT++ ))
 	fi
@@ -162,6 +162,8 @@ bu_editor_cfgs() {
 	[[ -f "$CFG_DIR/VSCodium/User/settings.json" ]] && bu_config_cfg "VSCodium/User" "settings.json"
 	[[ -f "$CFG_DIR/geany/geany.conf" ]] && bu_config_cfg "geany" "geany.conf"
 	[[ -f "$CFG_DIR/geany/keybindings.conf" ]] && bu_config_cfg "geany" "keybindings.conf"
+	[[ -f "$CFG_DIR/fresh/config.json" ]] && bu_config_cfg "fresh" "config.json"
+	[[ -f "$CFG_DIR/fresh/tsconfig.json" ]] && bu_config_cfg "fresh" "tsconfig.json"
 	[[ -f "$CFG_DIR/marktext/preferences.json" ]] && bu_config_cfg "marktext" "preferences.json"
 	[[ -f ~/.bluefish/rcfile-2.0 ]] && bu_misc_cfg ".bluefish" "rcfile-2.0"
 	return 0
@@ -223,7 +225,7 @@ completion_status() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.8.26218"
+	local -r version="6.9.26246"
 	[[ -d "$BU_DIR" ]] || mkdir -p "$BU_DIR"
 	printf "Backing up configuration files...\n"
 	bu_user_cfgs
