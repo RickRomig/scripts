@@ -39,7 +39,8 @@ trash_empty() {
 
 empty_trash() {
 	local -r trash_dir="$1"
-	local last_week old_trash_count
+	local -i old_trash_count
+	local last_week
 	last_week=$(date -d "$(date) - 6 days" +%F)
 	old_trash_count="$(wc -l < <(find "$trash_dir/files" -maxdepth 1 -type f,d -daystart -ctime +6))"
 	if trash_empty; then
