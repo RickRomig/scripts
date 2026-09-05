@@ -7,7 +7,8 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 07 Ju1 2026
+# Updated      : 05 Sep 2026
+# Version      : 5.15.26248
 # Comments     : Run as a user cron job. '~/.local/bin/empty-trash.sh'
 #              : Trash directory does not exist until a file has been moved to the trash.
 # TODO (Rick)  :
@@ -25,7 +26,7 @@
 
 # Check version of trash-cli
 old_trash_count_version() {
-  local -i vernum
+	local -i vernum
 	vernum=$(cut -d. -f2 < <(trash-empty --version))
 	(( vernum < 23 )) && return 0 || return 1
 }
@@ -67,14 +68,13 @@ empty_trash() {
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="5.14.26188"
-  local -r lhost="${HOSTNAME:-$(hostname)}"
+	local -r script="${0##*/}"
+	local -r version="5.15.26248"
+	local -r lhost="${HOSTNAME:-$(hostname)}"
 	local -r trash_dir=~/.local/share/Trash
 	local -r log_dir=~/.local/share/logs
 	local -r log_file="trash.log"
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
-
 	{
 		printf "Local Trash Log - %s\n" "$lhost"
 		printf "%(%A %F %R)T\n"
