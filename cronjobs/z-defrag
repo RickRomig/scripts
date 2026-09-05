@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2021-2025, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2021
-# Updated      : 03 May 2026
+# Updated      : 05 Sep 2026
+# Version      : 3.4.26248
 # Comments     : Do not run e4defrag on SSD or NVME drives.
 #              : anacron job: Copy to /etc/cron.monthly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
@@ -29,13 +30,13 @@
 # See if you can use ${variable//search/replace} instead.
 # In this case parameter expansion does not work.
 over_line() {
-  local char len line title
-  title="$1"
-  char="${2:--}"
-  len=${#char}
-  (( len > 1 )) && char=${char::1}
-  line=$(sed "s/./$char/g" <<< "$title")
-  printf "%s\n%s\n" "$line" "$title"
+	local char line
+	local -r title="$1"
+	char="${2:--}"
+	char="${char::1}"
+	line=$(sed "s/./$char/g" <<< "$title")
+	printf "%s\n%s\n"  "$line" "$title"
+	return 0
 }
 
 find_rhd() {
@@ -66,10 +67,10 @@ defrag_report() {
 }
 
 main() {
-	local log_file="/var/log/defrag.log"
-	local host_name="${HOSTNAME:-$(hostname)}"
-	local script="${0##*/}"
-  local version="3.3.25340"
+	local -r log_file=/var/log/defrag.log
+	local -r host_name="${HOSTNAME:-$(hostname)}"
+	local -r script="${0##*/}"
+	local - version="3.4.26248"
 	{
 		printf "Defrag Report for %s: %(%a %F %R)T\n\n" "$host_name" -1
 		defrag_report
