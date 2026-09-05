@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Sep 2025
-# Last updated : 01 Aug 2026
-# Version      : 4.3.26213
+# Last updated : 05 Sep 2026
+# Version      : 4.4.26248
 # Comments     : Run as a daily cron job from ~/.local/bin/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,24 +26,24 @@
 update_clones() {
 	local -r log_dir=~/.local/share/logs
 	local -r repo_log=repo-update.log
-  local -r clones=(configs scripts i3wm-debian homepage fnloc fnloc-win gitea-server)
+	local -r clones=(configs scripts i3wm-debian homepage fnloc fnloc-win gitea-server)
 	local clone clone_dir
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
-		{
-			printf "Updated: %(%A, %F %R)T\n"
-			for clone in "${clones[@]}"; do
-				clone_dir=~/Downloads/$clone
-				[[ -d ~/$clone ]] && clone_dir=~/$clone
-				if [[ -d "$clone_dir" ]]; then
-					pushd "$clone_dir" >/dev/null 2>&1 || return "$?"
-					printf "~ %s repository ~\n" "${clone^^}"
-					git checkout .
-					git pull
-					popd >/dev/null 2>&1 || return "$?"
-					printf "\n"
-				fi
-			done
-		} > "$log_dir/$repo_log" 2>&1
+	{
+		printf "Updated: %(%A, %F %R)T\n"
+		for clone in "${clones[@]}"; do
+			clone_dir=~/Downloads/$clone
+			[[ -d ~/$clone ]] && clone_dir=~/$clone
+			if [[ -d "$clone_dir" ]]; then
+				pushd "$clone_dir" >/dev/null 2>&1 || return "$?"
+				printf "~ %s repository ~\n" "${clone^^}"
+				git checkout .
+				git pull
+				popd >/dev/null 2>&1 || return "$?"
+				printf "\n"
+			fi
+		done
+	} > "$log_dir/$repo_log" 2>&1
 	return 0
 }
 
