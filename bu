@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Updated      : 03 Sep 2026
-# Version      : 7.6.26246
+# Updated      : 05 Sep 2026
+# Version      : 7.7.26248
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -165,9 +165,8 @@ get_space_remaining() {
 }
 
 trim_log() {
-	local loglen
+	local -i loglen
 	loglen=$(wc -l < "$LOGFILE")
-	[[ "$loglen" -le 30 ]] && return
 	while [[ "$loglen" -gt 30 ]]; do
 		sed -i '1d' "$LOGFILE"
 		(( loglen-- ))
@@ -249,7 +248,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="20 May 2026"
+	local -r updated="05 Sep 2026"
 	cat <<- _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -289,7 +288,7 @@ _SETUP_
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.6.26246"
+	local -r version="7.7.26248"
 	local -i exit_code=0
 	local  opt OPTARG OPTIND loglen
 	[[ -f "$LOGFILE" ]] || echo "${LOGFILE##*/}" > "$LOGFILE"
