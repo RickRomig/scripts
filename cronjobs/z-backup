@@ -8,8 +8,8 @@
 # Author       : Copyright (C) 2020, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 07 Jun 2020
-# Updated      : 10 Jan 2026
-# Version      : 3.0.26010
+# Updated      : 05 Sep 2026
+# Version      : 3.1.26248
 # Comment      : Automatically limits log size to 30 entries.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,49 +27,49 @@
 #####################################################################
 
 trim_log() {
-  local log_dir="$1"
-  local log_file="$2"
-  local log_len
-  log_len=$(wc -l < "$log_dir/$log_file")
-  while [[ "$log_len" -gt 30 ]]; do
-    sed -i '1d' "$log_dir/$log_file"
-    (( log_len-- ))
-  done
+	local -r log_dir="$1"
+	local -r log_file="$2"
+	local -i log_len
+	log_len=$(wc -l < "$log_dir/$log_file")
+	while [[ "$log_len" -gt 30 ]]; do
+		sed -i '1d' "$log_dir/$log_file"
+		(( log_len-- ))
+	done
 }
 
 local_backup() {
-  local log_dir="/var/log"
-  local log_file="backup.log"
-  local backup_dir="/data/backup"
-  local error_log="/error.log"
+	local -r log_dir="/var/log"
+	local -r log_file="backup.log"
+	local -r backup_dir="/data/backup"
+	local -r error_log="/error.log"
 
-  [[ -d "$backup_dir" ]] || mkdir -p "$backup_dir"
-  [[ -d "$log_dir" ]] || mkdir -p "$log_dir"
-  [[ -f "$backup_dir/$error_log" ]] && rm "$backup_dir/$error_log"
+	[[ -d "$backup_dir" ]] || mkdir -p "$backup_dir"
+	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
+	[[ -f "$backup_dir/$error_log" ]] && rm "$backup_dir/$error_log"
 
-  # Create an array of excluded files and directories
+	# Create an array of excluded files and directories
 	local item
-	local excluded=('timeshift' 'lost+found' 'backup/' '.cache/' '.local/share/Trash/')
+	local -r excluded=('timeshift' 'lost+found' 'backup/' '.cache/' '.local/share/Trash/')
 	local exclude_opts=()
 	for item in "${excluded[@]}"; do exclude_opts+=( --exclude="$item" ); done
 
-  {
-    printf "%(%a|%F|%R)T|"
-    if rsync -aH --delete "${exclude_opts[@]}" /etc /home /data "$backup_dir/" 2>> "$backup_dir/$error_log"; then
-      printf "successful\n"
-      printf "%(%a, %F %R)T - Local Backup was successful.\n" >> "$backup_dir/$error_log"
-    else
-      printf "had errors (%d)\n" "$?"
-      printf "%(%a, %F %R)T - Local Backup had errors.\n" >> "$backup_dir/$error_log"
-    fi
-    sync
-  } >> "$log_dir/$log_file"
-  trim_log "$log_dir" "$log_file"
+	{
+		printf "%(%a|%F|%R)T|"
+		if rsync -aH --delete "${exclude_opts[@]}" /etc /home /data "$backup_dir/" 2>> "$backup_dir/$error_log"; then
+			printf "successful\n"
+			printf "%(%a, %F %R)T - Local Backup was successful.\n" >> "$backup_dir/$error_log"
+		else
+			printf "had errors (%d)\n" "$?"
+			printf "%(%a, %F %R)T - Local Backup had errors.\n" >> "$backup_dir/$error_log"
+		fi
+		sync
+	} >> "$log_dir/$log_file"
+	trim_log "$log_dir" "$log_file"
 }
 
 main() {
-  local_backup
-  exit
+	local_backup
+	exit
 }
 
 main "$@"
