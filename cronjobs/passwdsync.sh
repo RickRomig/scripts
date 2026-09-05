@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Aug 2020
-# Last updated : 14 Dec 2025
-# Version      : 5.1.25348
+# Last updated : 05 Seo 2026
+# Version      : 5.2.26248
 # Comments     : run as a local daily cron job on main system
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,38 +26,37 @@
 ##########################################################################
 
 trim_log() {
-  local log_dir="$1"
-  local log_file="$2"
-  local log_len
-  log_len=$(wc -l < "$log_dir/$log_file")
-  while [[ "$log_len" -gt 30 ]]; do
-    sed -i '1d' "$log_dir/$log_file"
-    (( log_len-- ))
-  done
+	local -r log_dir="$1"
+	local -r log_file="$2"
+	local -i log_len
+	log_len=$(wc -l < "$log_dir/$log_file")
+	while [[ "$log_len" -gt 30 ]]; do
+		sed -i '1d' "$log_dir/$log_file"
+		(( log_len-- ))
+	done
 }
 
 sync_database() {
-  local log_dir=~/.local/share/logs
-  local log_file="password-db.log"
-  local mstr_dir=~/Documents
-  local dbox_dir=~/Dropbox
-  # Create the log directory if it doesn't already exist
-  [[ -d "$log_dir" ]] || mkdir -p "$log_dir"
-  {
-    printf "%(%F|%R)T|"
-    if [[ $(find "$mstr_dir/Passwords.kdbx" -newer "$dbox_dir/Passwords.kdbx" ) ]]; then
-      cp -p "$mstr_dir"/Passwords*.kdbx "$dbox_dir/"
-      printf "updated\n"
-    else
-      printf "unchanged\n"
-    fi
-  } >> "$log_dir/$log_file"
+	local -r log_dir=~/.local/share/logs
+	local -r log_file="password-db.log"
+	local -r mstr_dir=~/Documents
+	local -r dbox_dir=~/Dropbox
+	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
+	{
+		printf "%(%F|%R)T|"
+		if [[ $(find "$mstr_dir/Passwords.kdbx" -newer "$dbox_dir/Passwords.kdbx" ) ]]; then
+			cp -p "$mstr_dir"/Passwords*.kdbx "$dbox_dir/"
+			printf "updated\n"
+		else
+			printf "unchanged\n"
+		fi
+	} >> "$log_dir/$log_file"
   trim_log "$log_dir" "$log_file"
 }
 
 main() {
-  sync_database
-  exit
+	sync_database
+	exit
 }
 
 main "$@"
