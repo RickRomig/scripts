@@ -7,7 +7,8 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Dec 2024
-# Last updated : 30 Mar 2026
+# Updated      : 05 Sep 2026
+# Version      : 1.5.26248
 # Comments     : Anacron - copy to /etc/cron.monthly/
 #              : Cron - copy to /usr/local/bin/ or /opt/bin/
 # TODO (Rick)  :
@@ -25,41 +26,44 @@
 # GNU General Public License for more details.
 ##########################################################################
 
-autoremove_packages() {
-  local npkgs
-  npkgs=$(grep "^[[:digit:]]\+ upgraded" < <(apt-get autoremove -s) | cut -d' ' -f6)
-  if [[ "$npkgs" -gt 0 ]]; then
-    DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove  --purge -yy
-  else
-    printf "No packages to be removed.\n"
-  fi
-}
-
 # shellcheck disable=SC2001
 # See if you can use ${variable//search/replace} instead.
 # In this case parameter expansion does not work.
 over_line() {
-  local char len line title
-  title="$1"
-  char="${2:--}"
-  len=${#char}
-  (( len > 1 )) && char=${char::1}
-  line=$(sed "s/./$char/g" <<< "$title")
-  printf "%s\n%s\n"  "$line" "$title"
+	local char line
+	local -r title="$1"
+	char="${2:--}"
+	char="${char::1}"
+	line=$(sed "s/./$char/g" <<< "$title")
+	printf "%s\n%s\n"  "$line" "$title"
+	return 0
+}
+
+autoremove_packages() {
+	local -i npkgs
+	npkgs=$(grep "^[[:digit:]]\+ upgraded" < <(apt-get autoremove -s) | cut -d' ' -f6)
+	if [[ "$npkgs" -gt 0 ]]; then
+		DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get autoremove  --purge -yy
+	else
+		printf "No packages to be removed.\n"
+	fi
+	return "$?"
 }
 
 main() {
-  local script="${0##*/}"
-  local version="1.4.26089"
-  {
-    printf "Autoclean log: %(%a %F %R)T\n"
-    printf "\nCleaning APT cache...\n"
-    DEBIAN_FRONTEND=noninteractive apt-get autoclean
-    printf "\nRemoving orphaned packages...\n"
-    autoremove_packages
-    over_line "$script $version"
-  } > /var/log/clean.log 2>&1
-  exit
+	local -r script="${0##*/}"
+	local -r version="1.5.26248"
+	local -i code=0
+	{
+		printf "Autoclean log: %(%a %F %R)T\n"
+		printf "\nCleaning APT cache...\n"
+		DEBIAN_FRONTEND=noninteractive apt-get autoclean
+		printf "\nRemoving orphaned packages...\n"
+		autoremove_packages
+		code="$?"
+		over_line "$script $version"
+	} > /var/log/clean.log 2>&1
+	exit "$code"
 }
 
 main "$@"
