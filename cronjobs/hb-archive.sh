@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Last updated : 16 Apr 2026
-# Version      : 5.1.26106
+# Version      : 5.2.26248
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
@@ -54,16 +54,16 @@ archive_bak() {
 	# Create directories if they don't exist.
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 	[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
-{
-	  printf "%(%a|%F|%R)T|%s|" -1 "$arc_date"
+	{
+		printf "%(%a|%F|%R)T|%s|" -1 "$arc_date"
 		zip -qmtt "$ref_date" "$arc_dir/$archive" "$hb_dir"/*.bak 2> "$arc_dir/$err_log"; status="$?"
 		if [[ $status -eq 0 ]]; then
-	    printf "successful\n"
-	    printf "%(%F)T - HomeBank Archive successful.\n" > "$arc_dir/$err_log"
-	  else
-	    printf "had errors\n"
-	    printf "%(%F)T - HomeBank Archive had errors. (%s)" -1 "$status" >> "$arc_dir/$err_log"
-	  fi
+			printf "successful\n"
+			printf "%(%F)T - HomeBank Archive successful.\n" > "$arc_dir/$err_log"
+		else
+			printf "had errors\n"
+			printf "%(%F)T - HomeBank Archive had errors. (%s)" -1 "$status" >> "$arc_dir/$err_log"
+		fi
 	} >> "$log_dir/$log_file"
 	trim_log "$log_dir" "$log_file"
 	del_old_archives "$arc_dir"
