@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 04 Sep 2026
-# Version      : 2.7.26247
+# Updated      : 06 Sep 2026
+# Version      : 2.8.26249
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -72,7 +72,7 @@ update_flatpaks() {
 }
 
 get_updates() {
-	local -i nupd fields field1 field2 field3
+	local nupd fields field1 field2 field3
 	/usr/bin/apt-get update
 	fields=$(awk '$2 == "upgraded," {print $1,$3,$6,$(NF-2)}' <(apt-get dist-upgrade -s))
 	field1=$(cut -d' ' -f1 <<< "$fields")
@@ -108,7 +108,7 @@ system_reboot() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.7.26247"
+	local -r version="2.8.26249"
 	local -r lhost="${HOSTNAME:-$(hostname)}"
 	local -r log_file=/var/log/update.log
 	local -r sed_file=/usr/share/misc/updatelog.sed
