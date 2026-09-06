@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 07 Jul 2026
+# Last updated : 06 Sep 2026
 # Comments     : Creates script in the current working directory
 #              : Templates include GNU GPL v2 license
 # TODO (rick)  :
@@ -30,11 +30,11 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 VERBOSE="$FALSE"
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
-  local -ri errcode="${3:-1}"
-  local -r updated="07 Jul 2026"
-	cat << _HELP_
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="06 Sep 2026"
+	cat <<- _HELP_
 ${orange}$script${normal} $version ($updated)
 Creates a shell script with header comments (getopts optional)
 
@@ -48,7 +48,7 @@ ${orange}Available options:${normal}
   -v  Enable verbose mode (Must precede -b or -g flags)
       $script -vb <script-name>
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 show_message() {
@@ -75,10 +75,8 @@ import_metadata() {
 	today=$(date +"%d %b %Y")
 	cur_yr=$(printf "\UA9 %(%Y)T")
 	init_ver="1.0.$(date +%y%j)"
-
 	show_message "Creating the $script_name script:"
 	show_message "Entering metadata..."
-
 	sed -e '1d' \
 		-e "s/<FILE>/$script_name/" \
 		-e "s/<YEAR>/$cur_yr/" \
@@ -92,8 +90,8 @@ import_metadata() {
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="4.10.26188"
+	local -r script="${0##*/}"
+	local -r version="4.10.26249"
 	local opt script_name template_file OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":b:hg:v"
@@ -130,7 +128,10 @@ main() {
 		esac
 		noOpt=0
 	done
-	(( noOpt == 1 )) && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	import_metadata "$script_name" "$template_file"
 	edit_view_quit "$script_name"
