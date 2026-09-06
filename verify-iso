@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 09 Aug 2026
-# Version      : 13.2.26221
+# Updated      : 05 Sep 2026
+# Version      : 13.3.26248
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
@@ -48,7 +48,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="08 Aug 2026"
+	local -r updated="05 Sep 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.
@@ -111,7 +111,7 @@ verify_checksums() {
 	local iso_sum chk_sum
 	printf "Verifying checksums.\n"
 	spin &
-  SPIN_PID="$!"
+	SPIN_PID="$!"
 	case "$ext" in
 		md5 )
 			iso_sum=$(awk '{print $1}' < <(/usr/bin/md5sum "$iso")) ;;
@@ -121,33 +121,34 @@ verify_checksums() {
 			iso_sum=$(awk '{print $1}' < <(/usr/bin/sha256sum "$iso")) ;;
 		sha512 )
 			iso_sum=$(awk '{print $1}' < <(/usr/bin/sha512sum "$iso")) ;;
+		* )
+			:
 	esac
 	chk_sum=$(awk '{print $1}' "$checksum")
-  kill_spin
-  printf '\e[A\e[K'	# removes 'Verifying checksums' line
+	kill_spin
+	printf '\e[A\e[K'	# removes 'Verifying checksums' line
 	printf "ISO checksum:\n\t%s\n" "$iso_sum"
 	printf "%s checksum:\n\t%s\n" "${ext^^}" "$chk_sum"
 	[[ "$iso_sum" == "$chk_sum" ]] && return "$TRUE" || return "$FALSE"
-	return 0
 }
 
 status_msg() {
-  local -ri status="${1:-0}"
-  if [[ "$status" -eq 0 ]]; then
+	local -ri status="${1:-0}"
+	if [[ "$status" -eq 0 ]]; then
 		printf "%sThe checksums match.%s\n" "$green" "$normal"
 		return 0
-  else
+	else
 		printf "%sThe checksums do not match.%s\n" "$lightred" "$normal"
 		printf "Verify checksum with the ISO download site.\n"
 		return "$E_FILE_ERROR"
-  fi
+	fi
 }
 
 check_checksum() {
-  local -r file="$1"
+	local -r file="$1"
 	local lines
-  lines=$(wc -l < "$file")
-  [[ "$lines" -eq 1 ]] && return "$TRUE" || return "$FALSE"
+	lines=$(wc -l < "$file")
+	[[ "$lines" -eq 1 ]] && return "$TRUE" || return "$FALSE"
 }
 
 check_extension() {
@@ -192,13 +193,13 @@ verify_iso() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="13.2.26221"
+	local -r version="13.3.26248"
 	local -i exit_code=0
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0;
 	check_package fzf
 	verify_iso
 	exit_code="$?"
-  over_line "$script $version" "-"
+	over_line "$script $version" "-"
 	exit "$exit_code"
 }
 
