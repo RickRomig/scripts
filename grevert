@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 May 2024
-# Updated      : 11 Aug 2026
-# Version      : 3.1.26223"
+# Updated      : 06 Sep 2026
+# Version      : 3.1.2626249223"
 # Comments     : Revert most recent commit that has been pushed to the repository.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,7 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 is_git_repo() {
-  [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]  && return "$TRUE" || return "$FALSE"
+	[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]  && return "$TRUE" || return "$FALSE"
 }
 
 unpushed_commits() {
@@ -62,15 +62,15 @@ revert_commit() {
 }
 
 main() {
-  local -r script="${0##*/}"
-	local -r version="3.1.26223"
-  local -i exit_code=0
+	local -r script="${0##*/}"
+	local -r version="3.1.26249"
+	local -i exit_code=0
 	check_package git
 	is_git_repo || die "You are not in a git repositiory Revert operation canceled." "$E_UNSUPPORTED"
 	revert_commit
 	exit_code="$?"
 	over_line "$script $version"
-  exit "$exit_code"
+	exit "$exit_code"
 }
 
 main "$@"
