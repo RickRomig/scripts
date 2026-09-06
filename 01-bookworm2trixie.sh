@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Updated      : 02 Aug 2026
-# Version      : 2.0.26214
+# Updated      : 06 Sep 2026
+# Version      : 2.0.26249
 # Comments     : This script updates current Debian 12 before upgrade.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -44,7 +44,7 @@ version_info() {
 	lsb_release --all 2>/dev/null
 	printf "%-16s%s\n" "Version:" "$(< /etc/debian_version)"
 	check_codename || die "Only upgrade from Debian 12 Bookworm is supported." "$E_UNSUPPORTED"
-  return 0
+	return 0
 }
 
 upgrade_packages() {
@@ -58,13 +58,13 @@ upgrade_packages() {
 	sudo apt autoclean
 	sudo apt autoremove --purge -y
 	printf "%sDebian 12 packages are up to date.%s\n" "$orange" "$normal"
-  return 0
+	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.0.26214"
-	local -r updated="02 Aug 2026"
+	local -r version="2.0.26249"
+	local -r updated="06 Sep 2026"
 	version_info
 	check_file1 || check_file2 && die "This script has already been run." "$E_FILE_EXISTS"
 	upgrade_packages
