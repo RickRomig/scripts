@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 05 Sep 2026
-# Version      : 14.3.26248
+# Updated      : 06 Sep 2026
+# Version      : 14.4.26249
 # Comments     : Testing indicates USB drive needs to be mounted.
 #              : To test without writing to USB drive, dnter -d or --dryrun option to enable a dry run.
 #              : After a dryrun, USB drive will remain mounted.
@@ -47,7 +47,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="24 Aug 2026"
+	local -r updated="06 Sep 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes an ISO image to a USB drive
@@ -172,7 +172,6 @@ write_iso() {
 	usbsize=$(awk -v pat="$usbdevice" '$0~pat{print$4;exit}' < <(lsblk))
 	printf "%-16s %s\n" "Selected ISO:" "${isofile##*/}"
 	printf "%-16s /dev/%s [%s]\n" "Selected device:" "$usbdevice" "$usbsize"
-
 	# Mount selected USB drive if not already mounted.
 	usbpart="${usbdevice}1"
 	if grep -q "$usbpart" < <(mount) >/dev/null 2>&1; then
@@ -182,28 +181,30 @@ write_iso() {
 		mount_name="$(date +%y%b%d)"
 		mount_usb "$usbpart"
 	fi
+	# List contents of USB drive
 	list_usb_contents "$usbpart" # "$mount_name"
+	# Simulate dd write of ISO to USB drive
 	if [[ "$DRYRUN" == "$TRUE" ]]; then
 		simulate_dd "$isofile" "$usbdevice" "$mount_name"
+		return "$code"
+	fi
+	# Confirm action or cancel actual dd write of ISO to USB drive
+	printf "\n%sIf you continue, ALL data will be erased from device %s.%s\n\n" "$orange" "$usbdevice" "$normal"
+	printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\n\n" "$bold" "$orange" "$normal"
+	if yes_or_no "Write ${isofile##*/} to /dev/$usb_device?"; then
+		sudo_login 2
+		write_dd "$isofile" "$usbdevice" "$mount_name"
+		code="$?"
+		grep -q "/dev/$usbpart" < <(mount) > /dev/null 2>&1 && unmount_usb "$mount_name" "$usbpart"
 	else
-		# Confirm action or cancel
-		printf "\n%sIf you continue, ALL data will be erased from device %s.%s\n\n" "$orange" "$usbdevice" "$normal"
-		printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\n\n" "$bold" "$orange" "$normal"
-		if yes_or_no "Write ${isofile##*/} to /dev/$usb_device?"; then
-			sudo_login 2
-			write_dd "$isofile" "$usbdevice" "$mount_name"
-			code="$?"
-			grep -q "/dev/$usbpart" < <(mount) > /dev/null 2>&1 && unmount_usb "$mount_name" "$usbpart"
-		else
-			printf "Operation canceled. No action taken.\n"
-		fi
+		printf "Operation canceled. No action taken.\n"
 	fi
 	return "$code"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="14.3.26248"
+	local -r version="14.4.26249"
 	local -i exit_code=0
 	local -r isoDir=~/Downloads/ISO
 	case "$1" in
