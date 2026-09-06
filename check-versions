@@ -8,8 +8,8 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Updated      : 26 Aug 2026
-# Version      : 21.8.26238
+# Updated      : 06 Sep 2026
+# Version      : 21.8.26249
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,21 +29,21 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 installed_version() {
-  local package="$1"
-  local cur_ver
-  case "$package" in
-    bat|fastfetch )
-      cur_ver=$(cut -d' ' -f2 < <("$package" --version 2>/dev/null)) ;;
-    codium|fresh-editor|micro )
-      [[ "$package" == "fresh-editor" ]] && package="fresh"
-      cur_ver=$(awk 'NR==1 {print $NF}' < <("$package" --version 2>/dev/null)) ;;
-    firefox|gitea )
-      cur_ver=$(cut -d' ' -f3 < <("$package" --version 2>/dev/null)) ;;
-    * )
-      cur_ver=$(awk '/^ii/ {print $3}' < <(dpkg -l "$package" 2>/dev/null) | sed 's/[~+ud].*//')
-  esac
-  echo "$cur_ver"
-  return 0
+	local package="$1"
+	local cur_ver
+	case "$package" in
+		bat|fastfetch )
+			cur_ver=$(cut -d' ' -f2 < <("$package" --version 2>/dev/null)) ;;
+		codium|fresh-editor|micro )
+			[[ "$package" == "fresh-editor" ]] && package="fresh"
+			cur_ver=$(awk 'NR==1 {print $NF}' < <("$package" --version 2>/dev/null)) ;;
+		firefox|gitea )
+			cur_ver=$(cut -d' ' -f3 < <("$package" --version 2>/dev/null)) ;;
+		* )
+			cur_ver=$(awk '/^ii/ {print $3}' < <(dpkg -l "$package" 2>/dev/null) | sed 's/[~+ud].*//')
+	esac
+	echo "$cur_ver"
+	return 0
 }
 
 show_versions() {
@@ -58,23 +58,23 @@ show_versions() {
 		fi
 	done
 	printf "%s\n" "$normal"
-  return 0
+	return 0
 }
 
 convert_compare() {
-  local -r newVer="$1"
-  local -r curVer="$2"
-  local -i newer="$FALSE"
+	local -r newVer="$1"
+	local -r curVer="$2"
+	local -i newer="$FALSE"
 	local new_arr=()
 	local cur_arr=()
-  local -i index
+	local -i index
 	IFS="." read -ra new_arr <<< "$newVer"
 	IFS="." read -ra cur_arr <<< "$curVer"
 	for (( index=0; index <=2; index++)) ; do
 		if (( "${new_arr[index]}" > "${cur_arr[index]}" )); then
-      newer="$TRUE"
-      break
-    fi
+			newer="$TRUE"
+			break
+		fi
 	done
 	return "$newer"
 }
@@ -89,7 +89,7 @@ get_release_path() {
 		[micro]="micro-editor/micro/releases"
 	)
 	echo "${releases_path[$package]}"
-  return 0
+	return 0
 }
 
 get_new_version() {
@@ -97,92 +97,92 @@ get_new_version() {
 	local -r release_path="$2"
 	local new_ver
 	local -r github_url="https://github.com"
-  curl -s -o "$TMP_FILE" "$github_url/$release_path"
-  # Extract latest version number from temp file, ignoring beta and release candidates.
-  case "$package" in
-    codium )
-      new_ver=$(awk -F'/' '/download/ && /amd64.deb/ {print $8;exit}' "$TMP_FILE") ;;
-    micro )
-      new_ver=$(sed 's/^v//' < <(awk -F'/' '/download\/v/ {print $6;exit}' "$TMP_FILE")) ;;
-    fastfetch )
-      new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6;exit}' "$TMP_FILE") ;;
-    fresh-editor )
-      new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$TMP_FILE")) ;;
-    * )
-      new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$TMP_FILE"))
-  esac
-  echo "$new_ver"
-  return 0
+	curl -s -o "$TMP_FILE" "$github_url/$release_path"
+	# Extract latest version number from temp file, ignoring beta and release candidates.
+	case "$package" in
+		codium )
+			new_ver=$(awk -F'/' '/download/ && /amd64.deb/ {print $8;exit}' "$TMP_FILE") ;;
+		micro )
+			new_ver=$(sed 's/^v//' < <(awk -F'/' '/download\/v/ {print $6;exit}' "$TMP_FILE")) ;;
+		fastfetch )
+			new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6;exit}' "$TMP_FILE") ;;
+		fresh-editor )
+			new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$TMP_FILE")) ;;
+		* )
+			new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$TMP_FILE"))
+	esac
+	echo "$new_ver"
+	return 0
 }
 
 github_packages() {
-  local cur_ver new_ver package release_path
-  local -r packages=( bat codium fastfetch fresh-editor micro )
-  printf "%-16s%-16s%s\n" "GitHub Package" "Latest version" "Installed version"
-  for package in "${packages[@]}"; do
-    cur_ver=$(installed_version "$package")
+	local cur_ver new_ver package release_path
+	local -r packages=( bat codium fastfetch fresh-editor micro )
+	printf "%-16s%-16s%s\n" "GitHub Package" "Latest version" "Installed version"
+	for package in "${packages[@]}"; do
+		cur_ver=$(installed_version "$package")
 		release_path=$(get_release_path "$package")
-    new_ver=$(get_new_version "$package" "$release_path")
-    printf "%s%-16s" "${darkgray}" "${package^}"
-    if [[ "$new_ver" ]]; then
-      printf "%s%-16s" "${gray}" "$new_ver"
-     else
-      printf "%s%-16s" "${red}" "No release"
-    fi
-    if [[ -z "$cur_ver" ]]; then
-		  printf "%s%s\n" "${gray}" "not installed"
-	  elif convert_compare "$new_ver" "$cur_ver"; then
-		  printf "%s%-16s%sUpdate available\n" "${gray}" "$cur_ver" "${orange}"
-	  else
-      printf "%s%s\n" "${gray}" "$cur_ver"
-	  fi
-  done
-  printf "%s\n" "${normal}"
-  return 0
+		new_ver=$(get_new_version "$package" "$release_path")
+		printf "%s%-16s" "${darkgray}" "${package^}"
+		if [[ "$new_ver" ]]; then
+			printf "%s%-16s" "${gray}" "$new_ver"
+		else
+			printf "%s%-16s" "${red}" "No release"
+		fi
+		if [[ -z "$cur_ver" ]]; then
+			printf "%s%s\n" "${gray}" "not installed"
+		elif convert_compare "$new_ver" "$cur_ver"; then
+			printf "%s%-16s%sUpdate available\n" "${gray}" "$cur_ver" "${orange}"
+		else
+			printf "%s%s\n" "${gray}" "$cur_ver"
+		fi
+	done
+	printf "%s\n" "${normal}"
+	return 0
 }
 
 utility_packages() {
-  local -r packages=( bash dsh flatpak fzf gitea keepassxc nala picom zoom )
+	local -r packages=( bash dsh flatpak fzf gitea keepassxc nala picom zoom )
 	printf "%-15s%s\n" "Other Packages" "Version"
 	show_versions "${packages[@]}"
-  return 0
+	return 0
 }
 
 text_editors() {
-  local -r packages=( batcat bluefish featherpad geany gedit git glow mousepad nano shellcheck xed )
+	local -r packages=( batcat bluefish featherpad geany gedit git glow mousepad nano shellcheck xed )
 	printf "%-15s%s\n" "Programming" "Version"
 	show_versions "${packages[@]}"
-  return 0
+	return 0
 }
 
 terminals() {
-  local -r packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
+	local -r packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
 	printf "%-15s%s\n" "Terminal" "Version"
 	show_versions "${packages[@]}"
-  return 0
+	return 0
 }
 
 browsers() {
-  local -r packages=( brave-browser chromium firefox google-chrome librewolf )
+	local -r packages=( brave-browser chromium firefox google-chrome librewolf )
 	printf "%-15s%s\n" "Browser" "Version"
 	show_versions "${packages[@]}"
-  return 0
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="21.8.26238"
-  create_tmp "file"
-  check_package curl
-  clearscreen
-  box "$script $version"
-  printf "\n"
-  github_packages
-  text_editors
-  browsers
-  terminals
-  utility_packages
-  printf "MOTD: "; leave ""
+	local -r script="${0##*/}"
+	local -r version="21.8.2626249238"
+	create_tmp "file"
+	check_package curl
+	clearscreen
+	box "$script $version"
+	printf "\n"
+	github_packages
+	text_editors
+	browsers
+	terminals
+	utility_packages
+	printf "MOTD: "; leave ""
 }
 
 main "$@"
