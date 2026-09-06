@@ -7,8 +7,8 @@
 # Author       : Copyright © 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 06 Aug 2026
-# Version      : 8.2.26218
+# Updated      : 06 Sep 2026
+# Version      : 8.2.26249
 # Comments     : Checks to see if passed argument is a valid text or json file.
 #              : To show line numbers, use -n after the file name.
 # TODO (Rick)  :
@@ -29,11 +29,11 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -ri errcode="${3:-1}"
-  local -r updated="06 Aug 2026"
-  cat <<- _HELP_
+	local -r updated="06 Sep 2026"
+	cat <<- _HELP_
 	${orange}$script${normal} $version (updated $updated)
 	Displays a text file using either cat or less depending the number of lines in
 	the file and the number of rows in the current terminal window. Less is used when
@@ -44,7 +44,7 @@ help() {
 	  -h  Show this help message and exit.
 	  -n  enable line numbers (follows filename and is case-insensitive).
 	_HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 over_max() {
@@ -72,31 +72,31 @@ check_file() {
 }
 
 view_file() {
-  local -r textfile="$1"
-  local -ri num_flag="$2"
-  if over_max "$textfile"; then
-    case "$num_flag" in
-      0 )
-        less -N "$textfile" ;;
-      * )
-        less "$textfile"
-    esac
-    head -n5 "$textfile"
-  else
-    case "$num_flag" in
-      0 )
-        cat -n "$textfile" ;;
-      * )
-        cat "$textfile"
-    esac
-  fi
-  printf "%sFile: %s%s\n" "$reverse" "$textfile" "$normal"
+	local -r textfile="$1"
+	local -ri num_flag="$2"
+	if over_max "$textfile"; then
+		case "$num_flag" in
+			0 )
+				less -N "$textfile" ;;
+			* )
+				less "$textfile"
+		esac
+		head -n5 "$textfile"
+	else
+		case "$num_flag" in
+			0 )
+				cat -n "$textfile" ;;
+			* )
+				cat "$textfile"
+		esac
+	fi
+	printf "%sFile: %s%s\n" "$reverse" "$textfile" "$normal"
 	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="8.2.26218"
+	local -r version="8.2.26249"
 	local -i exit_code=0
 	local num_flag="$FALSE"
 	[[ $1 == "-h" ]] && help "$script" "$version" 0
@@ -109,7 +109,5 @@ main() {
 	over_line "$script $version"
 	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
