@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 06 Aug 2026
+# Updated      : 06 Sep 2026
 # Version      : 5.2.26218
 # Comments     : clone_repo() is contained in functionlib
 # TODO (Rick)  :
@@ -28,8 +28,8 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -r errcode="${3:-1}"
 	local -r updated="08 Jul 2026"
 	cat << _HELP_
@@ -51,57 +51,57 @@ _HELP_
 }
 
 check_repo() {
-  local -r git_repo="$1"
-  local -r dl_dir=~/Downloads
-  if [[ $(find "$dl_dir/$git_repo" -maxdepth 1 -type f 2>/dev/null) ]]; then
-    printf "%s is not empty. Updating the repository clone...\n" "$dl_dir/$git_repo"
-    pushd "$dl_dir/$git_repo" || return "$E_POPD_PUSHD"
-    git checkout .
-    git pull
-    popd || return "$E_POPD_PUSHD"
-  else
-    clone_repo "$git_repo" "$dl_dir/"
-  fi
-  return "$?"
+	local -r git_repo="$1"
+	local -r dl_dir=~/Downloads
+	if [[ $(find "$dl_dir/$git_repo" -maxdepth 1 -type f 2>/dev/null) ]]; then
+		printf "%s is not empty. Updating the repository clone...\n" "$dl_dir/$git_repo"
+		pushd "$dl_dir/$git_repo" || return "$E_POPD_PUSHD"
+		git checkout .
+		git pull
+		popd || return "$E_POPD_PUSHD"
+	else
+		clone_repo "$git_repo" "$dl_dir/"
+	fi
+	return "$?"
 }
 
 clone_repo() {
-  local git_repo="$1"
-  local dl_dir="$2"
-  local url
-  case "$git_repo" in
-    configs | scripts | i3wm-debian )
-      url="$GITHUB_URL" ;;
-    * )
-      url="$GITEA_URL"
-  esac
-  git clone "$url/${git_repo}.git" "$dl_dir/$git_repo"
-  return "$?"
+	local git_repo="$1"
+	local dl_dir="$2"
+	local url
+	case "$git_repo" in
+		configs | scripts | i3wm-debian )
+			url="$GITHUB_URL" ;;
+		* )
+			url="$GITEA_URL"
+	esac
+	git clone "$url/${git_repo}.git" "$dl_dir/$git_repo"
+	return "$?"
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="5.2.26218"
-  local exit_code=0
-  local opt OPTARG OPTIND
-  local -i noOpt=1
-  local -r optstr=":cfghilsw"
-  check_package git
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      c ) check_repo "configs" ;;
-      f ) check_repo "fnloc" ;;
-      g ) check_repo "gitea-server" ;;
-      h ) help "$script" "$version" 0 ;;
-      i ) check_repo "i3wm-debian" ;;
-      p ) check_repo "homepage" ;;
-      s ) check_repo "scripts" ;;
-      w ) check_repo "fnloc-win" ;;
+	local -r script="${0##*/}"
+	local -r version="5.2.26218"
+	local exit_code=0
+	local opt OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":cfghilsw"
+	check_package git
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			c ) check_repo "configs" ;;
+			f ) check_repo "fnloc" ;;
+			g ) check_repo "gitea-server" ;;
+			h ) help "$script" "$version" 0 ;;
+			i ) check_repo "i3wm-debian" ;;
+			p ) check_repo "homepage" ;;
+			s ) check_repo "scripts" ;;
+			w ) check_repo "fnloc-win" ;;
 			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2; help "$script" "$version" "$E_INVALID_ARG"
-    esac
-    exit_code="$?"
+		esac
+		exit_code="$?"
 		noOpt=0
-  done
+	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
