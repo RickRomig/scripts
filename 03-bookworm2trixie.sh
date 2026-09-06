@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Updated      : 02 Aug 2026
-# Version      :
+# Updated      : 06 Sep 2026
+# Version      : 1.9.26249
 # Comments     : Cleanup after upgrade to Debian 13.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -43,7 +43,7 @@ version_info() {
 	printf "Version information:\n"
 	lsb_release --all 2>/dev/null
 	printf "%-16s%s\n" "Version:" "$(< /etc/debian_version)"
-  return 0
+	return 0
 }
 
 clean_up() {
@@ -55,20 +55,20 @@ clean_up() {
 	sudo apt --purge autoremove
 	printf "\nThere may be programs and applications that need to be reinstalled or updated.\n"
 	rm -v "$HOME/01-upgrade" "$HOME/02-sources"
-  return 0
+	return 0
 }
 
 modernize_sources() {
 	printf "Modernizing sources...\n"
 	sudo_login 2
 	[[ -f "/etc/apt/sources.list.d/debian.sources" ]] || sudo apt modernize-sources
-  return 0
+	return 0
 }
 
 main() {
 	local script="${0##*/}"
-	local version="1.9.26214"
-	local updated="02 Aug 2026"
+	local version="1.9.26249"
+	local updated="06 Sep 2026"
 	local exit_code=0
 	version_info
 	check_file1 || die "01-bookworm2trixie.sh and 02-bookworm2trixie.sh must be run first." "$E_FILENOTFOUND"
@@ -85,7 +85,5 @@ main() {
 	over_line "$script $version ($updated)"
 	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
