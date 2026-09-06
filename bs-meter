@@ -30,104 +30,104 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 DOTS_PID=
 
 print_graph() {
-  printf "\n%+42s%s%sBullshit Meter%s\n" "" "$bold" "$green" "$normal"
-  scale_numbers
-  scale_marks
-  return 0
+	printf "\n%+42s%s%sBullshit Meter%s\n" "" "$bold" "$green" "$normal"
+	scale_numbers
+	scale_marks
+	return 0
 }
 
 scale_numbers() {
-  # _i and _j are dummy variables used as indices in the for-loops.
-  local -i _i _j index
-  index=0
-  printf "%s" "$index"
-  for _i in {1..10}; do
-    for _j in {1..8}; do
-      printf " "
-    done
-    index=$(( index + 10 ))
-    printf "%s" "$index"
-  done
-  printf "\n"
-  return 0
+	# _i and _j are dummy variables used as indices in the for-loops.
+	local _i _j index
+``  index=0
+	printf "%s" "$index"
+	for _i in {1..10}; do
+		for _j in {1..8}; do
+			printf " "
+		done
+		index=$(( index + 10 ))
+		printf "%s" "$index"
+	done
+	printf "\n"
+	return 0
 }
 
 scale_marks() {
-  # _i and _j are dummy variables used as indices in the for-loops.
-  local -i _i _j
-  printf "|"
-  for _i in {1..10}; do
-    for _j in {1..9}; do
-      printf "="
-    done
-    printf "|"
-  done
-  printf "\n"
-  return 0
+	# _i and _j are dummy variables used as indices in the for-loops.
+	local _i _j
+	printf "|"
+	for _i in {1..10}; do
+		for _j in {1..9}; do
+			printf "="
+		done
+		printf "|"
+	done
+	printf "\n"
+	return 0
 }
 
 print_indicator() {
-  local -r level="$1"
-  local -i _i  # dummy variable in for-loop
-  printf "%s%s" "$bold" "$orange"
-  for (( _i=0; _i <= "$level"; _i++ )); do
-    printf "*"
-  done
-  printf "%s\n" "$normal"
-  return 0
+	local -r level="$1"
+	local -i _i  # dummy variable in for-loop
+	printf "%s%s" "$bold" "$orange"
+	for (( _i=0; _i <= "$level"; _i++ )); do
+		printf "*"
+	done
+	printf "%s\n" "$normal"
+	return 0
 }
 
 print_analysis() {
-  local -r level="$1"
-  printf "\nYour statement has been analyzed and found to be %s%% bullshit -- " "$level"
-  case "$level" in
-    0 )
-      printf "absolutely true\n" ;;
-    [1-9] )
-      printf "very likely true.\n" ;;
-    1[0-9] )
-      printf "mostly true.\n" ;;
-    [2-4]? )
-      printf "somewhat true.\n" ;;
-    [5-6]? )
-      printf "might be false.\n" ;;
-    [7-8]? )
-      printf "probably false.\n" ;;
-    9[0-9] )
-      printf "mostly false.\n" ;;
-    * )
-      printf "absolutely false!\n"
-  esac
-  return 0
+	local -r level="$1"
+	printf "\nYour statement has been analyzed and found to be %s%% bullshit -- " "$level"
+	case "$level" in
+		0 )
+			printf "absolutely true\n" ;;
+		[1-9] )
+			printf "very likely true.\n" ;;
+		1[0-9] )
+			printf "mostly true.\n" ;;
+		[2-4]? )
+			printf "somewhat true.\n" ;;
+		[5-6]? )
+			printf "might be false.\n" ;;
+		[7-8]? )
+			printf "probably false.\n" ;;
+		9[0-9] )
+			printf "mostly false.\n" ;;
+		* )
+			printf "absolutely false!\n"
+	esac
+	return 0
 }
 
 print_intro() {
-  center_text "Bullshit Meter"
-  center_text "Enter a statement to be verified and wait for it to be analyzed."
-  center_text "Once its bullshit content has been determined, the results will be displayed."
-  center_text "This program is for entertainment purposes only and its accuracy cannot be guaranteed."
-  printf "\n"
-  return 0
+	center_text "Bullshit Meter"
+	center_text "Enter a statement to be verified and wait for it to be analyzed."
+	center_text "Once its bullshit content has been determined, the results will be displayed."
+	center_text "This program is for entertainment purposes only and its accuracy cannot be guaranteed."
+	printf "\n"
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="5.10.26218"
-  local _statement bs_level
-  bs_level=$(shuf -i 0-100 -n 1)
-  clear
-  print_intro
-  read -rp "Statement to be analyzed: " _statement  # dummy variable holding inconsequential data
-  printf "\nAnalyzing your statement "
-  dots "." &
+	local -r script="${0##*/}"
+	local -r version="5.10.26218"
+	local _statement bs_level
+	bs_level=$(shuf -i 0-100 -n 1)
+	clear
+	print_intro
+	read -rp "Statement to be analyzed: " _statement  # dummy variable holding inconsequential data
+	printf "\nAnalyzing your statement "
+	dots "." &
 	DOTS_PID="$!"
-  sleep "$(shuf -i 1-20 -n 1)"
+	sleep "$(shuf -i 1-20 -n 1)"
 	kill_dots
-  print_graph
-  print_indicator "$bs_level"
-  print_analysis "$bs_level"
-  over_line "$script $version"
-  exit
+	print_graph
+	print_indicator "$bs_level"
+	print_analysis "$bs_level"
+	over_line "$script $version"
+	exit
 }
 
 main "$@"
