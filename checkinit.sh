@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 07 Sep 2022
-# Updated      : 06 Aug 2026
-# Version      : 2.2.26218
+# Updated      : 06 Sep 2026
+# Version      : 2.2.26249
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -37,7 +37,7 @@ get_init() {
 		echo "Upstart"
 	else
 		echo "Undetermined"
-  fi
+	fi
 	return 0
 }
 
