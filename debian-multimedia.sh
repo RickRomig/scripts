@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 28 Oct 2025
-# Updated      : 24 Aug 2026
-# Version      : 3.1.26236
+# Updated      : 06 Sep 2026
+# Version      : 3.1.26249
 # Comments     : Tested with Debian 12 (bookworm) & Debian 13 (trixie)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -78,14 +78,14 @@ install_multimedia() {
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="3.1.26236"
+	local -r script="${0##*/}"
+	local -r version="3.1.26236"
 	local -i exit_code=0
 	create_tmp "dir"
 	install_multimedia
 	exit_code="$?"
 	over_line "$script $version"
-  exit "$exit_code"
+	exit "$exit_code"
 }
 
 main "$@"
