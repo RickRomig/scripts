@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 24 Aug 2026
-# Version      : 14.2.26236
+# Updated      : 05 Sep 2026
+# Version      : 14.3.26248
 # Comments     : Testing indicates USB drive needs to be mounted.
 #              : To test without writing to USB drive, dnter -d or --dryrun option to enable a dry run.
 #              : After a dryrun, USB drive will remain mounted.
@@ -90,8 +90,7 @@ select_iso() {
 
 select_usb() {
 	local usb_device
-	usb_device=$(awk '$2 == "disk" && $1 == "1" {print $2,$3,$4,$5}' < <(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL) |
-$FMENU "Select the USB drive to write to: ")
+	usb_device=$(awk '$2 == "disk" && $1 == "1" {print $2,$3,$4,$5}' < <(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL) | $FMENU "Select the USB drive to write to: ")
 	usb_device=$(awk '{print $2}' <<< "$usb_device")
 	echo "$usb_device"
 	return 0
@@ -100,7 +99,7 @@ $FMENU "Select the USB drive to write to: ")
 mount_usb() {
 	local -r mount_name="$1"
 	local -r usbpart="$2"
-  [[ -d "/media/$USER/$mount_name" ]] || sudo mkdir -p "/media/$USER/$mount_name"
+	[[ -d "/media/$USER/$mount_name" ]] || sudo mkdir -p "/media/$USER/$mount_name"
 	sudo mount "/dev/$usbpart" "/media/$USER/$mount_name" 2>/dev/null
 	printf "USB drive /dev/%s is mounted at /media/$USER/%s\n" "$usbpart" "$mount_name"
 	return 0
@@ -120,9 +119,9 @@ list_usb_contents() {
 	local -r usbpart="$1"
 	local drvlabel
 	drvlabel=$(awk -v pat="$usbpart" -F/ '$0 ~ pat {print $NF}' < <(lsblk))
-  printf "\nContents of /dev/%s:\n" "$usbpart"
+	printf "\nContents of /dev/%s:\n" "$usbpart"
 	printf "Disk label: %s\n" "$drvlabel"
-  ls -F "/media/$USER/$drvlabel"
+	ls -F "/media/$USER/$drvlabel"
 	return 0
 }
 
@@ -132,9 +131,9 @@ simulate_dd() {
 	local -r mount_name="$3"
 	printf "\n%sPerforming a dryrun simulation.\n" "$orange"
 	printf "The ISO will NOT be written to USB drive.%s\n" "$normal"
-  printf "\nWriting %s to /dev/%s (%sSIMULATED%s) ...\n" "${iso##*/}" "$usb" "$lightyellow" "$normal"
+	printf "\nWriting %s to /dev/%s (%sSIMULATED%s) ...\n" "${iso##*/}" "$usb" "$lightyellow" "$normal"
 	dd if="$iso" of=/dev/null bs=16M status=progress
-  printf "%s written to /dev/%s (%sSIMULATED%s)\n" "${iso##*/}" "$usb" "$lightyellow" "$normal"
+	printf "%s written to /dev/%s (%sSIMULATED%s)\n" "${iso##*/}" "$usb" "$lightyellow" "$normal"
 	return 0
 }
 
@@ -149,7 +148,7 @@ write_dd() {
 	else
 		printf "%s %s write to /dev/%s failed.\n" "$RED_ERROR" "$iso" "$usb"
 		return "$E_FILE_ERROR"
-  fi
+	fi
 }
 
 select_iso_usb() {
@@ -168,7 +167,7 @@ select_iso_usb() {
 write_iso() {
 	local -r isofile="$1"
 	local -r usbdevice="$2"
-	local -i status=0
+	local -i code=0
 	local usbpart usbsize mount_name
 	usbsize=$(awk -v pat="$usbdevice" '$0~pat{print$4;exit}' < <(lsblk))
 	printf "%-16s %s\n" "Selected ISO:" "${isofile##*/}"
@@ -193,18 +192,18 @@ write_iso() {
 		if yes_or_no "Write ${isofile##*/} to /dev/$usb_device?"; then
 			sudo_login 2
 			write_dd "$isofile" "$usbdevice" "$mount_name"
-			status="$?"
+			code="$?"
 			grep -q "/dev/$usbpart" < <(mount) > /dev/null 2>&1 && unmount_usb "$mount_name" "$usbpart"
 		else
 			printf "Operation canceled. No action taken.\n"
 		fi
 	fi
-	return "$status"
+	return "$code"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="14.2.26236"
+	local -r version="14.3.26248"
 	local -i exit_code=0
 	local -r isoDir=~/Downloads/ISO
 	case "$1" in
