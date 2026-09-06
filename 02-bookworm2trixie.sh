@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jun 2025
-# Updated      : 02 Aug 2026
-# Version      : 1.10.26214
+# Updated      : 06 Sep 2026
+# Version      : 1.10.26249
 # Comments     : This scripts updates sources.list & backports.list.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -44,7 +44,7 @@ version_info() {
 	lsb_release --all 2>/dev/null
 	printf "%-16s%s\n" "Version:" "$(< /etc/debian_version)"
 	check_codename || die "Only upgrade from Debian 12 Bookworm is supported." "$E_UNSUPPORTED"
-  return 0
+	return 0
 }
 
 sources_list() {
@@ -54,7 +54,7 @@ sources_list() {
 	sudo_login 2
 	printf "%sUpdatings sources lists...%s\n" "$orange" "$normal"
 	sudo sed -i.bak 's/http:/https:/g;/ftp/s/https:/http:/;s/bookworm/trixie/g' "$list_path/$src_list"
-  return 0
+	return 0
 }
 
 backports_list() {
@@ -72,7 +72,7 @@ backports_list() {
 	# sudo cp -v "$list_path/$old_name" "$list_path/$old_name.bak"
 	# find "$list_path" -name "*.list" -exec sudo sed -i.bak 's/bookworm/trixie/g' {} \;
 	sudo mv -v "$list_path/$old_name" "$list_path/$new_name"
-  return 0
+	return 0
 }
 
 upgrade_debian() {
@@ -86,13 +86,13 @@ upgrade_debian() {
 	printf "%sFull upgrade...%s\n" "$orange" "$normal"
 	sudo apt full-upgrade
 	printf "%sDebian 13 Trixie installed.%s\n" "$orange" "$normal"
-  return 0
+	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.10.26214"
-	local -r updated="02 Aug 2026"
+	local -r version="1.10.26249"
+	local -r updated="06 Sep 2026"
 	check_package apt-transport-https
 	version_info
 	check_file1 || die "01-bookworm2trixie.sh must be run first." "$E_FILENOTFOUND"
