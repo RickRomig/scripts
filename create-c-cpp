@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 05 Aug 2026
-# Version      : 4.7.26217
+# Last updated : 06 Sep 2026
+# Version      : 4.7.26249
 # Comments     : Creates code files in the current working directory
 #              : Templates include GNU GPL v2 license
 # TODO (rick)  :
@@ -30,25 +30,25 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 VERBOSE="$FALSE"
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
-  local -ri errcode="${3:-1}"
-  local -r updated="05 Aug 2026"
-	cat << _HELP_
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="06 Sep 2026"
+	cat <<- _HELP_
 ${orange}$script${normal} $version ($updated)
 Creates a C/C++ source code file with descriptive comments (GPL v2.0 license)
 
 ${green}Usage:${normal} $script [-h] [-vc source-file] [-vp source-file]
 ${orange}Available options:${normal}
-  -c  Create a C source code file
-      $script -c <source-file>
-  -h  Show this help message and exit
-  -p  Create a C++ source code file
-      $script -p <source-file>
-  -v  Enable verbose mode (Must precede -c or -p flags)
-      $script -vc <source-file>
+	-c	Create a C source code file
+		$script -c <source-file>
+	-h	Show this help message and exit
+	-p	Create a C++ source code file
+		$script -p <source-file>
+	-v	Enable verbose mode (Must precede -c or -p flags)
+		$script -vc <source-file>
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 show_message() {
@@ -88,8 +88,8 @@ import_metadata() {
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="4.7.26217"
+	local -r script="${0##*/}"
+	local -r version="4.7.26249"
 	local code_file opt template_file OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":c:hp:v"
@@ -125,7 +125,10 @@ main() {
 		esac
 		noOpt=0
 	done
-	(( noOpt == 1 )) && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	import_metadata "$code_file" "$template_file"
 	edit_view_quit "$code_file"
