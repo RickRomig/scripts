@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Updated      : 07 Aug 2026
-# Version      : 4.6.26219"
+# Updated      :06 Sep 2026
+# Version      : 4.6.26249"
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
 #              : If file has been changed, commit the change before retiring.
@@ -30,10 +30,10 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local updated="07 Aug 2026"
+	local updated="06 Sep 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Retires a script in a Git repo by moving it to a zipped archive.
@@ -49,54 +49,54 @@ _HELP_
 }
 
 check_dependencies() {
-  local packages=( git zip )
-  check_packages "${packages[@]}"
-  return 0
+	local packages=( git zip )
+	check_packages "${packages[@]}"
+	return 0
 }
 
 is_git_repo() {
-  [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]  && return "$TRUE" || return "$FALSE"
+	[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]  && return "$TRUE" || return "$FALSE"
 }
 
 retire_script() {
-  local -r filename="$1"
-  local -r archive=~/Downloads/archives/retired-scripts.zip
-  printf "Archiving %s..." "$filename"
-  zip -u "$archive" "$filename"
-  git rm "$filename"
-  git commit -m "$filename retired and archived." --no-verify
-  git push
-  return 0
+	local -r filename="$1"
+	local -r archive=~/Downloads/archives/retired-scripts.zip
+	printf "Archiving %s..." "$filename"
+	zip -u "$archive" "$filename"
+	git rm "$filename"
+	git commit -m "$filename retired and archived." --no-verify
+	git push
+	return 0
 }
 
 check_args() {
-  local filename="$1"
-  [[ "$filename" ]] || read -rp "Enter the name of the script to be retired: " filename
-  if [[ ! -f "$filename" ]]; then
-    printf "%s not found in this git repository.\n" "$filename" >&2
-    return "$E_FILENOTFOUND"
-  fi
-  retire_script "$filename"
-  return 0
+	local filename="$1"
+	[[ "$filename" ]] || read -rp "Enter the name of the script to be retired: " filename
+	if [[ ! -f "$filename" ]]; then
+		printf "%s not found in this git repository.\n" "$filename" >&2
+		return "$E_FILENOTFOUND"
+	fi
+	retire_script "$filename"
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="4.6.26219"
-  local -i exit_code=0
+	local -r script="${0##*/}"
+	local -r version="4.6.26249"
+	local -i exit_code=0
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
-  local filename="$1"
-  if is_git_repo; then
-    check_dependencies
-    check_args "$filename"
-    exit_code="$?"
-  else
-    printf "%s This is not a git repositiory.\n" "$RED_WARNING" >&2
-    printf "Run 'retire-script.sh' to retire scripts that are not in a git repository.\n" >&2
-    exit_code="$E_UNSUPPORTED"
-  fi
-  over_line "$script $version"
-  exit "$exit_code"
+	local filename="$1"
+	if is_git_repo; then
+		check_dependencies
+		check_args "$filename"
+		exit_code="$?"
+	else
+		printf "%s This is not a git repositiory.\n" "$RED_WARNING" >&2
+		printf "Run 'retire-script.sh' to retire scripts that are not in a git repository.\n" >&2
+		exit_code="$E_UNSUPPORTED"
+	fi
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
