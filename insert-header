@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 24 Aug 2026
-# Version      : 4.13.26236
+# Updated      : 06 Sep 2026
+# Version      : 4.13.26249
 # Comments     : Assumes first line of the target file is either a hash-bang or a C/C++ comment
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,11 +27,11 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
-  local -ri errcode="${3:-1}"
-  local -r updated="24 Aug 2026"
-  cat << _HELP_
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="06 Sep 2026"
+	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Inserts a header into a shell script or a C/C++ source file.
 
@@ -45,7 +45,7 @@ ${orange}Available options:${normal}
   -s  Insert Shell script header
       $script -s <shell-script>
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 check_code_file() {
@@ -64,75 +64,68 @@ insert_header() {
 	local -r template_dir=~/bin/Templates
 	local cur_yr today
 	today=$(date +"%d %b %Y")
-  cur_yr=$(printf "\UA9 %(%Y)T")
+	cur_yr=$(printf "\UA9 %(%Y)T")
 
 	case $code_type in
-    "C"|"C++" )
-      sed -e '1d' \
-        -e "s/<PROGNAME>/$code_file/" \
-        -e "s/<YEAR>/$cur_yr/" \
-        -e "s/<TODAY>/$today/" "$template_dir/$template_file" > "$TMP_FILE"
-      sed -i -e "1r ${TMP_FILE}" "$code_file"
-      ;;
-    "Shell" )
-	    sed -e '1d' \
-        -e "s/<FILE>/$code_file/" \
-        -e "s/<YEAR>/$cur_yr/" \
-        -e "s/<TODAY>/$today/" "$template_dir/$template_file" > "$TMP_FILE"
-      sed -i -e "1r ${TMP_FILE}" "$code_file"
-      ;;
-    * )
-      printf "%sInvalid code type.%s\n" "$lightred" "$normal" >&2
+		"C"|"C++" )
+			sed -e '1d' \
+				-e "s/<PROGNAME>/$code_file/" \
+				-e "s/<YEAR>/$cur_yr/" \
+				-e "s/<TODAY>/$today/" "$template_dir/$template_file" > "$TMP_FILE"
+			sed -i -e "1r ${TMP_FILE}" "$code_file" ;;
+		"Shell" )
+			sed -e '1d' \
+				-e "s/<FILE>/$code_file/" \
+				-e "s/<YEAR>/$cur_yr/" \
+				-e "s/<TODAY>/$today/" "$template_dir/$template_file" > "$TMP_FILE"
+			sed -i -e "1r ${TMP_FILE}" "$code_file" ;;
+		* )
+			printf "%sInvalid code type.%s\n" "$lightred" "$normal" >&2
 	esac
 	printf "The %s header has been inserted into %s." "$code_type" "$code_file"
-  return 0
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="4.13.262369"
+	local -r script="${0##*/}"
+	local -r version="4.13.26249"
 	local code_file code_type template_file opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":c:hp:s:v"
 	while getopts "$optstr" opt; do
     case "$opt" in
-      c )
-				code_file="$OPTARG"
-				check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
-        code_type="C"
-        template_file="c-header.txt"
-        ;;
-      h )
-        help "$script" "$version" 0
-        ;;
-      p )
-				code_file="$OPTARG"
-				check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
-        code_type="C++"
-        template_file="cpp-header.txt"
-        ;;
-      s )
-				code_file="$OPTARG"
-				check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
-        code_type="Shell"
-        template_file="bash-header.txt"
-        ;;
-     : )
-        printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$script" "$version" "$E_MISSING_ARG"
-        ;;
-      ? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
-    esac
-		noOpt=0
+		c )
+			code_file="$OPTARG"
+			check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
+			code_type="C"
+			template_file="c-header.txt" ;;
+		h )
+			help "$script" "$version" 0 ;;
+		p )
+			code_file="$OPTARG"
+			check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
+			code_type="C++"
+			template_file="cpp-header.txt" ;;
+		s )
+			code_file="$OPTARG"
+			check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
+			code_type="Shell"
+			template_file="bash-header.txt" ;;
+		: )
+			printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
+			help "$script" "$version" "$E_MISSING_ARG" ;;
+		? )
+			printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			help "$script" "$version" "$E_INVALID_ARG"
+	esac
+	noOpt=0
 	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		help "$script" "$version" "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
-  create_tmp "file"
+	create_tmp "file"
 	insert_header "$code_file" "$code_type" "$template_file"
 	edit_view_quit "$code_file"
 	over_line "$script $version"
