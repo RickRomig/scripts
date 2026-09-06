@@ -81,13 +81,13 @@ remove_i386_arch() {
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="2.2.26190"
+	local -r script="${0##*/}"
+	local -r version="2.2.26190"
 	local -i exit_code=0
-  intro_message
+	intro_message
 	check_google_chrome && remove_i386_arch
 	exit_code="$?"
-  over_line "$script $version"
+	over_line "$script $version"
 	exit "$exit_code"
 }
 
