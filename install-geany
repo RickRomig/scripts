@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 24 Aug 2026
-# Version      : 4.2.26236
+# Updated      : 07 Sep 2026
+# Version      : 4.2.26250
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,143 +30,145 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 VERBOSE="$FALSE"
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="24 Aug 2026"
-  cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Installs/Removes Geany text editor and themes
+	local -r updated="07 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Installs/Removes Geany text editor and themes
 
-${green}Usage:${normal} $script [-h] [-v[cirt]]
-${orange}Available options:${normal}
-  -c  Apply Geany configuration.
-  -h  Show this help message and exit.
-  -i  Install the Geany editor.
-  -r  Remove the Geany editor.
-  -t  Install Geany themes.
-  -v  Enable verbose mode. If used, must precede other flags.
-NOTE: For a full installation with configuation and themes,
-enter '$script -ict' or '$script -vict'
+	${green}Usage:${normal} $script [-h] [-v[cirt]]
+	${orange}Available options:${normal}
+	-c	Apply Geany configuration.
+	-h	Show this help message and exit.
+	-i	Install the Geany editor.
+	-r	Remove the Geany editor.
+	-t	Install Geany themes.
+	-v	Enable verbose mode. If used, must precede other flags.
+	NOTE: For a full installation with configuation and themes,
+	enter '$script -ict' or '$script -vict'
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 geany_version() {
-  awk '/^ii/ {print $3}' < <(dpkg -l geany)
-  return 0
+	local ver
+	ver=$(awk '{print $1,$2}' < <(geany --version))
+	printf "%s" "${ver^}"
+	return 0
 }
 
 geany_config() {
-  if ! installed geany; then
-    printf "Configuration files cannot be installed because Geany is not installed.\n"
-    return 1
-  fi
-  local -r geany_cfg_d=~/.config/geany
-  local repository=~/Downloads/configs/geany
-  [[ -d ~/gitea/configs/geany ]] && repository=~/gitea/configs/geany
-  if [[ ! -d "$repository" ]]; then
-    printf "%s Configs repository not found!\n" "$RED_ERROR" >&2
-    return "$E_FILENOTFOUND"
-  fi
-  [[ -d "$geany_cfg_d" ]] || mkdir -p "$geany_cfg_d"
-  show_message "Applying configuration files."
-  cp -av "$repository"/. "$geany_cfg_d"
-  printf "Geany configuration files applied.\n"
-  return 0
+	if ! installed geany; then
+		printf "Configuration files cannot be installed because Geany is not installed.\n" >&2
+		return "$E_NOT_INSTALLED"
+	fi
+	local -r geany_cfg_d=~/.config/geany
+	local repository=~/Downloads/configs/geany
+	[[ -d ~/gitea/configs/geany ]] && repository=~/gitea/configs/geany
+	if [[ ! -d "$repository" ]]; then
+		printf "%s Configs repository not found!\n" "$RED_ERROR" >&2
+		return "$E_FILENOTFOUND"
+	fi
+	[[ -d "$geany_cfg_d" ]] || mkdir -p "$geany_cfg_d"
+	show_message "Applying configuration files."
+	cp -av "$repository"/. "$geany_cfg_d"
+	printf "Geany configuration files applied.\n"
+	return 0
 }
 
 clone_themes() {
-  if ! installed geany; then
-    printf "Themes cannot be installed because Geany is not installed.\n"
-    return 1
-  fi
-  local -r themes_url="https://github.com/geany/geany-themes.git"
-  local -r colorschemes_dir=~/.config/geany/colorschemes
-  [[ -d "$colorschemes_dir" ]] || mkdir -p "$colorschemes_dir"
-  create_tmp "dir"
-  show_message "Cloning Geany themes..."
-  git clone "$themes_url" "$TMP_DIR"
-  show_message "Copying Geany colorschemes..."
-  awk -F"/" '{print "=> " $NF}' < <(cp -av "$TMP_DIR"/colorschemes/. "$colorschemes_dir/") | sed "s/'//"
-  printf "Geany themes installed.\n"
-  return 0
+	if ! installed geany; then
+		printf "Themes cannot be installed because Geany is not installed.\n" >&2
+		return "$E_NOT_INSTALLED"
+	fi
+	local -r themes_url="https://github.com/geany/geany-themes.git"
+	local -r colorschemes_dir=~/.config/geany/colorschemes
+	[[ -d "$colorschemes_dir" ]] || mkdir -p "$colorschemes_dir"
+	create_tmp "dir"
+	show_message "Cloning Geany themes..."
+	git clone "$themes_url" "$TMP_DIR"
+	show_message "Copying Geany colorschemes..."
+	awk -F"/" '{print "=> " $NF}' < <(cp -av "$TMP_DIR"/colorschemes/. "$colorschemes_dir/") | sed "s/'//"
+	printf "Geany themes installed.\n"
+	return 0
 }
 
 install_geany() {
-  if installed geany; then
-    printf "Geany is already installed.\n"
-    return 1
-  fi
-  sudo_login 2
-  show_message "Installing Geany..."
-  sudo apt-get install -y geany
-  if ! installed geany; then
-    printf "%s Geany installation failed.\n" "$RED_ERROR" >&2
-    return "$E_INSTALLATION"
-  fi
-  printf "Geany %s installed.\n" "$(geany_version)"
-  return 0
+	if installed geany; then
+		printf "Geany is already installed.\n" >&2
+		return "$E_FILE_EXISTS"
+	fi
+	sudo_login 2
+	show_message "Installing Geany..."
+	sudo apt-get install -y geany
+	if ! installed geany; then
+		printf "%s Geany installation failed.\n" "$RED_ERROR" >&2
+		return "$E_INSTALLATION"
+	fi
+	printf "%s installed.\n" "$(geany_version)"
+	return 0
 }
 
 remove_geany() {
-  if ! installed geany; then
-    printf "Geany is not installed.\n"
-    return 1
-  fi
-  sudo_login 2
-  show_message "Removing Geany $(geany_version)..."
-  sudo apt-get purge -y geany
-  show_message "Removing Geany configuration files ..."
-  find ~/.config -type d -name geany -exec rm -rf {} \;
-  sudo find /usr/share -type f,d -name "geany*" -exec sudo rm -rf {} \;
-  printf "Geany and configuration files removed.\n"
-  return 0
+	if ! installed geany; then
+		printf "Geany is not installed.\n" >&2
+		return "$E_NOT_INSTALLED"
+	fi
+	sudo_login 2
+	show_message "Removing $(geany_version)..."
+	sudo apt-get purge -y geany
+	show_message "Removing Geany configuration files ..."
+	find ~/.config -type d -name geany -exec rm -rf {} \;
+	sudo find /usr/share -type f,d -name "geany*" -exec sudo rm -rf {} \;
+	printf "Geany and configuration files removed.\n"
+	return 0
 }
 
 show_message() {
 	local -r message="$1"
 	[[ "$VERBOSE" == "$TRUE" ]] && echo "$message"
-  return 0
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="4.2.26236"
-  local -i exit_code=0
-  local opt OPTARG OPTIND
-  local -i noOpt=1
-  local -r optstr=":chirtv"
-  check_package git
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      c )
-        geany_config ;;
-      h )
-        help "$script" "$version" 0 ;;
-      i )
-        install_geany ;;
-      r )
-        remove_geany ;;
-      t )
-        clone_themes ;;
-      v )
-        VERBOSE="$TRUE"
-			  show_message "Verbose mode enabled." ;;
-      ? )
-        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$script" "$version" "$E_INVALID_ARG"
-    esac
-    exit_code="$?"
-    noOpt=0
-  done
+	local -r script="${0##*/}"
+	local -r version="4.2.26250"
+	local -i exit_code=0
+	local -i noOpt=1
+	local -r optstr=":chirtv"
+	local opt OPTARG OPTIND
+	check_package git
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			c )
+				geany_config ;;
+			h )
+				help "$script" "$version" 0 ;;
+			i )
+				install_geany ;;
+			r )
+				remove_geany ;;
+			t )
+				clone_themes ;;
+			v )
+				VERBOSE="$TRUE"
+				show_message "Verbose mode enabled." ;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$script" "$version" "$E_INVALID_ARG"
+		esac
+		exit_code="$?"
+		noOpt=0
+	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		help "$script" "$version" "$E_MISSING_ARG"
 	fi
-  shift "$(( OPTIND - 1 ))"
-  over_line "$script $version"
-  exit "$exit_code"
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
