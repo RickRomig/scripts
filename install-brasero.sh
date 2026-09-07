@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 14 Feb 2026
-# Updated      : 26 Aug 2026
-# Version      : 2.2.26238
+# Updated      : 07 Sep 2026
+# Version      : 2.2.26250
 # Comments     : Thanks to Joe Collins and Matt Hartley for the fix to the permissions problem.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,8 +31,8 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="13 Aug 2026"
-	cat << _HELP_
+	local -r updated="07 Sep 2026"
+	cat <<- _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Installs Brasero CD/DVD writeer
 
@@ -46,8 +46,8 @@ _HELP_
 }
 
 check_dependencies() {
-  local packages=( cdrdao growisofs wodim )
-  check_packages "${packages[@]}"
+	local packages=( cdrdao growisofs wodim )
+	check_packages "${packages[@]}"
 	return "$?"
 }
 
@@ -58,10 +58,10 @@ brasero_version() {
 
 #  Set permissions to enable audio CD writing
 set_permissions() {
-  printf "Setting permissions...\n"
-  sudo chmod -v 4711 /usr/bin/cdrdao
-  sudo chmod -v 4711 /usr/bin/wodim
-  sudo chmod -v 0755 /usr/bin/growisofs
+	printf "Setting permissions...\n"
+	sudo chmod -v 4711 /usr/bin/cdrdao
+	sudo chmod -v 4711 /usr/bin/wodim
+	sudo chmod -v 0755 /usr/bin/growisofs
 	return 0
 }
 
@@ -70,7 +70,7 @@ append_mimeapps() {
 	local -r brasero_mimes=("x-content/blank-cd=brasero.desktop;" "x-content/blank-dvd=brasero.desktop;")
 	[[ -d "$applications_dir" ]] || mkdir -p "$applications_dir"
 	[[ -f "$applications_dir/mimeapps.list" ]] || touch "$applications_dir/mimeapps.list"
-  printf  "Updating mimeapps.iist...\n"
+	printf  "Updating mimeapps.iist...\n"
 	tee -a "$applications_dir/mimeapps.list" < <(printf "%s\n" "${brasero_mimes[@]}")
 	grep -w brasero "$applications_dir/mimeapps.list"
 	return 0
@@ -117,12 +117,12 @@ remove_brasero() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.2.26238"
+	local -r version="2.2.26250"
 	local -i exit_code=0
 	local -i reboot_flag="$FALSE"
-	local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":hir"
+	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
