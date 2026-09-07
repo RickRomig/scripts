@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 13 Aug 2026
-# Version      : 4.4.26225
+# Updated      : 07 Sep 2026
+# Version      : 4.4.26250
 # Comments     : Based on instructions from Joe Collins.
 # TODO (Rick)  : check entry in flatpak list, does Flatpak include all dependencies?
 # License      : GNU General Public License, version 2.0
@@ -27,11 +27,11 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="13 Aug 2026"
-	cat << _HELP_
+	local -r updated="07 Sep 2026"
+	cat <<- _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Install Gnome Boxes from either distribution repositories or flatpak from Flathub.
 
@@ -45,177 +45,175 @@ _HELP_
 }
 
 flatpak_boxes() {
-  installed flatpak || return "$FALSE"
-  grep -qi 'Gnome-Boxes' < <(flatpak list) && return "$TRUE" || return "$FALSE"
+	installed flatpak || return "$FALSE"
+	grep -qi 'Gnome-Boxes' < <(flatpak list) && return "$TRUE" || return "$FALSE"
 }
 
 boxes_version() {
-  if installed gnome-boxes; then
-    gnome-boxes --version
-  elif flatpak_boxes; then
-    awk '/Gnome-Boxes/ {print "$NF-2"}' 'gnome-boxes' < <(flatpak list)
-  fi
-  return 0
+	if installed gnome-boxes; then
+		gnome-boxes --version
+	elif flatpak_boxes; then
+		awk '/Gnome-Boxes/ {print "$NF-2"}' 'gnome-boxes' < <(flatpak list)
+	fi
+	return 0
 }
 
 check_bios() {
-  local vcpu vmx_svm
-  local -r qemu_sys_conf="/etc/modprobe.d/qemu-system-x86.conf"
-  sudo_login 2
-  printf "Checking if virtualization is enabled in BIOS...\n"
-  vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo)
-  printf "Virtualization is "
-  if [[ $vcpu -eq 0 ]]; then
-    printf "not enabled in the BIOS.\n" >&2
-    printf "Enable virtualization before installing Gnome Boxes.\n" >&2
-    return "$E_UNSUPPORTED"
-  fi
-  printf "enabled in the BIOS. (%d threads)\n" "$vcpu"
-  vmx_svm=$(grep -E -m 1 'vmx|svm' /proc/cpuinfo )
-  case "$vmx_svm" in
-    *vmx* )
-      # echo "options kvm_intel nested=1" | sudo tee -a "$qemu_sys_conf" >/dev/null ;;
-      sudo tee -a "$qemu_sys_conf" >/dev/null <<< "options kvm_intel nested=1" ;;
-    *svm* )
-      # echo "options kvm_amd nested=1" | sudo tee -a "$qemu_sys_conf" >/dev/null ;;
-      sudo tee -a "$qemu_sys_conf" >/dev/null <<< "options kvm_amd nested=1"
-  esac
-  sudo tee -a "$qemu_sys_conf" >/dev/null <<< "group=kvm"
-  return 0
+	local vcpu vmx_svm
+	local -r qemu_sys_conf="/etc/modprobe.d/qemu-system-x86.conf"
+	sudo_login 2
+	printf "Checking if virtualization is enabled in BIOS...\n"
+	vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo)
+	printf "Virtualization is "
+	if [[ $vcpu -eq 0 ]]; then
+		printf "not enabled in the BIOS.\n" >&2
+		printf "Enable virtualization before installing Gnome Boxes.\n" >&2
+		return "$E_UNSUPPORTED"
+	fi
+	printf "enabled in the BIOS. (%d threads)\n" "$vcpu"
+	vmx_svm=$(grep -E -m 1 'vmx|svm' /proc/cpuinfo )
+	case "$vmx_svm" in
+		*vmx* )
+			# echo "options kvm_intel nested=1" | sudo tee -a "$qemu_sys_conf" >/dev/null ;;
+			sudo tee -a "$qemu_sys_conf" >/dev/null <<< "options kvm_intel nested=1" ;;
+		*svm* )
+			# echo "options kvm_amd nested=1" | sudo tee -a "$qemu_sys_conf" >/dev/null ;;
+		sudo tee -a "$qemu_sys_conf" >/dev/null <<< "options kvm_amd nested=1"
+	esac
+	sudo tee -a "$qemu_sys_conf" >/dev/null <<< "group=kvm"
+	return 0
 }
 
 enable_libvirtd() {
-  sudo_login 2
-  sudo systemctl enable libvirtd.service
-  sudo systemctl start libvirtd.service
-  printf "libvirtd started.\n"
-  return "$?"
+	sudo_login 2
+	sudo systemctl enable libvirtd.service
+	sudo systemctl start libvirtd.service
+	printf "libvirtd started.\n"
+	return "$?"
 }
 
 add_to_kvm_group() {
-  local user in_kvm_grp
-  grep kvm /etc/group &>/dev/null || sudo groupadd --system kvm
-  user=$(whoami)
-  in_kvm_grp=$(awk '/kvm:/ && /'"$user"'/' /etc/group)
-  printf "User %s " "$user"
-  sudo_login 2
-  if [[ "$in_kvm_grp" ]]; then
-    printf "is already a member of "
-  else
-    sudo usermod -a -G kvm "$user"
-    printf "added to "
-  fi
-  printf "the kvm group.\n"
-  # if [[ -f /etc/libvirt/qemu.conf ]]; then
-  #   printf "Allow users in the kvm group to start VMs.\n"
-  #   sudo sed -i.bak 's/\#group\ =\ "root"/group\ =\ "kvm"/' /etc/libvirt/qemu.conf
-  # else
-  #   printf "/etc/libvirt/qemu.conf not found!\n" >&2
-  # fi
-  return 0
+	local in_kvm_grp
+	grep kvm /etc/group &>/dev/null || sudo groupadd --system kvm
+	in_kvm_grp=$(awk '/kvm:/ && /'"$USER"'/' /etc/group)
+	printf "User %s " "$USER"
+	sudo_login 2
+	if [[ "$in_kvm_grp" ]]; then
+		printf "is already a member of "
+	else
+		sudo usermod -a -G kvm "$USER"
+		printf "added to "
+	fi
+	printf "the kvm group.\n"
+	# if [[ -f /etc/libvirt/qemu.conf ]]; then
+	#   printf "Allow users in the kvm group to start VMs.\n"
+	#   sudo sed -i.bak 's/\#group\ =\ "root"/group\ =\ "kvm"/' /etc/libvirt/qemu.conf
+	# else
+	#   printf "/etc/libvirt/qemu.conf not found!\n" >&2
+	# fi
+	return 0
 }
 
 add_to_libvirt_group() {
-  local user in_libvirt_grp
-  grep libvirt /etc/group &>/dev/null || sudo groupadd --system libvirt
-  user=$(whoami)
-  in_libvirt_grp=$(awk '/libvirt/ && /'"$user"'/' /etc/group)
-  sudo_login 2
-  printf "User %s " "$user"
-  if [[ "$in_libvirt_grp" ]]; then
-    printf "is already a member of "
-  else
-    sudo usermod -a -G libvirt "$user"
-    printf "added to "
-  fi
-  printf "the libvirt group.\n"
-  return 0
+	local in_libvirt_grp
+	grep libvirt /etc/group &>/dev/null || sudo groupadd --system libvirt
+	in_libvirt_grp=$(awk '/libvirt/ && /'"$USER"'/' /etc/group)
+	sudo_login 2
+	printf "User %s " "$USER"
+	if [[ "$in_libvirt_grp" ]]; then
+		printf "is already a member of "
+	else
+		sudo usermod -a -G libvirt "$USER"
+		printf "added to "
+	fi
+	printf "the libvirt group.\n"
+	return 0
 }
 
 link_data_drive() {
-  [[ -d /data ]] || return
-  [[ -d /data/gnome-boxes ]] || mkdir -p /data/gnome-boxes
-  # [[ -d ~/.local/share/gnome-boxes ]] && mv ~/.local/share/gnome-boxes /data/
-  ln -vs /data/gnome-boxes ~/.local/share/gnome-boxes
-  printf "Gnome-boxes images linked to data drive.\n"
-  return 0
+	[[ -d /data ]] || return "$E_FILENOTFOUND"
+	[[ -d /data/gnome-boxes ]] || mkdir -p /data/gnome-boxes
+	# [[ -d ~/.local/share/gnome-boxes ]] && mv ~/.local/share/gnome-boxes /data/
+	ln -vs /data/gnome-boxes ~/.local/share/gnome-boxes
+	printf "Gnome-boxes images linked to data drive.\n"
+	return 0
 }
 
 install_from_deb() {
-  if installed gnome-boxes || flatpak_boxes; then
-    printf "Gnome-Boxes is already installed (Version: %s).\n" "$(boxes_version)" >&2
-    return 1
-  fi
-  sudo_login 2
-  printf "\nInstalling GNOME Boxes (distro)...\n"
-  sudo apt update -qq
-  sudo apt install -yy gnome-boxes
-  sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virt-manager
-  if ! installed gnome-boxes; then
-    printf "%s Gnome-boxes installation failed.\n" "$RED_ERROR" >&2
-    return "$E_INSTALLATION"
-  fi
-  printf "Gnome-boxes installed.\n"
-  sudo modprobe kvm
-  if [[ $(awk '/Vendor ID:/ {print $NF}' < <(lscpu)) == "GueuineIntel" ]]; then
-    sudo modprobe kvm_intel
-  else
-    sudo modprobe kvm_amd
-  fi
-  add_to_kvm_group
-  add_to_libvirt_group
-  enable_libvirtd
-  link_data_drive
-  return 0
+	if installed gnome-boxes || flatpak_boxes; then
+		printf "Gnome-Boxes is already installed (Version: %s).\n" "$(boxes_version)" >&2
+		return "$E_FILE_EXISTS"
+	fi
+	sudo_login 2
+	printf "\nInstalling GNOME Boxes (distro)...\n"
+	sudo apt update -qq
+	sudo apt install -yy gnome-boxes
+	sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virt-manager
+	if ! installed gnome-boxes; then
+		printf "%s Gnome-boxes installation failed.\n" "$RED_ERROR" >&2
+		return "$E_INSTALLATION"
+	fi
+	printf "Gnome-boxes installed.\n"
+	sudo modprobe kvm
+	if [[ $(awk '/Vendor ID:/ {print $NF}' < <(lscpu)) == "GueuineIntel" ]]; then
+		sudo modprobe kvm_intel
+	else
+		sudo modprobe kvm_amd
+	fi
+	add_to_kvm_group
+	add_to_libvirt_group
+	enable_libvirtd
+	link_data_drive
+	return 0
 }
 
 install_from_flatpak() {
-  if installed gnome-boxes || flatpak_boxes; then
-    printf "Gnome-Boxes is already installed (Version: %s).\n" "$(boxes_version)" >&2
-    return 1
-  fi
-  sudo_login 2
-  printf "\nInstalling GNOME Boxes (flatpak)...\n"
-  flatpak install --user flathub org.gnome.Boxes
-  if ! grep -qi 'boxes' < <(flatpak list); then
-    printf "%s Gnome-boxes installation failed.\n" "$RED_ERROR" >&2
-    return "$E_INSTALLATION"
-  fi
-  printf "Gnome-Boxes installed.\n"
-  add_to_kvm_group
-  enable_libvirtd
-  link_data_drive   # I haven't looked into moving or linking to a separate drive
+	if installed gnome-boxes || flatpak_boxes; then
+		printf "Gnome-Boxes is already installed (Version: %s).\n" "$(boxes_version)" >&2
+		return "$E_FILE_EXISTS"
+	fi
+	sudo_login 2
+	printf "\nInstalling GNOME Boxes (flatpak)...\n"
+	flatpak install --user flathub org.gnome.Boxes
+	if ! grep -qi 'boxes' < <(flatpak list); then
+		printf "%s Gnome-boxes installation failed.\n" "$RED_ERROR" >&2
+		return "$E_INSTALLATION"
+	fi
+	printf "Gnome-Boxes installed.\n"
+	add_to_kvm_group
+	enable_libvirtd
+	link_data_drive   # I haven't looked into moving or linking to a separate drive
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="4.4.26225"
-  local -i exit_code=0
-  local opt OPTARG OPTIND
+	local -r script="${0##*/}"
+	local -r version="4.4.26250"
+	local -i exit_code=0
+	local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":dfh"
 	while getopts "$optstr" opt; do
-    case "$opt" in
-      d )
-        check_bios && install_from_deb ;;
-      f )
-        check_bios && install_from_flatpak ;;
-      h )
-        help "$script" "$version" 0 ;;
+		case "$opt" in
+			d )
+				check_bios && install_from_deb ;;
+			f )
+				check_bios && install_from_flatpak ;;
+			h )
+				help "$script" "$version" 0 ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$script" "$version" "$E_INVALID_ARG"
-    esac
-    exit_code="$?"
-    noOpt=0
-  done
+				help "$script" "$version" "$E_INVALID_ARG"
+		esac
+		exit_code="$?"
+		noOpt=0
+	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		help "$script" "$version" "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
-  over_line "$script $version"
-  exit "$exit_code"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
