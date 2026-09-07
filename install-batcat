@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Updated      : 24 Aug 2026
-# Version      : 2.15.26236
+# Updated      : 07 Sep 2026
+# Version      : 2.15.26250
 # Comments     : executable and its manpage will be renamed from ‘bat’ to ‘batcat’
 #              : because of a file name clash with another Debian package.
 #              : Mint 22 installs version 0.24.0 with suffix.
@@ -35,7 +35,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="24 Aug 2026"
+	local -r updated="07 Sep 2026"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Installs/removes/configures bat/batcat
@@ -92,7 +92,7 @@ remove_batcat() {
 	else
 		printf "User configuration files retained.\n"
 	fi
-  printf "Batcat has been removed.\n"
+	printf "Batcat has been removed.\n"
 	return 0
 }
 
@@ -106,7 +106,7 @@ bat_config() {
 		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
 		return "$E_FILENOTFOUND"
 	fi
-  printf "Applying Bat configuration...\n"
+	printf "Applying Bat configuration...\n"
 	[[ -f ~/.config/bat/config ]] && rm ~/.config/bat/config
 	[[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/bat/config ~/.config/bat/config
 	[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/bat/config ~/.config/bat/config
@@ -114,17 +114,17 @@ bat_config() {
 		[[ -d ~/.local/bin ]] || mkkdir -p ~/.local/bin
 		ln -sv /usr/bin/batcat ~/.local/bin/bat
 	fi
-  printf "Bat configuration applied.\n"
+	printf "Bat configuration applied.\n"
 	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.15.26236"
+	local -r version="2.15.26250"
 	local -i exit_code=0
-	local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":chir"
+	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c )
