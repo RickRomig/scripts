@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 26 Aug 2026
-# Version      : 7.6.26238
+# Updated      : 07 Sep 2026
+# Version      : 7.6.26250
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -31,149 +31,149 @@ source functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source function
 VERBOSE="FALSE"
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
-  local -ri errcode="${3:-1}"
-  local -r updated="13 Aug 2026"
-  cat << _HELP_
-${orange}$script${normal} $version, Updated: ($updated)
-Installs/Removes the Brave browser
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="07 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version, Updated: ($updated)
+	Installs/Removes the Brave browser
 
-${green}Usage:${normal} $script [-h] [-vir]
-${orange}Available options:${normal}
-  -h  Show this help message and exit.
-  -i  Install the Brave Browser.
-  -r  Remove the Brave Browser & leave configuration files.
-  -v  Enable verbose mode. Must precede other flags.
+	${green}Usage:${normal} $script [-h] [-vir]
+	${orange}Available options:${normal}
+	-h  Show this help message and exit.
+	-i  Install the Brave Browser.
+	-r  Remove the Brave Browser & leave configuration files.
+	-v  Enable verbose mode. Must precede other flags.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 check_dependencies() {
-  if [[ ! $(uname -m) == "x86_64" ]]; then
-    printf "%s System architecture is not 64-bit.\n" "$RED_ERROR" >&2
-    return "$E_UNSUPPORTED"
-  fi
-  local packages=( apt-transport-https curl libu2f-udev )
-  check_packages "${packages[@]}"
-  return 0
+	if [[ ! $(uname -m) == "x86_64" ]]; then
+		printf "%s System architecture is not 64-bit.\n" "$RED_ERROR" >&2
+		return "$E_UNSUPPORTED"
+	fi
+	local packages=( apt-transport-https curl libu2f-udev )
+	check_packages "${packages[@]}"
+	return 0
 }
 
 show_message() {
 	local message="$1"
 	[[ "$VERBOSE" == "$TRUE" ]] && echo "$message"
-  return 0
+	return 0
 }
 
 brave_ver() {
-  brave-browser --version
-  return 0
+	brave-browser --version
+	return 0
 }
 
 set_gpg_key() {
-  local -r brave_key="$1"
-  local -r key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
-  if [[ -f "$brave_key" ]]; then
-    printf "%s already exists.\n" "${brave_key##*/}"
-  else
-    show_message "Importing public key for verification of the APT repository"
-    sudo curl -fsSLo "$brave_key" "$key_url"
-	  show_message "GPG key is set."
-  fi
-  return 0
+	local -r brave_key="$1"
+	local -r key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
+	if [[ -f "$brave_key" ]]; then
+		printf "%s already exists.\n" "${brave_key##*/}"
+	else
+		show_message "Importing public key for verification of the APT repository"
+		sudo curl -fsSLo "$brave_key" "$key_url"
+		show_message "GPG key is set."
+	fi
+	return 0
 }
 
 set_sources() {
-  local -r key_file="$1"
-  local -r sources_uri="https://brave-browser-apt-release.s3.brave.com/"
-  local -r sources_file=/etc/apt/sources.list.d/brave-browser-release.sources
-  local -r sources_list=/etc/apt/sources.list.d/brave-browser-release.list
-  if [[ -f "$sources_list" ]]; then
-    show_message "Renaming old source list file..."
-    sudo mv -v "$sources_list"
-  fi
+	local -r key_file="$1"
+	local -r sources_uri="https://brave-browser-apt-release.s3.brave.com/"
+	local -r sources_file=/etc/apt/sources.list.d/brave-browser-release.sources
+	local -r sources_list=/etc/apt/sources.list.d/brave-browser-release.list
+	if [[ -f "$sources_list" ]]; then
+		show_message "Renaming old source list file..."
+		sudo mv -v "$sources_list"
+	fi
 	show_message "Creating the source list file..."
-  sudo tee $sources_file <<< \
+	sudo tee $sources_file <<< \
 "Types: deb
 URIs: $sources_uri
 Suites: stable
 Components: main
 Signed-By: $key_file"
-  show_message "${sources_file##*/} has been created."
-  return 0
+	show_message "${sources_file##*/} has been created."
+	return 0
 }
 
 install_brave_browser() {
-  if installed brave-browser; then
-    printf "%s is already installed." "$(brave_ver)"
-    return "$E_FILE_EXISTS"
-  fi
-  local -r brave_key=/usr/share/keyrings/brave-browser-archive-keyring.gpg
-  sudo_login 2
-  printf "Installing the Brave Browser ...\n"
-  set_gpg_key "$brave_key"
-  set_sources "$brave_key"
-  show_message "Updating apt cache and isntalling the Brave browser"
-  sudo apt-get update -qq
-  sudo apt-get install brave-browser brave-keyring -yy
-  if ! installed brave-browser; then
-    printf "%s Brave browser installation failed.\n" "$RED_ERROR" >&2
-    return "$E_INSTALLATION"
-  fi
-  printf "%s successfully installed.\n" "$(brave_ver)"
-  return 0
+	if installed brave-browser; then
+		printf "%s is already installed." >&2 "$(brave_ver)"
+		return "$E_FILE_EXISTS"
+	fi
+	local -r brave_key=/usr/share/keyrings/brave-browser-archive-keyring.gpg
+	sudo_login 2
+	printf "Installing the Brave Browser ...\n"
+	set_gpg_key "$brave_key"
+	set_sources "$brave_key"
+	show_message "Updating apt cache and isntalling the Brave browser"
+	sudo apt-get update -qq
+	sudo apt-get install brave-browser brave-keyring -yy
+	if ! installed brave-browser; then
+		printf "%s Brave browser installation failed.\n" "$RED_ERROR" >&2
+		return "$E_INSTALLATION"
+	fi
+	printf "%s successfully installed.\n" "$(brave_ver)"
+	return 0
 }
 
 remove_brave() {
-  if ! installed brave-browser; then
-    printf "Brave Browser is not installed.\n"
-    return "$E_NOT_INSTALLED"
-  fi
-  sudo_login 2
-  printf "Uninstalling %s...\n" "$(brave_ver)"
-  sudo apt-get remove brave-browser brave-keyring -yy
-  show_message "Removing Brave sources..."
-  find /etc/apt/ -maxdepth 2 -type f -iname "brave*" -exec sudo rm {} \;
-  show_message "Removing the Brave keyring and system files..."
-  find /usr/share -maxdepth 3 -type f,d -iname "brave*" -exec rm -rf {} \;
-  show_message "Removing local configuration and cache files..."
-  find ~/ -maxdepth 2 -type d -name BraveSoftware -exec rm -rf {} \;
-  printf "Brave browser has been uninstalled.\n"
-  return 0
+	if ! installed brave-browser; then
+		printf "Brave Browser is not installed.\n" >&2
+		return "$E_NOT_INSTALLED"
+	fi
+	sudo_login 2
+	printf "Uninstalling %s...\n" "$(brave_ver)"
+	sudo apt-get remove brave-browser brave-keyring -yy
+	show_message "Removing Brave sources..."
+	find /etc/apt/ -maxdepth 2 -type f -iname "brave*" -exec sudo rm {} \;
+	show_message "Removing the Brave keyring and system files..."
+	find /usr/share -maxdepth 3 -type f,d -iname "brave*" -exec rm -rf {} \;
+	show_message "Removing local configuration and cache files..."
+	find ~/ -maxdepth 2 -type d -name BraveSoftware -exec rm -rf {} \;
+	printf "Brave browser has been uninstalled.\n"
+	return 0
 }
 
 main(){
-  local -r script="${0##*/}"
-  local -r version="7.6.26238"
-  local -i exit_code=0
-  local opt OPTARG OPTIND
-  local -i noOpt=1
-  local -r optstr=":hirv"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      h )
-        help "$script" "$version" 0 ;;
-      i )
-        check_dependencies && install_brave_browser ;;
-      r )
-        remove_brave ;;
+	local -r script="${0##*/}"
+	local -r version="7.6.26250"
+	local -i exit_code=0
+	local -i noOpt=1
+	local -r optstr=":hirv"
+	local opt OPTARG OPTIND
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			h )
+				help "$script" "$version" 0 ;;
+			i )
+				check_dependencies && install_brave_browser ;;
+			r )
+				remove_brave ;;
 			v )
 				VERBOSE="$TRUE"
 				show_message "Verbose mode enabled." ;;
-      ? )
-        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$script" "$version" "$E_INVALID_ARG"
-    esac
-    exit_code="$?"
-    noOpt=0
-  done
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$script" "$version" "$E_INVALID_ARG"
+		esac
+		exit_code="$?"
+		noOpt=0
+	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		help "$script" "$version" "$E_MISSING_ARG"
 	fi
-  shift "$(( OPTIND - 1 ))"
-  over_line "$script $version"
-  exit "$exit_code"
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
