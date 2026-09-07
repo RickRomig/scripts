@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 13 Aug 2026
-# Version      : 5.4.26225
+# Updated      : 07 Sep 2026
+# Version      : 5.4.26250
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  : add flatpak installation...
 # License      : GNU General Public License, version 2.0
@@ -33,30 +33,30 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -f updated="13 Aug 2026"
-	cat << _HELP_
-${orange}$script${normal} $version, updated: ($updated)
-Install/Remove VSCodium and apply settings
+	local -f updated="07 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version, updated: ($updated)
+	Install/Remove VSCodium and apply settings
 
-${green}Usage:${normal} $script [-h] [-vairs]
-${orange}Available options:${normal}
-  -a  Set apt gpg key and source list.
-  -h  Show this help message and exit.
-  -i  Install VSCodium via apt.
-  -r  Remove VSCodium.
-  -s  Apply VSCodium settings.
-  -v  Enable verbose mode. If used, must precede other flags.
+	${green}Usage:${normal} $script [-h] [-vairs]
+	${orange}Available options:${normal}
+	-a	Set apt gpg key and source list.
+	-h	Show this help message and exit.
+	-i	Install VSCodium via apt.
+	-r	Remove VSCodium.
+	-s	Apply VSCodium settings.
+	-v	Enable verbose mode. If used, must precede other flags.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 check_dependencies() {
 	if [[ $(uname -m) == "x86_64" ]]; then
-    printf "%s System architecture is not 64-bit.\n" "$RED_ERROR" >&2
-    return "$E_UNSUPPORTED"
+		printf "%s System architecture is not 64-bit.\n" "$RED_ERROR" >&2
+		return "$E_UNSUPPORTED"
 	fi
-  local packages=( git wget )
-  check_packages "${packages[@]}"
+	local -r packages=( git wget )
+	check_packages "${packages[@]}"
 	return 0
 }
 
@@ -112,7 +112,7 @@ install_vscodium() {
 	if ! installed codium; then
 		printf "%s VSCodium installation failed.\n" "$RED_ERROR" >&2
 		return "$E_INSTALLATION"
-  fi
+	fi
 	printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 	apply_settings
 	return "$?"
@@ -128,19 +128,19 @@ apply_settings() {
 		return "$E_FILENOTFOUND"
 	fi
 	[[ -d ~/.config/VSCodium/User/ ]] || mkdir -p ~/.config/VSCodium/User/
-  show_message "Applying VSCodium settings..."
+	show_message "Applying VSCodium settings..."
 	[[ -f ~/.config/VSCodium/User/settings.json ]] && rm ~/.config/VSCodium/User/settings.json
 	[[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/VSCodium/User/settings.json ~/.configVSCodium/User/settings.json
 	[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/VSCodium/User/settings.json ~/.config/VSCodium/User/settings.json
-  show_message "VSCodium settings applied."
+	show_message "VSCodium settings applied."
 	return 0
 }
 
 remove_vscodium() {
-  if ! installed codium; then
-    printf "VSCodium is not installed.\n"
-    return 0
-  fi
+	if ! installed codium; then
+		printf "VSCodium is not installed.\n"
+		return "$E_NOT_INSTALLED"
+	fi
 	sudo_login 2
 	show_message "Removing VSCodium..."
 	sudo apt-get purge codium
@@ -156,19 +156,19 @@ remove_vscodium() {
 }
 
 show_message() {
-  local message="$1"
-  [[ "$VERBOSE" == "$TRUE" ]] && echo "$message"
+	local message="$1"
+		[[ "$VERBOSE" == "$TRUE" ]] && echo "$message"
 	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.4.26225"
+	local -r version="5.4.26250"
 	local -i exit_code=0
 	local -r key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
-  local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":ahirsv"
+	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			a)
@@ -204,8 +204,8 @@ main() {
 		help "$script" "$version" "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
-  over_line "$script $version"
-  exit "$exit_code"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
