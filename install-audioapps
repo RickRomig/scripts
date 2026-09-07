@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Mar 2019
-# Updated      : 09 Jul 2026
-# Version      : 1.7.26208
+# Updated      : 07 Sep 2026
+# Version      : 1.7.26250
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -17,43 +17,42 @@
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
 # Foundation; either version 2 of the License, or (at your option) any later
-#  version.
+# version.
 #
 # This program is distributed in the hope that it will be useful,# but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 install_audio_apps() {
-  printf "\nInstalling audio applications and utilities from repositories.\n"
-  sudo_login 2
-  sudo apt-get update -qq
-  sudo apt-get install -yy asunder audacity easytag lame mp3gain
-  return 0
+	printf "\nInstalling audio applications and utilities from repositories.\n"
+	sudo_login 2
+	sudo apt-get update -qq
+	sudo apt-get install -yy asunder audacity easytag lame mp3gain
+	return 0
 }
 
 list_installed_apps() {
-  local app apps
-  apps=( asunder audacity easytag lame mp3gain )
-  printf "Audio applications installed:\n"
-  for app in "${apps[@]}"; do
-    installed "$app" && printf "\t%s\n" "${app^}"
-  done
-  return 0
+	local app apps
+	apps=( asunder audacity easytag lame mp3gain )
+	printf "Audio applications installed:\n"
+	for app in "${apps[@]}"; do
+		installed "$app" && printf "\t%s\n" "${app^}"
+	done
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="1.7.26208"
-  printf "Installs audio applications on Debian/Ubuntu-based systems.\n"
-  install_audio_apps
-  list_installed_apps
-  over_line "$script $version"
-  exit
+	local -r script="${0##*/}"
+	local -r version="1.7.26208"
+	printf "Installs audio applications on Debian/Ubuntu-based systems.\n"
+	install_audio_apps
+	list_installed_apps
+	over_line "$script $version"
+	exit
 }
 
 main "$@"
