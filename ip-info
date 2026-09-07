@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Feb 2019
-# Updated      : 17 Aug 2026
-# Version      : 5.4.26229
+# Updated      : 07 Sep 2026
+# Version      : 5.4.26250
 # Comments     : Some systems require to access to use iw to get ssid & signal strength.
 #              : If necesary, add applicable hostnames to sudo_required().
 # TODO (rick)  : format printf statements for devices.
@@ -29,192 +29,183 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 title_box() {
-  local -r lhost="$1"
-  printf "%s" "$lightyellow"
-  box "IP Information - $lhost" "*"
-  printf "%s\n" "$normal"
-  return 0
+	local -r lhost="$1"
+	printf "%s" "$lightyellow"
+	box "IP Information - $lhost" "*"
+	printf "%s\n" "$normal"
+	return 0
 }
 
 # Some systems may require root access for the iw command. Replace foo-bar with appropriate hostnames.
 sudo_required() {
 	local lhost="$1"
-  case "$lhost" in
-    foo-bar ) return "$TRUE" ;;
-    * ) return "$FALSE"
-  esac
+	case "$lhost" in
+		foo-bar ) return "$TRUE" ;;
+		* ) return "$FALSE"
+	esac
 }
 
 check_dependencies() {
-  local packages=( curl iw network-manager )
-  check_packages "${packages[@]}"
-  return 0
+	local packages=( curl iw network-manager )
+	check_packages "${packages[@]}"
+	return 0
 }
 
 show_public_ip() {
-  local public_ipv4 public_ipv6
-  printf "%sPublic IP:%s\n" "$orange" "$normal"
-  public_ipv4=$(/usr/bin/curl -s -4 ifconfig.me)
-  [[ "$public_ipv4" ]] && printf "%4sIPv4: %s\n" " " "$public_ipv4" || printf "%4sIPv4: No address found.\n" " "
-  public_ipv6=$(/usr/bin/curl -s -6 icanhazip.com)
-  [[ "$public_ipv6" ]] && printf "%8s: %s\n" "IPv6" "$public_ipv6" || printf "%4sIPv6: No address found.\n" " "
-  return 0
+	local public_ipv4 public_ipv6
+	printf "%sPublic IP:%s\n" "$orange" "$normal"
+	public_ipv4=$(/usr/bin/curl -s -4 ifconfig.me)
+	[[ "$public_ipv4" ]] && printf "%4sIPv4: %s\n" " " "$public_ipv4" || printf "%4sIPv4: No address found.\n" " "
+	public_ipv6=$(/usr/bin/curl -s -6 icanhazip.com)
+	[[ "$public_ipv6" ]] && printf "%8s: %s\n" "IPv6" "$public_ipv6" || printf "%4sIPv6: No address found.\n" " "
+	return 0
 }
 
 show_wired() {
-  # Assumes only one active ethernet wired interface in the system.
-  local eth_int eth_state eth_ip eth_mac eth_str
-  eth_int=$(awk '/ethernet/ {print $1}' < <(/usr/bin/nmcli dev))
-   [[ "$eth_int" ]] || return 0
-  # interface data
-  printf -v eth_str "%s%12s:%s" "$lightgreen" "Ethernet" "$normal"
-  eth_state=$(< "/sys/class/net/$eth_int/operstate")
-  eth_ip=$(awk '/IP4.ADDRESS/ {print $NF}' < <(/usr/bin/nmcli dev show "$eth_int") | sed 's/\/24//')
-  eth_mac=$(awk '/GENERAL.HWADDR/ {print $NF}' < <(/usr/bin/nmcli dev show "$eth_int"))
-  # display status
-  case "$eth_state" in
-    up )
-      printf "%s %s\n" "$eth_str" "$eth_ip"
-      printf "%12s: %s\n" "Device" "$eth_int"
-      printf "%12s: %s\n" "MAC" "$eth_mac"
-      ;;
-    down )
-      printf "%s Not connected\n" "$eth_str"
-      printf "%12s: %s\n" "Device" "$eth_int"
-      printf "%12s: %s\n" "MAC" "$eth_mac"
-      ;;
-    unknown )
-      printf "%s Unknown state\n" "$eth_str"
-      printf "%12s: %s\n" "Device" "$eth_int"
-      printf "%12s: %s\n" "MAC" "$eth_mac"
-      ;;
-    * )
-      printf "%4sNo device found.\n" " "
-  esac
-  return 0
+	# Assumes only one active ethernet wired interface in the system.
+	local eth_int eth_state eth_ip eth_mac eth_str
+	eth_int=$(awk '/ethernet/ {print $1}' < <(/usr/bin/nmcli dev))
+	[[ "$eth_int" ]] || return 0
+	# interface data
+	printf -v eth_str "%s%12s:%s" "$lightgreen" "Ethernet" "$normal"
+	eth_state=$(< "/sys/class/net/$eth_int/operstate")
+	eth_ip=$(awk '/IP4.ADDRESS/ {print $NF}' < <(/usr/bin/nmcli dev show "$eth_int") | sed 's/\/24//')
+	eth_mac=$(awk '/GENERAL.HWADDR/ {print $NF}' < <(/usr/bin/nmcli dev show "$eth_int"))
+	# display status
+	case "$eth_state" in
+		up )
+			printf "%s %s\n" "$eth_str" "$eth_ip"
+			printf "%12s: %s\n" "Device" "$eth_int"
+			printf "%12s: %s\n" "MAC" "$eth_mac" ;;
+		down )
+			printf "%s Not connected\n" "$eth_str"
+			printf "%12s: %s\n" "Device" "$eth_int"
+			printf "%12s: %s\n" "MAC" "$eth_mac" ;;
+		unknown )
+			printf "%s Unknown state\n" "$eth_str"
+			printf "%12s: %s\n" "Device" "$eth_int"
+			printf "%12s: %s\n" "MAC" "$eth_mac" ;;
+		* )
+			printf "%4sNo device found.\n" " "
+	esac
+	return 0
 }
 
 show_wireless() {
-  # Assumes only one active wireless interface in the system.
-  local wifi_int wifi_state wifi_ip wifi_mac wifi_ssid wifi_sig wifi_str
-  wifi_int=$(awk '/wifi / {print $1}' < <(/usr/bin/nmcli dev))
-  [[ "$wifi_int" ]] || return 0
-  # interface data
-  printf -v wifi_str "%s%12s:%s" "$lightgreen" "Wireless" "$normal"
-  wifi_state=$(< "/sys/class/net/$wifi_int/operstate")
-  wifi_ip=$(awk '/IP4.ADDRESS/ {print $NF}' < <(/usr/bin/nmcli dev show "$wifi_int") | sed 's/\/24//')
-  wifi_mac=$(awk '/GENERAL.HWADDR/ {print $NF}' < <(/usr/bin/nmcli dev show "$wifi_int"))
-  if sudo_required; then
-    wifi_ssid=$(awk '/SSID/ {print $2}' < <(sudo /sbin/iw dev "$wifi_int" link))
-    wifi_sig=$(awk '/signal/ {print $2,$3}' < <(sudo /sbin/iw dev "$wifi_int" link))
-  else
-    wifi_ssid=$( awk '/SSID/ {print $2}' < <(/sbin/iw dev "$wifi_int" link))
-    wifi_sig=$(awk '/signal/ {print $2,$3}' < <(/sbin/iw dev "$wifi_int" link))
-  fi
-  [[ "$wifi_ssid" ]] || wifi_ssid="Not available"
-  [[ "$wifi_sig" ]] || wifi_sig="Not available"
-  # display status
-  case "$wifi_state" in
-    up )
-      printf "%s %s\n" "$wifi_str" "$wifi_ip"
-      printf "%12s: %s\n" "Device" "$wifi_int"
-      printf "%12s: %s\n" "MAC" "$wifi_mac"
-      printf "%12s: %s\n" "SSID" "$wifi_ssid"
-      printf "%12s: %s\n" "Signal" "$wifi_sig"
-      ;;
-    down )
-      printf "%s Not connected\n" "$wifi_str"
-      printf "%12s: %s\n" "Device" "$wifi_int"
-      printf "%12s: %s\n" "MAC" "$wifi_mac"
-      ;;
-    unknown )
-      printf "%s Unknown state\n" "$wifi_str"
-      printf "%12s: %s\n" "Device" "$wifi_int"
-      printf "%12s: %s\n" "MAC" "$wifi_mac"
-      ;;
-    * )
-      printf "%4sNo device found.\n" " "
-  esac
-  return 0
+	# Assumes only one active wireless interface in the system.
+	local wifi_int wifi_state wifi_ip wifi_mac wifi_ssid wifi_sig wifi_str
+	wifi_int=$(awk '/wifi / {print $1}' < <(/usr/bin/nmcli dev))
+	[[ "$wifi_int" ]] || return 0
+	# interface data
+	printf -v wifi_str "%s%12s:%s" "$lightgreen" "Wireless" "$normal"
+	wifi_state=$(< "/sys/class/net/$wifi_int/operstate")
+	wifi_ip=$(awk '/IP4.ADDRESS/ {print $NF}' < <(/usr/bin/nmcli dev show "$wifi_int") | sed 's/\/24//')
+	wifi_mac=$(awk '/GENERAL.HWADDR/ {print $NF}' < <(/usr/bin/nmcli dev show "$wifi_int"))
+	if sudo_required; then
+		wifi_ssid=$(awk '/SSID/ {print $2}' < <(sudo /sbin/iw dev "$wifi_int" link))
+		wifi_sig=$(awk '/signal/ {print $2,$3}' < <(sudo /sbin/iw dev "$wifi_int" link))
+	else
+		wifi_ssid=$( awk '/SSID/ {print $2}' < <(/sbin/iw dev "$wifi_int" link))
+		wifi_sig=$(awk '/signal/ {print $2,$3}' < <(/sbin/iw dev "$wifi_int" link))
+	fi
+	[[ "$wifi_ssid" ]] || wifi_ssid="Not available"
+	[[ "$wifi_sig" ]] || wifi_sig="Not available"
+	# display status
+	case "$wifi_state" in
+		up )
+			printf "%s %s\n" "$wifi_str" "$wifi_ip"
+			printf "%12s: %s\n" "Device" "$wifi_int"
+			printf "%12s: %s\n" "MAC" "$wifi_mac"
+			printf "%12s: %s\n" "SSID" "$wifi_ssid"
+			printf "%12s: %s\n" "Signal" "$wifi_sig" ;;
+		down )
+			printf "%s Not connected\n" "$wifi_str"
+			printf "%12s: %s\n" "Device" "$wifi_int"
+			printf "%12s: %s\n" "MAC" "$wifi_mac" ;;
+		unknown )
+			printf "%s Unknown state\n" "$wifi_str"
+			printf "%12s: %s\n" "Device" "$wifi_int"
+			printf "%12s: %s\n" "MAC" "$wifi_mac" ;;
+		* )
+			printf "%4sNo device found.\n" " "
+	esac
+	return 0
 }
 
 show_bridge() {
-  local br_int br_state br_ip br_mac br_route br_str
+	local br_int br_state br_ip br_mac br_route br_str
 	br_int=$(awk '/bridge / {print $1}' < <(/usr/bin/nmcli dev))
 	[[ "$br_int" ]] || return 0
-  # interface data
-  printf -v br_str "%s%12s:%s" "$lightgreen" "Bridge" "$normal"
-  br_state=$(< "/sys/class/net/$br_int/operstate")
-  br_ip=$(awk '/vir/ && /brd/ {print $2}' < <(ip addr show))
-  br_mac=$(< "/sys/class/net/$br_int/address")
-  br_route=$(awk '/vir/ && /kernel/ {print $1}' < <(ip route show))
-  # display status
-  case "$br_state" in
-    up )
-      printf "%s %s\n" "$br_str" "$br_ip"
-      printf "%12s: %s\n" "Device" "$br_int"
-      printf "%12s: %s\n" "MAC" "$br_mac"
-	    printf "%12s: %s\n" "Subnet" "$br_route"
-      ;;
-    down )
-      printf "%s Not connected\n" "$br_str"
-      printf "%12s: %s\n" "Device" "$br_int"
-      printf "%12s: %s\n" "MAC" "$br_mac"
-      ;;
-    unknown )
-      printf "%s Unknown state\n" "$br_str"
-      printf "%12s: %s\n" "Device" "$br_int"
-      printf "%12s: %s\n" "MAC" "$br_mac"
-      ;;
-    * )
-      printf "%4sNo device found.\n" " "
-  esac
-  return 0
+	# interface data
+	printf -v br_str "%s%12s:%s" "$lightgreen" "Bridge" "$normal"
+	br_state=$(< "/sys/class/net/$br_int/operstate")
+	br_ip=$(awk '/vir/ && /brd/ {print $2}' < <(ip addr show))
+	br_mac=$(< "/sys/class/net/$br_int/address")
+	br_route=$(awk '/vir/ && /kernel/ {print $1}' < <(ip route show))
+	# display status
+	case "$br_state" in
+		up )
+			printf "%s %s\n" "$br_str" "$br_ip"
+			printf "%12s: %s\n" "Device" "$br_int"
+			printf "%12s: %s\n" "MAC" "$br_mac"
+			printf "%12s: %s\n" "Subnet" "$br_route" ;;
+		down )
+			printf "%s Not connected\n" "$br_str"
+			printf "%12s: %s\n" "Device" "$br_int"
+			printf "%12s: %s\n" "MAC" "$br_mac" ;;
+		unknown )
+			printf "%s Unknown state\n" "$br_str"
+			printf "%12s: %s\n" "Device" "$br_int"
+			printf "%12s: %s\n" "MAC" "$br_mac" ;;
+		* )
+			printf "%4sNo device found.\n" " "
+	esac
+	return 0
 }
 
 show_network() {
-  local network_addr
-  network_addr=$(awk '/kernel/ {print $1;exit}' < <(ip route show))
-  # network_addr=$(awk '/kernel/ {print $1}' < <(ip route show) | sort -u) # work with KVM/QEMU or Gnome Boxes?
-  printf "%sLocal Network:%s\n" "$orange" "$normal"
-  printf "%4s%s\n" " " "$network_addr"
-  return 0
+	local network_addr
+	network_addr=$(awk '/kernel/ {print $1;exit}' < <(ip route show))
+	# network_addr=$(awk '/kernel/ {print $1}' < <(ip route show) | sort -u) # work with KVM/QEMU or Gnome Boxes?
+	printf "%sLocal Network:%s\n" "$orange" "$normal"
+	printf "%4s%s\n" " " "$network_addr"
+	return 0
 }
 
 show_gateway() {
-  local gateway_addr
-  gateway_addr=$(awk 'NR==1 {print $3}' < <(ip route get 1.2.3.4))
-  printf "%sDefault Gateway:%s\n" "$orange" "$normal"
-  printf "%4s%s\n" " " "$gateway_addr"
-  return 0
+	local gateway_addr
+	gateway_addr=$(awk 'NR==1 {print $3}' < <(ip route get 1.2.3.4))
+	printf "%sDefault Gateway:%s\n" "$orange" "$normal"
+	printf "%4s%s\n" " " "$gateway_addr"
+	return 0
 }
 
 show_dns() {
-  local addr dns_addrs
-  printf "%sDNS Servers:%s\n" "$orange" "$normal"
-  readarray -t dns_addrs <<< "$(awk '/IP4.DNS/ {print $NF}' < <(/usr/bin/nmcli dev show) | sort -ru)"
-  for addr in "${dns_addrs[@]}"; do printf "%4s%s\n" " " "$addr"; done
-  return 0
+	local addr dns_addrs
+	printf "%sDNS Servers:%s\n" "$orange" "$normal"
+	readarray -t dns_addrs <<< "$(awk '/IP4.DNS/ {print $NF}' < <(/usr/bin/nmcli dev show) | sort -ru)"
+	for addr in "${dns_addrs[@]}"; do printf "%4s%s\n" " " "$addr"; done
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="5.4.26229"
-  local -r lhost="${HOSTNAME:-$(hostname)}"
-  sudo_required "$lhost" && sudo_login 2
-  check_dependencies
-  clearscreen
-  title_box "$lhost"
-  show_public_ip
-  printf "%sLocal IP:%s\n" "$orange" "$normal"
-  show_wired
-  show_wireless
-  show_bridge
-  show_network
-  show_gateway
-  show_dns
-  over_line "$script $version"
-  exit
+	local -r script="${0##*/}"
+	local -r version="5.4.26250"
+	local -r lhost="${HOSTNAME:-$(hostname)}"
+	sudo_required "$lhost" && sudo_login 2
+	check_dependencies
+	clearscreen
+	title_box "$lhost"
+	show_public_ip
+	printf "%sLocal IP:%s\n" "$orange" "$normal"
+	show_wired
+	show_wireless
+	show_bridge
+	show_network
+	show_gateway
+	show_dns
+	over_line "$script $version"
+	exit
 }
 
 main "$@"
