@@ -2,13 +2,13 @@
 ###############################################################################
 # Script Name  : iru-bat
 # Description  : Installs, updates, and removes the Bat utillity program.
-# Dependencies : gdebi, wget git
+# Dependencies : wget
 # Arguments    : See the help function for details.
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 24 Aug 2026
-# Version      : 7.9.26236
+# Updated      : 08 Sep 2026
+# Version      : 7.10.26251
 # Comments     : Use install-batcat if distro version has same base version number as latest GitHub release.
 #              : Mint 22 installs version 0.24.0 with the Ubuntu version appended.
 #              : Debian 13 installs version 0.25.0 with the Debian version appended.
@@ -31,103 +31,103 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
-	local -r errcode="${3:-1}"
-	local -r updated="24 Aug 2026"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Installs, updates, or removes the Bat utililty.
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="08 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Installs, updates, or removes the Bat utililty.
 
-${green}Usage:${normal} $script [-hiru]
-${orange}Available options:${normal}
-  -h  Show this help message and exit
-  -i  Installs the Bat utility.
-  -r  Removes the Bat utility from the system.
-  -u  Updates the Bat utility to the latest GitHub release.
+	${green}Usage:${normal} $script [-hiru]
+	${orange}Available options:${normal}
+	-h	Show this help message and exit
+	-i	Installs the Bat utility.
+	-r	Removes the Bat utility from the system.
+	-u	Updates the Bat utility to the latest GitHub release.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 bat_version() {
-  if exists batcat; then
-    cut -d' ' -f2 < <(batcat --version)
-  else
-    cut -d' ' -f2 < <(bat --version)
-  fi
-  return 0
+	if exists batcat; then
+		cut -d' ' -f2 < <(batcat --version)
+	else
+		cut -d' ' -f2 < <(bat --version)
+	fi
+	return 0
 }
 
 convert_compare() {
-  local -r newVer="$1"
-  local -r curVer="$2"
-  local -i newer="$FALSE"
-	local new_arr=()
-	local cur_arr=()
-  local -i index
-	IFS="." read -ra new_arr <<< "$newVer"
-	IFS="." read -ra cur_arr <<< "$curVer"
+	local -r newVer="$1"
+	local -r curVer="$2"
+	local -i newer="$FALSE"
+	local -i index
+	local -i new_arr=()
+	local -i cur_arr=()
+	IFS="." read -ra new_arr <<< "$newVer"; declare -r new_arr
+	IFS="." read -ra cur_arr <<< "$curVer"; declare -r cur_arr
 	for (( index=0; index <=2; index++)) ; do
-    if (( "${new_arr[index]}" > "${cur_arr[index]}" )); then
-      newer="$TRUE"
-      break
-    fi
+		if (( "${new_arr[index]}" > "${cur_arr[index]}" )); then
+			newer="$TRUE"
+			break
+		fi
 	done
 	return "$newer"
 }
 
 newest_version() {
-  local -r gh_url="$1"
-  local new_ver
-  wget -qO "$TMP_FILE" "$gh_url"
-  new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$TMP_FILE"))
-  echo "$new_ver"
-  return 0
+	local -r gh_url="$1"
+	local new_ver
+	wget -qO "$TMP_FILE" "$gh_url"
+	new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$TMP_FILE"))
+	echo "$new_ver"
+	return 0
 }
 
 compare_versions() {
-  local -r new_ver="$1"
-  local -r gh_url="$2"
-  local cur_ver
-  cur_ver="$(bat_version)"
-  printf "Comparing current and newest versions...\n"
-  if [[ -z "$new_ver" ]]; then
-    printf "%s No download available. Try again later." "$RED_ERROR" >&2
-    return "$E_DOWNLOAD"
-  elif convert_compare "$new_ver" "$cur_ver"; then
-    printf "%sInstalled version of Bat is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-    install_bat "$new_ver" "$gh_url"
-    return "$?"
-  else
-    printf "%sBat %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
-  fi
-  return 0
+	local -r new_ver="$1"
+	local -r gh_url="$2"
+	local cur_ver
+	cur_ver="$(bat_version)"; declare -r cur_ver
+	printf "Comparing current and newest versions...\n"
+	if [[ -z "$new_ver" ]]; then
+		printf "%s No download available. Try again later." "$RED_ERROR" >&2
+		return "$E_DOWNLOAD"
+	elif convert_compare "$new_ver" "$cur_ver"; then
+			printf "%sInstalled version of Bat is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
+	install_bat "$new_ver" "$gh_url"
+	return "$?"
+	else
+		printf "%sBat %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
+	fi
+	return 0
 }
 
 install_bat() {
-  local -r new_ver="$1"
-  local -r gh_url="$2"
-  local -r new_pkg="bat_${new_ver}_amd64.deb"
-  if [[ -z "$new_ver" ]]; then
-    printf "%s No download available. Try again later." "$RED_ERROR" >&2
-    return "$E_DOWNLOAD"
-  fi
+	local -r new_ver="$1"
+	local -r gh_url="$2"
+	local -r new_pkg="bat_${new_ver}_amd64.deb"
+	if [[ -z "$new_ver" ]]; then
+		printf "%s No download available. Try again later." "$RED_ERROR" >&2
+		return "$E_DOWNLOAD"
+	fi
 	sudo_login 2
-  printf "Downloading Bat %s from the sharkdp GitHub repository..." "$new_ver"
-  dots "." &
+	printf "Downloading Bat %s from the sharkdp GitHub repository..." "$new_ver"
+	dots "." &
 	DOTS_PID="$!"
-  wget -q -P "$TMP_DIR/" "$gh_url/download/v$new_ver/$new_pkg"
+	wget -q -P "$TMP_DIR/" "$gh_url/download/v$new_ver/$new_pkg"
 	kill_dots
-  printf "Installing Bat %s...\n" "$new_ver"
-  sudo_login 2
+	printf "Installing Bat %s...\n" "$new_ver"
+	sudo_login 2
 	sudo dpkg -i "$TMP_DIR/$new_pkg"; sudo apt-get install --fix-broken
-  if [[ "$(bat_version)" != "$new_ver" ]]; then
-    printf "%s Bat installation failed.\n" "$RED_ERROR" >&2
-    return "$E_INSTALLATION"
-  fi
-  [[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
-  printf "Bat %s installed.\n" "$(bat_version)"
-  return 0
+	if [[ "$(bat_version)" != "$new_ver" ]]; then
+		printf "%s Bat installation failed.\n" "$RED_ERROR" >&2
+		return "$E_INSTALLATION"
+	fi
+	[[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
+	printf "Bat %s installed.\n" "$(bat_version)"
+	return 0
 }
 
 remove_bat() {
@@ -135,16 +135,16 @@ remove_bat() {
 		printf "Bat (Batcat) is not installed.\n"
 		return "$E_NOT_DETECTED"
 	fi
-  sudo_login 2
-  printf "Removing Bat %s...\n" "$(bat_version)"
-  sudo dpkg --remove bat
-  [[ -L ~/.config/bat/config ]] && unlink ~/.config/bat/config
-  [[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
-  find ~/.config -type d -name bat -exec rm -rf {} \;
-  [[ -d /usr/share/doc/bat ]] && sudo rm -rf /usr/share/doc/bat
-  [[ -f /usr/share/man/man1/bat.1.gz ]] && sudo rm -f /usr/share/man/man1/bat.1.gz
-  printf "Bat and its configuration files have been removed.\n"
-  return 0
+	sudo_login 2
+	printf "Removing Bat %s...\n" "$(bat_version)"
+	sudo dpkg --remove bat
+	[[ -L ~/.config/bat/config ]] && unlink ~/.config/bat/config
+	[[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
+	find ~/.config -type d -name bat -exec rm -rf {} \;
+	[[ -d /usr/share/doc/bat ]] && sudo rm -rf /usr/share/doc/bat
+	[[ -f /usr/share/man/man1/bat.1.gz ]] && sudo rm -f /usr/share/man/man1/bat.1.gz
+	printf "Bat and its configuration files have been removed.\n"
+	return 0
 }
 
 bat_config() {
@@ -153,59 +153,55 @@ bat_config() {
 		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
 		return "$E_FILENOTFOUND"
 	fi
-  printf "Applying Bat configuration...\n"
+	printf "Applying Bat configuration...\n"
 	[[ -f ~/.config/bat/config ]] && rm ~/.config/bat/config
-  [[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/bat/config ~/.config/bat/config
+	[[ -d ~/gitea/configs ]] && ln -sv ~/gitea/configs/bat/config ~/.config/bat/config
 	[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/bat/config ~/.config/bat/config
-  [[ -f /usr/bin/batcat ]] && ln -sv /usr/bin/batcat ~/.local/bin/bat
-  printf "Bat %s configuration applied.\n" "$(bat_version)"
-  return 0
+	[[ -f /usr/bin/batcat ]] && ln -sv /usr/bin/batcat ~/.local/bin/bat
+	printf "Bat %s configuration applied.\n" "$(bat_version)"
+	return 0
 }
 
 main() {
-  local -r  script="${0##*/}"
-  local -r version="7.9.26236"
+	local -r  script="${0##*/}"
+	local -r version="7.10.26251"
 	local -i exit_code=0
-  local -r gh_url="https://github.com/sharkdp/bat/releases"
-  local opt new_ver OPTARG OPTIND
-  local -i noOpt=1
-  local -r optstr=":hiru"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      h )
-        help "$script" "$version" 0
-        ;;
-      i )
-        if installed bat; then
-          printf "Bat %s is already installed.\n" "$(bat_version)"
-        else
+	local -r gh_url="https://github.com/sharkdp/bat/releases"
+	local -i noOpt=1
+	local -r optstr=":hiru"
+	local opt OPTARG OPTIND
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			h )
+				help "$script" "$version" 0 ;;
+			i )
+				if installed bat; then
+					printf "Bat %s is already installed.\n" "$(bat_version)"
+				else
 					check_package wget
-          create_tmp "dirfile"
-					new_ver="$(newest_version "$gh_url")"
-          printf "%sInstalling Bat version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
-          install_bat "$new_ver" "$gh_url" && bat_config
-        fi
-        ;;
-      r )
-        remove_bat
-        ;;
-      u )
-        if installed bat; then
-          check_dependencies
-          create_tmp "dirfile"
-          new_ver="$(newest_version "$gh_url")"
-          compare_versions "$new_ver" "$gh_url"
-        else
-          printf "Bat is not installed.\n"
-        fi
-        ;;
-      ? )
-        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$script" "$version" "$E_INVALID_ARG"
-    esac
-    exit_code="$?"
-	  noOpt=0
-  done
+					create_tmp "dirfile"
+					new_ver="$(newest_version "$gh_url")"; declare -r new_ver
+					printf "%sInstalling Bat version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
+					install_bat "$new_ver" "$gh_url" && bat_config
+				fi ;;
+			r )
+				remove_bat ;;
+			u )
+				if installed bat; then
+					check_package wget
+					create_tmp "dirfile"
+					new_ver="$(newest_version "$gh_url")"; declare -r new_ver
+					compare_versions "$new_ver" "$gh_url"
+				else
+					printf "Bat is not installed.\n"
+				fi ;;
+				? )
+					printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+					help "$script" "$version" "$E_INVALID_ARG"
+		esac
+		exit_code="$?"
+		noOpt=0
+	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		help "$script" "$version" "$E_MISSING_ARG"
