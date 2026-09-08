@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jan 2025
-# Updated      : 07 Aug 2026
-# Version      : 4.9.26219
+# Updated      : 08 Sep 2026
+# Version      : 4.10.26251
 # Comments     : Option to disable current swap && install ZRam.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,77 +28,76 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 find_current_swap() {
-  local swap_dev
-  swap_dev=$(awk '/file/ || /partition/ {print $1}' /proc/swaps)
-  echo "$swap_dev"
-  return 0
+	local swap_dev
+	swap_dev=$(awk '/file/ || /partition/ {print $1}' /proc/swaps); declare -r swap_dev
+	printf "%s" "$swap_dev"
+	return 0
 }
 
 disable_swap() {
-  local swap_dev="$1"
-  sudo_login 2
-  sudo sed -i.bak '/swap/s/^UUID=/# UUID=/' /etc/fstab
-  sudo /usr/sbin/swapoff "$swap_dev"
-  printf "%s is disabled as swap.\n" "$swap_dev"
-  return 0
+	local -r swap_dev="$1"
+	sudo_login 2
+	sudo sed -i.bak '/swap/s/^UUID=/# UUID=/' /etc/fstab
+	sudo /usr/sbin/swapoff "$swap_dev"
+	printf "%s is disabled as swap.\n" "$swap_dev"
+	return 0
 }
 
 install_zram() {
-  local script_dir
-  script_dir=$(dirname "$(readlink -f "${0}")")
-  local -r sed_file=zramswap.sed
-  sudo_login 2
+	local script_dir
+	script_dir=$(dirname "$(readlink -f "${0}")"); declare -r script_dir
+	local -r sed_file="$script_dir/file/zramswap.sed"
+	sudo_login 2
 	sudo apt install -y zram-tools
-  if ! installed zram-tools; then
-    printf "zram-tools installation failed!\n"
-    return "$E_INSTALLATION"
-  elif [[ ! -f "$script_dir/files/$sed_file" ]]; then
-    printf "%s not found.\nDefault configuration used.\n" "$sed_file" >&2
-    # Change to: ALGO-zstd PERCENT=25 PRIORITY=100
-    sudo systemctl restart zramswap.service
-    return "$E_FILENOTFOUND"
-  fi
-  sudo sed -i.bak -f "$script_dir/files/$sed_file" /etc/default/zramswap
-  sudo systemctl restart zramswap.service
+	if ! installed zram-tools; then
+		printf "zram-tools installation failed!\n"
+		return "$E_INSTALLATION"
+	elif [[ ! -f "sed_file" ]]; then
+		printf "%s not found.\nDefault configuration used.\n" "${sed_file##*/}" >&2
+		return "$E_FILENOTFOUND"
+	fi
+	# Change to: ALGO-zstd PERCENT=25 PRIORITY=100
+	sudo sed -i.bak -f "$sed_file" /etc/default/zramswap
+	sudo systemctl restart zramswap.service
 	printf "Zram-tools installed and configured.\n"
-  return 0
+	return 0
 }
 
 check_for_swap() {
-  local swap_dev
-  swap_dev=$(find_current_swap)
+	local swap_dev
+	swap_dev=$(find_current_swap); declare -r swap_dev
 	if [[ -z "$swap_dev" ]]; then
-    printf "No swap device detected. Installing zram-tools...\n"
-    install_zram
+		printf "No swap device detected. Installing zram-tools...\n"
+		install_zram
 		return "$?"
 	fi
 	case "$swap_dev" in
-	  "/dev/zram0" )
-	    printf "zram-tools is installed and the active swap device.\n" ;;
-	  * )
-	    printf "Current swap is %s\n" "$swap_dev"
-	    if yes_or_no "Do you want to disable $swap_dev and install zram-tools?"; then
-	      disable_swap "$swap_dev"
-	      install_zram
-        return "$?"
-	    else
+		"/dev/zram0" )
+			printf "zram-tools is installed and the active swap device.\n" ;;
+		* )
+			printf "Current swap is %s\n" "$swap_dev"
+			if yes_or_no "Do you want to disable $swap_dev and install zram-tools?"; then
+				disable_swap "$swap_dev"
+				install_zram
+				return "$?"
+			else
 				printf "%s remains enabled as swap.\n" "$swap_dev"
-	      printf "zram-tools not installed.\n"
-	    fi
+				printf "zram-tools not installed.\n"
+			fi
 	esac
-  return 0
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="4.9.26219"
-  exit_code=0
-  check_for_swap
-  exit_code="$?"
-  printf "Active swap devices:\n"
-  /usr/sbin/swapon --show
-  over_line "$script $version"
-  exit "$exit_code"
+	local -r script="${0##*/}"
+	local -r version="4.10.26251"
+	exit_code=0
+	check_for_swap
+	exit_code="$?"
+	printf "Active swap devices:\n"
+	/usr/sbin/swapon --show
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
