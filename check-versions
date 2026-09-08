@@ -61,24 +61,6 @@ show_versions() {
 	return 0
 }
 
-convert_compare() {
-	local -r newVer="$1"
-	local -r curVer="$2"
-	local -i newer="$FALSE"
-	local new_arr=()
-	local cur_arr=()
-	local -i index
-	IFS="." read -ra new_arr <<< "$newVer"
-	IFS="." read -ra cur_arr <<< "$curVer"
-	for (( index=0; index <=2; index++)) ; do
-		if (( "${new_arr[index]}" > "${cur_arr[index]}" )); then
-			newer="$TRUE"
-			break
-		fi
-	done
-	return "$newer"
-}
-
 get_release_path() {
 	local -r package="$1"
 	declare -rA releases_path=(
