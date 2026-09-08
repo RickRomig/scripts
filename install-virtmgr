@@ -29,7 +29,7 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 
 check_kernel() {
 	local kernel64
-	kernel64=$(uname -m); declare -r
+	kernel64=$(uname -m); declare -r kernel64
 	printf "* Kernel is "
 	if [[ "$kernel64" == "x86_64" ]]; then
 		printf "64-bit.\n"
@@ -42,7 +42,7 @@ check_kernel() {
 
 check_processor() {
 	local proc64
-	proc64=$(grep -Ec ' lm ' /proc/cpuinfo); declare -r
+	proc64=$(grep -Ec ' lm ' /proc/cpuinfo); declare -r proc64
 	printf "* Processor is "
 	if [[ "$proc64" -gt 0 ]]; then
 		printf "64-bit.\n"
@@ -55,7 +55,7 @@ check_processor() {
 
 check_bios() {
 	local vcpu
-	vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo); declare -r
+	vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo); declare -r vcpu
 	printf "* Virtualization is "
 	if [[ "$vcpu" -gt 0 ]]; then
 		printf "enabled in the BIOS.\n"
