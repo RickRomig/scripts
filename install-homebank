@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Nov 2018
-# Updated      : 13 Aug 2026
-# Version      : 7.1.26225
+# Updated      : 08 Sep 2026
+# Version      : 7.2.26251
 # Comments     : Available as a flatpak (preferred method)
 #              : https://flathub.org/apps/details/fr.free.Homebank
 #              : Linux Mint Sofware Manager
@@ -31,145 +31,146 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="13 Aug 2026"
-  cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Installs/Removes HomeBank Personal Finance Software.
+	local -r updated="08 Sep 2026"
+	cat << _HELP_
+	${orange}$script${normal} $version ($updated)
+	Installs/Removes HomeBank Personal Finance Software.
 
-${green}Usage:${normal} $script [option]
-${orange}Available options:${normal}
-  -f  install HomeBank from Flathub
-  -h  Show this help message and exit
-  -i  Install HomeBank from repository
-  -r  Remove HomeBank (deb package or flatpak)
+	${green}Usage:${normal} $script [option]
+	${orange}Available options:${normal}
+	-f	install HomeBank from Flathub
+	-h	Show this help message and exit
+	-i	Install HomeBank from repository
+	-r	Remove HomeBank (deb package or flatpak)
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 flatpak_homebank_installed() {
-  installed flatpak || return "$FALSE"
-  grep -qw HomeBank < <(flatpak list) && return "$TRUE" || return "$FALSE"
+	installed flatpak || return "$FALSE"
+	grep -qw HomeBank < <(flatpak list) && return "$TRUE" || return "$FALSE"
 }
 
 homebank_version() {
-  if installed homebank; then
-    printf "%s" "$(cut d' ' -f2 < <(homebank --version))"
-  else
-    printf "%s" "$(awk '/HomeBank/ {printf $(NF-2)}' < <(flatpak list))"
-  fi
-  return 0
+	if installed homebank; then
+		printf "%s" "$(cut d' ' -f2 < <(homebank --version))"
+	else
+		printf "%s" "$(awk '/HomeBank/ {printf $(NF-2)}' < <(flatpak list))"
+	fi
+	return 0
 }
 
 install_flatpak_homebank() {
-  if installed homebank || flatpak_homebank_installed; then
-    printf "HomeBank %s is already installed.\n" "$(homebank_version)"
-    retun 1
-  fi
-  printf "Install the HomeBank flatpak...\n"
-  sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-  flatpak install --user flathub fr.free.Homebank
-  if ! grep -qw HomeBank < <(flatpak list); then
-    printf "%s HomeBank installation failed.\n" "$RED_ERROR" >&2
-    return "$E_INSTALLATION"
-  fi
-  printf "HomeBank flatpak (%s) installed.\n" "$(homebank_version)"
-  return 0
+	if installed homebank || flatpak_homebank_installed; then
+		printf "HomeBank %s is already installed.\n" "$(homebank_version)"
+		return "$E_FILE_EXISTS"
+	fi
+	printf "Install the HomeBank flatpak...\n"
+	sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+	flatpak install --user flathub fr.free.Homebank
+	if ! grep -qw HomeBank < <(flatpak list); then
+		printf "%s HomeBank installation failed.\n" "$RED_ERROR" >&2
+		return "$E_INSTALLATION"
+	fi
+	printf "HomeBank flatpak (%s) installed.\n" "$(homebank_version)"
+	return 0
 }
 
 install_deb_homebank() {
-  if installed homebank || flatpak_homebank_installed; then
-    printf "HomeBank %s is already installed.\n" "$(homebank_version)"
-    retun 1
-  fi
-  sudo_login 2
-  sudo apt-get install-yyq homebank
-  if ! installed homebank; then
-    printf "%s HomeBank installation failed.\n" "$RED_ERROR" >&2
-    return "$E_INSTALLATION"
-  fi
-  printf "HomeBank %s installed.\n" "$(homebank_version)"
-  return 0
+	if installed homebank || flatpak_homebank_installed; then
+		printf "HomeBank %s is already installed.\n" "$(homebank_version)"
+		return "$E_FILE_EXISTS"
+	fi
+	sudo_login 2
+	sudo apt-get install-yyq homebank
+	if ! installed homebank; then
+		printf "%s HomeBank installation failed.\n" "$RED_ERROR" >&2
+		return "$E_INSTALLATION"
+	fi
+	printf "HomeBank %s installed.\n" "$(homebank_version)"
+	return 0
 }
 
 remove_homebank() {
-  if installed homebank; then
-    printf "Removing HomeBank %s...\n" "$(homebank_version)"
-    sudo_login 2
-    sudo apt-get remove homebank -yy > /dev/null 2>&1
-  elif flatpak_homebank_installed; then
-    printf "Removing HomeBank %s...\n" "$(homebank_version)"
-    flatpak uninstall --oninteractive --assumeyes fr.free.Homebank
-    [[ -d "$HOME/.var/app/fr.free.Homebank" ]] && rm -rf "$HOME/.var/app/fr.free.Homebank"
-  else
-    printf "HomeBank is not installed.\n"
-    return 1
-  fi
-  remove_homebank_configs
-  return 0
+	if installed homebank; then
+		printf "Removing HomeBank %s...\n" "$(homebank_version)"
+		sudo_login 2
+		sudo apt-get remove homebank -yy > /dev/null 2>&1
+	elif flatpak_homebank_installed; then
+		printf "Removing HomeBank %s...\n" "$(homebank_version)"
+		flatpak uninstall --oninteractive --assumeyes fr.free.Homebank
+		[[ -d "$HOME/.var/app/fr.free.Homebank" ]] && rm -rf "$HOME/.var/app/fr.free.Homebank"
+	else
+		printf "HomeBank is not installed.\n"
+		return "$E_NOT_INSTALLED"
+	fi
+	remove_homebank_configs
+	return 0
 }
 
 apply_preferences() {
-  local repository=~/Downloads/configs/homebank
-  [[ -d ~/gitea/configs/homebank ]] && repository=~/gitea/configs/homebank
-  if [[ ! -d "$repository" ]]; then
-    printf "%s Configs repository not found!\n" "$RED_WARNING" >&2
-    return "$E_FILENOTFOUND"
-  fi
-  local config_dir=~/.config
-  flatpak_homebank_installed && config_dir=~/.var/app/fr.free.Homebank/config
-  [[ -d "$config_dir" ]] || mkdir -p "$config_dir"
-  cp -v "$repository"/homebank/preferences "$config_dir"/homebank/
-  printf "HomeBank preferences applied.\n"
+	local repository=~/Downloads/configs/homebank
+	[[ -d ~/gitea/configs/homebank ]] && repository=~/gitea/configs/homebank
+	if [[ ! -d "$repository" ]]; then
+		printf "%s Configs repository not found!\n" "$RED_WARNING" >&2
+		return "$E_FILENOTFOUND"
+	fi
+	local config_dir=~/.config
+	flatpak_homebank_installed && config_dir=~/.var/app/fr.free.Homebank/config
+	[[ -d "$config_dir" ]] || mkdir -p "$config_dir"
+	cp -v "$repository"/homebank/preferences "$config_dir"/homebank/
+	printf "HomeBank preferences applied.\n"
+	return 0
 }
 
 remove_homebank_configs() {
-  local config_dir=~/.config/homebank
-  flatpak_homebank_installed && config_dir=~/.var/app/fr.free.Homebank
-  if default_no "Remove user configuration files?"; then
-    printf "Removing user configuration files...\n"
-    [[ -d "$config_dir" ]] && rm -rf "$config_dir"
-    find /usr/share -type f,d -iname "homebank*" -exec sudo rm -rf {} \;
-    printf "User configuration files removed.\n"
-  else
-    printf "User configurations files left intact.\n"
-  fi
-  return 0
+	local config_dir=~/.config/homebank
+	flatpak_homebank_installed && config_dir=~/.var/app/fr.free.Homebank
+	if default_no "Remove user configuration files?"; then
+		printf "Removing user configuration files...\n"
+		[[ -d "$config_dir" ]] && rm -rf "$config_dir"
+		find /usr/share -type f,d -iname "homebank*" -exec sudo rm -rf {} \;
+		printf "User configuration files removed.\n"
+	else
+		printf "User configurations files left intact.\n"
+	fi
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="7.1.26225"
-  local -i exit_code=0
-  local opt OPTARG OPTIND
-  local -i noOpt=1
-  local -r optstr=":fhir"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      f )
-        install_flatpak_homebank && apply_preferences ;;
-      h )
-        help "$script" "$version" 0 ;;
-      i )
-        install_deb_homebank && apply_preferences ;;
-      r )
-        remove_homebank ;;
-      ? )
-        printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$script" "$version" "$E_INVALID_ARG"
-    esac
-    exit_code="$?"
-	  noOpt=0
-  done
+	local -r script="${0##*/}"
+	local -r version="7.2.26251"
+	local -i exit_code=0
+	local -i noOpt=1
+	local -r optstr=":fhir"
+	local opt OPTARG OPTIND
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			f )
+				install_flatpak_homebank && apply_preferences ;;
+			h )
+				help "$script" "$version" 0 ;;
+			i )
+				install_deb_homebank && apply_preferences ;;
+			r )
+				remove_homebank ;;
+			? )
+				printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$script" "$version" "$E_INVALID_ARG"
+		esac
+		exit_code="$?"
+		noOpt=0
+	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		help "$script" "$version" "$E_MISSING_ARG"
 	fi
-  shift "$(( OPTIND - 1 ))"
-  over_line "$script $version"
-  exit "$exit_code"
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
