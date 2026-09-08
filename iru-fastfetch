@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Updated      : 23 Aug 2026
-# Version      : 4.8.26235
+# Updated      : 08 Sep 2026
+# Version      : 4.9.26251
 # Comments     : .png logo does not work with Terminator.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,43 +28,43 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="23 Aug 2026"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Installs, configures, removes, updates FastFetch
+	local -r updated="08 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Installs, updates, or removes the Bat utililty.
 
-${green}Usage:${normal} $script [-hiru]
-${orange}Available options:${normal}
-  -h  Show this help message and exit
-  -i  Install Fastfetch
-  -r  Remove Fastfetch
-  -u  Update Fastfetch to the latest GitHub release
+	${green}Usage:${normal} $script [-hiru]
+	${orange}Available options:${normal}
+	-h	Show this help message and exit
+	-i	Install Fastfetch
+	-r	Remove Fastfetch
+	-u	Update Fastfetch to the latest GitHub release
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 ff_version() {
 	fastfetch --version-raw
-  return 0
+	return 0
 }
 
 convert_compare() {
-  local -r newVer="$1"
-  local -r curVer="$2"
-  local -i newer="$FALSE"
-	local new_arr=()
-	local cur_arr=()
-  local -i index
-	IFS="." read -ra new_arr <<< "$newVer"
-	IFS="." read -ra cur_arr <<< "$curVer"
+	local -r newVer="$1"
+	local -r curVer="$2"
+	local -i newer="$FALSE"
+	local -i index
+	local -i new_arr=()
+	local -i cur_arr=()
+	IFS="." read -ra new_arr <<< "$newVer"; declare -r new_arr
+	IFS="." read -ra cur_arr <<< "$curVer"; declare -r cur_arr
 	for (( index=0; index <=2; index++)) ; do
-    if (( "${new_arr[index]}" > "${cur_arr[index]}" )); then
-      newer="$TRUE"
-      break
-    fi
+		if (( "${new_arr[index]}" > "${cur_arr[index]}" )); then
+			newer="$TRUE"
+			break
+		fi
 	done
 	return "$newer"
 }
@@ -72,52 +72,52 @@ convert_compare() {
 newest_version() {
 	local -r gh_url="$1"
 	local new_ver
-  wget -qO "$TMP_FILE" "$gh_url"
-  new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6;exit}' "$TMP_FILE")
-  echo "$new_ver"
-  return 0
+	wget -qO "$TMP_FILE" "$gh_url"
+	new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6;exit}' "$TMP_FILE")
+	echo "$new_ver"
+	return 0
 }
 
 compare_versions() {
 	local -r new_ver="$1"
-  local -r gh_url="$2"
+	local -r gh_url="$2"
 	local cur_ver
-  cur_ver="$(ff_version)"
+	cur_ver="$(ff_version)"
 	printf "Comparing current and newest versions...\n"
-  if [[ -z "$new_ver" ]]; then
-    printf "%s No download available. Try again later." "$RED_ERROR" >&2
-    return "$E_DOWNLOAD"
-  elif convert_compare "$new_ver" "$cur_ver"; then
-    printf "%sInstalled version of FastFetch is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
+	if [[ -z "$new_ver" ]]; then
+		printf "%s No download available. Try again later." "$RED_ERROR" >&2
+		return "$E_DOWNLOAD"
+	elif convert_compare "$new_ver" "$cur_ver"; then
+		printf "%sInstalled version of FastFetch is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
 		install_fastfetch "$new_ver" "$gh_url"
-    return "$?"
-  else
-    printf "%s FastFetch %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
+		return "$?"
+	else
+		printf "%s FastFetch %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
 	fi
-  return 0
+	return 0
 }
 
 install_fastfetch(){
 	local -r new_ver="$1"
 	local -r gh_url="$2"
 	local -r new_pkg="fastfetch-linux-amd64.deb"
-  if [[ -z "$new_ver" ]]; then
-    printf "%s No download available. Try again later." "$RED_ERROR" >&2
-    return "$E_DOWNLOAD"
-  fi
-	sudo_login 2
-  printf "Downloading FastFetch %s from the fastfetch-cli GitHub repository..." "$new_ver"
-  dots "." &
-	DOTS_PID="$!"
-  wget -q -P "$TMP_DIR/" "$gh_url/download/$new_ver/$new_pkg"
-	kill_dots
-  printf "Installing FastFetch %s...\n" "$new_ver"
-	sudo dpkg -i "$TMP_DIR/$new_pkg"; sudo apt-get install --fix-broken
-  if [[ "$(ff_version)" != "$new_ver" ]]; then
-    printf "%s Fastfetch installation failed.\n" "$RED_ERROR" >&2
-    return "$E_INSTALLATION"
+	if [[ -z "$new_ver" ]]; then
+		printf "%s No download available. Try again later." "$RED_ERROR" >&2
+		return "$E_DOWNLOAD"
 	fi
-  printf "%sFastFetch %s installed.%s\n" "$lightyellow" "$(ff_version)" "$normal"
+	sudo_login 2
+	printf "Downloading FastFetch %s from the fastfetch-cli GitHub repository..." "$new_ver"
+	dots "." &
+	DOTS_PID="$!"
+	wget -q -P "$TMP_DIR/" "$gh_url/download/$new_ver/$new_pkg"
+	kill_dots
+	printf "Installing FastFetch %s...\n" "$new_ver"
+	sudo dpkg -i "$TMP_DIR/$new_pkg"; sudo apt-get install --fix-broken
+	if [[ "$(ff_version)" != "$new_ver" ]]; then
+		printf "%s Fastfetch installation failed.\n" "$RED_ERROR" >&2
+		return "$E_INSTALLATION"
+	fi
+	printf "%sFastFetch %s installed.%s\n" "$lightyellow" "$(ff_version)" "$normal"
 	return 0
 }
 
@@ -134,9 +134,9 @@ fastfetch_config() {
 	local repository=~/Downloads/configs/fastfetch
 	[[ -d ~/gitea/configs/fastfetch ]] && repository=~/gitea/configs/fastfetch
 	if [[ ! -d "$repository" ]]; then
-    printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
 		return "$E_FILENOTFOUND"
-  fi
+	fi
 	[[ -d ~/.config/fastfetch ]] || mkdir -p ~/.config/fastfetch
 	[[ -d ~/.local/share/fastfetch/logos ]] || mkdir -p ~/.local/share/fastfetch/logos
 	printf "Installing configuration and logo files...\n"
@@ -154,45 +154,41 @@ fastfetch_config() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r  version="4.8.26235"
+	local -r  version="4.9.26251"
 	local -i exit_code=0
 	local -r gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
-  local opt new_ver OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":hiru"
+	local opt OPTARG OPTIND new_ver
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
-				help "$script" "$version" 0
-				;;
+				help "$script" "$version" 0 ;;
 			i )
 				if installed fastfetch; then
 					printf "Fastfetch %s is already installed.\n" "$(ff_version)" >&2
 				else
 					check_package wget
-          create_tmp "dirfile"
+					create_tmp "dirfile"
 					new_ver="$(newest_version "$gh_url")"
 					printf "%sInstalling Fastfetch version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
 					install_fastfetch "$new_ver" "$gh_url" && fastfetch_config
-				fi
-				;;
+				fi ;;
 			r )
 				if installed fastfetch; then
 					remove_fastfetch
 				else
 					printf "Fastfetch is not installed.\n" >&2
-				fi
-				;;
+				fi ;;
 			u )
 				if installed fastfetch; then
 					check_package wget
-          create_tmp "dirfile"
+					create_tmp "dirfile"
 					new_ver="$(newest_version "$gh_url")"
 					compare_versions "$new_ver" "$gh_url"
 				else
 					printf "Fastfetch is not installed.\n" >&2
-				fi
-				;;
+				fi ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
