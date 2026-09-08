@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 30 Jul 2026
-# Version      : 8.6.26211
+# Updated      : 08 Sep 2026
+# Version      : 8.7.26251
 # Comments     : Based on a script by Joe Collins.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,143 +28,143 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="30 Jul 2026"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Installs laptop-specific utlities.
+	local -r updated="08 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Installs laptop-specific utlities.
 
-${green}Usage:${normal} $script [-dhis]
-${orange}Available options:${normal}
-  -d  Display installed utilities.
-  -h  Show this help message and exit.
-  -i  Install laptop utilities. (acpi thermald tlp tlp-rdw)
-  -s  Start TLP service.
+	${green}Usage:${normal} $script [-dhis]
+	${orange}Available options:${normal}
+	-d	Display installed utilities.
+	-h	Show this help message and exit.
+	-i	Install laptop utilities. (acpi thermald tlp tlp-rdw)
+	-s	Start TLP service.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 intro() {
-  cat << _INTRO_
-Installs laptop-specific utilities:
- * Thermald - monitors and controls temperature.
- * ACPI - checks the state of ACPI devices.
- * TLP - advanced power management to maximize battery life.
- * TLP-RDW - TLP radio device wizard.
+	cat <<- _INTRO_
+	Installs laptop-specific utilities:
+	* Thermald - monitors and controls temperature.
+	* ACPI - checks the state of ACPI devices.
+	* TLP - advanced power management to maximize battery life.
+	* TLP-RDW - TLP radio device wizard.
 _INTRO_
+	return 0
 }
 
 install_packages() {
-  local packages=("$@")
-  local package
-  printf "Installing packages:\n"
-  for package in "${packages[@]}"; do
-    if installed "$package"; then
-      printf "%s installed.\n" "${package^^}"
-    else
-      sudo_login 2
-      sudo apt-get install -y "$package"
-      printf "%s installed.\n" "${package^^}"
-    fi
-  done
-  return 0
+	local -r packages=("$@")
+	local package
+	printf "Installing packages:\n"
+	for package in "${packages[@]}"; do
+		if installed "$package"; then
+			printf "%s installed.\n" "${package^^}"
+		else
+			sudo_login 2
+			sudo apt-get install -y "$package"
+			printf "%s installed.\n" "${package^^}"
+		fi
+	done
+	return 0
 }
 
 installed_packages() {
-  local packages=("$@")
-  local package
-  printf "Package status:\n"
-  for package in "${packages[@]}"; do
-    printf "%s is " "${package^^}"
-    installed "$package" && printf "installed.\n" || printf "not installed.\n"
-  done
-  return 0
+	local -r packages=("$@")
+	local package
+	printf "Package status:\n"
+	for package in "${packages[@]}"; do
+		printf "%s is " "${package^^}"
+		installed "$package" && printf "installed.\n" || printf "not installed.\n"
+	done
+	return 0
 }
 
 tlp_status() {
-  local status=1
-  if ! installed tlp; then
-    printf "TLP is not installed.\n" >&2
-    return "$E_INSTALLATION"
-  fi
-  is_systemd && { grep -qw active <(systemctl status tlp) && status=0; }
-  is_sysv && { grep -qw enabled <(tlp-stat -s) && status=0; }
-  if [[ "$status" -ne 0 ]]; then
-    printf "Starting TLP service\n"
-    start_tlp_service
-    return "$status"
-  fi
-  printf "TLP service is active and running.\n"
-  return 0
+	local -i status=1
+	if ! installed tlp; then
+		printf "TLP is not installed.\n" >&2
+		return "$E_INSTALLATION"
+	fi
+	is_systemd && { grep -qw active <(systemctl status tlp) && status=0; }
+	is_sysv && { grep -qw enabled <(tlp-stat -s) && status=0; }
+	if (( status != 0 )); then
+		printf "Starting TLP service\n"
+		start_tlp_service
+		return "$status"
+	fi
+	printf "TLP service is active and running.\n"
+	return 0
 }
 
 start_tlp_service() {
-  sudo_login 2
-  if is_systemd; then
-    sudo systemctl enable tlp.service > /dev/null 2>&1
-    sudo systemctl start tlp.service > /dev/null 2>&1
-    sudo systemctl mask systemd-rfkill.service > /dev/null 2>&1
-    sudo systemctl mask systemd-rfkill.socket > /dev/null 2>&1
-    printf "The tlp service is enabled and started.\n"
-  elif is_sysv; then
-    sudo tlp start > /dev/null 2>&1
-    printf "The tlp service is started.\n"
-  else
-    printf "Init system is neither Systemd nor SysV.\n"
-    printf "Manually start the TLP service.\n"
-  fi
-  return 0
+	sudo_login 2
+	if is_systemd; then
+		sudo systemctl enable tlp.service > /dev/null 2>&1
+		sudo systemctl start tlp.service > /dev/null 2>&1
+		sudo systemctl mask systemd-rfkill.service > /dev/null 2>&1
+		sudo systemctl mask systemd-rfkill.socket > /dev/null 2>&1
+		printf "The tlp service is enabled and started.\n"
+	elif is_sysv; then
+		sudo tlp start > /dev/null 2>&1
+		printf "The tlp service is started.\n"
+	else
+		printf "Init system is neither Systemd nor SysV.\n"
+		printf "Manually start the TLP service.\n"
+	fi
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="8.6.26211"
-  local -i exit_code=0
-  local opt OPTARG OPTIND
-  local -i noOpt=1
-  local -r optstr=":dhis"
-  local -r lhost="${HOSTNAME:=-$(hostname)}"
-  local -r packages=(acpi thermald tlp tlp-rdw)
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      d )
-        if is_laptop; then
-          installed_packages "${packages[@]}"
-        else
-          printf "%s is not a laptop. Nothing to do.\n" "$lhost"
-        fi
-        ;;
-      h )
-        help "$script" "$version" 0
-        ;;
-      i )
-        if is_laptop; then
-          intro
-          install_packages "${packages[@]}"
-        else
-          printf "%s is not a laptop. Nothing to do.\n" "$lhost"
-        fi
-        ;;
-      s )
-        if is_laptop; then
-          tlp_status
-        else
-          printf "%s is not a laptop. Nothing to do.\n" "$lhost"
-        fi
-        ;;
-      ? )
+	local -r script="${0##*/}"
+	local -r version="8.7.26251"
+	local -i exit_code=0
+	local -i noOpt=1
+	local -r optstr=":dhis"
+	local -r lhost="${HOSTNAME:=-$(hostname)}"
+	local -r packages=(acpi thermald tlp tlp-rdw)
+	local opt OPTARG OPTIND
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			d )
+				if is_laptop; then
+					installed_packages "${packages[@]}"
+				else
+					printf "%s is not a laptop. Nothing to do.\n" "$lhost"
+				fi ;;
+			h )
+				help "$script" "$version" 0 ;;
+			i )
+				if is_laptop; then
+					intro
+					install_packages "${packages[@]}"
+				else
+					printf "%s is not a laptop. Nothing to do.\n" "$lhost"
+				fi ;;
+			s )
+				if is_laptop; then
+					tlp_status
+				else
+					printf "%s is not a laptop. Nothing to do.\n" "$lhost"
+				fi ;;
+			? )
         printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
         help "$script" "$version" "$E_INVALID_ARG"
-    esac
-    exit_code="$?"
-	  noOpt=0
-  done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
-  shift "$(( OPTIND - 1 ))"
-  over_line "$script $version"
-  exit "$exit_code"
+		esac
+		exit_code="$?"
+		noOpt=0
+	done
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
