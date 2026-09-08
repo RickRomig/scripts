@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Feb 2019
-# Updated      : 13 Aug 2026
-# Version      : 3.5.26225
+# Updated      : 08 Sep 2026
+# Version      : 3.5.26251
 # Comment      : Handbrake rips DVD movies
 #              : Available as a flatpak via Flathub or Mint Software Manager
 #              : https://dl.flathub.org/repo/appstream/fr.handbrake.ghb.flatpakref
@@ -32,79 +32,80 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="13 Aug 2026"
-  cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Install/Remove Handbrake video transcorder
+	local -r updated="08 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Install/Remove Handbrake video transcorder
 
-${green}Usage:${normal} $script [OPTION]
-${orange}Available options:${normal}
-  -h  Show this help message and exit
-  -i  Install Handbrake
-  -r  Remove Handbrake
+	${green}Usage:${normal} $script [OPTION]
+	${orange}Available options:${normal}
+	-h	Show this help message and exit
+	-i	Install Handbrake
+	-r	Remove Handbrake
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 install_handbrake() {
-  if exists ghb; then
-    printf "Handbrake is alredy installed.\n"
-    return 1
-  fi
-  sudo_login 2
-  sudo apt install -yy handbrake handbrake-cli
-  if ! exists ghb || ! exists HandbrakeCLI; then
-    printf "%s Handbrake installation failed!\n" "$RED_ERROR" >&2
-    return "$E_INSTALLATION"
-  fi
-  echo "Handbrake installed."
-  return 0
+	if installed ghb; then
+		printf "Handbrake is alredy installed.\n" >&2
+		return "$E_FILE_EXISTS"
+	fi
+	sudo_login 2
+	sudo apt install -yy handbrake handbrake-cli
+	if ! installed ghb || ! exists HandbrakeCLI; then
+		printf "%s Handbrake installation failed!\n" "$RED_ERROR" >&2
+		return "$E_INSTALLATION"
+	fi
+	printf "Handbrake installed.\n"
+	return 0
 }
 
 remove_handbrake() {
-  if ! exists ghb; then
-    printf "Handbake is not instaled.\n"
-    return 1
+	if ! installed ghb; then
+		printf "Handbake is not instaled.\n"
+		return "$E_NOT_INSTALLED"
   fi
-  sudo_login 2
-  sudo apt autoremove handbrake handbrake-cli -yy
-  printf  "Handbrake removed from system.\n"
-  # Removal of files in /usr/share pending
-  return 0
+	sudo_login 2
+	sudo apt autoremove handbrake handbrake-cli -yy
+	printf  "Handbrake removed from system.\n"
+	# Removal of files in /usr/share pending
+	# find /usr/share -maxdepth 3 -type f,d -iname "handbrake*" -exec -rm -rf {} \;
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="3.5.26225"
-  local -i exit_code=0
-  local opt OPTARG OPTIND
-  local -i noOpt=1
-  local -r optstr=":hir"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      h )
-        help "$script" "$version" 0 ;;
-      i )
-        install_handbrake ;;
-      r )
-        remove_handbrake ;;
-      ? )
-        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$script" "$version" "$E_INVALID_ARG"
-    esac
-    exit_code="$?"
-	  noOpt=0
-  done
+	local -r script="${0##*/}"
+	local -r version="3.5.26251"
+	local -i exit_code=0
+	local -i noOpt=1
+	local -r optstr=":hir"
+	local opt OPTARG OPTIND
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			h )
+				help "$script" "$version" 0 ;;
+			i )
+				install_handbrake ;;
+			r )
+				remove_handbrake ;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$script" "$version" "$E_INVALID_ARG"
+		esac
+		exit_code="$?"
+		noOpt=0
+	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		help "$script" "$version" "$E_MISSING_ARG"
 	fi
-  shift "$(( OPTIND - 1 ))"
-  over_line "$script $version"
-  exit "$exit_code"
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
