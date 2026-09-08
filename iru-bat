@@ -169,7 +169,7 @@ main() {
 	local -r gh_url="https://github.com/sharkdp/bat/releases"
 	local -i noOpt=1
 	local -r optstr=":hiru"
-	local opt OPTARG OPTIND
+	local opt OPTARG OPTIND new_ver
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
@@ -180,7 +180,7 @@ main() {
 				else
 					check_package wget
 					create_tmp "dirfile"
-					new_ver="$(newest_version "$gh_url")"; declare -r new_ver
+					new_ver="$(newest_version "$gh_url")"
 					printf "%sInstalling Bat version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
 					install_bat "$new_ver" "$gh_url" && bat_config
 				fi ;;
@@ -190,7 +190,7 @@ main() {
 				if installed bat; then
 					check_package wget
 					create_tmp "dirfile"
-					new_ver="$(newest_version "$gh_url")"; declare -r new_ver
+					new_ver="$(newest_version "$gh_url")"
 					compare_versions "$new_ver" "$gh_url"
 				else
 					printf "Bat is not installed.\n"
@@ -206,9 +206,9 @@ main() {
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		help "$script" "$version" "$E_MISSING_ARG"
 	fi
-  shift "$(( OPTIND - 1 ))"
+	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
-  exit "$exit_code"
+	exit "$exit_code"
 }
 
 main "$@"
