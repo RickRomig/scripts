@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Sep 2021
-# Updated      : 28 Jul 2026
-# Version      : 3.0.26209
+# Updated      : 08 Sep 2026
+# Version      : 3.1.26251
 # Comments     : Supports Arch and Debian-based operating systems.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -27,33 +27,33 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 install_spice_tools() {
-  sudo_login 2
-  if debian_based; then
-    sudo apt-get update && sudo apt-get install -y spice-vdagent spice-webdavd
-    return "$?"
-  elif is_arch; then
-    sudo pacman -Sy
-    sudo pacman -S spice-vdagent spice-webdavd
-    return "$?"
-  else
-    printf "%s Operating system not supported by this script.\n" "$RED_ERROR" >&2
-    return "$E_UNSUPPORTED"
-  fi
+	sudo_login 2
+	if debian_based; then
+		sudo apt-get update && sudo apt-get install -y spice-vdagent spice-webdavd
+		return "$?"
+	elif is_arch; then
+		sudo pacman -Sy
+		sudo pacman -S spice-vdagent spice-webdavd
+		return "$?"
+	else
+		printf "%s Operating system not supported by this script.\n" "$RED_ERROR" >&2
+		return "$E_UNSUPPORTED"
+	fi
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="3.0.26209"
-  local -i exit_code=0
-  if [[ "$LOCALNET" == "192.168.122" || "$LOCALNET" == "10.0.2" ]]; then
-    install_spice_tools
-    exit_code="$?"
-  else
-    printf "%s This is not a virtual machine.\n" "$RED_ERROR" >&2
-    exit_code="$E_INVALID_HOST"
-  fi
-  over_line "$script $version"
-  exit "$exit_code"
+	local -r script="${0##*/}"
+	local -r version="3.1.26251"
+	local -i exit_code=0
+	if [[ "$LOCALNET" == "192.168.122" || "$LOCALNET" == "10.0.2" ]]; then
+		install_spice_tools
+		exit_code="$?"
+	else
+		printf "%s This is not a virtual machine.\n" "$RED_ERROR" >&2
+		exit_code="$E_INVALID_HOST"
+	fi
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
