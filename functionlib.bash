@@ -701,3 +701,21 @@ cleanup() {
 	[[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
 	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
 }
+
+convert_compare() {
+	local -r newVer="$1"
+	local -r curVer="$2"
+	local -i newer="$FALSE"
+	local -i index
+	local -i new_arr=()
+	local -i cur_arr=()
+	IFS="." read -ra new_arr <<< "$newVer"; declare -r new_arr
+	IFS="." read -ra cur_arr <<< "$curVer"; declare -r cur_arr
+	for (( index=0; index <=2; index++)) ; do
+		if (( "${new_arr[index]}" > "${cur_arr[index]}" )); then
+			newer="$TRUE"
+			break
+		fi
+	done
+	return "$newer"
+}
