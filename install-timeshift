@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Updated      : 13 Aug 2026
-# Version      : 3.8.26225
+# Updated      : 08 Sep 2026
+# Version      : 3.9.26251
 # Comments     : Default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,64 +28,64 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 get_snapshot_uuid() {
-  local target_uuid
-  # set UUID to /data partition if it exists
-  target_uuid=$(awk '/data/ {print $(NF-3)}' < <(lsblk -f))
-  # set UUID to home partition if no /data partition exists
-  [[ "$target_uuid" ]] || target_uuid=$(awk '/home/ {print $(NF-3)}' < <(lsblk -f))
-  # set UUID to root partition if no /home or /data partition exists
-  [[ "$target_uuid" ]] || target_uuid=$(awk '/\/$/ {print $NF-3}' < <(lsblk -f))
-  printf "%s" "$target_uuid"
-  return 0
+	local target_uuid
+	# set UUID to /data partition if it exists
+	target_uuid=$(awk '/data/ {print $(NF-3)}' < <(lsblk -f))
+	# set UUID to home partition if no /data partition exists
+	[[ "$target_uuid" ]] || target_uuid=$(awk '/home/ {print $(NF-3)}' < <(lsblk -f))
+	# set UUID to root partition if no /home or /data partition exists
+	[[ "$target_uuid" ]] || target_uuid=$(awk '/\/$/ {print $NF-3}' < <(lsblk -f))
+	printf "%s" "$target_uuid"
+	return 0
 }
 
 configure_timeshift() {
-  local ts_uuid script_dir
-  script_dir=$(dirname "$(readlink -f "${0}")")
-  local -r ts_dir="/etc/timeshift"
-  local -r ts_sed="$script_dir/files/timeshift.sed"
-  if [[ ! -f "$ts_sed" ]]; then
-    printf "%s was not found. Configure using the GUI application.\n"  "${ts_sed##*/}" >&2
-    return "$E_FILENOTFOUND"
-  fi
-  printf "Configuring Timeshift...\n"
-  ts_uuid=$(get_snapshot_uuid)
-  # copy default json file
-  sudo cp -v "$ts_dir/default.json" "$ts_dir/timeshift.json"
-  # configure settings
-  sudo sed -i -f "$ts_sed" "$ts_dir/timeshift.json"
-  # insert UUID for snapshot location
-  sudo sed -i "/backup_device_uuid/ s/\",/$ts_uuid\",/" "$ts_dir/timeshift.json"
-  # adjust leading spaces in json file
-  sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/timeshift.json"
-  printf "Timeshift configured.\n"
-  return 0
+	local ts_uuid script_dir
+	script_dir=$(dirname "$(readlink -f "${0}")")
+	local -r ts_dir="/etc/timeshift"
+	local -r ts_sed="$script_dir/files/timeshift.sed"
+	if [[ ! -f "$ts_sed" ]]; then
+		printf "%s was not found. Configure using the GUI application.\n"  "${ts_sed##*/}" >&2
+		return "$E_FILENOTFOUND"
+	fi
+	printf "Configuring Timeshift...\n"
+	ts_uuid=$(get_snapshot_uuid)
+	# copy default json file
+	sudo cp -v "$ts_dir/default.json" "$ts_dir/timeshift.json"
+	# configure settings
+	sudo sed -i -f "$ts_sed" "$ts_dir/timeshift.json"
+	# insert UUID for snapshot location
+	sudo sed -i "/backup_device_uuid/ s/\",/$ts_uuid\",/" "$ts_dir/timeshift.json"
+	# adjust leading spaces in json file
+	sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/timeshift.json"
+	printf "Timeshift configured.\n"
+	return 0
 }
 
 install_timeshift() {
-  if installed timeeshift; then
-    printf "%s is already installed.\n" "$(timeshift --version)"
-    return 1
-  fi
-  sudo_login 2
-  printf "Installing Timeshift...\n"
-  sudo apt-get install -y timeshift
-  if ! installed timeshift; then
-    printf "%s Timeshift installation failed." "$RED_ERROR" >&2
-    return "$E_INSTALLATION"
-  fi
-  printf "Timeshift %s installed.\n" "$(timeshift --version)"
-  return 0
+	if installed timeeshift; then
+		printf "%s is already installed.\n" "$(timeshift --version)"
+		return "$E_FILE_EXISTS"
+	fi
+	sudo_login 2
+	printf "Installing Timeshift...\n"
+	sudo apt-get install -y timeshift
+	if ! installed timeshift; then
+		printf "%s Timeshift installation failed." "$RED_ERROR" >&2
+		return "$E_INSTALLATION"
+	fi
+	printf "Timeshift %s installed.\n" "$(timeshift --version)"
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="3.8.26225"
-  local -i exit_code=0
-  install_timeshift && configure_timeshift
-  exit_code="$?"
-  over_line "$script $version"
-  exit "$exit_code"
+	local -r script="${0##*/}"
+	local -r version="3.9.26251"
+	local -i exit_code=0
+	install_timeshift && configure_timeshift
+	exit_code="$?"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
