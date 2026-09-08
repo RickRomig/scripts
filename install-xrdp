@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2024
-# Updated      : 29 Jul 2026
-# Version      : 2.6.26210
+# Updated      : 08 Sep 2026
+# Version      : 2.7.26251
 # Comments     : Working with i3 & Xfce4, no desktop background on Cinnamon.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -38,7 +38,7 @@ install_xdrp() {
 	sudo apt-get install -y xrdp xorgxrdp
 	if ! installed xrdp || ! installed xorgxrdp; then
 		printf "%s XDRP installation failed.\n" "$RED_ERROR" >&2
-    return "$E_INSTALLATION"
+		return "$E_INSTALLATION"
 	fi
 	add_to_sslcert
 	printf "Enabling and starting xrdp sevice...\n"
@@ -50,11 +50,12 @@ install_xdrp() {
 }
 
 cinn_xsessionrc() {
-	cat << _CINNX_  > "$HOME"/.xsessionrc
-if [ $DISPLAY != ":0" ]; then
-  export XAUTHORITY=${HOME}/.Xauthority
-fi
+	cat <<- _CINNX_  > "$HOME"/.xsessionrc
+	if [ $DISPLAY != ":0" ]; then
+		export XAUTHORITY=${HOME}/.Xauthority
+	fi
 _CINNX_
+	return 0
 }
 
 setup_xsession() {
@@ -75,9 +76,9 @@ setup_xsession() {
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="2.6.26210"
-  local -i exit_code=0
+	local -r script="${0##*/}"
+	local -r version="2.7.26251"
+	local -i exit_code=0
 	sudo_login 2
 	check_package ufw
 	install_xdrp
