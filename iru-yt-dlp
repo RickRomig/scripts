@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 13 Aug 2026
-# Version      : 3.1.26225
+# Updated      : 08 Sep 2026
+# Version      : 3.2.26251
 # Comments     : Removes distro repo version if installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,29 +28,29 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -ri errcode="${3:-1}"
 	local -r updated="21 Jul 2026"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Installs, removes, updates YouTube-dlp.
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Installs, removes, updates YouTube-dlp.
 
-${green}Usage:${normal} $script [-hiruxx]
-${orange}Available options:${normal}
-	-h 	Show this help message and exit
-	-i 	Install yt-dlp (binary)
-	-r 	Remove yt-dlp (binary)
-	-u 	Update yt-dlp (binary)
+	${green}Usage:${normal} $script [-hiruxx]
+	${orange}Available options:${normal}
+	-h	Show this help message and exit
+	-i	Install yt-dlp (binary)
+	-r	Remove yt-dlp (binary)
+	-u	Update yt-dlp (binary)
 	-x	Remove yt-dlp (distro version)
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 check_dependencies() {
-  local packages=( atomicparsley curl ffmpeg ffmpeg-doc )
-  check_packages "${packages[@]}"
-  return 0
+	local packages=( atomicparsley curl ffmpeg ffmpeg-doc )
+	check_packages "${packages[@]}"
+	return 0
 }
 
 ytdlp_deb() {
@@ -62,13 +62,13 @@ ytdlp_bin() {
 }
 
 bin_version() {
-	ytdlp_bin && /usr/local/bin/yt-dlp --version
-  return 0
+	/usr/local/bin/yt-dlp --version
+	return 0
 }
 
 deb_version() {
-	ytdlp_deb && /usr/bin/yt-dlp -- version
-  return 0
+	/usr/bin/yt-dlp --version
+	return 0
 }
 
 update_ytdlp() {
@@ -92,9 +92,9 @@ install_updater() {
 	[[ -x "$update_script" ]] || return "$E_FILENOTFOUND"
 	[[ -f "$cleanup_script" ]] || return "$E_FILENOTFOUND"
 	sudo cp -v "$update_script" /etc/cron.daily/
-  sudo cp -v "$cleanup_script" /usr/share/misc/
+	sudo cp -v "$cleanup_script" /usr/share/misc/
 	printf "yt-dlp updater script installed.\n"
-  return 0
+	return 0
 }
 
 remove_updater() {
@@ -103,16 +103,16 @@ remove_updater() {
 	printf "Removing yt-dlp updater files...\n"
 	[[ -f "$cleanup_script" ]] && sudo rm -f "$cleanup_script"
 	[[ -x "$update_script" ]] && sudo rm -f "$update_script"
-  return 0
+	return 0
 }
 
 ytdlp_config() {
-  local repository=~/Downloads/configs
-  [[ -d ~/gitea/configs ]] && repository=~/gitea/configs
-  if [[ ! -d "$repository" ]]; then
-    printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
-    return "$E_FILENOTFOUND"
-  fi
+	local repository=~/Downloads/configs
+	[[ -d ~/gitea/configs ]] && repository=~/gitea/configs
+	if [[ ! -d "$repository" ]]; then
+		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
+		return "$E_FILENOTFOUND"
+	fi
 	[[ -d ~/config/yt-dl ]] || mkdir -p  ~/config/yt-dl
 	printf "Adding yt-dlr configuration (js-runtimes)...\n"
 	cp -v "$repository/yt-dlp/config" ~/.config/yt-dlp/
@@ -124,31 +124,31 @@ remove_configs() {
 	printf "Removing yt-dlp configuration files...\n"
 	find ~/ -maxdepth 2 -type d -name yt-dlp -exec rm -rf {} \;
 	[[ -f /etc/yt-dlp.conf ]] && sudo rm /etc/yt-dlp.conf
-  return 0
+	return 0
 }
 
 install_ytdlp_bin() {
-  local -r ytdlp_url="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp"
+	local -r ytdlp_url="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp"
 	printf "Installing yt-dlp from yt-dl.org...\n"
 	sudo_login 2
-  sudo curl -# -L "$ytdlp_url" -o /usr/local/bin/yt-dlp
+	sudo curl -# -L "$ytdlp_url" -o /usr/local/bin/yt-dlp
 	if [[ ! -e /usr/local/bin/yt-dlp ]]; then
 		printf "%s yt-dlp installation failed!\n" "$RED_ERROR" >&2
 		return "$E_INSTALLATION";
 	fi
 	sudo chmod a+rx /usr/local/bin/yt-dlp
-  [[ -x /usr/bin/python3 ]] && sudo ln -s /usr/bin/python3 /usr/bin/python
+	[[ -x /usr/bin/python3 ]] && sudo ln -sv /usr/bin/python3 /usr/bin/python
 	[[ -L "$HOME/.local/bin/yt-dlp" ]] || ln -s /usr/local/bin/yt-dlp "$HOME/.local/bin/yt-dlp"
 	ytdlp_config
 	printf "yt-dlp %s successfully installed.\n" "$(bin_version)"
-  return 0
+	return 0
 }
 
 remove_logs() {
 	local -r log_file=/var/log/ytdlpup.log
 	printf "Removing the yt-dlp log file...\n"
-  [[ -f "$log_file" ]] && sudo rm "$log_file"
-  return 0
+	[[ -f "$log_file" ]] && sudo rm "$log_file"
+	return 0
 }
 
 remove_ytdlp_deb() {
@@ -156,58 +156,59 @@ remove_ytdlp_deb() {
 	local -r ytdlp_man=/usr/share/man/man1/yt-dlp.1.gz
 	printf "Removing yt-dlp %s installed from distro repos.\n" "$(deb_version)"
 	sudo_login 2
-  sudo apt-get purge -y yt-dlp
-  sudo apt-get autoremove -y
+	sudo apt-get purge -y yt-dlp
+	sudo apt-get autoremove -y
 	[[ -d "$ytdlp_docs" ]] && sudo rm -rf "$ytdlp_docs"
 	[[ -d "$ytdlp_man" ]] && sudo rm -f "$ytdlp_man"
- printf "Repository version of yt-dlp removed\n"
-  return 0
+	printf "Repository version of yt-dlp removed\n"
+	return 0
 }
 
 remove_ytdlp_bin() {
-  # Removes the yt-dl.org version
+	# Removes the yt-dl.org version
 	sudo_login 2
-  printf "Removing yt-dlp %s installed from yt-dlp.org...\n" "$(bin_version)"
+	printf "Removing yt-dlp %s installed from yt-dlp.org...\n" "$(bin_version)"
 	[[ -L "$HOME/.local/bin/yt-dlp" ]] && unlink "$HOME/.local/bin/yt-dlp"
-  sudo rm /usr/local/bin/yt-dlp
-  remove_configs
-  remove_updater
-  remove_logs
+	sudo rm /usr/local/bin/yt-dlp
+	remove_configs
+	remove_updater
+	remove_logs
 	printf "ytdlp.org version of yt-dlp removed.\n"
-  return 0
+	return 0
 }
 
 install_intro() {
-  cat << _INTRO_
-Installs yt-dlp from yt-dl.org to /usr/local/bin along with an updater script
-that runs as a daily anacron job saving the results to a log file at:
-/var/log/ytdlpup.log
-A sed script to cleanup and format the log file is installed at:
-/usr/share/misc/ytdlpuplog.sed
-If the version from the distro's repostitory is installed, it will be removed.
+  cat <<- _INTRO_
+	Installs yt-dlp from yt-dl.org to /usr/local/bin along with an updater script
+	that runs as a daily anacron job saving the results to a log file at:
+	/var/log/ytdlpup.log
+	A sed script to cleanup and format the log file is installed at:
+	/usr/share/misc/ytdlpuplog.sed
+	If the version from the distro's repostitory is installed, it will be removed.
 _INTRO_
+	return 0
 }
 
 remove_intro() {
-  cat << _REMOVAL_
-Removes yt-dlp and its configuration files, removing both the version installed
-via the distribution's repositories and the version downloaded from the yt-dlp
-GitHub repository.
+  cat <<- _REMOVAL_
+	Removes yt-dlp and its configuration files, removing both the version installed
+	via the distribution's repositories and the version downloaded from the yt-dlp
+	GitHub repository.
 _REMOVAL_
+	return 0
 }
 
 main() {
 	local -r  script="${0##*/}"
 	local -r  version="3.1.26225"
 	local -i exit_code=0
-  local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r  optstr=":hirux"
+	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
-				help "$script" "$version" 0
-				;;
+				help "$script" "$version" 0 ;;
 			i )
 				if ytdlp_bin; then
 					printf "yt-dlp %s is already installed from yt-dl.org.\n" "$(bin_version)"
@@ -216,8 +217,7 @@ main() {
 					check_dependencies
 					ytdlp_deb && remove_ytdlp_deb
 					install_ytdlp_bin && install_updater
-				fi
-				;;
+				fi ;;
 			r )
 				remove_intro
 				ytdlp_deb && remove_ytdlp_deb
@@ -225,20 +225,17 @@ main() {
 					remove_ytdlp_bin
 				else
 					printf "yt-dlp is not installed.\n"
-				fi
-				;;
+				fi ;;
 			u )
 				update_ytdlp
-				printf "Return Code = %s\n" "$?"
-				;;
+				printf "Return Code = %s\n" "$?" ;;
 			x )
 				if ytdlp_deb; then
 					printf "Removing yt-dlp %s installed via apt.\n" "$(deb_version)"
 					remove_ytdlp_deb
 				else
 					printf "The distribution's version of yt-dlp is not installed.\n"
-				fi
-				;;
+				fi ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
