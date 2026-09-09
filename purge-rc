@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Updated      : 02 Aug 2026
-# Version      : 4.14.26214
+# Updated      : 09 Sep 2026
+# Version      : 4.15.26252
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,45 +28,45 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 list_rc_packages() {
-  printf "Packages in the 'rc' state:\n"
-  awk '/^rc/ {print $1,$2}' < <(dpkg --list) | sort -r
-  return 0
+	printf "Packages in the 'rc' state:\n"
+	awk '/^rc/ {print $1,$2}' < <(dpkg --list) | sort -r
+	return 0
 }
 
 purge_rc_packages() {
-  local rcpkg
-  printf "\nThese packages are in the remove/deinstall state with only the config files.\n"
-  if yes_or_no "Are you sure you want to purge the config files for these packages?"; then
-    sudo_login 2
-    printf "\n%sPurging obsolete configuration files...%s\n" "$green" "$normal"
-    # Process substituion does not work here.
-    for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
-      sudo apt remove --purge "$rcpkg" -yy
-    done
-  else
-    printf "\nNo action taken. No packages were purged.\n"
-  fi
-  return 0
+	local rcpkg
+	printf "\nThese packages are in the remove/deinstall state with only the config files.\n"
+	if yes_or_no "Are you sure you want to purge the config files for these packages?"; then
+		sudo_login 2
+		printf "\n%sPurging obsolete configuration files...%s\n" "$green" "$normal"
+		# Process substituion does not work here.
+		for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
+			sudo apt remove --purge "$rcpkg" -yy
+		done
+	else
+		printf "\nNo action taken. No packages were purged.\n"
+	fi
+	return 0
 }
 
-list_headers() {
-  printf "\n%sInstalled linux headers and images:%s\n" "$green" "$normal"
-  awk '/linux-image/ || /-headers-/ {print $2}' < <(dpkg --list) | sort -r
-  return 0
+list_imaages_headers() {
+	printf "\n%sInstalled linux headers and images:%s\n" "$green" "$normal"
+	awk '/linux-image/ || /-headers-/ {print $2}' < <(dpkg --list) | sort -r
+	return 0
 }
 
 main() {
-  local script="${0##*/}"
-  local -r version="4.14.26214"
-  if grep -q '^rc' < <(dpkg --list); then
-    list_rc_packages
-    purge_rc_packages
-  else
-    printf "%sNo packages in the 'rc' state to be purged.%s\n" "$green" "$normal"
-  fi
-  list_headers
-  over_line "$script $version"
-  exit
+	local script="${0##*/}"
+	local -r version="4.15.26252"
+	if grep -q '^rc' < <(dpkg --list); then
+		list_rc_packages
+		purge_rc_packages
+	else
+		printf "%sNo packages in the 'rc' state to be purged.%s\n" "$green" "$normal"
+	fi
+	list_imaages_headers
+	over_line "$script $version"
+	exit
 }
 
 main "$@"
