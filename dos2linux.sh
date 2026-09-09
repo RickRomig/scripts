@@ -29,28 +29,28 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 convert_file() {
-  local -r filename="$1"
-  printf "Removing the carriage return characters from %s\n" "$filename"
-  printf "and creating a backup (%s.bak) of the orginal file."  "$filename"
-  sed -i.bak 's/\r//g' "$filename"
-  return 0
+	local -r filename="$1"
+	printf "Removing the carriage return characters from %s\n" "$filename"
+	printf "and creating a backup (%s.bak) of the orginal file."  "$filename"
+	sed -i.bak 's/\r//g' "$filename"
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="2.3.26218"
-  local filename="$1"
-  local -i exit_code=0
-  printf "Converts a DOS text file to Linux format by removing carriage returns.\n"
-  [[ "$#" -eq 0 ]] && read -rp "Enter a DOS text file to process: " filename
-  if [[ -f "$filename" ]]; then
-    convert_file "$filename"
-  else
-    printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
-    exit_code="$E_FILENOTFOUND"
-  fi
-  over_line "$script $version"
-  exit "$exit_code"
+	local -r script="${0##*/}"
+	local -r version="2.3.26218"
+	local filename="$1"
+	local -i exit_code=0
+	printf "Converts a DOS text file to Linux format by removing carriage returns.\n"
+	[[ "$#" -eq 0 ]] && read -rp "Enter a DOS text file to process: " filename
+	if [[ -f "$filename" ]]; then
+		convert_file "$filename"
+	else
+		printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
+		exit_code="$E_FILENOTFOUND"
+	fi
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
