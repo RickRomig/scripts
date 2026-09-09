@@ -40,7 +40,7 @@ cleanup() {
 help() {
 	local -r script="$1"
 	local -r version="$2"
-	local -r errcode="${3:-1}"
+	local -ri errcode="${3:-1}"
 	local -r updated="09 Sep 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: $updated
@@ -138,7 +138,6 @@ main() {
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		help "$script" "$version" "$E_MISSING_ARG"
 	fi
-	shift "$(( OPTIND - 1 ))"
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit "$exit_code"
