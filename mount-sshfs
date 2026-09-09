@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 01 Aug 2026
-# Version      : 5.6.26213
+# Updated      : 09 Sep 2026
+# Version      : 5.7.26252
 # Comments     : Mount points are at ~/mnt/ (HOME directory)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,48 +28,48 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
-  local -ri errcode="${3:-1}"
-  local -r updated="31 Jul 2026"
-	cat << _HELP_
-${orange}$script${normal} $version, Updated $updated
-Mounts/Unmounts an SSHFS share.
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="09 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version, Updated $updated
+	Mounts/Unmounts an SSHFS share.
 
-${green}Usage:${normal} $script [-defghmnst]
-${orange}Available options:${normal}
-  -d  toggle mount/umount HP EliteDesk 800 G1 USDT (desktop)
-  -e  toggle mount/umount HP EliteBook 850 G3 (laptop)
-  -f  toggle mount/umount HP ProBook 6570b (desk)
-  -g  toggle mount/umount HP Compaq Elite 8300 USDT (Gitea Server)
-  -h  Show this help message and exit
-  -m  toggle mount/umount HP 800 G2 (Main system)
-  -n  toggle mount/umount QNAP NAS (network attached storage)
-  -s  toggle mount/umount HP Compaq 6005 Pro SSF (file server)
-  -t  toggle mount/umount Dell 9020 (VM and media)
+	${green}Usage:${normal} $script [-defghmnst]
+	${orange}Available options:${normal}
+	-d	toggle mount/umount HP EliteDesk 800 G1 USDT (desktop)
+	-e	toggle mount/umount HP EliteBook 850 G3 (laptop)
+	-f	toggle mount/umount HP ProBook 6570b (desk)
+	-g	toggle mount/umount HP Compaq Elite 8300 USDT (Gitea Server)
+	-h	Show this help message and exit
+	-m	toggle mount/umount HP 800 G2 (Main system)
+	-n	toggle mount/umount QNAP NAS (network attached storage)
+	-s	toggle mount/umount HP Compaq 6005 Pro SSF (file server)
+	-t	toggle mount/umount Dell 9020 (VM and media)
 _HELP_
 	exit "$errcode"
 }
 
 cd_fail() {
 	local share="$1"
-  printf "%s The cd shell builtin failed.\n" "$RED_ERROR" >&2
-  printf "The SSHFS share has not been unmounted.\n" >&2
+	printf "%s The cd shell builtin failed.\n" "$RED_ERROR" >&2
+	printf "The SSHFS share has not been unmounted.\n" >&2
 	return 0
 }
 
 fail_msg() {
 	local -r share="$1"
 	local -r mount_point="$HOME/mnt"
-  printf "Make sure you are not in the mountpoint and run the following command:\n" >&2
-  printf "\t%sfusermount -u %s/%s/%s\n" "$orange" "$mount_point" "$share" "$normal"  >&2
+	printf "Make sure you are not in the mountpoint and run the following command:\n" >&2
+	printf "\t%sfusermount -u %s/%s/%s\n" "$orange" "$mount_point" "$share" "$normal"  >&2
 	return 0
 }
 
 mount_share() {
 	local -r octet="$1"
-  local -r share="$2"
-  ping -c3 "$LOCALNET.$octet" > /dev/null 2>&1 || die "$share at $LOCALNET.$octet is not online." "$E_NETWORK"
+	local -r share="$2"
+	ping -c3 "$LOCALNET.$octet" > /dev/null 2>&1 || die "$share at $LOCALNET.$octet is not online." "$E_NETWORK"
 	[[ -d "$HOME/mnt/$share/" ]] || mkdir -p "$HOME/mnt/$share"
 	printf "Mounting %s...\n" "$share"
 	if [[ "$share" == "NASD97167" ]]; then
@@ -84,16 +84,16 @@ mount_share() {
 }
 
 unmount_share() {
-  local -r share="$1"
-  if ! cd "$HOME"; then
+	local -r share="$1"
+	if ! cd "$HOME"; then
 		cd_fail "$share"
 		fail_msg "$share"
 		return "$E_DRIVE_ERROR"
 	fi
-  if fusermount -u "$HOME/mnt/$share/"; then
+	if fusermount -u "$HOME/mnt/$share/"; then
 		printf "%s has been unmounted.\n" "$share"
 		return 0
- fi
+	fi
 	printf "%s %s has not been unmounted." "$RED_ERROR" "$share" >&2
 	fail_msg "$share"
 	return "$E_DRIVE_ERROR"
@@ -106,15 +106,15 @@ mounted() {
 
 handle_mount() {
 	local -r octet="$1"
-  local -r share="$2"
+	local -r share="$2"
 	local -i ip
 	ip=$(local_ip)
 	[[ "$ip" == "$octet" ]] && die "Cannot mount/unmount local system." "$E_DRIVE_ERROR"
 	if [[ "$ip" == "$octet" ]]; then
-	printf "%s Cannot mount/unmount local system.\n" "$RED_ERROR" >&2
-	return "$E_DRIVE_ERROR"
+		printf "%s Cannot mount/unmount local system.\n" "$RED_ERROR" >&2
+		return "$E_DRIVE_ERROR"
 	fi
-  if ! mounted "$share"; then
+	if ! mounted "$share"; then
 		mount_share "$octet" "$share"
 		return "$?"
 	fi
@@ -128,11 +128,11 @@ handle_mount() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.6.26213"
+	local -r version="5.7.26252"
 	local -i exit_code=0
-  local opt share_name share_ip OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":defghmnst"
+	local opt share_name share_ip OPTARG OPTIND
 	check_package sshfs
 	printf "Mount or unmount an SSHFS share.\n"
 	while getopts "$optstr" opt; do
@@ -140,46 +140,37 @@ main() {
 			d )
 				share_name="EliteDesk-800"
 				share_ip=17
-				handle_mount "$share_ip" "$share_name"
-				;;
+				handle_mount "$share_ip" "$share_name" ;;
 			e )
 				share_name="EliteBook-850"
 				share_ip=22
-				handle_mount "$share_ip" "$share_name"
-				;;
+				handle_mount "$share_ip" "$share_name" ;;
 			f )
 				share_name="HP-ProBook-6570b"
 				share_ip=21
-				handle_mount "$share_ip" "$share_name"
-				;;
+				handle_mount "$share_ip" "$share_name" ;;
 			g )
 				share_name="Gitea-Server"
 				share_ip=16
-				handle_mount "$share_ip" "$share_name"
-				;;
+				handle_mount "$share_ip" "$share_name" ;;
 			h )
-				help "$script" "$version" 0
-				;;
+				help "$script" "$version" 0 ;;
 			m )
 				share_name="HP-800-G2"
 				share_ip=10
-				handle_mount "$share_ip" "$share_name"
-				;;
+				handle_mount "$share_ip" "$share_name" ;;
 			n )
 				share_name="NASD97167"
 				share_ip=4
-				handle_mount "$share_ip" "$share_name"
-				;;
+				handle_mount "$share_ip" "$share_name" ;;
 			s )
 				share_name="HP-6005"
 				share_ip=11
-				handle_mount "$share_ip" "$share_name"
-				;;
+				handle_mount "$share_ip" "$share_name" ;;
 			t )
 				share_name="Dell-9020"
 				share_ip=15
-				handle_mount "$share_ip" "$share_name"
-				;;
+				handle_mount "$share_ip" "$share_name" ;;
 			?)
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
@@ -187,12 +178,13 @@ main() {
 		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit "$exit_code"
 }
-
-## Execution ##
 
 main "$@"
