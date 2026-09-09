@@ -7,8 +7,8 @@
 # Author       : Copyright © 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
 # Created      : 09 Apr 2019
-# Updated      : 08 Aug 2026
-# Version      : 3.4.26219
+# Updated      : 09 Sep 2026
+# Version      : 3.5.26252
 # Comment      : Should be run from the project's main directory.'
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,81 +30,74 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 VERBOSE="$FALSE"
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
-  local -ri errcode="${3:-1}"
-  local -r updated="08 Aug 2026"
-  cat << _HELP_
-${orange}$script${normal} $version, updated: $updated
-Creates a README file for a project.
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="09 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version, updated: $updated
+	Creates a README file for a project.
 
-${green}Usage:${normal} $script [-c project-name] [-h] [-vc project-name]
-${orange}Available options:${normal}
-  -c  Create a README file
-      $script -c <project-name>
-  -h  Show this help message and exit
-  -v  Enable verbose mode (Must precede c flag)
-      $script -vc <project-name>
+	${green}Usage:${normal} $script [-c project-name] [-h] [-vc project-name]
+	${orange}Available options:${normal}
+	-c	Create a README file
+	-h	Show this help message and exit
+	-v	Enable verbose mode (Must precede c flag)
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 show_message() {
 	local message="$1"
 	[[ "$VERBOSE" == "$TRUE" ]] && echo "$message"
+	return 0
 }
 
 create_readme() {
-  local -r project="$1"
-  local today script_dir
-  today=$(date +"%d %B %Y")
-  script_dir=$(dirname "$(readlink -f "${0}")")
-  show_message "Importing data into README.md"
-  # Information to be inserted into README template
-  # For sed, forward slashes have to be escaped with backslashes
-  sed -e '1d' \
-    -e "s/<PROJECT>/$project/" \
-    -e "s/<DATE>/$today/" "$script_dir/Templates/readme.txt" > README.md
-  printf "The README.md for %s$project has been created." "$$project"
-  edit_view_quit README.md
-  return 0
+	local -r project="$1"
+	local today script_dir
+	today=$(date +"%d %B %Y")
+	script_dir=$(dirname "$(readlink -f "${0}")")
+	show_message "Importing data into README.md"
+	sed -e '1d' \
+		-e "s/<PROJECT>/$project/" \
+		-e "s/<DATE>/$today/" "$script_dir/Templates/readme.txt" > README.md
+	printf "The README.md for %s$project has been created." "$$project"
+	edit_view_quit README.md
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="3.4.26219"
-  local opt OPTARG OPTIND project_name
-  local -i noOpt=1
-  local -r optstr=":c:hv"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      c )
-        project_name="$OPTARG"
-        if [[ -f README.md ]]; then
-          printf "%s README.md already exists.\n" "$RED_ERROR" >&2
-          help "$script" "$version" "$E_FILE_EXISTS"
-        else
-          show_message "Creating README for $project_name"
-          create_readme "$project_name"
-        fi
-        ;;
+	local -r script="${0##*/}"
+	local -r version="3.5.26252"
+	local -i noOpt=1
+	local -r optstr=":c:hv"
+	local opt OPTARG OPTIND project_name
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			c )
+				project_name="$OPTARG"
+				if [[ -f README.md ]]; then
+					printf "%s README.md already exists.\n" "$RED_ERROR" >&2
+					help "$script" "$version" "$E_FILE_EXISTS"
+				else
+					show_message "Creating README for $project_name"
+					create_readme "$project_name"
+				fi ;;
 			h )
-				help 0
-			  ;;
+				help "$script" "$version" 0 ;;
 			v )
 				VERBOSE="$TRUE"
-				show_message "Verbose mode enabled."
-			  ;;
+				show_message "Verbose mode enabled." ;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_MISSING_ARG"
-        ;;
+				help "$script" "$version" "$E_MISSING_ARG" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
-    esac
-    noOpt=0
-  done
+		esac
+		noOpt=0
+	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		help "$script" "$version" "$E_MISSING_ARG"
@@ -113,7 +106,5 @@ main() {
 	over_line "$script $version"
 	exit
 }
-
-## Execution ##
 
 main "$@"
