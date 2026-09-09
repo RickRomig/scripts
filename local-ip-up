@@ -7,8 +7,8 @@
 # Author       : Copyright © 2019 Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Dec 2019
-# Updated      : 30 Jul 2026
-# Version      : 4.14.26211
+# Updated      : 08 Sep 2026
+# Version      : 4.15.26251
 # Comments     : Variables for IP range do not work, must be hard coded.
 #              : Local host will respond using arping in the iputils-arping package.
 #              : Local host will not respond using the regular arping package.
@@ -34,133 +34,144 @@ SECONDS=0
 COUNT=0
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="30 Jul 2026"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Scans local network to see which addresses are active.
+	local -r updated="08 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Scans local network to see which addresses are active.
 
-${green}Usage:${normal} $script [-dhs]
-${orange}Available options:${normal}
-  -d  Scan DHCP assigned addresses.
-  -h  Show this help message and exit.
-  -s  Scan static addresses.
-  ${orange}Note:${normal} Uses iputils-arping.
+	${green}Usage:${normal} $script [-dhs]
+	${orange}Available options:${normal}
+	-d	Scan DHCP assigned addresses.
+	-h	Show this help message and exit.
+	-s	Scan static addresses.
+	${orange}Note:${normal} Uses iputils-arping.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 check_dependencies() {
-  local packages=( avahi-daemon avahi-utils libnss-mdns iputils-arping )
-  check_packages "${packages[@]}"
-  return 0
+	local -r packages=( avahi-daemon avahi-utils libnss-mdns iputils-arping )
+	check_packages "${packages[@]}"
+	return 0
 }
 
 arping_check() {
-  local addr="$1"
-  grep -E "0 response|0 packets received" < <(arping -c 1 "$addr" ) > /dev/null 2>&1 && return 1 || return 0
+	local -r addr="$1"
+	grep -E "0 response|0 packets received" < <(arping -c 1 "$addr" ) > /dev/null 2>&1 && return 1 || return 0
 }
 
 scan_static_addresses() {
-  local hname ip_addr
-  printf "\nScanning static IP addresses on the network...\n"
-  printf "%s%sIP Address\tHostname%s\n" "$underline" "$green" "$normal"
-  for ip_addr in $LOCALNET.{1..25}; do
-    if arping_check "$ip_addr"; then
-      hname=$(awk '{print $NF}' < <(avahi-resolve -a "$ip_addr" 2>/dev/null) | sed 's/\.local$//')
-      printf "%s\t" "$ip_addr"
-      if [[ "$hname" ]]; then
-        printf "%s\n" "$hname"
-      else
-        case $ip_addr in
-          "192.168.0.1" ) printf "Gateway (TP Link AC1750)\n" ;;
-          "192.168.0.2" ) printf "D-Link AP\n" ;;
-          "192.168.0.3" ) printf "unassigned\n" ;;
-          "192.168.0.4" ) printf "NASD97167 (QNAP NAS)\n" ;;
-          "192.168.0.5" ) printf "unassigned\n" ;;
-          "192.168.0.6" ) printf "Raspberry Pi 4\n" ;;
-          "192.168.0.7" ) printf "unassigned\n" ;;
-          "192.168.0.8" ) printf "unassigned\n" ;;
-          "192.168.0.9" ) printf "unassigned\n" ;;
-          "192.168.0.10" ) printf "hp-800g2-sff (Mint)\n" ;;
-          "192.168.0.11" ) printf "hp-6005 (XFCE)\n" ;;
-          "192.168.0.12" ) printf "e6500-deb (i3)\n" ;;
-          "192.168.0.13" ) printf "probook-6570b (i3)\n" ;;
-          "192.168.0.14" ) printf "hp-8300 (LMDE)\n" ;;
-          "192.168.0.15" ) printf "dell-9020 (Mint)\n" ;;
-          "192.168.0.16" ) printf "hp-8300-usdt (i3 Gitea Server)\n" ;;
-          "192.168.0.17" ) printf "hp-800-g1-usdt (Mint)\n" ;;
-          "192.168.0.18" ) printf "unassigned\n" ;;
-          "192.168.0.19" ) printf "hp-800-g1-dm (LMDE\n" ;;
-          "192.168.0.20" ) printf "probook-6570 (Mint)\n" ;;
-          "192.168.0.21" ) printf "hp-probook-6570 (Mint)\n" ;;
-          "192.168.0.22" ) printf "hp-850-g3 (i3)\n" ;;
-          "192.168.0.23" ) printf "hp-2560p (i3)\n" ;;
-          "192.168.0.24" ) printf "e-475m (i3)\n" ;;
-          "192.168.0.25" ) printf "unassigned\n" ;;
-          * )
-            printf "\tUnknown host\n"
-        esac
-      fi
-      (( COUNT++ ))
-    fi
-  done
-  return 0
+	local hname ip_addr
+	printf "\nScanning static IP addresses on the network...\n"
+	printf "%s%sIP Address\tHostname%s\n" "$underline" "$green" "$normal"
+	for ip_addr in $LOCALNET.{1..25}; do
+		if arping_check "$ip_addr"; then
+			hname=$(awk '{print $NF}' < <(avahi-resolve -a "$ip_addr" 2>/dev/null) | sed 's/\.local$//')
+			printf "%s\t" "$ip_addr"
+			if [[ "$hname" ]]; then
+				printf "%s\n" "$hname"
+			else
+				case $ip_addr in
+					"192.168.0.1" ) printf "Gateway (TP Link AC1750)\n" ;;
+					"192.168.0.2" ) printf "D-Link AP\n" ;;
+					"192.168.0.3" ) printf "unassigned\n" ;;
+					"192.168.0.4" ) printf "NASD97167 (QNAP NAS)\n" ;;
+					"192.168.0.5" ) printf "unassigned\n" ;;
+					"192.168.0.6" ) printf "Raspberry Pi 4\n" ;;
+					"192.168.0.7" ) printf "unassigned\n" ;;
+					"192.168.0.8" ) printf "unassigned\n" ;;
+					"192.168.0.9" ) printf "unassigned\n" ;;
+					"192.168.0.10" ) printf "hp-800g2-sff (Mint)\n" ;;
+					"192.168.0.11" ) printf "hp-6005 (XFCE)\n" ;;
+					"192.168.0.12" ) printf "e6500-deb (i3)\n" ;;
+					"192.168.0.13" ) printf "probook-6570b (i3)\n" ;;
+					"192.168.0.14" ) printf "hp-8300 (LMDE)\n" ;;
+					"192.168.0.15" ) printf "dell-9020 (Mint)\n" ;;
+					"192.168.0.16" ) printf "hp-8300-usdt (i3 Gitea Server)\n" ;;
+					"192.168.0.17" ) printf "hp-800-g1-usdt (Mint)\n" ;;
+					"192.168.0.18" ) printf "unassigned\n" ;;
+					"192.168.0.19" ) printf "hp-800-g1-dm (LMDE\n" ;;
+					"192.168.0.20" ) printf "probook-6570 (Mint)\n" ;;
+					"192.168.0.21" ) printf "hp-probook-6570 (Mint)\n" ;;
+					"192.168.0.22" ) printf "hp-850-g3 (i3)\n" ;;
+					"192.168.0.23" ) printf "hp-2560p (i3)\n" ;;
+					"192.168.0.24" ) printf "e-475m (i3)\n" ;;
+					"192.168.0.25" ) printf "unassigned\n" ;;
+					* )
+						printf "\tUnknown host\n"
+				esac
+			fi
+			(( COUNT++ ))
+		fi
+	done
+	return 0
 }
 
 scan_dhcp_addresses() {
-  local hname ip_addr
-  printf "\nScanning DHCP addresses on the network...\n"
-  printf "%s%sIP Address\tHostname%s\n" "$underline" "$green" "$normal"
-  for ip_addr in $LOCALNET.{100..199}; do
-    if arping_check "$ip_addr"; then
-      hname=$(awk '{print $NF} ' < <(avahi-resolve -a "$ip_addr" 2>/dev/null) | sed 's/\.local$//')
-      printf "%s\t" "$ip_addr"
-       [[ -n "$hname" ]] && printf "%s\n" "$hname" || printf "Unknown host\n"
-      (( COUNT++ ))
-    fi
-  done
-  return 0
+	local hname ip_addr
+	printf "\nScanning DHCP addresses on the network...\n"
+	printf "The scan may take several minutes to complete.\n"
+	printf "%s%sIP Address\tHostname%s\n" "$underline" "$green" "$normal"
+	for ip_addr in $LOCALNET.{100..254}; do
+		if arping_check "$ip_addr"; then
+			hname=$(awk '{print $NF} ' < <(avahi-resolve -a "$ip_addr" 2>/dev/null) | sed 's/\.local$//')
+			printf "%s\t" "$ip_addr"
+			# [[ -n "$hname" ]] && printf "%s\n" "$hname"
+			# (( COUNT++ ))
+			if [[ "$hname" ]]; then
+				printf "%s\n" "$hname"
+			else
+				case $ip_addr in
+					"192.168.0.153" ) printf "hp-850-g3 (i3)\n" ;;
+					"192.168.0.193" ) printf "dell-9020 (Mint)\n" ;;
+					"192.168.0.229" ) printf "EPSONF90159 (printer)\n" ;;
+					"192.168.0.235" ) printf "X004000724XL (Roku)\n" ;;
+					* )
+						printf "Unknown host\n"
+				esac
+			fi
+			(( COUNT++ ))
+		fi
+	done
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="4.14.26211"
-  local opt OPTARG OPTIND
-  local -i exit_code=0
-  local -i noOpt=1
-  local -r optstr=":dhs"
-  check_dependencies
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      d )
-        tput civis
-        scan_dhcp_addresses
-        exit_code="$?"
-        tput cnorm
-        ;;
-      h )
-        help "$script" "$version" 0
-        ;;
-      s )
-        tput civis
-        scan_static_addresses
-        exit_code="$?"
-        tput cnorm
-        ;;
-      ? )
-        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$script" "$version" "$E_INVALID_ARG"
-    esac
-	  noOpt=0
-  done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
-  shift "$(( OPTIND - 1 ))"
-  printf "\n%d active addresses discovered in %s.\n\n" "$COUNT" "$(format_time SECONDS)"
-  over_line "$script $version"
-  exit "$exit_code"
+	local -r script="${0##*/}"
+	local -r version="4.15.26251"
+	local -i noOpt=1
+	local -r optstr=":dhs"
+	local opt OPTARG OPTIND
+	check_dependencies
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			d )
+				tput civis
+				scan_dhcp_addresses
+				tput cnorm ;;
+			h )
+				help "$script" "$version" 0 ;;
+			s )
+				tput civis
+				scan_static_addresses
+				tput cnorm ;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$script" "$version" "$E_INVALID_ARG"
+		esac
+		noOpt=0
+	done
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
+	shift "$(( OPTIND - 1 ))"
+	printf "\n%d active addresses discovered in %s.\n" "$COUNT" "$(format_time SECONDS)"
+	over_line "$script $version"
+	exit
 }
 
 main "$@"
