@@ -7,8 +7,8 @@
 # Author       : Copyright (C), Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2017
-# Updated      : 06 Sep 2026
-# Version      : 2.3.26249
+# Updated      : 09 Sep 2026
+# Version      : 2.4.26252
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -27,15 +27,15 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 install_tools() {
-	local package packages
-	packages=( binutils build-essential gcc libc6 )
+	local package
+	local -r packages=( binutils build-essential gcc libc6 )
 	printf "Checking and installing C devlopment tools...\n"
 	for package in "${packages[@]}"; do
 		if installed "$package"; then
 			printf "%s installed.\n" "$package"
 		else
 			printf "Installing %s...\n" "$package"
-      sudo apt-get install -y "$package"
+			sudo apt-get install -y "$package"
 		fi
 	done
 	return 0
