@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2024, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Mar 2024
-# Updated      : 01 Aug 2026
-# Version      : 1.6.26213
+# Updated      : 09 Sep 2026
+# Version      : 1.7.26252
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,23 +30,23 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="28 May 2026"
-	cat << _HELP_
-${orange}$script${normal} $version, Updated $updated
-Disables/Enables Flatpak support.
+	local -r updated="09 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version, Updated $updated
+	Disables/Enables Flatpak support.
 
-${green}Usage:${normal} $script [-dehs]
-${orange}OPTIONS:${normal}
-  -d    Disable the installation of flatpak and flatpak packages
-  -e    Enable the installation of flatpak and flatpak packages
-  -h    Show this help message and exit
-  -s    Status of flatpak and flatpak package installation
+	${green}Usage:${normal} $script [-dehs]
+	${orange}OPTIONS:${normal}
+	-d    Disable the installation of flatpak and flatpak packages
+	-e    Enable the installation of flatpak and flatpak packages
+	-h    Show this help message and exit
+	-s    Status of flatpak and flatpak package installation
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 flatpak_installed() {
-	 installed flatpak && return "$TRUE" || return "$FALSE"
+	installed flatpak && return "$TRUE" || return "$FALSE"
 }
 
 flatpak_enabled() {
@@ -61,63 +61,59 @@ flatpak_enabled() {
 enable_flatpak() {
 	local -r pref_file="$1"
 	if [[ ! -f "$pref_file" ]]; then
-    printf "%s does not exist.\nInstallation of Flatpak and Flatpak packages is enabled by default.\n" "$pref_file"
+		printf "%s does not exist.\nInstallation of Flatpak and Flatpak packages is enabled by default.\n" "$pref_file"
 		return 0
-  fi
+	fi
 	if grep -q '^Package:' "$pref_file"; then
 		sudo_login 1
 		sudo sed -i '/^Package/s/^/# /;/^Pin/s/^/# /' "$pref_file"
 		printf "Installation of Flatpak and Flatpak packages is now enabled.\n"
 	else
-    printf "Installation of Flatpak and Flatpak packages is already enabled by %s.\n" "$pref_file"
-  fi
+		printf "Installation of Flatpak and Flatpak packages is already enabled by %s.\n" "$pref_file"
+	fi
 	return 0
 }
 
 disable_flatpak() {
 	local -r pref_file="$1"
 	local -r script_dir=$(dirname "$(readlink -f "${0}")")
-  if [[ ! -f "$pref_file" ]]; then
+	if [[ ! -f "$pref_file" ]]; then
 		sudo_login 1
-    sudo cp "$script_dir/files/${pref_file##*/}" "${pref_file%/*}/"
-    printf "%s has been created. Installation of Flatpak and Flatpak packages is now disabled.\n" "$pref_file"
+		sudo cp "$script_dir/files/${pref_file##*/}" "${pref_file%/*}/"
+		printf "%s has been created. Installation of Flatpak and Flatpak packages is now disabled.\n" "$pref_file"
 		return 0
-  fi
-  if grep -q '^# Package:' "$pref_file"; then
+	fi
+	if grep -q '^# Package:' "$pref_file"; then
 		sudo_login 1
-    sudo sed -i '/Package/s/^# //;/Pin/s/^# //' "$pref_file"
-    printf "\nInstallation of Flatpak and Flatpak packages is now disabled.\n"
-  else
-    printf "\nInstallation of Flatpak and Flatpak packages is already disabled.\n"
-  fi
+		sudo sed -i '/Package/s/^# //;/Pin/s/^# //' "$pref_file"
+		printf "\nInstallation of Flatpak and Flatpak packages is now disabled.\n"
+	else
+		printf "\nInstallation of Flatpak and Flatpak packages is already disabled.\n"
+	fi
 	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.6.26213"
+	local -r version="1.7.26252"
 	local -i exit_code=0
 	local -r pref_file=/etc/apt/preferences.d/noflatpak.pref
-  local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":dehs"
+	local opt OPTARG OPTIND
 	printf "Flatpack is "
 	flatpak_installed && printf "installed.\n" || printf "not installed.\n"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			d )
-				disable_flatpak "$pref_file"
-				;;
+				disable_flatpak "$pref_file" ;;
 			e )
-				enable_flatpak "$pref_file"
-				;;
+				enable_flatpak "$pref_file" ;;
 			h )
-				help "$script" "$version" 0
-				;;
+				help "$script" "$version" 0 ;;
 			s )
 				printf "Installation of Flatpak and Flatpak packages is "
-				flatpak_enabled "$pref_file" && printf "enabled.\n" || printf "disabled.\n"
-				;;
+				flatpak_enabled "$pref_file" && printf "enabled.\n" || printf "disabled.\n" ;;
 			? )
 				printf "\n%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
@@ -125,10 +121,13 @@ main() {
 		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
-  over_line "$script $version"
-  exit "$exit_code"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
