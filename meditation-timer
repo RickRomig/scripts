@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jul 2021
-# Updated      : 31 Jul 2026
-# Version      : 3.0.26212
+# Updated      : 09 Sep 2026
+# Version      : 3.1.26252
 # Comments     : Original script found on Reddit r/dharmmawheel, posted by u/Jhanna4
 # TODO (Rick)  : Work on getting sound functions to work with Pipewire audio.
 # License      : GNU General Public License, version 2.0
@@ -29,101 +29,107 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 
 usage() {
 	local -r script="$1"
-  cat << _USAGE_
-${orange}Usage:${normal} $script <minutes> [volume 0-100]
-Meditation time is set in minutes. Only enter integers greater than 0. The default is 20 minutes.
-Volume is a percentage of the output volume. The default is 50%.
-If no arguments or incorrect values are entered, the default values will be used.
+	cat << _USAGE_
+	${orange}Usage:${normal} $script <minutes> [volume 0-100]
+	Meditation time is set in minutes. Only enter integers greater than 0. The default is 20 minutes.
+	Volume is a percentage of the output volume. The default is 50%.
+	If no arguments or incorrect values are entered, the default values will be used.
 _USAGE_
-  exit 1
+	exit "$E_INVALID_ARG"
 }
 
 is_valid_integer() {
-  local -r value="$1"
-  local -r re="^[0-9]+$"
-  [[ $value =~ $re ]] || return "$FALSE"
-  [[ $value -ge 0 && $value -le 100 ]] && return "$TRUE" || return "$FALSE"
+	local -r value="$1"
+	local -r re="^[0-9]+$"
+	[[ $value =~ $re ]] || return "$FALSE"
+	[[ $value -ge 0 && $value -le 100 ]] && return "$TRUE" || return "$FALSE"
+	return 0
 }
 
 get_volume() {
-  # Get the cuurent volume setting (percentage, ie 50%)
-  local volume
-  volume=$(awk -F'[][]' 'END{print $2}' < <(amixer get Master))
-  echo "$volume"
+	# Get the cuurent volume setting (percentage, ie 50%)
+	local volume
+	volume=$(awk -F'[][]' 'END{print $2}' < <(amixer get Master))
+	echo "$volume"
+	return 0
 }
 
 set_volume() {
-  # Set the volume for audio file or reset to original volume (volume is a percentage, ie 60%)
-  local volume="$1"
-  amixer set Master "$volume" > /dev/null
+	# Set the volume for audio file or reset to original volume (volume is a percentage, ie 60%)
+	local volume="$1"
+	amixer set Master "$volume" > /dev/null
 }
 
 set_playback_volume() {
-  local volume="${1:-50}"  # Default volume setting is 50%.
-  # set to default if not a valid integer
-  is_valid_integer "$volume" || volume="50"
-  # make volume a percent for use by amixer
-  volume+="%"
-  set_volume "$volume"
+	local volume="${1:-50}"  # Default volume setting is 50%.
+	# set to default if not a valid integer
+	is_valid_integer "$volume" || volume="50"
+	# make volume a percent for use by amixer
+	volume+="%"
+	set_volume "$volume"
 	return 0
 }
 
 play_sound() {
-  # Play an audio file as a background process.
-  local sound="$1"
-  /usr/bin/aplay "$sound" > /dev/null 2>&1 &
+	# Play an audio file as a background process.
+	local sound="$1"
+	/usr/bin/aplay "$sound" > /dev/null 2>&1 &
+	return 0
 }
 
 set_meditation_time() {
 	local minutes="${1:-20}"  # Default time is 20 minutes.
 	# set to default if not a digit or equal to 0
-  [[ "${minutes//[0-9]/}" || "$minutes" -eq 0 ]] && minutes=20
-  echo "$minutes"
-  return 0
+	[[ "${minutes//[0-9]/}" || "$minutes" -eq 0 ]] && minutes=20
+	echo "$minutes"
+	return 0
 }
 
 screensaver_off() {
-  xset s off      # turns screensaver off
-  xset s noblank  # set blanking off
-  xset -dpms      # turns DPMS off
-  tput civis      # hides cursor
+	xset s off      # turns screensaver off
+	xset s noblank  # set blanking off
+	xset -dpms      # turns DPMS off
+	tput civis      # hides cursor
+	return 0
 }
 
 # shellcheck disable=SC2317
 # Don't warn about unreachable commands in this function.
 # Shellcheck may incorrectly believe that code is unreachable if it's invoked by a variable or in a trap.
 screensaver_on() {
-  xset s on     # turns screesaver on
-  xset s blank  # allows screen blanking
-  xset +dpms    # turns DPMS on
-  tput cnorm    # restores cursor
+	xset s on     # turns screesaver on
+	xset s blank  # allows screen blanking
+	xset +dpms    # turns DPMS on
+	tput cnorm    # restores cursor
 }
 
 prep_countdown() {
-  # Allow 10 seconds to prepare for meditation
-  local -i count
-  for count in {10..1}; do printf "\t%02d\r" "$count"; sleep 1; done
+	# Allow 10 seconds to prepare for meditation
+	local -i count
+	for count in {10..1}; do printf "\t%02d\r" "$count"; sleep 1; done
+	return 0
 }
 
 meditation_timer() {
-  local -i hours interval minutes seconds sec_rem
+	local -i hours interval minutes seconds sec_rem
 	local -ri min="$1"
-  sec_rem=$(( 60 * min ))
-  while [[ "$sec_rem" -gt 0 ]]; do
-    sec_rem=$(( sec_rem - 1 ))
-    interval="$sec_rem"
-    seconds=$(( interval % 60 ))
-    interval=$(( interval - seconds ))
-    minutes=$(( interval % 3600 / 60 ))
-    interval=$(( interval - minutes ))
-    hours=$(( interval % 86400 / 3600 ))
-    # interval=$(( interval - hours ))
-    # days=$(( interval % 604800 / 86400 ))
-    # interval=$(( interval - hours ))
-    # weeks=$(( interval / 604800 ))
-    printf "\t%02d:%02d:%02d\r" "$hours" "$minutes" "$seconds"
-    sleep 1
-  done
+	sec_rem=$(( 60 * min ))
+	while [[ "$sec_rem" -gt 0 ]]; do
+		sec_rem=$(( sec_rem - 1 ))
+		interval="$sec_rem"
+		seconds=$(( interval % 60 ))
+		interval=$(( interval - seconds ))
+		minutes=$(( interval % 3600 / 60 ))
+		interval=$(( interval - minutes ))
+		hours=$(( interval % 86400 / 3600 ))
+		# interval=$(( interval - hours ))
+		# days=$(( interval % 604800 / 86400 ))
+		# interval=$(( interval - hours ))
+		# weeks=$(( interval / 604800 ))
+		printf "\t%02d:%02d:%02d\r" "$hours" "$minutes" "$seconds"
+		sleep 1
+	done
+	return 0
 }
 
 meditate() {
@@ -132,36 +138,35 @@ meditate() {
 	local meditation_time orig_volume script_dir
 	script_dir=$(dirname "$(readlink -f "${0}")")
 	local -r audio_file="$script_dir/files/Tibetan_bowl.wav"
-
-  orig_volume=$(get_volume)  # orig_volume is a percentage, ie 87%
+	orig_volume=$(get_volume)  # orig_volume is a percentage, ie 87%
 	meditation_time=$(set_meditation_time "$minutes")
-  set_playback_volume "$volume"
+	set_playback_volume "$volume"
 
-  printf "\n\t\U2638 %sMeditation Timer%s \U2638 \n\n" "$green" "$normal"
-  screensaver_off
-  prep_countdown
-  play_sound "$audio_file"
-  meditation_timer "$meditation_time"
-  play_sound "$audio_file"
-  sleep 30  # wait for audio file to finish
-  set_volume "$orig_volume"
-  printf "\n"
-  return 0
+	printf "\n\t\U2638 %sMeditation Timer%s \U2638 \n\n" "$green" "$normal"
+	screensaver_off
+	prep_countdown
+	play_sound "$audio_file"
+	meditation_timer "$meditation_time"
+	play_sound "$audio_file"
+	sleep 30  # wait for audio file to finish
+	set_volume "$orig_volume"
+	printf "\n"
+	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.0.26212"
+	local -r version="3.1.26252"
 	local minutes="$1"
-  [[ "$minutes" == "-h" || "$minutes" == "--help" ]] && usage "$script"
-  local volume="$2"
+	[[ "$minutes" == "-h" || "$minutes" == "--help" ]] && usage "$script"
+	local volume="$2"
 	trap screensaver_on EXIT
-  check_package alsa-utils
-  clearscreen
-  meditate "$minutes" "$volume"
-  printf "\n\U2638 %s %s\n" "$script" "$version"
-  printf "\UA9 2021-2026 Richard B. Romig\n"
-  exit
+	check_package alsa-utils
+	clearscreen
+	meditate "$minutes" "$volume"
+	printf "\n\U2638 %s %s\n" "$script" "$version"
+	printf "\UA9 2021-2026 Richard B. Romig\n"
+	exit
 }
 
 main "$@"
