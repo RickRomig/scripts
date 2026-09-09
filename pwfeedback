@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Updated      : 31 Aug 2026
-# Version      : 5.1.26243
+# Updated      : 09 Sep 2026
+# Version      : 5.2.26252
 # Comments     : Preferred (default) method to enable password feedback is /etc/sudoers.d/0pwfeedback.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,104 +28,104 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="31 Aug 2026"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Enable/Disable password feedback in the terminal.
+	local -r updated="09 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Enable/Disable password feedback in the terminal.
 
-${green}Usage:${normal} $script [-edhs]
-${orange}Available options:${normal}
-  -e  Enable password feedback
-  -d  Disable password feedback
-  -h  Help
-  -s  Status of password feedback
+	${green}Usage:${normal} $script [-edhs]
+	${orange}Available options:${normal}
+	-e  Enable password feedback
+	-d  Disable password feedback
+	-h  Help
+	-s  Status of password feedback
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 sudoer_pwfb() {
-  sudo grep -qw pwfeedback /etc/sudoers && return "$TRUE" || return "$FALSE"
+	sudo grep -qw pwfeedback /etc/sudoers && return "$TRUE" || return "$FALSE"
 }
 
 pwfeedback_status() {
-  local -r pwfb_file="$1"
-  sudo_login 2
-  if sudoer_pwfb || [[ -f "$pwfb_file" ]]; then
-    printf "Password feedback is enabled by "
-    sudoer_pwfb && printf "sudoers.\n" || printf "%s.\n" "${pwfb_file##*/}"
-  else
-    printf "Password feeback is not enabled.\n"
-  fi
-  return 0
+	local -r pwfb_file="$1"
+	sudo_login 2
+	if sudoer_pwfb || [[ -f "$pwfb_file" ]]; then
+		printf "Password feedback is enabled by "
+		sudoer_pwfb && printf "sudoers.\n" || printf "%s.\n" "${pwfb_file##*/}"
+	else
+		printf "Password feeback is not enabled.\n"
+	fi
+	return 0
 }
 
 enable_pwfeedback() {
-  local -r pwfb_file="$1"
-  sudo_login 2
-  if sudoer_pwfb || [[ -f "$pwfb_file" ]]; then
-    printf "Password feedback is already enabled by "
-    sudoer_pwfb && printf "sudoers.\n" || printf "%s.\n"  "${pwfb_file##*/}"
-  else
-    printf "Creating %s ...\n" "${pwfb_file##*/}"
-    sudo tee "$pwfb_file" >/dev/null <<< "Defaults  pwfeedback"
-    sudo chmod 440 "$pwfb_file"
-    printf "Password feedback enabled by %s.\n" "$pwfb_file"
-  fi
-  return 0
+	local -r pwfb_file="$1"
+	sudo_login 2
+	if sudoer_pwfb || [[ -f "$pwfb_file" ]]; then
+		printf "Password feedback is already enabled by "
+		sudoer_pwfb && printf "sudoers.\n" || printf "%s.\n"  "${pwfb_file##*/}"
+	else
+		printf "Creating %s ...\n" "${pwfb_file##*/}"
+		sudo tee "$pwfb_file" >/dev/null <<< "Defaults  pwfeedback"
+		sudo chmod 440 "$pwfb_file"
+		printf "Password feedback enabled by %s.\n" "$pwfb_file"
+	fi
+	return 0
 }
 
 disable_pwfeedback() {
-  local -r pwfb_file="$1"
-  sudo_login 2
-  if [[ -f "$pwfb_file" ]]; then
-    sudo rm -fv "$pwfb_file"
-    printf "Password feeback is now disabled. %s has been deleted.\n" "$pwfb_file"
-  elif sudoer_pwfb; then
-    # Use of visudo to edit /etc/sudoers is highly recommended.
-    printf "Remove 'pwfeedback' from the sudoers file using visudo.\n"
-    sudo visudo
-    sudoer_pwfb || printf "Password feeback is now disabled.\n"
-  else
-    printf "Password feedback is already disabled.\n"
-  fi
-  return 0
+	local -r pwfb_file="$1"
+	sudo_login 2
+	if [[ -f "$pwfb_file" ]]; then
+		sudo rm -fv "$pwfb_file"
+		printf "Password feeback is now disabled. %s has been deleted.\n" "$pwfb_file"
+	elif sudoer_pwfb; then
+		# Use of visudo to edit /etc/sudoers is highly recommended.
+		printf "Remove 'pwfeedback' from the sudoers file using visudo.\n"
+		sudo visudo
+		sudoer_pwfb || printf "Password feeback is now disabled.\n"
+	else
+		printf "Password feedback is already disabled.\n"
+	fi
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version=" 5.1.26243"
-  local -r pwfb_file=/etc/sudoers.d/0pwfeedback
-  local -i exit_code=0
-  local opt OPTARG OPTIND
-  local -i noOpt=1
-  local -r optstr=":edhs"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      e )
-        enable_pwfeedback "$pwfb_file" ;;
-      d )
-        disable_pwfeedback "$pwfb_file" ;;
-      h )
-        help "$script" "$version" 0 ;;
-      s )
-        pwfeedback_status "$pwfb_file" ;;
-      ? )
-        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$script" "$version" "$E_INVALID_ARG"
-    esac
-    exit_code="$?"
-	  noOpt=0
-  done
+	local -r script="${0##*/}"
+	local -r version="5.2.26252"
+	local -r pwfb_file=/etc/sudoers.d/0pwfeedback
+	local -i exit_code=0
+	local opt OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":edhs"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			e )
+				enable_pwfeedback "$pwfb_file" ;;
+			d )
+				disable_pwfeedback "$pwfb_file" ;;
+			h )
+				help "$script" "$version" 0 ;;
+			s )
+				pwfeedback_status "$pwfb_file" ;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$script" "$version" "$E_INVALID_ARG"
+		esac
+		exit_code="$?"
+		noOpt=0
+	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		help "$script" "$version" "$E_MISSING_ARG"
 	fi
-  shift "$(( OPTIND - 1 ))"
-  over_line "$script $version"
-  exit "$exit_code"
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
