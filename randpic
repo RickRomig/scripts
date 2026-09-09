@@ -29,24 +29,24 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 
 select_dest_dir() {
 	local -r script="$1"
-	local -r FMENU="fzf --header=$script \
-	--layout=reverse \
-	--exact \
-	--border=bold \
-	--border=rounded \
-	--margin=5% \
-	--color=dark \
-	--height=95% \
-	--info=hidden \
-	--header-first \
-	--bind change:top \
-	--prompt"
+	local fmenu="fzf --header=$script \
+					--layout=reverse \
+					--exact \
+					--border=bold \
+					--border=rounded \
+					--margin=5% \
+					--color=dark \
+					--height=95% \
+					--info=hidden \
+					--header-first \
+					--bind change:top \
+					--prompt"
 	local image_d dest_d
 	local dest_dirs=()
 	for image_d in $HOME/Work/images; do
 		[[ -d "$image_d" ]] && dest_dirs+=("$(sort -d < <(find "$image_d" -maxdepth 1 -type d -print))")
 	done
-	dest_d=$($FMENU "Select image directory: " < <(printf "%s\n" "${dest_dirs[@]}"))
+	dest_d=$($fmenu "Select image directory: " < <(printf "%s\n" "${dest_dirs[@]}"))
 	printf "%s" "$dest_d"
 	return 0
 }
@@ -81,84 +81,86 @@ valid_image() {
 }
 
 select_images() {
-	local pic_hold_d="$1"
+	local -r pic_hold_d="$1"
 	local pic_dir pic_file pic_pid options _opt random_file sel_dir
+
 	clear
 	while true; do
-		# Randomly select an image folder from ~/Pictures/
-		pic_dir=$(shuf -n1 < <(find ~/Pictures -maxdepth 1 -type d))
-		sel_dir="${pic_dir##*/}"
-		valid_folder "$sel_dir" || continue
+	# Randomly select an image folder from ~/Pictures/
+	pic_dir=$(shuf -n1 < <(find ~/Pictures -maxdepth 1 -type d))
+	sel_dir="${pic_dir##*/}"
+	valid_folder "$sel_dir" || continue
 
-		# Choose a random image file from the selected folder
-		random_file=$(shuf -n1 < <(find "$pic_dir" -maxdepth 1 -type f | shuf -n1))
-		pic_file="${random_file##*/}"
-		valid_image "$pic_file" || continue
+    # Choose a random image file from the selected folder
+    random_file=$(shuf -n1 < <(find "$pic_dir" -maxdepth 1 -type f | shuf -n1))
+    pic_file="${random_file##*/}"
+    valid_image "$pic_file" || continue
 
-		# Accept or reject selected file
-		clearscreen
-		box "Random Image Selector"
-		printf "\n%sSelected image: %s%s/%s%s\n" "$blue" "$orange" "$sel_dir" "$pic_file" "$normal"
-		cp -p "$pic_dir/$pic_file" "$pic_hold_d"
-		# /usr/bin/display -geometry +600+20 "$pic_hold_d/$pic_file" &
-		/usr/bin/display -geometry +1000+20 -resize 800x600 "$pic_hold_d/$pic_file" &
-		# kitten icat --clear --place 60x30@80x1 --scale-up "$pic_hold_d/$pic_file"
-		pic_pid="$!"
-		printf "\n%sOptions:%s\n" "$blue" "$normal"
-		COLUMNS=12
-		options=(
-			"Accept the selected image and select another image."
-			"Accept the selected image and exit."
-			"Reject the selected image and select another image."
-			"Reject the selected image and exit."
-			"Delete the selected image and select another image."
-		)
-		PS3="Chose an option: "
-		select _opt in "${options[@]}"; do
-			case $REPLY in
-				1 )
-					printf "\n%sAccepted image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
-					printf "\nSelecting another random image...\n"
-					kill $pic_pid
-					sleep 2
-					break ;;
-				2 )
-					printf "\n%sAccepted image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
-					printf "\nFinished selecting images.\n"
-					kill $pic_pid
-					break 2 ;;
-				3 )
-					printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
-					printf "\nSelecting another random image...\n"
-					kill $pic_pid
-					rm "$pic_hold_d/$pic_file"
-					sleep 2
-					break ;;
-				4 )
-					printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
-					printf "\nFinished selecting images.\n"
-					kill $pic_pid
-					rm "$pic_hold_d/$pic_file"
-					break 2 ;;
-				5 )
-					printf "\nDeleting image %s from %s.\n" "$pic_file" "$sel_dir"
-					printf "\nSelecting another random image...\n"
-					kill $pic_pid
-					rm "$pic_hold_d/$pic_file" "$pic_dir/$pic_file"
-					sleep 2
-					break ;;
-				* )
-					printf "\n%sInvalid option. Try again.%s\n" "$lightred" "$normal"
+    # Accept or reject selected file
+    clearscreen
+    box "Random Image Selector"
+    printf "\n%sSelected image: %s%s/%s%s\n" "$blue" "$orange" "$sel_dir" "$pic_file" "$normal"
+    cp -p "$pic_dir/$pic_file" "$pic_hold_d"
+    # /usr/bin/display -geometry +600+20 "$pic_hold_d/$pic_file" &
+    /usr/bin/display -geometry +1000+20 -resize 800x600 "$pic_hold_d/$pic_file" &
+    # kitten icat --clear --place 60x30@80x1 --scale-up "$pic_hold_d/$pic_file"
+    pic_pid="$!"
+    printf "\n%sOptions:%s\n" "$blue" "$normal"
+    COLUMNS=12
+    options=(
+		"Accept the selected image and select another image."
+		"Accept the selected image and exit."
+		"Reject the selected image and select another image."
+		"Reject the selected image and exit."
+		"Delete the selected image and select another image."
+	)
+    PS3="Chose an option: "
+    select _opt in "${options[@]}"; do
+		case $REPLY in
+			1 )
+				printf "\n%sAccepted image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
+				printf "\nSelecting another random image...\n"
+				kill $pic_pid
+				sleep 2
+				break ;;
+			2 )
+				printf "\n%sAccepted image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
+				printf "\nFinished selecting images.\n"
+				kill $pic_pid
+				break 2 ;;
+			3 )
+				printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
+				printf "\nSelecting another random image...\n"
+				kill $pic_pid
+				rm "$pic_hold_d/$pic_file"
+				sleep 2
+				break ;;
+			4 )
+				printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
+				printf "\nFinished selecting images.\n"
+				kill $pic_pid
+				rm "$pic_hold_d/$pic_file"
+				break 2 ;;
+			5 )
+				printf "\n%sImage deleted:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
+				printf "\nSelecting another random image...\n"
+				kill $pic_pid
+				rm "$pic_hold_d/$pic_file" "$pic_dir/$pic_file"
+				sleep 2
+				break ;;
+			* )
+				printf "\n%sInvalid option. Try again.%s\n" "$lightred" "$normal"
 			esac
 		done
 	done
-	return 0
+  return 0
 }
 
 main () {
 	local -r script="${0##*/}"
-	local -r version="6.3.26214"
+	local -r version="6.4.26252"
 	local dest_dir
+	check_package imagemagick
 	dest_dir=$(select_dest_dir "$script")
 	[[ "$dest_dir" ]] || die "No destination directory selected." "$E_MISSING_ARG"
 	check_package imagemagick
