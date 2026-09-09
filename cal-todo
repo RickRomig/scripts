@@ -40,7 +40,7 @@ cleanup() {
 help() {
 	local -r script="$1"
 	local -r version="$2"
-	local -ri errcode="${3:-1}"
+	local -r errcode="${3:-1}"
 	local -r updated="09 Sep 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: $updated
@@ -48,10 +48,10 @@ help() {
 
 	${green}Usage:${normal} $script [-e13h]
 	${orange}Available options:${normal}
-	-1	Display current month calendar and to-do list.
-	-3	Display 3-month calendar and to-do list.
-	-e	Edit/create to-do list.
-	-h	Show this help message and exit.
+	-1  Display current month calendar and to-do list.
+	-3  Display 3-month calendar and to-do list.
+	-e  Edit/create to-do list.
+	-h  Show this help message and exit.
 	NOTE: To-do list should be limited to 7 short items to maintain format.
 _HELP_
 	exit "$errcode"
@@ -102,18 +102,18 @@ main() {
 	local -r script="${0##*/}"
 	local -r version="3.10.26252"
 	local -i exit_code=0
+	local opt OPTARG OPTIND
 	local -r doc_dir=~/.local/share/doc
 	local -r todolist="todo.lst"
 	local -i noOpt=1
 	local -r optstr=":13eh"
-	local opt OPTARG OPTIND
 	trap cleanup EXIT
 	check_package ncal
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			1 )
 				[[ -f "$doc_dir/$todolist" ]] || create_todo "$doc_dir" "$todolist"
-				show_one_month "$doc_dir" "$todolist"  ;;
+				show_one_month "$doc_dir" "$todolist" ;;
 			3 )
 				[[ -f "$doc_dir/$todolist" ]] || create_todo "$doc_dir" "$todolist"
 				show_three_months "$doc_dir" "$todolist" ;;
@@ -138,6 +138,7 @@ main() {
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		help "$script" "$version" "$E_MISSING_ARG"
 	fi
+	shift "$(( OPTIND - 1 ))"
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit "$exit_code"
