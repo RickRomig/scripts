@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2023
-# Updated      : 31 Aug 2026
-# Version      : 4.1.26243
+# Updated      : 09 Sep 2026
+# Version      : 4.2.26252
 # Comments     : Assumes a /24 (Class C) network
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,76 +28,76 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="31 Aug 2026"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Pings an IP address on the local network.
+	local -r updated="09 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Pings an IP address on the local network.
 
-${green}Usage:${normal} $script [last-octet] [OPTION]
-${orange}Available options${normal}
-  1-254        Ping local address ending with that octet.
-  -h | --help  Show this help message and exit.
+	${green}Usage:${normal} $script [last-octet] [OPTION]
+	${orange}Available options${normal}
+	1-254        Ping local address ending with that octet.
+	-h | --help  Show this help message and exit.
 
-${orange}Example:${normal} $script 42
-${orange}Note:${normal}
-  1. Address must be an integer in the range of 1 to 254, representing the last octet of the target address.
-  2. Assumes a Class C (CIDR /24) network.
+	${orange}Example:${normal} $script 42
+	${orange}Note:${normal}
+	1. Address must be an integer in the range of 1 to 254, representing the last octet of the target address.
+	2. Assumes a Class C (CIDR /24) network.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 validIP() {
-  local octet="$1"
-  local -r re="^[0-9]+$"
-  if [[ -z "$octet" ]]; then
-    printf "%s No argument passed.\n" "$RED_ERROR" <&2
-    return "$E_MISSING_ARG"
-  fi
-  if ! [[ $1 =~ $re ]] 2>/dev/null; then
-    printf "%s Invalid argument - %s (not an integer).\n" "$RED_ERROR" "$octet" <&2
-    return "$E_INVALID_ARG"
-  fi
-  # Argument is an integer value
-  if [[ "$octet" -gt 0 && "$octet" -lt 255 ]]; then
-    printf "%s.%s is a valid IP address.\n" "$LOCALNET" "$octet"
-    return 0
-  else
-    printf "%s %s.%s is not a valid IP address.\n" "$RED_ERROR" "$LOCALNET" "$octet" <&2
-    return "$E_INVALID_ARG"
-  fi
+	local -ri octet="$1"
+	local -r re="^[0-9]+$"
+	if [[ -z "$octet" ]]; then
+		printf "%s No argument passed.\n" "$RED_ERROR" <&2
+		return "$E_MISSING_ARG"
+	fi
+	if ! [[ $1 =~ $re ]] 2>/dev/null; then
+		printf "%s Invalid argument - %s (not an integer).\n" "$RED_ERROR" "$octet" <&2
+		return "$E_INVALID_ARG"
+	fi
+	# Argument is an integer value
+	if [[ "$octet" -gt 0 && "$octet" -lt 255 ]]; then
+		printf "%s.%s is a valid IP address.\n" "$LOCALNET" "$octet"
+		return 0
+	else
+		printf "%s %s.%s is not a valid IP address.\n" "$RED_ERROR" "$LOCALNET" "$octet" <&2
+		return "$E_INVALID_ARG"
+	fi
 }
 
 pingIP() {
-  local -r hostip="$1"
-  local localip
-  localip="$(local_ip)"
-  # Attempt to ping the target IP address
-  if [[ "$localip" == "$hostip" ]]; then
-    printf "\n%s.%s is the computer you're pinging from.\n" >&2 "$LOCALNET" "$hostip"
-    return "$E_INVALID_ARG"
-  fi
-  ping -c 5 "$LOCALNET.$hostip"
-  return "$?"
+	local -r hostip="$1"
+	local -i localip
+	localip="$(local_ip)"
+	# Attempt to ping the target IP address
+	if [[ "$localip" == "$hostip" ]]; then
+		printf "\n%s.%s is the computer you're pinging from.\n" >&2 "$LOCALNET" "$hostip"
+		return "$E_INVALID_ARG"
+	fi
+	ping -c 5 "$LOCALNET.$hostip"
+	return "$?"
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="4.1.26243"
+	local -r script="${0##*/}"
+	local -r version="4.2.26252"
 	local -i exit_code=0
 	[[ "$1" = "-h" || "$1" = "--help" ]] && help "$script" "$version" "$exit_code"
-  local -r hostip="$1"
-  printf "Pings an an IP address on the local network.\n"
-  if validIP "$hostip"; then
-    pingIP "$hostip"
-  else
-    help "$script" "$version" "$?"
-  fi
-  exit_code="$?"
-  over_line "$script $version"
-  exit "$exit_code"
+	local -r hostip="$1"
+	printf "Pings an an IP address on the local network.\n"
+	if validIP "$hostip"; then
+		pingIP "$hostip"
+	else
+		help "$script" "$version" "$?"
+	fi
+	exit_code="$?"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
