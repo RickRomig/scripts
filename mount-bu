@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, 04 Jul 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2022
-# Updated      : 31 Jul 2026
-# Version      : 2.24.26212
+# Updated      : 09 Sep 2026
+# Version      : 2.25.26252
 # Comments     : For use with BU backup script.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,106 +28,107 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
-  local -ri errcode="${1:-1}"
-	local -r updated="31 Jul 2026"
-	cat << _HELP_
-  ${orange}$script${normal} $version, Updated $updated
-  Mounts/Unmounts USB backup drive for the BU script.
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${1:-1}"
+	local -r updated="09 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version, Updated $updated
+	Mounts/Unmounts USB backup drive for the BU script.
 
-  ${green}Usage:${normal} $script [-hmsu]
-  ${orange}Availabel options:${normal}
-    -h    Show this help message and exit
-    -m    Mount USB Backup Drive (BU_Drive)
-    -s    Status, is USB Backup Drive (BU_Drive) mounted?
-    -u    Unmount USB Backup Drive (BU_Drive)
-  ${green}NOTEs:${normal}
-  - When prompted, enter only the drive, i.e., sdb1
-  - If no argument is passed, displays status of the BU drive.
+	${green}Usage:${normal} $script [-hmsu]
+	${orange}Availabel options:${normal}
+	-h	Show this help message and exit
+	-m	Mount USB Backup Drive (BU_Drive)
+	-s	Status, is USB Backup Drive (BU_Drive) mounted?
+	-u	Unmount USB Backup Drive (BU_Drive)
+	${green}NOTES:${normal}
+	- When prompted, enter only the drive device name, i.e., sdb1
+	- If no argument is passed, displays status of the BU drive.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 mount_bu() {
-  local -r mount_point="$1"
-  local usbdrv
-  usbdrv="$(awk '/BU_Drive/ {print $1}' < <(lsblk -fs))"
-  sudo_login 2
-  printf "Mounting backup drive: /dev/%s to %s ...\n" "$usbdrv" "$mount_point"
-  [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
-  sudo mount /dev/"$usbdrv" "$mount_point"
-  printf "Backup drive (/dev/%s) is mounted at %s\n" "$usbdrv" "$(awk '/BU_Drive/ {print $3}' < <(mount))"
-  notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is mounted"
-  return 0
+	local -r mount_point="$1"
+	local usbdrv
+	usbdrv="$(awk '/BU_Drive/ {print $1}' < <(lsblk -fs))"
+	sudo_login 2
+	printf "Mounting backup drive: /dev/%s to %s ...\n" "$usbdrv" "$mount_point"
+	[[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
+	sudo mount /dev/"$usbdrv" "$mount_point"
+	printf "Backup drive (/dev/%s) is mounted at %s\n" "$usbdrv" "$(awk '/BU_Drive/ {print $3}' < <(mount))"
+	notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is mounted"
+	return 0
 }
 
 umount_bu() {
-  local -r mount_point="$1"
-  local usbdrv
-  usbdrv=$(awk '/BU_Drive/ {print $1}' < <(mount))
-  sudo_login 2
-  printf "Unmounting USB Backup drive at %s ...\n" "$mount_point"
-  sudo umount "$mount_point"
-  printf "BU_Drive (%s) is unmounted.\n" "$usbdrv"
-  pgrep -x nemo >/dev/null && nemo --quit
-  notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is unmounted"
-  return 0
+	local -r mount_point="$1"
+	local usbdrv
+	usbdrv=$(awk '/BU_Drive/ {print $1}' < <(mount))
+	sudo_login 2
+	printf "Unmounting USB Backup drive at %s ...\n" "$mount_point"
+	sudo umount "$mount_point"
+	printf "BU_Drive (%s) is unmounted.\n" "$usbdrv"
+	pgrep -x nemo >/dev/null && nemo --quit
+	notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is unmounted"
+	return 0
 }
 
 bu_status() {
-  printf "BU_Drive is "
-  if grep -qw BU_Drive < <(lsblk); then
-    printf "mounted.\n"
-    notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is mounted"
-    return "$TRUE"
-  else
-    printf "not mounted.\n"
-    notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is not mounted"
-    return "$FALSE"
-  fi
+	printf "BU_Drive is "
+	if grep -qw BU_Drive < <(lsblk); then
+		printf "mounted.\n"
+		notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is mounted"
+		return "$TRUE"
+	else
+		printf "not mounted.\n"
+		notify-send -t 2000 -i "$HOME/.icons/usb-drive-fill.png" "BU_Drive" "is not mounted"
+		return "$FALSE"
+	fi
 }
 
 main() {
-  grep -qw 'usb' < <(lsblk -S -o TRAN) || die "BU_Drive not attached." "$E_DRIVE_ERROR"
-  local -r script="${0##*/}"
-  local -r version="2.24.26212"
-  local -r mount_point="/media/$USER/BU_Drive"
-  local opt OPTARG OPTIND
-  local -i noOpt=1
-  local -r optstr=":hmsu"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      h )
-        help "$script" "$version" 0
-        ;;
-      m )
-        if bu_status; then
-          printf "BU_Drive is mounted. No further action necessary.\n"
-        else
-          mount_bu "$mount_point"
-        fi
-        ;;
-      s )
-        bu_status
-        ;;
-      u )
-        if bu_status; then
-          umount_bu "$mount_point"
-        else
-          printf "BU_Drive is not mounted. No further action necessary.\n"
-        fi
-        ;;
-      ? )
-        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$script" "$version" "$E_INVALID_ARG"
-    esac
-	  noOpt=0
-  done
-  [[ "$noOpt" = 1 ]] && bu_status
-  shift "$(( OPTIND - 1 ))"
-  over_line "$script $version"
-  exit
+	local -r script="${0##*/}"
+	local -r version="2.25.26252"
+	local -r mount_point="/media/$USER/BU_Drive"
+	local opt OPTARG OPTIND
+	local -i noOpt=1
+	local -r optstr=":hmsu"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			h )
+				help "$script" "$version" 0 ;;
+			m )
+				grep -qw 'usb' < <(lsblk -S -o TRAN) || die "BU_Drive not attached." "$E_DRIVE_ERROR"
+				if bu_status; then
+					printf "BU_Drive is mounted. No further action necessary.\n"
+				else
+					mount_bu "$mount_point"
+				fi ;;
+			s )
+				grep -qw 'usb' < <(lsblk -S -o TRAN) || die "BU_Drive not attached." "$E_DRIVE_ERROR"
+				bu_status ;;
+			u )
+				grep -qw 'usb' < <(lsblk -S -o TRAN) || die "BU_Drive not attached." "$E_DRIVE_ERROR"
+				if bu_status; then
+					umount_bu "$mount_point"
+				else
+					printf "BU_Drive is not mounted. No further action necessary.\n"
+				fi ;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$script" "$version" "$E_INVALID_ARG"
+		esac
+		noOpt=0
+	done
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+	exit
 }
 
 main "$@"
