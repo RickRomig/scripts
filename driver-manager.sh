@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 05 Nov 2025
 # Updated      : 09 Sep 2026
-# Version      : 1.8.2652
+# Version      : 1.8.26252
 # Comments     : Based on instructions provided by Andrea Borman
 #              : YouTube - https://www.youtube.com/watch?v=-Q_U5lLTxmU
 #              : CAUTION! Use at your own risk.
@@ -68,7 +68,7 @@ install_packages() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.8.2652"
+	local -r version="1.8.26252"
 	local -i exit_code=0
 	printf "Installs the Linux Mint Driver Manager on LMDE 7 (Gigi) & Debian 13 (Trixie)\n"
 	if check_codename; then
