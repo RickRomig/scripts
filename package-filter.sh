@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 15 Oct 2025
-# Updated      : 01 Aug 2026
-# Version      : 1.6.26213
+# Updated      : 09 Sep 2026
+# Version      : 1.7.26252
 # Comments     : Original script Copyright (C) 2025 Kris Occhipinti
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -54,14 +54,14 @@ search_packages() {
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="1.6.26213"
+	local -r script="${0##*/}"
+	local -r version="1.7.26252"
 	local -i exit_code=0
-  check_package fzf
-  search_packages
+	check_package fzf
+	search_packages
 	exit_code="$?"
-  over_line "$script $version"
-  exit "$exit_code"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
