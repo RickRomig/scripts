@@ -7,8 +7,8 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 08 Aug 2026
-# Version      : 4.1.26219
+# Updated      : 09 Sep 2026
+# Version      : 4.14.26252
 # Comments     : match by regex, starting with http:// or https://
 #              : Follows symlinks to destination directory if present.
 # TODO (Rick)  : Not working on Pornhub or RedTube with yt-dlp version 2026-06-09 and above. Get the following warning and error:
@@ -33,142 +33,141 @@
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-## Global Variables ##
-
-EC=0
-
-## Functions ##
-
 help() {
-  local -r script="$1"
-  local -r version="$2"
-  local -ri errcode="${3:-1}"
-  local -r updated="08 Aug 2026"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Dowload videos from adult sites to the appropriate subdirectory.
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="09 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Download videos from adult sites to the appropriate subdirectory.
 
-${green}Usage:${normal} $script [-h] [-i] [video-url]
-  $script https://www.pornhub.com/view_video.php?viewkey=ph5ccfa07f0e2a6
-${orange}Available options:${normal}
-  -h | --help  Show this help message and exit
-  -i | --info  Show information about the script and exit
+	${green}Usage:${normal} $script [-h] [-i] [video-url]
+	$script https://www.pornhub.com/view_video.php?viewkey=ph5ccfa07f0e2a6
+	${orange}Available options:${normal}
+	-h | --help  Show this help message and exit
+	-i | --info  Show information about the script and exit
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 script_info() {
-  local -r script="$1"
-  cat << _INFO_
-  $script uses yt-dlp to download videos from adult sites such as PornHub
-  and RedTube. The video URL is passed to the script on the command line.
-  The script will extract the name of the site for later use.
+	local -r script="$1"
+	cat <<- _INFO_
+	$script uses yt-dlp to download videos from adult sites such as PornHub
+	and RedTube. The video URL is passed to the script on the command line.
+	The script will extract the name of the site for later use.
 
-  The script will then present a menu of subdirectories under ~/Videos/Pornography/.
-  Select the apprpriate subdirectory.
+	The script will then present a menu of subdirectories under ~/Videos/Pornography/.
+	Select the apprpriate subdirectory.
 
-  The video will be downloaded to the selected sub-directory  The script is
-  hard-coded to save the file as title.ext. Spaces in the title will be replaced
-  by underscores. Metadata will added to the file.
+	The video will be downloaded to the selected sub-directory  The script is
+	hard-coded to save the file as title.ext. Spaces in the title will be replaced
+	by underscores. Metadata will added to the file.
 
-  When the download is completed, success or failure is displayed. If the
-  download fails, the script exits with an error code.
+	When the download is completed, success or failure is displayed. If the
+	download fails, the script exits with an error code.
 _INFO_
+	return 0
 }
 
 check_dependencies() {
-  local packages=(ffmpeg fzf)
-  [[ -x /usr/local/bin/yt-dlp ]] || die "yt-dlp is not installed." "$E_FILENOTFOUND"
-  printf "yt-dlp [OK]\n"
-  sleep 2
-  printf '\e[A\e[K'
-  check_packages "${packages[@]}"
+	local -r packages=(ffmpeg fzf)
+	[[ -x /usr/local/bin/yt-dlp ]] || die "yt-dlp is not installed." "$E_FILENOTFOUND"
+	printf "yt-dlp [OK]\n"
+	sleep 2
+	printf '\e[A\e[K'
+	check_packages "${packages[@]}"
+	return 0
 }
 
 extract_domain() {
-  # Extract domain without www and .com
-  local domain fullurl
-  fullurl="$1"
-  domain=$(sed 's|^[^/]*//||;s|^www\.||;s|/.*$||;s|\..*$||' <<< "$fullurl")
-  printf "%s" "$domain"
+	# Extract domain without www and .com
+	local -r fullurl="$1"
+	local domain
+	domain=$(sed 's|^[^/]*//||;s|^www\.||;s|/.*$||;s|\..*$||' <<< "$fullurl")
+	printf "%s" "$domain"
+	return 0
 }
 
 select_directory() {
-  FMENU="fzf --header=$script \
-           --layout=reverse \
-           --exact \
-           --border=bold \
-           --border=rounded \
-           --margin=5% \
-           --color=dark \
-           --height=95% \
-           --info=hidden \
-           --header-first \
-           --bind change:top \
-           --prompt"
+	local -r fmenu="fzf --header=$script \
+						--layout=reverse \
+						--exact \
+						--border=bold \
+						--border=rounded \
+						--margin=5% \
+						--color=dark \
+						--height=95% \
+						--info=hidden \
+						--header-first \
+						--bind change:top \
+						--prompt"
+	local -r video_dir=~/Videos/Pornography
+	local directories=()
 	local vid_d selected_directory
-	local video_dir=~/Videos/Pornography
-  local directories=()
-  for vid_d in $video_dir; do
-    if [[ -L "$video_dir" ]]; then
-      directories+=("$(sort -d < <(find -L "$vid_d" -type d -print))")
-    else
-      directories+=("$(sort -d < <(find "$vid_d" -type d -print))")
-    fi
-  done
-  selected_directory=$($FMENU "Select destination directory: " < <(printf "%s\n" "${directories[@]}"))
+	for vid_d in $video_dir; do
+		if [[ -L "$video_dir" ]]; then
+			directories+=("$(sort -d < <(find -L "$vid_d" -type d -print))")
+		else
+			directories+=("$(sort -d < <(find "$vid_d" -type d -print))")
+		fi
+	done
+	selected_directory=$($fmenu "Select destination directory: " < <(printf "%s\n" "${directories[@]}"))
 	printf "%s" "$selected_directory"
+	return 0
 }
 
 download_video() {
-  local site url destination
-  url="$1"
-  site=$(extract_domain "$url")
-  clear
+	local -r url="$1"
+	local -i code=0
+	local site destination
+	site=$(extract_domain "$url")
 	destination=$(select_directory)
-  # center_text "== ${site^} Download =="
-  color_header "${site^} Download" "ORANGE"
-  printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "${site^}"
+	clear
+	color_header "${site^} Download" "ORANGE"
+	printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "${site^}"
 	printf "%s...%s\n" "$destination" "$normal"
-  /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$destination/%(title)s.%(ext)s" --impersonate Chrome "$url"; EC="$?"
-  if [[ $EC -eq 0 ]]; then
-    printf "Download successful.\n"
-  else
-    printf "Download failed. Error: %d\n" "$EC"
-  fi
+	/usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$destination/%(title)s.%(ext)s" --impersonate Chrome "$url"; code="$?"
+	if (( code == 0 )); then
+		printf "Download successful.\n"
+	else
+		printf "Download failed. Error: %d\n" "$code"
+	fi
+	return "$code"
 }
 
 check_arguments() {
-  if [[  $# -eq 0 ]]; then
-    printf "%s No argument passed.\n" "$RED_ERROR" >&2
-    help "$script" "$version" "$updated" "$E_MISSING_ARG"
-  elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
-    script_info "$script" "$version" "$updated"
-    exit 0
-  elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    help "$script" "$version" "$updated" 0
-  fi
-  return 0
+	if [[  $# -eq 0 ]]; then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$updated" "$E_MISSING_ARG"
+	elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
+		script_info "$script" "$version" "$updated"
+		exit 0
+	elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
+		help "$script" "$version" "$updated" 0
+	fi
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="4.13.26219"
-  local -i exit_code=0
-  local -r re="^https?:\/\/.*"
-  check_arguments "$@"
-  check_dependencies
-  if [[ $1 =~ $re ]]; then
-    # match by regex, starts with http:// or https://
-    local -r url=$*
-    download_video "$url"
-    exit_code="$?"
-  else
-    printf "%s Invalid argument. Enter full URL." "$RED_ERROR" >&2
-    exit_code="$E_INVALID_ARG"
-  fi
-  over_line "$script $version"
-  exit "$exit_code"
+	local -r script="${0##*/}"
+	local -r version="4.13.26219"
+	local -i exit_code=0
+	local -r re="^https?:\/\/.*"
+	check_arguments "$@"
+	check_dependencies
+	if [[ $1 =~ $re ]]; then
+		# match by regex, starts with http:// or https://
+		local -r url=$*
+		download_video "$url"
+		exit_code="$?"
+	else
+		printf "%s Invalid argument. Enter full URL." "$RED_ERROR" >&2
+		exit_code="$E_INVALID_ARG"
+	fi
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
