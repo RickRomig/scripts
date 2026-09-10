@@ -7,8 +7,8 @@
 # Author       : Copyright © 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 05 Aug 2026
-# Version      : 8.0.26217
+# Updated      : 10 Sep 2026
+# Version      : 8.1.26253
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to selected directory under ~/Videos/ (follows symlinks)
 # TODO (Rick)  :
@@ -29,148 +29,149 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
-  local -r updated="$3"
-  local -ri errcode="${4:-1}"
-  cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Downloads YouTube videos.
+	local -r script="$1"
+	local -r version="$2"
+	local -r updated="$3"
+	local -ri errcode="${4:-1}"
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Downloads YouTube videos.
 
-${green}Usage:${normal} $script [-h] [-i] [video-url] [video_ID]
-  $script https://www.youtube.com/watch?v=/AQcQgfvfF1M
-  $script AQcQgfvfF1M
-${orange}Available options:${normal}
-  -h | --help  Show this help message and exit.
-  -i | --info  Show information about the script and exit.
-  NOTE: video_ID will only work with YouTube, not other sites.
+	${green}Usage:${normal} $script [-h] [-i] [video-url] [video_ID]
+	$script https://www.youtube.com/watch?v=/AQcQgfvfF1M
+	$script AQcQgfvfF1M
+	${orange}Available options:${normal}
+	-h | --help  Show this help message and exit.
+	-i | --info  Show information about the script and exit.
+	NOTE: video_ID will only work with YouTube, not other sites.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 check_arguments() {
-  if [[  $# -eq 0 ]]; then
-    printf "%s No argument passed.\n" "$RED_ERROR" >&2
-    help "$script" "$version" "$updated" "$E_MISSING_ARG"
-  elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
-    script_info "$script" "$version" "$updated"
-    exit 0
-  elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    help "$script" "$version" "$updated" 0
-  fi
-  return 0
+	if [[  $# -eq 0 ]]; then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$updated" "$E_MISSING_ARG"
+	elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
+		script_info "$script" "$version" "$updated"
+		exit 0
+	elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
+		help "$script" "$version" "$updated" 0
+	fi
+	return 0
 }
 
 script_info() {
-  local -r script="$1"
-  local -r version="$2"
-  local -r updated="$3"
-  cat << _INFO_
-  $script uses yt-dlp to download videos from YouTube and similar sites.
-  The video URL or ID is passed to the script on the command line. The default
-  URL is https://www.youtube.com if only the video ID is passed to the script.
+	local -r script="$1"
+	local -r version="$2"
+	local -r updated="$3"
+	cat <<- _INFO_
+	$script uses yt-dlp to download videos from YouTube and similar sites.
+	The video URL or ID is passed to the script on the command line. The default
+	URL is https://www.youtube.com if only the video ID is passed to the script.
 
-  The script will then present a list of subdirectories under ~/Videos.
-  Select the apprpriate subdirectory.
+	The script will then present a list of subdirectories under ~/Videos.
+	Select the apprpriate subdirectory.
 
-  The video will be downloaded to the selected sub-directory.  The script is
-  hard-coded to save the file as title.ext with spaces in the title replaced
-  by underscores. Metadata will be added to the file.
+	The video will be downloaded to the selected sub-directory.  The script is
+	hard-coded to save the file as title.ext with spaces in the title replaced
+	by underscores. Metadata will be added to the file.
 
-  When the download is completed, success or failure is displayed. If the
-  download fails, the script exits with an error code.
+	When the download is completed, success or failure is displayed. If the
+	download fails, the script exits with an error code.
 
-  Version: $version
-  Updated: $updated
+	Version: $version
+	Updated: $updated
 _INFO_
 }
 
 check_dependencies() {
-  local packages=(ffmpeg fzf)
-  [[ -x /usr/local/bin/yt-dlp ]] || die "yt-dlp is not installed." "$E_FILENOTFOUND"
-  printf "yt-dlp [OK]\n"
-  sleep 2
-  printf '\e[A\e[K'
-  check_packages "${packages[@]}"
-  return 0
+	local -r packages=(ffmpeg fzf)
+	[[ -x /usr/local/bin/yt-dlp ]] || die "yt-dlp is not installed." "$E_FILENOTFOUND"
+	printf "yt-dlp [OK]\n"
+	sleep 1
+	printf '\e[A\e[K'
+	check_packages "${packages[@]}"
+	return 0
 }
 
 extract_domain() {
-  # Extract domain from url without www and .com
-  local -r full_url="$1"
-  local domain
-  domain=$(sed 's|^[^/]*//||;s|^www\.||;s|/.*$||;s|\..*$||' <<< "$full_url")
-  [[ "$domain" == "youtu" ]] && domain="youtube"  # if using abbreviated YouTube URL
-  printf "%s" "$domain"
-  return 0
+	# Extract domain from url without www and .com
+	local -r full_url="$1"
+	local domain
+	domain=$(sed 's|^[^/]*//||;s|^www\.||;s|/.*$||;s|\..*$||' <<< "$full_url")
+	[[ "$domain" == "youtu" ]] && domain="youtube"  # if using abbreviated YouTube URL
+	printf "%s" "$domain"
+	return 0
 }
 
 select_directory() {
-  local -r FMENU="fzf --header=$script \
-    --layout=reverse \
-    --exact \
-    --border=bold \
-    --border=rounded \
-    --margin=5% \
-    --color=dark \
-    --height=95% \
-    --info=hidden \
-    --header-first \
-    --bind change:top \
-    --prompt"
+	local -r fmenu="fzf --header=$script \
+		--layout=reverse \
+		--exact \
+		--border=bold \
+		--border=rounded \
+		--margin=5% \
+		--color=dark \
+		--height=95% \
+		--info=hidden \
+		--header-first \
+		--bind change:top \
+		--prompt"
 	local -r video_dir=~/Videos
 	local selected_directory
-  local directories=()
-  for vid_d in $video_dir; do
-    if [[ -L "$video_dir" ]]; then
-      directories+=("$(sort -d < <(find -L "$vid_d" -path "$video_dir/Pornography" -prune -o -type d))")
-    else
-      directories+=("$(sort -d < <(find "$vid_d" -path "$video_dir/Pornography" -prune -o -type d))")
-    fi
-  done
-  selected_directory=$($FMENU "Select destination directory: " < <(printf "%s\n" "${directories[@]}"))
+	local directories=()
+	for vid_d in $video_dir; do
+		if [[ -L "$video_dir" ]]; then
+			directories+=("$(sort -d < <(find -L "$vid_d" -path "$video_dir/Pornography" -prune -o -type d))")
+		else
+			directories+=("$(sort -d < <(find "$vid_d" -path "$video_dir/Pornography" -prune -o -type d))")
+		fi
+	done
+	selected_directory=$($fmenu "Select destination directory: " < <(printf "%s\n" "${directories[@]}"))
 	printf "%s" "$selected_directory"
-  return 0
+	return 0
 }
 
 download_video() {
-  local -r url="$1"
-  local site destination ret_code
-  site=$(extract_domain "$url")
-  clear
+	local -r url="$1"
+	local -i code
+	local site destination
+	site=$(extract_domain "$url")
 	destination=$(select_directory)
-  color_header "${site^} Download" "BLUE"
-  printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "${site^}"
+	clear
+	color_header "${site^} Download" "BLUE"
+	printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "${site^}"
 	printf "%s...%s\n" "$destination" "$normal"
-  /usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$destination/%(title)s.%(ext)s" "$url"; ret_code="$?"
-  if [[ $ret_code -eq 0 ]]; then
-    printf "Download successful.\n"
-    return "$ret_code"
-  else
-    printf "Download failed. Error: %d\n" "$ret_code"
-    return "$ret_code"
-  fi
+	/usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$destination/%(title)s.%(ext)s" "$url"; code="$?"
+	if [[ $code -eq 0 ]]; then
+		printf "Download successful.\n"
+		return "$code"
+	else
+		printf "Download failed. Error: %d\n" "$code"
+		return "$code"
+	fi
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="8.0.26217"
-  local -r updated="05 Aug 2026"
-  local -i exit_code=0
-  local -r re="^https?:\/\/.*"
-  check_arguments "$@"
-  check_dependencies
-  if [[ $1 =~ $re ]]; then
-    # match by regex, starts with http:// or https://
-    local -r url=$*
-  else
-    # match by YouTube video ID
-    local -r url="https://www.youtube.com/watch?v=$*"
-  fi
-  download_video "$url"
-  exit_code="$?"
-  over_line "$script $version"
-  exit "$exit_code"
+	local -r script="${0##*/}"
+	local -r version="8.1.26253"
+	local -r updated="10 Sep 2026"
+	local -i exit_code=0
+	local -r re="^https?:\/\/.*"
+	check_arguments "$@"
+	check_dependencies
+	if [[ $1 =~ $re ]]; then
+		# match by regex, starts with http:// or https://
+		local -r url=$*
+	else
+		# match by YouTube video ID
+		local -r url="https://www.youtube.com/watch?v=$*"
+	fi
+	download_video "$url"
+	exit_code="$?"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
