@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 03 Aug 2026
-# Version      : 3.5.26215
+# Last updated : 09 Sep 2026
+# Version      : 3.6.26252
 # Comments     : Do not use with scripts or files inside git repos. Use gretire.sh instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,21 +29,21 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source ~/bin/functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
-  local -r errcode="${3:-1}"
-  local -r updated="03 Jul 2026"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Retires a script by moving it to a zipped archive.
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="09 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Retires a script by moving it to a zipped archive.
 
-${green}Usage:${normal} $script <script-name>
-${orange}Available options:${normal}
-  -h | --help  Show this help message and exit
-${bold}NOTES:${normal}
-1. User is prompted to provide a file mame is no arguments are supplied.
-2. Do not use to retire a script in a git repository.
-3. To properly retire a script in a git repository use 'gretire.sh'.
+	${green}Usage:${normal} $script <script-name>
+	${orange}Available options:${normal}
+	-h | --help  Show this help message and exit
+	${bold}NOTES:${normal}
+	1. User is prompted to provide a file mame is no arguments are supplied.
+	2. Do not use to retire a script in a git repository.
+	3. To properly retire a script in a git repository use 'gretire.sh'.
 _HELP_
 	exit "$errcode"
 }
@@ -69,10 +69,10 @@ chack_args() {
 }
 
 retire_script() {
-	local ret_name
 	local -r archive_dir=~/Downloads/archives
 	local -r ret_archive="retired-scripts.zip"
 	local -r filename="$1"
+	local ret_name
 	ret_name="${filename}.$(date +'%y%j')"
 	mv -v "$filename" "$ret_name"
 	zip -um "$archive_dir/$ret_archive$" "$ret_name"
@@ -82,7 +82,7 @@ retire_script() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.5.26215"
+	local -r version="3.6.26252"
 	local -i exit_code=0
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
 	check_git_repo && die "This is a git repository. Use 'gretire.sh' to retire a script inside a git repository." 1
@@ -91,7 +91,7 @@ main() {
 	check_dependencies
 	chack_args "$filename"
 	exit_code="$?"
-  over_line "$script $version"
+	over_line "$script $version"
 	exit "$exit_code"
 }
 
