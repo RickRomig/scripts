@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 05 Sep 2026
-# Version      : 13.3.26248
+# Updated      : 10 Sep 2026
+# Version      : 13.4.26253
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
@@ -49,19 +49,19 @@ help() {
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
 	local -r updated="05 Sep 2026"
-	cat << _HELP_
-${orange}$script${normal} $version, Updated: $updated
-Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.
-${green}Usage:${normal} $script [-h | --help ]
-${orange}Available options:${normal}
-  -h | --help  Show this help message and exit
-${orange}Requirements:${normal}
-  * Checksum files must be a single line specifically for the ISO file you wish to check.
-  * Checksum files must have a file extension of .md5, .sha1, .sha256, or .sha512.
-  * The basename of the checksum file should match the basename name of the ISO (without the extension).
+	cat <<- _HELP_
+	${orange}$script${normal} $version, Updated: $updated
+	Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.
+	${green}Usage:${normal} $script [-h | --help ]
+	${orange}Available options:${normal}
+	-h | --help  Show this help message and exit
+	${orange}Requirements:${normal}
+	* Checksum files must be a single line specifically for the ISO file you wish to check.
+	* Checksum files must have a file extension of .md5, .sha1, .sha256, or .sha512.
+	* The basename of the checksum file should match the basename name of the ISO (without the extension).
 
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 select_directory() {
@@ -193,7 +193,7 @@ verify_iso() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="13.3.26248"
+	local -r version="13.4.26253"
 	local -i exit_code=0
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0;
 	check_package fzf
