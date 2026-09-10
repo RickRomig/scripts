@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 08 Mar 2025
-# Updated      : 02 Aug 2026
-# Version      : 3.4.26214"
+# Updated      : 09 Sep 2026
+# Version      : 3.5.26252
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -31,18 +31,18 @@ help() {
 	local -r version="$2"
 	local -ri errcode="${1:-1}"
 	local -r updated="02 Aug 2026"
-	cat << _HELP_
-${orange}$script${normal} $version, Upated: $updated
-renames filenames containing spaces, replacing spaces with - or . or _
+	cat <<- _HELP_
+	${orange}$script${normal} $version, Upated: $updated
+	renames filenames containing spaces, replacing spaces with - or . or _
 
-${green}Usage:${normal} $script [-dhpu]
-${orange}Available options:${normal}
+	${green}Usage:${normal} $script [-dhpu]
+	${orange}Available options:${normal}
 	-d	Replace spaces with dashes/hyphens
 	-h	Show this help message and exit
 	-p	Replace spaces with periods/dots
 	-u	Replace spaces with underscores
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 replace_spaces() {
@@ -62,10 +62,10 @@ replace_spaces() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.4.26214"
-	local opt OPTARG OPTIND
+	local -r version="3.5.26252"
 	local -i noOpt=1
 	local -r optstr=":dhpu"
+	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			d ) replace_spaces "-" ;;
@@ -78,7 +78,10 @@ main() {
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit
