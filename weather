@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 24 Aug 2026
-# Version      : 7.4.26236
+# Updated      : 10 Sep 2026
+# Version      : 7.5.26253
 # Comments     : Based on a script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -28,251 +28,254 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  clear
-	cat << _HELP_
-${green}Usage:${normal} weather [location]
-${orange}Examples:${normal}
-weather  # No argument uses default location
-weather Cincinnati
-weather New+York
-weather "Los Angeles"
+	clear
+	cat <<- _HELP_
+	${green}Usage:${normal} weather [location]
+	${orange}Examples:${normal}
+	weather  # No argument uses default location
+	weather Cincinnati
+	weather New+York
+	weather "Los Angeles"
 
-* Locations with spaces must have a '+' in place of the space or be enclosed in double quotes.
-* A US state can be indicated with a comma after the city name.
-  Kettering,OH or Kettering, OH
-* If no location is passed, the default location will be used.
-* 3-digit airport codes can be used as a location (LAX, ATL, DAY).
-* Menu options include current conditions, 3-day forecast, change locations, and help.
+	* Locations with spaces must have a '+' in place of the space or be enclosed in double quotes.
+	* A US state can be indicated with a comma after the city name.
+	Example: Kettering,OH or Kettering, OH
+	* If no location is passed, the default location will be used.
+	* 3-digit airport codes can be used as a location (LAX, ATL, DAY).
+	* Menu options include current conditions, 3-day forecast, change locations, and help.
 
 _HELP_
-  return 0
+	return 0
 }
 
 check_dependencies() {
-  local packages=( curl jq )
-  check_packages "${packages[@]}"
-  return 0
+	local packages=( curl jq )
+	check_packages "${packages[@]}"
+	return 0
 }
 
 timeout_exit() {
-  local wx_loc="${1//[+_]/ }"
-  printf "Current weather data for %s is not available.\n" "$wx_loc"
-  printf "Try again later.\n\n"
-  return 0
+	local -r wx_loc="${1//[+_]/ }"
+	printf "Current weather data for %s is not available.\n" "$wx_loc"
+	printf "Try again later.\n\n"
+	return 0
 }
 
 wx_forecast() {
-  local -r url="$1"
-  local -r wx_loc="$2"
-  clear
-  if curl -so "$TMP_FILE" "$url/${wx_loc}?uA"; then
-    sed '1,7d;/Follow/d' "$TMP_FILE"
-  else
-    timeout_exit "$wx_loc"
-  fi
-  return 0
+	local -r url="$1"
+	local -r wx_loc="$2"
+	clear
+	if curl -so "$TMP_FILE" "$url/${wx_loc}?uA"; then
+		sed '1,7d;/Follow/d' "$TMP_FILE"
+	else
+		timeout_exit "$wx_loc"
+	fi
+	return 0
 }
 
 current_wx() {
-  local url="$1"
-  local -r wx_loc="$2"
-  local city state latitude longitude description temp_F temp_C feels_F feels_C humidity pressure wind_dir wind_spd precip uv_index sunrise sunset
-  local json tcolor fcolor ucolor uvwarn
-  url="$url/${wx_loc}?format=j1"
-  json=$(curl -s "$url")
-  grep -q 'Unknown location' <<< "$json" && { echo "Location data not available from http://wttr.in. Try again later."; return 1; }
+	local url="$1"
+	local -r wx_loc="$2"
+	local json
+	url="$url/${wx_loc}?format=j1"
+	json=$(curl -s "$url")
+	grep -q 'Unknown location' <<< "$json" && { echo "Location data not available from http://wttr.in. Try again later."; return 1; }
 
-  # Location data
-  city=$(jq -r ."nearest_area[0]|(.areaName[0].value)" <<< "$json")
-  state=$(jq -r ."nearest_area[0]|(.region[0].value)" <<< "$json")
-  # country=$(jq -r ."nearest_area[0]|(.country[0].value)" <<< "$json")
-  latitude=$(jq -r ."nearest_area[0]|(.latitude)" <<< "$json")
-  longitude=$(jq -r ."nearest_area[0]|(.longitude)" <<< "$json")
-  # latlong=$(jq -r ."request[0]|(.query)" <<< "$json")
+	# Location data
+	local city state latitude longitude
+	city=$(jq -r ."nearest_area[0]|(.areaName[0].value)" <<< "$json")
+	state=$(jq -r ."nearest_area[0]|(.region[0].value)" <<< "$json")
+	# country=$(jq -r ."nearest_area[0]|(.country[0].value)" <<< "$json")
+	latitude=$(jq -r ."nearest_area[0]|(.latitude)" <<< "$json")
+	longitude=$(jq -r ."nearest_area[0]|(.longitude)" <<< "$json")
+	# latlong=$(jq -r ."request[0]|(.query)" <<< "$json")
 
-  # Weather conditions
-  description=$(jq -r ."current_condition[0]|(.weatherDesc[0].value)" <<< "$json")
-  temp_F=$(jq -r ."current_condition[0]|(.temp_F)" <<< "$json")
-  temp_C=$(jq -r ."current_condition[0]|(.temp_C)" <<< "$json")
-  feels_F=$(jq -r ."current_condition[0]|(.FeelsLikeF)" <<< "$json")
-  feels_C=$(jq -r ."current_condition[0]|(.FeelsLikeC)" <<< "$json")
-  humidity=$(jq -r ."current_condition[0]|.humidity" <<< "$json")
-  pressure=$(jq -r ."current_condition[0]|.pressureInches" <<< "$json")
-  wind_dir=$(jq -r ."current_condition[0]|.winddir16Point" <<< "$json")
-  wind_spd=$(jq -r ."current_condition[0]|.windspeedMiles" <<< "$json")
-  precip=$(jq -r ."current_condition[0]|.precipInches" <<< "$json")
-  uv_index=$(jq -r ."current_condition[0]|.uvIndex" <<< "$json")
-  sunrise=$(jq -r ."weather[0]|(.astronomy[0].sunrise)" <<< "$json")
-  sunset=$(jq -r ."weather[0]|(.astronomy[0].sunset)" <<< "$json")
+	# Weather conditions
+	local description temp_F temp_C feels_F feels_C humidity pressure wind_dir
+	local wind_spd precip uv_index sunrise sunset
+	description=$(jq -r ."current_condition[0]|(.weatherDesc[0].value)" <<< "$json")
+	temp_F=$(jq -r ."current_condition[0]|(.temp_F)" <<< "$json")
+	temp_C=$(jq -r ."current_condition[0]|(.temp_C)" <<< "$json")
+	feels_F=$(jq -r ."current_condition[0]|(.FeelsLikeF)" <<< "$json")
+	feels_C=$(jq -r ."current_condition[0]|(.FeelsLikeC)" <<< "$json")
+	humidity=$(jq -r ."current_condition[0]|.humidity" <<< "$json")
+	pressure=$(jq -r ."current_condition[0]|.pressureInches" <<< "$json")
+	wind_dir=$(jq -r ."current_condition[0]|.winddir16Point" <<< "$json")
+	wind_spd=$(jq -r ."current_condition[0]|.windspeedMiles" <<< "$json")
+	precip=$(jq -r ."current_condition[0]|.precipInches" <<< "$json")
+	uv_index=$(jq -r ."current_condition[0]|.uvIndex" <<< "$json")
+	sunrise=$(jq -r ."weather[0]|(.astronomy[0].sunrise)" <<< "$json")
+	sunset=$(jq -r ."weather[0]|(.astronomy[0].sunset)" <<< "$json")
 
-  # Set colors
-  tcolor=$(temp_color "$temp_F")
-  fcolor=$(feels_color "$feels_F")
-  ucolor=$(uv_color "$uv_index")
-  uvwarn=$(uv_warning "$uv_index")
+	# Set colors
+	local tcolor fcolor ucolor uvwarn
+	tcolor=$(temp_color "$temp_F")
+	fcolor=$(feels_color "$feels_F")
+	ucolor=$(uv_color "$uv_index")
+	uvwarn=$(uv_warning "$uv_index")
 
-  # Display current conditions
-  clear
-  if [[ "$json" ]]; then
-    printf "\n%sLocation:%s %s, %s\n" "$green" "$normal" "$city" "$state"
-    printf "%sLat/Long:%s %s, %s\n\n" "$green" "$normal" "$latitude" "$longitude"
-    printf "%sCurrent conditions:%s\n" "$green" "$normal"
-    printf "%15s: %s\n" "Atomosphere" "$description"
-    printf "%15s: %s%s\U2109 /%s\U2103 %s\n" "Temperature" "$tcolor" "$temp_F" "$temp_C" "$normal"
-    printf "%15s: %s%s\U2109 /%s\U2103 %s\n" "Feels like" "$fcolor" "$feels_F" "$feels_C" "$normal"
-    printf "%15s: %s%s - %s%s\n" "UV index" "$ucolor" "$uv_index" "$uvwarn" "$normal"
-    printf "%15s: %s%%\n" "Humidity" "$humidity"
-    printf "%15s: %s inches\n" "Barometer" "$pressure"
-    printf "%15s: %s inches\n" "Precipitation" "$precip"
-    printf "%15s: %s at %s mph\n" "Wind" "$wind_dir" "$wind_spd"
-    printf "%15s: %s\n" "Sunrise" "$sunrise"
-    printf "%15s: %s\n\n" "Sunset" "$sunset"
-  else
-    timeout_exit "$wx_loc"
-  fi
-  return 0
+	# Display current conditions
+	clear
+	if [[ "$json" ]]; then
+		printf "\n%sLocation:%s %s, %s\n" "$green" "$normal" "$city" "$state"
+		printf "%sLat/Long:%s %s, %s\n\n" "$green" "$normal" "$latitude" "$longitude"
+		printf "%sCurrent conditions:%s\n" "$green" "$normal"
+		printf "%15s: %s\n" "Atomosphere" "$description"
+		printf "%15s: %s%s\U2109 /%s\U2103 %s\n" "Temperature" "$tcolor" "$temp_F" "$temp_C" "$normal"
+		printf "%15s: %s%s\U2109 /%s\U2103 %s\n" "Feels like" "$fcolor" "$feels_F" "$feels_C" "$normal"
+		printf "%15s: %s%s - %s%s\n" "UV index" "$ucolor" "$uv_index" "$uvwarn" "$normal"
+		printf "%15s: %s%%\n" "Humidity" "$humidity"
+		printf "%15s: %s inches\n" "Barometer" "$pressure"
+		printf "%15s: %s inches\n" "Precipitation" "$precip"
+		printf "%15s: %s at %s mph\n" "Wind" "$wind_dir" "$wind_spd"
+		printf "%15s: %s\n" "Sunrise" "$sunrise"
+		printf "%15s: %s\n\n" "Sunset" "$sunset"
+	else
+		timeout_exit "$wx_loc"
+	fi
+	return 0
 }
 
 temp_color() {
-  # Set color for temperature
-  local temp_F="$1"
-  local tcolor
-  if [[ "$temp_F" -ge 90 ]]; then
-    tcolor=${red}
-  elif [[ "$temp_F" -ge 75 ]]; then
-    tcolor=${orange}
-  elif [[ "$temp_F" -le 32 ]]; then
-    tcolor=${blue}
-  elif [[ "$temp_F" -le 50 ]]; then
-    tcolor=${lightblue}
-  else
-    tcolor=${default} # Temperature is between 50 and 75 degrees Fahrenheit
-  fi
-  echo "$tcolor"
-  return 0
+	# Set color for temperature
+	local -ri temp_F="$1"
+	local tcolor
+	if [[ "$temp_F" -ge 90 ]]; then
+		tcolor=${red}
+	elif [[ "$temp_F" -ge 75 ]]; then
+		tcolor=${orange}
+	elif [[ "$temp_F" -le 32 ]]; then
+		tcolor=${blue}
+	elif [[ "$temp_F" -le 50 ]]; then
+		tcolor=${lightblue}
+	else
+		tcolor=${default} # Temperature is between 50 and 75 degrees Fahrenheit
+	fi
+	echo "$tcolor"
+	return 0
 }
 
 feels_color() {
-  # Set color for heat index temperature
-  local feels_F="$1"
-  local fcolor
-  if [[ "$feels_F" -ge 90 ]]; then
-    fcolor=${red}
-  elif [[ "$feels_F" -ge 75 ]]; then
-    fcolor=${orange}
-  elif [[ "$feels_F" -le 32 ]]; then
-    fcolor=${blue}
-  elif [[ "$feels_F" -le 50 ]]; then
-    fcolor=${lightblue}
-  else
-    fcolor=${default} # Temperature is between 50 and 75 degrees Fahrenheit
-  fi
-  echo "$fcolor"
-  return 0
+	# Set color for heat index temperature
+	local -ri feels_F="$1"
+	local fcolor
+	if [[ "$feels_F" -ge 90 ]]; then
+		fcolor=${red}
+	elif [[ "$feels_F" -ge 75 ]]; then
+		fcolor=${orange}
+	elif [[ "$feels_F" -le 32 ]]; then
+		fcolor=${blue}
+	elif [[ "$feels_F" -le 50 ]]; then
+		fcolor=${lightblue}
+	else
+		fcolor=${default} # Temperature is between 50 and 75 degrees Fahrenheit
+	fi
+	echo "$fcolor"
+	return 0
 }
 
 uv_color() {
-  # Set color for UV index.
-  local uv_index="$1"
-  local ucolor
-  if [[ "$uv_index" -ge 11 ]]; then
-    ucolor=${red}
-  elif [[ "$uv_index" -ge 8 ]]; then
-    ucolor=${lightred}
-  elif [[ "$uv_index" -ge 6 ]]; then
-    ucolor=${orange}
-  elif [[ "$uv_index" -ge 3 ]]; then
-    ucolor=${lightyellow}
-  else
-    ucolor=${default}  # UV index is less than 3
-  fi
-  echo "$ucolor"
-  return 0
+	# Set color for UV index.
+	local -ri uv_index="$1"
+	local ucolor
+	if [[ "$uv_index" -ge 11 ]]; then
+		ucolor=${red}
+	elif [[ "$uv_index" -ge 8 ]]; then
+		ucolor=${lightred}
+	elif [[ "$uv_index" -ge 6 ]]; then
+		ucolor=${orange}
+	elif [[ "$uv_index" -ge 3 ]]; then
+		ucolor=${lightyellow}
+	else
+		ucolor=${default}  # UV index is less than 3
+	fi
+	echo "$ucolor"
+	return 0
 }
 
 uv_warning() {
-  # Set color for UV index.
-  local uv_index="$1"
-  local uvwarn
-  if [[ "$uv_index" -ge 11 ]]; then
-    uvwarn="Extreme Risk"
-  elif [[ "$uv_index" -ge 8 ]]; then
-    uvwarn="Very High Risk"
-  elif [[ "$uv_index" -ge 6 ]]; then
-    uvwarn="High Risk"
-  elif [[ "$uv_index" -ge 3 ]]; then
-     uvwarn="Moderate Risk"
-  else
-    uvwarn="Low Risk"  # UV index is less than 3
-  fi
-  echo "$uvwarn"
-  return 0
+	# Set color for UV index.
+	local -ri uv_index="$1"
+	local uvwarn
+	if [[ "$uv_index" -ge 11 ]]; then
+		uvwarn="Extreme Risk"
+	elif [[ "$uv_index" -ge 8 ]]; then
+		uvwarn="Very High Risk"
+	elif [[ "$uv_index" -ge 6 ]]; then
+		uvwarn="High Risk"
+	elif [[ "$uv_index" -ge 3 ]]; then
+		uvwarn="Moderate Risk"
+	else
+		uvwarn="Low Risk"  # UV index is less than 3
+	fi
+	echo "$uvwarn"
+	return 0
 }
 
 menu() {
-  local url="$1"
-  local location="$2"
-  local _opt options
-  while true; do
-    clear
-    box "Local weather for ${location//[+_]/ }" "-"
-    COLUMNS="40"
-    options=(
-      "Current conditions"
-      "3-day forecast"
-      "Change location"
-      "Usage/Help"
-      "Quit"
-    )
-    PS3="Choice: "
-    select _opt in "${options[@]}"; do
-      case $REPLY in
-        1 )
-          current_wx "$url" "${location// /+}"
-          anykey
-          break ;;
-        2 )
-          wx_forecast "$url" "${location// /+}"
-          anykey
-          break ;;
-        3 )
-          printf "\nChange location.\n"
-          printf "Replace any spaces with + or _\n"
-          printf "Just pressing ENTER will use location based on the public IP.\n"
-          read -rp "New location: " location
-          break ;;
-        4 )
-          help
-          anykey
-          break ;;
-        5 )
-          # Quit
-          break 2 ;;
-        * )
-          printf "%s Invalid choice. Choose 1, 2, 3, 4, or 5\n" "$RED_ERROR" >&2
-      esac
-    done
-  done
-  return 0
+	local url="$1"
+	local location="$2"
+	local _opt options
+	while true; do
+		clear
+		box "Local weather for ${location//[+_]/ }" "-"
+		COLUMNS="40"
+		options=(
+			"Current conditions"
+			"3-day forecast"
+			"Change location"
+			"Usage/Help"
+			"Quit"
+		)
+		PS3="Choice: "
+		select _opt in "${options[@]}"; do
+			case $REPLY in
+				1 )
+					current_wx "$url" "${location// /+}"
+					anykey
+					break ;;
+				2 )
+					wx_forecast "$url" "${location// /+}"
+					anykey
+					break ;;
+				3 )
+					printf "\nChange location.\n"
+					printf "Replace any spaces with + or _\n"
+					printf "Just pressing ENTER will use location based on the public IP.\n"
+					read -rp "New location: " location
+					break ;;
+				4 )
+					help
+					anykey
+					break ;;
+				5 )
+					# Quit
+					break 2 ;;
+				* )
+					printf "%s Invalid choice. Choose 1, 2, 3, 4, or 5\n" "$RED_ERROR" >&2
+			esac
+		done
+	done
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="7.4.26236"
-  local -r wx_url="https://wttr.in"
-  local location="${1:-Huber+Heights}"
-  create_tmp "file"
-  check_dependencies
-  if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-    help
-  elif url_reachable "$wx_url"; then
-    printf "%s is not accessible.\nTry again later.\n" "$wx_url"
-  else
-    menu "$wx_url" "$location"
-  fi
-  over_line "$script $version"
-  printf "%sMOTD:%s " "$darkgray" "$normal"
-  leave ""
+	local -r script="${0##*/}"
+	local -r version="7.4.26236"
+	local -r wx_url="https://wttr.in"
+	local location="${1:-Huber+Heights}"
+	create_tmp "file"
+	check_dependencies
+	if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+		help
+	elif url_reachable "$wx_url"; then
+		menu "$wx_url" "$location"
+	else
+		printf "%s is not accessible.\nTry again later.\n" "$wx_url"
+	fi
+	over_line "$script $version"
+	printf "%sMOTD:%s " "$darkgray" "$normal"
+	leave ""
 }
 
 main "$@"
