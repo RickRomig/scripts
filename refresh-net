@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2025, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : Unknown
-# Updated      : 31 Aug 2026
-# Versions     : 2.5.26243
+# Updated      : 09 Sep 2026
+# Versions     : 2.6.26252
 # Comment      :
 # TODO (Rick)  : Research for OpenRC and Runit
 # License      : GNU General Public License, version 2.0
@@ -28,35 +28,35 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 restart_network() {
-  local init_sys
-  local -i code
-  init_sys=$(awk 'match($0, /(systemd|sysvinit)/) { print toupper(substr($0, RSTART, RLENGTH));exit; }' < <(strings /sbin/init))
-  printf "Restarting network...\n"
-  case "$init_sys" in
-    "SYSTEMD" )
-      sudo systemctl restart NetworkManager.service
-      code="$?" ;;
-    "SYSVINIT" )
-      sudo service network-manager restart
-      code="$?" ;;
-    * )
-      printf "Init system is undetermined.\n" >&2
-      code="$E_UNSUPPORTED"
-  esac
-  sleep 3
-  return "$code"
+	local init_sys
+	local -i code
+	init_sys=$(awk 'match($0, /(systemd|sysvinit)/) { print toupper(substr($0, RSTART, RLENGTH));exit; }' < <(strings /sbin/init))
+	printf "Restarting network...\n"
+	case "$init_sys" in
+		"SYSTEMD" )
+			sudo systemctl restart NetworkManager.service
+			code="$?" ;;
+		"SYSVINIT" )
+			sudo service network-manager restart
+			code="$?" ;;
+		* )
+			printf "Init system is undetermined.\n" >&2
+			code="$E_UNSUPPORTED"
+	esac
+	sleep 3
+	return "$code"
 }
 
 main() {
 	local -r script="${0##*/}"
-  local -r version="2.5.26243"
-  local -i exit_code=0
-  sudo_login 2
-  check_package strings
-  restart_network
-  exit_code="$?"
-  over_line "$script $version"
-  exit "$exit_code"
+	local -r version="2.6.26252"
+	local -i exit_code=0
+	sudo_login 2
+	check_package strings
+	restart_network
+	exit_code="$?"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
