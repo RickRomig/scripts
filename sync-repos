@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 10 Aug 2025
-# Updated      : 28 Aug 2026
-# Version      : 3.7.26240
+# Updated      : 10 Sep 2026
+# Version      : 3.8.26253
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,25 +31,25 @@ help() {
 	local -r script="$1"
 	local -r version-"$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="28 Aug 2026"
-	cat << _HELP_
-${orange}$script${normal} $version, Upated: $updated
-Synchronixe Git repositories and work directories between local computers.
+	local -r updated="10 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version, Upated: $updated
+	Synchronixe Git repositories and work directories between local computers.
 
-${green}Usage:${normal} $script [-ghlm]
-${orange}Available options:${normal}
+	${green}Usage:${normal} $script [-ghlm]
+	${orange}Available options:${normal}
 	-g	Synchronize git repositories to Gitea server.
 	-h	Show this help message and exit.
 	-l	Synchronize git repositories to HP 850 G3.
 	-m	Synchronize git repositories to HP 800 G2.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 valid_host() {
 	local -r local_host="$1"
 	case "$local_host" in
-		hp-800g2-sff|hp-850-g3 )
+		hp-800g2-sff|hp-850-g3|hp-8300-usdt )
 			return "$TRUE" ;;
 		* )
 			return "$FALSE"
@@ -57,7 +57,7 @@ valid_host() {
 }
 
 transfer_status() {
-  local -i xfr_status="$1"
+	local -ri xfr_status="$1"
 	if [[ "$xfr_status" -gt 0 ]]; then
 		printf "%s A transfer failed. Code: %d. Check network status.\n" "$RED_ERROR" "$xfr_status" >&2
 		return "$xfr_status"
@@ -67,52 +67,52 @@ transfer_status() {
 }
 
 transfer() {
-  local -ri host_ip="$1"
+	local -ri host_ip="$1"
 	local -r remote_host="$2"
-  local -i ip_addr
-  ip_addr="$(local_ip)"
-  # Skip local machine:
-  if [[ "$ip_addr" == "$host_ip" ]]; then
-    printf "%sSkipping %s (local client)%s\n\n" "$green" "$remote_host" "$normal"
-    return "$E_INVALID_HOST"
-  fi
-  # Check for machines and sync if on-line:
-  printf "%sChecking for %s...%s\n" "$green" "$remote_host" "$normal"
-  if ping -c 3 "$LOCALNET.$host_ip" >/dev/null 2>&1; then
-    printf "...Syncing to %s\n" "$remote_host"
-    sync_script "$host_ip"
-    printf "\n... %s Synced!\n\n" "$remote_host"
-  else
-    printf "\n...Skipping %s! Not on network.\n\n" "$remote_host"
-  fi
+	local -i ip_addr
+	ip_addr="$(local_ip)"
+	# Skip local machine:
+	if [[ "$ip_addr" == "$host_ip" ]]; then
+		printf "%sSkipping %s (local client)%s\n\n" "$green" "$remote_host" "$normal"
+		return "$E_INVALID_HOST"
+	fi
+	# Check for machines and sync if on-line:
+	printf "%sChecking for %s...%s\n" "$green" "$remote_host" "$normal"
+	if ping -c 3 "$LOCALNET.$host_ip" >/dev/null 2>&1; then
+		printf "...Syncing to %s\n" "$remote_host"
+		sync_script "$host_ip"
+		printf "\n... %s Synced!\n\n" "$remote_host"
+	else
+		printf "\n...Skipping %s! Not on network.\n\n" "$remote_host"
+	fi
 	return 0
 }
 
 sync_script() {
 	local -ri hostip="$1"
 
-  printf "\n%sSyncing Git Repositories...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
-  transfer_status "$?"
+	printf "\n%sSyncing Git Repositories...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
+	transfer_status "$?"
 
-  printf "\n%sSyncing Projects Repositories...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
-  transfer_status "$?"
+	printf "\n%sSyncing Projects Repositories...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
+	transfer_status "$?"
 
 	printf "\n%sSyncing Deb Packages...%s\n" "$orange" "$normal"
 	rsync -avh --delete "$HOME"/debpkgs/  "$LOCALNET.$hostip":debpkgs/
-  transfer_status "$?"
+	transfer_status "$?"
 
-  printf "\n%sSyncing ~/Work/dev/ ...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Work/dev/ "$LOCALNET.$hostip":Work/dev/
-  transfer_status "$?"
+	printf "\n%sSyncing ~/Work/dev/ ...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Work/dev/ "$LOCALNET.$hostip":Work/dev/
+	transfer_status "$?"
 
 	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.7.26240"
+	local -r version="3.8.26253"
 	local -i exit_code=0
 	local -r local_host="${HOSTNAME:-$(hostname)}"
 	local opt OPTARG OPTIND
