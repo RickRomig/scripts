@@ -7,12 +7,13 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Nov 2019
-# Updated      : 02 Aug 2026
-# Version      : 6.3.26214
+# Updated      : 09 Sep 2026
+# Version      : 6.4.26252
 # Comments     : Changes the hostname in both /etc/hostname and /etc/hosts.
 #              : Rules based on hostname(7) man page
 #              : Hostname length limited to 5-15 characters for NETBIOS compatibility.
-#              : May get a “unable to resolve host” error after changing hostname in /etc/hosts. It should go away after rebooting.
+#              : May get a “unable to resolve host” error after changing hostname in /etc/hosts.
+#              : It should go away after rebooting.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -41,87 +42,82 @@ ${lightblue}Hostname Rules${normal}
   ${orange}*${normal} first character cannot be a hyphen or a digit
   ${orange}*${normal} last character cannot be a hyphen
 _RULES_
+  return 0
 }
 
 get_new_hostname() {
-  local -r old_host="${HOSTNAME:-$(hostname)}"
-  local -l new_host=
-  local -ri minLen=5
-  local -ri maxLen=15
-  while true; do
-    printf "\nCurrent hostname is %s\n\n" "$old_host"
-    read -rp "Enter new hostname (press Enter to cancel): " new_host
+	local -r old_host="${HOSTNAME:-$(hostname)}"
+	local -l new_host=
+	local -ri minLen=5
+	local -ri maxLen=15
+	while true; do
+		printf "\nCurrent hostname is %s\n\n" "$old_host"
+		read -rp "Enter new hostname (press Enter to cancel): " new_host
 
-    # Check new hostname against the rules
-    case "$new_host" in
-      -* )
-        printf "\n%sHostname cannot begin with a hypen.%s\n" "$orange" "$normal" >&2
-        hostname_rules
-        continue
-        ;;
-      *- )
-        printf "\n%sHostname cannot end with a hyphen.%s\n" "$orange" "$normal" >&2
-        hostname_rules
-        continue
-        ;;
-      [0-9]* )
-        printf "%s\nHostname cannot begin with a digit.%s\n" "$orange" "$normal" >&2
-        hostname_rules
-        continue
-        ;;
-      *[^a-zA-Z0-9-]* )
-        printf "\n%sHostname cannot contain any special characters.%s\n" "$orange" "$normal" >&2
-        hostname_rules
-        continue
-        ;;
-      '' )
-        printf "Operation canceled. Hostname unchanged.\n"
-        return
-    esac
+		# Check new hostname against the naming rules
+		case "$new_host" in
+			-* )
+				printf "\n%sHostname cannot begin with a hypen.%s\n" "$orange" "$normal" >&2
+				hostname_rules
+				continue ;;
+			*- )
+				printf "\n%sHostname cannot end with a hyphen.%s\n" "$orange" "$normal" >&2
+				hostname_rules
+				continue ;;
+			[0-9]* )
+				printf "%s\nHostname cannot begin with a digit.%s\n" "$orange" "$normal" >&2
+				hostname_rules
+				continue ;;
+			*[^a-zA-Z0-9-]* )
+				printf "\n%sHostname cannot contain any special characters.%s\n" "$orange" "$normal" >&2
+				hostname_rules
+				continue ;;
+			'' )
+				printf "Operation canceled. Hostname unchanged.\n"
+				break
+		esac
 
-    # Check the length of the new hostname
-    if [[ ${#new_host} -le "$minLen" || ${#new_host} -gt "$maxLen" ]]; then
-      printf "\n%sHostname must be between %d and %d characters.%s\n" "$orange" "$minLen" "$maxLen" "$normal" >&2
-      hostname_rules
-      continue
-    fi
+		# Check the length of the new hostname
+		if [[ ${#new_host} -le "$minLen" || ${#new_host} -gt "$maxLen" ]]; then
+			printf "\n%sHostname must be between %d and %d characters.%s\n" "$orange" "$minLen" "$maxLen" "$normal" >&2
+			hostname_rules
+			continue
+		fi
 
-    # Compare new hostname with the old hostname
-    if [[ "$new_host" == "$old_host" ]]; then
-      printf "%sHostnames are the same.%s\n" "$orange" "$normal" >&2
-      hostname_rules
-      continue
-    else
-      printf "\n%s%s is a valid hostname.%s\n" "$green" "$new_host" "$normal"
-      break
-    fi
-  done
-  change_hostname "$old_host" "$new_host"
-  return 0
+		# Compare new hostname with the old hostname
+		if [[ "$new_host" == "$old_host" ]]; then
+			printf "%sHostnames are the same.%s\n" "$orange" "$normal" >&2
+			hostname_rules
+			continue
+		else
+			printf "\n%s%s is a valid hostname.%s\n" "$green" "$new_host" "$normal"
+			break
+		fi
+	done
+	change_hostname "$old_host" "$new_host"
+	return 0
 }
 
 change_hostname() {
-  local -r old_host="$1"
-  local -r new_host="$2"
-  sudo_login 2
-  printf "\nChanging the hostname from %s to %s ...\n" "$old_host" "$new_host"
-  sudo sed -i "s/$old_host/$new_host/" /etc/hosts
-  sudo hostnamectl set-hostname "$new_host"
-  printf "Hostname changed. Reboot to ensure the change takes effect.\n"
-  # sudo systemctl restart systemd-resolved.service
-  return 0
+	local -r old_host="$1"
+	local -r new_host="$2"
+	sudo_login 2
+	printf "\nChanging the hostname from %s to %s ...\n" "$old_host" "$new_host"
+	sudo sed -i "s/$old_host/$new_host/" /etc/hosts
+	sudo hostnamectl set-hostname "$new_host"
+	printf "Hostname changed. Reboot to ensure the change takes effect.\n"
+	# sudo systemctl restart systemd-resolved.service
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="6.3.26214"
-  printf "Renames the system hostname.\n"
-  hostname_rules
-  get_new_hostname
-  over_line "$script $version"
-  exit
+	local -r script="${0##*/}"
+	local -r version="6.4.26252"
+	printf "Renames the system hostname.\n"
+	hostname_rules
+	get_new_hostname
+	over_line "$script $version"
+	exit
 }
-
-## Execution ##
 
 main "$@"
