@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Nov 2019
-# Updated      : 30 Aug 2026
-# Version      : 7.7.26242
+# Updated      : 10 Sep 2026
+# Version      : 7.8.26253
 # Comments     : Extracts swap partition UUID from output of /usr/sbin/blkid
 #              : Debian requires sudo for blkid, in Mint, blkid gives more info with sudo
 #              : Run script only if you get an update-initramfs error message.
@@ -30,7 +30,7 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 print_message() {
-  cat << _MESSAGE_
+	cat << _MESSAGE_
   Sets the RESUME environment variable after an update-initramfs error message.
   The error message will be similar to:
   ${lightyellow}I: The initramfs will attempt to resume from /dev/sda2
@@ -38,51 +38,51 @@ print_message() {
   I: Set the RESUME variable to override this.${normal}
 
 _MESSAGE_
-  return 0
+	return 0
 }
 
 get_swap_uuid() {
-  local swap_uuid
-  swap_uuid=$(awk -F\" '/swap/ {print $2}' < <(sudo /usr/sbin/blkid))
-  [[ "$swap_uuid" == "LABEL=swap" ]] && swap_uuid=$(awk -F\" '/swap/ {print $3}' < <(sudo /usr/sbin/blkid))
-  printf "%s" "$swap_uuid"
-  return 0
+	local swap_uuid
+	swap_uuid=$(awk -F\" '/swap/ {print $2}' < <(sudo /usr/sbin/blkid))
+	[[ "$swap_uuid" == "LABEL=swap" ]] && swap_uuid=$(awk -F\" '/swap/ {print $3}' < <(sudo /usr/sbin/blkid))
+	printf "%s" "$swap_uuid"
+	return 0
 }
 
 set_resume() {
-  local swap_uuid
-  sudo_login 2
-  printf "Extracting the swap UUID ...\n"
-  swap_uuid=$(get_swap_uuid)
-  if [[ "$swap_uuid" ]]; then
-    printf "Suap UUID = %s\n" "$swap_uuid"
-  else
-    printf "No UUID for swap found.\n" >&2
-    return "$E_NOT_DETECTED"
-  fi
-  if default_no "Set RESUME environment variable?"; then
-    local -r resume_path="/etc/initramfs-tools/conf.d/resume"
-    printf "Setting the RESUME environment variable in %s...\n" "$resume_path"
-    sudo tee "$resume_path" &>/dev/null <<< "RESUME=UUID=$swap_uuid"
-    printf "Updating initramfs ...\n"
-    sudo update-initramfs -u -k all
-    return "$?"
-  else
-    printf "Operation canceled. RESUME environment variable not reset.\n" >&2
-    return 1
-  fi
+	local swap_uuid
+	sudo_login 2
+	printf "Extracting the swap UUID ...\n"
+	swap_uuid=$(get_swap_uuid)
+	if [[ "$swap_uuid" ]]; then
+		printf "Suap UUID = %s\n" "$swap_uuid"
+	else
+		printf "No UUID for swap found.\n" >&2
+		return "$E_NOT_DETECTED"
+	fi
+	if default_no "Set RESUME environment variable?"; then
+		local -r resume_path="/etc/initramfs-tools/conf.d/resume"
+		printf "Setting the RESUME environment variable in %s...\n" "$resume_path"
+		sudo tee "$resume_path" &>/dev/null <<< "RESUME=UUID=$swap_uuid"
+		printf "Updating initramfs ...\n"
+		sudo update-initramfs -u -k all
+		return "$?"
+	else
+		printf "Operation canceled. RESUME environment variable not set.\n" >&2
+		return 1
+	fi
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="7.7.26242"
-  local -i exit_code=0
-  print_message
-  set_resume
-  exit_code="$?"
-  over_line "$script $version" "-"
-  [[ "$exit_code" -eq 0 ]] && reboot_system
-  exit "$exit_code"
+	local -r script="${0##*/}"
+	local -r version="7.8.26253"
+	local -i exit_code=0
+	print_message
+	set_resume
+	exit_code="$?"
+	over_line "$script $version" "-"
+	[[ "$exit_code" -eq 0 ]] && reboot_system
+	exit "$exit_code"
 }
 
 main "$@"
