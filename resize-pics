@@ -2,13 +2,13 @@
 ###############################################################################
 # Script Name  : resize-pics
 # Description  : Resizes and changes the compression of images in the current directory.
-# Dependencies : imagemagick
+# Dependencies : imagemagick, rename
 # Arguments    : size in pixels to be resized to. Default is 800 pixels (long side of image)
 # Author       : Copyright (c) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Jun 2022
-# Updated      : 03 Aug 2026
-# Version      : 1.7.26215
+# Updated      : 09 Sep 2026
+# Version      : 1.8.26252
 # Comments     : Must be run from the current working directory.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,43 +27,49 @@
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
+check_dependencies() {
+	local -r packages=(imagemagick rename)
+	check_packages "${packages[@]}"
+	return 0
+}
+
 find_images() {
-  local num_images
-  num_images=$(wc -l < <(find . -maxdepth 1 -type f -iname "*.jp*g"))
-  [[ $num_images -gt 0 ]] && return "$TRUE" || return "$FALSE"
+	loca1l -i num_images
+	num_images=$(wc -l < <(find . -maxdepth 1 -type f -iname "*.jp*g"))
+	[[ $num_images -gt 0 ]] && return "$TRUE" || return "$FALSE"
 }
 
 resize_pics() {
-  local size image
-  size="$1"
-  [[ -d ./resized ]] || mkdir -p ./resized
-  printf "Creating resized images in ./resized...\n"
-  for image in *.jpg; do
-    convert "$image" -resize "$size"x"$size" resized/"${image%}"
-    printf "%s -> resized\n" "$image"
-  done
-  return 0
+	local -ri size="$1"
+	local image
+	[[ -d ./resized ]] || mkdir -p ./resized
+	printf "Creating resized images in ./resized...\n"
+	for image in *.jpg; do
+		convert "$image" -resize "$size"x"$size" resized/"${image%}"
+		printf "%s -> resized\n" "$image"
+	done
+	return 0
 }
 
 rename_extensions() {
-  # rename *.JPG, *.JPEG, *.jpeg -> *.jpg
-  find . -maxdepth 1 -type f -iname "*.jp*g" -exec rename 's/\.JPE?G$/\.jpg/i' {}  \;
-  return 0
+	# rename *.JPG, *.JPEG, *.jpeg -> *.jpg
+	find . -maxdepth 1 -type f -iname "*.jp*g" -exec rename 's/\.JPE?G$/\.jpg/i' {}  \;
+	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-  local -r version="1.7.26215"
-	local size="${1:-800}"
-  if find_images; then
-    check_package imagemagick
-    rename_extensions
-    resize_pics "$size"
-  else
-    printf "No JPEG images in current directory to process.\n"
-  fi
-  over_line "$script $version"
-  exit
+	local -r version="1.8.26252"
+	local -ri size="${1:-800}"
+	if find_images; then
+		check_dependencies
+		rename_extensions
+		resize_pics "$size"
+	else
+		printf "No JPEG images in current directory to process.\n"
+	fi
+	over_line "$script $version"
+	exit
 }
 
 main "$@"
