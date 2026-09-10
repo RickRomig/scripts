@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Aug 2025
-# Last updated : 23 Jul 2026
-# Version      : 5.2.26204
+# Last updated : 10 Sep 2026
+# Version      : 5.3.26253
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,14 +23,13 @@
 # PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ################################################################################
 
-## Source function library ##
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 update_clones() {
 	local -r log_dir=~/.local/share/logs
 	local -r repo_log=repo-update.log
-  local -r clones=(configs scripts i3wm-debian homepage fnloc fnloc-win gitea-server)
+	local -r clones=(configs scripts i3wm-debian homepage fnloc fnloc-win gitea-server)
 	local clone clone_dir
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 		{
@@ -52,7 +51,7 @@ update_clones() {
 }
 
 valid_host() {
-  local local_host="${HOSTNAME:-$(hostname)}"
+	local local_host="${HOSTNAME:-$(hostname)}"
 	case "$local_host" in
 		hp-800g2-sff|hp-850-g3|hp-8300-usdt ) return "$FALSE" ;;
 		* ) return "$TRUE"
@@ -60,8 +59,8 @@ valid_host() {
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="5.2.26204"
+	local -r script="${0##*/}"
+	local -r version="5.3.26253"
 	local -i exit_code=0
 	printf "%sUpdating cloned repositories...%s\n" "$orange" "$normal"
 	if valid_host; then
@@ -72,8 +71,8 @@ main() {
 		exit_code="$?"
 		printf "Main repository - Nothing to do.\n"
 	fi
-  over_line "$script $version"
-  exit "$exit_code"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
