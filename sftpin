@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2017, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Dec 2017
-# Updated      : 03 Aug 2026
-# Version      : 2.8.26215
+# Updated      : 10 Sep 2026
+# Version      : 2.9.26253
 # Comments     : Based on script by Joe Collins.
 #              : LOCALNET and valid_ip() are declared in functionlib
 # TODO (rick)  :
@@ -29,41 +29,41 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
-  local -ri errcode="${3:-1}"
-  local -r updated="03 Aug 2026"
-  cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Log in to a remote server using Secure File Transfer Protocol (SFTP).
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
+	local -r updated="10 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Log in to a remote server using Secure File Transfer Protocol (SFTP).
 
-${green}Usage:${normal} $script [last_octet] [-h | --help]
-${orange}Example:${normal} $script 15
-Argument is the last octet of the remote server's IP address.
-Assumes a /24 network.
+	${green}Usage:${normal} $script [last_octet] [-h | --help]
+	${orange}Example:${normal} $script 15
+	Argument is the last octet of the remote server's IP address.
+	Assumes a /24 network.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 sftp_in() {
-  local -r hostip="$1"
-  if valid_ip "$hostip"; then
-    /usr/bin/sftp "$LOCALNET.$hostip"
-  else
-    help "$script" "$version" "$?"
-  fi
-  return 0
+	local -ri hostip="$1"
+	if valid_ip "$hostip"; then
+		/usr/bin/sftp "$LOCALNET.$hostip"
+	else
+		help "$script" "$version" "$?"
+	fi
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="2.8.26215"
-  [[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
-  local hostip="$1"
-  [[ "$hostip" ]] || read -rp "Enter last octet of remote server's IP address: " hostip
-  sftp_in "$hostip"
-  over_line "$script $version"
-  exit
+	local -r script="${0##*/}"
+	local -r version="2.9.26253"
+	local -i hostip="$1"
+	[[ "$#" -eq 0 ]] && read -rp "Enter last octet of remote server's IP address: " hostip
+	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
+	sftp_in "$hostip"
+	over_line "$script $version"
+	exit
 }
 
 main "$@"
