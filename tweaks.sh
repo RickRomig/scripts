@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 05 Aug 2026
-# Version      ; 4.6.26217
+# Last updated : 10 Sep 2026
+# Version      ; 4.7.26253
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,13 +31,13 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="05 Aug 2026"
-	cat << _HELP_
-${orange}$script${normal} $version, Upated: $updated
-Create symbolic links from configs and scripts repos and add tweaks to system settings.
+	local -r updated="10 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version, Upated: $updated
+	Create symbolic links from configs and scripts repos and add tweaks to system settings.
 
-${green}Usage:${normal} $script [-cdhst]
-${orange}Available options:${normal}
+	${green}Usage:${normal} $script [-cdhst]
+	${orange}Available options:${normal}
 	-c	Symlink configuration files to ~/.config
 	-d	Symlink dot files to ~/
 	-h	Show this help message and exit
@@ -48,7 +48,7 @@ ${orange}Available options:${normal}
 	-t	Apply tweaks to /etc/sudoers.d and /etc/sysctl.conf
 	-w	Set swappiness
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 # Create symbolic links to dotfiles in the home directory
@@ -206,7 +206,7 @@ link_script_dir() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.6.26217"
+	local -r version="4.7.26253"
 	local -i exit_code=0
 	local opt OPTIND OPTARG
 	local old_configs=~/.old-configs
@@ -242,10 +242,13 @@ main() {
 		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
-  over_line "$script $version"
-  exit "$exit_code"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
