@@ -7,8 +7,8 @@
 # Author       : Copyright © 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 May 2020
-# Updated      : 09 Aug 2026
-# Version      : 3.5.26221
+# Updated      : 10 Sep 2026
+# Version      : 3.6.26253
 # Comments     : Accepts only full URL
 #              : Downloads to current working directory
 #              : Video Playlist
@@ -34,63 +34,74 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="09 Aug 2026"
-  cat << _HELP_
-${orange}$script${normal} $version, Updated: $updated
-Downloads mp3 audio from a playlist of YouTube videos to current working directory.
+	local -r updated="10 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version, Updated: $updated
+	Downloads mp3 audio from a playlist of YouTube videos to current working directory.
 
-${green}Usage:${normal} $script [OPTION] [video-url]
-${orange}Available options:${normal}
-  -h | --help  Show this help text.
+	${green}Usage:${normal} $script [OPTION] [video-url]
+	${orange}Available options:${normal}
+	-h | --help  Show this help text.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
+}
+
+check_arguments() {
+	if [[  $# -eq 0 ]]; then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$updated" "$E_MISSING_ARG"
+	elif [[ "$1" == "--info" || "$1" == "-i" ]]; then
+		script_info "$script" "$version" "$updated"
+		exit 0
+	elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
+		help "$script" "$version" "$updated" 0
+	fi
+	return 0
 }
 
 check_dependencies() {
-  [[ -x /usr/local/bin/yt-dlp ]] || die "yt-dlp is not installed." "$E_FILENOTFOUND"
-  printf "yt-dlp [OK]\n"
-  sleep 2
-  printf '\e[A\e[K'
-  check_package ffmpeg
-  return 0
+	[[ -x /usr/local/bin/yt-dlp ]] || die "yt-dlp is not installed." "$E_FILENOTFOUND"
+	printf "yt-dlp [OK]\n"
+	sleep 2
+	printf '\e[A\e[K'
+	check_package ffmpeg
+	return 0
 }
 
 download_playlist() {
-  local -r playlist_url="$1"
-  local -i exit_code=0
-  color_header "YouTube Audio Playlist Download" "GRAY"
-  printf "\nDownloading mp3 audio for %s\n" "$playlist_url"
-  # if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s"  --yes-playlist "$url"
-  /usr/local/bin/yt-dlp --ignore-errors --format bestaudio --extract-audio --restrict-filename --audio-format mp3 --audio-quality 160K --output "%(title)s.%(ext)s" --yes-playlist "$playlist_url"; exit_code="$?"
-  if [[ "$exit_code" -ne 0 ]]; then
-    printf "Download failed. Error: %d" "$exit_code"
-  else
-    printf "Download successful.\n"
-  fi
-  return "$exit_code"
+	local -r playlist_url="$1"
+	local -i code=0
+	color_header "YouTube Audio Playlist Download" "GRAY"
+	printf "\nDownloading mp3 audio for %s\n" "$playlist_url"
+	# if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s"  --yes-playlist "$url"
+	/usr/local/bin/yt-dlp --ignore-errors --format bestaudio --extract-audio --restrict-filename --audio-format mp3 --audio-quality 160K --output "%(title)s.%(ext)s" --yes-playlist "$playlist_url"; code="$?"
+	if [[ "$code" -ne 0 ]]; then
+		printf "Download failed. Error: %d" "$code"
+		return "$code"
+	else
+		printf "Download successful.\n"
+		return "$code"
+	fi
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="3.5.26221"
+	local -r script="${0##*/}"
+	local -r version="3.6.26253"
 	local -i exit_code=0
-  local -r re="^https?:\/\/.*"
-  if [[ "$#" -eq 0 ]]; then
-    printf "%s No argument passed \n" "$RED_ERROR" >&2
-    help "$script" "$version" "$E_MISSING_ARG"
-  elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    help "$script" "$version" 0
-  elif [[ $1 =~ $re ]]; then
-    local -r url="$*"
-  else
-    printf "%s Invalid argument. Must be full URL.\n" "$RED_ERROR" >&2
-    help "$script" "$version" "$E_INVALID_ARG"
-  fi
-  check_dependencies
-  download_playlist "$url"
-  exit_code="$?"
-  over_line "$script $version" "-"
-  exit "$exit_code"
+	local -r re="^https?:\/\/.*"
+	check_arguments "$@"
+	if [[ $1 =~ $re ]]; then
+		# match by regex, starts with http:// or https://
+		local -r url=$*
+	else
+		# match by YouTube video ID
+		local -r url="https://www.youtube.com/watch?v=$*"
+	fi
+	check_dependencies
+	download_playlist "$url"
+	exit_code="$?"
+	over_line "$script $version" "-"
+	exit "$exit_code"
 }
 
 main "$@"
