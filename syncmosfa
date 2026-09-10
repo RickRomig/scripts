@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020 Richard Romig, 29 Sep 2020
 # Email        : rick.romig@gmail.com
 # Created      : 29 Sep 2020
-# Updated      : 28 Aug 2026
-# Version      : 4.9.26240
+# Updated      : 10 Sep 2026
+# Version      : 4.10.26253
 # Comments     : Can sync to one, some, or all machines on the network.
 #              : LOCALNET is declared in functionlib.bash
 # TODO (rick)  :
@@ -31,37 +31,36 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 SECONDS=0
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
+	local -r script="$1"
+	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local updated="28"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Syncs directories with machines on the network via SSH
+	local updated="10 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Syncs directories with machines on the network via SSH
 
-${green}Usage:${normal} $script [-h|--help] [-a|--all] [ip1 ip2 ip3 ...]
-${orange}Available options:${normal}
-  -h | --help  Show this help message and exit.
-  -a | --all   Synchronize all designated machines on the network.
-  1-255        Last octet of the IP address(es) of the machine(s) to synchronize.
-  -n           Display GPL 2 notice.
-${blue}Examples:${normal}
-$script -h        # Displays usage instructions.
-$script --help    # Displays usage instructions.
-$script -a        # Synchronizes with all designated systems.
-$script --all     # Synchronizes with all designated systems.
-$script 13        # Synchronizes with the system with a last octet of 13.
-$script 12 13 14  # Synchronizes with systems whose last octets are 12, 13, 14.
-${orange}Notes:${normal}
-  - Multiple IP addresses can be entered.
-  - This script is limited to the range of static IP addresses (1 - 25).
-  - Certain addresses within that range may not be accessible.
+	${green}Usage:${normal} $script [-h|--help] [-a|--all] [ip1 ip2 ip3 ...]
+	${orange}Available options:${normal}
+	-h | --help  Show this help message and exit.
+	-a | --all   Synchronize all designated machines on the network.
+	1-255        Last octet of the IP address(es) of the machine(s) to synchronize.
+	${blue}Examples:${normal}
+	$script -h        # Displays usage instructions.
+	$script --help    # Displays usage instructions.
+	$script -a        # Synchronizes with all designated systems.
+	$script --all     # Synchronizes with all designated systems.
+	$script 13        # Synchronizes with the system with a last octet of 13.
+	$script 12 13 14  # Synchronizes with systems whose last octets are 12, 13, 14.
+	${orange}Notes:${normal}
+	- Multiple IP addresses can be entered.
+	- This script is limited to the range of static IP addresses (1 - 25).
+	- Certain addresses within that range may not be accessible.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 transfer_status() {
-  local -i xfr_status="$1"
+	local -ri xfr_status="$1"
 	if [[ "$xfr_status" -gt 0 ]]; then
 		printf "%s A transfer failed. Code: %d. Check network status.\n" "$RED_ERROR" "$xfr_status" >&2
 		return "$xfr_status"
@@ -71,159 +70,156 @@ transfer_status() {
 }
 
 transfer() {
-  local -ri hostip="$1"
-  local ip_addr
-  ip_addr="$(local_ip)"
-  # Skip local machine:
-  if [[ "$ip_addr" == "$hostip" ]]; then
-    printf "%sSkipping Machine %s (local client)%s\n\n" "$green" "$hostip" "$normal"
-    return "$E_INVALID_HOST"
-  fi
-  # Check for machines and sync if on-line:
-  printf "%sChecking for %s...%s\n" "$green" "$hostip" "$normal"
-  if  ping -c 3 "$LOCALNET.$hostip" >/dev/null 2>&1
-  then
-    printf "...Syncing to Machine %s\n" "$hostip"
-    syncscript "$hostip"
-    printf "\n...Machine %s Synced!\n\n" "$hostip"
-  else
-    printf "\n...Skipping %s! Not on network.\n\n" "$hostip"
-  fi
+	local -ri hostip="$1"
+	local ip_addr
+	ip_addr="$(local_ip)"
+	# Skip local machine:
+	if [[ "$ip_addr" == "$hostip" ]]; then
+		printf "%sSkipping Machine %s (local client)%s\n\n" "$green" "$hostip" "$normal"
+		return "$E_INVALID_HOST"
+	fi
+	# Check for machines and sync if on-line:
+	printf "%sChecking for %s...%s\n" "$green" "$hostip" "$normal"
+	if ping -c 3 "$LOCALNET.$hostip" >/dev/null 2>&1; then
+		printf "...Syncing to Machine %s\n" "$hostip"
+		syncscript "$hostip"
+		printf "\n...Machine %s Synced!\n\n" "$hostip"
+	else
+		printf "\n...Skipping %s! Not on network.\n\n" "$hostip"
+	fi
+	return "$?"
 }
 
 syncscript() {
-  local -r hostip="$1"
-
-  printf "\n%sSyncing Password Databases...%s\n" "$orange" "$normal"
-  rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$LOCALNET.$hostip":Documents/
-  transfer_status "$?"
-
-  printf "\n%sSyncing ~/Pictures/wallpaper... %s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$hostip":Pictures/wallpaper/
-  transfer_status "$?"
-
-  printf "\n%sSyncing ~/Pictures/backgrounds... %s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Pictures/backgrounds/ "$LOCALNET.$hostip":Pictures/backgrounds/
-  transfer_status "$?"
-
-  case "$hostip" in
-    16|22|153 )
-      printf "\n%sSyncing Deb Packages...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/debpkgs/  "$LOCALNET.$hostip":debpkgs/
-      transfer_status "$?"
-
-      printf "\n%sSyncing Git Repositories...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
-      transfer_status "$?"
-
-      printf "\n%sSyncing Projects Repositories...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
-      transfer_status "$?"
-
-      printf "\n%sSyncing ~/Documements/mosfanet ...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/Documents/mosfanet/ "$LOCALNET.$hostip":Documents/mosfanet/
-      transfer_status "$?"
-
-      printf "\n%sSyncing ~/Work ...%s\n" "$orange" "$normal"
-      rsync -avh --delete --exclude 'images' "$HOME"/Work/ "$LOCALNET.$hostip":Work/
-      transfer_status "$?"
-      ;;
-    11|12|13|14|15|19|20|23 )
-      printf "\n%sSyncing ~/Documements/mosfanet ...%s\n" "$orange" "$normal"
-      rsync -avh --delete "$HOME"/Documents/mosfanet/ "$LOCALNET.$hostip":Documents/mosfanet/
-      transfer_status "$?"
-
-      printf "\n%sSyncing ~/Work ...%s\n" "$orange" "$normal"
-      rsync -avh --delete --exclude '*.log' --exclude 'images' "$HOME"/Work/ "$LOCALNET.$hostip":Work/
-      transfer_status "$?"
-      ;;
-    * )
-      # 17, 21, 24. 25 exclusions
-      printf "\nExcluded from sync. Mosfanet and Work directories were not synchronized.\n"
-  esac
-
+	local -ri hostip="$1"
+	# Password databases
+	printf "\n%sSyncing Password Databases...%s\n" "$orange" "$normal"
+	rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$LOCALNET.$hostip":Documents/
+	transfer_status "$?"
+	# Wallpapers (NSFW)
+	printf "\n%sSyncing ~/Pictures/wallpaper... %s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$hostip":Pictures/wallpaper/
+	transfer_status "$?"
+	# Backgrounds (SFW)
+	printf "\n%sSyncing ~/Pictures/backgrounds... %s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Pictures/backgrounds/ "$LOCALNET.$hostip":Pictures/backgrounds/
+	transfer_status "$?"
+	case "$hostip" in
+		16|22|153 )
+			# Projects - Deb packages
+			printf "\n%sSyncing Deb Packages...%s\n" "$orange" "$normal"
+			rsync -avh --delete "$HOME"/debpkgs/  "$LOCALNET.$hostip":debpkgs/
+			transfer_status "$?"
+			# Projects - Git Repositories
+			printf "\n%sSyncing Git Repositories...%s\n" "$orange" "$normal"
+			rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
+			transfer_status "$?"
+			# Projectss - Other project repositories
+			printf "\n%sSyncing Projects Repositories...%s\n" "$orange" "$normal"
+			rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
+			transfer_status "$?"
+			# Documents - MosfaNet
+			printf "\n%sSyncing ~/Documements/mosfanet ...%s\n" "$orange" "$normal"
+			rsync -avh --delete "$HOME"/Documents/mosfanet/ "$LOCALNET.$hostip":Documents/mosfanet/
+			transfer_status "$?"
+			# Work & development diectories
+			printf "\n%sSyncing ~/Work ...%s\n" "$orange" "$normal"
+			rsync -avh --delete --exclude 'images' "$HOME"/Work/ "$LOCALNET.$hostip":Work/
+			transfer_status "$?" ;;
+		11|12|13|14|15|19|20|23 )
+			# Documents - MosfaNet
+			printf "\n%sSyncing ~/Documements/mosfanet ...%s\n" "$orange" "$normal"
+			rsync -avh --delete "$HOME"/Documents/mosfanet/ "$LOCALNET.$hostip":Documents/mosfanet/
+			transfer_status "$?"
+			# Work & development diectories
+			printf "\n%sSyncing ~/Work ...%s\n" "$orange" "$normal"
+			rsync -avh --delete --exclude '*.log' --exclude 'images' "$HOME"/Work/ "$LOCALNET.$hostip":Work/
+			transfer_status "$?" ;;
+		* )
+			# 17, 21, 24. 25 exclusions
+			printf "\nExcluded from sync. Mosfanet and Work directories were not synchronized.\n"
+	esac
 	return 0
 }
 
 sync_one() {
-  local -ri hostip="$1"
-  if [[ "$hostip" -gt 0 && "$hostip" -lt 10 ]]; then
-    printf "%s %s is a restricted address. Access denied.\n" "$RED_WARNING" $"$LOCALNET.$hostip"
-    return "$E_INVALID_HOST"
-  elif valid_ip "$hostip"; then
-    printf "Synchronizing bin and template directories with %s:\n\n" "$LOCALNET.$hostip"
-    transfer "$hostip"
-    return "$?"
-  else
-    help "$script" "$version" "$?"
-  fi
+	local -ri hostip="$1"
+	if [[ "$hostip" -gt 0 && "$hostip" -lt 10 ]]; then
+		printf "%s %s is a restricted address. Access denied.\n" "$RED_WARNING" $"$LOCALNET.$hostip"
+		return "$E_INVALID_HOST"
+	elif valid_ip "$hostip"; then
+		printf "Synchronizing bin and template directories with %s:\n\n" "$LOCALNET.$hostip"
+		transfer "$hostip"
+		return "$?"
+	else
+		help "$script" "$version" "$?"
+	fi
 }
 
 sync_some() {
-  local hostip
-  printf "Synchronizing directories with selected systems on the local network.\n\n"
-  for hostip in "$@"; do
-    if [[ "$hostip" -gt 0 && "$hostip" -lt 255 ]]; then
-      case "$hostip" in
-        1|2|3|4|5|6|7|8|9 )
-          printf "%s %s is a restricted address. Access denied.\n" "$RED_WARNING" "$LOCALNET.$hostip"
-          return "$?"
-          ;;
-        * )
-          transfer "$hostip"
-          return "$?"
-      esac
-    else
-      printf "%s Invalid argument: %s\n\n" "$RED_ERROR" "$hostip" >&2
-      return "$E_INVALID_ARG"
-    fi
-  done
+	local -i hostip
+	local -i code=0
+	printf "Synchronizing directories with selected systems on the local network.\n\n"
+	for hostip in "$@"; do
+		if [[ "$hostip" -gt 0 && "$hostip" -lt 255 ]]; then
+			case "$hostip" in
+				1|2|3|4|5|6|7|8|9 )
+					printf "%s %s is a restricted address. Access denied.\n" "$RED_WARNING" "$LOCALNET.$hostip"
+					code="$E_INVALID_HOST" ;;
+				* )
+					transfer "$hostip"
+					code="$?"
+			esac
+		else
+			printf "%s Invalid argument: %s\n\n" "$RED_ERROR" "$hostip" >&2
+			code="$E_INVALID_ARG"
+		fi
+	done
+	return "$code"
 }
 
 sync_all() {
-  local hostip octets
-  octets=(11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)
-  printf "Sychronizing directories with all systems with static IP addresses on the local network.\n"
-  for hostip in "${octets[@]}"; do
-    transfer "$hostip"
-  done
-  return "$?"
+	local -i hostip
+	local -i octets=(11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)
+	printf "Sychronizing directories with all systems with static IP addresses on the local network.\n"
+	for hostip in "${octets[@]}"; do transfer "$hostip"; done
+	return "$?"
 }
 
 check_host() {
-  local -r main_host="hp-800g2-sff"
-  local -r local_host="${HOSTNAME:-$(hostname)}"
-  local -i ip_addr
-  ip_addr="$(local_ip)"
-  printf "Host: %s%s%s at " "$lightyellow" "$local_host" "$normal"
-  printf "%s%s%s\n\n" "$lightyellow" "$LOCALNET.$ip_addr" "$normal"
-  [[ "$local_host" != "$main_host" ]] && die "Script must be run from $main_host" "$E_INVALID_HOST"
+	local -r main_host="hp-800g2-sff"
+	local -r local_host="${HOSTNAME:-$(hostname)}"
+	local -i ip_addr
+	ip_addr="$(local_ip)"
+	printf "Host: %s%s%s at " "$lightyellow" "$local_host" "$normal"
+	printf "%s%s%s\n\n" "$lightyellow" "$LOCALNET.$ip_addr" "$normal"
+	[[ "$local_host" != "$main_host" ]] && die "Script must be run from $main_host" "$E_INVALID_HOST"
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="4.8.26215"
-  local -i exit_code=0
-  check_package rsync
-  if [[ "$#" -eq 0 ]]; then
-    printf "%s No arguments passed.\n" "$RED_ERROR" >&2
-    help "$script" "$version" "$E_MISSING_ARG"
-  elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
-    help 0
-  elif [[ "$1" == "-a" || "$1" == "--all" ]]; then
-    check_host
-    sync_all
-  elif [[ "$#" -gt 1 ]]; then
-    check_host
-    sync_some "$@"
-  else
-    check_host
-    sync_one "$1"
-  fi
-  exit_code="$?"
-  over_line "Script completed in $(format_time $SECONDS)"
-  over_line "$script $version"
-  exit "$exit_code"
+	local -r script="${0##*/}"
+	local -r version="4.10.26253"
+	local -i exit_code=0
+	check_package rsync
+	if [[ "$#" -eq 0 ]]; then
+		printf "%s No arguments passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	elif [[ "$1" == "-h" || "$1" == "--help" ]]; then
+		help "$script" "$version" 0
+	elif [[ "$1" == "-a" || "$1" == "--all" ]]; then
+		check_host
+		sync_all
+	elif [[ "$#" -gt 1 ]]; then
+		check_host
+		sync_some "$@"
+	else
+		check_host
+		sync_one "$1"
+	fi
+	exit_code="$?"
+	over_line "Script completed in $(format_time $SECONDS)"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
