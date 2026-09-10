@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 04 Sep 2026
+# Last updated : 10 Sep 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -56,9 +56,10 @@ declare -r E_INSTALLATION=12
 declare -r E_NOT_INSTALLED=13
 declare -r E_DOWNLOAD=14
 declare -r E_NETWORK=15
-declare -r E_INVALID_HOST=16
-declare -r E_UNSUPPORTED=17
-declare -r E_NOT_DETECTED=18
+declare -r E_OFFLINE=16
+declare -r E_INVALID_HOST=17
+declare -r E_UNSUPPORTED=18
+declare -r E_NOT_DETECTED=19
 
 ## Colors ##
 
