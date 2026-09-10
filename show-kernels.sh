@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Feb 2026
-# Updated      : 16 Aug 2026
-# Version      : 1.4.26228
+# Updated      : 10 Sep 2026
+# Version      : 1.5.26253
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,27 +28,27 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 show_linux_headers() {
-  local header_list
-  printf "\n%sCurrently installed Linux headers:%s\n" "$green" "$normal"
-  header_list=$(awk '/^ii/ && /-headers-/ {print $2}' < <(dpkg --list) | grep -v 'tools' | sort -r)
-  [[ "$header_list" ]] || { printf "No Linux headers installed.\n"; return 0; }
-  printf "%s\n" "$header_list"
-  return 0
+	local header_list
+	header_list=$(awk '/^ii/ && /-headers-/ {print $2}' < <(dpkg --list) | grep -v 'tools' | sort -r)
+	printf "\n%sCurrently installed Linux headers:%s\n" "$green" "$normal"
+	[[ "$header_list" ]] || { printf "No Linux headers installed.\n"; return 0; }
+	printf "%s\n" "$header_list"
+	return 0
 }
 
 show_linux_images() {
-  printf "%sActive kernel:%s %s\n\n" "$orange" "$normal" "$(uname -r)"
-  printf "%sCurrently installed Linux images:%s\n" "$green" "$normal"
-  awk '/^ii/ && /linux-image/ {print $2}' < <(dpkg --list) | sort -r
-  return 0
+	printf "%sActive kernel:%s %s\n\n" "$orange" "$normal" "$(uname -r)"
+	printf "%sCurrently installed Linux images:%s\n" "$green" "$normal"
+	awk '/^ii/ && /linux-image/ {print $2}' < <(dpkg --list) | sort -r
+	return 0
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="1.4.26228"
-  show_linux_images
-  show_linux_headers
-  over_line "$script $version"
+	local -r script="${0##*/}"
+	local -r version="1.5.26253"
+	show_linux_images
+	show_linux_headers
+	over_line "$script $version"
 	exit
 }
 
