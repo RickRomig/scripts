@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Mar 2023
-# Updated      : 03 Aug 2026
-# Version      : 4.11.26215
+# Updated      : 10 Sep 2026
+# Version      : 4.12.26253
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,146 +36,151 @@ transfer_status() {
 		return "$xfr_status"
 	fi
 	printf "Transfer successful\n"
-	return 0
+	return "$xfr_status"
 }
 
 syncscript() {
 	local -ri hostip="$1"
-
-  # Sync Audiobook files.
-  printf "\n%sSyncing Audio Books...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Audiobooks/ "$LOCALNET.$hostip":Audiobooks/
-  transfer_status "$?"
-
-  printf "\n%sSyncing Blog directory...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Documents/Blogs/ "$LOCALNET.$hostip":Documents/Blogs/
-  transfer_status "$?"
-
-  printf "\n%sSyncing Dreams directory...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Documents/Dreams/ "$LOCALNET.$hostip":Documents/Dreams/
-  transfer_status "$?"
-
-  printf "\n%sSyncing Language directory...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Documents/Language/ "$LOCALNET.$hostip":Documents/Language/
-  transfer_status "$?"
-
-  printf "\n%sSyncing Password Databases...%s\n" "$orange" "$normal"
-  rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$LOCALNET.$hostip":Documents/
-  transfer_status "$?"
-
-  printf "\n%sSyncing ~/.local/share/doc ...%s\n" "$orange" "$normal"
-  rsync -avh --delete --exclude 'leave.txt' "$HOME"/.local/share/doc/ "$LOCALNET.$hostip":.local/share/doc/
-  transfer_status "$?"
-
-  printf "\n%sSyncing MOSFANET directory...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Documents/mosfanet/ "$LOCALNET.$hostip":Documents/mosfanet/
-  transfer_status "$?"
-
-  printf "\n%sSyncing Work directory...%s\n" "$orange" "$normal"
-  rsync -avh --delete --exclude 'images' "$HOME"/Work/ "$LOCALNET.$hostip":Work/
-  transfer_status "$?"
-
-  printf "\n%sSyncing Wallpaper directory...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$hostip":Pictures/wallpaper/
-  transfer_status "$?"
-
-  printf "\n%sSyncing SFW Wallpaper directory...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Pictures/backgrounds/ "$LOCALNET.$hostip":Pictures/backgrounds/
-  transfer_status "$?"
-
-  printf "\n%sSyncing Quotes directory...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Documents/Quotes/ "$LOCALNET.$hostip":Documents/Quotes/
-  transfer_status "$?"
-
-  printf "\n%sSyncing Journals directory...%s\n" "$orange" "$normal"
-  rsync -avh --delete --exclude='.~lock*' "$HOME"/Documents/Journals/ "$LOCALNET.$hostip":Documents/Journals/
-  transfer_status "$?"
-
-  printf "\n%sSyncing Tech Videos...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Videos/Tech/ "$LOCALNET.$hostip":Videos/Tech/
-  transfer_status "$?"
-
-  printf "\n%sSyncing cloned repositories...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Downloads/cloned-repositories/ "$LOCALNET.$hostip":Downloads/cloned-repositories/
-  transfer_status "$?"
-
-  printf "\n%sSyncing Code directory...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Downloads/Code/ "$LOCALNET.$hostip":Downloads/Code/
-  transfer_status "$?"
-
-  printf "\n%sSyncing Projects Repositories...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
-  transfer_status "$?"
-
-  printf "\n%sSyncing Gitea Repositories...%s\n" "$orange" "$normal"
-  rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
-  transfer_status "$?"
-
+	# Audiobook files.
+	printf "\n%sSyncing Audio Books...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Audiobooks/ "$LOCALNET.$hostip":Audiobooks/
+	transfer_status "$?"
+	# Blogs
+	printf "\n%sSyncing Blog directory...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Documents/Blogs/ "$LOCALNET.$hostip":Documents/Blogs/
+	transfer_status "$?"
+	# Dreams
+	printf "\n%sSyncing Dreams directory...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Documents/Dreams/ "$LOCALNET.$hostip":Documents/Dreams/
+	transfer_status "$?"
+	# Language
+	printf "\n%sSyncing Language directory...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Documents/Language/ "$LOCALNET.$hostip":Documents/Language/
+	transfer_status "$?"
+	# Passwords
+	printf "\n%sSyncing Password Databases...%s\n" "$orange" "$normal"
+	rsync -avh --delete --include="*.kdbx" --exclude="*" "$HOME"/Documents/ "$LOCALNET.$hostip":Documents/
+	transfer_status "$?"
+	# .local/share/doc
+	printf "\n%sSyncing ~/.local/share/doc ...%s\n" "$orange" "$normal"
+	rsync -avh --delete --exclude 'leave.txt' "$HOME"/.local/share/doc/ "$LOCALNET.$hostip":.local/share/doc/
+	transfer_status "$?"
+	# MosfaNet documents
+	printf "\n%sSyncing MOSFANET directory...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Documents/mosfanet/ "$LOCALNET.$hostip":Documents/mosfanet/
+	transfer_status "$?"
+	# Work & Development
+	printf "\n%sSyncing Work directory...%s\n" "$orange" "$normal"
+	rsync -avh --delete --exclude 'images' "$HOME"/Work/ "$LOCALNET.$hostip":Work/
+	transfer_status "$?"
+	# NSFW wallpapers
+	printf "\n%sSyncing Wallpaper directory...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Pictures/wallpaper/ "$LOCALNET.$hostip":Pictures/wallpaper/
+	transfer_status "$?"
+	# SFW wallpapers
+	printf "\n%sSyncing SFW Wallpaper directory...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Pictures/backgrounds/ "$LOCALNET.$hostip":Pictures/backgrounds/
+	transfer_status "$?"
+	# Quotes
+	printf "\n%sSyncing Quotes directory...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Documents/Quotes/ "$LOCALNET.$hostip":Documents/Quotes/
+	transfer_status "$?"
+	# Journals
+	printf "\n%sSyncing Journals directory...%s\n" "$orange" "$normal"
+	rsync -avh --delete --exclude='.~lock*' "$HOME"/Documents/Journals/ "$LOCALNET.$hostip":Documents/Journals/
+	transfer_status "$?"
+	# Tech Videos
+	printf "\n%sSyncing Tech Videos...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Videos/Tech/ "$LOCALNET.$hostip":Videos/Tech/
+	transfer_status "$?"
+	# Cloned repositories
+	printf "\n%sSyncing cloned repositories...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Downloads/cloned-repositories/ "$LOCALNET.$hostip":Downloads/cloned-repositories/
+	transfer_status "$?"
+	# Code
+	printf "\n%sSyncing Code directory...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Downloads/Code/ "$LOCALNET.$hostip":Downloads/Code/
+	transfer_status "$?"
+	# Projects
+	printf "\n%sSyncing Projects Repositories...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/Projects/ "$LOCALNET.$hostip":Projects/
+	transfer_status "$?"
+	# Gitea Repositories
+	printf "\n%sSyncing Gitea Repositories...%s\n" "$orange" "$normal"
+	rsync -avh --delete "$HOME"/gitea/ "$LOCALNET.$hostip":gitea/
+	transfer_status "$?"
 	return 0
 }
 
 sync_to_laptop() {
-  local -r main_host="$1"
-  local -r laptop_host="$2"
-  local -ri lap_ip="22"
-  local -ri wifi_ip="153"
-  if ping -c 3 "$LOCALNET.$lap_ip" >/dev/null 2>&1; then
-    printf "Syncing %s to %s ...\n" "$main_host" "$laptop_host"
-    syncscript "$lap_ip"
-    printf "\n%s synced with %s.\n" "$laptop_host" "$main_host"
-    over_line "Syncronization completed in $(format_time $SECONDS)" "-"
-  elif ping -c 3 "$LOCALNET.$wifi_ip" >/dev/null 2>&1; then
-    printf "Syncing %s to %s ...\n" "$main_host" "$laptop_host"
-    syncscript "$wifi_ip"
-    printf "\n%s synced with %s.\n" "$laptop_host" "$main_host"
-    over_line "Syncronization completed in $(format_time $SECONDS)" "-"
-else
-    printf "\n%s is not on the netwwork.\n" "$laptop_host"
-  fi
-	return 0
+	local -r main_host="$1"
+	local -r laptop_host="$2"
+	local -ri lap_ip="22"
+	local -ri wifi_ip="153"
+	local -i code=0
+	if ping -c 3 "$LOCALNET.$lap_ip" >/dev/null 2>&1; then
+		printf "Syncing %s to %s ...\n" "$main_host" "$laptop_host"
+		syncscript "$lap_ip"
+		printf "\n%s synced with %s.\n" "$laptop_host" "$main_host"
+		over_line "Syncronization completed in $(format_time $SECONDS)" "-"
+	elif ping -c 3 "$LOCALNET.$wifi_ip" >/dev/null 2>&1; then
+		printf "Syncing %s to %s ...\n" "$main_host" "$laptop_host"
+		syncscript "$wifi_ip"
+		printf "\n%s synced with %s.\n" "$laptop_host" "$main_host"
+		over_line "Syncronization completed in $(format_time $SECONDS)" "-"
+	else
+		printf "\n%s %s is not on the netwwork.\n" "$RED_WARNING" "$laptop_host"
+		code="$E_OFFLINE"
+	fi
+	return "$code"
 }
 
 sync_to_main() {
-  local -r main_host="$1"
-  local -r laptop_host="$2"
-  local -ri main_ip="10"
-  if ping -c 3 "$LOCALNET.$main_ip" >/dev/null 2>&1; then
-    default_no "Are you sure you want to sync to $main_host?" || leave "Sync to $main_host canceled."
-    printf "Syncing %s to %s ...\n" "$laptop_host" "$main_host"
-    syncscript "$main_ip"
-    printf "\n%s synced with %s.\n" "$main_host" "$laptop_host"
-    over_line "Syncronization completed in $(format_time $SECONDS)" "-"
-  else
-    printf "\n%s is not on the netwwork.\n" "$main_host"
-  fi
-	return 0
+	local -r main_host="$1"
+	local -r laptop_host="$2"
+	local -ri main_ip="10"
+	local -i code=0
+	if ping -c 3 "$LOCALNET.$main_ip" >/dev/null 2>&1; then
+		default_no "Are you sure you want to sync to $main_host?" || leave "Sync to $main_host canceled."
+		printf "Syncing %s to %s ...\n" "$laptop_host" "$main_host"
+		syncscript "$main_ip"
+		printf "\n%s synced with %s.\n" "$main_host" "$laptop_host"
+		over_line "Syncronization completed in $(format_time $SECONDS)" "-"
+	else
+		printf "\n%s %s is not on the netwwork.\n" "$RED_WARNING" "$main_host"
+		code="$E_OFFLINE"
+	fi
+	return "$code"
 }
 
 check_host() {
-  local -r local_host="${HOSTNAME:-$(hostname)}"
-  local -r main_host="hp-800g2-sff"
-  local -r laptop_host="hp-850-g3"
-  printf "Synchronizes files between %s and %s.\n" "$main_host" "$laptop_host"
-  if [[ "$local_host" == "$main_host" ]]; then
-    sync_to_laptop "$main_host" "$laptop_host"
-  elif [[ "$local_host" == "$laptop_host" ]]; then
-    sync_to_main "$main_host" "$laptop_host"
-  else
-    printf "%s Invalid client. Script must be run from either %s or %s.\n" "$RED_ERROR" "$main_host" "$laptop_host"
-    return "$E_INVALID_HOST"
-  fi
-	return 0
+	local -r local_host="${HOSTNAME:-$(hostname)}"
+	local -r main_host="hp-800g2-sff"
+	local -r laptop_host="hp-850-g3"
+	local -i code=0
+	printf "Synchronizes files between %s and %s.\n" "$main_host" "$laptop_host"
+	if [[ "$local_host" == "$main_host" ]]; then
+		sync_to_laptop "$main_host" "$laptop_host"
+		code="$?"
+	elif [[ "$local_host" == "$laptop_host" ]]; then
+		sync_to_main "$main_host" "$laptop_host"
+		code="$?"
+	else
+		printf "%s Invalid client. Script must be run from either %s or %s.\n" "$RED_ERROR" "$main_host" "$laptop_host"
+		code="$E_INVALID_HOST"
+	fi
+	return "$code"
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="4.11.26215"
+	local -r script="${0##*/}"
+	local -r version="4.12.26253"
 	local -i exit_code=0
-  box "$script $version" "-"
-  check_host
+	box "$script $version" "-"
+	check_host
 	exit_code="$?"
 	over_line "$script $version"
-  exit "$exit_code"
+	exit "$exit_code"
 }
 
 main "$@"
