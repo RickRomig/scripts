@@ -24,26 +24,26 @@ find ./ -maxdepth 1 -type f -iname "*.sh" -exec bat {} +
 ```bash
 git show v0.6.0:src/main.c | bat -l c
 batdiff() {
-  git diff --name-only --relative --diff-filtered | xargs bat --diff
+	git diff --name-only --relative --diff-filtered | xargs bat --diff
 }
 ```
 ### `man`
 - Add the following to `.bashrc`
-  ```bash
-  export MANPAGER="sh -c 'col -bx | bat -l man -p'"
-  man 2 select
-  # if `batman` bat-extra is installed:
-  alias man='batman'
-  ```
+```bash
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+man 2 select
+# if `batman` bat-extra is installed:
+alias man='batman'
+```
 - If Debian and Ubuntu, use `batcat`
 ### With `--help`
 ```bash
 cp --help | bat -plhelp
 # Wrapper in .bash_aliases
 alias bathelp='bat --plain --language=help'
-help() {
-  "$@" --help 2>&1 | bathelp
+Help() {
+	"$@" --help 2>&1 | bathelp
 }
-$ help cp
-$ help git commit
+$ Help cp
+$ Help git commit
 ```
