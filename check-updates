@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 04 Sep 2026
-# Version      : 12.0.26247
+# Updated      : 11 Sep 2026
+# Version      : 12.1.26254
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -34,17 +34,17 @@ help() {
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
 	local -r updated="04 Sep 2026"
-	cat << _HELP_
-${orange}$script${normal} $version, Upated: $updated
-Performs a system update using either Apt-get or Nala.
+	cat <<- _HELP_
+	${orange}$script${normal} $version, Upated: $updated
+	Performs a system update using either Apt-get or Nala.
 
-${green}Usage:${normal} $script [-achn]
-${orange}Available options:${normal}
-  -a  Perform a system upgrade using apt-get
-  -h  Show this help message and exit
-  -n  Perform a system upgrade using nala
-${orange}Notes:${normal}
-  If nala is not installed, -n defers to using apt-get
+	${green}Usage:${normal} $script [-achn]
+	${orange}Available options:${normal}
+	-a  Perform a system upgrade using apt-get
+	-h  Show this help message and exit
+	-n  Perform a system upgrade using nala
+	${orange}Notes:${normal}
+	If nala is not installed, -n defers to using apt-get
 _HELP_
 	exit "$errcode"
 }
@@ -54,11 +54,11 @@ show_header() {
 	local -r version="$2"
 	local -r local_host="${HOSTNAME:-$(hostname)}"
 	clearscreen
-	cat << _HEADER_
-${bold}${orange}$script $version
-System: $local_host (ip: $(local_ip))
-Distro: $(get_distribution)
-Kernel: $(uname -sr)${normal}
+	cat <<- _HEADER_
+	${bold}${orange}$script $version
+	System: $local_host (ip: $(local_ip))
+	Distro: $(get_distribution)
+	Kernel: $(uname -sr)${normal}
 _HEADER_
 	return 0
 }
@@ -112,7 +112,7 @@ count_updates() {
 	field3=$(awk '$8 == "remove" {print $6}' "$TMP_FILE")
 	count=$((field1 + field2 + field3))
 	echo "$count"
-  return 0
+	return 0
 }
 
 install_updates() {
@@ -274,7 +274,7 @@ other_checks() {
 main() {
 	SECONDS=0
 	local -r script="${0##*/}"
-	local -r version="12.0.26247"
+	local -r version="12.1.26254"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":ahn"
