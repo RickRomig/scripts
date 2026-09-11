@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 06 Sep 2026
-# Version      : 2.8.26249
+# Updated      : 11 Sep 2026
+# Version      : 2.9.26254
 # Comments     : anacron job: Copy to /etc/cron.weekly as root (or sudo) user
 #              : cron job: Copy to /usr/local/bin or /opt/bin as root (or sudo) user
 # License      : GNU General Public License, version 2.0
@@ -24,7 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-REBOOT_FLAG=1
+declare -i REBOOT_FLAG=1
+
 
 # shellcheck disable=SC2001
 # See if you can use ${variable//search/replace} instead.
@@ -54,12 +55,12 @@ check_flatpaks() {
 	local -i fp_count
 	if ! command -v flatpak >/dev/null 2>&1; then
 		printf "Flatpak is not installed.\n" >&2
-		return "$E_NOT_INSTALLED"
+		return 0
 	fi
 	fp_count=$(wc -l < <(flatpak list))
 	if [[ $fp_count -eq 0 ]]; then
 		printf "No Flatpak packages installed.\n" >&2
-		return "$E_NOT_INSTALLED"
+		return 0
 	fi
 	update_flatpaks
 	return 0
