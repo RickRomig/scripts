@@ -30,20 +30,21 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 
 VERBOSE="$FALSE"
 SCRIPT_DIR==$(dirname "$(readlink -f "${0}")"); readonly script_dir
+# create_tmp() is include in functionlib.bash with cleanup()
 TMP_FILE=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
 TMP_DIR=$(mktemp -qd) || die "Failed to create temporary directory." "$E_TEMP_DIR"
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
-	local -r errcode="${3:-1}"
+	local -r script="$1"
+	local -r version="$2"
+	local -ri errcode="${3:-1}"
 	local -r updated="<TODAY>"
-	cat << _HELP_
-${orange}$script${normal} $version, Upated: $updated
-Short description
+	cat <<- _HELP_
+	${orange}$script${normal} $version, Upated: $updated
+	Short description
 
-${green}Usage:${normal} $script [-hirsu] [-v option]
-${orange}Available options:${normal}
+	${green}Usage:${normal} $script [-hirsu] [-v option]
+	${orange}Available options:${normal}
 	-h	Show this help message and exit.
 	-i	Install application.
 	-r	Remove application.
@@ -51,17 +52,18 @@ ${orange}Available options:${normal}
 	-u	Update application.
 	-v	Enable verbose mode. If used, must precede other flags.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 check_dependencies() {
-  local packages=( git wget )
-  check_packages "${packages[@]}"
+	local packages=( git wget )
+	check_packages "${packages[@]}"
 	return "$?"
 }
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
+# This function is included in functionlib.bash along with create_tmp() which creates TMP_DIR and TMP_FILE.
 cleanup() {
 	[[ -f "$TMP_FILE" ]] && rm "$TMP_FILE"
 	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
@@ -82,15 +84,15 @@ show_message() {
 install_applilcation() {
 	if installed application; then
 		printf "Application is already installed.\n"
-		return 0
+		return "$E_FILE_EXISTS"
 	fi
 	sudo apt-get install -y application
-  if ! installed application; then
-    printf "%s application installation failed.\n" "$RED_ERROR" >&2
-    return "$E_INSTALLATION"
-  fi
-  printf application installed.\n"
-  return 0
+	if ! installed application; then
+		printf "%s application installation failed.\n" "$RED_ERROR" >&2
+		return "$E_INSTALLATION"
+	fi
+	printf application installed.\n"
+	return 0
 }
 
 remove_application() {
@@ -106,9 +108,9 @@ remove_application() {
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="<VERSION>"
-  local -i exit_code=0
+	local -r script="${0##*/}"
+	local -r version="<VERSION>"
+	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hirsuv"
 	# local -r optstr=":h:i:r:s:u:v"
@@ -116,31 +118,24 @@ main() {
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h )
-				help "$script" "$version" 0
-			;;
+				help "$script" "$version" 0 ;;
 			i )
 				# argI="$OPTARG"
-				trap cleanup EXIT	# for temp files and directories
-				install_application && apply_settings	# optional custom configuration
-				;;
+				trap cleanup EXIT	# for temp files and directories create_tmp() in functionlib.bash
+				install_application && apply_settings ;;	# optional custom configuration
 			r )
 				# argR="$OPTARG"
-				remove_application
-				;;
+				remove_application ;;
 			s )
-				apply_settings
-				;;
+				apply_settings ;;
 			u )
-				update_application
-				;;
+				update_application ;;
 			v )
 				VERBOSE="$TRUE"
-				show_message "Verbose mode enabled."
-				;;
+				show_message "Verbose mode enabled." ;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_MISSING_ARG"
-	  		;;
+				help "$script" "$version" "$E_MISSING_ARG" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
