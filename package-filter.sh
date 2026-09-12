@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 15 Oct 2025
-# Updated      : 09 Sep 2026
-# Version      : 1.7.26252
+# Updated      : 12 Sep 2026
+# Version      : 1.8.26255
 # Comments     : Original script Copyright (C) 2025 Kris Occhipinti
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -34,15 +34,15 @@ search_packages() {
 	# Based on code by Kris Occhipinti (with minor changes)
 	local package
 		package="$(
-		fzf -m --prompt="Enter Package Names: " \
-		--preview "apt show {} 2>/dev/null" \
-		--preview-window 'top:75%' < <(apt-cache pkgnames) | tr "\n" " "
-	)"	# tr replaces newline with whitespace
+			fzf -m --prompt="Enter Package Names: " \
+			--preview "apt show {} 2>/dev/null" \
+			--preview-window 'top:75%' < <(apt-cache pkgnames) | tr "\n" " "
+		)"	# tr replaces newline with whitespace
 
 	package="${package// /}"	# remove trailing whitespace left by tr command
 	[[ "$package" ]] || { printf "Nothing selected.\n"; return 0; }
 	installed "$package" && { printf "%s is already installed.\n" "$package"; return 0; }
-	if default_no	"Install ${package}?"; then
+	if default_no "Install ${package}?"; then
 		sudo_login 2
 		printf "\n"
 		sudo apt install "$package"
@@ -55,7 +55,7 @@ search_packages() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.7.26252"
+	local -r version="1.8.26255"
 	local -i exit_code=0
 	check_package fzf
 	search_packages
