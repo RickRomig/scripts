@@ -8,8 +8,8 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Updated      : 06 Sep 2026
-# Version      : 21.8.26249
+# Updated      : 12 Sep 2026
+# Version      : 21.9.26255
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -42,7 +42,7 @@ installed_version() {
 		* )
 			cur_ver=$(awk '/^ii/ {print $3}' < <(dpkg -l "$package" 2>/dev/null) | sed 's/[~+ud].*//')
 	esac
-	echo "$cur_ver"
+	printf "%s" "$cur_ver"
 	return 0
 }
 
@@ -54,7 +54,7 @@ show_versions() {
 			printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
 			[[ "$package" == "batcat" ]] && package="bat"
 			[[ "$package" == "google-chrome" ]] && package+="-stable"
-      printf "%s\n" "$(installed_version "$package")"
+			printf "%s\n" "$(installed_version "$package")"
 		fi
 	done
 	printf "%s\n" "$normal"
@@ -70,7 +70,7 @@ get_release_path() {
 		[fresh-editor]="sinelaw/fresh/releases"
 		[micro]="micro-editor/micro/releases"
 	)
-	echo "${releases_path[$package]}"
+	printf "%s" "${releases_path[$package]}"
 	return 0
 }
 
@@ -93,7 +93,7 @@ get_new_version() {
 		* )
 			new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$TMP_FILE"))
 	esac
-	echo "$new_ver"
+	printf "%s" "$new_ver"
 	return 0
 }
 
@@ -132,7 +132,7 @@ utility_packages() {
 
 text_editors() {
 	local -r packages=( batcat bluefish featherpad geany gedit git glow mousepad nano shellcheck xed )
-	printf "%-15s%s\n" "Programming" "Version"
+	printf "%-15s%s\n" "Development" "Version"
 	show_versions "${packages[@]}"
 	return 0
 }
@@ -153,17 +153,18 @@ browsers() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="21.8.2626249238"
+	local -r version="21.9.26255"
 	create_tmp "file"
 	check_package curl
 	clearscreen
-	box "$script $version"
+	box "Software Versions"
 	printf "\n"
 	github_packages
 	text_editors
 	browsers
 	terminals
 	utility_packages
+	over_line "$script $version"
 	printf "MOTD: "; leave ""
 }
 
