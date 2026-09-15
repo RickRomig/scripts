@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 11 Sep 2026
-# Version      : 12.2.26254
+# Updated      : 15 Sep 2026
+# Version      : 12.3.26258
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -247,7 +247,7 @@ update_flatpaks() {
 			printf "User installations...\n"
 			sed '/^$/d' < <(flatpak update --user --noninteractive --force-remove --assumeyes 2>/dev/null)
 			printf "System-wide installations...\n"
-			sed '/^$/d' < <(flatpak update --system --noninteractive --force-remove --assumeyes 2>/dev/null)
+			sed '/^$/d' < <(sudo flatpak update --system --noninteractive --force-remove --assumeyes 2>/dev/null)
 		else
 			printf "No flatpak updates available.\n"
 		fi
@@ -273,7 +273,7 @@ other_checks() {
 main() {
 	SECONDS=0
 	local -r script="${0##*/}"
-	local -r version="12.2.26254"
+	local -r version="12.3.26258"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":ahn"
