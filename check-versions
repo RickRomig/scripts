@@ -9,7 +9,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
 # Updated      : 15 Sep 2026
-# Version      : 21.10.26258
+# Version      : 21.11.26258
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -155,6 +155,7 @@ flatpak_packages() {
 	if installed flatpak; then
 		local -r packages=(HandBrake HomeBank LibreOffice KeePassXC)
 		local package version fp_pkg
+		[[ $(wc -l < <(flatpak list)) -eq 0 ]] && return 0
 		printf "%-15s%s\n" "Flatpak" "Version"
 		for package in "${packages[@]}"; do
 			if grep -iq "$package" < <(flatpak list); then
@@ -164,11 +165,12 @@ flatpak_packages() {
 			fi
 		done
 	fi
+	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="21.10.26258"
+	local -r version="21.11.26258"
 	create_tmp "file"
 	check_package curl
 	clearscreen
