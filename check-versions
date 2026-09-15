@@ -8,8 +8,8 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Updated      : 12 Sep 2026
-# Version      : 21.9.26255
+# Updated      : 15 Sep 2026
+# Version      : 21.10.26258
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -130,40 +130,56 @@ utility_packages() {
 	return 0
 }
 
-text_editors() {
+dev_packages() {
 	local -r packages=( batcat bluefish featherpad geany gedit git glow mousepad nano shellcheck xed )
 	printf "%-15s%s\n" "Development" "Version"
 	show_versions "${packages[@]}"
 	return 0
 }
 
-terminals() {
+terminal_packages() {
 	local -r packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
 	printf "%-15s%s\n" "Terminal" "Version"
 	show_versions "${packages[@]}"
 	return 0
 }
 
-browsers() {
+browser_packages() {
 	local -r packages=( brave-browser chromium firefox google-chrome librewolf )
 	printf "%-15s%s\n" "Browser" "Version"
 	show_versions "${packages[@]}"
 	return 0
 }
 
+flatpak_packages() {
+	if installed flatpak; then
+		local -r packages=(HandBrake HomeBank LibreOffice KeePassXC)
+		local package version fp_pkg
+		printf "%-15s%s\n" "Flatpak" "Version"
+		for package in "${packages[@]}"; do
+			if grep -iq "$package" < <(flatpak list); then
+				fp_pkg=$(grep -i "$package" < <(flatpak list) | cut -f1)
+				version=$(grep -i "$package" < <(flatpak list) | cut -f3)
+				printf "%s%-15s%s%s\n" "${darkgray}" "${fp_pkg^}" "${gray}" "$version"
+			fi
+		done
+	fi
+}
+
 main() {
 	local -r script="${0##*/}"
-	local -r version="21.9.26255"
+	local -r version="21.10.26258"
 	create_tmp "file"
 	check_package curl
 	clearscreen
 	box "Software Versions"
 	printf "\n"
 	github_packages
-	text_editors
-	browsers
-	terminals
+	dev_packages
+	browser_packages
+	terminal_packages
 	utility_packages
+	flatpak_packages
 	over_line "$script $version"
 	printf "MOTD: "; leave ""
 }
