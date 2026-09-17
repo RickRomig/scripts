@@ -1,4 +1,4 @@
-# cleans up youtube-dl update log file
+# cleans up youtube-dl update log file (old)
 /up-to-date/ {
 s/youtube-dl is //
 s/ (/|/
