@@ -303,3 +303,16 @@ popd() {
   command popd "$@" > /dev/null
 }
 ```
+### apt update error
+```
+Err:13 https://fastly.linuxmint.io zena Release.gpg
+  The following signatures were invalid: BADSIG A6616109451BBBF2 Linux Mint Repository Signing Key <root@linuxmint.com>
+Fetched 7,552 B in 1s (5,662 B/s)
+Reading package lists... Done
+W: An error occurred during the signature verification. The repository is not updated and the previous index files will be used. GPG error: https://fastly.linuxmint.io zena Release: The following signatures were invalid: BADSIG A6616109451BBBF2 Linux Mint Repository Signing Key <root@linuxmint.com>
+W: Failed to fetch https://fastly.linuxmint.io/dists/zena/Release.gpg  The following signatures were invalid: BADSIG A6616109451BBBF2 Linux Mint Repository Signing Key <root@linuxmint.com>
+W: Some index files failed to download. They have been ignored, or old ones used instead.
+```
+```bash
+sudo rm -r /var/lib/apt/lists/* && sudo apt-get update
+```
