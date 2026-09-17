@@ -7,45 +7,39 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Last updated : 03 May 2025
+# Last updated : 17 Sep 2025
+# Version      : 2.0.26260
 # Comments     : copy as root to /etc/cron.daily
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by# the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
 trim_log() {
-	local -r log_dir="$1"
-	local -r log_file="$2"
+	local -r ytdlp_log="$1"
 	local -i log_len
-	log_len=$(wc -l < "$log_dir/$log_file")
-	while [[ "$log_len" -gt 30 ]]; do
-		sed -i '1d' "$log_dir/$log_file"
+	log_len=$(wc -l < "$ytdlp_log")
+	while (( log_len > 30 )); do
+		sed -i '1d' "$ytdlp_log"
 		(( log_len-- ))
 	done
 	return 0
 }
 
 update_ytdl() {
+	local -r ytdlp_log=/var/log/ytdlpup.log
 	local update_status
-	local -r log_dir="/var/log"
-	local -r log_file="ytdlpup.log"
-	# local sed_file="/usr/share/misc/ytdlp-uplog.sed"
 	update_status=$(awk '/^Latest version/ {print $3}' < <(/usr/local/bin/yt-dlp --update))
-	update_status="${update_status:7}"
-	[[ "$update_status" ]] || update_status="unavailable"
-	printf "%(%F|%R)T|%s\n" -1 "$update_status" >> "$log_dir/$log_file" 2>&1
-	# sed -i -f "$sed_file" "$log_dir/$log_file"
-	trim_log "$log_dir" "$log_file"
+	[[ "$update_status" ]] && update_status="${update_status:7}" || update_status="unavailable"
+	printf "%(%F|%R)T|%s\n" -1 "$update_status" >> "$ytdlp_log" 2>&1
+	trim_log "$ytdlp_log"
 	return 0
 }
 
