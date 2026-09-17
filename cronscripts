@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 17 Feb 2022
-# Updated      : 05 Sep 2026
-# Version      : 10.4.26248
+# Updated      : 17 Sep 2026
+# Version      : 10.5.26260
 # Comments     : Checks if the script in ~/bin/cronjobs is newer than the
 #              : script being run by anacron/cron
 # TODO (Rick)  :
@@ -41,7 +41,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="05 Sep 2026"
+	local -r updated="17 Sep 2026"
 	cat <<- _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Copies cronjob scripts to the appropriate directories.
@@ -173,7 +173,7 @@ cp_zdefrag() {
 }
 
 cp_zupdate() {
-	local -r sed_file="updatelog.sed"
+	local -r sed_file="update-cleanup.sed"
 	local -r anacron_path="/etc/cron.weekly/"
 	case "$LOCALIP" in
 		11|16 )
@@ -205,7 +205,6 @@ cp_zupdate() {
 }
 
 cp_zytdlpupdate() {
-	# local -r sed_file="ytdlp-uplog.sed"
 	local -r anacron_path="/etc/cron.daily/"
 	case "$LOCALIP" in
 		10|15|17 )
@@ -224,7 +223,7 @@ cp_zytdlpupdate() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="10.4.26248"
+	local -r version="10.5.26260"
 	local -i exit_code=0
 	local opt OPTARG OPTIND
 	local -i noOpt=1
