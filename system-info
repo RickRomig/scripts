@@ -209,22 +209,23 @@ ssd_hd_info() {
 	HD_DATA=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_DIR"
 	printf "\nHard Disk Information:\n"
 	for disk in /dev/sd[a-z]; do
-	tee "$HD_DATA" > /dev/null < <(sudo hdparm -I "${disk}" 2>/dev/null)
-	printf "%s\n" "$(sed 's/\/dev\///;s/:$//' < <(grep -w dev "$HD_DATA"))"
-	model="$(sed 's/^ *//g' < <(awk -F: '/Model/ {print $NF}' "$HD_DATA"))"
-	vendor="$(get_vendor "$model")"
-	printf "   %-15s%s\n" "Vendor:" "$vendor"
-	printf "   %-15s%s\n" "Model Number:" "$model"
-	printf "   %-15s%s\n" "Serial Number:" "$(sed 's/^ *//g' < <(awk -F: '/Serial N/ {print $NF}' "$HD_DATA"))"
-	printf "   %-15s%s\n" "Capacity:" "$(tr -d '()' < <(awk '/GB/ {print $(NF-1),$NF}' "$HD_DATA"))"
-	hd_ff=$(sed 's/^ //' < <(awk -F: '/Form Factor/ {print $NF}' "$HD_DATA"))
-	[[ "$hd_ff" ]] || hd_ff=$(fix_hd_ff)
-	printf "   %-15s%s" "Form Factor:" "$hd_ff"
-	hd_rpm=$(sed 's/^ //' < <(awk -F: '/Rotation/ {print $NF}' "$HD_DATA"))
-	case "$hd_rpm" in
-		[0-9]* ) printf " %s-rpm Hard Disk Drive\n" "$hd_rpm" ;;
-		* ) printf " %s\n" "$hd_rpm"
-	esac
+		tee "$HD_DATA" > /dev/null < <(sudo hdparm -I "${disk}" 2>/dev/null)
+		printf "%s\n" "$(sed 's/\/dev\///;s/:$//' < <(grep -w dev "$HD_DATA"))"
+		model="$(sed 's/^ *//g' < <(awk -F: '/Model/ {print $NF}' "$HD_DATA"))"
+		[[ "$model" ]] || continue
+		vendor="$(get_vendor "$model")"
+		printf "   %-15s%s\n" "Vendor:" "$vendor"
+		printf "   %-15s%s\n" "Model Number:" "$model"
+		printf "   %-15s%s\n" "Serial Number:" "$(sed 's/^ *//g' < <(awk -F: '/Serial N/ {print $NF}' "$HD_DATA"))"
+		printf "   %-15s%s\n" "Capacity:" "$(tr -d '()' < <(awk '/GB/ {print $(NF-1),$NF}' "$HD_DATA"))"
+		hd_ff=$(sed 's/^ //' < <(awk -F: '/Form Factor/ {print $NF}' "$HD_DATA"))
+		[[ "$hd_ff" ]] || hd_ff=$(fix_hd_ff)
+		printf "   %-15s%s" "Form Factor:" "$hd_ff"
+		hd_rpm=$(sed 's/^ //' < <(awk -F: '/Rotation/ {print $NF}' "$HD_DATA"))
+		case "$hd_rpm" in
+			[0-9]* ) printf " %s-rpm Hard Disk Drive\n" "$hd_rpm" ;;
+			* ) printf " %s\n" "$hd_rpm"
+		esac
 	done
 	return 0
 }
