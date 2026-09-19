@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Updated      : 18 Sep 2026
-# Version      : 8.8.26261
+# Updated      : 19 Sep 2026
+# Version      : 8.9.26262
 # Comments     : Sync scripts to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -104,7 +104,7 @@ syncscript() {
 			transfer_status "$?"
 			printf "\n...Machine %s Synced!\n\n" "$hostip" ;;
 		15|18|19 )
-			printf "%s scripts are updated through the Scripts Repository clone.\n\n" "$LOCALNET.$hostip" ;;
+			printf "Machine %s - is updated via the Scripts Repository clone.\n\n" "$hostip" ;;
 		* )
 			printf "\n%sSyncing ~/bin ...%s\n" "$orange" "$normal"
 			rsync -avh --delete --exclude '.git' --exclude '.gitignore' --exclude '*.log' "$HOME"/bin/ "$LOCALNET.$hostip":bin/
@@ -127,7 +127,7 @@ sync_some() {
 }
 
 sync_all() {
-	local -i octets=(11 12 13 14 16 17 18 20 21 22 23 24 25)
+	local -ri octets=(11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)
 	local -i hostip
 	for hostip in "${octets[@]}"; do transfer "$hostip"; done
 	return "$?"
@@ -146,7 +146,7 @@ check_host() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="8.8.26261"
+	local -r version="8.9.26262"
 	local -i exit_code=0
 	check_package rsync
 	if [[ "$#" -eq 0 ]]; then
