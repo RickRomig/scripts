@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jan 2025
-# Updated      : 09 Sep 2026
-# Version      : 2.4.26252
+# Updated      : 18 Sep 2026
+# Version      : 2.5.26261
 # Comments     : creates a swap file if no other swap exists.
 #              : Disable old swap and comment out in /etc/fstab
 #              : User is prompted to provide size of swap file in GB (integer value)
@@ -53,7 +53,7 @@ fallocate_swapfile() {
 
 process_swapfile() {
 	ls -lh /swapfile 										# see the file in the root directory
-	sudo e4defrag /swapfile 								# defrag swapfile so it's 1 contigous file
+	sudo e4defrag /swapfile 								# defrag swapfile so it's 1 contiguous file
 	sudo chmod 600 /swapfile 								# set file permissions
 	sudo mkswap /swapfile 									# set up swap area
 	sudo swapon /swapfile 									# enable swap file
@@ -64,8 +64,13 @@ process_swapfile() {
 }
 
 create_swapfile() {
-	local _opt options size
-	options=("Create swap file with dd" "Create swap file with fallocate" "Quit without creating a swap file")
+	local -i size
+	local -r options=(
+		"Create swap file with dd"
+		"Create swap file with fallocate"
+		"Quit without creating a swap file"
+	)
+	local _opt
 	read -rp "Enter size of swap file in GB: " size
 	PS3="Choose creation method: "
 	select _opt in "${options[@]}"; do
@@ -88,7 +93,7 @@ create_swapfile() {
 
 main() {
 	local script="${0##*/}"
-	local version="2.4.26252"
+	local version="2.5.26261"
 	local -i exit_code=0
 	sudo_login 2
 	if swap_exists; then
