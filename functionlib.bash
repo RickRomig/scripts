@@ -60,6 +60,7 @@ declare -r E_OFFLINE=16
 declare -r E_INVALID_HOST=17
 declare -r E_UNSUPPORTED=18
 declare -r E_NOT_DETECTED=19
+declare -r E_LINK_ERROR=20
 
 ## Colors ##
 
