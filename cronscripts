@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 17 Feb 2022
-# Updated      : 18 Sep 2026
-# Version      : 10.6.26261
+# Updated      : 20 Sep 2026
+# Version      : 11.0.26263
 # Comments     : Checks if the script in ~/bin/cronjobs is newer than the
 #              : script being run by anacron/cron
 # TODO (Rick)  :
@@ -29,25 +29,22 @@
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 LOCALIP="$(local_ip)"; readonly LOCALIP
-# path variables
-script_dir=$(dirname "$(readlink -f "${0}")"); readonly script_dir
-readonly JOB_DIR="$script_dir/cronjobs"
-readonly FILES_DIR="$script_dir/files"
-readonly USER_CRON_PATH="$HOME/.local/bin/"
-readonly SYSTEM_CRON_PATH="/opt/bin/"
-readonly SED_PATH="/usr/share/misc/"
+SCRIPT_DIR=$(dirname "$(readlink -f "${0}")"); readonly SCRIPT_DIR
+readonly USER_CRON_PATH=~/.local/bin/
+readonly SYSTEM_CRON_PATH=/opt/bin/
+readonly SED_PATH=/usr/share/misc/
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="17 Sep 2026"
+	local -r updated="20 Sep 2026"
 	cat <<- _HELP_
-${orange}$script${normal} $version, Updated: $updated
-Copies cronjob scripts to the appropriate directories.
+	${orange}$script${normal} $version, Updated: $updated
+	Copies cronjob scripts to the appropriate directories.
 
-${green}Usage:${normal} $script [-abdfghmrstuv]
-${orange}Available options:${normal}
+	${green}Usage:${normal} $script [-abdfghmrstuv]
+	${orange}Available options:${normal}
 	-a    Copy all applicable scripts.
 	-c    Copy cloned repo update script.
 	-d    Copy defrag script.
@@ -68,7 +65,7 @@ _HELP_
 is_older() {
 	local -r cron_script="$1"
 	local -r cron_path="$2"
-	[[ "$cron_path/$cron_script" -ot "$JOB_DIR/$cron_script" ]] && return "$TRUE" || return "$FALSE"
+	[[ "$cron_path/$cron_script" -ot "$SCRIPT_DIR/cronjobs/$cron_script" ]] && return "$TRUE" || return "$FALSE"
 }
 
 no_copy() {
@@ -82,7 +79,7 @@ cp_clone_update() {
 		10|16|22 )
 			no_copy "Cloned repository updates are" ;;
 		* )
-			is_older "clone-update.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$JOB_DIR/clone-update.sh" "$USER_CRON_PATH")
+			is_older "clone-update.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/clone-update.sh" "$USER_CRON_PATH")
 	esac
 	return 0
 }
@@ -90,8 +87,8 @@ cp_clone_update() {
 cp_git_bu() {
 	case "$LOCALIP" in
 		10|16 )
-			is_older "git-dwm.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$JOB_DIR/git-dwm.sh" "$USER_CRON_PATH")
-			is_older "git-bu.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$JOB_DIR/git-bu.sh" "$USER_CRON_PATH") ;;
+			is_older "git-dwm.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/git-dwm.sh" "$USER_CRON_PATH")
+			is_older "git-bu.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/git-bu.sh" "$USER_CRON_PATH") ;;
 		* )
 			no_copy "Repository archives are"
 	esac
@@ -99,12 +96,12 @@ cp_git_bu() {
 }
 
 cp_main_bu() {
-  local buScript buScripts
-  buScripts=(sync-nas.sh sync6005.sh journal-bu.sh passwdsync.sh repo-backup.sh)
+	local -r buScripts=(sync-nas.sh sync6005.sh journal-bu.sh passwdsync.sh repo-backup.sh)
+	local buScript
 	case "$LOCALIP" in
 		10 )
 			for buScript in "${buScripts[@]}"; do
-				is_older "$buScript" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$JOB_DIR/$buScript" "$USER_CRON_PATH")
+				is_older "$buScript" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/$buScript" "$USER_CRON_PATH")
 			done ;;
 		* )
 			no_copy "Main system sync scripts are"
@@ -115,8 +112,8 @@ cp_main_bu() {
 cp_finance_bu() {
 	case "$LOCALIP" in
 		10 )
-			is_older "fin-bu.sh" "$USER_CRON_PATH" &&  awk '{print "==> "$NF}' < <(cp -pv "$JOB_DIR/fin-bu.sh" "$USER_CRON_PATH")
-			is_older "hb-archive.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$JOB_DIR/hb-archive.sh" "$USER_CRON_PATH") ;;
+			is_older "fin-bu.sh" "$USER_CRON_PATH" &&  awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/fin-bu.sh" "$USER_CRON_PATH")
+			is_older "hb-archive.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/hb-archive.sh" "$USER_CRON_PATH") ;;
 		* )
 			no_copy "Finance archives are"
 	esac
@@ -128,13 +125,13 @@ cp_scriptarchive() {
 		17|21|22|24 )
 			no_copy "scriptarchive.sh is" ;;
 		* )
-			is_older "scriptarchive.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$JOB_DIR/scriptarchive.sh" "$USER_CRON_PATH")
+			is_older "scriptarchive.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/scriptarchive.sh" "$USER_CRON_PATH")
 	esac
 	return 0
 }
 
 cp_empty_trash() {
-	is_older "empty-trash.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$JOB_DIR/empty-trash.sh" "$USER_CRON_PATH")
+	is_older "empty-trash.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/empty-trash.sh" "$USER_CRON_PATH")
 	return 0
 }
 
@@ -143,7 +140,7 @@ cp_redshift_notify() {
 		10|11|14|15|17|19|20|21 )
 			no_copy "redshift-notify.sh is" ;;
 		* )
-			is_older "redshift-notify.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$JOB_DIR/redshift-notify.sh" "$USER_CRON_PATH")
+			is_older "redshift-notify.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$/redshift-notify.sh" "$USER_CRON_PATH")SCRIPT_DIR/cronjobs
 	esac
 	return 0
 }
@@ -153,20 +150,14 @@ cp_zdefrag() {
 	case "$LOCALIP" in
 		11|16 )
 			[[ -d "$SYSTEM_CRON_PATH" ]] || { sudo_login 1; sudo mkdir -p "$SYSTEM_CRON_PATH"; }
-			if [[ -f "$SYSTEM_CRON_PATH/z-defrag" ]]; then
+			if is_older "z-defrag" "$SYSTEM_CRON_PATH"; then
 				sudo_login 1
-				awk '{print "==> "$NF}' < <(sudo cp -v "$JOB_DIR/z-defrag" "$SYSTEM_CRON_PATH")
-			elif is_older "z-defrag" "$SYSTEM_CRON_PATH"; then
-				sudo_login 1
-				awk '{print "==> "$NF}' < <(sudo cp -v "$JOB_DIR/z-defrag" "$SYSTEM_CRON_PATH")
+				awk '{print "==> "$NF}' < <(sudo cp -v "$SCRIPT_DIR/cronjobs/z-defrag" "$SYSTEM_CRON_PATH")
 			fi ;;
 		* )
-			if [[ ! -f "$anacron_path/z-defrag" ]]; then
+			if is_older "z-defrag" "$anacron_path"; then
 				sudo_login 1
-				awk '{print "==> "$NF} ' < <(sudo cp -v "$JOB_DIR/z-defrag" "$anacron_path")
-			elif is_older "z-defrag" "$anacron_path"; then
-				sudo_login 1
-				awk '{print "==> "$NF}' < <(sudo cp -v "$JOB_DIR/z-defrag" "$anacron_path")
+				awk '{print "==> "$NF}' < <(sudo cp -v "$SCRIPT_DIR/cronjobs/z-defrag" "$anacron_path")
 			fi ;;
 	esac
 	return 0
@@ -177,29 +168,19 @@ cp_zupdate() {
 	local -r anacron_path="/etc/cron.weekly/"
 	case "$LOCALIP" in
 		11|16 )
-			[[ -d "$SYSTEM_CRON_PATH" ]] || { sudo_login 1; sudo mkdir -p "$SYSTEM_CRON_PATH"; }
-			if [[ -f "$SED_PATH/$sed_file" ]]; then
+			if is_older "z-update" "$SYSTEM_CRON_PATH"; then
 				sudo_login 1
-				awk '{print "==> "$NF}' < <(sudo cp -v "$JOB_DIR/z-update" "$SYSTEM_CRON_PATH")
-			elif is_older "z-update" "$SYSTEM_CRON_PATH"; then
-				sudo_login 1
-				awk '{print "==> "$NF}' < <(sudo cp -v "$JOB_DIR/z-update" "$SYSTEM_CRON_PATH")
+				awk '{print "==> "$NF}' < <(sudo cp -v "$SCRIPT_DIR/cronjobs/z-update" "$SYSTEM_CRON_PATH")
 			fi ;;
 		* )
-			if [[ -f "$anacron_path/z-update" ]]; then
+			if is_older "z-update" "$anacron_path"; then
 				sudo_login 1
-				awk '{print "==> "$NF}' < <(sudo cp -v "$JOB_DIR/z-update" "$anacron_path")
-			elif is_older "z-update" "$anacron_path"; then
-				sudo_login 1
-				awk '{print "==> "$NF}' < <(sudo cp -v "$JOB_DIR/z-update" "$anacron_path")
+				awk '{print "==> "$NF}' < <(sudo cp -v "$SCRIPT_DIR/cronjobs/z-update" "$anacron_path")
 			fi
 	esac
-	if [[ ! -f "$SED_PATH/$sed_file" ]]; then
+	if [[ "$SED_PATH/$sed_file" -ot "$SCRIPT_DIR/files/$sed_file" ]]; then
 		sudo_login 1
-		awk '{print "==> "$NF}' < <(sudo cp -v "$FILES_DIR/$sed_file" "$SED_PATH")
-	elif [[ "$SED_PATH/$sed_file" -ot "$FILES_DIR/$sed_file" ]]; then
-		sudo_login 1
-		awk '{print "==> "$NF}' < <(sudo cp -v "$FILES_DIR/$sed_file" "$SED_PATH")
+		awk '{print "==> "$NF}' < <(sudo cp -v "$SCRIPT_DIR/files/$sed_file" "$SED_PATH")
 	fi
 	return 0
 }
@@ -208,12 +189,9 @@ cp_zytdlpupdate() {
 	local -r anacron_path="/etc/cron.daily/"
 	case "$LOCALIP" in
 		10|15|17 )
-			if [[ ! -f "$anacron_path/z-ytdlp-update" ]]; then
+			if is_older "z-ytdlp-update" "$anacron_path"; then
 				sudo_login 1
-				awk '{print "==> "$NF}' < <(sudo cp -v "$JOB_DIR/z-ytdlp-update" "$anacron_path")
-			elif is_older "z-ytdlp-update" "$anacron_path"; then
-				sudo_login 1
-				awk '{print "==> "$NF}' < <(sudo cp -v "$JOB_DIR/z-ytdlp-update" "$anacron_path")
+				awk '{print "==> "$NF}' < <(sudo cp -v "$SCRIPT_DIR/cronjobs/z-ytdlp-update" "$anacron_path")
 			fi ;;
 		* )
 			no_copy "z-ytdlp-update is"
@@ -223,11 +201,11 @@ cp_zytdlpupdate() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="10.6.26261"
+	local -r version="11.0.26263"
 	local -i exit_code=0
-	local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":acdfghmrstuy"
+	local opt OPTARG OPTIND
 	[[ -d "$USER_CRON_PATH" ]] || mkdir -p "$USER_CRON_PATH"
 	printf "Copying updated cron scripts...\n"
 	while getopts "$optstr" opt; do
