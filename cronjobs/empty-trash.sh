@@ -7,10 +7,11 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 05 Sep 2026
-# Version      : 5.15.26248
+# Updated      : 21 Sep 2026
+# Version      : 6.0.26261
 # Comments     : Run as a user cron job. '~/.local/bin/empty-trash.sh'
 #              : Trash directory does not exist until a file has been moved to the trash.
+#              : trash-empty older that version 23 may not support verbosity.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -23,13 +24,6 @@
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
-
-# Check version of trash-cli
-old_trash_count_version() {
-	local -i vernum
-	vernum=$(cut -d. -f2 < <(trash-empty --version))
-	(( vernum < 23 )) && return 0 || return 1
-}
 
 trash_empty() {
 	local -i count
@@ -54,23 +48,19 @@ empty_trash() {
 		return 0
 	fi
 	printf "\nRemoving trash older than %s...\n" "$last_week"
-	if old_trash_count_version; then
-		/usr/bin/trash-empty 6	# older trash-cli versions do not support verbosity
-	else
-		sed '/trashinfo$/d' < <(/usr/bin/trash-empty -v -f  6)	# don't display files from Trash/info
-	fi
+	sed '/trashinfo$/d' < <(/usr/bin/trash-empty -v -f  6)	# don't display files from Trash/info
 	if trash_empty; then
 		printf "\nAll trash has been removed.\n"
-		return 0
+	else
+		printf "\nTrash newer than %s:\n" "$last_week"
+		/usr/bin/trash-list
 	fi
-	printf "\nTrash newer than %s:\n" "$last_week"
-	/usr/bin/trash-list
 	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.15.26248"
+	local -r version="6.0.26261"
 	local -r lhost="${HOSTNAME:-$(hostname)}"
 	local -r trash_dir=~/.local/share/Trash
 	local -r log_dir=~/.local/share/logs
