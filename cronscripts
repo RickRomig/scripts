@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 17 Feb 2022
-# Updated      : 20 Sep 2026
-# Version      : 11.0.26263
+# Updated      : 21 Sep 2026
+# Version      : 11.1.26264
 # Comments     : Checks if the script in ~/bin/cronjobs is newer than the
 #              : script being run by anacron/cron
 # TODO (Rick)  :
@@ -38,7 +38,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="20 Sep 2026"
+	local -r updated="21 Sep 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: $updated
 	Copies cronjob scripts to the appropriate directories.
@@ -140,7 +140,7 @@ cp_redshift_notify() {
 		10|11|14|15|17|19|20|21 )
 			no_copy "redshift-notify.sh is" ;;
 		* )
-			is_older "redshift-notify.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$/redshift-notify.sh" "$USER_CRON_PATH")SCRIPT_DIR/cronjobs
+			is_older "redshift-notify.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/redshift-notify.sh" "$USER_CRON_PATH/$SCRIPT_DIR/cronjobs")
 	esac
 	return 0
 }
@@ -201,7 +201,7 @@ cp_zytdlpupdate() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="11.0.26263"
+	local -r version="11.1.26264"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":acdfghmrstuy"
