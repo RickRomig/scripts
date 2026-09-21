@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Updated      : 05 Sep 2026
-# Version      : 7.7.26248
+# Updated      : 21 Sep 2026
+# Version      : 7.8.26264
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -77,7 +77,8 @@ mount_bu() {
 
 bu_drive_label() {
 	local bu_label
-	bu_label=$(awk '$1 == "1" && $NF ~ "^BU_" {print $NF}' < <(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL))
+	# bu_label=$(awk '$1 == "1" && $NF ~ "^BU_" {print $NF}' < <(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL))
+	bu_label=$(awk '$NF ~ "^BU_" {print $NF}' < <(lsblk -o TYPE,NAME,SIZE,LABEL))
 	[[ -z "$bu_label" ]] && dielog "No partition label." "$LOGFILE" "$E_DRIVE_ERROR"
 	printf "USB drive label = %s \n" "$bu_label"
 	printf "Mount point = %s\n" "$(awk '/BU_Drive/ {print $2}' /proc/mounts)"
@@ -248,7 +249,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="05 Sep 2026"
+	local -r updated="21 Sep 2026"
 	cat <<- _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -288,7 +289,7 @@ _SETUP_
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.7.26248"
+	local -r version="7.8.26264"
 	local -i exit_code=0
 	local  opt OPTARG OPTIND loglen
 	[[ -f "$LOGFILE" ]] || echo "${LOGFILE##*/}" > "$LOGFILE"
