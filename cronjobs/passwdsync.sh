@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-##########################################################################
+###############################################################################
 # Script Name  : passwdsync.sh
 # Description  : syncs password database with copy in Dropbox
 # Dependencies : none
@@ -7,23 +7,22 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Aug 2020
-# Last updated : 05 Seo 2026
-# Version      : 5.2.26248
+# Last updated : 21 Seo 2026
+# Version      : 5.3.26264
 # Comments     : run as a local daily cron job on main system
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##########################################################################
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-##########################################################################
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
 
 trim_log() {
 	local -r log_dir="$1"
@@ -38,7 +37,7 @@ trim_log() {
 
 sync_database() {
 	local -r log_dir=~/.local/share/logs
-	local -r log_file="password-db.log"
+	local -r log_file=password-db.log
 	local -r mstr_dir=~/Documents
 	local -r dbox_dir=~/Dropbox
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
