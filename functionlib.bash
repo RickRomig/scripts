@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 10 Sep 2026
+# Last updated : 22 Sep 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -713,7 +713,7 @@ convert_compare() {
 	local -i cur_arr=()
 	IFS="." read -ra new_arr <<< "$newVer"; declare -r new_arr
 	IFS="." read -ra cur_arr <<< "$curVer"; declare -r cur_arr
-	for (( index=0; index <=2; index++)) ; do
+	for (( index=0; index <=2; index++ )) ; do
 		if (( "${new_arr[index]}" > "${cur_arr[index]}" )); then
 			newer="$TRUE"
 			break
