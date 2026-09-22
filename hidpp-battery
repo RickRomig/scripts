@@ -3,13 +3,13 @@
 # Script Name  : hidpp-battery
 # Description  : Displays status of HIDPP battery
 # Dependencies : upower
-# Arguments    : See help function
+# Arguments    : See help function for available options
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Sep 2023
-# Updated      : 06 Sep 2026
-# Version      : 1.11.26249"
-# Comments     : Defaults to using /sys/class/power_supply
+# Updated      : 22 Sep 2026
+# Version      : 1.12.26265
+# Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -31,28 +31,28 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="07 Aug 2026"
+	local -r updated="22 Sep 2026"
 	cat <<- _HELP_
-${orange}$script${normal} $version, Upated: $updated
-Displays HIDPP battery status.
+	${orange}$script${normal} $version, Upated: $updated
+	Displays HIDPP battery status.
 
-${green}Usage:${normal} $script [OPTION]
-${orange}Available options:${normal}
+	${green}Usage:${normal} $script [OPTION]
+	${orange}Available options:${normal}
 	-h	Show this help message and exit.
 	-s	HID++ battery status using /sys/class/power_supply.
 	-u	HID++ battery status using upower utility.
-	Defaults to using /sys/class/power_supply if no argument passed.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 sys_class_data() {
-	local hidpp_path device brand model charge serial
+	local hidpp_path
 	for hidpp_path in /sys/class/power_supply/hidpp_battery_?; do
 		if [[ "$hidpp_path" == "/sys/class/power_supply/hidpp_battery_?" ]]; then
 			printf "HID++ battery not present.\n" >&2
 			return "$E_NOT_DETECTED"
 		fi
+		local device brand model charge serial
 		device="${hidpp_path##*/}"
 		brand=$(< "$hidpp_path/manufacturer")
 		model=$(< "$hidpp_path/model_name")
@@ -83,11 +83,11 @@ upower_data() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.10.26249"
+	local -r version="1.12.26265"
 	local -i exit_code=0
-	local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":hsu"
+	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			h ) help "$script" "$version" 0 ;;
