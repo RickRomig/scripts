@@ -3,14 +3,14 @@
 # Script Name  : install-dsh
 # Description  : Installs, configures, and removes DSH (Dancers Shell)
 # Dependencies : git (used by assign_cfg_repo() in functionlib.bash)
-# Arguments    : None
+# Arguments    : See help function for available options.
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Apr 2024
-# Last updated : 03 Sep 2026
-# Version      : 4.0.26246
+# Last updated : 22 Sep 2026
+# Version      : 4.1.26265
 # Comments     : Intended for installation on main system
-# TODO (Rick)  : Add getopts & remove function?
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
@@ -30,19 +30,19 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 help() {
 	local -r script="$1"
 	local -r version="$2"
-	local -r errcode="${3:-1}"
-	local -r updated="03 Sep 2026"
+	local -ri errcode="${3:-1}"
+	local -r updated="22 Sep 2026"
 	cat <<- _HELP_
-${orange}$script${normal} $version, Upated: $updated
-Installs, configures, removes DSH (Dancers Shell)
+	${orange}$script${normal} $version, Upated: $updated
+	Installs, configures, removes DSH (Dancers Shell)
 
-${green}Usage:${normal} $script [-hirsu] [-v option]
-${orange}Available options:${normal}
+	${green}Usage:${normal} $script [-hir]
+	${orange}Available options:${normal}
 	-h  Show this help message and exit.
 	-i  Install DSH.
 	-r  Remove DSH.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 dsh_version() {
@@ -85,7 +85,7 @@ configure_dsh() {
 install_dsh() {
 	if installed dsh; then
 		printf "DSH %s is already installed.\n" "$(dsh_version)" >&2
-		return 2
+		return "$E_FILE_EXISTS"
 	fi
 	sudo_login 2
 	sudo apt-get -y install dsh
@@ -94,7 +94,6 @@ install_dsh() {
 	return "$E_INSTALLATION"
 	fi
 	printf "DSH version %s installed.\n" "$(dsh_version)"
-	configure_dsh
 	return 0
 }
 
@@ -115,7 +114,7 @@ remove_dsh() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.0.26246"
+	local -r version="4.1.26265"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hir"
@@ -126,7 +125,7 @@ main() {
 				help "$script" "$version" 0 ;;
 			i )
 				check_package git
-				install_dsh ;;
+				install_dsh && configure_dsh ;;
 			r )
 				remove_dsh ;;
 			? )
