@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Jan 2024
-# Last updated : 18 Jan 2026
-# Version      : 2.3.26018
+# Last updated : 21 Sep 2026
+# Version      : 2.4.26264
 # Comments     : Includes both Gitea and GitHub repositories.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,14 +26,14 @@
 ##########################################################################
 
 create_snapshot() {
-	local archive
-	local interval="$1"
+	local -r interval="$1"
 	local -r archive_dir=~/Downloads/archives/gitea
+	local archive
 	archive="git-snapshot-$(date +%y%m%d).tar.gz"
 	[[ -d "$archive_dir/$interval" ]] || mkdir -p "$archive_dir/$interval"
 	case "$interval" in
 		daily )
-			tar -czpf "$archive_dir/$interval/$archive" "$HOME"/gitea "$HOME"/Projects >/dev/null 2>&1 ;;
+			tar -czpf "$archive_dir/$interval/$archive" ~/gitea ~/Projects >/dev/null 2>&1 ;;
 		weekly|monthly )
 			cp "$archive_dir/daily/$archive" "$archive_dir/$interval/"
 	esac
@@ -41,8 +41,8 @@ create_snapshot() {
 }
 
 remove_old_snapshots() {
-	local interval="$1"
-	local archive_dir="$2"
+	local -r interval="$1"
+	local -r archive_dir="$2"
 	case "$interval" in
 		daily )
 			find "$archive_dir/$interval" -daystart -mtime +6 -delete ;;
