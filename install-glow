@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 07 Sep2026
-# Version      : 5.2.26250
+# Updated      : 22 Sep2026
+# Version      : 5.3.26265
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -90,7 +90,7 @@ install_glow() {
 	set_gpg_key "$charm_url" "$charm_key"
 	set_sources "$charm_url" "$charm_key"
 	sudo apt update && sudo apt install -y glow
-	if ! grep -q '^ii' <(dpkg -l glow 2>/dev/null); then
+	if ! installed glow; then
 		printf "%s Glow installation failed.\n" "$RED_ERROR" >&2
 		return "$E_INSTALLATION"
 	fi
@@ -133,7 +133,7 @@ glow_config() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.2.26250"
+	local -r version="5.3.26265"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":chir"
