@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Sep 2025
-# Last updated : 05 Sep 2026
-# Version      : 4.4.26248
+# Last updated : 24 Sep 2026
+# Version      : 4.5.26267
 # Comments     : Run as a daily cron job from ~/.local/bin/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -49,7 +49,7 @@ update_clones() {
 
 main() {
 	update_clones
-  exit
+	exit
 }
 
 main "$@"
