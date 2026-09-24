@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, 02 Nov 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Nov 2019
-# Updated      : 06 Aug 2026
-# Version      : 2.2.26218
+# Updated      : 24 Sep 2026
+# Version      : 2.5.26267
 # Comments     : Appears to function, but haven't been able to download a page.'
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,33 +31,34 @@ help() {
   local -r script="$1"
   local -r version="$2"
   local -ri errcode="${3:-1}"
-  local -r updated="05 May 2026"
-  cat << _HELP_
-${orange}$script${normal} $version, Updated: $updated
-Downloads a web page to the current directory.
+  local -r updated="24 Sep 2026"
+  cat <<- _HELP_
+	${orange}$script${normal} $version, Updated: $updated
+	Downloads a web page to the current directory.
 
-${green}Usage:  ${normal} $script [URL | OPTION]
-${green}Example:${normal} $script https://example.com/index.html
-${orange}Available options:${normal}
-  -h | --help  Show this help message and exit.
+	${green}Usage:  ${normal} $script [URL | OPTION]
+	${green}Example:${normal} $script https://example.com/index.html
+	${orange}Available options:${normal}
+	-h | --help  Show this help message and exit.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 download_page() {
-  local -r url="$1"
-  local domain status
-  domain=$(sed 's|^[^/]*//||; s|^www\.||; s|/.*$||' <<< "$url")
-  printf "Downloading %s to %s\n" "$url" "$PWD"
-  wget --quiet --recursive --page-requisites --html-extension --convert-links --restrict-file-names=windows --domains "$domain" --no-parent "$url"
-  status="$?"
-  print_status "$status"
-  return "$status"
+	local -r url="$1"
+	local -i status=0
+	local domain
+	domain=$(sed 's|^[^/]*//||; s|^www\.||; s|/.*$||' <<< "$url")
+	printf "Downloading %s to %s\n" "$url" "$PWD"
+	wget --quiet --recursive --page-requisites --html-extension --convert-links --restrict-file-names=windows --domains "$domain" --no-parent "$url"
+	status="$?"
+	print_status "$status"
+	return "$status"
 }
 
 print_status() {
-  local -r status="$1"
-  local -ra exit_codes=(
+	local -r status="$1"
+	local -ra exit_codes=(
     "No problems occurred"
     "Generic error code"
     "Parse error"
@@ -68,42 +69,42 @@ print_status() {
     "Protocol errors"
     "Server issued an error response"
   )
-  if [[ "$status" -eq 0 ]]; then
-    printf "Page succesfully downloaded.\n"
-  else
-    printf "Download failed with exit code: %s.\n" "$status"
-    printf "Error: %s\n" "${exit_codes[status]}"
-  fi
-  return "$status"
+	if [[ "$status" -eq 0 ]]; then
+		printf "Page succesfully downloaded.\n"
+	else
+		printf "Download failed with exit code: %s.\n" "$status"
+		printf "Error: %s\n" "${exit_codes[status]}"
+	fi
+	return "$status"
 }
 
 check_arguments() {
-  local re="^https?:\/\/.*"
-  local url
-  if [[ "$#" -eq 0 ]]; then
-    printf "%s No argument passed.\n" "$RED_ERROR" >&2
-    help "$script" "$version" "$E_MISSING_ARG"
-  elif [[ "$1" = "--help" || "$1" = "-h" ]]; then
-    help "$script" "$version" 0
-  elif [[ $1 =~ $re ]]; then
-    url="$*"
-    download_page "$url"
-    return "$?"
-  else
-    printf "%s Invalid argument - %s\n" "$RED_ERROR" "$1" >&2
-    help "$script" "$version" "$E_INVALID_ARG"
-  fi
+	local -r re="^https?:\/\/.*"
+	local url
+	if [[ "$#" -eq 0 ]]; then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	elif [[ "$1" = "--help" || "$1" = "-h" ]]; then
+		help "$script" "$version" 0
+	elif [[ $1 =~ $re ]]; then
+		url="$*"
+		check_package wget
+		download_page "$url"
+		return "$?"
+	else
+		printf "%s Invalid argument: %s\n" "$RED_ERROR" "$1" >&2
+		help "$script" "$version" "$E_INVALID_ARG"
+	fi
 }
 
 main() {
-  local -r script="${0##*/}"
-  local -r version="2.4.26125"
-  local -i exit_code=0
-  check_package wget
-  check_arguments "$@"
-  exit_code="$?"
-  over_line "$script $version"
-  exit "$exit_code"
+	local -r script="${0##*/}"
+	local -r version="2.5.26267"
+	local -i exit_code=0
+	check_arguments "$@"
+	exit_code="$?"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
