@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Jul 2026
-# Updated      : 07 Sep 2026
-# Version      : 1.4.26250
+# Updated      : 23 Sep 2026
+# Version      : 1.5.26266
 # Comments     : Does not overwrite current Brave Browser version
 #              : To downgrade to the original standard Brave:
 #              : Go to brave://flags/#brave-origin and change flag to Disabled
@@ -35,7 +35,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="07 Sep 2026"
+	local -r updated="23 Sep 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Installs/Removes Brave Origin
@@ -87,7 +87,7 @@ set_sources() {
 	local -r sources_list=/etc/apt/sources.list.d/brave-browser-release.list
 	if [[ -f "$sources_list" ]]; then
 		show_message "Renaming old source list file..."
-		sudo mv "$sources_list"
+		sudo mv "$sources_list" "$sources_list.bak"
 	fi
 	show_message "Creating the sources file..."
 	sudo curl -fsSLo "$sources_file" "$sources_uri"
@@ -130,7 +130,7 @@ remove_brave_origin() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.4.26250"
+	local -r version="1.5.26266"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hirv"
