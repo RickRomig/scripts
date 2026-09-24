@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 07 Sep 2026
-# Version      : 7.6.26250
+# Updated      : 23 Sep 2026
+# Version      : 7.7.26266
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -34,7 +34,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="07 Sep 2026"
+	local -r updated="23 Sep 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: ($updated)
 	Installs/Removes the Brave browser
@@ -90,7 +90,7 @@ set_sources() {
 	local -r sources_list=/etc/apt/sources.list.d/brave-browser-release.list
 	if [[ -f "$sources_list" ]]; then
 		show_message "Renaming old source list file..."
-		sudo mv -v "$sources_list"
+		sudo mv -v "$sources_list" "$sources_list.bak"
 	fi
 	show_message "Creating the source list file..."
 	sudo tee $sources_file <<< \
@@ -144,7 +144,7 @@ remove_brave() {
 
 main(){
 	local -r script="${0##*/}"
-	local -r version="7.6.26250"
+	local -r version="7.7.26266"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hirv"
