@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2019
-# Updated      : 07 Sep 2026
-# Version      : 6.2.26250
+# Updated      : 23 Sep 2026
+# Version      : 6.3.26266
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="07 Sep 2026"
+	local -r updated="23 Sep 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs, updated, or removes Google Chrome.
@@ -64,7 +64,7 @@ set_sources() {
 	local -r sources_uri="https://dl.google.com/linux/chrome-stable/deb/"
 	[[ -d /etc/apt/sources.list.d/google-chrome.list ]] && sudo mv /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/google-chrome.list.bak
 	printf "Creating the source list file...\n"
-	tee $sources_file <<< \
+	sudo tee $sources_file <<< \
 "X-Repolib-Name: Google Chrome
 Types: deb
 URIs: $sources_uri
@@ -111,7 +111,7 @@ remove_google_chrome() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.2.26250"
+	local -r version="6.3.26266"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hir"
