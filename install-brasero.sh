@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 14 Feb 2026
-# Updated      : 07 Sep 2026
-# Version      : 2.2.26250
+# Updated      : 24 Sep 2026
+# Version      : 2.3.26267
 # Comments     : Thanks to Joe Collins and Matt Hartley for the fix to the permissions problem.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,18 +31,18 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="07 Sep 2026"
+	local -r updated="24 Sep 2026"
 	cat <<- _HELP_
-${orange}$script${normal} $version, Upated: $updated
-Installs Brasero CD/DVD writeer
+	${orange}$script${normal} $version, Upated: $updated
+	Installs Brasero CD/DVD writeer
 
-${green}Usage:${normal} $script [-hir]
-${orange}Available options:${normal}
+	${green}Usage:${normal} $script [-hir]
+	${orange}Available options:${normal}
 	-h	Show this help message and exit.
 	-i	Install Brasero.
 	-r	Remove Brasero.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 check_dependencies() {
@@ -117,7 +117,7 @@ remove_brasero() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.2.26250"
+	local -r version="2.3.26267"
 	local -i exit_code=0
 	local -i reboot_flag="$FALSE"
 	local -i noOpt=1
