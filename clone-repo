@@ -7,13 +7,13 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 18 Sep 2026
-# Version      : 5.3.26261
-# Comments     : clone_repo() is contained in functionlib
+# Updated      : 24 Sep 2026
+# Version      : 5.4.26267
+# Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
-##############################################################################
+###############################################################################
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
 # Foundation; either version 2 of the License, or (at your option) any later
@@ -30,24 +30,24 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 help() {
 	local -r script="$1"
 	local -r version="$2"
-	local -r errcode="${3:-1}"
-	local -r updated="08 Jul 2026"
-	cat << _HELP_
-${orange}$script${normal} $version, Upated: $updated
-Clone a git repository from GitHub or the local Gitea server
+	local -ri errcode="${3:-1}"
+	local -r updated="24 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version, Upated: $updated
+	Clone a git repository from GitHub or the local Gitea server
 
-${green}Usage:${normal} $script [-cfghipsw]
-${orange}Available options:${normal}
-  -c  Clone configs repository
-  -f  Clone fnloc repository
-  -g  Clone gitea server repository
-  -h  Show this help message and exit
-  -i  Clone i3wm-debian repository
-  -p  Clone homepage repository
-  -s  Clone scripts repository
-  -w  Clone fnloc-win repository
+	${green}Usage:${normal} $script [-cfghipsw]
+	${orange}Available options:${normal}
+	-c	Clone configs repository
+	-f	Clone fnloc repository
+	-g	Clone gitea server repository
+	-h	Show this help message and exit
+	-i	Clone i3wm-debian repository
+	-p	Clone homepage repository
+	-s	Clone scripts repository
+	-w	Clone fnloc-win repository
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 check_repo() {
@@ -81,11 +81,11 @@ clone_repo() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.3.26261"
-	local exit_code=0
-	local opt OPTARG OPTIND
+	local -r version="5.4.26267"
+	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":cfghipsw"
+	local opt OPTARG OPTIND
 	check_package git
 	while getopts "$optstr" opt; do
 		case "$opt" in
@@ -102,7 +102,10 @@ main() {
 		exit_code="$?"
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help "$script" "$version" "$E_MISSING_ARG"; }
+	if (( noOpt == 1 )); then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
 	exit "$exit_code"
