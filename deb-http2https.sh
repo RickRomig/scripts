@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 20 Jul 2025
-# Updated      : 26 Aug 2026
-# Version      : 1.8.26238
+# Updated      : 24 Sep 2026
+# Version      : 1.8.26267
 # Comments     : Intended for use on Debian Bookworm and Debian Trixie
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -67,7 +67,7 @@ convert_backports_list() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.8.26238"
+	local -r version="1.8.26267"
 	local -i exit_code=0
 	local distro
 	distro=$(debian_distro)
@@ -86,8 +86,8 @@ main() {
 			printf "%s does not support %s\n" "$script" "${distro^}" >&2
 			exit_code="$E_UNSUPPORTED"
 	esac
-  over_line "$script $version"
-  exit "$exit_code"
+	over_line "$script $version"
+	exit "$exit_code"
 }
 
 main "$@"
