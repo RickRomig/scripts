@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Updated      : 07 Sep 2026
-# Version      : 2.15.26250
+# Updated      : 24 Sep 2026
+# Version      : 2.16.262670
 # Comments     : executable and its manpage will be renamed from ‘bat’ to ‘batcat’
 #              : because of a file name clash with another Debian package.
 #              : Mint 22 installs version 0.24.0 with suffix.
@@ -35,34 +35,34 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="07 Sep 2026"
-	cat << _HELP_
-${orange}$script${normal} $version, Updated: $updated
-Installs/removes/configures bat/batcat
+	local -r updated="24 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version, Updated: $updated
+	Installs/removes/configures bat/batcat
 
-${green}Usage:${normal} $script [-chir]
-${orange}Available options:${normal}
-  -c	Install bat configuration file.
-  -h	Show this help message and exit.
-  -i	Install bat from Debian/Ubuntu repository.
-  -r	Remove bat and configuration files.
+	${green}Usage:${normal} $script [-chir]
+	${orange}Available options:${normal}
+	-c	Install bat configuration file.
+	-h	Show this help message and exit.
+	-i	Install bat from Debian/Ubuntu repository.
+	-r	Remove bat and configuration files.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 bat_version() {
-  if exists batcat; then
-    cut -d' ' -f2 < <(batcat --version)
-  else
-    cut -d' ' -f2 < <(bat --version)
-  fi
+	if exists batcat; then
+		cut -d' ' -f2 < <(batcat --version)
+	else
+		cut -d' ' -f2 < <(bat --version)
+	fi
 	return 0
 }
 
 install_batcat() {
 	if installed bat; then
 		printf "Bat (Batcat) %s is already installed.\n" "$(bat_version)"
-		return 1
+		return "$E_FILE_EXISTS"
 	fi
 	sudo_login 2
 	sudo apt-get install -yy bat
@@ -80,7 +80,7 @@ remove_batcat() {
 		return "$E_NOT_DETECTED"
 	fi
 	sudo_login 2
-  printf "Removing Bat %s...\n" "$(bat_version)"
+	printf "Removing Bat %s...\n" "$(bat_version)"
 	[[ -L ~/.local/bin/bat ]] && unlink ~/.local/bin/bat
 	sudo apt-get remove --purge -y bat
 	if default_no "Remove configuration files?"; then
@@ -120,7 +120,7 @@ bat_config() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.15.26250"
+	local -r version="2.16.262670"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":chir"
