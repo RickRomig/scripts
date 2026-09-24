@@ -7,8 +7,8 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Nov 2019
-# Updated      : 10 Sep 2026
-# Version      : 3.10.26253
+# Updated      : 24 Sep 2026
+# Version      : 3.11.26267
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to current working directory
 # TODO (Rick)  :
@@ -32,20 +32,20 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="04 Sep 2026"
-	cat << _HELP_
-${orange}$script${normal} $version, Updated: $updated
-Downloads mp3 audio from YouTube videos to the current working diretory.
+	local -r updated="24 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version, Updated: $updated
+	Downloads mp3 audio from YouTube videos to the current working diretory.
 
-${green}Usage:${normal} $script [-h|--help] [video-url] [video-ID]
-${orange}Available options:${normal}
-  -h | --help  Show this help message and exit.
+	${green}Usage:${normal} $script [-h|--help] [video-url] [video-ID]
+	${orange}Available options:${normal}
+	-h | --help  Show this help message and exit.
 
-$script https://www.youtube.com/watch?v=8hLlU0EML4U
-$script 8hLlU0EML4U
+	$script https://www.youtube.com/watch?v=8hLlU0EML4U
+	$script 8hLlU0EML4U
 
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 check_arguments() {
@@ -86,10 +86,10 @@ download_audio() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.10.26253"
+	local -r version=" 3.11.26267"
 	local -i exit_code=0
-	local audio_url
 	local -r re="^https?:\/\/.*"
+	local audio_url
 	check_arguments "$@"
 	check_dependencies
 	if [[ $1 =~ $re ]]; then
