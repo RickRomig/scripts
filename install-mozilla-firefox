@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Updated      : 08 Sep 2026
-# Version      : 7.2.26251
+# Updated      : 23 Sep 2026
+# Version      : 7.3.26266
 # Comments     : Remove Distro, Flatpak, or Snap version before installing.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated=" 08 Sep 2026"
+	local -r updated=" 23 Sep 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Installs/Removes Mozilla repository version of Firefox.
@@ -45,7 +45,7 @@ help() {
 	-r	Remove Mozilla Firefox Debian package.
 	-v	Enable verbose mode. If used, must precede other flags.
 _HELP_
-  exit "$errcode"
+	exit "$errcode"
 }
 
 show_message() {
@@ -82,11 +82,10 @@ create_preference_file() {
 	# Preference file to prioritize packages from Mozilla repository
 	local -r mozilla_pref="/etc/apt/preferences.d/mozilla.pref"
 	show_message "Creating preference file..."
-	echo '
-Package: *
+	sudo tee $mozilla_pref <<< \
+"Package: *
 Pin: origin packages.mozilla.org
-Pin-Priority: 1000
-'| sudo tee "$mozilla_pref"
+Pin-Priority: 1000"
 	return "$?"
 }
 
@@ -162,7 +161,7 @@ remove_mozilla_firefox() {
 main() {
 	VERBOSE="$FALSE"
 	local -r script="${0##*/}"
-	local -r version="7.2.26251"
+	local -r version="7.3.26266"
 	local -i exit_code=0
 	local opt OPTARG OPTIND
 	local -i noOpt=1
