@@ -30,28 +30,28 @@ BASH Error Codes
 
 ```bash
 function error_exit() {
-    echo "${script}: ${1:-"Unknown Error"}" 1>&2
-    exit 1
+	echo "${script}: ${1:-"Unknown Error"}" 1>&2
+	exit 1
 }
 
 error_exit "$LINENO: An error has occurred."
 
 tempfiles=( )
 cleanup() {
-  rm -f "${tempfiles[@]}"
+	rm -f "${tempfiles[@]}"
 }
 trap cleanup 0
 
 error_line() {
-  local parent_lineno="$1"
-  local message="$2"
-  local code="${3:-1}"
-  if [[ -n "$message" ]] ; then
-    echo "Error on or near line ${parent_lineno}: ${message}; exiting with status ${code}"
-  else
-    echo "Error on or near line ${parent_lineno}; exiting with status ${code}"
-  fi
-  exit "${code}"
+	local -r parent_lineno="$1"
+	local -r message="$2"
+	local -ri code="${3:-1}"
+	if [[ -n "$message" ]] ; then
+		echo "Error on or near line ${parent_lineno}: ${message}; exiting with status ${code}"
+	else
+		echo "Error on or near line ${parent_lineno}; exiting with status ${code}"
+	fi
+	exit "${code}"
 }
 
 trap 'error_line ${LINENO}' ERR
@@ -59,8 +59,8 @@ trap 'error_line ${LINENO}' ERR
 error_line ${LINENO} "the foobar failed" 2
 
 error_handler() {
-  echo "Error: ($1) occurred on line $2" >&2
-  # exit "$1"
+	echo "Error: ($1) occurred on line $2" >&2
+	exit "$1"
 }
 
 trap 'error_handler $? $LINENO' ERR
