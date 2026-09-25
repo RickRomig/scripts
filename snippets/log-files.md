@@ -23,9 +23,8 @@ echo "Script completed at $(date)"
 ```
 #### Other examples:
 ```bash
-#!/bin/bash
 {
-  blah code
+	blah code
 } 2>&1 | tee -a file.log
 ```
 ```bash
@@ -34,23 +33,25 @@ exec > >(tee -a "/path/logs/$log") 2>&1
 #### Log function:
 ```bash
 log() {
-  echo "$(date +'%F %R') - $1" >> logfile.log
+	echo "$(date +'%F %R') - $1" >> logfile.log
 }
 
 log "This is a log message"
 
 log() {
-  local message="$1"
-  local logfile="$2"
-  printf "%(%F %R)T: %s\n" -1 "$message" | tee -a "$logfile"
+	local message="$1"
+	local logfile="$2"
+	# printf "%(%F %R)T: %s\n" -1 "$message" | tee -a "$logfile"
+	tee -a "$logfile" < <(printf "%(%F %R)T: %s\n" -1)
 }
 
 dielog() {
-  local -r message="$1"
-  local -r logfile="$2"
-  local -r errcode-"${3:-2}"
-  printf "%(%F %R)T: %s\n" -1 "$message" | tee -a "$logfile" >/dev/null
-  printf "\e[91mERROR:\e[0m %s\n" "$message" >&2
-  exit "$errcode"
+	local -r message="$1"
+	local -r logfile="$2"
+	local -r errcode-"${3:-2}"
+	# printf "%(%F %R)T: %s\n" -1 "$message" | tee -a "$logfile" >/dev/null
+	tee -a "$logfile" >/dev/null < <(printf "%(%F %R)T: %s\n" -1)
+	printf "\e[91mERROR:\e[0m %s\n" "$message" >&2
+	exit "$errcode"
 }
 ```
