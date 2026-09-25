@@ -5,7 +5,7 @@
 exist() {
   command -v "$1" > /dev/null && echo "$1 installed" || echo "$1 not installed"
 }
-exist foobar-baz
+$ exist foobar-baz
 ```
 #### Check if a package is in distribution repositories.
 ```bash
@@ -13,28 +13,28 @@ inrepos() {
   pkg=$(apt-cache show "$1" 2>/dev/null | awk '/Package:/ {print $NF}')
   [[ "$pkg" ]] && echo "$1 found in repos" || echo "$1 not found in repos"
 }
-inrepos foobar-baz
+$ inrepos foobar-baz
 ```
 #### Get a future date a given number of days from the current date
 ```bash
 future() {
   echo "$1 days from now will be $(date -d "$(date +%y-%m-%d) + $1 days" +"%d %b %Y")"
 }
-future 90
+$ future 90
 ```
 #### Kill stopped jobs
 ```bash
 killjobs() {
   kill -9 $(jobs -ps)
 }
-killjobs
+$ killjobs
 ```
 #### Remove files ending with a tilde in the current directory
 ```bash
 rm~() {
   find ./ -maxdepth 1 -type f -regex '\./.*~$' -print -exec rm {} \;
 }
-rm~
+$ rm~
 ```
 #### Change directories and list its contents in one command
 ```bash
@@ -46,7 +46,7 @@ cdls() {
     echo "bash: cdls: $dir: Directory not found"
   fi
 }
-cdls .config
+$ cdls .config
 ```
 #### Move up a specified number of directories (i.e. `up 4` moves up 4 directory levels.)
 ```bash
@@ -62,7 +62,7 @@ up() {
 	fi
 	cd $d
 }
-up 4
+$ up 4
 ```
 #### Copy with a progress bar.
 ```bash
@@ -84,7 +84,7 @@ cpp() {
 		}
 	END { print "" }' total_size="$(stat -c '%s' "${1}")" count=0
 }
-cpp foobar foo/bar
+$ cpp foobar foo/bar
 ```
 #### Copy a file to another directory and change to that directory in one command
 ```bash
@@ -95,7 +95,7 @@ cpcd (){
     cp $1 $2
   fi
 }
-cpcd foobar foo/bar
+$ cpcd foobar foo/bar
 ```
 #### Move a file to another directory and change to that directory in one command
 ```bash
@@ -106,14 +106,14 @@ mvcd (){
     mv $1 $2
   fi
 }
-mvcd foobar foo/bar
+$ mvcd foobar foo/bar
 ```
 #### Create a directory and cd into it
 ```bash
 mkcd() {
   mkdir -p -- "$1" && cd -P -- "$1"
 }
-mkcd foobar
+$ mkcd foobar
 ```
 #### Copy a text file to multiple systems using DSH.
 ```bash
@@ -121,7 +121,7 @@ mkcd foobar
 dcp() {
 	  cat "$1" | dsh -g "$2" -i -c "tee $3/$(basename "$1")"
   }
-dcp foo group path/on/remote/systems
+$ dcp foo group path/on/remote/systems
 ```
 #### Execute a command to a group of remote hosts using DSH.
 ```bash
@@ -129,7 +129,7 @@ dcp foo group path/on/remote/systems
 dsh-grp() {
 	dsh -M -g $1 -c $2
 }
-dsh-grp laptops "foobar"
+$ dsh-grp laptops "foobar"
 ```
 #### Execute a command on a remote host via SSH.
 ```bash
@@ -137,14 +137,14 @@ dsh-grp laptops "foobar"
 ssh-cmd() {
 	ssh 192.168.0."$1" "$2"
 }
-ssh-cmd 20 bin/foobar.sh
+$ ssh-cmd 20 bin/foobar.sh
 ```
 #### Decrypt an encrytped pdf file
 ```bash
 decryptpdf() {
 	qpdf --password="$1" --decrypt "$2".pdf --replace-input
 }
-decryptpdf 3287 foobar.pdf
+$ decryptpdf 3287 foobar.pdf
 ```
 #### Add a file to be staged in git and create a commit for it
 ```bash
@@ -153,7 +153,7 @@ gcommit() {
 	git add $1
 	git commit -m "$1 - $2"
 }
-gcommit foo.bar "Made some changes to foo.bar" && gpush
+$ gcommit foo.bar "Made some changes to foo.bar" && gpush
 ```
 #### Add all new or modified files to be staged in git and create a commit
 ```bash
@@ -162,7 +162,7 @@ gcommitall() {
 	git add -A
 	git commit -m "$1"
 }
-gcommitall "Changed some files." && gpush
+$ gcommitall "Changed some files." && gpush
 ```
 #### Add a file to be staged in git and create a command for it without verifying the code
 ```bash
@@ -171,7 +171,7 @@ ncommit() {
 	git add $1
 	git commit -m "$1 - $2" --no-verify
 }
-ncommit foo.bar "Made some changes to foo.bar" && gpush
+$ ncommit foo.bar "Made some changes to foo.bar" && gpush
 ```
 #### Add all new or modified files in git and create a command for it without verifying the code
 ```bash
@@ -180,7 +180,7 @@ ncommitall() {
 	git add -A
 	git commit -m "$1" --no-verify
 }
-ncommitall "Changed some files." && gpush
+$ ncommitall "Changed some files." && gpush
 ```
 #### Extract compressed files using various compression utilitiesl.
 ```bash
@@ -207,29 +207,29 @@ ex () {
     echo "'$1' is not a valid file."
   fi
 }
-ex foobar.tar.gz
+$ ex foobar.tar.gz
 ```
 #### `bat` help wrapper for syntax highlighting with --help (requres `bat` to be installed)
 ```bash
 alias bathelp='bat --plain --language=help'
-hlp() {
+Help() {
   "$@" --help 2>&1 | bathelp
 }
-help htop
+$ Help htop
 ```
 #### Online cheatsheet for Linux commands
 ```bash
 cheat() {
   curl -s cheat.sh/$1 | bat -p
 }
-cheat ls
+$ cheat ls
 ```
 #### Display timeshift snapshots on the command line.
 ```bash
 tsl() {
 	if dpkg -l timeshift >/dev/null 2>&1; then sudo timeshift --list | awk 'NR!=1 && NR!=3'; else echo "Timeshift not installed."; fi
 }
-tsl
+$ tsl
 ```
 #### Use `fzf` to list and search for files in the current directory and select a file to be edited by `micro`.
 ```bash
@@ -237,7 +237,7 @@ preview-file() {
 	file=$(find . -type f | sort -d | fzf --reverse --preview="bat --style=full --color=always {}" --bind shift-up:preview-page-up,shift-down:preview-page-down --border=rounded)
 	[[ "$file" ]] && ${EDITOR} "$file"
 }
-preview-file
+$ preview-file
 ```
 #### awk field separator....?
 ```bash
@@ -248,14 +248,56 @@ field() {
 #### Restore files from the trash directory
 ```bash
 restore-trash() { /usr/bin/trash-restore $1; }
-restore-trash foobar.baz
+$ restore-trash foobar.baz
 ```
 #### Run Shellcheck on a file & tee to a log file
 ```bash
-scgl() {
-	tee ./shellcheck.log < <(shellcheck -f gcc "$1")
+sc() {
+	tee ./.shellcheck.log < <(shellcheck -f gcc "$1")
+	[[ -s ./.shellcheck.log ]] || tee -a ./.shellcheck.log <<< "$1: No shellcheck issues found."
 }
-scgl foobar.sh
+$ sc foobar.sh
+```
+#### Add a directory to the top of the directory stack and makes it the current working direcory
+```bash
+pud() {
+	local re="^[0-9]+$"
+	if [[ $1 =~ $re ]]; then
+		pushd +"$1"
+	elif [[ -d $1 ]]; then
+		# adds directory to the top of the stack
+		pushd $1
+	elif [[ $# -eq 0 ]]; then
+		# exchanges the top two directories in the stack
+		pushd
+	else
+		printf "%s not found\n" "$1" >&2
+	fi
+}
+$ pud 3
+```
+#### Remove directories from the directory stack
+```bash
+pod() {
+	local re="^[0-9]+$"
+	if [[ $1 =~ $re ]]; then
+		popd +"$1"
+	elif [[ $# -eq 0 ]]; then
+		popd +0
+	else
+		echo "Invalid input." >&2
+	fi
+}
+$ pod 4
+```
+#### Creat a Bash script on the fly, make it executable, and open it in the default editor
+```bash
+qwik-script() {
+	echo "#!/usr/bin/env bash" > $1
+	chmod 755 $1
+	$EDITOR $1
+}
+$ qwik-script foobarbaz.sh
 ```
 ### .bashrc alias functions
 #### Parse git branch, identifies git branch in bash prompt (~/.bashrc)
@@ -264,7 +306,7 @@ scgl foobar.sh
     git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
   }
 ```
-#### Alias for ssh if terminal is kitty (.bashrc)
+#### Alias for ssh if terminal is kitty (~/.bashrc)
 ```bash
 [[ "$TERM" = "xterm-kitty" ]] && alias ssh="kitty +kitten ssh"
 ```
