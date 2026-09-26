@@ -3,7 +3,7 @@
 ```bash
 bat dir/*.c
 ```
-### Display with syntax highlighting for languate
+### Display with syntax highlighting for language
 ```bash
 bat -l json file
 bat --language=json file
