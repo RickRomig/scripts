@@ -7,8 +7,8 @@
 # Author       : Cepyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2019
-# Updated      : 22 Sep 2026
-# Version      : 6.10.26265
+# Updated      : 26 Sep 2026
+# Version      : 6.11.26269
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -134,16 +134,14 @@ bu_user_cfgs() {
 
 bu_i3_cfgs() {
 	[[ -f "$CFG_DIR/i3/config" ]] && bu_config_cfg "i3" "config"
-	[[ -f "$CFG_DIR/i3/bindings.list" ]] && bu_config_cfg "i3" "bindings.list"
 	[[ -f "$CFG_DIR/i3/sxhkd/sxhkdrc" ]] && bu_config_cfg "i3/sxhkd" "sxhkdrc"
 	[[ -f "$CFG_DIR/i3/sxhkdrc" ]] && bu_config_cfg "i3" "sxhkdrc"
 	[[ -f "$CFG_DIR/i3/bar.conf" ]] && bu_config_cfg "i3" "bar.conf"
 	[[ -f "$CFG_DIR/i3/rules.conf" ]] && bu_config_cfg "i3" "rules.conf"
 	[[ -f "$CFG_DIR/i3/workspaces.conf" ]] && bu_config_cfg "i3" "workspaces.conf"
+	[[ -f "$CFG_DIR/i3/bindings.list" ]] && bu_config_cfg "i3" "bindings.list"
+	[[ -f "$CFG_DIR/i3/keybindings.conf" ]] && bu_config_cfg "i3" "keybindings.conf"
 	[[ -f "$CFG_DIR/i3/i3status.conf" ]] && bu_config_cfg "i3" "i3status.conf"
-	[[ -f "$CFG_DIR/i3/autostart.sh" ]] && bu_config_cfg "i3" "autostart.sh"
-	[[ -f "$CFG_DIR/i3/backgrounds.sh" ]] && bu_config_cfg "i3" "backgrounds.sh"
-	[[ -f "$CFG_DIR/i3/logout" ]] && bu_config_cfg "i3" "logout"
 	[[ -f "$CFG_DIR/dunst/dunstrc" ]] && bu_config_cfg "dunst" "dunstrc"
 	[[ -f "$CFG_DIR/polybar/i3bar.ini" ]] && bu_config_cfg "polybar" "i3bar.ini"
 	[[ -f "$CFG_DIR/polybar/config" ]] && bu_config_cfg "polybar" "config"
@@ -173,6 +171,7 @@ bu_editor_cfgs() {
 
 bu_terminal_cfgs() {
 	[[ -f "$CFG_DIR/kitty/kitty.conf" ]] && bu_config_cfg "kitty" "kitty.conf"
+	[[ -f "$CFG_DIR/kitty/keybindings.conf" ]] && bu_config_cfg "kitty" "keybindings.conf"
 	[[ -f "$CFG_DIR/kitty/bindings.list" ]] && bu_config_cfg "kitty" "bindings.list"
 	[[ -f "$CFG_DIR/terminator/config" ]] && bu_config_cfg "terminator" "config"
 	return 0
@@ -227,7 +226,7 @@ completion_status() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.10.26265"
+	local -r version="6.11.26269"
 	[[ -d "$BU_DIR" ]] || mkdir -p "$BU_DIR"
 	printf "Backing up configuration files...\n"
 	bu_user_cfgs
