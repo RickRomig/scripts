@@ -260,7 +260,7 @@ $ sc foobar.sh
 ```
 #### Add a directory to the top of the directory stack and makes it the current working direcory
 ```bash
-pud() {
+dpush() {
 	local re="^[0-9]+$"
 	if [[ $1 =~ $re ]]; then
 		pushd +"$1"
@@ -274,11 +274,11 @@ pud() {
 		printf "%s not found\n" "$1" >&2
 	fi
 }
-$ pud 3
+$ dpush 3
 ```
 #### Remove directories from the directory stack
 ```bash
-pod() {
+dpop() {
 	local re="^[0-9]+$"
 	if [[ $1 =~ $re ]]; then
 		popd +"$1"
@@ -288,7 +288,7 @@ pod() {
 		echo "Invalid input." >&2
 	fi
 }
-$ pod 4
+$ dpop 4
 ```
 #### Creat a Bash script on the fly, make it executable, and open it in the default editor
 ```bash
