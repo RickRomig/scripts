@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 2023
-# Updated      : 09 Sep 2026
-# Version      : 4.2.26252
+# Updated      : 28 Sep 2026
+# Version      : 4.3.26271
 # Comments     : Assumes a /24 (Class C) network
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="09 Sep 2026"
+	local -r updated="28 Sep 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Pings an IP address on the local network.
@@ -51,17 +51,7 @@ _HELP_
 
 validIP() {
 	local -ri octet="$1"
-	local -r re="^[0-9]+$"
-	if [[ -z "$octet" ]]; then
-		printf "%s No argument passed.\n" "$RED_ERROR" <&2
-		return "$E_MISSING_ARG"
-	fi
-	if ! [[ $1 =~ $re ]] 2>/dev/null; then
-		printf "%s Invalid argument - %s (not an integer).\n" "$RED_ERROR" "$octet" <&2
-		return "$E_INVALID_ARG"
-	fi
-	# Argument is an integer value
-	if [[ "$octet" -gt 0 && "$octet" -lt 255 ]]; then
+	if (( octet > 0 )) && (( octet < 255 )); then
 		printf "%s.%s is a valid IP address.\n" "$LOCALNET" "$octet"
 		return 0
 	else
@@ -71,11 +61,10 @@ validIP() {
 }
 
 pingIP() {
-	local -r hostip="$1"
+	local -ri hostip="$1"
 	local -i localip
 	localip="$(local_ip)"
-	# Attempt to ping the target IP address
-	if [[ "$localip" == "$hostip" ]]; then
+	if (( localip == hostip )); then
 		printf "\n%s.%s is the computer you're pinging from.\n" >&2 "$LOCALNET" "$hostip"
 		return "$E_INVALID_ARG"
 	fi
@@ -85,17 +74,21 @@ pingIP() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.2.26252"
+	local -r version="4.3.26271"
 	local -i exit_code=0
 	[[ "$1" = "-h" || "$1" = "--help" ]] && help "$script" "$version" "$exit_code"
 	local -r hostip="$1"
+	if [[ -z "$hostip" ]]; then
+		printf "%s No argument passed. No host IP.\n" "$RED_ERROR" <&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	fi
 	printf "Pings an an IP address on the local network.\n"
 	if validIP "$hostip"; then
 		pingIP "$hostip"
+		exit_code="$?"
 	else
 		help "$script" "$version" "$?"
 	fi
-	exit_code="$?"
 	over_line "$script $version"
 	exit "$exit_code"
 }
