@@ -285,44 +285,34 @@ leapyear() {
 
 local_ip() {
 	local octet
-	octet=$(awk '{print $7}' <(ip route get 1.2.3.4))
+	octet=$(awk '{print $7}' < <(ip route get 1.2.3.4))
 	[[ "$octet" ]] || die "No IP address found. Check network status." "$E_NETWORK"
 	printf "%s" "${octet##*.}"
 	return 0
 }
 
 valid_ip() {
-	local localip
-	local -r octet="$1"
-	local -r re="^[0-9]+$"
-	local -i status=0
+	local -ri octet="$1"
+	local -i localip
 	localip="$(local_ip)"
 	if [[ -z "$octet" ]]; then
-		status="$E_MISSING_ARG"
 		printf "%s No argument passed. No host IP.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" >&2
-	elif [[ $1 =~ $re ]]; then
-		# Argument is an integer value
-		if (( octet > 0 )) && (( octet < 255 )); then
-			# Valid address - test if reachable or local machine
-			if [[ "$localip" -eq "$octet" ]]; then
-				status="$E_NETWORK"
-				printf "%s %s.%s is the local client.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
-			elif ping -c 1 "$LOCALNET.$octet" > /dev/null 2>&1; then
-				status=0
-				printf "%s.%s is a valid and reachable IP address.\n" "$LOCALNET" "$octet"
-			else
-				status="$E_NETWORK"
-				printf "%s %s.%s is valid IP address but is unreachable.\nCheck to see if it is on the network.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
-			fi
+		return "$E_MISSING_ARG"
+	elif (( localip == octet )); then
+		printf "%s %s.%s is the local client.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+		return "$E_NETWORK"
+	elif (( octet > 0 )) && (( octet < 255 )); then
+		if ping -c 1 "$LOCALNET.$octet" > /dev/null 2>&1; then
+			printf "%s.%s is a valid and reachable IP address.\n" "$LOCALNET" "$octet"
+			return 0
 		else
-			status="$E_INVALID_ARG"
-			printf "%s %s.%s is not a valid IP address.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+			printf "%s %s.%s is valid IP address but is unreachable.\nCheck to see if it is on the network.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+			return "$E_NETWORK"
 		fi
 	else
-		status="$E_INVALID_ARG"
-		printf "%s Invalid argument: %s\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$octet" >&2
+		printf "%s Invalid argument: %s.%s is not a valid IP address.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+		return "$E_INVALID_ARG"
 	fi
-	return "$status"
 }
 
 edit_view_quit() {
@@ -356,10 +346,10 @@ edit_view_quit() {
 
 viewtext() {
 	local -r file="$1"
-	local catmax filelines
+	local -i catmax filelines
 	catmax=$(( $(tput lines)*87/100 ))
 	filelines=$(wc -l < "$file")
-	if [[ "$filelines" -gt "$catmax" ]]; then less "$file"; else cat "$file"; fi
+	if (( filelines > catmax )); then less "$file"; else cat "$file"; fi
 	return 0
 }
 
