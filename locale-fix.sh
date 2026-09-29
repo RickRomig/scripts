@@ -57,7 +57,7 @@ purge_and_update() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.7.26211"
+	local -r version="2.8.26252"
 	show_intro "$script"
 	purge_and_update
 	over_line "$script $version"
