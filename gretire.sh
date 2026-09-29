@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Updated      :06 Sep 2026
-# Version      : 4.6.26249"
+# Updated      : 29 Sep 2026
+# Version      : 4.7.26272
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
 #              : If file has been changed, commit the change before retiring.
@@ -33,17 +33,17 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local updated="06 Sep 2026"
-	cat << _HELP_
-${orange}$script${normal} $version ($updated)
-Retires a script in a Git repo by moving it to a zipped archive.
+	local updated="29 Sep 2026"
+	cat <<- _HELP_
+	${orange}$script${normal} $version ($updated)
+	Retires a script in a Git repo by moving it to a zipped archive.
 
-${green}Usage:${normal} $script [script-name] [-h|--help]
-${orange}Available options:${normal}
-  -h | --help  Show this help message and exit
-${bold}NOTES:${normal}
-Do not use to retire a script that is not in a git repository. Use 'retire-script.sh' instead.
-If no argument is passed, the user will be prompted for the name of the script to be retired.
+	${green}Usage:${normal} $script [script-name] [-h|--help]
+	${orange}Available options:${normal}
+	-h | --help  Show this help message and exit
+	${bold}NOTES:${normal}
+	Do not use to retire a script that is not in a git repository. Use 'retire-script.sh' instead.
+	If no argument is passed, the user will be prompted for the name of the script to be retired.
 _HELP_
 	exit "$errcode"
 }
@@ -66,7 +66,7 @@ retire_script() {
 	git rm "$filename"
 	git commit -m "$filename retired and archived." --no-verify
 	git push
-	return 0
+	return "$?"
 }
 
 check_args() {
@@ -82,7 +82,7 @@ check_args() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.6.26249"
+	local -r version="4.7.26272"
 	local -i exit_code=0
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
 	local filename="$1"
