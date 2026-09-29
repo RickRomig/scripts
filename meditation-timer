@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jul 2021
-# Updated      : 09 Sep 2026
-# Version      : 3.1.26252
+# Updated      : 29 Sep 2026
+# Version      : 3.2.26272
 # Comments     : Original script found on Reddit r/dharmmawheel, posted by u/Jhanna4
 # TODO (Rick)  : Work on getting sound functions to work with Pipewire audio.
 # License      : GNU General Public License, version 2.0
@@ -72,13 +72,13 @@ set_playback_volume() {
 
 play_sound() {
 	# Play an audio file as a background process.
-	local sound="$1"
+	local -r sound="$1"
 	/usr/bin/aplay "$sound" > /dev/null 2>&1 &
 	return 0
 }
 
 set_meditation_time() {
-	local minutes="${1:-20}"  # Default time is 20 minutes.
+	local -i minutes="${1:-20}"  # Default time is 20 minutes.
 	# set to default if not a digit or equal to 0
 	[[ "${minutes//[0-9]/}" || "$minutes" -eq 0 ]] && minutes=20
 	echo "$minutes"
@@ -133,7 +133,7 @@ meditation_timer() {
 }
 
 meditate() {
-	local minutes="$1"
+	local -r minutes="$1"
 	local volume="$2"
 	local meditation_time orig_volume script_dir
 	script_dir=$(dirname "$(readlink -f "${0}")")
@@ -156,7 +156,7 @@ meditate() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.1.26252"
+	local -r version="3.2.26272"
 	local minutes="$1"
 	[[ "$minutes" == "-h" || "$minutes" == "--help" ]] && usage "$script"
 	local volume="$2"
