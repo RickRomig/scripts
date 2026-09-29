@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 May 2024
-# Updated      : 06 Sep 2026
-# Version      : 3.1.2626249223"
+# Updated      : 29 Sep 2026
+# Version      : 3.2.26272
 # Comments     : Revert most recent commit that has been pushed to the repository.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -47,28 +47,30 @@ git_revert() {
 }
 
 revert_commit() {
-	local -i result=0
 	if unpushed_commits; then
-		printf "There are unpushed commits in the local repositiory. Revert operation canceled.\n"
-		return "$result"
+		printf "There are unpushed commits in the local repositiory. Revert operation canceled.\n" >&2
+		return "$E_NOT_DETECTED"
 	fi
 	if y_or_n "Reset last pushed commit to the previous version?"; then
 		git_revert
-		result="$?"
 	else
 		printf "Last pushed commit unchanged.\n"
 	fi
-	return "$result"
+	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.1.26249"
+	local -r version="3.2.26272"
 	local -i exit_code=0
 	check_package git
-	is_git_repo || die "You are not in a git repositiory Revert operation canceled." "$E_UNSUPPORTED"
-	revert_commit
-	exit_code="$?"
+	if is_git_repo; then
+		revert_commit
+		exit_code="$?"
+	else
+		printf "%s This is not a git repositiory. Reset operation canceled.\n" "$RED_ERROR" >&2
+		exit_code="$E_UNSUPPORTED"
+	fi
 	over_line "$script $version"
 	exit "$exit_code"
 }
