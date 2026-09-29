@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 06 Sep 2026
-# Version      : 4.7.26249
+# Last updated : 29 Sep 2026
+# Version      : 4.8.26272
 # Comments     : Creates code files in the current working directory
 #              : Templates include GNU GPL v2 license
 # TODO (rick)  :
@@ -33,20 +33,20 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="06 Sep 2026"
+	local -r updated="29 Sep 2026"
 	cat <<- _HELP_
-${orange}$script${normal} $version ($updated)
-Creates a C/C++ source code file with descriptive comments (GPL v2.0 license)
+	${orange}$script${normal} $version ($updated)
+	Creates a C/C++ source code file with descriptive comments (GPL v2.0 license)
 
-${green}Usage:${normal} $script [-h] [-vc source-file] [-vp source-file]
-${orange}Available options:${normal}
-  -c  Create a C source code file
-      $script -c <source-file>
-  -h  Show this help message and exit
-  -p  Create a C++ source code file
-      $script -p <source-file>
-  -v  Enable verbose mode (Must precede -c or -p flags)
-      $script -vc <source-file>
+	${green}Usage:${normal} $script [-h] [-vc source-file] [-vp source-file]
+	${orange}Available options:${normal}
+	-c  Create a C source code file
+	$script -c <source-file>
+	-h  Show this help message and exit
+	-p  Create a C++ source code file
+	$script -p <source-file>
+	-v  Enable verbose mode (Must precede -c or -p flags)
+	$script -vc <source-file>
 _HELP_
 	exit "$errcode"
 }
@@ -89,7 +89,7 @@ import_metadata() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.7.26249"
+	local -r version="4.8.26272"
 	local code_file opt template_file OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":c:hp:v"
@@ -100,25 +100,20 @@ main() {
 				file_exists "$code_file" && help "$script" "$version" "$E_FILE_EXISTS"
 				show_message "Code file: $code_file"
 				template_file="c-template.txt"
-				show_message "Template: c-template.txt"
-				;;
+				show_message "Template: c-template.txt" ;;
 			h )
-				help 0
-				;;
+				help 0 ;;
 			p )
 				code_file="$OPTARG"
 				file_exists "$code_file" && help "$script" "$version" "$E_FILE_EXISTS"
 				show_message "Code file: $code_file"
-				template_file="cpp-template.txt"
-				;;
+				template_file="cpp-template.txt" ;;
 			v )
 				VERBOSE="$TRUE"
-				show_message "Verbose mode enabled."
-				;;
+				show_message "Verbose mode enabled." ;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_MISSING_ARG"
-				;;
+				help "$script" "$version" "$E_MISSING_ARG" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
