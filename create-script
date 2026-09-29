@@ -7,7 +7,8 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 06 Sep 2026
+# Last updated : 29 Sep 2026
+# Version      : 4.11.26272
 # Comments     : Creates script in the current working directory
 #              : Templates include GNU GPL v2 license
 # TODO (rick)  :
@@ -33,20 +34,20 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="06 Sep 2026"
+	local -r updated="29 Sep 2026"
 	cat <<- _HELP_
-${orange}$script${normal} $version ($updated)
-Creates a shell script with header comments (getopts optional)
+	${orange}$script${normal} $version ($updated)
+	Creates a shell script with header comments (getopts optional)
 
-${green}Usage:${normal} $script [-h] [-vb script-name] [-vg script-name]
-${orange}Available options:${normal}
-  -b  Create a standard BASH script
-      $script -b <script-name>
-  -h  Show this help message and exit
-  -g  Create a BASH script using getopts
-      $script -g <script-name>
-  -v  Enable verbose mode (Must precede -b or -g flags)
-      $script -vb <script-name>
+	${green}Usage:${normal} $script [-h] [-vb script-name] [-vg script-name]
+	${orange}Available options:${normal}
+	-b  Create a standard BASH script
+	$script -b <script-name>
+	-h  Show this help message and exit
+	-g  Create a BASH script using getopts
+	$script -g <script-name>
+	-v  Enable verbose mode (Must precede -b or -g flags)
+	$script -vb <script-name>
 _HELP_
 	exit "$errcode"
 }
@@ -82,7 +83,6 @@ import_metadata() {
 		-e "s/<YEAR>/$cur_yr/" \
 		-e "s/<TODAY>/$today/" \
 		-e "s/<VERSION>/$init_ver/" "$template_dir/$template_file" > "$script_name"
-
 	show_message "Setting file permissions to 755 (rwxr-xr-x)."
 	chmod 755 "$script_name"
 	printf "The %s script has been created." "$script_name"
@@ -91,10 +91,10 @@ import_metadata() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.10.26249"
-	local opt script_name template_file OPTARG OPTIND
+	local -r version="4.11.26272"
 	local -i noOpt=1
 	local -r optstr=":b:hg:v"
+	local opt script_name template_file OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			b )
@@ -102,26 +102,21 @@ main() {
 				script_exists "$script_name" && help "$script" "$version" "$E_FILE_EXISTS"
 				show_message "Script name: $script_name"
 				template_file="bash-template.txt"
-				show_message "Template: ${template_file##*/}"
-			;;
+				show_message "Template: ${template_file##*/}" ;;
 			h )
-				help 0
-				;;
+				help 0 ;;
 			g )
 				script_name="$OPTARG"
 				script_exists "$script_name" && help "$script" "$version" "$E_FILE_EXISTS"
 				show_message "Script name: $script_name"
 				template_file="bash-getopts.txt"
-				show_message "Template: ${template_file##*/}"
-				;;
+				show_message "Template: ${template_file##*/}" ;;
 			v )
 				VERBOSE="$TRUE"
-				show_message "Verbose mode enabled."
-				;;
+				show_message "Verbose mode enabled." ;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_MISSING_ARG"
-			;;
+				help "$script" "$version" "$E_MISSING_ARG" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
