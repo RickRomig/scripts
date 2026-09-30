@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 24 Sep 2026
-# Version      : 4.5.26267
+# Updated      : 30 Sep 2026
+# Version      : 4.6.26273
 # Comments     : Based on instructions from Joe Collins.
 # TODO (Rick)  : check entry in flatpak list, does Flatpak include all dependencies?
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="24 Sep 2026"
+	local -r updated="30 Sep 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Install Gnome Boxes from either distribution repositories or flatpak from Flathub.
@@ -74,11 +74,9 @@ check_bios() {
 	vmx_svm=$(grep -E -m 1 'vmx|svm' /proc/cpuinfo )
 	case "$vmx_svm" in
 		*vmx* )
-			# echo "options kvm_intel nested=1" | sudo tee -a "$qemu_sys_conf" >/dev/null ;;
 			sudo tee -a "$qemu_sys_conf" >/dev/null <<< "options kvm_intel nested=1" ;;
 		*svm* )
-			# echo "options kvm_amd nested=1" | sudo tee -a "$qemu_sys_conf" >/dev/null ;;
-		sudo tee -a "$qemu_sys_conf" >/dev/null <<< "options kvm_amd nested=1"
+			sudo tee -a "$qemu_sys_conf" >/dev/null <<< "options kvm_amd nested=1" ;;
 	esac
 	sudo tee -a "$qemu_sys_conf" >/dev/null <<< "group=kvm"
 	return 0
@@ -187,11 +185,11 @@ install_from_flatpak() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.5.26267"
+	local -r version="4.6.26273"
 	local -i exit_code=0
-	local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":dfh"
+	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			d )
