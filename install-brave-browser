@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 23 Sep 2026
-# Version      : 7.7.26266
+# Updated      : 30 Sep 2026
+# Version      : 7.8.26273
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -34,7 +34,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="23 Sep 2026"
+	local -r updated="30 Sep 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: ($updated)
 	Installs/Removes the Brave browser
@@ -71,13 +71,13 @@ brave_ver() {
 }
 
 set_gpg_key() {
-	local -r brave_key="$1"
+	local -r key_file="$1"
 	local -r key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
-	if [[ -f "$brave_key" ]]; then
-		printf "%s already exists.\n" "${brave_key##*/}"
+	if [[ -f "$key_file" ]]; then
+		printf "%s already exists.\n" "${key_file##*/}"
 	else
 		show_message "Importing public key for verification of the APT repository"
-		sudo curl -fsSLo "$brave_key" "$key_url"
+		sudo curl -fsSLo "$key_file" "$key_url"
 		show_message "GPG key is set."
 	fi
 	return 0
@@ -108,11 +108,11 @@ install_brave_browser() {
 		printf "%s is already installed." >&2 "$(brave_ver)"
 		return "$E_FILE_EXISTS"
 	fi
-	local -r brave_key=/usr/share/keyrings/brave-browser-archive-keyring.gpg
+	local -r key_file=/usr/share/keyrings/brave-browser-archive-keyring.gpg
 	sudo_login 2
 	printf "Installing the Brave Browser ...\n"
-	set_gpg_key "$brave_key"
-	set_sources "$brave_key"
+	set_gpg_key "$key_file"
+	set_sources "$key_file"
 	show_message "Updating apt cache and isntalling the Brave browser"
 	sudo apt-get update -qq
 	sudo apt-get install brave-browser brave-keyring -yy
@@ -144,7 +144,7 @@ remove_brave() {
 
 main(){
 	local -r script="${0##*/}"
-	local -r version="7.7.26266"
+	local -r version="7.8.26273"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hirv"
