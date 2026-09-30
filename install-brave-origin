@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Jul 2026
-# Updated      : 23 Sep 2026
-# Version      : 1.5.26266
+# Updated      : 30 Sep 2026
+# Version      : 1.6.26273
 # Comments     : Does not overwrite current Brave Browser version
 #              : To downgrade to the original standard Brave:
 #              : Go to brave://flags/#brave-origin and change flag to Disabled
@@ -35,7 +35,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="23 Sep 2026"
+	local -r updated="30 Sep 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Installs/Removes Brave Origin
@@ -73,10 +73,10 @@ show_message() {
 }
 
 set_gpg_key() {
-	local -r brave_key=/usr/share/keyrings/brave-browser-archive-keyring.gpg
+	local -r key_file=/usr/share/keyrings/brave-browser-archive-keyring.gpg
 	local -r key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
 	show_message "Importing public key for verification of the APT repository"
-	sudo curl -fsSLo "$brave_key" "$key_url"
+	sudo curl -fsSLo "$key_file" "$key_url"
 	show_message "GPG key is set."
 	return 0
 }
@@ -130,7 +130,7 @@ remove_brave_origin() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.5.26266"
+	local -r version="1.6.26273"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hirv"
