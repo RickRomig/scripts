@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 08 Apr 2024
-# Last updated : 22 Sep 2026
-# Version      : 4.1.26265
+# Last updated : 01 Oct 2026
+# Version      : 4.2.26274
 # Comments     : Intended for installation on main system
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="22 Sep 2026"
+	local -r updated="01 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Installs, configures, removes DSH (Dancers Shell)
@@ -53,7 +53,7 @@ dsh_version() {
 copy_machines_list() {
 	local -r repository="$1"
 	printf "Copying machines.list to /etc/dsh/ ...\n"
-	awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/machines.list" /etc/dsh/)
+	awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/machines.list" /etc/dsh/) | sed "s/'//"
 	return 0
 }
 
@@ -74,8 +74,8 @@ copy_machine_lists() {
 configure_dsh() {
 	repository=$(assign_cfg_repo); local -r repository
 	printf "Backing up and copying dsh.conf...\n"
-	awk -F"/" '{print "=> " $NF}' < <(sudo cp -v /etc/dsh/dsh.conf /etc/dsh/dsh.conf.bak)
-	awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/dsh.conf" /etc/dsh/)
+	awk -F"/" '{print "=> " $NF}' < <(sudo cp -v /etc/dsh/dsh.conf /etc/dsh/dsh.conf.bak) | sed "s/'//"
+	awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/dsh/dsh.conf" /etc/dsh/) | sed "s/'//"
 	prinf "Copying machine and group lists...\n"
 	copy_machines_list "$repository"
 	copy_machine_lists "$repository"
@@ -114,7 +114,7 @@ remove_dsh() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.1.26265"
+	local -r version="4.2.26274"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hir"
