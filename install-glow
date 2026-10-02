@@ -7,9 +7,9 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 22 Sep2026
-# Version      : 5.3.26265
-# Comments     :
+# Updated      : 02 Oct 2026
+# Version      : 5.4.26275
+# Comments     : Version 2.0.0 is included in Debian 13 (Trixie) repositories.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -31,13 +31,14 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="07 Sep 2026"
+	local -r updated="02 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs/Removed Glow Markdown reader
 
-	${green}Usage:${normal} $script [-hir]
+	${green}Usage:${normal} $script [-achir]
 	${orange}Available options:${normal}
+	-a	Add gpg key and sources for existing installation.
 	-c	Apply Glow configuration.
 	-h	Show this help message and exit.
 	-i	Installs the glow markdown reader from the charm repo.
@@ -47,13 +48,14 @@ _HELP_
 }
 
 glow_version() {
-	cut -d' ' -f3 <(glow --version)
+	awk '/^ii/ {print $3}' < <(dpkg -l glow) | sed 's/+.*//'
 	return 0
 }
 
 set_gpg_key() {
 	local -r charm_url="$1"
 	local -r charm_key="$2"
+	[[ -f "$charm_key" ]] && { printf "%s already exists.\n" "${charm_key##*/}"; return 0; }
 	printf "Adding the Charm GPG key...\n"
 	[[ -d /etc/apt/keyrings ]] || sudo mkdir -p /etc/apt/keyrings
 	check_package curl
@@ -67,7 +69,9 @@ set_sources() {
 	local -r sources_uri="$1"
 	local -r key_file="$2"
 	local -r sources_file=/etc/apt/sources.list.d/charm.sources
-	[[ -f /etc/apt/sources.list.d/charm.list ]] && sudo mv /etc/apt/sources.list.d/charm.list /etc/apt/sources.list.d/charm.list.bak
+	local -r sources_list=/etc/apt/sources.list.d/charm .list
+	[[ -f "$sources_file" ]] && { printf "%s already exists.\n" "${sources_file##*/}"; return 0; }
+	[[ -f "$sources_list" ]] && sudo mv "$sources_list" "$sources_list.bak"
 	printf "Creating the the Charm apt source list...\n"
 	sudo tee "$sources_file" <<< \
 "Types: deb
@@ -80,11 +84,11 @@ Signed-By: $key_file"
 
 install_glow() {
 	if installed glow; then
-		printf "Glow %s is alredy installed.\n" "$(glow_version)" >&2
+		printf "Glow %s is already installed.\n" "$(glow_version)" >&2
 		return "$E_FILE_EXISTS"
 	fi
-	local -r charm_url="https://repo.charm.sh/apt"
-	local -r charm_key=/etc/apt/keyrings/charm.gpg
+	local -r charm_url="$1"
+	local -r charm_key="$2"
 	printf "Installing the Glow markdown reader...\n"
 	sudo_login 2
 	set_gpg_key "$charm_url" "$charm_key"
@@ -133,19 +137,28 @@ glow_config() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.3.26265"
+	local -r version="5.4.26275"
+	local -r charm_url="https://repo.charm.sh/apt"
+	local -r charm_key=/etc/apt/keyrings/charm.gpg
 	local -i exit_code=0
 	local -i noOpt=1
-	local -r optstr=":chir"
+	local -r optstr=":achir"
 	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
+			a )
+				if installed glow; then
+					set_gpg_key "$charm_url" "$charm_key"
+					set_sources "$charm_url" "$charm_key"
+				else
+					printf "Glow is not installed\n" >&2
+				fi ;;
 			c )
 				glow_config ;;
 			h )
 				help "$script" "$version" 0 ;;
 			i )
-				install_glow && glow_config ;;
+				install_glow "$charm_url" "$charm_key" && glow_config ;;
 			r )
 				remove_glow ;;
 			? )
