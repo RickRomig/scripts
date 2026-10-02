@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Updated      : 23 Sep 2026
-# Version      : 7.3.26266
+# Updated      : 02 Oct 2026
+# Version      : 7.4.26275
 # Comments     : Remove Distro, Flatpak, or Snap version before installing.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated=" 23 Sep 2026"
+	local -r updated=" 02 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Installs/Removes Mozilla repository version of Firefox.
@@ -90,46 +90,48 @@ Pin-Priority: 1000"
 }
 
 set_gpg_key() {
-	local -r mozilla_asc="$1"
+	local -r key_file="$1"
 	local -r key_url="https://packages.mozilla.org/apt/repo-signing-key.gpg"
 	show_message "Installing keyrings directory..."
 	[[ -d /etc/apt/keyrings ]] || sudo install -d -m 0755 /etc/apt/keyrings
 	show_message "Importing Mozilla APT repository keys..."
-	wget -q "$key_url" -O- | sudo tee "$mozilla_asc"
+	# Shellcheck SC2024 note: sudo doesn't affect redirects.
+	wget -q "$key_url" -O- | sudo tee "$key_file"
 	return "$?"
 }
 
 set_sources() {
-	local -r mozilla_asc="$1"
-	local -r mozilla_sources=/etc/apt/sources.list.d/mozilla.sources
+	local -r key_file="$1"
+	local -r sources_list=/etc/apt/sources.list.d/mozilla.list
+	local -r sources_file=/etc/apt/sources.list.d/mozilla.sources
 	local -r sources_uri="https://packages.mozilla.org/apt"
-	if [[ -f /etc/apt/sources.list.d/mozilla.list ]]; then
+	if [[ -f "$sources_list" ]]; then
 		show_message "Renaming old source list file..."
-		sudo mv /etc/apt/sources.list.d/mozilla.list /etc/apt/sources.list.d/mozilla.list.bak
+		sudo mv "$sources_list" "$sources_list.bak"
 	fi
 	show_message "Creating Mozilla APT sources..."
-	sudo tee $mozilla_sources <<< \
+	sudo tee $sources_file <<< \
 "Types: deb
 URIs: $sources_uri
 Suites: mozilla
 Components: main
-Signed-By: $mozilla_asc"
+Signed-By: $key_file"
 	return 0
 }
 
 install_mozilla_firefox() {
 	if mozilla_deb; then
 		printf "%s DEB package is already installed.\n" "$(firefox_version)" >&2
-		return 1
+		return "$E_FILE_EXISTS"
 	fi
 	if other_firefox; then
 		printf "Remove other versions before installing the Mozilla package.\n" >&2
-		return 1
+		return "$E_FILE_EXISTS"
 	fi
-	local -r mozilla_asc="/etc/apt/keyrings/packages.mozilla.org.asc"
+	local -r key_file="/etc/apt/keyrings/packages.mozilla.org.asc"
 	printf "Installing the Mozilla Firefox DEB package...\n"
-	set_gpg_key "$mozilla_asc"
-	set_sources "$mozilla_asc"
+	set_gpg_key "$key_file"
+	set_sources "$key_file"
 	create_preference_file
 	show_message "Updating apt cache..."
 	sudo apt-get update
@@ -146,7 +148,7 @@ install_mozilla_firefox() {
 remove_mozilla_firefox() {
 	if ! mozilla_deb; then
 		printf "Mozilla Firefox DEB package is not installed.\n"
-		return 0
+		return "$E_NOT_INSTALLED"
 	fi
 	printf "Removing %s..." "$(firefox_version)"
 	sudo apt-get remove -y firefox
@@ -159,9 +161,8 @@ remove_mozilla_firefox() {
 }
 
 main() {
-	VERBOSE="$FALSE"
 	local -r script="${0##*/}"
-	local -r version="7.3.26266"
+	local -r version="7.4.26275"
 	local -i exit_code=0
 	local opt OPTARG OPTIND
 	local -i noOpt=1
