@@ -45,11 +45,11 @@ remove_old_snapshots() {
 	local -r archive_dir="$2"
 	case "$interval" in
 		daily )
-			find "$archive_dir/$interval" -daystart -mtime +6 -delete ;;
+			find "$archive_dir/$interval" -daystart -mtime +6 -delete 2> ~/.local/share/logs/git-daily.log ;;
 		weekly )
-			find "$archive_dir/$interval" -daystart -mtime +28 -delete ;;
+			find "$archive_dir/$interval" -daystart -mtime +28 -delete 2> ~/.local/share/logs/git-weekly.log ;;
 		monthly )
-			find "$archive_dir/$interval" -daystart -mtime +364 -delete
+			find "$archive_dir/$interval" -daystart -mtime +364 -delete 2> ~/.local/share/logs/git-monthly.log
 	esac
 }
 
