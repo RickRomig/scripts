@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2019
-# Updated      : 23 Sep 2026
-# Version      : 6.3.26266
+# Updated      : 02 Oct 2026
+# Version      : 6.4.26275
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -51,18 +51,19 @@ chrome_version() {
 }
 
 set_gpg_key() {
-	local -r trusted_key="$1"
-	local -r trusted_key_url="https://dl.google.com/linux/linux_signing_key.pub"
+	local -r key_file="$1"
+	local -r key_url="https://dl.google.com/linux/linux_signing_key.pub"
 	printf "Setting the trusted key...\n"
-	gpg --dearmor < <(curl -fSsL "$trusted_key_url") | sudo tee "$trusted_key"
+	gpg --dearmor < <(curl -fSsL "$key_url") | sudo tee "$key_file"
 	return 0
 }
 
 set_sources() {
 	local -r key_file="$1"
+	local -r sources_list=/etc/apt/sources.list.d/google-chrome.list
 	local -r sources_file=/etc/apt/sources.list.d/google-chrome.sources
 	local -r sources_uri="https://dl.google.com/linux/chrome-stable/deb/"
-	[[ -d /etc/apt/sources.list.d/google-chrome.list ]] && sudo mv /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/google-chrome.list.bak
+	[[ -f "$sources_list" ]] && sudo mv "$sources_list" "$sources_list.bak"
 	printf "Creating the source list file...\n"
 	sudo tee $sources_file <<< \
 "X-Repolib-Name: Google Chrome
@@ -81,10 +82,10 @@ install_google_chrome() {
 		return "$E_FILE_EXISTS"
 	fi
 	sudo_login 2
-	local -r trusted_key="/usr/share/keyrings/google-chrome.gpg"
+	local -r key_file="/usr/share/keyrings/google-chrome.gpg"
 	printf "Updating apt cache and installing Google Chrome...\n"
-	set_gpg_key "$trusted_key"
-	set_sources "$trusted_key"
+	set_gpg_key "$key_file"
+	set_sources "$key_file"
 	sudo apt update -qq
 	sudo apt-get install -y google-chrome-stable
 	if ! installed google-chrome-stable; then
@@ -111,7 +112,7 @@ remove_google_chrome() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.3.26266"
+	local -r version="6.4.26275"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hir"
