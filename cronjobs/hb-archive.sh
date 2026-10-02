@@ -35,7 +35,7 @@ trim_log() {
 # Delete archive files older than 3 years.
 del_old_archives() {
 	local -r arc_dir="$1"
-	find "$arc_dir" -daystart -mtime +1095 -exec rm {} +
+	find "$arc_dir" -daystart -mtime +1095 -delete 2> ~/.local/share/logs/hb-delete.log
 }
 
 # Backup *.bak files from from 2 months previous.
