@@ -63,7 +63,7 @@ cleanup() {
 		(( log_len-- ))
 	done
 	# Remove archives older than two years (730 days).
-	find "$arc_dir"/ -maxdepth 1 -type f -mtime +730 -exec rm {} +
+	find "$arc_dir"/ -maxdepth 1 -type f -mtime +730 -delete  2> ~/.local/share/logs/scripts-bu.log
 }
 
 main() {
