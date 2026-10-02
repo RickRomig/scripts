@@ -28,7 +28,7 @@ monday_actions() {
 	local -r arc_dir="$1"
 	local -r snar="$2"
 	[[ -e "$arc_dir/$snar" ]] && mv "$arc_dir/$snar" "$arc_dir/$snar.$(date --date '7 days ago' +%y%m%d)"
-	find "$arc_dir" -mtime +91 -delete
+	find "$arc_dir" -mtime +91 -delete 2> ~/.local/share/logs/git-bu.log
 }
 
 incremental_backup() {
