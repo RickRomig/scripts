@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Script Name  : install-timeshift
-# Description  : installs and configures timeshift
-# Dependencies : ~/bin/files/timeshift.sed
+# Description  : install and configure timeshift or edit configuration
+# Dependencies : none
 # Arguments    : none
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Updated      : 08 Sep 2026
-# Version      : 3.9.26251
+# Updated      : 03 Oct 2026
+# Version      : 4.0.26276
 # Comments     : Default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -40,31 +40,29 @@ get_snapshot_uuid() {
 }
 
 configure_timeshift() {
-	local ts_uuid script_dir
-	script_dir=$(dirname "$(readlink -f "${0}")")
 	local -r ts_dir="/etc/timeshift"
-	local -r ts_sed="$script_dir/files/timeshift.sed"
-	if [[ ! -f "$ts_sed" ]]; then
-		printf "%s was not found. Configure using the GUI application.\n"  "${ts_sed##*/}" >&2
+	if [[ -f "$ts_dir/timeshift.json" ]]; then
+		printf "timeshift.json already exists.\n" >&2
+		return "$E_FILE_EXISTS"
+	fi
+	local ts_uuid
+	local -r repository=~/Downloads/configs/timeshift
+	[[ -f ~/gitea/configs ]] && repository=~/gitea/configs/timeshift
+	if [[ ! -d "$repository" ]]; then
+		printf "%s Configs repository not found!\n" "$RED_ERROR" >&2
 		return "$E_FILENOTFOUND"
 	fi
+	sudo_login 2
 	printf "Configuring Timeshift...\n"
 	ts_uuid=$(get_snapshot_uuid)
-	# copy default json file
-	sudo cp -v "$ts_dir/default.json" "$ts_dir/timeshift.json"
-	# configure settings
-	sudo sed -i -f "$ts_sed" "$ts_dir/timeshift.json"
-	# insert UUID for snapshot location
-	sudo sed -i "/backup_device_uuid/ s/\",/$ts_uuid\",/" "$ts_dir/timeshift.json"
-	# adjust leading spaces in json file
-	sudo sed -i 's/^"\//    "\//;s/^"/  "/' "$ts_dir/timeshift.json"
-	printf "Timeshift configured.\n"
-	return 0
+	awk -F"/" '{print "=> " $NF}' < <(sudo cp -v "$repository/timeshift.json" "ts_dir/") | sed "s/'//"
+	sudo sed -i "/backup_device_uuid/ s/\"\",/\"$ts_uuid\",/" "$ts_dir/timeshift.json"
+	return "$?"
 }
 
 install_timeshift() {
-	if installed timeeshift; then
-		printf "%s is already installed.\n" "$(timeshift --version)"
+	if installed timeshift; then
+		printf "%s is already installed.\n" "$(timeshift --version)" >&2
 		return "$E_FILE_EXISTS"
 	fi
 	sudo_login 2
@@ -78,11 +76,33 @@ install_timeshift() {
 	return 0
 }
 
+check_args() {
+	local -r ts_dir="/etc/timeshift"
+	if [[ "$#" -eq 0 ]]; then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		return "$E_MISSING_ARG"
+	fi
+	case "$1" in
+		--configure )
+			installed timeshift && configure_timeshift ;;
+		--install )
+			install_timeshift && configure_timeshift ;;
+		--edit )
+			sudo_login 2
+			sudo nano "$ts_dir/timeshift.json" ;;
+		* )
+			printf "%s Invalid option.\n" "$RED_ERROR" >&2
+			printf "Valid arguments are '--configure', '--install' or '--edit'\n" >&2
+			return "$E_INVALID_ARG"
+	esac
+	return "$?"
+}
+
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.9.26251"
+	local -r version="4.0.26276"
 	local -i exit_code=0
-	install_timeshift && configure_timeshift
+	check_args "$@"
 	exit_code="$?"
 	over_line "$script $version"
 	exit "$exit_code"
