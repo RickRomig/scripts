@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 08 Sep 2026
-# Version      : 7.8.26251
+# Updated      : 02 Oct 2026
+# Version      : 7.9.26275
 # Comments     : By default, Terminator is configured as a login shell (Debian, Antix, MX Linux, LMDE)
 #              : Login shell is disabled for other distributions (Linux Mint)
 # TODO (Rick)  :
@@ -32,7 +32,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="08 Sep 2026"
+	local -r updated="02 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs/Removes/Configures Terminator terminal emulator
@@ -51,7 +51,7 @@ _HELP_
 }
 
 terminator_version() {
-	# terminator -- version requires an X environment. ssh -X remote-host
+	# terminator --version requires an X environment. ssh -X remote-host
 	awk '/^ii/ {print $3}' < <(dpkg -l terminator) | sed 's/-.*//'
 	return 0
 }
@@ -90,29 +90,30 @@ remove_terminator() {
 
 apply_config() {
 	if ! installed terminator; then
-		printf "Terminator %s is installed.\n" "$(terminator_version)" >&2
-		return "$E_FILE_EXISTS"
+		printf "Terminator is not installed.\n" >&2
+		return "$E_NOT_INSTALLED"
 	fi
 	if bunsenlabs; then
 		printf "BunsenLabs uses its own profiles based on the version of the distribution.\n"
 		printf "Configuration changes should be made through the Terminator Preferences menu.\n"
 		return "$E_UNSUPPORTED"
 	fi
-	local repository=~/Downloads/ccnfigs/
+	local repository=~/Downloads/configs
 	[[ -d ~/gitea/configs ]] && repository=~/gitea/configs
-	if ! [[ -d "$repository" ]]; then
+	if [[ ! -d "$repository" ]]; then
 		printf "%s Repository not found!\n" "$RED_ERROR" >&2
 		return "$E_FILENOTFOUND"
 	fi
-	[[ -d /.config/terminator ]] && mkdir -p /.config/terminator
+	local -r terminator_cfg_d=~/.config/terminator
+	[[ -d "$terminator_cfg_d" ]] || mkdir -p "$terminator_cfg_d"
 	printf "Applying Terminator configuration...\n"
 	if is_debian; then
-		[[ -f ~/.config/terminator/config ]] && rm ~/.config/terminator/config
-		[[ -d ~/gitea/configs/terminator ]] && ln -s ~/gitea/configs/terminator/config ~/.config/terminator/config
-		[[ -d ~/Downloads/configs/terminator ]] && ln -sv ~/Downloads/configs/terminator/config ~/.config/terminator/config
+		[[ -f "$terminator_cfg_d/config" ]] && rm "$terminator_cfg_d/config"
+		[[ -d ~/gitea/configs ]] && ln -s ~/gitea/configs/terminator/config ~/.config/terminator/config
+		[[ -d ~/Downloads/configs ]] && ln -sv ~/Downloads/configs/terminator/config ~/.config/terminator/config
 	else
-		cp -v "$repository"/terminator/config ~/.config/terminator/
-		sed -i '/login_shell/s/True/False/' ~/.config/terminator/config
+		cp -v "$repository"/terminator/config "$terminator_cfg_d/"
+		sed -i '/login_shell/s/True/False/' "$terminator_cfg_d/config"
 	fi
 	printf "Terminator %s configured.\n" "$(terminator_version)"
 	return 0
@@ -120,7 +121,7 @@ apply_config() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.8.26251"
+	local -r version="7.9.26275"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":chir"
