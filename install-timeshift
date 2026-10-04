@@ -80,6 +80,7 @@ check_args() {
 	local -r ts_dir="/etc/timeshift"
 	if [[ "$#" -eq 0 ]]; then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		printf "Valid arguments are '--configure', '--install' or '--edit'\n" >&2
 		return "$E_MISSING_ARG"
 	fi
 	case "$1" in
@@ -91,7 +92,7 @@ check_args() {
 			sudo_login 2
 			sudo nano "$ts_dir/timeshift.json" ;;
 		* )
-			printf "%s Invalid option.\n" "$RED_ERROR" >&2
+			printf "%s Invalid argument.\n" "$RED_ERROR" >&2
 			printf "Valid arguments are '--configure', '--install' or '--edit'\n" >&2
 			return "$E_INVALID_ARG"
 	esac
