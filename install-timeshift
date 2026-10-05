@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 03 Jun 2024
-# Updated      : 03 Oct 2026
-# Version      : 4.0.26276
+# Updated      : 05 Oct 2026
+# Version      : 4.1.26278
 # Comments     : Default configuration is 5 daily, 3 weekly, & 2 monthly snapshots.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -76,23 +76,34 @@ install_timeshift() {
 	return 0
 }
 
+edit_configuration() {
+	if [[ -f /etc/timeshift/timeshift.json ]]; then
+		sudo_login 2
+		sudo nano "$ts_dir/timeshift.json"
+		return "$?"
+	else
+		printf "%s timeshift.json not found.\n" "$RED_ERROR" >&2
+		return "$E_FILENOTFOUND"
+	fi
+}
+
 check_args() {
+	local -r action="$1"
 	local -r ts_dir="/etc/timeshift"
 	if [[ "$#" -eq 0 ]]; then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		printf "Valid arguments are '--configure', '--install' or '--edit'\n" >&2
 		return "$E_MISSING_ARG"
 	fi
-	case "$1" in
+	case "$action" in
 		--configure )
 			installed timeshift && configure_timeshift ;;
 		--install )
 			install_timeshift && configure_timeshift ;;
 		--edit )
-			sudo_login 2
-			sudo nano "$ts_dir/timeshift.json" ;;
+			edit_configuration ;;
 		* )
-			printf "%s Invalid argument.\n" "$RED_ERROR" >&2
+			printf "%s Invalid argument: %s\n" "$RED_ERROR" "$action" >&2
 			printf "Valid arguments are '--configure', '--install' or '--edit'\n" >&2
 			return "$E_INVALID_ARG"
 	esac
@@ -101,7 +112,7 @@ check_args() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.0.26276"
+	local -r version="4.1.26278"
 	local -i exit_code=0
 	check_args "$@"
 	exit_code="$?"
