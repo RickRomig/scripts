@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 09 Sep 2026
-# Version      : 5.7.26252
+# Updated      : 06 Oct 2026
+# Version      : 5.8.26279
 # Comments     : Mount points are at ~/mnt/ (HOME directory)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="09 Sep 2026"
+	local -r updated="06 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated $updated
 	Mounts/Unmounts an SSHFS share.
@@ -105,12 +105,11 @@ mounted() {
 }
 
 handle_mount() {
-	local -r octet="$1"
+	local -ir octet="$1"
 	local -r share="$2"
 	local -i ip
 	ip=$(local_ip)
-	[[ "$ip" == "$octet" ]] && die "Cannot mount/unmount local system." "$E_DRIVE_ERROR"
-	if [[ "$ip" == "$octet" ]]; then
+	if (( ip == octet )); then
 		printf "%s Cannot mount/unmount local system.\n" "$RED_ERROR" >&2
 		return "$E_DRIVE_ERROR"
 	fi
@@ -128,7 +127,7 @@ handle_mount() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.7.26252"
+	local -r version="5.8.26279"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":defghmnst"
