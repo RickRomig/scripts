@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
 # Updated      : 07 Oct 2026
-# Version      : 6.0.26280
+# Version      : 6.1.26280
 # Comments     : Mount points are at ~/mnt/ (HOME directory)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -64,7 +64,11 @@ mount_share() {
 	ping -c3 "$LOCALNET.$octet" > /dev/null 2>&1 || die "$share at $LOCALNET.$octet is not online." "$E_NETWORK"
 	[[ -d "$HOME/mnt/$share/" ]] || mkdir -p "$HOME/mnt/$share"
 	printf "Mounting %s...\n" "$share"
-	sshfs -o follow_symlinks rick@"$LOCALNET.$octet:$HOME" "$HOME/mnt/$share/"
+	if [[ "$share" == "NASD97167" ]]; then
+		sshfs -o follow_symlinks rick@"$LOCALNET.$octet:" "$HOME/mnt/$share/"
+	else
+		sshfs -o follow_symlinks rick@"$LOCALNET.$octet:$HOME" "$HOME/mnt/$share/"
+	fi
 	printf "Home directory at %s:\n" "$share"
 	ls "$HOME/mnt/$share/"
 	printf "%s at %s.%s has been mounted.\n" "$share" "$LOCALNET" "$octet"
@@ -115,6 +119,7 @@ handle_mount() {
 
 select_share() {
 	local -r share_list=(
+		"4 NASD97167"
 		"10 hp-800g2-sff"
 		"11 hp-6005"
 		"12 e6500-deb"
@@ -133,12 +138,12 @@ select_share() {
 	)
 	local -i share_ip index
 	local _opt share_name
-	COLUMNS="60"
+	COLUMNS="100"
 	PS3="Select a share to mount. ("$(( 1 + ${#share_list[@]} ))" to quit.) "
 	select _opt in "${share_list[@]}"; do
 		if (( REPLY == 1 + ${#share_list[@]} )); then
 			printf "Exiting. No share selected.\n"
-			break
+			return 0
 		elif (( REPLY > 0 && REPLY <= ${#share_list[@]} )); then
 			index=$(( REPLY - 1 ))
 			break
@@ -151,11 +156,12 @@ select_share() {
 	printf "Share IP = %d\n" "$share_ip"
 	printf "Share name: %s\n" "$share_name"
 	handle_mount "$share_ip" "$share_name"
+	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.0.26280"
+	local -r version="6.1.26280"
 	local -i exit_code=0
 	local share_name share_ip
 	[[ "$1" == '-h' || "$1" == --help ]] && help "$script" "$version"
