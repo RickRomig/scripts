@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 06 Oct 2026
-# Version      : 5.8.26279
+# Updated      : 07 Oct 2026
+# Version      : 6.0.26280
 # Comments     : Mount points are at ~/mnt/ (HOME directory)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,25 +30,17 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 help() {
 	local -r script="$1"
 	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="06 Oct 2026"
+	local -r updated="07 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated $updated
 	Mounts/Unmounts an SSHFS share.
-
-	${green}Usage:${normal} $script [-defghmnst]
-	${orange}Available options:${normal}
-	-d	toggle mount/umount HP EliteDesk 800 G1 USDT (desktop)
-	-e	toggle mount/umount HP EliteBook 850 G3 (laptop)
-	-f	toggle mount/umount HP ProBook 6570b (desk)
-	-g	toggle mount/umount HP Compaq Elite 8300 USDT (Gitea Server)
-	-h	Show this help message and exit
-	-m	toggle mount/umount HP 800 G2 (Main system)
-	-n	toggle mount/umount QNAP NAS (network attached storage)
-	-s	toggle mount/umount HP Compaq 6005 Pro SSF (file server)
-	-t	toggle mount/umount Dell 9020 (VM and media)
+	${green}Usage:${normal}
+	Select the SSHFS share to mount from the menu.
+	If the share is not already mounted, it will be mounted.
+	If the share is currently mounted, you will be asked if you want to unmount the share.
+	When unmounting the share, be sure you are not in the mount point.
 _HELP_
-	exit "$errcode"
+	exit 0
 }
 
 cd_fail() {
@@ -72,11 +64,7 @@ mount_share() {
 	ping -c3 "$LOCALNET.$octet" > /dev/null 2>&1 || die "$share at $LOCALNET.$octet is not online." "$E_NETWORK"
 	[[ -d "$HOME/mnt/$share/" ]] || mkdir -p "$HOME/mnt/$share"
 	printf "Mounting %s...\n" "$share"
-	if [[ "$share" == "NASD97167" ]]; then
-		sshfs -o follow_symlinks rick@"$LOCALNET.$octet:" "$HOME/mnt/$share/"
-	else
-		sshfs -o follow_symlinks rick@"$LOCALNET.$octet:$HOME" "$HOME/mnt/$share/"
-	fi
+	sshfs -o follow_symlinks rick@"$LOCALNET.$octet:$HOME" "$HOME/mnt/$share/"
 	printf "Home directory at %s:\n" "$share"
 	ls "$HOME/mnt/$share/"
 	printf "%s at %s.%s has been mounted.\n" "$share" "$LOCALNET" "$octet"
@@ -125,63 +113,56 @@ handle_mount() {
 	return "$?"
 }
 
+select_share() {
+	local -r share_list=(
+		"10 hp-800g2-sff"
+		"11 hp-6005"
+		"12 e6500-deb"
+		"13 probook-6570b"
+		"14 hp-8300"
+		"15 dell-9020"
+		"16 hp-8300-usdt"
+		"17 hp-800-g1-usdt"
+		"18 satellite-c875"
+		"19 hp-800-g1-dm"
+		"20 probook-6570"
+		"21 hp-probook-6570"
+		"22 hp-850-g3"
+		"23 hp-2560p"
+		"24 e-475m"
+	)
+	local -i share_ip index
+	local _opt share_name
+	COLUMNS="60"
+	PS3="Select a share to mount. ("$(( 1 + ${#share_list[@]} ))" to quit.) "
+	select _opt in "${share_list[@]}"; do
+		if (( REPLY == 1 + ${#share_list[@]} )); then
+			printf "Exiting. No share selected.\n"
+			break
+		elif (( REPLY > 0 && REPLY <= ${#share_list[@]} )); then
+			index=$(( REPLY - 1 ))
+			break
+		else
+			printf "Invalid option. Choose 1 - %d. %d to quit.\n" "${#share_list[@]}" "$(( 1 + ${#share_list[@]} ))"
+		fi
+	done
+	share_name=$(cut -d' ' -f2 <<< "${share_list[index]}")
+	share_ip=$(cut -d' ' -f1 <<< "${share_list[index]}")
+	printf "Share IP = %d\n" "$share_ip"
+	printf "Share name: %s\n" "$share_name"
+	handle_mount "$share_ip" "$share_name"
+}
+
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.8.26279"
+	local -r version="6.0.26280"
 	local -i exit_code=0
-	local -i noOpt=1
-	local -r optstr=":defghmnst"
-	local opt share_name share_ip OPTARG OPTIND
+	local share_name share_ip
+	[[ "$1" == '-h' || "$1" == --help ]] && help "$script" "$version"
 	check_package sshfs
 	printf "Mount or unmount an SSHFS share.\n"
-	while getopts "$optstr" opt; do
-		case "$opt" in
-			d )
-				share_name="EliteDesk-800"
-				share_ip=17
-				handle_mount "$share_ip" "$share_name" ;;
-			e )
-				share_name="EliteBook-850"
-				share_ip=22
-				handle_mount "$share_ip" "$share_name" ;;
-			f )
-				share_name="HP-ProBook-6570b"
-				share_ip=21
-				handle_mount "$share_ip" "$share_name" ;;
-			g )
-				share_name="Gitea-Server"
-				share_ip=16
-				handle_mount "$share_ip" "$share_name" ;;
-			h )
-				help "$script" "$version" 0 ;;
-			m )
-				share_name="HP-800-G2"
-				share_ip=10
-				handle_mount "$share_ip" "$share_name" ;;
-			n )
-				share_name="NASD97167"
-				share_ip=4
-				handle_mount "$share_ip" "$share_name" ;;
-			s )
-				share_name="HP-6005"
-				share_ip=11
-				handle_mount "$share_ip" "$share_name" ;;
-			t )
-				share_name="Dell-9020"
-				share_ip=15
-				handle_mount "$share_ip" "$share_name" ;;
-			?)
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
-		esac
-		exit_code="$?"
-		noOpt=0
-	done
-	if (( noOpt == 1 )); then
-		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
-	fi
-	shift "$(( OPTIND - 1 ))"
+	select_share
+	exit_code="$?"
 	over_line "$script $version"
 	exit "$exit_code"
 }
