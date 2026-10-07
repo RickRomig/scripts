@@ -104,12 +104,10 @@ handle_mount() {
 	if (( ip == octet )); then
 		printf "%s Cannot mount/unmount local system.\n" "$RED_ERROR" >&2
 		return "$E_DRIVE_ERROR"
-	fi
-	if ! mounted "$share"; then
+	elif ! mounted "$share"; then
 		mount_share "$octet" "$share"
 		return "$?"
-	fi
-	if default_yes "Unmount $share?"; then
+	elif default_yes "Unmount $share?"; then
 		unmount_share "$share"
 	else
 		printf "%s left mounted.\n" "$share"
