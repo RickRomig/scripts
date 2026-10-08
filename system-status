@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2018,Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Nov 2018
-# Updated:     : 10 Sep 2026
-# Versin       : 7.1.26253
+# Updated:     : 07 Oct 2026
+# Versin       : 7.2.26280
 # Comments     : Inspired by Joe Collins' and Luke Smith's YouTube videos
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -66,13 +66,13 @@ cpu_usage() {
 cpu_temperature(){
 	local -r sensor_json="$1"
 	if grep -q 'k10temp-pci-00c3' <<< "$sensor_json"; then
-		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(jq -r '."k10temp-pci-00c3"."temp1"."temp1_input"' <<< "$sensor_json")"
+		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(jq -r '."k10temp-pci-00c3"."temp1"."temp1_input"' <<< "$sensor_json")" 2>/dev/null
 	elif grep -q 'dell_smm-virtual-0' <<< "$sensor_json"; then
-		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(jq -r '."dell_smm-virtual-0"."CPU"."temp1_input"'  <<< "$sensor_json")"
+		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(jq -r '."dell_smm-virtual-0"."CPU"."temp1_input"' <<< "$sensor_json")" 2>/dev/null
 	elif grep -q 'Package id 0' <<< "$sensor_json"; then
-		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(jq -r '."coretemp-isa-0000"."Package id 0"."temp1_input"' <<< "$sensor_json")"
+		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(jq -r '."coretemp-isa-0000"."Package id 0"."temp1_input"' <<< "$sensor_json")" 2>/dev/null
 	elif grep -q 'Core 0' <<< "$sensor_json"; then
-		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(jq -r '."coretemp-isa-0000"."Core 0"."temp2_input"'  <<< "$sensor_json"))"
+		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(jq -r '."coretemp-isa-0000"."Core 0"."temp2_input"' <<< "$sensor_json"))" 2>/dev/null
 	else
 		printf "%-10sNot available\n" "CPU:"
 	fi
@@ -80,12 +80,14 @@ cpu_temperature(){
 }
 
 gpu_temperature() {
-	# Only machines 10, 12, and 22 display GPU temperature.
+	# Only machines 10, 12, 18, and 22 display GPU temperature.
 	local -r sensor_json="$1"
 	if grep -q 'nouveau-pci-0100' <<< "$sensor_json"; then
-		printf "%-10s%2.1f\U2103 \n" "GPU:" "$(jq -r '."nouveau-pci-0100"."temp1"."temp1_input"' <<< "$sensor_json")"
+		printf "%-10s%2.1f\U2103 \n" "GPU:" "$(jq -r '."nouveau-pci-0100"."temp1"."temp1_input"' <<< "$sensor_json")" 2>/dev/null
 	elif grep -q 'pch_skylake-virtual-0' <<< "$sensor_json"; then
-		printf "%-10s%2.1f\U2103 \n" "GPU:" "$(jq -r '."pch_skylake-virtual-0"."temp1"."temp1_input"' <<< "$sensor_json")"
+		printf "%-10s%2.1f\U2103 \n" "GPU:" "$(jq -r '."pch_skylake-virtual-0"."temp1"."temp1_input"' <<< "$sensor_json")" 2>/dev/null
+	elif grep -q 'radeon-pci-0008' <<< "$sensor_json"; then
+		printf "%-10s%2.1f\U2103 \n" "GPU:" "$(jq -r '."radeon-pci-0008"."temp1"."temp1_input"' <<< "$sensor_json")" 2>/dev/null
 	else
 		printf "%-10sNot available\n" "GPU:"
 	fi
@@ -153,7 +155,7 @@ show_header() {
 
 show_footer() {
 	local -r script="${0##*/}"
-	local -r version="7.1.26253"
+	local -r version="7.2.26280"
 	local last_boot up_time
 	last_boot=$(awk '{print $(NF-1),$NF}' < <(/usr/bin/who -b))
 	up_time=$(cut -d' ' -f2- < <(/usr/bin/uptime -p))
