@@ -8,8 +8,8 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Mar 2018
-# Updated      : 10 Sep 2026
-# Version      : 6.9.26253
+# Updated      : 08 Oct 2026
+# Version      : 6.10.26281
 # Comments     : Requires sudo privileges
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,24 +30,22 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 
 anacron_jobs() {
 	local -r interval="$1"
-	local -r cron_dir="/etc/cron.$interval"
 	local -i count
-	count=$(wc -l < <(find "$cron_dir" -maxdepth 1 -type f -iname \*))
+	count=$(wc -l < <(find /etc/cron."$interval"))
 	(( count > 0 )) && return "$TRUE" || return "$FALSE"
 }
 
 print_anacron_jobs() {
 	local -r interval="$1"
-	local -r cron_dir="/etc/cron.$interval"
-	awk -F/ '{print $NF}' < <(find "$cron_dir" -maxdepth 1 -type f -iname \*)
+	awk -F/ '{print $NF}' < <(find /etc/cron."$interval")
 	return 0
 }
 
 list_anacron_jobs() {
 	local -r interval="$1"
-	local cron_spool
-	cron_spool=$(sudo cat /var/spool/anacron/cron."$interval")
-	printf "\n%sAnacron %s:%s Last run on %s\n" "$orange" "${interval^}" "$normal" "$cron_spool"
+	local cron_date
+	cron_date=$(sudo cat /var/spool/anacron/cron."$interval")
+	printf "\n%sAnacron %s:%s Last run on %s\n" "$orange" "${interval^}" "$normal" "$cron_date"
 	if anacron_jobs "$interval"; then
 		print_anacron_jobs "$interval"
 	else
@@ -57,23 +55,25 @@ list_anacron_jobs() {
 }
 
 show_anacron() {
-	local interval
 	local -r intervals=( daily weekly monthly )
-	for interval in "${intervals[@]}"; do list_anacron_jobs "$interval"; done
+	local interval
+	for interval in "${intervals[@]}"; do
+		list_anacron_jobs "$interval"
+	done
 	return 0
 }
 
 show_user_cron() {
 	local -i max_users num_users
-	local norm_user
+	local user
 	num_users=$(awk -F: '$3 >= 1000 && !($1 == "nobody" && $3 == 65534) {SUM+=1} END {print SUM}' /etc/passwd)
 	local -i index=1000  # starting point for regular users
 	max_users=$(( num_users + index ))
-	while [[ "$index" -le "$max_users" ]]; do
-		norm_user="$(awk -v pat="$index" -F: '$0~pat{print $1}' /etc/passwd)"
-		if [[ "$norm_user" ]]; then
-			printf "\n%sCron jobs for %s:%s\n" "$orange" "${norm_user^}" "$normal"
-			grep -v '^#' < <(sudo crontab -l -u "$norm_user") | awk '{print $1,$2,$3,$4,$5"|"$6}' | column -ts "|"
+	while (( index <= max_users )); do
+		user="$(awk -v pat="$index" -F: '$0~pat{print $1}' /etc/passwd)"
+		if [[ "$user" ]]; then
+			printf "\n%sCron jobs for %s:%s\n" "$orange" "$user" "$normal"
+			grep -v '^#' < <(sudo crontab -l -u "$user") | awk '{print $1,$2,$3,$4,$5"|"$6}' | column -ts "|"
 		fi
 		(( index++ ))
 	done
@@ -88,7 +88,7 @@ show_root_cron() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.9.26253"
+	local -r version="6.10.26281"
 	local -r lhost="${HOSTNAME:-$(hostname)}"
 	sudo_login 0
 	clearscreen
