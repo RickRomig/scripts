@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Aug 2025
-# Last updated : 10 Sep 2026
-# Version      : 5.3.26253
+# Last updated : 08 Oct 2026
+# Version      : 5.4.26281
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -32,21 +32,21 @@ update_clones() {
 	local -r clones=(configs scripts i3wm-debian homepage fnloc fnloc-win gitea-server)
 	local clone clone_dir
 	[[ -d "$log_dir" ]] || mkdir -p "$log_dir"
-		{
-			printf "Updated: %(%A, %F %R)T\n"
-			for clone in "${clones[@]}"; do
-				clone_dir=~/Downloads/$clone
-				[[ -d ~/$clone ]] && clone_dir=~/$clone
-				if [[ -d "$clone_dir" ]]; then
-					pushd "$clone_dir" >/dev/null 2>&1 || return "$E_POPD_PUSHD"
-					printf "~ %s ~\n" "${clone^^}"
-					git checkout .
-					git pull
-					popd >/dev/null 2>&1 || return "$E_POPD_PUSHD"
-					printf "\n"
-				fi
-			done
-		} | tee "$log_dir/$repo_log"
+	{
+		printf "Updated: %(%A, %F %R)T\n"
+		for clone in "${clones[@]}"; do
+			clone_dir=~/Downloads/$clone
+			[[ -d ~/$clone ]] && clone_dir=~/$clone
+			if [[ -d "$clone_dir" ]]; then
+				pushd "$clone_dir" >/dev/null 2>&1 || return "$E_POPD_PUSHD"
+				printf "~ %s ~\n" "${clone^^}"
+				git checkout .
+				git pull
+				popd >/dev/null 2>&1 || return "$E_POPD_PUSHD"
+				printf "\n"
+			fi
+		done
+	} | tee "$log_dir/$repo_log"
 	return 0
 }
 
@@ -60,7 +60,7 @@ valid_host() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.3.26253"
+	local -r version="5.4.26281"
 	local -i exit_code=0
 	printf "%sUpdating cloned repositories...%s\n" "$orange" "$normal"
 	if valid_host; then
@@ -68,8 +68,8 @@ main() {
 		update_clones
 		exit_code="$?"
 	else
-		exit_code="$?"
 		printf "Main repository - Nothing to do.\n"
+		exit_code="$?"
 	fi
 	over_line "$script $version"
 	exit "$exit_code"
