@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard Romig, Luddite Geek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2025
-# Updated      : 09 Sep 2026
-# Version      : 2.8.26252
+# Updated      : 09 Oct 2026
+# Version      : 2.9.26282
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -45,23 +45,28 @@ _INTRO_
 }
 
 purge_and_update() {
-	default_yes "Purge existing locales & save in individual files?" || { printf "No changes made to locale directories.\n"; return 0; }
-	printf "\nPurging existing locales and changing the default setting\n"
-	printf "to not store compiled locale data in a single archive.\n"
-	sudo_login 2
-	sudo locale-gen --purge --no-archive
-	printf "Updating the existing initramfs...\n"
-	sudo update-initramfs -u
-	return 0
+	if default_yes "Purge existing locales & save in individual files?"; then
+		printf "\nPurging existing locales and changing the default setting\n"
+		printf "to not store compiled locale data in a single archive.\n"
+		sudo_login 2
+		sudo locale-gen --purge --no-archive
+		printf "Updating the existing initramfs...\n"
+		sudo update-initramfs -u
+	else
+		printf "No changes made to locale directories.\n"
+	fi
+	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.8.26252"
+	local -r version="2.9.26282"
+	local -i exit_code=0
 	show_intro "$script"
 	purge_and_update
+	exit_code="$?"
 	over_line "$script $version"
-	exit
+	exit "$exit_code"
 }
 
 main "$@"
