@@ -385,7 +385,7 @@ box() {
 }
 
 # shellcheck disable=SC2001
-# See if you can use ${variable//search/replace} instead.. (sed is necesary to replace all characters)
+# See if you can use ${variable//search/replace} instead. (sed is necesary to replace all characters)
 under_line() {
 	local char line
 	local -r title="$1"
@@ -397,7 +397,7 @@ under_line() {
 }
 
 # shellcheck disable=SC2001
-# See if you can use ${variable//search/replace} instead.. (sed is necesary to replace all characters)
+# See if you can use ${variable//search/replace} instead. (sed is necesary to replace all characters)
 over_line() {
 	local char line
 	local -r title="$1"
@@ -429,10 +429,11 @@ center_text() {
 }
 
 color_header() {
-	local colors centered_line padding_length
 	local -r message="$1"
 	local -r bg_color="$2"
-	local -r columns=$(tput cols)
+	local -i padding_length columns
+	local centered_line colors
+	columns=$(tput cols)
 
 	case "${bg_color^^}" in
 		BLACK ) colors=$(printf "\e[40;97;1m") ;;
@@ -448,7 +449,7 @@ color_header() {
 
 	padding_length=$(((columns - ${#message}) / 2))
 	printf -v centered_line "%*s%s%*s" "$padding_length" "" "$message" "$padding_length" ""
-	[[ ${#centered_line} -lt $columns ]] && centered_line="${centered_line} "
+	(( ${#centered_line} < columns )) && centered_line="${centered_line} "
 	printf "%s%s%s\n" "$colors" "$centered_line" "$normal"
 	return 0
 }
