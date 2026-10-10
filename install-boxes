@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 30 Sep 2026
-# Version      : 4.6.26273
+# Updated      : 10 Oct 2026
+# Version      : 4.7.26283
 # Comments     : Based on instructions from Joe Collins.
 # TODO (Rick)  : check entry in flatpak list, does Flatpak include all dependencies?
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="30 Sep 2026"
+	local -r updated="10 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Install Gnome Boxes from either distribution repositories or flatpak from Flathub.
@@ -59,15 +59,16 @@ boxes_version() {
 }
 
 check_bios() {
-	local vcpu vmx_svm
-	local -r qemu_sys_conf="/etc/modprobe.d/qemu-system-x86.conf"
+	local -r qemu_sys_conf=/etc/modprobe.d/qemu-system-x86.conf
+	local -i vcpu
+	local vmx_svm
 	sudo_login 2
 	printf "Checking if virtualization is enabled in BIOS...\n"
 	vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo)
 	printf "Virtualization is "
-	if [[ $vcpu -eq 0 ]]; then
+	if (( vcpu == 0 )); then
 		printf "not enabled in the BIOS.\n" >&2
-		printf "Enable virtualization before installing Gnome Boxes.\n" >&2
+		printf "Enable virtualization in the BIOS before installing Gnome Boxes.\n" >&2
 		return "$E_UNSUPPORTED"
 	fi
 	printf "enabled in the BIOS. (%d threads)\n" "$vcpu"
@@ -84,9 +85,9 @@ check_bios() {
 
 enable_libvirtd() {
 	sudo_login 2
+	printf "Starting libvirtd...\n"
 	sudo systemctl enable libvirtd.service
 	sudo systemctl start libvirtd.service
-	printf "libvirtd started.\n"
 	return "$?"
 }
 
@@ -185,7 +186,7 @@ install_from_flatpak() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.6.26273"
+	local -r version="4.7.26283"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":dfh"
