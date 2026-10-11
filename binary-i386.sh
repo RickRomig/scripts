@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 15 Apr 2026
 # Updated      : 06 Aug 2026
-# Version      : .26218
+# Version      : 2.3.26218
 # Comments     : Fixes main/binary-i386 error message for Google Chrome update
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -82,7 +82,7 @@ remove_i386_arch() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.2.26190"
+	local -r version="2.3.26218"
 	local -i exit_code=0
 	intro_message
 	check_google_chrome && remove_i386_arch
