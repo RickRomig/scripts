@@ -7,8 +7,8 @@
 # Author       : Copyright © 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 06 Sep 2026
-# Version      : 8.2.26249
+# Updated      : 11 Oct 2026
+# Version      : 8.3.26284
 # Comments     : Checks to see if passed argument is a valid text or json file.
 #              : To show line numbers, use -n after the file name.
 # TODO (Rick)  :
@@ -32,7 +32,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="06 Sep 2026"
+	local -r updated="11 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version (updated $updated)
 	Displays a text file using either cat or less depending the number of lines in
@@ -49,7 +49,7 @@ help() {
 
 over_max() {
 	local -r textfile="$1"
-	local catmax filelines
+	local -i catmax filelines
 	catmax=$(( $(tput lines)*87/100 ))
 	filelines=$(wc -l < "$textfile")
 	(( filelines > catmax )) && return "$TRUE" || return "$FALSE"
@@ -96,14 +96,14 @@ view_file() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="8.2.26249"
+	local -r version="8.3.26284"
 	local -i exit_code=0
-	local num_flag="$FALSE"
+	local -i num_flag=1
 	[[ $1 == "-h" ]] && help "$script" "$version" 0
 	local -r filename="$1"
 	local -l num_opt="$2"	# make argument lowercase
 	[[ "${num_opt:0:1}" == "-" ]] && num_opt="${num_opt:0:2}"	# take 1st two characters if 1st is '-'
-	[[ "$num_opt" == "-n" || "$num_opt" == "n" ]] && num_flag="$TRUE" || num_flag="$FALSE"
+	[[ "$num_opt" == "-n" || "$num_opt" == "n" ]] && num_flag=0 || num_flag=1
 	check_file "$filename" && view_file "$filename" "$num_flag"
 	exit_code="$?"
 	over_line "$script $version"
