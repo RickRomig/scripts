@@ -299,6 +299,16 @@ qwik-script() {
 }
 $ qwik-script foobarbaz.sh
 ```
+#### Convert Juian date to calendar date
+```bash
+j2cal() {
+	day="$1"
+	date -d "`date +%Y`-01-01 +$(( ${day} - 1 ))days" +%Y-%m-%d
+}
+$ j2cal 284
+2026-10-11
+```
+
 ### .bashrc alias functions
 #### Parse git branch, identifies git branch in bash prompt (~/.bashrc)
   ```bash
