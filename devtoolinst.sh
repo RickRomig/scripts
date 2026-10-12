@@ -7,8 +7,8 @@
 # Author       : Copyright (C), Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2017
-# Updated      : 09 Sep 2026
-# Version      : 2.4.26252
+# Updated      : 12 Oct 2026
+# Version      : 2.5.26285
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -38,15 +38,17 @@ install_tools() {
 			sudo apt-get install -y "$package"
 		fi
 	done
-	return 0
+	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.3.26249"
+	local -r version="2.5.26285"
+	local -i code=0
 	install_tools
+	code="$?"
 	over_line "$script $version"
-	exit
+	exit "$code"
 }
 
 main "$@"
