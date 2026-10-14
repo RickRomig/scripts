@@ -695,7 +695,7 @@ cleanup() {
 	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
 }
 
-convert_compare() {
+newer_version() {
 	local -r newVer="$1"
 	local -r curVer="$2"
 	local n1 n2 n3 c1 c2 c3
