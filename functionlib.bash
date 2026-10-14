@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 22 Sep 2026
+# Last updated : 13 Oct 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -698,8 +698,6 @@ cleanup() {
 convert_compare() {
 	local -r newVer="$1"
 	local -r curVer="$2"
-	local -i newer="$FALSE"
-	local -i index
 	local n1 n2 n3 c1 c2 c3
 	n1=$(cut -d. -f1 <<< "$newVer")
 	n2=$(cut -d. -f2 <<< "$newVer")
@@ -708,11 +706,12 @@ convert_compare() {
 	c2=$(cut -d. -f2 <<< "$curVer")
 	c3=$(cut -d. -f3 <<< "$curVer")
 	if [[ "${n1#0}" -gt "${c1#0}" ]]; then
-		newer=0
+		return "$TRUE"
 	elif [[ "${n2#0}" -gt "${c2#0}" ]]; then
-		newer=0
+		return "$TRUE"
 	elif [[ "${n3#0}" -gt "${c3#0}" ]]; then
-		newer=0
+		return "$TRUE"
+	else
+		return "$FALSE"
 	fi
-	return "$newer"
 }
