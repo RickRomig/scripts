@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2025
-# Updated      : 08 Sep 2026
-# Version      : 2.12.26251
+# Updated      : 14 Oct 2026
+# Version      : 2.13.26287
 # Comments     : Beginning with version 0.3.12, installs to /usr/bin/fresh
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="08 Sep 2026"
+	local -r updated="14 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs, updates, or removes the Bat utililty.
@@ -69,7 +69,7 @@ compare_versions() {
 	if [[ -z "$new_ver" ]]; then
 		printf "%s No download available. Try again later." "$RED_ERROR" >&2
 		return "$E_DOWNLOAD"
-	elif convert_compare "$new_ver" "$cur_ver"; then
+	elif newer_version "$new_ver" "$cur_ver"; then
 		printf "%sInstalled version of Fresh-editor is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
 		install_fresh "$new_ver" "$gh_url"
 	else
@@ -132,7 +132,7 @@ fresh_config() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.12.26251"
+	local -r version="2.13.26287"
 	local -i exit_code=0
 	local -r gh_url="https://github.com/sinelaw/fresh/releases"
 	local -i noOpt=1
