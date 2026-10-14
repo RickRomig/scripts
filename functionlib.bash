@@ -700,15 +700,19 @@ convert_compare() {
 	local -r curVer="$2"
 	local -i newer="$FALSE"
 	local -i index
-	local -i new_arr=()
-	local -i cur_arr=()
-	IFS="." read -ra new_arr <<< "$newVer"; declare -r new_arr
-	IFS="." read -ra cur_arr <<< "$curVer"; declare -r cur_arr
-	for (( index=0; index <=2; index++ )) ; do
-		if (( "${new_arr[index]}" > "${cur_arr[index]}" )); then
-			newer="$TRUE"
-			break
-		fi
-	done
+	local n1 n2 n3 c1 c2 c3
+	n1=$(cut -d. -f1 <<< "$newVer")
+	n2=$(cut -d. -f2 <<< "$newVer")
+	n3=$(cut -d. -f3 <<< "$newVer")
+	c1=$(cut -d. -f1 <<< "$curVer")
+	c2=$(cut -d. -f2 <<< "$curVer")
+	c3=$(cut -d. -f3 <<< "$curVer")
+	if [[ "${n1#0}" -gt "${c1#0}" ]]; then
+		newer=0
+	elif [[ "${n2#0}" -gt "${c2#0}" ]]; then
+		newer=0
+	elif [[ "${n3#0}" -gt "${c3#0}" ]]; then
+		newer=0
+	fi
 	return "$newer"
 }
