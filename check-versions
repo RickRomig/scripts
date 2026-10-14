@@ -8,8 +8,8 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Updated      : 15 Sep 2026
-# Version      : 21.11.26258
+# Updated      : 14 Oct 2026
+# Version      : 21.13.26287
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -113,7 +113,7 @@ github_packages() {
 		fi
 		if [[ -z "$cur_ver" ]]; then
 			printf "%s%s\n" "${gray}" "not installed"
-		elif convert_compare "$new_ver" "$cur_ver"; then
+		elif newer_version "$new_ver" "$cur_ver"; then
 			printf "%s%-16s%sUpdate available\n" "${gray}" "$cur_ver" "${orange}"
 		else
 			printf "%s%s\n" "${gray}" "$cur_ver"
@@ -170,7 +170,7 @@ flatpak_packages() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="21.11.26258"
+	local -r version="21.13.26287"
 	create_tmp "file"
 	check_package curl
 	clearscreen
