@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 01 Oct 2026
-# Version      : 5.5.26274
+# Updated      : 15 Oct 2026
+# Version      : 5.6.26288
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  : add flatpak installation...
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -f updated="01 Oct 2026"
+	local -f updated="15 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, updated: ($updated)
 	Install/Remove VSCodium and apply settings
@@ -117,9 +117,9 @@ install_vscodium() {
 }
 
 apply_settings() {
-	if installed codium; then
-    printf "VSCodium %s is already installed." "$(codium_version)"
-    return "$E_FILE_EXISTS"
+	if ! installed codium; then
+		printf "VSCodium is not installed.\n"
+		return "$E_NOT_INSTALLED"
 	fi
 	if [[ ! -d ~/Downloads/configs && ! -d ~/gitea/configs ]]; then
 		printf "%s Repository not found!\n" "$RED_WARNING" >&2
@@ -161,7 +161,7 @@ show_message() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.5.26274"
+	local -r version="5.6.26288"
 	local -r key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 	local -i exit_code=0
 	local -i noOpt=1
