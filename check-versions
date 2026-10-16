@@ -8,8 +8,8 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Updated      : 14 Oct 2026
-# Version      : 21.13.26287
+# Updated      : 16 Oct 2026
+# Version      : 21.14.26289
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -87,7 +87,7 @@ get_new_version() {
 		micro )
 			new_ver=$(sed 's/^v//' < <(awk -F'/' '/download\/v/ {print $6;exit}' "$TMP_FILE")) ;;
 		fastfetch )
-			new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6;exit}' "$TMP_FILE") ;;
+			new_ver=$(awk -F'/' '/download/ && /amd64/ {print $6;exit}' "$TMP_FILE") ;;
 		fresh-editor )
 			new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /x86/ {print $6;exit}' "$TMP_FILE")) ;;
 		* )
@@ -170,7 +170,7 @@ flatpak_packages() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="21.13.26287"
+	local -r version="21.14.26289"
 	create_tmp "file"
 	check_package curl
 	clearscreen
