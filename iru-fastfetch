@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Updated      : 14 Oct 2026
-# Version      : 4.10.26287
+# Updated      : 16 Oct 2026
+# Version      : 4.14.26289
 # Comments     : .png logo does not work with Terminator.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="14 Oct 2026"
+	local -r updated="16 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs, updates, or removes the Bat utililty.
@@ -55,7 +55,7 @@ newest_version() {
 	local -r gh_url="$1"
 	local new_ver
 	wget -qO "$TMP_FILE" "$gh_url"
-	new_ver=$(awk -F'/' '/download/ && /.deb/ {print $6;exit}' "$TMP_FILE")
+	new_ver=$(awk -F'/' '/download/ && /amd64/ {print $6;exit}' "$TMP_FILE")
 	echo "$new_ver"
 	return 0
 }
@@ -67,7 +67,7 @@ compare_versions() {
 	cur_ver="$(ff_version)"
 	printf "Comparing current and newest versions...\n"
 	if [[ -z "$new_ver" ]]; then
-		printf "%s No download available. Try again later." "$RED_ERROR" >&2
+		printf "%s No download available. Try again later.\n" "$RED_ERROR" >&2
 		return "$E_DOWNLOAD"
 	elif newer_version "$new_ver" "$cur_ver"; then
 		printf "%sInstalled version of FastFetch is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
@@ -136,7 +136,7 @@ fastfetch_config() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r  version="4.10.26287"
+	local -r  version="4.14.26289"
 	local -i exit_code=0
 	local -r gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
 	local -i noOpt=1
