@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 07 Sep 2026
-# Version      : 4.2.26250
+# Updated      : 16 Oct 2026
+# Version      : 4.3.26289
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="07 Sep 2026"
+	local -r updated="16 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs/Removes Geany text editor and themes
@@ -54,14 +54,14 @@ _HELP_
 
 geany_version() {
 	local ver
-	ver=$(awk '{print $1,$2}' < <(geany --version))
+	ver=$(cut -d' ' -f1,2 < <(geany --version))
 	printf "%s" "${ver^}"
 	return 0
 }
 
 geany_config() {
 	if ! installed geany; then
-		printf "Configuration files cannot be installed because Geany is not installed.\n" >&2
+		printf "Geany is not installed.\n" >&2
 		return "$E_NOT_INSTALLED"
 	fi
 	local -r geany_cfg_d=~/.config/geany
@@ -80,7 +80,7 @@ geany_config() {
 
 clone_themes() {
 	if ! installed geany; then
-		printf "Themes cannot be installed because Geany is not installed.\n" >&2
+		printf "Geany is not installed.\n" >&2
 		return "$E_NOT_INSTALLED"
 	fi
 	local -r themes_url="https://github.com/geany/geany-themes.git"
@@ -134,7 +134,7 @@ show_message() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.2.26250"
+	local -r version="4.3.26289"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":chirtv"
