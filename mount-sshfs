@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 07 Oct 2026
-# Version      : 6.1.26280
+# Updated      : 17 Oct 2026
+# Version      : 6.2.26290
 # Comments     : Mount points are at ~/mnt/ (HOME directory)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 help() {
 	local -r script="$1"
 	local -r version="$2"
-	local -r updated="07 Oct 2026"
+	local -r updated="17 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated $updated
 	Mounts/Unmounts an SSHFS share.
@@ -99,20 +99,23 @@ mounted() {
 handle_mount() {
 	local -ir octet="$1"
 	local -r share="$2"
+	local -i code=0
 	local -i ip
 	ip=$(local_ip)
 	if (( ip == octet )); then
 		printf "%s Cannot mount/unmount local system.\n" "$RED_ERROR" >&2
-		return "$E_DRIVE_ERROR"
+		code="$E_DRIVE_ERROR"
 	elif ! mounted "$share"; then
 		mount_share "$octet" "$share"
-		return "$?"
+		code="$?"
 	elif default_yes "Unmount $share?"; then
 		unmount_share "$share"
+		code="$?"
 	else
 		printf "%s left mounted.\n" "$share"
+		code="$?"
 	fi
-	return "$?"
+	return "$code"
 }
 
 select_share() {
@@ -149,8 +152,8 @@ select_share() {
 			printf "Invalid option. Choose 1 - %d. %d to quit.\n" "${#share_list[@]}" "$(( 1 + ${#share_list[@]} ))"
 		fi
 	done
-	share_name=$(cut -d' ' -f2 <<< "${share_list[index]}")
 	share_ip=$(cut -d' ' -f1 <<< "${share_list[index]}")
+	share_name=$(cut -d' ' -f2 <<< "${share_list[index]}")
 	printf "Share IP = %d\n" "$share_ip"
 	printf "Share name: %s\n" "$share_name"
 	handle_mount "$share_ip" "$share_name"
@@ -159,7 +162,7 @@ select_share() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.1.26280"
+	local -r version="6.2.26290"
 	local -i exit_code=0
 	local share_name share_ip
 	[[ "$1" == '-h' || "$1" == --help ]] && help "$script" "$version"
