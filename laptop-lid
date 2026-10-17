@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Oct 2020
-# Updated      : 08 Sep 2026
-# Version      : 4.8.26251
+# Updated      : 16 Oct 2026
+# Version      : 4.9.26289
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source fu
 modify_logind() {
 	local script_dir
 	script_dir=$(dirname "$(readlink -f "${0}")")
-	local -r logind_conf="/etc/systemd/logind.conf"
+	local -r logind_conf=/etc/systemd/logind.conf
 	local -r sed_file="$script_dir/files/laptoplid.sed"
 	if [[ ! -f "$sed_file" ]]; then
 		printf "A required file, %s, was not found. Operation canceled.\n" "${sed_file##*/}" >&2
@@ -40,13 +40,12 @@ modify_logind() {
 	printf "Modifying %s and restarting the systemd-logind service.\n" "${logind_conf##*/}"
 	sudo sed -i.bak -f "$sed_file" "$logind_conf"
 	sudo systemctl restart systemd-logind.service
-	printf "%s modified, backup created, and service restarted.\n" "$logind_conf"
-	return 0
+	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.8.26251"
+	local -r version="4.9.2628"
 	local -r lhost="${HOSTNAME:=-$(hostname)}"
 	local -i exit_code=0
 	printf "Allows a laptop's lid to be closed without the system going into suspend mode.\n"
