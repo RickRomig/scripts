@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Sep 2025
-# Last updated : 24 Sep 2026
-# Version      : 4.5.26267
+# Last updated : 17 Oct 2026
+# Version      : 4.6.26290
 # Comments     : Run as a daily cron job from ~/.local/bin/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,7 +36,7 @@ update_clones() {
 			[[ -d ~/$clone ]] && clone_dir=~/$clone
 			if [[ -d "$clone_dir" ]]; then
 				pushd "$clone_dir" >/dev/null 2>&1 || return "$?"
-				printf "~ %s repository ~\n" "${clone^^}"
+				printf "~ %s ~\n" "${clone^^}"
 				git checkout .
 				git pull
 				popd >/dev/null 2>&1 || return "$?"
