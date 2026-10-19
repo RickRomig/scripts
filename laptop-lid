@@ -7,10 +7,10 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Oct 2020
-# Updated      : 16 Oct 2026
-# Version      : 4.9.26289
+# Updated      : 18 Oct 2026
+# Version      : 5.0.26291
 # Comments     :
-# TODO (Rick)  :
+# TODO (Rick)  : set_rc_local needs to be tested on a SysV laptop
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
@@ -27,34 +27,46 @@
 # shellcheck source=/home/rick/bin/functionlib.bash
 source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
-modify_logind() {
-	local script_dir
-	script_dir=$(dirname "$(readlink -f "${0}")")
-	local -r logind_conf=/etc/systemd/logind.conf
-	local -r sed_file="$script_dir/files/laptoplid.sed"
-	if [[ ! -f "$sed_file" ]]; then
-		printf "A required file, %s, was not found. Operation canceled.\n" "${sed_file##*/}" >&2
+set_logind_conf() {
+	local repository=~/Downloads/configs
+	[[ -d ~/gitea/configs ]] && repository=~/giteas/configs
+	if [[ ! -f "$repository/99-sleep.conf" ]]; then
+		printf "%s not found. Cannot continue.\n" "$RED_ERROR" >&2
 		return "$E_FILENOTFOUND"
 	fi
 	sudo_login 2
-	printf "Modifying %s and restarting the systemd-logind service.\n" "${logind_conf##*/}"
-	sudo sed -i.bak -f "$sed_file" "$logind_conf"
-	sudo systemctl restart systemd-logind.service
+	[[ -d /etc/systemd/sleep.conf.d ]] || sudo mkdir -p /etc/systemd/sleep.conf.d
+	printf "Adding /etc/systemd/sleep.conf.d/99-sleep.conf...\n"
+	awk -F"/" '{print "==> " $NF}' < <(sudo cp -v "$repository/99-sleep.conf" /etc/systemd/sleep.conf.d/) | sed "s/'$//"
+	return "$?"
+}
+
+set_rc_local() {
+	local pnp
+	sudo_login 2
+	printf "Setting /etc/rc.local to diable sleep...\n"
+	grep -q 'LID' /proc/acpi/wakeup && pnp=$(awk '{print $NF}' < <(cat /proc/acpi/wakeup) | sed '/^platform://')
+	sudo tee -a /sys/bus/acpi/drivers/button/unbind <<< "$pnp"
+	sudo tee -a /etc/rc.local <<< "/sys/bus/acpi/drivers/button/unbind"
 	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.9.2628"
+	local -r version="5.0.26291"
 	local -r lhost="${HOSTNAME:=-$(hostname)}"
 	local -i exit_code=0
 	printf "Allows a laptop's lid to be closed without the system going into suspend mode.\n"
-	if is_laptop; then
-		modify_logind
+	is_laptop || die "$lhost is not a laptop. Operation canceled." "$E_UNSUPPORTED"
+	if is_systemd; then
+		set_logind_conf
+		exit_code="$?"
+	elif is_sysv; then
+		set_rc_local
 		exit_code="$?"
 	else
-		printf "%s is not a laptop. Operation canceled.\n" "$lhost" >&2
-		exit_code="$E_UNSUPPORTED"
+	printf "%s Init system not supported.\n" "$RED_ERROR" >&2
+	exit_code="$E_UNSUPPORTED"
 	fi
 	over_line "$script $version" "-"
 	exit "$exit_code"
