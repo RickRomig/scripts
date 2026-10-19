@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Aug 2019
-# Updated      : 06 Aug 2026
-# Version      : 5.10.26218
+# Updated      : 19 Oct 2026
+# Version      : 5.11.26292
 # Comments     : For entertainiment purposes only.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -38,8 +38,8 @@ print_graph() {
 
 scale_numbers() {
 	# _i and _j are dummy variables used as indices in the for-loops.
-	local _i _j index
-``  index=0
+	local -i index=0
+	local -i _i _j
 	printf "%s" "$index"
 	for _i in {1..10}; do
 		for _j in {1..8}; do
@@ -54,7 +54,7 @@ scale_numbers() {
 
 scale_marks() {
 	# _i and _j are dummy variables used as indices in the for-loops.
-	local _i _j
+	local -i _i _j
 	printf "|"
 	for _i in {1..10}; do
 		for _j in {1..9}; do
@@ -78,31 +78,23 @@ print_indicator() {
 }
 
 print_analysis() {
-	local -r level="$1"
-	printf "\nYour statement has been analyzed and found to be %s%% bullshit -- " "$level"
+	local -ir level="$1"
+	printf "\nYour statement has been analyzed by Mosfa-AI and found to be %s%% bullshit -- " "$level"
 	case "$level" in
-		0 )
-			printf "absolutely true\n" ;;
-		[1-9] )
-			printf "very likely true.\n" ;;
-		1[0-9] )
-			printf "mostly true.\n" ;;
-		[2-4]? )
-			printf "somewhat true.\n" ;;
-		[5-6]? )
-			printf "might be false.\n" ;;
-		[7-8]? )
-			printf "probably false.\n" ;;
-		9[0-9] )
-			printf "mostly false.\n" ;;
-		* )
-			printf "absolutely false!\n"
+		0 ) printf "absolutely true\n" ;;
+		[1-9] ) printf "very likely true.\n" ;;
+		1[0-9] ) printf "mostly true.\n" ;;
+		[2-4]? ) printf "somewhat true.\n" ;;
+		[5-6]? ) printf "might be false.\n" ;;
+		[7-8]? ) printf "probably false.\n" ;;
+		9[0-9] ) printf "mostly false.\n" ;;
+		* ) printf "absolutely false!\n"
 	esac
 	return 0
 }
 
 print_intro() {
-	center_text "Bullshit Meter"
+	center_text "${bold}Bullshit Meter${normal}"
 	center_text "Enter a statement to be verified and wait for it to be analyzed."
 	center_text "Once its bullshit content has been determined, the results will be displayed."
 	center_text "This program is for entertainment purposes only and its accuracy cannot be guaranteed."
@@ -112,12 +104,13 @@ print_intro() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.10.26218"
-	local _statement bs_level
+	local -r version="5.11.26292"
+	local _statement  # dummy variable holding inconsequential data
+	local -i bs_level
 	bs_level=$(shuf -i 0-100 -n 1)
 	clear
 	print_intro
-	read -rp "Statement to be analyzed: " _statement  # dummy variable holding inconsequential data
+	read -rp "Statement to be analyzed: " _statement
 	printf "\nAnalyzing your statement "
 	dots "." &
 	DOTS_PID="$!"
