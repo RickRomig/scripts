@@ -32,7 +32,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="11 Oct 2026"
+	local -r updated="19 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version (updated $updated)
 	Displays a text file using either cat or less depending the number of lines in
@@ -51,15 +51,15 @@ check_file() {
 	local -r filename="$1"
 	if [[ ! -f "$filename" ]]; then
 		printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
-		return "$FALSE"
+		return "$E_FILENOTFOUND"
 	elif [[ ! -s "$filename" ]]; then
 		printf "%s %s is an empty file.\n" "$RED_ERROR" "$filename" >&2
-		return "$FALSE"
+		return "$E_UNSUPPORTED"
 	elif grep -qEi "text|json" < <(file -bL "$filename"); then
-		return "$TRUE"
+		return 0
 	else
 		printf "%s %s is not a valid text file.\n" "$RED_ERROR" "$filename" >&2
-		return "$FALSE"
+		return "$E_UNSUPPORTED"
 	fi
 }
 
