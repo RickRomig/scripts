@@ -7,8 +7,8 @@
 # Author       : Copyright © 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 11 Oct 2026
-# Version      : 8.3.26284
+# Updated      : 19 Oct 2026
+# Version      : 8.4.26292
 # Comments     : Checks to see if passed argument is a valid text or json file.
 #              : To show line numbers, use -n after the file name.
 # TODO (Rick)  :
@@ -47,14 +47,6 @@ help() {
 	exit "$errcode"
 }
 
-over_max() {
-	local -r textfile="$1"
-	local -i catmax filelines
-	catmax=$(( $(tput lines)*87/100 ))
-	filelines=$(wc -l < "$textfile")
-	(( filelines > catmax )) && return "$TRUE" || return "$FALSE"
-}
-
 check_file() {
 	local -r filename="$1"
 	if [[ ! -f "$filename" ]]; then
@@ -71,11 +63,29 @@ check_file() {
 	fi
 }
 
+set_flag() {
+	local option="$1"
+	local -i flag=1
+	[[ "${option:0:1}" != "-" ]] && option="${option:0:1}"	# take 1st character of string
+	[[ "${option:0:1}" == "-" ]] && option="${option:0:2}"	# take 1st two characters if 1st is '-'
+	[[ "$option" == "-n" || "$option" == "n" ]] && flag=0 || flag=1
+	printf "%s" "$flag"
+	return 0
+}
+
+over_max() {
+	local -r textfile="$1"
+	local -i catmax filelines
+	catmax=$(( $(tput lines)*87/100 ))
+	filelines=$(wc -l < "$textfile")
+	(( filelines > catmax )) && return "$TRUE" || return "$FALSE"
+}
+
 view_file() {
 	local -r textfile="$1"
-	local -ri num_flag="$2"
+	local -ri flag="$2"
 	if over_max "$textfile"; then
-		case "$num_flag" in
+		case "$flag" in
 			0 )
 				less -N "$textfile" ;;
 			* )
@@ -83,7 +93,7 @@ view_file() {
 		esac
 		head -n5 "$textfile"
 	else
-		case "$num_flag" in
+		case "$flag" in
 			0 )
 				cat -n "$textfile" ;;
 			* )
@@ -96,15 +106,14 @@ view_file() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="8.3.26284"
+	local -r version="8.4.26292"
 	local -i exit_code=0
-	local -i num_flag=1
+	local -i n_flag=1
 	[[ $1 == "-h" ]] && help "$script" "$version" 0
 	local -r filename="$1"
-	local -l num_opt="$2"	# make argument lowercase
-	[[ "${num_opt:0:1}" == "-" ]] && num_opt="${num_opt:0:2}"	# take 1st two characters if 1st is '-'
-	[[ "$num_opt" == "-n" || "$num_opt" == "n" ]] && num_flag=0 || num_flag=1
-	check_file "$filename" && view_file "$filename" "$num_flag"
+	local -l n_option="${2:-z}"	# make argument lowercase
+	n_flag=$(set_flag "$n_option")
+	check_file "$filename" && view_file "$filename" "$n_flag"
 	exit_code="$?"
 	over_line "$script $version"
 	exit "$exit_code"
