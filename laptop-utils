@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 08 Sep 2026
-# Version      : 8.7.26251
+# Updated      : 19 Oct 2026
+# Version      : 8.8.26292
 # Comments     : Based on a script by Joe Collins.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="08 Sep 2026"
+	local -r updated="19 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs laptop-specific utlities.
@@ -85,20 +85,29 @@ installed_packages() {
 }
 
 tlp_status() {
-	local -i status=1
+	local -i code=0
 	if ! installed tlp; then
 		printf "TLP is not installed.\n" >&2
 		return "$E_INSTALLATION"
 	fi
-	is_systemd && { grep -qw active <(systemctl status tlp) && status=0; }
-	is_sysv && { grep -qw enabled <(tlp-stat -s) && status=0; }
-	if (( status != 0 )); then
-		printf "Starting TLP service\n"
-		start_tlp_service
-		return "$status"
+	if is_systemd; then
+		grep -qw active <(systemctl status tlp)
+		code="$?"
+	elif is_sysv; then
+		grep -qw enabled <(tlp-stat -s)
+		code="$?"
+	else
+		printf "Init system is neither Systemd nor SysV.\n"
+		return "$E_UNSUPPORTED"
 	fi
-	printf "TLP service is active and running.\n"
-	return 0
+	if (( code != 0 )); then
+		printf "Starting TLP service...\n"
+		start_tlp_service
+		return "$?"
+	else
+		printf "TLP service is active and running.\n"
+		return 0
+	fi
 }
 
 start_tlp_service() {
@@ -121,7 +130,7 @@ start_tlp_service() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="8.7.26251"
+	local -r version="8.8.26292"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":dhis"
@@ -152,8 +161,8 @@ main() {
 					printf "%s is not a laptop. Nothing to do.\n" "$lhost"
 				fi ;;
 			? )
-        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-        help "$script" "$version" "$E_INVALID_ARG"
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
