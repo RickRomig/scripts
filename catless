@@ -7,8 +7,8 @@
 # Author       : Copyright © 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 19 Oct 2026
-# Version      : 8.4.26292
+# Updated      : 20 Oct 2026
+# Version      : 8.5.26293
 # Comments     : Checks to see if passed argument is a valid text or json file.
 #              : To show line numbers, use -n after the file name.
 # TODO (Rick)  :
@@ -32,7 +32,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="19 Oct 2026"
+	local -r updated="20 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version (updated $updated)
 	Displays a text file using either cat or less depending the number of lines in
@@ -41,15 +41,18 @@ help() {
 
 	${green}Usage:${normal} $script [-h] [filename [-n|n]]
 	${orange}Available options:${normal}
-	  -h  Show this help message and exit.
-	  -n  enable line numbers (follows filename and is case-insensitive).
+	  -h	Show this help message and exit.
+	  -n	Display line numbers (follows filename and is case-insensitive).
 	_HELP_
 	exit "$errcode"
 }
 
 check_file() {
 	local -r filename="$1"
-	if [[ ! -f "$filename" ]]; then
+	if [[ -z "$filename" ]]; then
+		printf "%s No argument passed.\n" "$RED_ERROR" >&2
+		help "$script" "$version" "$E_MISSING_ARG"
+	elif [[ ! -f "$filename" ]]; then
 		printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
 		return "$E_FILENOTFOUND"
 	elif [[ ! -s "$filename" ]]; then
@@ -106,7 +109,7 @@ view_file() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="8.4.26292"
+	local -r version="8.5.26293"
 	local -i exit_code=0
 	local -i n_flag=1
 	[[ $1 == "-h" ]] && help "$script" "$version" 0
