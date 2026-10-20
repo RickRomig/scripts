@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 15 Apr 2026
-# Updated      : 06 Aug 2026
-# Version      : 2.3.26218
+# Updated      : 20 Oct 2026
+# Version      : 2.4.26293
 # Comments     : Fixes main/binary-i386 error message for Google Chrome update
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -54,7 +54,7 @@ check_amd64_arch() {
 }
 
 remove_i386_arch() {
-	local num_386
+	local -i num_386
 	printf "\nConfirm that 64-bit with multiarch is enabled...\n"
 	check_amd64_arch || return "$?"
 	if check_i386_arch; then
@@ -82,7 +82,7 @@ remove_i386_arch() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.3.26218"
+	local -r version="2.4.26293"
 	local -i exit_code=0
 	intro_message
 	check_google_chrome && remove_i386_arch
