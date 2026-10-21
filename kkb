@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Apr 2023
-# Updated      : 08 Sep 2026
-# Version      : 1.13.26251
+# Updated      : 21 Oct 2026
+# Version      : 1.14.26294
 # Comments     : Install with kitty-bindings.list in ~/.config/kitty/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -32,14 +32,14 @@ copy_bindings() {
 	local -r bindings="$2"
 	local repository
 	repository=$(assign_cfg_repo)
-	printf "Cooying Kitty keyboard bindings...\n"
-	cp -v "$repository/$bindings" "$kitty_dir/$bindings"
+	printf "Copying Kitty keyboard bindings...\n"
+	awk -F/ '{print "==> "$BF}' < <(cp -v "$repository/$bindings" "$kitty_dir/$bindings") | sed "s/'$//"
 	return 0
 }
 
 show_bindings() {
-	local -r kitty_dir="$1"
-	local -r bindings="$2"
+	local -r kitty_dir=~/.config/kitty
+	local -r bindings=keybindings.conf
 	[[ -f "$kitty_dir/$bindings" ]] || copy_bindings "$kitty_dir" "$bindings"
 	printf "%sKitty keybindings:%s\n" "$green" "$normal"
 	column -t -s "|" -N Binding,Action,Binding,Action "$kitty_dir/$bindings"
@@ -48,18 +48,16 @@ show_bindings() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.13.26251"
+	local -r version="1.14.26294"
 	local -i exit_code=0
-	local -r kitty_dir=~/.config/kitty
-	local -r bindings="keybindings.conf"
 	if [[ "$TERM" == "xterm-kitty" ]]; then
 		clearscreen
 		check_package git
-		show_bindings "$kitty_dir" "$bindings"
+		show_bindings
 	else
-		printf "The current terminal emulator is not Kitty.\n"
+		printf "The current terminal emulator is not Kitty.\n" >&2
+		exit_code="$E_UNSUPPORTED"
 	fi
-	exit_code="$?"
 	over_line "$script $version"
 	exit "$exit_code"
 }
