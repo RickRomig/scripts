@@ -2,13 +2,13 @@
 ###############################################################################
 # Script Name  : i3kb
 # Description  : Displays i3 keybindings in a table format
-# Dependencies : None
+# Dependencies : git (for assign_cfg_repo)
 # Arguments    : None
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Apr 2023
-# Updated      : 07 Aug 2026
-# Version      : 1.11.26219
+# Updated      : 22 Oct 2026
+# Version      : 1.12.26295
 # Comments     : Install with keybindings.conf in ~/.config/i3/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,13 +33,13 @@ copy_bindings() {
 	local repository
 	repository=$(assign_cfg_repo)
 	printf "Copying i3 keyboard bindings...\n"
-	cp -v "$repository/$bindings" "$i3_dir/$bindings"
+	awk -F/ '{print "==> "$NF}' < <(cp -v "$repository/$bindings" "$i3_dir/$bindings") | sed "s/'$//"
 	return 0
 }
 
 show_bindings() {
-	local -r i3_dir="$1"
-	local -r bindings="$2"
+	local -r i3_dir=~/.config/i3
+	local -r i3_bindings=keybindings.conf
 	[[ -f "$i3_dir/$bindings" ]] || copy_bindings "$i3_dir" "$bindings"
 	printf "i3wm keybindings:\n"
 	column -t -s "|" -N Binding,Action,Binding,Action "$i3_dir/$bindings"
@@ -48,11 +48,10 @@ show_bindings() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.11.26219"
-	local -r i3_dir=~/.config/i3
-	local -r i3_bindings=keybindings.conf
+	local -r version="1.12.26295"
 	if [[ "$DESKTOP_SESSION" == "i3" ]]; then
 		clearscreen
+		check_package git
 		show_bindings "$i3_dir" "$i3_bindings"
 	else
 		printf "i3wm is not the current desktop session.\n"
