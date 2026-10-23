@@ -53,22 +53,23 @@ sudo chsh -s /bin/bash <user>
 
 #### ps command to find init system
 - From the command line:
-  ```bash
-  ps -p 1 | awk '/1 ?/ {print $4}'	# Returns either systemd or init
-  ps -p 1 | awk '/1 ?/ {print $NF}'	# Returns either systemd or init
-  ```
+```bash
+ps -p 1 | awk '/1 ?/ {print $4}'	# Returns either systemd or init
+ps -p 1 | awk '/1 ?/ {print $NF}'	# Returns either systemd or init
+```
 - As a function:
-  ```bash
-  check_init() {
-    echo -n "Initialization system is "
-    INIT_SYS=$(ps -p 1 | awk '/1 ?/ {print $4}')
-    case $INIT_SYS in
-      "systemd" ) echo "systemd" ;;
-      "init" ) echo "SysV or other non-systemd" ;;
-      * ) echo "an undetermined init system" ;;
-   esac
-  }
-  ```
+```bash
+check_init() {
+	echo -n "Initialization system is "
+	# INIT_SYS=$(ps -p 1 | awk '/1 ?/ {print $4}')
+	INIT_SYS=$(awk '/1 ?/ {print $4}' < <(ps -p 1))
+	case $INIT_SYS in
+		"systemd" ) echo "systemd" ;;
+		"init" ) echo "SysV or other non-systemd" ;;
+		* ) echo "an undetermined init system" ;;
+	esac
+}
+```
 #### check for systemd, sysvinit or upstart
 ```bash
 $ cat /sbin/init | awk 'match($0, /(upstart|systemd|sysvinit)/) { print toupper(substr($0, RSTART, RLENGTH));exit; }' 2> /dev/null
@@ -174,7 +175,7 @@ done
 #### Find a mountable drive:
 ```bash
 $ lsblk -lp | grep "part $" | awk '{print $1, "(" $4 ")"}'
-$ lsblk -lp |  awk '/part $/ {print $1, "(" $4 ")"}'
+$ lsblk -lp | awk '/part $/ {print $1, "(" $4 ")"}'
 ```
 #### Combine find and grep to search for files containing a specific pattern:
 ```bash
@@ -315,4 +316,17 @@ W: Some index files failed to download. They have been ignored, or old ones used
 ```
 ```bash
 sudo rm -r /var/lib/apt/lists/* && sudo apt-get update
+```
+### low disk space alert
+```bash
+low_disk_space() {
+	local disk_use
+	disk_use=$(tr -dc '0-9'< <(df / --output=pcent | tail -1))
+	if [[ "$disk_use" -ge 80 ]]; then
+		echo "WARNING: disk is "${disk_use}% full"
+	else
+		echo "Disk OK: "${disk_use}% used."
+	fi
+}
+# USAGE=$(df / --output=pcent | tail -1 | tr -dc '0-9')
 ```
