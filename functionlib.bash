@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 13 Oct 2026
+# Last updated : 23 Oct 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -195,10 +195,8 @@ installed() {
 }
 
 get_distribution() {
-	local distro
-	distro=$(/usr/bin/lsb_release --description --short 2>/dev/null)
-	echo "$distro"
-	return 0
+	/usr/bin/lsb_release --description --short 2>/dev/null
+	return "$?"
 }
 
 is_debian() {
@@ -286,9 +284,8 @@ leapyear() {
 local_ip() {
 	local octet
 	octet=$(awk '{print $7}' < <(ip route get 1.2.3.4))
-	[[ "$octet" ]] || die "No IP address found. Check network status." "$E_NETWORK"
-	printf "%s" "${octet##*.}"
-	return 0
+	printf "%d" "${octet##*.}"
+	return "$?"
 }
 
 valid_ip() {
@@ -684,13 +681,13 @@ create_tmp() {
 		* )
 			die "Invalid option. No temporary file/directory created." "$E_INVALID_ARG"
 	esac
-	trap cleanup EXIT
+	trap cleanup_tmp EXIT
 	return 0
 }
 
 # ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-cleanup() {
+cleanup_tmp() {
 	[[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
 	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
 }
@@ -698,6 +695,7 @@ cleanup() {
 newer_version() {
 	local -r newVer="$1"
 	local -r curVer="$2"
+	# separate version numbers into 3 fields
 	local n1 n2 n3 c1 c2 c3
 	n1=$(cut -d. -f1 <<< "$newVer")
 	n2=$(cut -d. -f2 <<< "$newVer")
@@ -705,6 +703,7 @@ newer_version() {
 	c1=$(cut -d. -f1 <<< "$curVer")
 	c2=$(cut -d. -f2 <<< "$curVer")
 	c3=$(cut -d. -f3 <<< "$curVer")
+	# remove leading 0 and compare new with current
 	if [[ "${n1#0}" -gt "${c1#0}" ]]; then
 		return "$TRUE"
 	elif [[ "${n2#0}" -gt "${c2#0}" ]]; then
