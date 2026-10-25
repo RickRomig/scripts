@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 ###############################################################################
 # Script Name  : functionlib.bash
 # Description  : personal function library used in Bash scripts
@@ -7,12 +6,14 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 23 Oct 2026
+# Last updated : 24 Oct 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
-#              : source functionlib.bash or "$HOME/bin/functionlib.bash" or source ~/bin/functionlib.bash
+#              : source "$HOME/bin/functionlib.bash" or source ~/bin/functionlib.bash
 # Warning!     : Using 'set -o pipefail' in script may cause unexpected behavior or some variables to not be recognized.
+# TODO (Rick)  : Will be changing scripts to source ./files/functionlib.bash.
+#              : Remove this file when completed.
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
