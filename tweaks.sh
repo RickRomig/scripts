@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 10 Sep 2026
-# Version      ; 4.7.26253
+# Last updated : 25 Oct 2026
+# Version      ; 4.8.26298
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="10 Sep 2026"
+	local -r updated="25 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Create symbolic links from configs and scripts repos and add tweaks to system settings.
@@ -47,7 +47,7 @@ help() {
 	-s	Symlink scripts to ~/bin
 	-t	Apply tweaks to /etc/sudoers.d and /etc/sysctl.conf
 	-w	Set swappiness
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -206,7 +206,7 @@ link_script_dir() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.7.26253"
+	local -r version="4.8.26298"
 	local -i exit_code=0
 	local opt OPTIND OPTARG
 	local old_configs=~/.old-configs
@@ -217,24 +217,15 @@ main() {
 	local -r optstr=":cdhnprstw"
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			c )
-				link_config_files "$old_configs" ;;
-			d )
-				link_dot_files "$old_configs" ;;
-			h )
-				help "$script" "$version" 0 ;;
-			n )
-				no_snaps "$repo_dir" ;;
-			p )
-				set_sleep "$repo_dir" ;;
-			r )
-				set_reserved_space ;;
-			s )
-				link_script_dir ;;
-			t )
-				sudoers_tweaks "$repo_dir" ;;
-			w )
-				set_swappiness "$repo_dir" ;;
+			c ) link_config_files "$old_configs" ;;
+			d ) link_dot_files "$old_configs" ;;
+			h ) help "$script" "$version" 0 ;;
+			n ) no_snaps "$repo_dir" ;;
+			p ) set_sleep "$repo_dir" ;;
+			r ) set_reserved_space ;;
+			s ) link_script_dir ;;
+			t ) sudoers_tweaks "$repo_dir" ;;
+			w ) set_swappiness "$repo_dir" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
