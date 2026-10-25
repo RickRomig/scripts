@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 10 Sep 2026
-# Version      : 13.4.26253
+# Updated      : 25 Oct 2026
+# Version      : 13.5.26298
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
@@ -48,7 +48,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="05 Sep 2026"
+	local -r updated="25 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: $updated
 	Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.
@@ -60,7 +60,7 @@ help() {
 	* Checksum files must have a file extension of .md5, .sha1, .sha256, or .sha512.
 	* The basename of the checksum file should match the basename name of the ISO (without the extension).
 
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -138,8 +138,8 @@ status_msg() {
 		printf "%sThe checksums match.%s\n" "$green" "$normal"
 		return 0
 	else
-		printf "%sThe checksums do not match.%s\n" "$lightred" "$normal"
-		printf "Verify checksum with the ISO download site.\n"
+		printf "%sThe checksums do not match.%s\n" "$lightred" "$normal" >&2
+		printf "Verify checksum with the ISO download site.\n" >&2
 		return "$E_FILE_ERROR"
 	fi
 }
@@ -189,11 +189,12 @@ verify_iso() {
 	verify_checksums "$iso_dir/$isofile" "$iso_dir/$checksum"
 	local -i status="$?"
 	status_msg "$status"
+	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="13.4.26253"
+	local -r version="13.5.26298"
 	local -i exit_code=0
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0;
 	check_package fzf
