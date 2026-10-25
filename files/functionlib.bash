@@ -1,0 +1,715 @@
+###############################################################################
+# Script Name  : functionlib.bash
+# Description  : personal function library used in Bash scripts
+# Dependencies : none
+# Arguments    : none except those passed to individual functions
+# Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 21 Sep 2019
+# Last updated : 24 Oct 2026
+# Comments     : source into the current shell environment by entering at the beginning of the script:
+#              : # shellcheck source=/home/rick/bin/files/functionlib.bash.
+#              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
+#              : source "$HOME/bin/files/functionlib.bash" or source ~/bin/files/functionlib.bash
+# Warning!     : Using 'set -o pipefail' in script may cause unexpected behavior or some variables to not be recognized.
+# License      : GNU General Public License, version 2.0
+# License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
+###############################################################################
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck disable=SC2034 # diabled globally because of colors block.
+
+## Global variables ##
+
+declare -ri TRUE=0
+declare -ri FALSE=1
+declare -r GITEA_URL="http://192.168.0.16:3000/Nullifidian"
+declare -r GITHUB_URL="https://github.com/RickRomig"
+RED_ERROR=$(printf "\e[91mERROR:\e[0m"); declare -r RED_ERROR
+RED_WARNING=$(printf "\e[91mWARNING!\e[0m"); declare -r RED_WARNING
+
+# Get the local network from the first three octets of the default gateway address.
+# Assumes a /24 (class C) private network.
+LOCALNET=$(awk 'NR==1 {print $3}' < <(ip route get 1.2.3.4)); LOCALNET="${LOCALNET%.*}"; declare -r LOCALNET
+
+# Custom Exit Codes (3-63)
+declare -r E_FILENOTFOUND=3
+declare -r E_FILE_EXISTS=4
+declare -r E_FILE_ERROR=5
+declare -r E_MISSING_ARG=6
+declare -r E_INVALID_ARG=7
+declare -r E_TEMP_FILE=8
+declare -r E_TEMP_DIR=9
+declare -r E_DRIVE_ERROR=10
+declare -r E_POPD_PUSHD=11
+declare -r E_INSTALLATION=12
+declare -r E_NOT_INSTALLED=13
+declare -r E_DOWNLOAD=14
+declare -r E_NETWORK=15
+declare -r E_OFFLINE=16
+declare -r E_INVALID_HOST=17
+declare -r E_UNSUPPORTED=18
+declare -r E_NOT_DETECTED=19
+declare -r E_LINK_ERROR=20
+
+## Colors ##
+
+# Text attributes
+normal=$(echo -en "\e[0m")
+bold=$(echo -en "\e[1m")
+dim=$(echo -en "\e[2m")
+underline=$(echo -en "\e[4m")
+blink=$(echo -en "\e[5m")
+reverse=$(echo -en "\e[7m")
+hidden=$(echo -en "\e[8m")
+strikethrough=$(echo -en "\e[9m")
+
+# Foreground (text) colors
+black=$(echo -en "\e[30m")
+red=$(echo -en "\e[31m")
+green=$(echo -en "\e[32m")
+orange=$(echo -en "\e[33m")
+blue=$(echo -en "\e[34m")
+purple=$(echo -en "\e[35m")
+aqua=$(echo -en "\e[36m")
+gray=$(echo -en "\e[37m")
+darkgray=$(echo -en "\e[90m")
+lightred=$(echo -en "\e[91m")
+lightgreen=$(echo -en "\e[92m")
+lightyellow=$(echo -en "\e[93m")
+lightblue=$(echo -en "\e[94m")
+lightpurple=$(echo -en "\e[95m")
+lightaqua=$(echo -en "\e[96m")
+white=$(echo -en "\e[97m")
+default=$(echo -en "\e[39m")
+
+# Background colors
+BLACK=$(echo -en "\e[40m")
+RED=$(echo -en "\e[41m")
+GREEN=$(echo -en "\e[42m")
+ORANGE=$(echo -en "\e[43m")
+BLUE=$(echo -en "\e[44m")
+PURPLE=$(echo -en "\e[45m")
+AQUA=$(echo -en "\e[46m")
+GRAY=$(echo -en "\e[47m")
+DARKGRAY=$(echo -en "\e[100m")
+LIGHTRED=$(echo -en "\e[101m")
+LIGHTGREEN=$(echo -en "\e[102m")
+LIGHTYELLOW=$(echo -en "\e[103m")
+LIGHTBLUE=$(echo -en "\e[104m")
+LIGHTPURPLE=$(echo -en "\e[105m")
+LIGHTAQUA=$(echo -en "\e[106m")
+WHITE=$(echo -en "\e[107m")
+DEFAULT=$(echo -en "\e[49m")
+
+## Functions ##
+
+die() {
+	local -r errmsg="$1"
+	local -ri errcode="${2:-1}"
+	printf "\e[91mERROR:\e[0m %s (%d)\n" "$errmsg" "$errcode" >&2
+	exit "$errcode"
+}
+
+diehard() {
+	local line
+	printf "\e[91mERROR:\e[0m "
+	exec 2>&1; for line; do printf "%s\n" "$line"; done; exit 1
+}
+
+dielog() {
+	local -r message="$1"
+	local -r log_file="$2"
+	local -ri err_code="${3:-1}"
+	tee -a "$log_file" < <(printf "%(%F %R)T: \e[91mERROR:\e[0m %s (%d)\n" -1 "$message" "$err_code")
+	exit "$err_code"
+}
+
+error_handler() {
+	local -ri err_code="$1"
+	local -ri line_nr="$2"
+	printf "\e[91mERROR:\e[0m (%s) occurred on line %s\n" "$err_code" "$line_nr" >&2
+	exit "$err_code"
+}
+
+log() {
+	local -r message="$1"
+	local -r log_file="$2"
+	tee -a "$log_file" < <(printf "%(%F %R)T: %s\n" -1 "$message")
+	return 0
+}
+
+debug() {
+	[[ -n $DEBUG ]] && printf "[DEBUG] %s\n" "$@" >&2
+	return 0
+}
+# Usage:  place 'debug' messages in script; run DEBUG=1 <script>; unset DEBUG
+
+root_user() {
+	[[ "$(id -u)" -eq "0" ]] && return "$TRUE" || return "$FALSE"
+}
+
+user_exists() {
+	local -r U="$1"
+	grep -q "^${U}" /etc/passwd && return "$TRUE" || return "$FALSE"
+}
+
+sudo_login() {
+	local -ri delay="${1:-2}"
+	grep -qw sudo <(id -nG "$USER") || die "$USER is not a member of the sudo group. Access denied." 1
+	sudo -vn 2>/dev/null && return 0  # returns if sudo is already active and extends the sudo timeout
+	sudo ls &>/dev/null
+	[[ $delay -gt 0 ]] && sleep "$delay"
+	printf '\e[A\e[K'
+	return 0
+}
+
+clearscreen() {
+	# clears the terminal screen without scrollback (Kittty)
+	printf '\e[H\e[2J\e[3J'
+	return 0
+}
+
+bin_in_path() {
+	grep -q "$HOME/bin" <<< "$PATH" && return $TRUE || return $FALSE
+}
+
+exists() {
+	# checks if program/application is in user's path
+	command -v "$1" &>/dev/null && return "$TRUE" || return "$FALSE"
+}
+
+installed() {
+	# checks if program/appliation was installed by apt/dpkg and is still installed
+	grep -q '^ii' < <(dpkg -l "$1" 2>/dev/null) && return "$TRUE" || return "$FALSE"
+}
+
+get_distribution() {
+	/usr/bin/lsb_release --description --short 2>/dev/null
+	return "$?"
+}
+
+is_debian() {
+	local codename
+	codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
+	case "$codename" in
+		trixie|bookworm|gigi ) return "$TRUE" ;;
+		* ) return "$FALSE"
+	esac
+}
+
+debian_based() {
+	grep -qw debian < <(grep -E -w 'ID|ID_LIKE' /etc/os-release) && return "$TRUE" || return "$FALSE"
+}
+
+is_noble() {
+	[[ $(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release) == "noble" ]] && return "$TRUE" || return "$FALSE"
+}
+
+support_ppa() {
+	local codename
+	codename=$(/usr/bin/lsb_release --codename --short 2>/dev/null)
+	case "$codename" in
+		noble|wilma|xia|zara|zena ) return "$TRUE" ;;
+		* ) return "$FALSE"
+	esac
+}
+
+antix_mx() {
+	local dist_id
+	[[ -f /etc/lsb-release ]] || return "$FALSE"
+	dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2>/dev/null)
+	[[ "$dist_id" == "antiX" || "$dist_id" == "MX" ]] && return "$TRUE" || return "$FALSE"
+}
+
+bunsenlabs() {
+	[[ $(/usr/bin/lsb_release --id --short) == "BunsenLabs" ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_arch() {
+	[[ -d /etc/pacman.d ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_systemd() {
+	[[ $(cat /proc/1/comm) == "systemd" ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_sysv() {
+	[[ $(awk '{print $1}' < <(/sbin/init --version 2>/dev/null)) == "SysV" ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_openrc() {
+	[[ -f /sbin/openrc ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_runit() {
+	[[ $(cat /proc/1/comm) == "runit" ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_cinnamon() {
+	[[ -f /usr/bin/cinnamon-session ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_i3wm() {
+	# [[ $(awk '/Name/ {print $NF}' < <(wmctrl -m 2>/dev/null)) == "i3" ]] && return "$TRUE" || return "$FALSE" # Not via SSH
+	# exists i3 && return "$TRUE" || return "$FALSE"
+	installed i3 && return "$TRUE" || return "$FALSE"
+}
+
+is_xfce() {
+	[[ -f /usr/bin/xfce4-session ]] && return "$TRUE" || return "$FALSE"
+}
+
+is_laptop() {
+	[[ -d /proc/acpi/button/lid/ ]] && return "$TRUE" || return "$FALSE"
+}
+
+leapyear() {
+	local -ri year="$1"
+	[[ $(( year % 4 )) -ne 0 ]] && return "$FALSE"
+	[[ $(( year % 400 )) -eq 0 ]] && return "$TRUE"
+	[[ $(( year % 100 )) -eq 0 ]] && return "$FALSE" || return "$TRUE"
+}
+
+local_ip() {
+	local octet
+	octet=$(awk '{print $7}' < <(ip route get 1.2.3.4))
+	printf "%d" "${octet##*.}"
+	return "$?"
+}
+
+valid_ip() {
+	local -ri octet="$1"
+	local -i localip
+	localip="$(local_ip)"
+	if [[ -z "$octet" ]]; then
+		printf "%s No argument passed. No host IP.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" >&2
+		return "$E_MISSING_ARG"
+	elif (( localip == octet )); then
+		printf "%s %s.%s is the local client.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+		return "$E_NETWORK"
+	elif (( octet > 0 )) && (( octet < 255 )); then
+		if ping -c 1 "$LOCALNET.$octet" > /dev/null 2>&1; then
+			printf "%s.%s is a valid and reachable IP address.\n" "$LOCALNET" "$octet"
+			return 0
+		else
+			printf "%s %s.%s is valid IP address but is unreachable.\nCheck to see if it is on the network.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+			return "$E_NETWORK"
+		fi
+	else
+		printf "%s Invalid argument: %s.%s is not a valid IP address.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+		return "$E_INVALID_ARG"
+	fi
+}
+
+edit_view_quit() {
+	local -r filename="$1"
+	local _opt
+	printf "\nYou may edit or view %s at this time.\n" "$filename"
+	PS3="Choose an option: "
+	select _opt in Edit View Quit; do
+		case "$REPLY" in
+			1 )
+				$EDITOR "$filename" || /usr/bin/nano "$filename"
+				break ;;
+			2 )
+				if exists batcat; then
+					"$HOME"/.local/bin/bat "$filename"
+				elif exists bat; then
+					/usr/bin/bat "$filename"
+				else
+					viewtext "$filename"
+				fi
+				break ;;
+			3 )
+				printf "\nExiting.\n"
+				break ;;
+			* )
+				printf "%sInvalid choice. Try again.%s\n" "$orange" "$normal" >&2
+		esac
+	done
+	return 0
+}
+
+viewtext() {
+	local -r file="$1"
+	local -i catmax filelines
+	catmax=$(( $(tput lines)*87/100 ))
+	filelines=$(wc -l < "$file")
+	if (( filelines > catmax )); then less "$file"; else cat "$file"; fi
+	return 0
+}
+
+remove_tilde() {
+	find . -maxdepth 1 -type f -regex '\./.*~$' -exec rm {} \;
+	return 0
+}
+
+anykey() {
+	read -rsn1 -p "Press any key to continue"; echo
+	return 0
+}
+
+print_line() {
+	local char width
+	char="${1:-=}"
+	char="${char::1}"
+	width="${2:-$(tput cols)}"
+	sed "s/ /$char/g" <(printf "%${width}s\n")
+	return 0
+}
+
+# shellcheck disable=SC2001
+# See if you can use ${variable//search/replace} instead. (sed is necesary to replace all characters)
+box() {
+	local char edge title
+	char="${2:-*}"
+	char="${char::1}"
+	title="$char $1 $char"
+	edge=$(sed "s/./$char/g" <<< "$title")
+	printf "%s\n%s\n%s\n" "$edge" "$title" "$edge"
+	return 0
+}
+
+# shellcheck disable=SC2001
+# See if you can use ${variable//search/replace} instead. (sed is necesary to replace all characters)
+under_line() {
+	local char line
+	local -r title="$1"
+	char="${2:--}"
+	char="${char::1}"
+	line=$(sed "s/./$char/g" <<< "$title")
+	printf "%s\n%s\n" "$title" "$line"
+	return 0
+}
+
+# shellcheck disable=SC2001
+# See if you can use ${variable//search/replace} instead. (sed is necesary to replace all characters)
+over_line() {
+	local char line
+	local -r title="$1"
+	char="${2:--}"
+	char="${char::1}"
+	line=$(sed "s/./$char/g" <<< "$title")
+	printf "%s\n%s\n"  "$line" "$title"
+	return 0
+}
+
+center_file() {
+	local -r file="$1"
+	local columns line
+	columns="$(tput cols)"
+	while IFS= read -r line; do
+		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
+	done < "$file"
+	return 0
+}
+
+center_text() {
+	local -r text_string="$1"
+	local columns line
+	columns="$(tput cols)"
+	while IFS= read -r line; do
+		printf "%*s\n" $(( (${#line} + columns) / 2)) "$line"
+	done <<< "$text_string"
+	return 0
+}
+
+color_header() {
+	local -r message="$1"
+	local -r bg_color="$2"
+	local -i padding_length columns
+	local centered_line colors
+	columns=$(tput cols)
+
+	case "${bg_color^^}" in
+		BLACK ) colors=$(printf "\e[40;97;1m") ;;
+		AQUA ) colors=$(printf "\e[46;30;1m") ;;
+		BLUE ) colors=$(printf "\e[44;30;1m") ;;
+		GREEN ) colors=$(printf "\e[42;30;1m") ;;
+		GRAY|GREY ) colors=$(printf "\e[47;30;1m") ;;
+		ORANGE ) colors=$(printf "\e[43;30;1m") ;;
+		PURPLE ) colors=$(printf "\e[45;30;1m") ;;
+		WHITE ) colors=$(printf "\e[97;30;1m") ;;
+		* ) colors=$(printf "\e[41;37;1m")
+	esac
+
+	padding_length=$(((columns - ${#message}) / 2))
+	printf -v centered_line "%*s%s%*s" "$padding_length" "" "$message" "$padding_length" ""
+	(( ${#centered_line} < columns )) && centered_line="${centered_line} "
+	printf "%s%s%s\n" "$colors" "$centered_line" "$normal"
+	return 0
+}
+
+leave() {
+	local -r message_file=~/.local/share/doc/leave.txt
+	local message
+	message="${1:-$(shuf -n 1 "$message_file")}"
+	printf "%s\n" "$message"
+	exit 0
+}
+
+format_time() {
+	local -ri ET="$1"
+	local h m s
+	((h=ET/3600))
+	((m=(ET%3600)/60))
+	((s=ET%60))
+	printf "%02d:%02d:%02d\n" $h $m $s
+	return 0
+}
+
+check_for_file() {
+	local -r target_file="${1:-foo.bar}"
+	local -r file_dir=~/bin/files
+	if [[ -f "$file_dir/$target_file" ]]; then
+		printf "%s [OK]\n" "$target_file"
+		sleep 1
+		printf '\e[A\e[K'
+		return 0
+	else
+		die "$target_file not found!" "$E_FILENOTFOUND"
+	fi
+}
+
+check_package() {
+	local -r package="$1"
+	if grep -q '^ii' < <(dpkg -l "$package" 2>/dev/null); then
+		printf "%s [OK]\n" "$package"
+		sleep 1
+		printf '\e[A\e[K'
+	else
+		printf "Installing %s ...\n" "$package"
+		sudo_login 1
+		sudo apt-get install "$package" -yyq
+	fi
+	return 0
+}
+
+check_packages() {
+	local -r packages=("$@")
+	local package
+	for package in "${packages[@]}"; do
+		if grep -q '^ii' < <(dpkg -l "$package" 2>/dev/null); then
+			printf "%s [OK]\n" "$package"
+			sleep 1
+			printf '\e[A\e[K'
+		else
+			printf "Installing %s ...\n" "$package"
+			sudo_login 1
+			sudo apt-get install "$package" -yyq
+		fi
+	done
+	return 0
+}
+
+in_repos() {
+	local -r package="$1"
+	[[ "$(awk '/Package:/ {print $NF}' < <(apt-cache show "$package" 2>/dev/null))" ]] && return "$TRUE" || return "$FALSE"
+}
+
+assign_cfg_repo() {
+	local local_host="${HOSTNAME:-$(hostname)}"
+	local repo_dir="$HOME/Downloads/configs"
+	case "$local_host" in
+		hp-800g2-sff|hp-8300-usdt|hp-850-g3 )
+			repo_dir="$HOME/gitea/configs" ;;
+		* )
+			if [[ -d "$repo_dir" ]]; then
+				pushd "$repo_dir" >/dev/null || die "pushd failed" "$E_POPD_PUSHD"
+				git checkout .
+				git pull --quiet
+				popd >/dev/null || die "popd failed" "$E_POPD_PUSHD"
+			else
+				git clone --quiet "$GITHUB_URL/configs.git" "$repo_dir/"
+			fi
+	esac
+	printf "%s" "$repo_dir"
+	return 0
+}
+
+dots() {
+	local char="${1:-.}"
+	char="${char::1}"
+	tput civis
+	while true; do
+		printf '%s' "$char"
+		sleep .5
+	done
+	return 0
+}
+
+# DOTS_PID must be declared as a global variable in the calling script
+kill_dots() {
+	if [[ -n "$DOTS_PID" ]]; then
+		kill "$DOTS_PID"
+		printf "done\n"
+	fi
+	tput cnorm
+	return 0
+}
+
+spin() {
+	local c
+	local -r chars=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
+	tput civis
+	while true; do
+		for c in "${chars[@]}"; do
+			echo -ne "Processing: $c \r"
+			sleep .2
+		done
+	done
+	return 0
+}
+
+# SPIN_PID must be declared as a global variable in the calling script
+kill_spin() {
+	if [[ -n "$SPIN_PID" ]]; then kill "$SPIN_PID"; fi
+	printf "\n"
+	printf '\e[A\e[K'
+	tput cnorm
+	return 0
+}
+
+y_or_n() {
+	local -r yn_prompt="$1"
+	local yn
+	while true; do
+    read -rp "$yn_prompt [y/n] " yn
+		case "$yn" in
+			[Yy]* )
+				return "$TRUE" ;;
+			[Nn]* )
+				return "$FALSE" ;;
+			'' )
+				printf "%s Response required -- try again.\n" "$RED_WARNING" >&2 ;;
+			* )
+				printf "%s Invalid choice. Enter y or n.\n" "$RED_ERROR" >&2
+		esac
+	done
+}
+
+yes_or_no() {
+	local -r yn_prompt="$1"
+	local yn
+	while true; do
+		read -rp "$yn_prompt [yes/no] " yn
+		case "${yn,,}" in
+			yes )
+				return "$TRUE" ;;
+			no )
+				return "$FALSE" ;;
+			'' )
+				printf "%s Response required -- try again.\n" "$RED_WARNING" >&2 ;;
+			* )
+				printf "%s Invalid choice. Enter yes or no.\n" "$RED_ERROR" >&2
+		esac
+	done
+}
+
+default_yes() {
+	local -r yn_prompt="$1"
+	local yn
+	while true; do
+		read -rp "$yn_prompt [Y/n] " yn
+		case "${yn,,}" in
+			[Yy]*|'' )
+				return "$TRUE" ;;
+			[Nn]* )
+				return "$FALSE" ;;
+			* )
+				printf "%s Invalid choice. Enter yes or no.\n" "$RED_ERROR" >&2
+		esac
+	done
+}
+
+default_no() {
+	local -r yn_prompt="$1"
+	local yn
+	while true; do
+		read -rp "$yn_prompt [y/N] " yn
+		case "${yn,,}" in
+			[Yy]* )
+				return "$TRUE" ;;
+			[Nn]*|'' )
+        return "$FALSE" ;;
+			* )
+				printf "%s Invalid choice. Enter yes or no.\n" "$RED_ERROR" >&2
+		esac
+	done
+}
+
+url_reachable() {
+	local result
+	local -r url="$1"
+	result=$(curl --head --connect-timeout 8 --max-time 14 --silent --output /dev/null --write-out '%{http_code}' "$url")
+	[[ "$result" -eq 200 ]] && return "$TRUE" || return "$FALSE"
+}
+
+reboot_system() {
+	printf "%sThe system needs to be rebooted for the change to take effect.%s\n" "$orange" "$normal"
+	if default_no "Do you want to reboot now?"; then
+		printf "Rebooting...\n"
+		sleep 10
+		sudo systemctl reboot
+	else
+		printf "\n%s Please reboot your system as soon as practical.\n" "$RED_WARNING"
+	fi
+	return 0
+}
+
+create_tmp() {
+	local -r tmp_type="${1:-dirfile}"
+	case "$tmp_type" in
+		dir )
+			TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR" ;;
+		file )
+			TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE" ;;
+		dirfile )
+			TMP_DIR=$(mktemp -d) || die "Failed to create temporary directory." "$E_TEMP_DIR"
+			TMP_FILE=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_FILE" ;;
+		* )
+			die "Invalid option. No temporary file/directory created." "$E_INVALID_ARG"
+	esac
+	trap cleanup_tmp EXIT
+	return 0
+}
+
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+cleanup_tmp() {
+	[[ -f "$TMP_FILE" ]] && rm -f "$TMP_FILE"
+	[[ -d "$TMP_DIR" ]] && rm -rf "$TMP_DIR"
+}
+
+newer_version() {
+	local -r newVer="$1"
+	local -r curVer="$2"
+	# separate version numbers into 3 fields
+	local n1 n2 n3 c1 c2 c3
+	n1=$(cut -d. -f1 <<< "$newVer")
+	n2=$(cut -d. -f2 <<< "$newVer")
+	n3=$(cut -d. -f3 <<< "$newVer")
+	c1=$(cut -d. -f1 <<< "$curVer")
+	c2=$(cut -d. -f2 <<< "$curVer")
+	c3=$(cut -d. -f3 <<< "$curVer")
+	# remove leading 0 and compare new with current
+	if [[ "${n1#0}" -gt "${c1#0}" ]]; then
+		return "$TRUE"
+	elif [[ "${n2#0}" -gt "${c2#0}" ]]; then
+		return "$TRUE"
+	elif [[ "${n3#0}" -gt "${c3#0}" ]]; then
+		return "$TRUE"
+	else
+		return "$FALSE"
+	fi
+}
