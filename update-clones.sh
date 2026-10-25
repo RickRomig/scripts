@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Aug 2025
-# Last updated : 08 Oct 2026
-# Version      : 5.4.26281
+# Last updated : 25 Oct 2026
+# Version      : 5.4.26298
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -60,17 +60,16 @@ valid_host() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.4.26281"
+	local -r version="5.4.26298"
 	local -i exit_code=0
 	printf "%sUpdating cloned repositories...%s\n" "$orange" "$normal"
 	if valid_host; then
 		check_package git
 		update_clones
-		exit_code="$?"
 	else
 		printf "Main repository - Nothing to do.\n"
-		exit_code="$?"
 	fi
+	exit_code="$?"
 	over_line "$script $version"
 	exit "$exit_code"
 }
