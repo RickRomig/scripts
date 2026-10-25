@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 10 Sep 2026
-# Version      : 14.5.26253
+# Updated      : 25 Oct 2026
+# Version      : 14.5.26298
 # Comments     : Testing indicates USB drive needs to be mounted.
 #              : To test without writing to USB drive, dnter -d or --dryrun option to enable a dry run.
 #              : After a dryrun, USB drive will remain mounted.
@@ -47,7 +47,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="10 Sep 2026"
+	local -r updated="25 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Writes an ISO image to a USB drive
@@ -56,7 +56,7 @@ help() {
 	${orange}Available options:${normal}
 	-d | --dryrun  Enable Dry Run simulation
 	-h | --help    Show this help message and exit
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -110,7 +110,7 @@ unmount_usb() {
 	local -r usbpart="$2"
 	sudo umount "/dev/$usbpart" && printf "USB drive unmounted.\n" # /media/$USER/"$mount_name"
 	[[ -d "/media/$USER/$mount_name" ]] && sudo rmdir "/media/$USER/$mount_name"
-	pgrep -x nemo >/dev/null && nemo --quit	# If Nemo is running, close it.
+	pgrep -x nemo >/dev/null && nemo --quit	# If Nemo file manager is running, close it.
 	printf "It's now safe to remove the USB drive.\n"
 	return 0
 }
@@ -204,7 +204,7 @@ write_iso() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="14.5.26253"
+	local -r version="14.5.26298"
 	local -i exit_code=0
 	local -r isoDir=~/Downloads/ISO
 	case "$1" in
