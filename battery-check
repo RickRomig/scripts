@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jul 2020
-# Updated      : 06 Sep 2026
-# Version      : 7.9.26249
+# Updated      : 26 Oct 2026
+# Version      : 8.0.26299
 # Comments     : Uses data from /sys/class/power_supply/BAT*
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -24,13 +24,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 BATTERY_PATH=''
 
 battery_status() {
-	local bat_status bat_charge
+	local bat_status
+	local -i bat_charge
 	local warn=''
 	printf "\n%sBattery charge:%s\n" "$orange" "$normal"
 	[[ -f "$BATTERY_PATH/status" ]] || die "Problem with the battery! Replace it!" 99
@@ -44,7 +45,8 @@ battery_status() {
 }
 
 battery_capacity() {
-	local actual_full design_full unit actual_max design_max int_design int_actual cap_percent bat_health
+	local actual_full design_full unit actual_max design_max cap_percent bat_health
+	local -i int_design int_actual
 	if [[ -f "$BATTERY_PATH/charge_full" ]]; then
 		actual_full="charge_full"
 		design_full="charge_full_design"
@@ -60,7 +62,7 @@ battery_capacity() {
 	int_design="${design_max%%.*}"  # changes design_max to an integer value
 	int_actual="${actual_max%%.*}"  # changes actual_max to an integer value
 
-	if [[ "$int_design" -eq 0 || "$int_actual" -eq 0 ]]; then
+	if (( int_design == 0 || int_actual == 0 )); then
 		cap_percent="0"
 		bat_health="0"
 	else
@@ -78,21 +80,23 @@ battery_capacity() {
 
 battery_condition() {
 	local -r cap_pct="$1"
-	local c_pct warn_level warn
+	local -i c_pct warn_level
+	local warn
 	c_pct="${cap_pct%%.*}"
-	if [[ "$c_pct" -eq 0 ]]; then
+	# if [[ "$c_pct" -eq 0 ]]; then
+	if (( c_pct == 0 )); then
 		warn_level=0
 	else
 		warn_level=$(awk 'NF{print $1/1}' OFMT="%.0f" <<< "$cap_pct")
 	fi
 
-	if [[ "$warn_level" -le "0" ]]; then
+	if (( warn_level < 0 ));then
 		warn="\U1F4A9"
 		printf "%4s%sReplace the Battery!%s  %\n" " " "$red" "$normal" "$warn"
-	elif [[ "$warn_level" -le "35" ]]; then
+	elif (( warn_level < 35 )); then
 		warn="\U1F622"
 		printf "%4s%sThe battery should be replaced.%s  %\n" " " "$red" "$normal" "$warn"
-	elif [[ "$warn_level" -le "65" ]]; then
+	elif (( warn_level < 65 )); then
 		warn="\U26A0\UFE0F"
 		printf "%4s%sThe battery is getting weak.%s  %\n" " " "$orange" "$normal" "$warn"
 	else
@@ -115,9 +119,10 @@ battery_specs() {
 }
 
 ac_power() {
-	local ac_path ac_status
+	local ac_path
+	local -i ac_status
 	ac_path=$(find /sys/class/power_supply/ -name "AC*")
-	ac_status="$(cat "$ac_path/online")"
+	ac_status="$(< "$ac_path/online")"
 	printf "\n%sAC Power:%s\n" "$orange" "$normal"
 	printf "%4sLaptop" " "
 	case "$ac_status" in
@@ -148,6 +153,7 @@ hidpp_battery() {
 
 battery_check() {
 	local battery_name
+	local -i bat_status=1
 	printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
 	if [[ ! -d /proc/acpi/button/lid/ ]]; then
 		printf "\nThis system is not a laptop.\n" >&2
@@ -155,24 +161,24 @@ battery_check() {
 	fi
 	BATTERY_PATH=$(find /sys/class/power_supply/ -name "BAT*")
 	battery_name="${BATTERY_PATH##*/}"
-	if [[ -z "$battery_name" ]]; then
+	if [[ "$battery_name" ]]; then
+		printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$battery_name"
+		battery_status
+		battery_capacity
+		battery_specs
+		bat_status=0
+	else
 		printf "\n%sNo battery detected%s\n" "$lightred" "$normal" >&2
-		ac_power
-		hidpp_battery
-		return "$E_NOT_DETECTED"
+		bat_status="$E_NOT_DETECTED"
 	fi
-	printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$battery_name"
-	battery_status
-	battery_capacity
-	battery_specs
 	ac_power
 	hidpp_battery
-	return 0
+	return "$bat_status"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.9.26249"
+	local -r version="8.0.26299"
 	local -i exit_code=0
 	clear
 	check_package bc
