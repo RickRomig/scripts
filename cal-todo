@@ -2,14 +2,14 @@
 ###############################################################################
 # Script Name  : cal-todo
 # Description  : Display calendar and ToDo list side by side.
-# Dependencies : ncal
+# Dependencies : ncal paste
 # Arguments    : see help() function for available options
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Dec 2022
-# Updated      : 09 Sep 2026
-# Version      : 3.10.26252
-# Comments     : base script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
+# Updated      : 26 Oct 2026
+# Version      : 3.11.26299
+# Comments     : source script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
 #              : Uses default editor ($EDITOR) to edit to-do list.
 #              : Limit to-do list to 7 items to maintain proper formating.
 # TODO (Rick)  :
@@ -26,16 +26,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
-
-CALENDAR=$(mktemp -q) || die "Failed to create temporary file." "$E_TEMP_FILE"
-
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-cleanup() {
-	[[ -f "$CALENDAR" ]] && rm -f "$CALENDAR"
-}
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
@@ -46,14 +38,14 @@ help() {
 	${orange}$script${normal} $version, Updated: $updated
 	Creates/displays/edits a simple to-do list with a calendar.
 
-	${green}Usage:${normal} $script [-e13h]
+	${green}Usage:${normal} $script [-13eh]
 	${orange}Available options:${normal}
 	-1  Display current month calendar and to-do list.
 	-3  Display 3-month calendar and to-do list.
 	-e  Edit/create to-do list.
 	-h  Show this help message and exit.
 	NOTE: To-do list should be limited to 7 short items to maintain format.
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -83,8 +75,8 @@ show_one_month() {
 	local -r doc_dir="$1"
 	local -r todolist="$2"
 	clear
-	cal > "$CALENDAR"
-	paste "$CALENDAR" "$doc_dir/$todolist"
+	cal > "$TMP_FILE"
+	paste "$TMP_FILE" "$doc_dir/$todolist"
 	return "$?"
 }
 
@@ -92,23 +84,23 @@ show_three_months() {
 	local -r doc_dir="$1"
 	local -r todolist="$2"
 	clear
-	# print_months
-	sed '1d' < <(cal -3) > "$CALENDAR"	# strips off the year (1st line) to line up todo list with the month.
-	paste "$CALENDAR" "$doc_dir/$todolist"
+	# print_months, stripping off the year (1st line) to line up todo list with the months.
+	sed '1d' < <(cal -3) > "$TMP_FILE"
+	paste "$TMP_FILE" "$doc_dir/$todolist"
 	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.10.26252"
+	local -r version="3.11.26299"
 	local -i exit_code=0
-	local opt OPTARG OPTIND
 	local -r doc_dir=~/.local/share/doc
 	local -r todolist="todo.lst"
 	local -i noOpt=1
 	local -r optstr=":13eh"
-	trap cleanup EXIT
+	local opt OPTARG OPTIND
 	check_package ncal
+	create_tmp "file"
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			1 )
