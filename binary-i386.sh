@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 15 Apr 2026
-# Updated      : 20 Oct 2026
-# Version      : 2.4.26293
+# Updated      : 26 Oct 2026
+# Version      : 2.4.26299
 # Comments     : Fixes main/binary-i386 error message for Google Chrome update
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,8 +23,8 @@
 # FOR A  PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 intro_message() {
 	cat <<- _INTRO_
@@ -82,7 +82,7 @@ remove_i386_arch() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.4.26293"
+	local -r version="2.4.26299"
 	local -i exit_code=0
 	intro_message
 	check_google_chrome && remove_i386_arch
