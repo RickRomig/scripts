@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 22 Nov 2023
-# Updated      : 06 Aug 2026
-# Version      : 4.2.26218
+# Updated      : 26 Oct 2026
+# Version      : 4.2.262299
 # Comments     : Based on a script by Kris Occipinti, https://filmsbykris.com/v7/
 #              : https://gitlab.com/metalx1000/MyBin/-/blob/master/linux/shell/apt-search
 # TODO (Rick)  :
@@ -25,17 +25,17 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 run_query() {
 	local -r query="$1"
 	local package
-	package="$(fzf --prompt "Select packages: " -m < <(aptitude search "$query") | awk '{print $2}' | tr "\n" " ")"	# adding trailing space
+	package="$(fzf --prompt "Select packages: " -m < <(aptitude search "$query") | awk '{print $2}' | tr "\n" " ")"	# add trailing space
 	[[ "$package" ]] || { printf "No package selected.\n"; return 0; }
 	package="${package// /}"	# remove trailing whitespace
 	installed "$package" && { printf "%s is already installed.\n" "$package"; return 0; }
-	if default_no	"Install ${package}?"; then
+	if default_no "Install ${package}?"; then
 		sudo_login 2
 		sudo apt install "$package"
 	else
@@ -46,7 +46,7 @@ run_query() {
 
 main() {
 	local script="${0##*/}"
-	local version="4.2.26218"
+	local version="4.2.26299"
 	local query="$1"
 	check_package fzf
 	[[ "$query" ]] || read -rp "Enter search query: " query
