@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 20 Jul 2025
-# Updated      : 24 Sep 2026
-# Version      : 1.8.26267
+# Updated      : 27 Oct 2026
+# Version      : 1.8.26300
 # Comments     : Intended for use on Debian Bookworm and Debian Trixie
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,8 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 debian_distro() {
 	printf "%s" "$(/usr/bin/lsb_release -cs 2>/dev/null)"
@@ -67,7 +67,7 @@ convert_backports_list() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.8.26267"
+	local -r version="1.8.26300"
 	local -i exit_code=0
 	local distro
 	distro=$(debian_distro)
@@ -80,8 +80,7 @@ main() {
 				convert_sources_list
 				convert_backports_list "$distro"
 				exit_code="$?"
-			fi
-			;;
+			fi ;;
 		* )
 			printf "%s does not support %s\n" "$script" "${distro^}" >&2
 			exit_code="$E_UNSUPPORTED"
