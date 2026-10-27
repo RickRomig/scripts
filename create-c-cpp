@@ -2,13 +2,13 @@
 ###############################################################################
 # Script Name  : create-c-cpp
 # Description  : create C source file from template
-# Dependencies : bat, micro (used by edit_view_quit function)
+# Dependencies : none
 # Arguments    : see help() function
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 29 Sep 2026
-# Version      : 4.8.26272
+# Last updated : 27 Oct 2026
+# Version      : 4.8.26300
 # Comments     : Creates code files in the current working directory
 #              : Templates include GNU GPL v2 license
 # TODO (rick)  :
@@ -24,8 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 VERBOSE="$FALSE"
 
@@ -33,21 +33,21 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="29 Sep 2026"
+	local -r updated="27 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
-	Creates a C/C++ source code file with descriptive comments (GPL v2.0 license)
+	Creates a C/C++ source code file with descriptive comments
 
 	${green}Usage:${normal} $script [-h] [-vc source-file] [-vp source-file]
 	${orange}Available options:${normal}
-	-c  Create a C source code file
+	-c	Create a C source code file
 	$script -c <source-file>
-	-h  Show this help message and exit
-	-p  Create a C++ source code file
+	-h	Show this help message and exit
+	-p	Create a C++ source code file
 	$script -p <source-file>
-	-v  Enable verbose mode (Must precede -c or -p flags)
+	-v	Enable verbose mode (Must precede -c or -p flags)
 	$script -vc <source-file>
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -67,9 +67,9 @@ file_exists() {
 }
 
 import_metadata() {
-	local cur_yr today script_dir
 	local -r code_file="$1"
 	local -r template_file="$2"
+	local cur_yr today script_dir
 	script_dir=$(dirname "$(readlink -f "${0}")")
 	local -r template_dir="$script_dir/Templates"
 	today=$(date +"%d %b %Y")
@@ -89,7 +89,7 @@ import_metadata() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.8.26272"
+	local -r version="4.8.26300"
 	local code_file opt template_file OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":c:hp:v"
