@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 22 Jul 2026
-# Last updated : 02 Sep 2026
-# Version      : 2.0.26245
+# Last updated : 27 Oct 2026
+# Version      : 2.1.26300
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -24,19 +24,21 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 bios_version() {
 	sudo dmidecode -s bios-version
 }
 
 check_uefi() {
-	if [[ ! -d /sys/firmware/efi ]]; then
+	if [[ -d /sys/firmware/efi ]]; then
+		printf "BIOS in EFI moded.\n"
+		return "$TRUE"
+	else
 		printf "BIOS in legacy mode, fwupd will not flash.\n" >&2
 		return "$FALSE"
 	fi
-	return "$TRUE"
 }
 
 update_firmware() {
@@ -59,7 +61,7 @@ verify_update() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.0.26245"
+	local -r version="2.1.26300"
 	local -i exit_code=0
 	check_package fwupd
 	check_uefi && update_firmware
