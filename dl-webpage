@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, 02 Nov 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Nov 2019
-# Updated      : 24 Sep 2026
-# Version      : 2.5.26267
+# Updated      : 27 Oct 2026
+# Version      : 3.0.26300
 # Comments     : Appears to function, but haven't been able to download a page.'
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
   local -r script="$1"
   local -r version="$2"
   local -ri errcode="${3:-1}"
-  local -r updated="24 Sep 2026"
+  local -r updated="27 Oct 2026"
   cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: $updated
 	Downloads a web page to the current directory.
@@ -40,42 +40,37 @@ help() {
 	${green}Example:${normal} $script https://example.com/index.html
 	${orange}Available options:${normal}
 	-h | --help  Show this help message and exit.
-_HELP_
-	exit "$errcode"
+	_HELP_
+	return "$errcode"
+}
+
+print_status() {
+	local -ri code="$1"
+	local -rA return_code=(
+		[0]="No problems occurred. Download successful."
+		[1]="Generic error."
+		[2]="Parse error (e.g., issues with command-line options)."
+		[3]="File I/O error (e.g., problems reading or writing files)."
+		[4]="Network failure (e.g., unable to connect to the server)."
+		[5]="SSL verification failure (e.g., certificate issues)."
+		[6]="Username/password authentication failure."
+		[7]="Protocol errors (e.g., issues with the protocol used)."
+		[9]="Server issued an error response (e.g., HTTP error)."
+	)
+	printf "Code: %d - %s\n" "$code" "${return_code[$code]}" >&2
+	return 0
 }
 
 download_page() {
 	local -r url="$1"
-	local -i status=0
+	local -i code=0
 	local domain
 	domain=$(sed 's|^[^/]*//||; s|^www\.||; s|/.*$||' <<< "$url")
 	printf "Downloading %s to %s\n" "$url" "$PWD"
 	wget --quiet --recursive --page-requisites --html-extension --convert-links --restrict-file-names=windows --domains "$domain" --no-parent "$url"
-	status="$?"
-	print_status "$status"
-	return "$status"
-}
-
-print_status() {
-	local -r status="$1"
-	local -ra exit_codes=(
-    "No problems occurred"
-    "Generic error code"
-    "Parse error"
-    "File I/O error"
-    "Network Failure"
-    "SSL verification error"
-    "Username/password authentication failure"
-    "Protocol errors"
-    "Server issued an error response"
-  )
-	if [[ "$status" -eq 0 ]]; then
-		printf "Page succesfully downloaded.\n"
-	else
-		printf "Download failed with exit code: %s.\n" "$status"
-		printf "Error: %s\n" "${exit_codes[status]}"
-	fi
-	return "$status"
+	code="$?"
+	print_status "$code"
+	return "$code"
 }
 
 check_arguments() {
@@ -90,16 +85,16 @@ check_arguments() {
 		url="$*"
 		check_package wget
 		download_page "$url"
-		return "$?"
 	else
 		printf "%s Invalid argument: %s\n" "$RED_ERROR" "$1" >&2
 		help "$script" "$version" "$E_INVALID_ARG"
 	fi
+	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.5.26267"
+	local -r version="3.0.26300"
 	local -i exit_code=0
 	check_arguments "$@"
 	exit_code="$?"
