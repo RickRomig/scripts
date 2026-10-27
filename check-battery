@@ -7,9 +7,10 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 30 Jul 2020
-# Updated      : 06 Sep 2026
-# Version      : 5.7.26249
+# Updated      : 26 Oct 2026
+# Version      : 6.0.26299
 # Comments     : Obtains battery data from upower utility.
+#              : Battery data stored in TMP_FILE global variable.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -24,38 +25,29 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
-
-BATTERY_DATA=
-
-# shellcheck disable=SC2317
-# Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-cleanup() {
-	[[ -f "$BATTERY_DATA" ]] && rm -f "$BATTERY_DATA"
-}
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 battery_status() {
 	printf "\n%sBattery charge:%s\n" "$orange" "$normal"
-	grep --color=never -E "state|to\ full|to\ empty|percentage" "$BATTERY_DATA"
+	grep --color=never -E "state|to\ full|to\ empty|percentage" "$TMP_FILE"
 	return 0
 }
 
 battery_capacity() {
 	printf "\n%sBattery health:%s\n" "$orange" "$normal"
-	grep --color=never -E "energy-full:|energy-full-design:|capacity:" "$BATTERY_DATA"
+	grep --color=never -E "energy-full:|energy-full-design:|capacity:" "$TMP_FILE"
 	return 0
 }
 
 warning_level() {
 	local energy_design energy_actual
-	energy_design=$(awk '/energy-full-design:/ {printf "%i", $2}' "$BATTERY_DATA")
-	energy_actual=$(awk '/energy-full:/ {printf "%i", $2}' "$BATTERY_DATA")
+	energy_design=$(awk '/energy-full-design:/ {printf "%i", $2}' "$TMP_FILE")
+	energy_actual=$(awk '/energy-full:/ {printf "%i", $2}' "$TMP_FILE")
 	if [[ "$energy_actual" -eq 0 || "$energy_design" -eq 0 ]]; then
 		echo "0"
 	else
-		awk '/capacity/ {printf "%i", $2}' "$BATTERY_DATA"
+		awk '/capacity/ {printf "%i", $2}' "$TMP_FILE"
 	fi
 	return 0
 }
@@ -80,13 +72,13 @@ battery_condition() {
 
 battery_specs() {
 	local battery_serial battery_tech
-	battery_serial=$(awk '{$1=$1}1' <(awk -F: '/serial/ {print $NF}' "$BATTERY_DATA"))
+	battery_serial=$(awk '{$1=$1}1' <(awk -F: '/serial/ {print $NF}' "$TMP_FILE"))
 	[[ -z "$battery_serial" ]] && battery_serial="Not specified"
-	battery_tech=$(awk '{$1=$1}1' <(awk -F: '/technology/ {print $NF}' "$BATTERY_DATA"))
+	battery_tech=$(awk '{$1=$1}1' <(awk -F: '/technology/ {print $NF}' "$TMP_FILE"))
 	[[ -z "$battery_tech" ]] && battery_tech="Not specified"
 	printf "\n%sBattery Data:%s\n" "$orange" "$normal"
-	printf "%4sManufacturer:  %s\n" " " "$(awk '{$1=$1}1' <(awk -F: '/vendor/ {print $NF}' "$BATTERY_DATA"))"
-	printf "%4sModel name:    %s\n" " " "$(awk '{$1=$1}1' <(awk -F: '/model/ {print $NF}' "$BATTERY_DATA"))"
+	printf "%4sManufacturer:  %s\n" " " "$(awk '{$1=$1}1' <(awk -F: '/vendor/ {print $NF}' "$TMP_FILE"))"
+	printf "%4sModel name:    %s\n" " " "$(awk '{$1=$1}1' <(awk -F: '/model/ {print $NF}' "$TMP_FILE"))"
 	printf "%4sSerial number: %s\n" " " "$battery_serial"
 	printf "%4sTechnology:    %s\n" " " "$battery_tech"
 	return 0
@@ -128,10 +120,8 @@ battery_check() {
 		hidpp_battery
 		return 0
 	fi
-	BATTERY_DATA=$(mktemp) || die "Failed to create temporary file." "$E_TEMP_DIR"
-	trap cleanup EXIT
-	/usr/bin/upower -i "$(grep 'BAT' < <(/usr/bin/upower -e))" > "$BATTERY_DATA"
-	printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$(awk '/native-path:/ {print $NF}' "$BATTERY_DATA")"
+	/usr/bin/upower -i "$(grep 'BAT' < <(/usr/bin/upower -e))" > "$TMP_FILE"
+	printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$(awk '/native-path:/ {print $NF}' "$TMP_FILE")"
 	battery_status
 	battery_capacity
 	battery_condition
@@ -143,10 +133,11 @@ battery_check() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.7.26249"
+	local -r version="6.0.26299"
 	local -i exit_code=0
 	clear
 	check_package upower
+	create_tmp "file"
 	battery_check
 	exit_code="$?"
 	over_line "$script $version"
