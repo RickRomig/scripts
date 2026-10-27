@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 28 Oct 2025
-# Updated      : 06 Sep 2026
-# Version      : 3.1.26249
+# Updated      : 27 Oct 2026
+# Version      : 3.1.26300
 # Comments     : Tested with Debian 12 (bookworm) & Debian 13 (trixie)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,8 +25,8 @@
 # details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 install_keyring() {
 	local -r keyring_url="https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring"
@@ -79,7 +79,7 @@ install_multimedia() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.1.26236"
+	local -r version="3.1.26300"
 	local -i exit_code=0
 	create_tmp "dir"
 	install_multimedia
