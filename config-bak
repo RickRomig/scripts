@@ -39,6 +39,7 @@ home_bu(){
 		if [[ "$BU_DIR/$file" -ot "$HOME/$file" ]]; then
 			awk -F"/" '{print "==> " $NF}' < <(cp -pv "$HOME/$file" "$BU_DIR/") | sed "s/'$//"
 			(( BU_COUNT++ ))
+
 		fi
 	elif [[ -f "$HOME/$file" ]]; then
 		awk -F"/" '{print "==> " $NF}' < <(cp -pv "$HOME/$file" "$BU_DIR/") | sed "s/'$//"
@@ -52,7 +53,7 @@ configs_bu() {
 	local -r file="$2"
 	if [[ -f "$CFG_DIR/$folder/$file" && -f "$BU_DIR/$folder/$file" ]]; then
 		if [[ "$BU_DIR/$folder/$file" -ot "$CFG_DIR/$folder/$file" ]]; then
-			awk -F/ '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$folder/$file" "$BU_DIR/$folder/")  sed "s/'$//"
+			awk -F/ '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$folder/$file" "$BU_DIR/$folder/") | sed "s/'$//"
 			(( BU_COUNT++ ))
 		fi
 	elif [[ -f "$CFG_DIR/$folder/$file" ]]; then
