@@ -7,8 +7,8 @@
 # Author       : Copyright (C), Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2017
-# Updated      : 12 Oct 2026
-# Version      : 2.5.26285
+# Updated      : 27 Oct 2026
+# Version      : 2.5.26300
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -23,8 +23,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 install_tools() {
 	local package
@@ -43,7 +43,7 @@ install_tools() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.5.26285"
+	local -r version="2.5.26300"
 	local -i code=0
 	install_tools
 	code="$?"
