@@ -7,8 +7,8 @@
 # Author       : Cepyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2019
-# Updated      : 26 Sep 2026
-# Version      : 6.11.26269
+# Updated      : 27 Oct 2026
+# Version      : 7.0.26300
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,14 +24,16 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 readonly BU_DIR=~/.config/backup
 readonly CFG_DIR=~/.config
 declare -i BU_COUNT=0
 
-bu_home_cfg(){
+# Backup algorhythms
+
+home_bu(){
 	local -r file="$1"
 	if [[ -f "$HOME/$file" && -f "$BU_DIR/$file" ]]; then
 		if [[ "$BU_DIR/$file" -ot "$HOME/$file" ]]; then
@@ -45,171 +47,170 @@ bu_home_cfg(){
 	return 0
 }
 
-bu_config_cfg() {
+configs_bu() {
 	local -r folder="$1"
 	local -r file="$2"
 	if [[ -f "$CFG_DIR/$folder/$file" && -f "$BU_DIR/$folder/$file" ]]; then
 		if [[ "$BU_DIR/$folder/$file" -ot "$CFG_DIR/$folder/$file" ]]; then
-			printf "==> "
-			awk '{print $NF}' < <(cp -pv "$CFG_DIR/$folder/$file" "$BU_DIR/$folder/") | cut -d'/' -f6- | sed "s/'$//"
+			awk -F/ '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$folder/$file" "$BU_DIR/$folder/")  sed "s/'$//"
 			(( BU_COUNT++ ))
 		fi
 	elif [[ -f "$CFG_DIR/$folder/$file" ]]; then
 		[[ -d "$BU_DIR/$folder" ]] || mkdir -p "$BU_DIR/$folder"
-		printf "==> "
-		awk '{print $NF}' < <(cp -pv "$CFG_DIR/$folder/$file" "$BU_DIR/$folder/") | cut -d'/' -f6- | sed "s/'$//"
+		awk -F/ '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$folder/$file" "$BU_DIR/$folder/") | sed "s/'$//"
 		(( BU_COUNT++ ))
 	fi
 	return 0
 }
 
-bu_misc_cfg() {
+misc_bu() {
 	local -r folder="$1"
 	local -r file="$2"
 	if [[ -f "$HOME/$folder/$file" && -f "$BU_DIR/$folder/$file" ]]; then
 		if [[ "$BU_DIR/$folder/$file" -ot "$HOME/$folder/$file" ]]; then
-			printf "==> "
-			awk '{print $NF}' < <(cp -pv "$HOME/$folder/$file" "$BU_DIR/$folder/") | cut -d'/' -f6- | sed "s/'$//"
+			awk -F/ '{print "==> " $NF}' < <(cp -pv "$HOME/$folder/$file" "$BU_DIR/$folder/") | sed "s/'$//"
 			(( BU_COUNT++ ))
 		fi
 	elif [[ -f "$HOME/$folder/$file" ]]; then
 		[[ -d "$BU_DIR/$folder" ]] || mkdir -p "$BU_DIR/$folder"
-		printf "==> "
-		awk '{print $NF}' < <(cp -pv "$HOME/$folder/$file" "$BU_DIR/$folder/") | cut -d'/' -f6- | sed "s/'$//"
+		awk -F/ '{print "==> " $NF}' < <(cp -pv "$HOME/$folder/$file" "$BU_DIR/$folder/") | sed "s/'$//"
 		(( BU_COUNT++ ))
 	fi
 	return 0
 }
 
-bu_etc_cfg() {
+etc_bu() {
 	local -r folder="$1"
 	local -r file="$2"
 	if [[ -f "$folder/$file" && -f "$BU_DIR/$file" ]]; then
 		if [[ "$BU_DIR/$file" -ot "$folder/$file" ]]; then
-			printf "==> "
-			awk '{print $NF}' < <(cp -v "$folder/$file" "$BU_DIR/$file") | cut -d'/' -f6- | sed "s/'$//"
+			awk -F/ '{print "==> " $NF}' < <(cp -v "$folder/$file" "$BU_DIR/$file") | sed "s/'$//"
 			(( BU_COUNT++ ))
 		fi
 	elif [[ -f "$folder/$file" ]]; then
-		printf "==> "
-		awk '{print $NF}' < <(cp -v "$folder/$file" "$BU_DIR/$file") | cut -d'/' -f6- | sed "s/'$//"
+		awk -F/ '{print "==> " $NF}' < <(cp -v "$folder/$file" "$BU_DIR/$file") | sed "s/'$//"
 		(( BU_COUNT++ ))
 	fi
 	return 0
 }
 
-bu_cinnamon_keybindings() {
-	local -r keybind_bu="$1"
-	if [[ -f "$CFG_DIR/$keybind_bu" && -f "$BU_DIR/$keybind_bu" ]]; then
-		if [[ "$BU_DIR/$keybind_bu" -ot "$CFG_DIR/$keybind_bu" ]]; then
-			awk -F"/" '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$keybind_bu" "$BU_DIR/") | sed "s/'$//"
+cinnamon_bu() {
+	local -r cinn_backup="$1"
+	if [[ -f "$CFG_DIR/$cinn_backup" && -f "$BU_DIR/$cinn_backup" ]]; then
+		if [[ "$BU_DIR/$cinn_backup" -ot "$CFG_DIR/$cinn_backup" ]]; then
+			awk -F"/" '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$cinn_backup" "$BU_DIR/") | sed "s/'$//"
 			(( BU_COUNT++ ))
 		fi
-	elif [[ -f "$CFG_DIR/$keybind_bu" ]]; then
-		awk -F"/" '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$keybind_bu" "$BU_DIR/") | sed "s/'$//"
+	elif [[ -f "$CFG_DIR/$cinn_backup" ]]; then
+		awk -F"/" '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$cinn_backup" "$BU_DIR/") | sed "s/'$//"
 		(( BU_COUNT++ ))
 	elif is_cinnamon; then
-		dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$keybind_bu"
-		cp -pv "$CFG_DIR/$keybind_bu" "$BU_DIR/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$S//"
-		awk -F"/" '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$keybind_bu" "$BU_DIR/") | sed "s/'$//"
+		dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$cinn_backup"
+		cp -pv "$CFG_DIR/$cinn_backup" "$BU_DIR/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$S//"
+		awk -F"/" '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$cinn_backup" "$BU_DIR/") | sed "s/'$//"
 		(( BU_COUNT++ ))
 	fi
 	return 0
 }
+
+# Backup categories
 
 bu_user_cfgs() {
 	local -r lhost="${HOSTNAME:-$(hostname)}"
-	[[ -f ~/$lhost.info ]] && bu_home_cfg "$lhost.info"
-	[[ -f ~/.profile ]] && bu_home_cfg ".profile"
-	[[ -f ~/.bashrc ]] && bu_home_cfg ".bashrc"
-	[[ -f ~/.bash_aliases ]] && bu_home_cfg ".bash_aliases"
-	[[ -f ~/.bash_profile ]] && bu_home_cfg ".bash_profile"
-	[[ -f ~/.bash_logout  ]] && bu_home_cfg ".bash_logout"
-	[[ -f ~/.inputrc ]] && bu_home_cfg ".inputrc"
-	[[ -f ~/.face ]] && bu_home_cfg ".face"
-	[[ -f ~/.xinitrc ]] && bu_home_cfg ".xinitrc"
-	[[ -f ~/.imwheelrc ]] && bu_home_cfg ".imwheelrc"
+	[[ -f ~/$lhost.info ]] && home_bu "$lhost.info"
+	[[ -f ~/.profile ]] && home_bu ".profile"
+	[[ -f ~/.bashrc ]] && home_bu ".bashrc"
+	[[ -f ~/.bash_aliases ]] && home_bu ".bash_aliases"
+	[[ -f ~/.bash_profile ]] && home_bu ".bash_profile"
+	[[ -f ~/.bash_logout  ]] && home_bu ".bash_logout"
+	[[ -f ~/.inputrc ]] && home_bu ".inputrc"
+	[[ -f ~/.face ]] && home_bu ".face"
+	[[ -f ~/.xinitrc ]] && home_bu ".xinitrc"
+	[[ -f ~/.imwheelrc ]] && home_bu ".imwheelrc"
 	return 0
 }
 
 bu_i3_cfgs() {
-	[[ -f "$CFG_DIR/i3/config" ]] && bu_config_cfg "i3" "config"
-	[[ -f "$CFG_DIR/i3/sxhkd/sxhkdrc" ]] && bu_config_cfg "i3/sxhkd" "sxhkdrc"
-	[[ -f "$CFG_DIR/i3/sxhkdrc" ]] && bu_config_cfg "i3" "sxhkdrc"
-	[[ -f "$CFG_DIR/i3/bar.conf" ]] && bu_config_cfg "i3" "bar.conf"
-	[[ -f "$CFG_DIR/i3/rules.conf" ]] && bu_config_cfg "i3" "rules.conf"
-	[[ -f "$CFG_DIR/i3/workspaces.conf" ]] && bu_config_cfg "i3" "workspaces.conf"
-	[[ -f "$CFG_DIR/i3/bindings.list" ]] && bu_config_cfg "i3" "bindings.list"
-	[[ -f "$CFG_DIR/i3/keybindings.conf" ]] && bu_config_cfg "i3" "keybindings.conf"
-	[[ -f "$CFG_DIR/i3/i3status.conf" ]] && bu_config_cfg "i3" "i3status.conf"
-	[[ -f "$CFG_DIR/dunst/dunstrc" ]] && bu_config_cfg "dunst" "dunstrc"
-	[[ -f "$CFG_DIR/polybar/i3bar.ini" ]] && bu_config_cfg "polybar" "i3bar.ini"
-	[[ -f "$CFG_DIR/polybar/config" ]] && bu_config_cfg "polybar" "config"
-	[[ -f "$CFG_DIR/polybar/config.ini" ]] && bu_config_cfg "polybar" "config.ini"
-	[[ -f "$CFG_DIR/rofi/config.rasi" ]] && bu_config_cfg "rofi" "config.rasi"
-	[[ -f "$CFG_DIR/rofi/arc_dark_colors.rasi" ]] && bu_config_cfg "rofi" "arc_dark_colors.rasi"
-	[[ -f "$CFG_DIR/rofi/arc_dark_transparent_colors.rasi" ]] && bu_config_cfg "rofi" "arc_dark_transparent_colors.rasi"
-	[[ -f "$CFG_DIR/rofi/keybinds.rasi" ]] && bu_config_cfg "rofi" "keybinds.rasi"
-	[[ -f "$CFG_DIR/rofi/power.rasi" ]] && bu_config_cfg "rofi" "power.rasi"
+	[[ -f "$CFG_DIR/i3/config" ]] && configs_bu "i3" "config"
+	[[ -f "$CFG_DIR/i3/bar.conf" ]] && configs_bu "i3" "bar.conf"
+	[[ -f "$CFG_DIR/i3/rules.conf" ]] && configs_bu "i3" "rules.conf"
+	[[ -f "$CFG_DIR/i3/workspaces.conf" ]] && configs_bu "i3" "workspaces.conf"
+	[[ -f "$CFG_DIR/i3/i3status.conf" ]] && configs_bu "i3" "i3status.conf"
+	[[ -f "$CFG_DIR/dunst/dunstrc" ]] && configs_bu "dunst" "dunstrc"
+	[[ -f "$CFG_DIR/polybar/i3bar.ini" ]] && configs_bu "polybar" "i3bar.ini"
+	[[ -f "$CFG_DIR/polybar/config" ]] && configs_bu "polybar" "config"
+	[[ -f "$CFG_DIR/polybar/config.ini" ]] && configs_bu "polybar" "config.ini"
+	[[ -f "$CFG_DIR/rofi/config.rasi" ]] && configs_bu "rofi" "config.rasi"
+	[[ -f "$CFG_DIR/rofi/arc_dark_colors.rasi" ]] && configs_bu "rofi" "arc_dark_colors.rasi"
+	[[ -f "$CFG_DIR/rofi/arc_dark_transparent_colors.rasi" ]] && configs_bu "rofi" "arc_dark_transparent_colors.rasi"
+	[[ -f "$CFG_DIR/rofi/keybinds.rasi" ]] && configs_bu "rofi" "keybinds.rasi"
+	[[ -f "$CFG_DIR/rofi/power.rasi" ]] && configs_bu "rofi" "power.rasi"
 	return 0
 }
 
 bu_editor_cfgs() {
-	[[ -f ~/.nanorc ]] && bu_home_cfg ".nanorc"
-	[[ -f "$CFG_DIR/nano/nanorc" ]] && bu_config_cfg "nano" "nanorc"
-	[[ -f "$CFG_DIR/micro/settings.json" ]] && bu_config_cfg "micro" "settings.json"
-	[[ -f "$CFG_DIR/micro/bindings.json" ]] && bu_config_cfg "micro" "bindings.json"
-	[[ -f "$CFG_DIR/VSCodium/User/settings.json" ]] && bu_config_cfg "VSCodium/User" "settings.json"
-	[[ -f "$CFG_DIR/geany/geany.conf" ]] && bu_config_cfg "geany" "geany.conf"
-	[[ -f "$CFG_DIR/geany/keybindings.conf" ]] && bu_config_cfg "geany" "keybindings.conf"
-	[[ -f "$CFG_DIR/fresh/config.json" ]] && bu_config_cfg "fresh" "config.json"
-	[[ -f "$CFG_DIR/fresh/tsconfig.json" ]] && bu_config_cfg "fresh" "tsconfig.json"
-	[[ -f "$CFG_DIR/marktext/preferences.json" ]] && bu_config_cfg "marktext" "preferences.json"
-	[[ -f ~/.bluefish/rcfile-2.0 ]] && bu_misc_cfg ".bluefish" "rcfile-2.0"
+	[[ -f ~/.nanorc ]] && home_bu ".nanorc"
+	[[ -f "$CFG_DIR/nano/nanorc" ]] && configs_bu "nano" "nanorc"
+	[[ -f "$CFG_DIR/micro/settings.json" ]] && configs_bu "micro" "settings.json"
+	[[ -f "$CFG_DIR/VSCodium/User/settings.json" ]] && configs_bu "VSCodium/User" "settings.json"
+	[[ -f "$CFG_DIR/geany/geany.conf" ]] && configs_bu "geany" "geany.conf"
+	[[ -f "$CFG_DIR/fresh/config.json" ]] && configs_bu "fresh" "config.json"
+	[[ -f "$CFG_DIR/fresh/tsconfig.json" ]] && configs_bu "fresh" "tsconfig.json"
+	[[ -f "$CFG_DIR/marktext/preferences.json" ]] && configs_bu "marktext" "preferences.json"
+	[[ -f ~/.bluefish/rcfile-2.0 ]] && misc_bu ".bluefish" "rcfile-2.0"
 	return 0
 }
 
 bu_terminal_cfgs() {
-	[[ -f "$CFG_DIR/kitty/kitty.conf" ]] && bu_config_cfg "kitty" "kitty.conf"
-	[[ -f "$CFG_DIR/kitty/keybindings.conf" ]] && bu_config_cfg "kitty" "keybindings.conf"
-	[[ -f "$CFG_DIR/kitty/bindings.list" ]] && bu_config_cfg "kitty" "bindings.list"
-	[[ -f "$CFG_DIR/terminator/config" ]] && bu_config_cfg "terminator" "config"
+	[[ -f "$CFG_DIR/kitty/kitty.conf" ]] && configs_bu "kitty" "kitty.conf"
+	[[ -f "$CFG_DIR/terminator/config" ]] && configs_bu "terminator" "config"
 	return 0
 }
 
 bu_keybindings() {
-	local -r  keybind_bu="keybindings-backup.dconf"
-	[[ -f "$CFG_DIR/$keybind_bu" ]] && bu_cinnamon_keybindings "$keybind_bu"
-	[[ -f ~/.xbindkeysrc ]] && bu_home_cfg ".xbindkeysrc"
+	local -r  cinn_backup="keybindings-backup.dconf"
+	[[ -f "$CFG_DIR/$cinn_backup" ]] && cinnamon_bu "$cinn_backup"
+	[[ -f "$CFG_DIR/i3/sxhkd/sxhkdrc" ]] && configs_bu "i3/sxhkd" "sxhkdrc"
+	[[ -f "$CFG_DIR/i3/sxhkdrc" ]] && configs_bu "i3" "sxhkdrc"
+	[[ -f "$CFG_DIR/i3/bindings.list" ]] && configs_bu "i3" "bindings.list"
+	[[ -f "$CFG_DIR/i3/keybindings.conf" ]] && configs_bu "i3" "keybindings.conf"
+	[[ -f "$CFG_DIR/micro/bindings.json" ]] && configs_bu "micro" "bindings.json"
+	[[ -f "$CFG_DIR/geany/keybindings.conf" ]] && configs_bu "geany" "keybindings.conf"
+	[[ -f "$CFG_DIR/kitty/keybindings.conf" ]] && configs_bu "kitty" "keybindings.conf"
+	[[ -f "$CFG_DIR/kitty/bindings.list" ]] && configs_bu "kitty" "bindings.list"
+	[[ -f ~/.xbindkeysrc ]] && home_bu ".xbindkeysrc"
 	return 0
 }
 
 bu_conky_cfgs() {
-	[[ -f ~/.conkyrc ]] && bu_home_cfg ".conkyrc"
-	[[ -f "$CFG_DIR/conky/conky.conf" ]] && bu_config_cfg "conky" "conky.conf"
+	[[ -f ~/.conkyrc ]] && home_bu ".conkyrc"
+	[[ -f "$CFG_DIR/conky/conky.conf" ]] && configs_bu "conky" "conky.conf"
 	return 0
 }
 
 bu_misc_cfgs() {
-	[[ -f "$CFG_DIR/bat/config" ]] && bu_config_cfg "bat" "config"
-	[[ -f "$CFG_DIR/neofetch/config.conf" ]] && bu_config_cfg "neofetch" "config.conf"
-	[[ -f "$CFG_DIR/fastfetch/config.jsonc" ]] && bu_config_cfg "fastfetch" "config.jsonc"
-	[[ -f "$CFG_DIR/clipit/clipitrc" ]] && bu_config_cfg "clipit" "clipitrc"
-	[[ -f "$CFG_DIR/keepassxc/keepassxc.ini" ]] && bu_config_cfg "keepassxc" "keepassxc.ini"
-	[[ -f ~/.gitconfig ]] && bu_home_cfg ".gitconfig"
-	[[ -f "$CFG_DIR/git/config" ]] && bu_config_cfg "git" "config"
-	[[ -f ~/.git-credentials ]] && bu_home_cfg ".git-credentials"
-	[[ -f "$CFG_DIR/git/credentials" ]] && bu_config_cfg "git" "credentials"
-	[[ -f "$CFG_DIR/glow/glow.yml" ]] && bu_config_cfg "glow" "glow.yml"
-	[[ -f "$CFG_DIR/picom/picom.conf" ]] && bu_config_cfg "picom" "picom.conf"
-	[[ -f "$CFG_DIR/picom.conf" ]] && bu_misc_cfg ".config" "picom.conf"
-	[[ -f "$CFG_DIR/compton.conf" ]] && bu_misc_cfg ".config" "compton.conf"
-	[[ -f ~/.ssh/id_rsa ]] && bu_misc_cfg ".ssh" "id_rsa"
-	[[ -f ~/.ssh/id_rsa.pub ]] && bu_misc_cfg ".ssh" "id_rsa.pub"
-	[[ -f ~/.ssh/config ]] && bu_misc_cfg ".ssh" "config"
-	[[ -f ~/.config/redshift.conf ]] && bu_misc_cfg ".config" "redshift.conf"
-	[[ -f /etc/X11/xorg.conf.d/10-monitor.conf ]] && bu_etc_cfg "/etc/X11/xorg.conf.d" "10-monitor.conf"
-	[[ -f /etc/X11/xorg.conf.d/10-force-vga1.conf ]] && bu_etc_cfg "/etc/X11/xorg.conf.d" "10-monitor.conf"
+	[[ -f "$CFG_DIR/bat/config" ]] && configs_bu "bat" "config"
+	[[ -f "$CFG_DIR/neofetch/config.conf" ]] && configs_bu "neofetch" "config.conf"
+	[[ -f "$CFG_DIR/fastfetch/config.jsonc" ]] && configs_bu "fastfetch" "config.jsonc"
+	[[ -f "$CFG_DIR/clipit/clipitrc" ]] && configs_bu "clipit" "clipitrc"
+	[[ -f "$CFG_DIR/keepassxc/keepassxc.ini" ]] && configs_bu "keepassxc" "keepassxc.ini"
+	[[ -f ~/.gitconfig ]] && home_bu ".gitconfig"
+	[[ -f "$CFG_DIR/git/config" ]] && configs_bu "git" "config"
+	[[ -f ~/.git-credentials ]] && home_bu ".git-credentials"
+	[[ -f "$CFG_DIR/git/credentials" ]] && configs_bu "git" "credentials"
+	[[ -f "$CFG_DIR/glow/glow.yml" ]] && configs_bu "glow" "glow.yml"
+	[[ -f "$CFG_DIR/picom/picom.conf" ]] && configs_bu "picom" "picom.conf"
+	[[ -f "$CFG_DIR/picom.conf" ]] && misc_bu ".config" "picom.conf"
+	[[ -f "$CFG_DIR/compton.conf" ]] && misc_bu ".config" "compton.conf"
+	[[ -f "$CFG_DIR/redshift.conf" ]] && misc_bu ".config" "redshift.conf"
+	[[ -f "$CFG_DIR/shellcheckrc" ]] && misc_bu ".config" "shellcheckrc"
+	[[ -f "$CFG_DIR/zoom.conf" ]] && misc_bu ".config" "zoom.conf"
+	[[ -f "$CFG_DIR/zoomuz.conf" ]] && misc_bu ".config" "zoomus.conf"
+	[[ -f ~/.ssh/id_rsa ]] && misc_bu ".ssh" "id_rsa"
+	[[ -f ~/.ssh/id_rsa.pub ]] && misc_bu ".ssh" "id_rsa.pub"
+	[[ -f ~/.ssh/config ]] && misc_bu ".ssh" "config"
+	[[ -f /etc/X11/xorg.conf.d/10-monitor.conf ]] && etc_bu "/etc/X11/xorg.conf.d" "10-monitor.conf"
+	[[ -f /etc/X11/xorg.conf.d/10-force-vga1.conf ]] && etc_bu "/etc/X11/xorg.conf.d" "10-monitor.conf"
 	return 0
 }
 
@@ -226,8 +227,8 @@ completion_status() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.11.26269"
-	[[ -d "$BU_DIR" ]] || mkdir -p "$BU_DIR"
+	local -r version="7.0.26300"
+	[[ -d ~/.config/backup ]] || mkdir -p ~/.config/backup
 	printf "Backing up configuration files...\n"
 	bu_user_cfgs
 	bu_i3_cfgs
