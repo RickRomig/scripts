@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 24 Sep 2026
-# Version      : 5.4.26267
+# Updated      : 26 Oct 2026
+# Version      : 5.4.26299
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,29 +24,29 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="24 Sep 2026"
+	local -r updated="26 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Clone a git repository from GitHub or the local Gitea server
 
 	${green}Usage:${normal} $script [-cfghipsw]
 	${orange}Available options:${normal}
-	-c	Clone configs repository
-	-f	Clone fnloc repository
-	-g	Clone gitea server repository
+	-c	Clone configs repository from GitHub
+	-f	Clone fnloc repository from Gitea server
+	-g	Clone gitea server repository from Gitea server
 	-h	Show this help message and exit
-	-i	Clone i3wm-debian repository
-	-p	Clone homepage repository
-	-s	Clone scripts repository
-	-w	Clone fnloc-win repository
-_HELP_
+	-i	Clone i3wm-debian repository from GitHub
+	-p	Clone homepage repository from Gitea server
+	-s	Clone scripts repository from GitHub
+	-w	Clone fnloc-win repository from Gitea server
+	_HELP_
 	exit "$errcode"
 }
 
@@ -55,10 +55,10 @@ check_repo() {
 	local -r dl_dir=~/Downloads
 	if [[ $(find "$dl_dir/$git_repo" -maxdepth 1 -type f 2>/dev/null) ]]; then
 		printf "%s is not empty. Updating the repository clone...\n" "$dl_dir/$git_repo"
-		pushd "$dl_dir/$git_repo" || return "$E_POPD_PUSHD"
+		pushd "$dl_dir/$git_repo" >/dev/null || return "$E_POPD_PUSHD"
 		git checkout .
 		git pull
-		popd || return "$E_POPD_PUSHD"
+		popd >/dev/null || return "$E_POPD_PUSHD"
 	else
 		clone_repo "$git_repo" "$dl_dir/"
 	fi
@@ -66,8 +66,8 @@ check_repo() {
 }
 
 clone_repo() {
-	local git_repo="$1"
-	local dl_dir="$2"
+	local -r git_repo="$1"
+	local -r dl_dir="$2"
 	local url
 	case "$git_repo" in
 		configs | scripts | i3wm-debian )
@@ -81,7 +81,7 @@ clone_repo() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.4.26267"
+	local -r version="5.4.26299"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":cfghipsw"
@@ -97,7 +97,8 @@ main() {
 			p ) check_repo "homepage" ;;
 			s ) check_repo "scripts" ;;
 			w ) check_repo "fnloc-win" ;;
-			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2; help "$script" "$version" "$E_INVALID_ARG"
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
