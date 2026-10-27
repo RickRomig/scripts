@@ -7,8 +7,8 @@
 # Author       : Copyright © 2017 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 01 Jan 2017
-# Updated      : 12 Oct 2026
-# Version      : 2.5.26285
+# Updated      : 27 Oct 2026
+# Version      : 2.5.26300
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -39,7 +39,7 @@ check_tools() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.5.26285"
+	local -r version="2.5.26300"
 	check_tools
 	over_line "$script $version"
 	exit
