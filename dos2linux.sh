@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2019
-# Updated      : 08 Sep 2026
-# Version      : 2.4.26251
+# Updated      : 27 Oct 2026
+# Version      : 2.5.26300
 # TODO (Rick)  :
 # Comment      : removes DOS carriage return ('\r') characters
 #              : Similar in function to dos2unix.
@@ -33,18 +33,19 @@ convert_file() {
 	printf "Removing the carriage return characters from %s\n" "$filename"
 	printf "and creating a backup (%s.bak) of the orginal file."  "$filename"
 	sed -i.bak 's/\r//g' "$filename"
-	return 0
+	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.4.26251"
+	local -r version="2.5.26300"
 	local filename="$1"
 	local -i exit_code=0
 	printf "Converts a DOS text file to Linux format by removing carriage returns.\n"
 	[[ "$#" -eq 0 ]] && read -rp "Enter a DOS text file to process: " filename
 	if [[ -f "$filename" ]]; then
 		convert_file "$filename"
+		exit_code="$?"
 	else
 		printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
 		exit_code="$E_FILENOTFOUND"
