@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jan 2025
-# Updated      : 06 Aug 2026
-# Version      : 2.2.26218
+# Updated      : 27 Oct 2026
+# Version      : 2.3.26300
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,8 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 disable_swap_device() {
 	local swap_dev="$1"
@@ -55,12 +55,10 @@ check_swap_device() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.2.26218"
-	local exit_code=0
+	local -r version="2.3.26300"
 	check_swap_device
-	exit_code="$?"
 	over_line "$script $version"
-	exit "$exit_code"
+	exit
 }
 
 main "$@"
