@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019,Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Apr 2019
-# Updated      : 09 Sep 2026
-# Version      : 6.4.26252
+# Updated      : 27 Oct 2026
+# Version      : 6.5.26300
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,8 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 readonly BU_DIR=~/.config/backup
 readonly CFG_DIR=~/.config
@@ -97,35 +97,6 @@ restore_cinnamon_keybindings() {
 	return 0
 }
 
-main_menu() {
-	local -r script="${0##*/}"
-	local -r version="6.4.26252"
-	local _opt options
-	options=("System Configs" "Editor Configs" "i3 Configs" "Misc Configs" "Quit")
-	clear
-	COLUMNS=20
-	printf "%s %s\n" "$script" "$version"
-	printf "Restore configuration files from local backup.\n"
-	printf "\nConfiguration Classes\n"
-	select _opt in "${options[@]}"; do
-		case "$REPLY" in
-			1 ) system_configs ;;
-			2 ) editor_configs ;;
-			3 ) i3_configs ;;
-			4 ) misc_configs ;;
-			5 ) break ;;
-			* ) echo "${lightred}Invalid choice${normal}" >&2
-		esac
-	done
-	printf "\nExiting the script...\n"
-	if (( COUNT == 0 )); then
-		leave "No configuration files restored."
-	else
-		leave "Configurations restored from backup."
-	fi
-}
-
-# System configuration files
 system_configs() {
 	local _opt options
 	local -r lhost="${HOSTNAME:-$(hostname)}"
@@ -137,23 +108,17 @@ system_configs() {
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
 				1 )
-					restore_home_cfg ".bashrc"
-					break ;;
+					restore_home_cfg ".bashrc" break ;;
 				2 )
-					restore_home_cfg ".bash_aliases"
-					break ;;
+					restore_home_cfg ".bash_aliases"; break ;;
 				3 )
-					restore_home_cfg ".bash_logout"
-					break ;;
+					restore_home_cfg ".bash_logout" break ;;
 				4 )
-					restore_home_cfg ".bash_profile"
-					break ;;
+					restore_home_cfg ".bash_profile"; break ;;
 				5 )
-					restore_home_cfg ".profile"
-					break ;;
+					restore_home_cfg ".profile"; break ;;
 				6 )
-					restore_home_cfg ".face"
-					break ;;
+					restore_home_cfg ".face"; break ;;
 				7 )
 					if [[ -f "$BU_DIR/neofetch/config" ]]; then
 						restore_config_cfg "neofetch" "config"
@@ -164,11 +129,9 @@ system_configs() {
 					fi
 					break ;;
 				8 )
-					restore_config_cfg "fastfetch" "config.jsonc"
-					break ;;
+					restore_config_cfg "fastfetch" "config.jsonc"; break ;;
 				9 )
-					restore_cinnamon_keybindings
-					break ;;
+					restore_cinnamon_keybindings; break ;;
 				10 )
 					if [[ -f "$BU_DIR/.conkyrc" ]]; then
 						restore_home_cfg ".conkyrc"
@@ -179,21 +142,19 @@ system_configs() {
 					fi
 					break ;;
 				11 )
-					restore_home_cfg ".xinitrc" ;;
+					restore_home_cfg ".xinitrc"; break ;;
 				12 )
-					restore_home_cfg "$lhost.info"
-					break ;;
+					restore_home_cfg "$lhost.info"; break ;;
 				13 )
 					break ;;
 				* )
-					echo "${lightred}Invalid choice${normal}" >&2
+					printf "%sInvalid choice%s\n" "$lightred" "$normal" >&2
 			esac
 		done
-		main_menu
+		main
 	done
 }
 
-# Editor configuration files
 editor_configs() {
   local _opt options
 	while true; do
@@ -207,12 +168,12 @@ editor_configs() {
 					restore_misc_cfg ".bluefish" "rcfile-2.0"
 					break ;;
 				2 )
-					restore_geany;
+					restore_geany
 					restore_config_cfg "geany" "geany.conf"
 					estore_config_cfg "geany" "keybindings.conf"
 					break ;;
 				3 )
-					restore_marktext;
+					restore_marktext
 					restore_config_cfg "marktext" "preferences.json"
 					break ;;
 				4 )
@@ -234,14 +195,13 @@ editor_configs() {
 				7 )
 					break ;;
 				* )
-					echo "${lightred}Invalid choice${normal}" >&2
+					printf "%sInvalid choice%s\n" "$lightred" "$normal" >&2
 			esac
 		done
-		main_menu
+		main
 	done
 }
 
-# i3 configuration files
 i3_configs() {
 	local _opt options
 	while true; do
@@ -312,14 +272,13 @@ i3_configs() {
 				15 )
 					break ;;
 				* )
-					echo "${lightred}Invalid choice${normal}" >&2
+					printf "%sInvalid choice%s\n" "$lightred" "$normal" >&2
 			esac
 		done
-		main_menu
+		main
 	done
 }
 
-# Miscellaneous configuration files
 misc_configs() {
 	local _opt options
 	while true; do
@@ -378,11 +337,39 @@ misc_configs() {
 				10 )
 					break ;;
 				* )
-					echo "${lightred}Invalid choice${normal}" >&2
+					printf "%sInvalid choice%s\n" "$lightred" "$normal" >&2
 			esac
 		done
-		main_menu
+		main
 	done
 }
 
-main_menu "$@"
+main() {
+	local -r script="${0##*/}"
+	local -r version="6.5.26300"
+	local _opt options
+	options=("System Configs" "Editor Configs" "i3 Configs" "Misc Configs" "Quit")
+	clear
+	COLUMNS=20
+	printf "%s %s\n" "$script" "$version"
+	printf "Restore configuration files from local backup.\n"
+	printf "\nConfiguration Classes\n"
+	select _opt in "${options[@]}"; do
+		case "$REPLY" in
+			1 ) system_configs ;;
+			2 ) editor_configs ;;
+			3 ) i3_configs ;;
+			4 ) misc_configs ;;
+			5 ) break ;;
+			* ) printf "%sInvalid choice%s\n" "$lightred" "$normal" >&2
+		esac
+	done
+	printf "\nExiting the script...\n"
+	if (( COUNT == 0 )); then
+		leave "No configuration files restored."
+	else
+		leave "$COUNT configurations restored from backup."
+	fi
+}
+
+main "$@"
