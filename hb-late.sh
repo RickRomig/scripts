@@ -8,8 +8,8 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Run only if hb-archive.sh fails to run on 1st of the month.
 # Created      : 02 Sep 2019
-# Updated      : 04 Oct 2026
-# Version      : 4.5.26277
+# Updated      : 28 Oct 2026
+# Version      : 4.5.26301
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -32,13 +32,13 @@ trim_error_log() {
 	local -i log_len
 	log_len=$(wc -l < "$log_file")
 	(( log_len > 12 )) && sed -i '1d' "$log_file"
-	return 0
+	return "$?"
 }
 
 delete_old_archives() {
 	local -r arc_dir="$1"
 	find "$arc_dir" -daystart -mtime +1095 -delete 2> ~/.local/share/logs/hb-delete.log
-	return 0
+	return "$?"
 }
 
 update_log_files() {
@@ -81,7 +81,7 @@ monthly_archive() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.5.26277"
+	local -r version="4.5.26301"
 	local -r lhost="${HOSTNAME:-$(hostname)}"
 	local -r fhost="hp-800g2-sff"
 	local -i exit_code=0
