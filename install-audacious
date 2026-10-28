@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2020
-# Updated      : 30 Sep 2026
-# Version      : 2.13.26273
+# Updated      : 28 Oct 2026
+# Version      : 2.14.26301
 # Comments     : Script does not currently support installation from Ubuntu PPAs or flatpak.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,14 +23,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="07 Sep 2026"
+	local -r updated="28 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Install or remove Audacious audio player
@@ -40,7 +40,7 @@ help() {
 	-h	Show this help message and exit.
 	-i	Install Audacious audio player.
 	-r	Remove Audacious audio player.
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -79,19 +79,16 @@ remove_audacious() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.13.26273"
+	local -r version="2.14.26301"
 	local -i exit_code=0
 	local opt OPTARG OPTIND
 	local -i noOpt=1
 	local -r optstr=":hir"
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			h )
-				help "$script" "$version" 0 ;;
-			i )
-				install_audacious ;;
-			r )
-				remove_audacious ;;
+			h ) help "$script" "$version" 0 ;;
+			i ) install_audacious ;;
+			r ) remove_audacious ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
