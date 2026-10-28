@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Updated      : 29 Sep 2026
-# Version      : 4.7.26272
+# Updated      : 28 Oct 2026
+# Version      : 4.8.26301
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
 #              : If file has been changed, commit the change before retiring.
@@ -26,14 +26,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local updated="29 Sep 2026"
+	local updated="28 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Retires a script in a Git repo by moving it to a zipped archive.
@@ -44,7 +44,7 @@ help() {
 	${bold}NOTES:${normal}
 	Do not use to retire a script that is not in a git repository. Use 'retire-script.sh' instead.
 	If no argument is passed, the user will be prompted for the name of the script to be retired.
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -77,12 +77,12 @@ check_args() {
 		return "$E_FILENOTFOUND"
 	fi
 	retire_script "$filename"
-	return 0
+	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.7.26272"
+	local -r version="4.8.26301"
 	local -i exit_code=0
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
 	local filename="$1"
