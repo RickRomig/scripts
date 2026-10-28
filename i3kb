@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Apr 2023
-# Updated      : 22 Oct 2026
-# Version      : 1.12.26295
+# Updated      : 28 Oct 2026
+# Version      : 1.13.26301
 # Comments     : Install with keybindings.conf in ~/.config/i3/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,8 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 copy_bindings() {
 	local -r i3_dir="$1"
@@ -48,16 +48,18 @@ show_bindings() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.12.26295"
+	local -r version="1.13.26301"
+	local -i exit_code=0
 	if [[ "$DESKTOP_SESSION" == "i3" ]]; then
 		clearscreen
 		check_package git
 		show_bindings "$i3_dir" "$i3_bindings"
 	else
 		printf "i3wm is not the current desktop session.\n"
+		exit_code="$E_UNSUPPORTED"
 	fi
 	over_line "$script $version"
-	exit
+	exit "$exit_code"
 }
 
 main "$@"
