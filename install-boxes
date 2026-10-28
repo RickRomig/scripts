@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 10 Oct 2026
-# Version      : 4.7.26283
+# Updated      : 28 Oct 2026
+# Version      : 4.7.26301
 # Comments     : Based on instructions from Joe Collins.
 # TODO (Rick)  : check entry in flatpak list, does Flatpak include all dependencies?
 # License      : GNU General Public License, version 2.0
@@ -23,14 +23,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="10 Oct 2026"
+	local -r updated="28 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Install Gnome Boxes from either distribution repositories or flatpak from Flathub.
@@ -40,7 +40,7 @@ help() {
 	-d	Install Gnome Boxes from distro repo
 	-f	Install Gnome Boxes from Flathub
 	-h	Show this help message and exit
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -186,19 +186,16 @@ install_from_flatpak() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.7.26283"
+	local -r version="4.7.26301"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":dfh"
 	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			d )
-				check_bios && install_from_deb ;;
-			f )
-				check_bios && install_from_flatpak ;;
-			h )
-				help "$script" "$version" 0 ;;
+			d ) check_bios && install_from_deb ;;
+			f ) check_bios && install_from_flatpak ;;
+			h ) help "$script" "$version" 0 ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
