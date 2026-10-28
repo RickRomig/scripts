@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 14 Feb 2026
-# Updated      : 15 Oct 2026
-# Version      : 2.4.26288
+# Updated      : 28 Oct 2026
+# Version      : 2.4.26300
 # Comments     : Thanks to Joe Collins and Matt Hartley for the fix to the permissions problem.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,14 +24,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="15 Oct 2026"
+	local -r updated="28 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Installs Brasero CD/DVD writeer
@@ -41,7 +41,7 @@ help() {
 	-h	Show this help message and exit.
 	-i	Install Brasero.
 	-r	Remove Brasero.
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -117,7 +117,7 @@ remove_brasero() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.4.26288"
+	local -r version="2.4.26300"
 	local -i exit_code=0
 	local -i reboot_flag=1
 	local -i noOpt=1
