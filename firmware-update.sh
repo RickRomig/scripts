@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 22 Jul 2026
 # Last updated : 27 Oct 2026
-# Version      : 2.1.26300
+# Version      : 2.0.26300
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -61,7 +61,7 @@ verify_update() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.1.26300"
+	local -r version="2.0.26300"
 	local -i exit_code=0
 	check_package fwupd
 	check_uefi && update_firmware
