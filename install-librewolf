@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 01 Mar 2025
-# Updated      : 23 Sep 2026
-# Version      : 1.12.26266
+# Updated      : 29 Oct 2026
+# Version      : 1.12.26302
 # Comments     : Instructions obtained from https://librewolf.net/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,8 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 VERBOSE="$FALSE"
 
@@ -33,7 +33,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="23 Sep 2026"
+	local -r updated="29 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Installs/removes LibreWolf browser.
@@ -44,7 +44,7 @@ help() {
 	-i	Install LibreWolf.
 	-r	Remove LibreWolf.
 	-v	Enable verbose mode. If used, must prccede -i and -r.
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -116,24 +116,19 @@ remove_librewolf() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.12.26266"
+	local -r version="1.12.26302"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hirv"
 	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			h )
-				help "$script" "$version" 0 ;;
-			i )
-				install_librewolf ;;
-			r )
-				remove_librewolf ;;
-			v )
-				VERBOSE="$TRUE"
+			h ) help "$script" "$version" 0 ;;
+			i ) install_librewolf ;;
+			r ) remove_librewolf ;;
+			v ) VERBOSE="$TRUE"
 				show_message "Verbose mode enabled." ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
