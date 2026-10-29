@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 08 Sep 2026
-# Version      : 2.10.26251
+# Updated      : 29 Oct 2026
+# Version      : 2.10.26302
 # Comments     : Configures as a login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,14 +23,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="08 Sep 2026"
+	local -r updated="29 Octp 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs/Removes/Configures Kitty terminal emulator
@@ -98,21 +98,17 @@ kitty_config() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.10.26251"
+	local -r version="2.10.26302"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hir"
 	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			h )
-				help "$script" "$version" 0 ;;
-			i )
-				install_kitty && kitty_config ;;
-			r )
-				remove_kitty;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			h ) help "$script" "$version" 0 ;;
+			i ) install_kitty && kitty_config ;;
+			r ) remove_kitty;;
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
