@@ -8,8 +8,8 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Run only if hb-archive.sh fails to run on 1st of the month.
 # Created      : 02 Sep 2019
-# Updated      : 28 Oct 2026
-# Version      : 4.5.26301
+# Updated      : 29 Oct 2026
+# Version      : 4.5.26302
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -24,8 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 trim_error_log() {
 	local -r log_file="$1"
@@ -81,7 +81,7 @@ monthly_archive() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.5.26301"
+	local -r version="4.5.26302"
 	local -r lhost="${HOSTNAME:-$(hostname)}"
 	local -r fhost="hp-800g2-sff"
 	local -i exit_code=0
