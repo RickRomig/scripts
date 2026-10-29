@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 02 Oct 2026
-# Version      : 5.4.26275
+# Updated      : 29 Oct 2026
+# Version      : 5.4.26302
 # Comments     : Version 2.0.0 is included in Debian 13 (Trixie) repositories.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,14 +24,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ################################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="02 Oct 2026"
+	local -r updated="29 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs/Removed Glow Markdown reader
@@ -43,7 +43,7 @@ help() {
 	-h	Show this help message and exit.
 	-i	Installs the glow markdown reader from the charm repo.
 	-r	Removes the glow markdown reader from the system.
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -137,7 +137,7 @@ glow_config() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.4.26275"
+	local -r version="5.4.26302"
 	local -r charm_url="https://repo.charm.sh/apt"
 	local -r charm_key=/etc/apt/keyrings/charm.gpg
 	local -i exit_code=0
@@ -146,23 +146,17 @@ main() {
 	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			a )
-				if installed glow; then
+			a ) if installed glow; then
 					set_gpg_key "$charm_url" "$charm_key"
 					set_sources "$charm_url" "$charm_key"
 				else
 					printf "Glow is not installed\n" >&2
 				fi ;;
-			c )
-				glow_config ;;
-			h )
-				help "$script" "$version" 0 ;;
-			i )
-				install_glow "$charm_url" "$charm_key" && glow_config ;;
-			r )
-				remove_glow ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			c ) glow_config ;;
+			h ) help "$script" "$version" 0 ;;
+			i ) install_glow "$charm_url" "$charm_key" && glow_config ;;
+			r ) remove_glow ;;
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
