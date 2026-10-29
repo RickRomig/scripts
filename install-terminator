@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Dec 2020
-# Updated      : 02 Oct 2026
-# Version      : 7.9.26275
+# Updated      : 29 Oct 2026
+# Version      : 7.9.26302
 # Comments     : By default, Terminator is configured as a login shell (Debian, Antix, MX Linux, LMDE)
 #              : Login shell is disabled for other distributions (Linux Mint)
 # TODO (Rick)  :
@@ -25,14 +25,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="02 Oct 2026"
+	local -r updated="29 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs/Removes/Configures Terminator terminal emulator
@@ -46,7 +46,7 @@ help() {
 	${bold}NOTES:${normal}
 	1. Script will not overwrite Terminator config for BunsenLabs installations. Make configuration changes through Terminator Preferences.
 	2. Terminator will be configured as a login shell for Debian and Debian-based distributions (Antix, MX Linux, LMDE).
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -121,23 +121,18 @@ apply_config() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.9.26275"
+	local -r version="7.9.26302"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":chir"
 	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			c )
-				apply_config ;;
-			h )
-				help "$script" "$version" 0 ;;
-			i )
-				install_terminator && apply_config ;;
-			r )
-				remove_terminator ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			c ) apply_config ;;
+			h ) help "$script" "$version" 0 ;;
+			i ) install_terminator && apply_config ;;
+			r ) remove_terminator ;;
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
