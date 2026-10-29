@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 15 Oct 2026
-# Version      : 5.6.26288
+# Updated      : 29 Oct 2026
+# Version      : 5.6.26302
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  : add flatpak installation...
 # License      : GNU General Public License, version 2.0
@@ -24,8 +24,8 @@
 # OR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ################################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 VERBOSE="FALSE"
 
@@ -33,7 +33,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -f updated="15 Oct 2026"
+	local -f updated="29 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, updated: ($updated)
 	Install/Remove VSCodium and apply settings
@@ -47,7 +47,7 @@ help() {
 	-s	Apply VSCodium settings.
 	-v	Enable verbose mode. If used, must precede other flags.
 	${green}NOTE:${normal} 32-bit architecture is not supported.
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -161,7 +161,7 @@ show_message() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.6.26288"
+	local -r version="5.6.26302"
 	local -r key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 	local -i exit_code=0
 	local -i noOpt=1
