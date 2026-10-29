@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Nov 2018
-# Updated      : 08 Sep 2026
-# Version      : 7.2.26251
+# Updated      : 29 Oct 2026
+# Version      : 7.2.26302
 # Comments     : Available as a flatpak (preferred method)
 #              : https://flathub.org/apps/details/fr.free.Homebank
 #              : Linux Mint Sofware Manager
@@ -27,15 +27,15 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="08 Sep 2026"
-	cat << _HELP_
+	local -r updated="29 Oct 2026"
+	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs/Removes HomeBank Personal Finance Software.
 
@@ -45,7 +45,7 @@ help() {
 	-h	Show this help message and exit
 	-i	Install HomeBank from repository
 	-r	Remove HomeBank (deb package or flatpak)
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -142,23 +142,18 @@ remove_homebank_configs() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.2.26251"
+	local -r version="7.2.26302"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":fhir"
 	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			f )
-				install_flatpak_homebank && apply_preferences ;;
-			h )
-				help "$script" "$version" 0 ;;
-			i )
-				install_deb_homebank && apply_preferences ;;
-			r )
-				remove_homebank ;;
-			? )
-				printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			f ) install_flatpak_homebank && apply_preferences ;;
+			h ) help "$script" "$version" 0 ;;
+			i ) install_deb_homebank && apply_preferences ;;
+			r ) remove_homebank ;;
+			? ) printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
