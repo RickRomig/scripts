@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 15 Oct 2025
-# Updated      : 12 Sep 2026
-# Version      : 1.8.26255
+# Updated      : 30 Oct 2026
+# Version      : 1.8.26303
 # Comments     : Original script Copyright (C) 2025 Kris Occhipinti
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -27,8 +27,8 @@
 # this program. If not, see <https://www.gnu.org/licenses/>.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 search_packages() {
 	# Based on code by Kris Occhipinti (with minor changes)
@@ -55,7 +55,7 @@ search_packages() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.8.26255"
+	local -r version="1.8.26303"
 	local -i exit_code=0
 	check_package fzf
 	search_packages
