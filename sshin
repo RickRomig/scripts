@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2017, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 07 Oct 2017  (Joe Collins' original script)
-# Updated      : 10 Sep 2026
-# Version      : 3.3.26253
+# Updated      : 30 Oct 2026
+# Version      : 3.3.26303
 # Comments     : Based on a script by Joe Collins.
 #              : LOCALNET and valid_ip() are declared in functionlib
 #              : X11 forwarding should be enabled in /etc/ssh/sshd_config
@@ -27,14 +27,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="10 Sep 2026"
+	local -r updated="30 Oct 2026"
 	cat <<- _HELP_
 
 	${orange}$script${normal} $version ($updated)
@@ -46,7 +46,7 @@ help() {
 	First argument is the last octet of the remote server's IP address.
 	Second argment X|x enables X11 forwarding. Any other argument will connect via SSH without X11 forwarding.
 	Assumes a /24 network.
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -70,7 +70,7 @@ connect_ssh() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="33.3.26253"
+	local -r version="33.3.26303"
 	local hostip="$1"
 	local x_opt="${2:-z}"
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
