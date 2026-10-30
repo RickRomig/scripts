@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 08 Mar 2025
-# Updated      : 09 Sep 2026
-# Version      : 3.5.26252
+# Updated      : 30 Oct 2026
+# Version      : 3.5.26303
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -23,14 +23,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${1:-1}"
-	local -r updated="02 Aug 2026"
+	local -r updated="30 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	renames filenames containing spaces, replacing spaces with - or . or _
@@ -41,7 +41,7 @@ help() {
 	-h	Show this help message and exit
 	-p	Replace spaces with periods/dots
 	-u	Replace spaces with underscores
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -62,7 +62,7 @@ replace_spaces() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.5.26252"
+	local -r version="3.5.26303"
 	local -i noOpt=1
 	local -r optstr=":dhpu"
 	local opt OPTARG OPTIND
@@ -72,8 +72,7 @@ main() {
 			h ) help "$script" "$version" 0 ;;
 			p ) replace_spaces "." ;;
 			u ) replace_spaces "_" ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		noOpt=0
