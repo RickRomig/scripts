@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 09 Sep 2026
-# Version      : 3.6.26252
+# Last updated : 30 Oct 2026
+# Version      : 3.6.26303
 # Comments     : Do not use with scripts or files inside git repos. Use gretire.sh instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,14 +25,14 @@
 # details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source ~/bin/functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="09 Sep 2026"
+	local -r updated="30 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Retires a script by moving it to a zipped archive.
@@ -44,7 +44,7 @@ help() {
 	1. User is prompted to provide a file mame is no arguments are supplied.
 	2. Do not use to retire a script in a git repository.
 	3. To properly retire a script in a git repository use 'gretire.sh'.
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -69,9 +69,9 @@ chack_args() {
 }
 
 retire_script() {
+	local -r filename="$1"
 	local -r archive_dir=~/Downloads/archives
 	local -r ret_archive="retired-scripts.zip"
-	local -r filename="$1"
 	local ret_name
 	ret_name="${filename}.$(date +'%y%j')"
 	mv -v "$filename" "$ret_name"
