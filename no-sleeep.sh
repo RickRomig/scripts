@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2023
-# Updated      : 18 Oct 2026
-# Version      : 3.0.26291
+# Updated      : 30 Oct 2026
+# Version      : 3.0.26303
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -23,8 +23,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 set_nosleep() {
 	local -r repository=~/Downloads/configs
@@ -42,7 +42,7 @@ set_nosleep() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.0.26291"
+	local -r version="3.0.26303"
 	local -i exit_code=0
 	is_systemd || die "SystemD is required for this script!" "$E_UNSUPPORTED"
 	printf "Disables sleep and hiberation on Debian-based systems.\n"
