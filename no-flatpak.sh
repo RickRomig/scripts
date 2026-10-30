@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2024, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Mar 2024
-# Updated      : 09 Sep 2026
+# Updated      : 30 Oct 2026
 # Version      : 1.7.26252
 # Comments     :
 # TODO (Rick)  :
@@ -23,14 +23,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="09 Sep 2026"
+	local -r updated="30 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated $updated
 	Disables/Enables Flatpak support.
@@ -41,7 +41,7 @@ help() {
 	-e    Enable the installation of flatpak and flatpak packages
 	-h    Show this help message and exit
 	-s    Status of flatpak and flatpak package installation
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -95,7 +95,7 @@ disable_flatpak() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.7.26252"
+	local -r version="1.7.26303"
 	local -i exit_code=0
 	local -r pref_file=/etc/apt/preferences.d/noflatpak.pref
 	local -i noOpt=1
@@ -105,17 +105,12 @@ main() {
 	flatpak_installed && printf "installed.\n" || printf "not installed.\n"
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			d )
-				disable_flatpak "$pref_file" ;;
-			e )
-				enable_flatpak "$pref_file" ;;
-			h )
-				help "$script" "$version" 0 ;;
-			s )
-				printf "Installation of Flatpak and Flatpak packages is "
+			d ) disable_flatpak "$pref_file" ;;
+			e ) enable_flatpak "$pref_file" ;;
+			h ) help "$script" "$version" 0 ;;
+			s ) printf "Installation of Flatpak and Flatpak packages is "
 				flatpak_enabled "$pref_file" && printf "enabled.\n" || printf "disabled.\n" ;;
-			? )
-				printf "\n%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			? ) printf "\n%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
