@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard Romig, Luddite Geek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2025
-# Updated      : 09 Oct 2026
-# Version      : 2.9.26282
+# Updated      : 30 Oct 2026
+# Version      : 2.9.26303
 # Comment      :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -23,8 +23,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 show_intro() {
 	local -r script="$1"
@@ -40,7 +40,7 @@ show_intro() {
 
 	Run only if this warning occurs.
 
-_INTRO_
+	_INTRO_
 	return 0
 }
 
@@ -60,7 +60,7 @@ purge_and_update() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.9.26282"
+	local -r version="2.9.26303"
 	local -i exit_code=0
 	show_intro "$script"
 	purge_and_update
