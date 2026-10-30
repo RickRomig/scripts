@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 10 Sep 2026
-# Versin       : 7.5.26253
+# Updated:     : 30 Oct 2026
+# Versin       : 7.5.26303
 # Comments     : Should be run locally, not remotely. (DESKTOP_SESSION)
 #              : Will not get desktop session info in an SSH connection.
 # TODO (Rick)  :
@@ -25,8 +25,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 readonly LOCAL_HOST="${HOSTNAME:-$(hostname)}"
 readonly INFO_FILE="$HOME/$LOCAL_HOST.info"
@@ -164,7 +164,7 @@ memory_info() {
 
 graphics_info() {
 	printf "%-9s %s\n" "Graphics:" "$( awk -F: '/VGA/ {print $NF}' < <(/usr/bin/lspci) | sed 's/^ //')"
-	eturn 0
+	return 0
 }
 
 mac_mfgr() {
@@ -302,7 +302,7 @@ battery_info() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.5.26253"
+	local -r version="7.5.26303"
 	trap clean_up EXIT
 	sudo_login 2
 	check_dependencies
