@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 08 Sep 2026
-# Version      : 3.2.26251
+# Updated      : 30 Oct 2026
+# Version      : 3.2.26303
 # Comments     : Removes distro repo version if installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,14 +24,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="21 Jul 2026"
+	local -r updated="230 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs, removes, updates YouTube-dlp.
@@ -43,7 +43,7 @@ help() {
 	-r	Remove yt-dlp (binary)
 	-u	Update yt-dlp (binary)
 	-x	Remove yt-dlp (distro version)
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -185,7 +185,7 @@ install_intro() {
 	A sed script to cleanup and format the log file is installed at:
 	/usr/share/misc/ytdlpuplog.sed
 	If the version from the distro's repostitory is installed, it will be removed.
-_INTRO_
+	_INTRO_
 	return 0
 }
 
@@ -194,13 +194,13 @@ remove_intro() {
 	Removes yt-dlp and its configuration files, removing both the version installed
 	via the distribution's repositories and the version downloaded from the yt-dlp
 	GitHub repository.
-_REMOVAL_
+	_REMOVAL_
 	return 0
 }
 
 main() {
 	local -r  script="${0##*/}"
-	local -r  version="3.1.26225"
+	local -r  version="3.2.26303"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r  optstr=":hirux"
