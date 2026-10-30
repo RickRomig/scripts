@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 25 Oct 2026
-# Version      : 14.5.26298
+# Updated      : 30 Oct 2026
+# Version      : 14.5.26303
 # Comments     : Testing indicates USB drive needs to be mounted.
 #              : To test without writing to USB drive, dnter -d or --dryrun option to enable a dry run.
 #              : After a dryrun, USB drive will remain mounted.
@@ -26,8 +26,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 readonly FMENU="fzf --header=Write-ISO \
   --layout=reverse \
@@ -47,7 +47,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="25 Oct 2026"
+	local -r updated="30 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Writes an ISO image to a USB drive
@@ -204,7 +204,7 @@ write_iso() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="14.5.26298"
+	local -r version="14.5.26303"
 	local -i exit_code=0
 	local -r isoDir=~/Downloads/ISO
 	case "$1" in
