@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jan 2025
-# Updated      : 18 Sep 2026
-# Version      : 2.5.26261
+# Updated      : 30 Oct 2026
+# Version      : 2.5.26303
 # Comments     : creates a swap file if no other swap exists.
 #              : Disable old swap and comment out in /etc/fstab
 #              : User is prompted to provide size of swap file in GB (integer value)
@@ -26,8 +26,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 swap_exists() {
 	local myswap
@@ -75,17 +75,13 @@ create_swapfile() {
 	PS3="Choose creation method: "
 	select _opt in "${options[@]}"; do
 		case "$REPLY" in
-			1 )
-				dd_swapfile "$size" && process_swapfile
+			1 ) dd_swapfile "$size" && process_swapfile
 				break ;;
-			2 )
-				fallocate_swapfile "$size" && process_swapfile
+			2 ) fallocate_swapfile "$size" && process_swapfile
 				break ;;
-			3 )
-				printf "Swap file creation canceled.\n"
+			3 ) printf "Swap file creation canceled.\n"
 				break ;;
-			* )
-				printf "%sInvalid choice. Try again.%s\n" "$orange" "$normal" >&2
+			* ) printf "%sInvalid choice. Try again.%s\n" "$orange" "$normal" >&2
 		esac
 	done
 	return "$?"
@@ -93,7 +89,7 @@ create_swapfile() {
 
 main() {
 	local script="${0##*/}"
-	local version="2.5.26261"
+	local version="2.5.26303"
 	local -i exit_code=0
 	sudo_login 2
 	if swap_exists; then
