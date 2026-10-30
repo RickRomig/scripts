@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jul 2021
-# Updated      : 29 Sep 2026
-# Version      : 3.2.26272
+# Updated      : 30 Oct 2026
+# Version      : 3.2.26303
 # Comments     : Original script found on Reddit r/dharmmawheel, posted by u/Jhanna4
 # TODO (Rick)  : Work on getting sound functions to work with Pipewire audio.
 # License      : GNU General Public License, version 2.0
@@ -24,17 +24,17 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 usage() {
 	local -r script="$1"
-	cat << _USAGE_
+	cat <<- _USAGE_
 	${orange}Usage:${normal} $script <minutes> [volume 0-100]
 	Meditation time is set in minutes. Only enter integers greater than 0. The default is 20 minutes.
 	Volume is a percentage of the output volume. The default is 50%.
 	If no arguments or incorrect values are entered, the default values will be used.
-_USAGE_
+	_USAGE_
 	exit "$E_INVALID_ARG"
 }
 
@@ -156,7 +156,7 @@ meditate() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.2.26272"
+	local -r version="3.2.26303"
 	local minutes="$1"
 	[[ "$minutes" == "-h" || "$minutes" == "--help" ]] && usage "$script"
 	local volume="$2"
