@@ -7,8 +7,8 @@
 # Author       : Copyright © 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Jan 2022
-# Updated      : 10 Sep 2026
-# Version      : 3.5.26253
+# Updated      : 30 Oct 2026
+# Version      : 3.5.2603
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,8 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 get_wifi_interface() {
 	local wifi_int
@@ -78,7 +78,7 @@ show_wifi_ip() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.5.26253"
+	local -r version="3.5.26303"
 	local -i exit_code=0
 	show_wifi_ip
 	exit_code="$?"
