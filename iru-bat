@@ -7,12 +7,13 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 14 Oct 2026
-# Version      : 7.11.26287
+# Updated      : 30 Oct 2026
+# Version      : 7.11.26303
 # Comments     : Use install-batcat if distro version has same base version number as latest GitHub release.
 #              : Mint 22 installs version 0.24.0 with the Ubuntu version appended.
 #              : Debian 13 installs version 0.25.0 with the Debian version appended.
 #              : LMDE 7 (stable) installs version 0.22.1-4.
+#              : As of 30 Oct 2026, current version is 0.26.1
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -27,14 +28,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="14 Oct 2026"
+	local -r updated="30 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs, updates, or removes the Bat utililty.
@@ -45,7 +46,7 @@ help() {
 	-i	Installs the Bat utility.
 	-r	Removes the Bat utility from the system.
 	-u	Updates the Bat utility to the latest GitHub release.
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -146,7 +147,7 @@ bat_config() {
 
 main() {
 	local -r  script="${0##*/}"
-	local -r version="7.11.26287"
+	local -r version="7.11.26303"
 	local -i exit_code=0
 	local -r gh_url="https://github.com/sharkdp/bat/releases"
 	local -i noOpt=1
