@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 12 Mar 2025
-# Last updated : 05 Aug 2026
-# Version      ; 2.3.26217
+# Last updated : 30 Oct 2026
+# Version      ; 2.3.26303
 # Comments     : Only unmounts devices belonging to the current user.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,8 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 check_usb() {
 	[[ $(grep 'usb' <(lsblk -S -o TRAN)) = *usb* ]] && return "$TRUE" || return "$FALSE"
@@ -46,7 +46,7 @@ unmount_usb() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.3.26217"
+	local -r version="2.3.26303"
 	local -i exit_code=0
 	check_package fzf
 	unmount_usb
