@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 30 Jun 2020
-# Updated      : 09 Sep 2026
-# Version      : 4.5.26252
+# Updated      : 30 Oct 2026
+# Version      : 4.5.26303
 # Comments     : In Linux Mint, snapd package is 'uninstalled'
 #              : Script is untested.
 #              : See EZNix snapkill at https://github.com/ravik1997/SnapKill
@@ -25,14 +25,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-2}"
-	local -r updated="09 Sep 2026"
+	local -r updated="30 Oct 2026"
 	cat <<- _HELP_
 	${green}Usage:${normal} $script [-dehs]
 	${orange}OPTIONS:${normal}
@@ -41,7 +41,7 @@ help() {
 	-h    Show this help message and exit.
 	-s    Status of snapd and snap package installation.
 	$script v$version, updated $updated
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -112,7 +112,7 @@ disable_snaps() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.5.26252"
+	local -r version="4.5.26303"
 	local -r pref_file=/etc/apt/preferences.d/nosnap.pref
 	local -i exit_code=0
 	local -i noOpt=1
@@ -122,20 +122,15 @@ main() {
 	snapd_installed && printf "Snapd installed\n" || printf "Snapd is not installed.\n"
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			d )
-				disable_snaps "$pref_file" ;;
-			e )
-				if snapd_installed && snaps_enabled "$pref_file"; then
+			d ) disable_snaps "$pref_file" ;;
+			e ) if snapd_installed && snaps_enabled "$pref_file"; then
 					printf "Snaps are already enabled.\n"
 				else
 					enable_snaps "$pref_file"
 				fi ;;
-			h )
-				help 0 ;;
-			s )
-				snaps_enabled "$pref_file" && printf "Snaps are enabled.\n" || printf "Snaps are disabled.\n" ;;
-			? )
-				printf "\n%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			h ) help "$script" "$version" 0 ;;
+			s ) snaps_enabled "$pref_file" && printf "Snaps are enabled.\n" || printf "Snaps are disabled.\n" ;;
+			? ) printf "\n%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
