@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, LudditeGeek@Mosfnet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Jul 2021
-# Updated      : 25 Oct 2026
-# Version      : 7.5.26298
+# Updated      : 30 Oct 2026
+# Version      : 7.5.26303
 # Comments     : Based on a script by Kris Occhipinti https://filmsbykris.com
 #              : 3-day forecast is ASCII text and does not scale.
 # License      : GNU General Public License, version 2.0
@@ -25,7 +25,7 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	clear
@@ -230,29 +230,23 @@ menu() {
 		PS3="Choice: "
 		select _opt in "${options[@]}"; do
 			case $REPLY in
-				1 )
-					current_wx "$url" "${location// /+}"
+				1 ) current_wx "$url" "${location// /+}"
 					anykey
 					break ;;
-				2 )
-					wx_forecast "$url" "${location// /+}"
+				2 ) wx_forecast "$url" "${location// /+}"
 					anykey
 					break ;;
-				3 )
-					printf "\nChange location.\n"
+				3 ) printf "\nChange location.\n"
 					printf "Replace any spaces with + or _\n"
 					printf "Just pressing ENTER will use location based on the public IP.\n"
 					read -rp "New location: " location
 					break ;;
-				4 )
-					help
+				4 ) help
 					anykey
 					break ;;
-				5 )
-					# Quit
+				5 ) # Quit
 					break 2 ;;
-				* )
-					printf "%s Invalid choice. Choose 1, 2, 3, 4, or 5\n" "$RED_ERROR" >&2
+				* ) printf "%s Invalid choice. Choose 1, 2, 3, 4, or 5\n" "$RED_ERROR" >&2
 			esac
 		done
 	done
@@ -261,7 +255,7 @@ menu() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.5.26298"
+	local -r version="7.5.26303"
 	local -r wx_url="https://wttr.in"
 	local location="${1:-Huber+Heights}"
 	create_tmp "file"
