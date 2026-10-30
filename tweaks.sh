@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 09 Aug 2025
-# Last updated : 25 Oct 2026
-# Version      ; 4.8.26298
+# Last updated : 30 Oct 2026
+# Version      ; 4.8.26303
 # Comments     : To be used on existing installations
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,8 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
@@ -206,7 +206,7 @@ link_script_dir() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.8.26298"
+	local -r version="4.8.26303"
 	local -i exit_code=0
 	local opt OPTIND OPTARG
 	local old_configs=~/.old-configs
@@ -226,8 +226,7 @@ main() {
 			s ) link_script_dir ;;
 			t ) sudoers_tweaks "$repo_dir" ;;
 			w ) set_swappiness "$repo_dir" ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
