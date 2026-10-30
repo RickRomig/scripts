@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2017, Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 2017
-# Updated      : 09 Sep 2026
-# Version      : 4.3.26252
+# Updated      : 30 Oct 2026
+# Version      : 4.3.26303
 # Comments     : File extensions are not case sensitive, but will change to lowercase.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,8 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
@@ -41,7 +41,7 @@ help() {
 	* Input file extensions are not case sensitive.
 	* Any combination of upper and lower case is acceptable.
 	* File extensions will be converted to lowercase.
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -64,7 +64,7 @@ rename_extension() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.3.26252"
+	local -r version="4.3.26303"
 	local -r extension="$1"
 	check_package rename
 	[[ "$extension" == "-h" || "$extension" == "--help" ]] && help "$script" "$version" 0
