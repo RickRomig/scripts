@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 19 Feb 2026
-# Updated      : 10 Sep 2026
-# Version      : 1.5.26253
+# Updated      : 30 Oct 2026
+# Version      : 1.5.26303
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,8 +24,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 show_linux_headers() {
 	local header_list
@@ -45,7 +45,7 @@ show_linux_images() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.5.26253"
+	local -r version="1.5.26303"
 	show_linux_images
 	show_linux_headers
 	over_line "$script $version"
