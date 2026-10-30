@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Nov 2019
-# Updated      : 09 Sep 2026
-# Version      : 6.4.26252
+# Updated      : 30 Oct 2026
+# Version      : 6.4.26303
 # Comments     : Changes the hostname in both /etc/hostname and /etc/hosts.
 #              : Rules based on hostname(7) man page
 #              : Hostname length limited to 5-15 characters for NETBIOS compatibility.
@@ -28,21 +28,21 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 hostname_rules() {
-  cat << _RULES_
+	cat <<- _RULES_
 
-${lightblue}Hostname Rules${normal}
-  ${orange}*${normal} 5-15 characters (for NETBIOS compatibility)
-  ${orange}*${normal} a-z, 0-9, - (hyphen)
-  ${orange}*${normal} lowercase (uppercase will be converted)
-  ${orange}*${normal} no special characters (except hyphen)
-  ${orange}*${normal} first character cannot be a hyphen or a digit
-  ${orange}*${normal} last character cannot be a hyphen
-_RULES_
-  return 0
+	${lightblue}Hostname Rules${normal}
+	${orange}*${normal} 5-15 characters (for NETBIOS compatibility)
+	${orange}*${normal} a-z, 0-9, - (hyphen)
+	${orange}*${normal} lowercase (uppercase will be converted)
+	${orange}*${normal} no special characters (except hyphen)
+	${orange}*${normal} first character cannot be a hyphen or a digit
+	${orange}*${normal} last character cannot be a hyphen
+	_RULES_
+	return 0
 }
 
 get_new_hostname() {
@@ -112,7 +112,7 @@ change_hostname() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.4.26252"
+	local -r version="6.4.26303"
 	printf "Renames the system hostname.\n"
 	hostname_rules
 	get_new_hostname
