@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard Romig, 27 Sep 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Updated      : 19 Sep 2026
-# Version      : 8.9.26262
+# Updated      : 30 Oct 2026
+# Version      : 8.9.26303
 # Comments     : Sync scripts to one, multiple, or all machines on the network.
 #              : For mulitiple IPs, integer arguments are expected.
 #              : For use only within the range of static IP addresses.
@@ -28,7 +28,7 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/functionlib.bash
-source functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 SECONDS=0
 
@@ -36,7 +36,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="10 Sep 2026"
+	local -r updated="30 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Synchronizes ~/bin with remote hosts.
@@ -59,7 +59,7 @@ help() {
 	1. Multiple IP addresses can be entered.
 	2. This script is limited to the range of static IP addresses on the MosfaNet network (11 - 25).
 	3. Certain addresses within that range have been marked as restricted and are not accessible.
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
