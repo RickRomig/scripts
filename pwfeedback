@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Updated      : 09 Sep 2026
-# Version      : 5.2.26252
+# Updated      : 30 Oct 2026
+# Version      : 5.3.26303
 # Comments     : Preferred (default) method to enable password feedback is /etc/sudoers.d/0pwfeedback.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -24,14 +24,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="09 Sep 2026"
+	local -r updated="30 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Enable/Disable password feedback in the terminal.
@@ -42,7 +42,7 @@ help() {
 	-d  Disable password feedback
 	-h  Help
 	-s  Status of password feedback
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -96,7 +96,7 @@ disable_pwfeedback() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.2.26252"
+	local -r version="5.3.26303"
 	local -r pwfb_file=/etc/sudoers.d/0pwfeedback
 	local -i exit_code=0
 	local opt OPTARG OPTIND
@@ -104,16 +104,11 @@ main() {
 	local -r optstr=":edhs"
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			e )
-				enable_pwfeedback "$pwfb_file" ;;
-			d )
-				disable_pwfeedback "$pwfb_file" ;;
-			h )
-				help "$script" "$version" 0 ;;
-			s )
-				pwfeedback_status "$pwfb_file" ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			e ) enable_pwfeedback "$pwfb_file" ;;
+			d ) disable_pwfeedback "$pwfb_file" ;;
+			h ) help "$script" "$version" 0 ;;
+			s ) pwfeedback_status "$pwfb_file" ;;
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
