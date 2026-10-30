@@ -7,8 +7,8 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 09 Sep 2026
-# Version      : 4.14.26252
+# Updated      : 30 Oct 2026
+# Version      : 4.14.26303
 # Comments     : match by regex, starting with http:// or https://
 #              : Follows symlinks to destination directory if present.
 # TODO (Rick)  : Not working on Pornhub or RedTube with yt-dlp version 2026-06-09 and above. Get the following warning and error:
@@ -30,14 +30,14 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="09 Sep 2026"
+	local -r updated="30 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Download videos from adult sites to the appropriate subdirectory.
@@ -47,7 +47,7 @@ help() {
 	${orange}Available options:${normal}
 	-h | --help  Show this help message and exit
 	-i | --info  Show information about the script and exit
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -67,7 +67,7 @@ script_info() {
 
 	When the download is completed, success or failure is displayed. If the
 	download fails, the script exits with an error code.
-_INFO_
+	_INFO_
 	return 0
 }
 
@@ -92,17 +92,17 @@ extract_domain() {
 
 select_directory() {
 	local -r fmenu="fzf --header=$script \
-						--layout=reverse \
-						--exact \
-						--border=bold \
-						--border=rounded \
-						--margin=5% \
-						--color=dark \
-						--height=95% \
-						--info=hidden \
-						--header-first \
-						--bind change:top \
-						--prompt"
+		--layout=reverse \
+		--exact \
+		--border=bold \
+		--border=rounded \
+		--margin=5% \
+		--color=dark \
+		--height=95% \
+		--info=hidden \
+		--header-first \
+		--bind change:top \
+		--prompt"
 	local -r video_dir=~/Videos/Pornography
 	local directories=()
 	local vid_d selected_directory
@@ -152,7 +152,7 @@ check_arguments() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.13.26219"
+	local -r version="4.14.26303"
 	local -i exit_code=0
 	local -r re="^https?:\/\/.*"
 	check_arguments "$@"
