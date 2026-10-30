@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 ###############################################################################
-# Script Name  : verify-iso
+# Script Name  : verify-iso-checsum
 # Description  : Verifies SHA1, SHA256, SHA512, and MD5 checksums of ISO files
 # Dependencies : fzf
 # Arguments    : none (-h or --help for usage and requirements)
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 25 Oct 2026
-# Version      : 13.5.26298
+# Updated      : 30 Oct 2026
+# Version      : 13.5.26303
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
@@ -27,8 +27,8 @@
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 ###############################################################################
 
-# shellcheck source=/home/rick/bin/functionlib.bash
-source ~/bin/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+# shellcheck source=/home/rick/bin/files/functionlib.bash
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 readonly FMENU="fzf --header=Verifiy-ISO \
   --layout=reverse \
@@ -48,7 +48,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="25 Oct 2026"
+	local -r updated="30 Oct 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: $updated
 	Verifies SHA1/SHA256/SHA512/MD5 checksums for ISO files.
@@ -113,16 +113,11 @@ verify_checksums() {
 	spin &
 	SPIN_PID="$!"
 	case "$ext" in
-		md5 )
-			iso_sum=$(awk '{print $1}' < <(/usr/bin/md5sum "$iso")) ;;
-		sha1 )
-			iso_sum=$(awk '{print $1}' < <(/usr/bin/sha1sum "$iso")) ;;
-		sha256 )
-			iso_sum=$(awk '{print $1}' < <(/usr/bin/sha256sum "$iso")) ;;
-		sha512 )
-			iso_sum=$(awk '{print $1}' < <(/usr/bin/sha512sum "$iso")) ;;
-		* )
-			:
+		md5 ) iso_sum=$(awk '{print $1}' < <(/usr/bin/md5sum "$iso")) ;;
+		sha1 ) iso_sum=$(awk '{print $1}' < <(/usr/bin/sha1sum "$iso")) ;;
+		sha256 ) iso_sum=$(awk '{print $1}' < <(/usr/bin/sha256sum "$iso")) ;;
+		sha512 ) iso_sum=$(awk '{print $1}' < <(/usr/bin/sha512sum "$iso")) ;;
+		* ) :
 	esac
 	chk_sum=$(awk '{print $1}' "$checksum")
 	kill_spin
@@ -159,7 +154,7 @@ check_extension() {
 	esac
 }
 
-verify_iso() {
+verify_iso_checksum() {
 	local checksum isofile iso_dir
 	local -r isoDir=~/Downloads/ISO
 	# Select ISO, ISO file, and checksum file...
@@ -198,7 +193,7 @@ main() {
 	local -i exit_code=0
 	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0;
 	check_package fzf
-	verify_iso
+	verify_iso_checksum
 	exit_code="$?"
 	over_line "$script $version" "-"
 	exit "$exit_code"
