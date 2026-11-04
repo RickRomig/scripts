@@ -9,7 +9,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
 # Updated      : 04 Nov 2026
-# Version      : 21.15.26308
+# Version      : 22.0.26308
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,7 +26,7 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 installed_version() {
 	local package="$1"
@@ -51,7 +51,7 @@ show_versions() {
 	local -r packages=("$@")
 	for package in "${packages[@]}"; do
 		if exists "$package"; then
-			printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
+			printf "%s%-18s%s" "${darkgray}" "${package^}" "${gray}"
 			[[ "$package" == "batcat" ]] && package="bat"
 			[[ "$package" == "google-chrome" ]] && package+="-stable"
 			printf "%s\n" "$(installed_version "$package")"
@@ -99,22 +99,22 @@ get_new_version() {
 
 github_packages() {
 	local cur_ver new_ver package release_path
-	local -r packages=( bat codium fastfetch fresh-editor micro )
-	printf "%-16s%-16s%s\n" "GitHub Package" "Latest version" "Installed version"
+	local -r packages=(bat codium fastfetch fresh-editor micro)
+	printf "%-18s%-18s%s\n" "GitHub Package" "Latest version" "Installed version"
 	for package in "${packages[@]}"; do
 		cur_ver=$(installed_version "$package")
 		release_path=$(get_release_path "$package")
 		new_ver=$(get_new_version "$package" "$release_path")
-		printf "%s%-16s" "${darkgray}" "${package^}"
+		printf "%s%-18s" "${darkgray}" "${package^}"
 		if [[ "$new_ver" ]]; then
-			printf "%s%-16s" "${gray}" "$new_ver"
+			printf "%s%-18s" "${gray}" "$new_ver"
 		else
-			printf "%s%-16s" "${red}" "No release"
+			printf "%s%-18s" "${red}" "No release"
 		fi
 		if [[ -z "$cur_ver" ]]; then
 			printf "%s%s\n" "${gray}" "not installed"
 		elif newer_version "$new_ver" "$cur_ver"; then
-			printf "%s%-16s%sUpdate available\n" "${gray}" "$cur_ver" "${orange}"
+			printf "%s%-18s%sUpdate available\n" "${gray}" "$cur_ver" "${orange}"
 		else
 			printf "%s%s\n" "${gray}" "$cur_ver"
 		fi
@@ -124,29 +124,29 @@ github_packages() {
 }
 
 utility_packages() {
-	local -r packages=( bash dsh flatpak fzf gitea keepassxc nala picom zoom )
-	printf "%-15s%s\n" "Other Packages" "Version"
+	local -r packages=(bash dsh flatpak fzf gitea keepassxc nala picom zoom)
+	printf "%-18s%s\n" "Other Packages" "Version"
 	show_versions "${packages[@]}"
 	return 0
 }
 
 dev_packages() {
-	local -r packages=( batcat bluefish featherpad geany gedit git glow gnome-text-editor mousepad nano shellcheck xed )
-	printf "%-15s%s\n" "Development" "Version"
+	local -r packages=(batcat bluefish featherpad geany gedit git glow mousepad nano shellcheck text-editor xed)
+	printf "%-18s%s\n" "Development" "Version"
 	show_versions "${packages[@]}"
 	return 0
 }
 
 terminal_packages() {
-	local -r packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
-	printf "%-15s%s\n" "Terminal" "Version"
+	local -r packages=(gnome-terminal kitty lxterminal terminator xfce4-terminal xterm)
+	printf "%-18s%s\n" "Terminal" "Version"
 	show_versions "${packages[@]}"
 	return 0
 }
 
 browser_packages() {
-	local -r packages=( brave-browser chromium firefox google-chrome librewolf )
-	printf "%-15s%s\n" "Browser" "Version"
+	local -r packages=(brave-browser chromium firefox google-chrome librewolf)
+	printf "%-18s%s\n" "Browser" "Version"
 	show_versions "${packages[@]}"
 	return 0
 }
@@ -156,12 +156,12 @@ flatpak_packages() {
 		local -r packages=(HandBrake HomeBank LibreOffice KeePassXC)
 		local package version fp_pkg
 		[[ $(wc -l < <(flatpak list)) -eq 0 ]] && return 0
-		printf "%-15s%s\n" "Flatpak" "Version"
+		printf "%-18s%s\n" "Flatpak" "Version"
 		for package in "${packages[@]}"; do
 			if grep -iq "$package" < <(flatpak list); then
 				fp_pkg=$(grep -i "$package" < <(flatpak list) | cut -f1)
 				version=$(grep -i "$package" < <(flatpak list) | cut -f3)
-				printf "%s%-15s%s%s\n" "${darkgray}" "${fp_pkg^}" "${gray}" "$version"
+				printf "%s%-18s%s%s\n" "${darkgray}" "${fp_pkg^}" "${gray}" "$version"
 			fi
 		done
 	fi
@@ -170,7 +170,7 @@ flatpak_packages() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="21.15.26308"
+	local -r version="22.0.26308"
 	create_tmp "file"
 	check_package curl
 	clearscreen
