@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Script Name  : clone-repo
-# Description  : Clone a git repository from local Gitea server or GitHub
+# Description  : Clone a git repository from local Gitea server or my GitHub
 # Dependencies : git
 # Arguments    : See help() function for getopts flags
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 26 Oct 2026
-# Version      : 5.4.26299
-# Comments     :
+# Updated      : 03 Nov 2026
+# Version      : 5.5.26307
+# Comments     : Only workss with repositories under my GitHub account or on my local Gitea server.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -31,21 +31,21 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="26 Oct 2026"
+	local -r updated="03 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Clone a git repository from GitHub or the local Gitea server
 
 	${green}Usage:${normal} $script [-cfghipsw]
 	${orange}Available options:${normal}
-	-c	Clone configs repository from GitHub
-	-f	Clone fnloc repository from Gitea server
-	-g	Clone gitea server repository from Gitea server
+	-c	Clone Configs repository from GitHub
+	-f	Clone FnLoC repository from Gitea server
+	-g	Clone Gitea server repository from Gitea server
 	-h	Show this help message and exit
-	-i	Clone i3wm-debian repository from GitHub
-	-p	Clone homepage repository from Gitea server
-	-s	Clone scripts repository from GitHub
-	-w	Clone fnloc-win repository from Gitea server
+	-i	Clone i3wm-Debian repository from GitHub
+	-p	Clone Homepage repository from Gitea server
+	-s	Clone Scripts repository from GitHub
+	-w	Clone FnLoC-Win repository from Gitea server
 	_HELP_
 	exit "$errcode"
 }
@@ -54,7 +54,7 @@ check_repo() {
 	local -r git_repo="$1"
 	local -r dl_dir=~/Downloads
 	if [[ $(find "$dl_dir/$git_repo" -maxdepth 1 -type f 2>/dev/null) ]]; then
-		printf "%s is not empty. Updating the repository clone...\n" "$dl_dir/$git_repo"
+		printf "The %s directory is not empty. Updating the cloned repository...\n" "$git_repo"
 		pushd "$dl_dir/$git_repo" >/dev/null || return "$E_POPD_PUSHD"
 		git checkout .
 		git pull
@@ -81,7 +81,7 @@ clone_repo() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.4.26299"
+	local -r version="5.5.26307"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":cfghipsw"
