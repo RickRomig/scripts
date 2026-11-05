@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 30 Oct 2026
-# Version      : 8.8.26303
+# Updated      : 05 Nov 2026
+# Version      : 8.9.26309
 # Comments     : Based on a script by Joe Collins.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -31,7 +31,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="30 Oct 2026"
+	local -r updated="05 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs laptop-specific utlities.
@@ -89,8 +89,7 @@ tlp_status() {
 	if ! installed tlp; then
 		printf "TLP is not installed.\n" >&2
 		return "$E_INSTALLATION"
-	fi
-	if is_systemd; then
+	elif is_systemd; then
 		grep -qw active <(systemctl status tlp)
 		code="$?"
 	elif is_sysv; then
@@ -129,39 +128,22 @@ start_tlp_service() {
 }
 
 main() {
+	local -r lhost="${HOSTNAME:=-$(hostname)}"
+	is_laptop || die "$lhost is not a laptop. Nothing to do." "$E_UNSUPPORTED"
 	local -r script="${0##*/}"
-	local -r version="8.8.26303"
+	local -r version="8.9.26309"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":dhis"
-	local -r lhost="${HOSTNAME:=-$(hostname)}"
 	local -r packages=(acpi thermald tlp tlp-rdw)
 	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			d )
-				if is_laptop; then
-					installed_packages "${packages[@]}"
-				else
-					printf "%s is not a laptop. Nothing to do.\n" "$lhost"
-				fi ;;
-			h )
-				help "$script" "$version" 0 ;;
-			i )
-				if is_laptop; then
-					intro
-					install_packages "${packages[@]}"
-				else
-					printf "%s is not a laptop. Nothing to do.\n" "$lhost"
-				fi ;;
-			s )
-				if is_laptop; then
-					tlp_status
-				else
-					printf "%s is not a laptop. Nothing to do.\n" "$lhost"
-				fi ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			d ) installed_packages "${packages[@]}" ;;
+			h ) help "$script" "$version" 0 ;;
+			i ) intro; install_packages "${packages[@]}" ;;
+			s ) tlp_status ;;
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
