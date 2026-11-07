@@ -7,9 +7,9 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, 02 Nov 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Nov 2019
-# Updated      : 29 Oct 2026
-# Version      : 3.0.26302
-# Comments     : Appears to function, but haven't been able to download a page.'
+# Updated      : 06 Nov 2026
+# Version      : 3.0.26310
+# Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -44,7 +44,7 @@ help() {
 	return "$errcode"
 }
 
-print_status() {
+print_download_status() {
 	local -ri code="$1"
 	local -rA return_code=(
 		[0]="No problems occurred. Download successful."
@@ -67,9 +67,10 @@ download_page() {
 	local domain
 	domain=$(sed 's|^[^/]*//||; s|^www\.||; s|/.*$||' <<< "$url")
 	printf "Downloading %s to %s\n" "$url" "$PWD"
-	wget --quiet --recursive --page-requisites --html-extension --convert-links --restrict-file-names=windows --domains "$domain" --no-parent "$url"
+	wget --quiet --recursive --page-requisites --html-extension --convert-links \
+	--restrict-file-names=windows --domains "$domain" --no-parent "$url"
 	code="$?"
-	print_status "$code"
+	print_download_status "$code"
 	return "$code"
 }
 
@@ -94,7 +95,7 @@ check_arguments() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.0.26302"
+	local -r version="3.0.26310"
 	local -i exit_code=0
 	check_arguments "$@"
 	exit_code="$?"
