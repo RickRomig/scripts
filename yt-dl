@@ -7,8 +7,8 @@
 # Author       : Copyright © 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Apr 2019
-# Updated      : 30 Oct 2026
-# Version      : 8.1.26303
+# Updated      : 10 Nov 2026
+# Version      : 8.2.26314
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to selected directory under ~/Videos/ (follows symlinks)
 # TODO (Rick)  :
@@ -143,7 +143,8 @@ download_video() {
 	color_header "${site^} Download" "BLUE"
 	printf "\n%s%sDownloading video from %s to " "$bold" "$blue" "${site^}"
 	printf "%s...%s\n" "$destination" "$normal"
-	/usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata -ic --restrict-filename -o "$destination/%(title)s.%(ext)s" "$url"; code="$?"
+	/usr/local/bin/yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --add-metadata \
+	 -ic --restrict-filename -o "$destination/%(title)s.%(ext)s" "$url"; code="$?"
 	if [[ $code -eq 0 ]]; then
 		printf "Download successful.\n"
 		return "$code"
@@ -155,8 +156,8 @@ download_video() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="8.1.26303"
-	local -r updated="25 Oct 2026"
+	local -r version="8.2.26314"
+	local -r updated="10 Nov 2026"
 	local -i exit_code=0
 	local -r re="^https?:\/\/.*"
 	check_arguments "$@"
