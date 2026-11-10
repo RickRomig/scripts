@@ -7,8 +7,8 @@
 # Author       : Copyright © 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 May 2020
-# Updated      : 30 Oct 2026
-# Version      : 3.6.26303
+# Updated      : 10 Nov 2026
+# Version      : 3.7.26314
 # Comments     : Accepts only full URL
 #              : Downloads to current working directory
 #              : Video Playlist
@@ -34,7 +34,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="30 Oct 2026"
+	local -r updated="10 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: $updated
 	Downloads mp3 audio from a playlist of YouTube videos to current working directory.
@@ -74,19 +74,20 @@ download_playlist() {
 	color_header "YouTube Audio Playlist Download" "GRAY"
 	printf "\nDownloading mp3 audio for %s\n" "$playlist_url"
 	# if /usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s"  --yes-playlist "$url"
-	/usr/local/bin/yt-dlp --ignore-errors --format bestaudio --extract-audio --restrict-filename --audio-format mp3 --audio-quality 160K --output "%(title)s.%(ext)s" --yes-playlist "$playlist_url"; code="$?"
+	/usr/local/bin/yt-dlp --ignore-errors --format bestaudio --extract-audio --restrict-filename \
+	--audio-format mp3 --audio-quality 160K --output "%(title)s.%(ext)s" --yes-playlist "$playlist_url"
+	code="$?"
 	if [[ "$code" -ne 0 ]]; then
 		printf "Download failed. Error: %d" "$code"
-		return "$code"
 	else
 		printf "Download successful.\n"
-		return "$code"
 	fi
+	return "$code"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.6.26303"
+	local -r version="3.7.26314"
 	local -i exit_code=0
 	local -r re="^https?:\/\/.*"
 	check_arguments "$@"
