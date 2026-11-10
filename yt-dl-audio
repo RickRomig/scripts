@@ -7,8 +7,8 @@
 # Author       : Copyright © 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Nov 2019
-# Updated      : 30 Oct 2026
-# Version      : 3.11.26303
+# Updated      : 10 Nov 2026
+# Version      : 3.12.26314
 # Comments     : Accepts both full URLs and video id's such as AQcQgfvfF1M
 #              : Downloads to current working directory
 # TODO (Rick)  :
@@ -32,7 +32,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="30 Oct 2026"
+	local -r updated="10 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: $updated
 	Downloads mp3 audio from YouTube videos to the current working diretory.
@@ -72,21 +72,23 @@ check_dependencies() {
 
 download_audio() {
 	local -r url="$1"
-	local -i exit_code=0
+	local -i code=0
 	color_header "YouTube Audio Download" "ORANGE"
 	printf "\nDownloading mp3 audio from %s to %s...\n" "$url" "$PWD"
-	/usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 --output "%(title)s.%(ext)s" "$url"; exit_code="$?"
-	if [[ "$exit_code" -ne 0 ]]; then
-		printf "Download failed. Error: %d" "$exit_code"
+	/usr/local/bin/yt-dlp --add-metadata -xic --embed-thumbnail --restrict-filename --audio-format mp3 \
+	--output "%(title)s.%(ext)s" "$url"
+	code="$?"
+	if [[ "$code" -ne 0 ]]; then
+		printf "Download failed. Error: %d" "$code"
 	else
 		printf "Download successful.\n"
 	fi
-	return "$exit_code"
+	return "$code"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version=" 3.11.26303"
+	local -r version="3.12.26314"
 	local -i exit_code=0
 	local -r re="^https?:\/\/.*"
 	local audio_url
