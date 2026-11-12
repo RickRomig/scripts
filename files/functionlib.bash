@@ -6,7 +6,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 24 Oct 2026
+# Last updated : 12 Nov 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/files/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -660,7 +660,11 @@ reboot_system() {
 	if default_no "Do you want to reboot now?"; then
 		printf "Rebooting...\n"
 		sleep 10
-		sudo systemctl reboot
+		if is_systemd; then
+			sudo systemctl reboot
+		else
+			sudo reboot
+		fi
 	else
 		printf "\n%s Please reboot your system as soon as practical.\n" "$RED_WARNING"
 	fi
