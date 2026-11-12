@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 25 Oct 2026
-# Version      : 12.3.26298
+# Updated      : 12 Nov 2026
+# Version      : 12.5.26316
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -33,7 +33,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="04 Sep 2026"
+	local -r updated="12 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Performs a system update using either Apt-get or Nala.
@@ -69,7 +69,11 @@ system_reboot() {
 	if default_no "Do you want to reboot now?"; then
 		printf "Rebooting the system...\n"
 		sleep 10
-		sudo systemctl reboot
+		if is_systemd; then
+			sudo systemctl reboot
+		else
+			sudo reboot
+		fi
 	else
 		printf "\n%s Please reboot your system as soon as possible.\n" "$RED_WARNING"
 		return 0
@@ -273,7 +277,7 @@ other_checks() {
 main() {
 	SECONDS=0
 	local -r script="${0##*/}"
-	local -r version="12.3.26298"
+	local -r version="12.5.26316"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":ahn"
