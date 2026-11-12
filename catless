@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
 # Updated      : 12 Nov 2026
-# Version      : 8.6.26316
+# Version      : 8.7.26316
 # Comments     : Checks to see if passed argument is a valid text or json file.
 #              : To show line numbers, use -n after the file name.
 #              : Invalid options after the file name are ignore and default to no line numbers.
@@ -97,18 +97,14 @@ view_file() {
 	local -ir flag="$2"
 	if over_max "$textfile"; then
 		case "$flag" in
-			0 )
-				less -N "$textfile" ;;
-			* )
-				less "$textfile"
+			0 ) less -N "$textfile" ;;
+			* ) less "$textfile"
 		esac
 		head -n5 "$textfile"
 	else
 		case "$flag" in
-			0 )
-				cat -n "$textfile" ;;
-			* )
-				cat "$textfile"
+			0 ) cat -n "$textfile" ;;
+			* ) cat "$textfile"
 		esac
 	fi
 	printf "%sFile: %s%s\n" "$reverse" "$textfile" "$normal"
@@ -117,14 +113,14 @@ view_file() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="8.6.26316"
+	local -r version="8.7.26316"
 	local -i exit_code=0
-	local -i n_flag=1
+	local -i flag=1
 	[[ $1 == "-h" ]] && help "$script" "$version" 0
 	local -r filename="$1"
-	local -l n_option="${2:-z}"	# make argument lowercase
-	n_flag=$(set_flag "$n_option")
-	check_file "$filename" && view_file "$filename" "$n_flag"
+	local -l option="${2:-z}"	# make argument lowercase
+	flag=$(set_flag "$option")
+	check_file "$filename" && view_file "$filename" "$flag"
 	exit_code="$?"
 	over_line "$script $version"
 	exit "$exit_code"
