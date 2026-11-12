@@ -7,10 +7,11 @@
 # Author       : Copyright © 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 26 Oct 2026
-# Version      : 8.5.26299
+# Updated      : 12 Nov 2026
+# Version      : 8.6.26316
 # Comments     : Checks to see if passed argument is a valid text or json file.
 #              : To show line numbers, use -n after the file name.
+#              : Invalid options after the file name are ignore and default to no line numbers.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -32,7 +33,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="26 Oct 2026"
+	local -r updated="12 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version (updated $updated)
 	Displays a text file using either cat or less depending the number of lines in
@@ -43,6 +44,8 @@ help() {
 	${orange}Available options:${normal}
 	  -h	Show this help message and exit.
 	  -n	Display line numbers (follows filename and is case-insensitive).
+	  Default is no line numbers.
+	  Invalid options are ignored.
 	_HELP_
 	exit "$errcode"
 }
@@ -69,8 +72,13 @@ check_file() {
 set_flag() {
 	local option="$1"
 	local -i flag=1
-	[[ "${option:0:1}" != "-" ]] && option="${option:0:1}"	# take 1st character of string
-	[[ "${option:0:1}" == "-" ]] && option="${option:0:2}"	# take 1st two characters if 1st is '-'
+	if [[ "${option:0:1}" == "-" ]]; then
+		# use 1st two characters of the string
+		option="${option:0:2}"
+	else
+		# use 1st character of the string
+		option="${option:0:1}"
+	fi
 	[[ "$option" == "-n" || "$option" == "n" ]] && flag=0 || flag=1
 	printf "%d" "$flag"
 	return 0
@@ -109,7 +117,7 @@ view_file() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="8.5.26299"
+	local -r version="8.6.26316"
 	local -i exit_code=0
 	local -i n_flag=1
 	[[ $1 == "-h" ]] && help "$script" "$version" 0
