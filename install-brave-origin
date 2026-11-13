@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 13 Jul 2026
-# Updated      : 29 Oct 2026
-# Version      : 1.6.26302
+# Updated      : 13 Nov 2026
+# Version      : 1.7.26317
 # Comments     : Does not overwrite current Brave Browser version
 #              : To downgrade to the original standard Brave:
 #              : Go to brave://flags/#brave-origin and change flag to Disabled
@@ -35,7 +35,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="29 Oct 2026"
+	local -r updated="13 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Installs/Removes Brave Origin
@@ -53,7 +53,7 @@ help() {
 }
 
 check_dependencies() {
-	if [[ ! $(uname -m) == "x86_64" ]]; then
+	if [[ $(uname -m) != "x86_64" ]]; then
 		printf "%s System architecture is not 64-bit.\n" "$RED_ERROR" >&2
 		return "$E_UNSUPPORTED"
 	fi
@@ -130,7 +130,7 @@ remove_brave_origin() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.6.26302"
+	local -r version="1.7.26317"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hirv"
