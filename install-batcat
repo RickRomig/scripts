@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Updated      : 28 Oc 2026
-# Version      : 2.17.26301
+# Updated      : 13 Nov 2026
+# Version      : 2.18.26317
 # Comments     : executable and its manpage will be renamed from ‘bat’ to ‘batcat’
 #              : because of a file name clash with another Debian package.
 #              : Mint 22 installs version 0.24.0 with suffix.
@@ -35,7 +35,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="28 Oc 2026"
+	local -r updated="13 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: $updated
 	Installs/removes/configures bat/batcat
@@ -46,7 +46,7 @@ help() {
 	-h	Show this help message and exit.
 	-i	Install bat from Debian/Ubuntu repository.
 	-r	Remove bat and configuration files.
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -114,13 +114,12 @@ bat_config() {
 		[[ -d ~/.local/bin ]] || mkkdir -p ~/.local/bin
 		ln -sv /usr/bin/batcat ~/.local/bin/bat
 	fi
-	printf "Bat configuration applied.\n"
-	return 0
+	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.17.26301"
+	local -r version="2.18.26317"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":chir"
@@ -131,8 +130,7 @@ main() {
 			h ) help "$script" "$version" 0 ;;
 			i ) install_batcat && bat_config ;;
 			r ) remove_batcat ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
