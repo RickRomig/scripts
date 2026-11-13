@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 28 Oct 2026
-# Version      : 4.7.26301
+# Updated      : 13 Nov 2026
+# Version      : 4.8.26317
 # Comments     : Based on instructions from Joe Collins.
 # TODO (Rick)  : check entry in flatpak list, does Flatpak include all dependencies?
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="28 Oct 2026"
+	local -r updated="13 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Install Gnome Boxes from either distribution repositories or flatpak from Flathub.
@@ -74,10 +74,8 @@ check_bios() {
 	printf "enabled in the BIOS. (%d threads)\n" "$vcpu"
 	vmx_svm=$(grep -E -m 1 'vmx|svm' /proc/cpuinfo )
 	case "$vmx_svm" in
-		*vmx* )
-			sudo tee -a "$qemu_sys_conf" >/dev/null <<< "options kvm_intel nested=1" ;;
-		*svm* )
-			sudo tee -a "$qemu_sys_conf" >/dev/null <<< "options kvm_amd nested=1" ;;
+		*vmx* ) sudo tee -a "$qemu_sys_conf" >/dev/null <<< "options kvm_intel nested=1" ;;
+		*svm* ) sudo tee -a "$qemu_sys_conf" >/dev/null <<< "options kvm_amd nested=1" ;;
 	esac
 	sudo tee -a "$qemu_sys_conf" >/dev/null <<< "group=kvm"
 	return 0
@@ -186,7 +184,7 @@ install_from_flatpak() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.7.26301"
+	local -r version="4.8.26317"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":dfh"
@@ -196,8 +194,7 @@ main() {
 			d ) check_bios && install_from_deb ;;
 			f ) check_bios && install_from_flatpak ;;
 			h ) help "$script" "$version" 0 ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
