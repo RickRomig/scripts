@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 29 Oct 2026
-# Version      : 7.9.26302
+# Updated      : 13 Nov 2026
+# Version      : 7.10.26317
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -34,7 +34,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="29 Oct 2026"
+	local -r updated="13 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: ($updated)
 	Installs/Removes the Brave browser
@@ -50,7 +50,7 @@ help() {
 }
 
 check_dependencies() {
-	if [[ ! $(uname -m) == "x86_64" ]]; then
+	if [[ $(uname -m) != "x86_64" ]]; then
 		printf "%s System architecture is not 64-bit.\n" "$RED_ERROR" >&2
 		return "$E_UNSUPPORTED"
 	fi
@@ -144,7 +144,7 @@ remove_brave() {
 
 main(){
 	local -r script="${0##*/}"
-	local -r version="7.9.26302"
+	local -r version="7.10.26317"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hirv"
