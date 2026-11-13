@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 29 Oct 2026
-# Version      : 5.6.26302
+# Updated      : 13 Nov 2026
+# Version      : 5.7.26317
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  : add flatpak installation...
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -f updated="29 Oct 2026"
+	local -f updated="13 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, updated: ($updated)
 	Install/Remove VSCodium and apply settings
@@ -155,13 +155,13 @@ remove_vscodium() {
 
 show_message() {
 	local -r message="$1"
-		[[ "$VERBOSE" == "$TRUE" ]] && printf "%s\n" "$message"
+	[[ "$VERBOSE" == "$TRUE" ]] && printf "%s\n" "$message"
 	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.6.26302"
+	local -r version="5.7.26317"
 	local -r key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 	local -i exit_code=0
 	local -i noOpt=1
@@ -169,28 +169,20 @@ main() {
 	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			a)
-				# Set apt gpg key and source list for existing installation
-				if installed codium; then
+			a ) if installed codium; then
 					set_gpg_key "$key_file"
 					set_sources "$key_file"
 				else
 					printf "VSCodium is not installed.\n" >&2
 				fi ;;
-			h )
-				help "$script" "$version" 0 ;;
-			i )
-				check_dependencies
+			h ) help "$script" "$version" 0 ;;
+			i ) check_dependencies
 				install_vscodium "$key_file" && apply_settings ;;
-			r )
-				remove_vscodium ;;
-			s )
-				apply_settings ;;
-			v )
-				VERBOSE="$TRUE"
+			r ) remove_vscodium ;;
+			s ) apply_settings ;;
+			v ) VERBOSE="$TRUE"
 				show_message "Verbose mode enabled." ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
