@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Apr 2023
-# Updated      : 28 Oct 2026
-# Version      : 1.13.26301
+# Updated      : 15 Nov 2026
+# Version      : 1.14.26319
 # Comments     : Install with keybindings.conf in ~/.config/i3/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ copy_bindings() {
 	local repository
 	repository=$(assign_cfg_repo)
 	printf "Copying i3 keyboard bindings...\n"
-	awk -F/ '{print "==> "$NF}' < <(cp -v "$repository/$bindings" "$i3_dir/$bindings") | sed "s/'$//"
+	cpv_base "$repository/$bindings" "$i3_dir/$bindings"
 	return 0
 }
 
@@ -41,21 +41,21 @@ show_bindings() {
 	local -r i3_dir=~/.config/i3
 	local -r i3_bindings=keybindings.conf
 	[[ -f "$i3_dir/$bindings" ]] || copy_bindings "$i3_dir" "$bindings"
-	printf "i3wm keybindings:\n"
+	printf "%s%si3wm keybindings:%s\n" "$bold" "$green" "$normal"
 	column -t -s "|" -N Binding,Action,Binding,Action "$i3_dir/$bindings"
 	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.13.26301"
+	local -r version="1.14.26319"
 	local -i exit_code=0
 	if [[ "$DESKTOP_SESSION" == "i3" ]]; then
 		clearscreen
 		check_package git
 		show_bindings "$i3_dir" "$i3_bindings"
 	else
-		printf "i3wm is not the current desktop session.\n"
+		printf "i3wm is not the current desktop session.\n" >&2
 		exit_code="$E_UNSUPPORTED"
 	fi
 	over_line "$script $version"
