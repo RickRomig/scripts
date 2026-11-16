@@ -6,12 +6,12 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 14 Nov 2026
+# Updated      : 16 Nov 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/files/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
 #              : source "$HOME/bin/files/functionlib.bash" or source ~/bin/files/functionlib.bash
-# Warning!     : Using 'set -o pipefail' in script may cause unexpected behavior or some variables to not be recognized.
+# Warning!     : Using 'set -o pipefail' in a script may cause unexpected behavior or some variables to not be recognized.
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
 ###############################################################################
@@ -729,6 +729,13 @@ cpvs_base() {
 	local -r source="$1"
 	local -r destination="$2"
 	awk -F/ '{print "==> "$NF}' < <(sudo cp -v "$source" "$destination") | sed "s/'//"
+	return 0
+}
+
+cpa_base() {
+	local -r source="$1"
+	local -r destination="$2"
+	awk -F/ '{print "==> "$NF}' < <(cp -av "$source" "$destination") | sed "s/'//"
 	return 0
 }
 
