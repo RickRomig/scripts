@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 29 Oct 2026
-# Version      : 4.4.26302
+# Updated      : 16 Nov 2026
+# Version      : 4.5.26320
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,7 +33,7 @@ help() {
 	local -r script="$1"
 	local -r version="$2"
 	local -ri errcode="${3:-1}"
-	local -r updated="29 Oct 2026"
+	local -r updated="16 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs/Removes Geany text editor and themes
@@ -90,7 +90,7 @@ clone_themes() {
 	show_message "Cloning Geany themes..."
 	git clone "$themes_url" "$TMP_DIR"
 	show_message "Copying Geany colorschemes..."
-	awk -F"/" '{print "=> " $NF}' < <(cp -av "$TMP_DIR"/colorschemes/. "$colorschemes_dir/") | sed "s/'//"
+	cpa_base "$TMP_DIR/colorschemes/" "$colorschemes_dir/"
 	printf "Geany themes installed.\n"
 	return 0
 }
@@ -134,7 +134,7 @@ show_message() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.4.26302"
+	local -r version="4.5.26320"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":chirtv"
