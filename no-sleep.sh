@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jul 2023
-# Updated      : 30 Oct 2026
-# Version      : 3.0.26303
+# Updated      : 16 Nov 2026
+# Version      : 3.1.26320
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,13 +36,13 @@ set_nosleep() {
 	sudo_login 2
 	[[ -d /etc/systemd/sleep.conf.d ]] || sudo mkdir -p /etc/systemd/sleep.conf.d
 	printf "Copying 99-sleep.conf to /etc/systemd/sleep.conf.d...\n"
-	awk -F"/" '{print "==> " $NF}' < <(sudo cp -v "$repository/99-sleep.conf" /etc/systemd/sleep.conf.d/) | sed "s/'$//"
+	cpvs_base "$repository/99-sleep.conf" /etc/systemd/sleep.conf.d/
 	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.0.26303"
+	local -r version="3.1.26320"
 	local -i exit_code=0
 	is_systemd || die "SystemD is required for this script!" "$E_UNSUPPORTED"
 	printf "Disables sleep and hiberation on Debian-based systems.\n"
