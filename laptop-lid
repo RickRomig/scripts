@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Oct 2020
-# Updated      : 05 Nov 2026
-# Version      : 5.1.26309
+# Updated      : 16 Nov 2026
+# Version      : 5.2.26320
 # Comments     :
 # TODO (Rick)  : set_rc_local needs to be tested on a SysV laptop
 # License      : GNU General Public License, version 2.0
@@ -38,7 +38,7 @@ set_logind_conf() {
 	sudo_login 2
 	[[ -d /etc/systemd/sleep.conf.d ]] || sudo mkdir -p /etc/systemd/sleep.conf.d
 	printf "Adding /etc/systemd/sleep.conf.d/99-sleep.conf...\n"
-	awk -F"/" '{print "==> " $NF}' < <(sudo cp -v "$repository/99-sleep.conf" /etc/systemd/sleep.conf.d/) | sed "s/'$//"
+	cpvs_base "$repository/99-sleep.conf" "/etc/systemd/sleep.conf.d/"
 	return "$?"
 }
 
@@ -55,7 +55,7 @@ set_rc_local() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.1.26309"
+	local -r version="5.2.26320"
 	local -r lhost="${HOSTNAME:=-$(hostname)}"
 	local -i exit_code=0
 	printf "Allows a laptop's lid to be closed without the system going into suspend mode.\n"
