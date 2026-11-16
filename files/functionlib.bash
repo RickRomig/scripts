@@ -721,21 +721,21 @@ newer_version() {
 cpv_base() {
 	local -r source="$1"
 	local -r destination="$2"
-	awk -F/ '{print "==> "$NF}' < <(cp -v "$source" "$destination") | sed "s/'//"
+	awk -F/ '{print "==> "$NF}' < <(cp -v "$source" "$destination") | sed "s/'$//"
 	return 0
 }
 
 cpvs_base() {
 	local -r source="$1"
 	local -r destination="$2"
-	awk -F/ '{print "==> "$NF}' < <(sudo cp -v "$source" "$destination") | sed "s/'//"
+	awk -F/ '{print "==> "$NF}' < <(sudo cp -v "$source" "$destination") | sed "s/'$//"
 	return 0
 }
 
 cpa_base() {
 	local -r source="$1"
 	local -r destination="$2"
-	awk -F/ '{print "==> "$NF}' < <(cp -av "$source" "$destination") | sed "s/'//"
+	awk -F/ '{print "==> "$NF}' < <(cp -av "$source" "$destination") | sed "s/'$//"
 	return 0
 }
 
