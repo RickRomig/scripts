@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 28 Dec 2022
-# Updated      : 26 Oct 2026
-# Version      : 3.11.26299
+# Updated      : 17 Nov 2026
+# Version      : 4.0.26321
 # Comments     : source script Copyright (C) 2022 Kris Occhipinti https://filmsbykris.com
 #              : Uses default editor ($EDITOR) to edit to-do list.
 #              : Limit to-do list to 7 items to maintain proper formating.
@@ -27,13 +27,14 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+source ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n" >&2
+	exit 1
+}
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="09 Sep 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="17 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: $updated
 	Creates/displays/edits a simple to-do list with a calendar.
@@ -50,8 +51,6 @@ help() {
 }
 
 create_todo() {
-	local -r doc_dir="$1"
-	local -r todolist="$2"
 	local script_dir
 	script_dir=$(dirname "$(readlink -f "${0}")")
 	[[ -d "$doc_dir" ]] || mkdir -p "$doc_dir"
@@ -72,8 +71,6 @@ create_todo() {
 # }
 
 show_one_month() {
-	local -r doc_dir="$1"
-	local -r todolist="$2"
 	clear
 	cal > "$TMP_FILE"
 	paste "$TMP_FILE" "$doc_dir/$todolist"
@@ -81,8 +78,6 @@ show_one_month() {
 }
 
 show_three_months() {
-	local -r doc_dir="$1"
-	local -r todolist="$2"
 	clear
 	# print_months, stripping off the year (1st line) to line up todo list with the months.
 	sed '1d' < <(cal -3) > "$TMP_FILE"
@@ -92,10 +87,10 @@ show_three_months() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.11.26299"
+	local -r version="4.0.26321"
 	local -i exit_code=0
 	local -r doc_dir=~/.local/share/doc
-	local -r todolist="todo.lst"
+	local -r todolist=todo.lst
 	local -i noOpt=1
 	local -r optstr=":13eh"
 	local opt OPTARG OPTIND
@@ -103,32 +98,27 @@ main() {
 	create_tmp "file"
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			1 )
-				[[ -f "$doc_dir/$todolist" ]] || create_todo "$doc_dir" "$todolist"
-				show_one_month "$doc_dir" "$todolist" ;;
-			3 )
-				[[ -f "$doc_dir/$todolist" ]] || create_todo "$doc_dir" "$todolist"
-				show_three_months "$doc_dir" "$todolist" ;;
-			e )
-				if [[ -f "$doc_dir/$todolist" ]]; then
+			1 ) [[ -f "$doc_dir/$todolist" ]] || create_todo
+				show_one_month  ;;
+			3 ) [[ -f "$doc_dir/$todolist" ]] || create_todo
+				show_three_months ;;
+			e ) if [[ -f "$doc_dir/$todolist" ]]; then
 					$EDITOR "$doc_dir/$todolist"
 					printf "To-Do list edited.\n"
 				else
-					create_todo "$doc_dir" "$todolist"
+					create_todo
 					printf "To-Do list created.\n"
 				fi ;;
-			h )
-				help "$script" "$version" 0 ;;
-			? )
-				printf "%s Invalid option: -%s\n" >&2 "$RED_ERROR" "$OPTARG"
-				help "$script" "$version" "$E_INVALID_ARG"
+			h ) help 0 ;;
+			? ) printf "%s Invalid option: -%s\n" >&2 "$RED_ERROR" "$OPTARG"
+				help "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
 	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
+		help "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
