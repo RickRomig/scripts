@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 12 Nov 2026
-# Version      : 12.5.26316
+# Updated      : 17 Nov 2026
+# Version      : 12.6.26321
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -30,10 +30,8 @@
 source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="12 Nov 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="17 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Performs a system update using either Apt-get or Nala.
@@ -43,15 +41,12 @@ help() {
 	-a  Perform a system upgrade using apt-get
 	-h  Show this help message and exit
 	-n  Perform a system upgrade using nala
-	${orange}Notes:${normal}
-	If nala is not installed, -n defers to using apt-get
-_HELP_
+	${orange}Notes${normal} If nala is not installed, -n defers to using apt-get
+	_HELP_
 	exit "$errcode"
 }
 
 show_header() {
-	local -r script="$1"
-	local -r version="$2"
 	local -r local_host="${HOSTNAME:-$(hostname)}"
 	clearscreen
 	cat <<- _HEADER_
@@ -59,7 +54,7 @@ show_header() {
 	System: $local_host (ip: $(local_ip))
 	Distro: $(get_distribution)
 	Kernel: $(uname -sr)${normal}
-_HEADER_
+	_HEADER_
 	return 0
 }
 
@@ -93,7 +88,7 @@ check_disk_space() {
 
 update_apt_cache() {
 	local -r cache_file="/var/cache/apt/pkgcache.bin"
-	# threshold values: 86400 = 24 hours, 43200 = 12 hours, 21600 = 6 hours 10800 = 3 hours, 3600 = 1 hour
+	# threshold values: 86400 = 24 hours, 43200 = 12 hours, 21600 = 6 hours, 10800 = 3 hours, 3600 = 1 hour
 	local -ri threshold=3600
 	local current_time updated_time time_diff
 	current_time=$(date +%s)
@@ -144,7 +139,6 @@ remove_orphans() {
 }
 
 update_complete() {
-	local -ri num_updates="$1"
 	printf "\n%sUpdate complete. %d" "$orange" "$num_updates"
 	(( num_updates != 1 )) && printf " updates were" || printf  " update was"
 	printf " installed.%s\n" "$normal"
@@ -152,7 +146,6 @@ update_complete() {
 }
 
 defer_updates() {
-	local -ri num_updates="$1"
 	printf "\n%sNo updates installed. %d" "$orange" "$num_updates"
 	(( num_updates != 1 )) && printf " updates were" || printf " update was"
 	printf " deferred.%s\n" "$normal"
@@ -161,7 +154,6 @@ defer_updates() {
 
 apt_menu() {
 	local options _opt
-	local -ri nupd="$1"
 	COLUMNS=40
 	printf "\n%s%sUpdate options:%s\n" "$underline" "$green" "$normal"
 	PS3="Choose an option: "
@@ -174,49 +166,43 @@ apt_menu() {
 	)
 	select _opt in "${options[@]}"; do
 		case $REPLY in
-			1 )
-				install_updates
-				update_complete "$nupd"
+			1 ) install_updates
+				update_complete
 				break ;;
-			2 )
-				install_updates
+			2 ) install_updates
 				clean_apt_cache
-				update_complete "$nupd"
+				update_complete
 				break ;;
-			3 )
-				install_updates
+			3 ) install_updates
 				remove_orphans
-				update_complete "$nupd"
+				update_complete
 				break ;;
-			4 )
-				install_updates
+			4 ) install_updates
 				clean_apt_cache
 				remove_orphans
-				update_complete "$nupd"
+				update_complete
 				break ;;
-			5 )
-				defer_updates "$nupd"
+			5 ) defer_updates
 				break ;;
-			* )
-				printf "%sInvalid option!%s Select 1..%d\n" "$lightred" "$normal" "${#options[@]}" >&2
+			* ) printf "%sInvalid option!%s Select 1..%d\n" "$lightred" "$normal" "${#options[@]}" >&2
 		esac
 	done
 	return 0
 }
 
 apt_update() {
-	local nupd
+	local num_updates
 	sudo_login 1
 	printf "%sChecking for updates...%s\n" "$orange" "$normal"
 	update_apt_cache
 	apt-get dist-upgrade -s > "$TMP_FILE"
-	nupd=$(count_updates)
+	num_updates=$(count_updates)
 	printf "%sSummary:%s\n" "$orange" "$normal"
 	sed '1d' < <(sed -ne '/^Calculating/,/newly/p' "$TMP_FILE")
-	if [[ nupd -eq 0 ]]; then
+	if (( num_updates == 0 )); then
 		printf "\nPackages are up to date\n"
 	else
-		apt_menu "$nupd"
+		apt_menu
 	fi
 	return 0
 }
@@ -239,22 +225,22 @@ nala_update() {
 
 update_flatpaks() {
 	local -i fp_count
-	local -i fp_updates
 	fp_count=$(wc -l < <(flatpak list))
-	fp_updates=$(wc -l < <(flatpak remote-ls --updates))
 	printf "\n%sFlatpak:%s\n" "$orange" "$normal"
-	if [[ $fp_count -eq 0 ]]; then
+	if (( fp_count == 0 )); then
 		printf "No Flatpak packages installed.\n"
+		return 0
+	fi
+	printf "Updating flatpaks...\n"
+	local -i fp_updates
+	fp_updates=$(wc -l < <(flatpak remote-ls --updates))
+	if (( fp_updates > 0 )); then
+		printf "User installations...\n"
+		sed '/^$/d' < <(flatpak update --user --noninteractive --force-remove --assumeyes 2>/dev/null)
+		printf "System-wide installations...\n"
+		sed '/^$/d' < <(sudo flatpak update --system --noninteractive --force-remove --assumeyes 2>/dev/null)
 	else
-		printf "Updating flatpaks...\n"
-		if [[ "$fp_updates" -gt 0 ]]; then
-			printf "User installations...\n"
-			sed '/^$/d' < <(flatpak update --user --noninteractive --force-remove --assumeyes 2>/dev/null)
-			printf "System-wide installations...\n"
-			sed '/^$/d' < <(sudo flatpak update --system --noninteractive --force-remove --assumeyes 2>/dev/null)
-		else
-			printf "No flatpak updates available.\n"
-		fi
+		printf "No flatpak updates available.\n"
 	fi
 	return 0
 }
@@ -277,23 +263,20 @@ other_checks() {
 main() {
 	SECONDS=0
 	local -r script="${0##*/}"
-	local -r version="12.5.26316"
+	local -r version="12.6.26321"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":ahn"
 	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			a )
-				create_tmp "file"
+			a ) create_tmp "file"
 				show_header "$script" "$version"
 				check_disk_space
 				apt_update
 				other_checks ;;
-			h )
-				help "$script" "$version" 0 ;;
-			n )
-				show_header "$script" "$version"
+			h ) help 0 ;;
+			n ) show_header "$script" "$version"
 				check_disk_space
 				if installed nala; then
 					nala_update
@@ -303,9 +286,8 @@ main() {
 					apt_update
 				fi
 				other_checks ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
