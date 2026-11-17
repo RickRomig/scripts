@@ -7,8 +7,8 @@
 # Author       : Copyright © 2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 12 Nov 2026
-# Version      : 8.7.26316
+# Updated      : 17 Nov 2026
+# Version      : 9.0.26321
 # Comments     : Checks to see if passed argument is a valid text or json file.
 #              : To show line numbers, use -n after the file name.
 #              : Invalid options after the file name are ignore and default to no line numbers.
@@ -27,13 +27,14 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+source ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
+	exit 1
+}
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="12 Nov 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="17 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version (updated $updated)
 	Displays a text file using either cat or less depending the number of lines in
@@ -51,7 +52,6 @@ help() {
 }
 
 check_file() {
-	local -r filename="$1"
 	if [[ -z "$filename" ]]; then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
 		help "$script" "$version" "$E_MISSING_ARG"
@@ -70,8 +70,6 @@ check_file() {
 }
 
 set_flag() {
-	local option="$1"
-	local -i flag=1
 	if [[ "${option:0:1}" == "-" ]]; then
 		# use 1st two characters of the string
 		option="${option:0:2}"
@@ -85,42 +83,39 @@ set_flag() {
 }
 
 over_max() {
-	local -r textfile="$1"
 	local -i catmax filelines
 	catmax=$(( $(tput lines)*87/100 ))
-	filelines=$(wc -l < "$textfile")
+	filelines=$(wc -l < "$filename")
 	(( filelines > catmax )) && return "$TRUE" || return "$FALSE"
 }
 
 view_file() {
-	local -r textfile="$1"
-	local -ir flag="$2"
-	if over_max "$textfile"; then
+	if over_max "$filename"; then
 		case "$flag" in
-			0 ) less -N "$textfile" ;;
-			* ) less "$textfile"
+			0 ) less -N "$filename" ;;
+			* ) less "$filename"
 		esac
-		head -n5 "$textfile"
+		head -n5 "$filename"
 	else
 		case "$flag" in
-			0 ) cat -n "$textfile" ;;
-			* ) cat "$textfile"
+			0 ) cat -n "$filename" ;;
+			* ) cat "$filename"
 		esac
 	fi
-	printf "%sFile: %s%s\n" "$reverse" "$textfile" "$normal"
+	printf "%sFile: %s%s\n" "$reverse" "$filename" "$normal"
 	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="8.7.26316"
+	local -r version="9.0.26321"
 	local -i exit_code=0
-	local -i flag=1
-	[[ $1 == "-h" ]] && help "$script" "$version" 0
+	local -i flag
+	[[ $1 == "-h" ]] && help 0
 	local -r filename="$1"
 	local -l option="${2:-z}"	# make argument lowercase
-	flag=$(set_flag "$option")
-	check_file "$filename" && view_file "$filename" "$flag"
+	flag=$(set_flag)
+	check_file && view_file
 	exit_code="$?"
 	over_line "$script $version"
 	exit "$exit_code"
