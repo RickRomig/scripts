@@ -7,8 +7,8 @@
 # Author       : Cepyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Jul 2019
-# Updated      : 27 Oct 2026
-# Version      : 7.1.26300
+# Updated      : 17 Nov 2026
+# Version      : 7.2.26321
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,24 +25,26 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+source ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n" >&2
+	exit 1
+}
 
 readonly BU_DIR=~/.config/backup
 readonly CFG_DIR=~/.config
 declare -i BU_COUNT=0
 
-# Backup algorhythms
+# Backup algorithms
 
 home_bu(){
 	local -r file="$1"
 	if [[ -f "$HOME/$file" && -f "$BU_DIR/$file" ]]; then
 		if [[ "$BU_DIR/$file" -ot "$HOME/$file" ]]; then
-			awk -F"/" '{print "==> " $NF}' < <(cp -pv "$HOME/$file" "$BU_DIR/") | sed "s/'$//"
+			cpv_base "$HOME/$file" "$BU_DIR/"
 			(( BU_COUNT++ ))
-
 		fi
 	elif [[ -f "$HOME/$file" ]]; then
-		awk -F"/" '{print "==> " $NF}' < <(cp -pv "$HOME/$file" "$BU_DIR/") | sed "s/'$//"
+		cpv_base "$HOME/$file" "$BU_DIR/"
 		(( BU_COUNT++ ))
 	fi
 	return 0
@@ -53,12 +55,12 @@ configs_bu() {
 	local -r file="$2"
 	if [[ -f "$CFG_DIR/$folder/$file" && -f "$BU_DIR/$folder/$file" ]]; then
 		if [[ "$BU_DIR/$folder/$file" -ot "$CFG_DIR/$folder/$file" ]]; then
-			awk -F/ '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$folder/$file" "$BU_DIR/$folder/") | sed "s/'$//"
+			cpv_base "$CFG_DIR/$folder/$file" "$BU_DIR/$folder/"
 			(( BU_COUNT++ ))
 		fi
 	elif [[ -f "$CFG_DIR/$folder/$file" ]]; then
 		[[ -d "$BU_DIR/$folder" ]] || mkdir -p "$BU_DIR/$folder"
-		awk -F/ '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$folder/$file" "$BU_DIR/$folder/") | sed "s/'$//"
+		cpv_base "$CFG_DIR/$folder/$file" "$BU_DIR/$folder/"
 		(( BU_COUNT++ ))
 	fi
 	return 0
@@ -68,13 +70,13 @@ misc_bu() {
 	local -r folder="$1"
 	local -r file="$2"
 	if [[ -f "$HOME/$folder/$file" && -f "$BU_DIR/$folder/$file" ]]; then
-		if [[ "$BU_DIR/$folder/$file" -ot "$HOME/$folder/$file" ]]; then
-			awk -F/ '{print "==> " $NF}' < <(cp -pv "$HOME/$folder/$file" "$BU_DIR/$folder/") | sed "s/'$//"
+		if [[ -f "$HOME/$folder/$file" ]]; then
+			cpv_base "$HOME/$folder/$file" "$BU_DIR/$folder/"
 			(( BU_COUNT++ ))
 		fi
 	elif [[ -f "$HOME/$folder/$file" ]]; then
 		[[ -d "$BU_DIR/$folder" ]] || mkdir -p "$BU_DIR/$folder"
-		awk -F/ '{print "==> " $NF}' < <(cp -pv "$HOME/$folder/$file" "$BU_DIR/$folder/") | sed "s/'$//"
+		cpv_base "$HOME/$folder/$file" "$BU_DIR/$folder/"
 		(( BU_COUNT++ ))
 	fi
 	return 0
@@ -85,11 +87,11 @@ etc_bu() {
 	local -r file="$2"
 	if [[ -f "$folder/$file" && -f "$BU_DIR/$file" ]]; then
 		if [[ "$BU_DIR/$file" -ot "$folder/$file" ]]; then
-			awk -F/ '{print "==> " $NF}' < <(cp -v "$folder/$file" "$BU_DIR/$file") | sed "s/'$//"
+			cpv_base "$folder/$file" "$BU_DIR/$file"
 			(( BU_COUNT++ ))
 		fi
 	elif [[ -f "$folder/$file" ]]; then
-		awk -F/ '{print "==> " $NF}' < <(cp -v "$folder/$file" "$BU_DIR/$file") | sed "s/'$//"
+		cpv_base "$folder/$file" "$BU_DIR/$file"
 		(( BU_COUNT++ ))
 	fi
 	return 0
@@ -99,16 +101,15 @@ cinnamon_bu() {
 	local -r cinn_backup="$1"
 	if [[ -f "$CFG_DIR/$cinn_backup" && -f "$BU_DIR/$cinn_backup" ]]; then
 		if [[ "$BU_DIR/$cinn_backup" -ot "$CFG_DIR/$cinn_backup" ]]; then
-			awk -F"/" '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$cinn_backup" "$BU_DIR/") | sed "s/'$//"
+			cpv_base "$CFG_DIR/$cinn_backup" "$BU_DIR/"
 			(( BU_COUNT++ ))
 		fi
 	elif [[ -f "$CFG_DIR/$cinn_backup" ]]; then
-		awk -F"/" '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$cinn_backup" "$BU_DIR/") | sed "s/'$//"
+		cpv_base "$CFG_DIR/$cinn_backup" "$BU_DIR/"
 		(( BU_COUNT++ ))
 	elif is_cinnamon; then
 		dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$cinn_backup"
-		cp -pv "$CFG_DIR/$cinn_backup" "$BU_DIR/" | awk -F"/" '{print "==> " $NF}' | sed "s/'$S//"
-		awk -F"/" '{print "==> " $NF}' < <(cp -pv "$CFG_DIR/$cinn_backup" "$BU_DIR/") | sed "s/'$//"
+		cpv_base "$CFG_DIR/$cinn_backup" "$BU_DIR/"
 		(( BU_COUNT++ ))
 	fi
 	return 0
@@ -206,7 +207,7 @@ bu_misc_cfgs() {
 	[[ -f "$CFG_DIR/compton.conf" ]] && misc_bu ".config" "compton.conf"
 	[[ -f "$CFG_DIR/redshift.conf" ]] && misc_bu ".config" "redshift.conf"
 	[[ -f "$CFG_DIR/zoom.conf" ]] && misc_bu ".config" "zoom.conf"
-	[[ -f "$CFG_DIR/zoomuz.conf" ]] && misc_bu ".config" "zoomus.conf"
+	[[ -f "$CFG_DIR/zoomus.conf" ]] && misc_bu ".config" "zoomus.conf"
 	[[ -f ~/.ssh/id_rsa ]] && misc_bu ".ssh" "id_rsa"
 	[[ -f ~/.ssh/id_rsa.pub ]] && misc_bu ".ssh" "id_rsa.pub"
 	[[ -f ~/.ssh/config ]] && misc_bu ".ssh" "config"
@@ -228,8 +229,9 @@ completion_status() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.1.26300"
-	[[ -d ~/.config/backup ]] || mkdir -p ~/.config/backup
+	local -r version="7.2.26321"
+	# [[ -d ~/.config/backup ]] || mkdir -p ~/.config/backup
+	[[ -d "$BU_DIR" ]] || mkdir -p "$BU_DIR"
 	printf "Backing up configuration files...\n"
 	bu_user_cfgs
 	bu_i3_cfgs
