@@ -8,8 +8,8 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Updated      : 04 Nov 2026
-# Version      : 22.0.26308
+# Updated      : 17 Nov 2026
+# Version      : 23.0.26321
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,10 +26,12 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+. ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
+	exit 1
+}
 
 installed_version() {
-	local package="$1"
 	local cur_ver
 	case "$package" in
 		bat|fastfetch )
@@ -54,7 +56,7 @@ show_versions() {
 			printf "%s%-18s%s" "${darkgray}" "${package^}" "${gray}"
 			[[ "$package" == "batcat" ]] && package="bat"
 			[[ "$package" == "google-chrome" ]] && package+="-stable"
-			printf "%s\n" "$(installed_version "$package")"
+			printf "%s\n" "$(installed_version)"
 		fi
 	done
 	printf "%s\n" "$normal"
@@ -62,7 +64,6 @@ show_versions() {
 }
 
 get_release_path() {
-	local -r package="$1"
 	declare -rA releases_path=(
 		[bat]="sharkdp/bat/releases"
 		[codium]="VSCodium/vscodium/releases"
@@ -75,8 +76,6 @@ get_release_path() {
 }
 
 get_new_version() {
-	local -r package="$1"
-	local -r release_path="$2"
 	local new_ver
 	local -r github_url="https://github.com"
 	curl -s -o "$TMP_FILE" "$github_url/$release_path"
@@ -102,9 +101,9 @@ github_packages() {
 	local -r packages=(bat codium fastfetch fresh-editor micro)
 	printf "%-18s%-18s%s\n" "GitHub Package" "Latest version" "Installed version"
 	for package in "${packages[@]}"; do
-		cur_ver=$(installed_version "$package")
-		release_path=$(get_release_path "$package")
-		new_ver=$(get_new_version "$package" "$release_path")
+		cur_ver=$(installed_version)
+		release_path=$(get_release_path)
+		new_ver=$(get_new_version)
 		printf "%s%-18s" "${darkgray}" "${package^}"
 		if [[ "$new_ver" ]]; then
 			printf "%s%-18s" "${gray}" "$new_ver"
@@ -170,7 +169,7 @@ flatpak_packages() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="22.0.26308"
+	local -r version="23.0.26321"
 	create_tmp "file"
 	check_package curl
 	clearscreen
