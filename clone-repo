@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Oct 2022
-# Updated      : 04 Nov 2026
-# Version      : 6.0.26308
+# Updated      : 17 Nov 2026
+# Version      : 6.1.26321
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,7 +25,10 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+source ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
+	exit 1
+}
 
 check_dependencies() {
 	local -r packages=(fzf git)
@@ -34,7 +37,6 @@ check_dependencies() {
 }
 
 check_repo() {
-	local -r git_repo="$1"
 	local -r dl_dir=~/Downloads
 	if [[ $(find "$dl_dir/$git_repo" -maxdepth 1 -type f 2>/dev/null) ]]; then
 		printf "The %s directory is not empty. Updating the cloned repository...\n" "$git_repo"
@@ -43,14 +45,12 @@ check_repo() {
 		git pull
 		popd >/dev/null || return "$E_POPD_PUSHD"
 	else
-		clone_repo "$git_repo" "$dl_dir"
+		clone_repo
 	fi
 	return "$?"
 }
 
 clone_repo() {
-	local -r git_repo="$1"
-	local -r dl_dir="$2"
 	local url
 	case "$git_repo" in
 		configs | scripts | i3wm-debian )
@@ -75,8 +75,7 @@ select_repo() {
 		--header-first \
 		--bind change:top \
 		--prompt"
-	local selected
-	local -ra repos=(
+	local -r repos=(
 		configs
 		fnloc
 		fnloc-win
@@ -85,22 +84,23 @@ select_repo() {
 		i3wm-debian
 		scripts
 	)
-	selected=$($fmenu "Select repository: " < <(printf "%s\n" "${repos[@]}"))
-	printf "%s" "$selected"
+	local git_repo
+	git_repo=$($fmenu "Select repository: " < <(printf "%s\n" "${repos[@]}"))
+	printf "%s" "$git_repo"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.0.26308"
+	local -r version="6.1.26321"
 	local -i exit_code=0
-	local selected
+	local git_repo
 	check_dependencies
-	selected=$(select_repo)
-	if [[ -z "$selected" ]]; then
+	git_repo=$(select_repo)
+	if [[ -z "$git_repo" ]]; then
 		printf "%s No repository selected.\n" "$RED_WARNING" >&2
 		exit_code="$E_MISSING_ARG"
 	else
-		check_repo "$selected"
+		check_repo
 		exit_code="$?"
 	fi
 	over_line "$script $version"
