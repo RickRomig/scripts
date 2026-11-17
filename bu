@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Updated      : 25 Oct 2026
-# Version      : 7.8.26298
+# Updated      : 17 Nov 2026
+# Version      : 7.9.26321
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -246,10 +246,8 @@ restore() {
 }
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="25 Oct 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="17 Nov 2026"
 	cat <<- _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -270,8 +268,6 @@ _HELP_
 }
 
 drive_setup() {
-	local -r script="$1"
-	local -r version="$2"
 	cat <<- _SETUP_
  ${orange}BU_Drive Setup:${normal}
 	- Prepare the backup drive with a tool like Gparted or Gnome Disks.
@@ -289,7 +285,7 @@ _SETUP_
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.8.26298"
+	local -r version="7.9.26321"
 	local -i exit_code=0
 	local  opt OPTARG OPTIND loglen
 	[[ -f "$LOGFILE" ]] || echo "${LOGFILE##*/}" > "$LOGFILE"
@@ -309,10 +305,10 @@ main() {
 				unmount_usb_drive
 				;;
 			h )
-				help "$script" "$version" 0
+				help 0
 				;;
 			i )
-				drive_setup "$script" "$version"
+				drive_setup
 				;;
 			r )
 				sudo_login 2
@@ -324,14 +320,14 @@ main() {
 				;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
+				help "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
 	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
+		help "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
 	trim_log
