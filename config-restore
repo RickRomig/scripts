@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019,Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 14 Apr 2019
-# Updated      : 27 Oct 2026
-# Version      : 6.5.26300
+# Updated      : 17 Nov 2026
+# Version      : 6.6.26321
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,12 +25,15 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+source ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
+	exit 1
+}
 
 readonly BU_DIR=~/.config/backup
 readonly CFG_DIR=~/.config
 PS3="Select option: "
-COUNT=0
+declare -i COUNT=0
 
 restore_home_cfg() {
 	local -r file="$1"
@@ -101,26 +104,20 @@ system_configs() {
 	local _opt options
 	local -r lhost="${HOSTNAME:-$(hostname)}"
 	while true; do
-		options=(".bashrc" ".bash_aliases" ".bash_logout" ".bash_profile" ".profile" ".face" "neofetch" "fastfetch" "Cinnamon keybindings" ".conkyrc" ".xinitrc" "System Info" "Main Menu")
+		options=(".bashrc" ".bash_aliases" ".bash_logout" ".bash_profile" ".profile" ".face" \
+		"neofetch" "fastfetch" "Cinnamon keybindings" ".conkyrc" ".xinitrc" "System Info" "Main Menu")
 		clear
 		COLUMNS=40
 		printf "\nSystem Configurations\n"
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
-				1 )
-					restore_home_cfg ".bashrc" break ;;
-				2 )
-					restore_home_cfg ".bash_aliases"; break ;;
-				3 )
-					restore_home_cfg ".bash_logout" break ;;
-				4 )
-					restore_home_cfg ".bash_profile"; break ;;
-				5 )
-					restore_home_cfg ".profile"; break ;;
-				6 )
-					restore_home_cfg ".face"; break ;;
-				7 )
-					if [[ -f "$BU_DIR/neofetch/config" ]]; then
+				1 ) restore_home_cfg ".bashrc"; break ;;
+				2 ) restore_home_cfg ".bash_aliases"; break ;;
+				3 ) restore_home_cfg ".bash_logout"; break ;;
+				4 ) restore_home_cfg ".bash_profile"; break ;;
+				5 ) restore_home_cfg ".profile"; break ;;
+				6 ) restore_home_cfg ".face"; break ;;
+				7 ) if [[ -f "$BU_DIR/neofetch/config" ]]; then
 						restore_config_cfg "neofetch" "config"
 					elif [[ -f "$BU_DIR/neofetch/config.conf" ]]; then
 						restore_config_cfg "neofetch" "config.conf"
@@ -128,12 +125,9 @@ system_configs() {
 						printf "No neofetch configuration file found.\n"
 					fi
 					break ;;
-				8 )
-					restore_config_cfg "fastfetch" "config.jsonc"; break ;;
-				9 )
-					restore_cinnamon_keybindings; break ;;
-				10 )
-					if [[ -f "$BU_DIR/.conkyrc" ]]; then
+				8 ) restore_config_cfg "fastfetch" "config.jsonc"; break ;;
+				9 ) restore_cinnamon_keybindings; break ;;
+				10 ) if [[ -f "$BU_DIR/.conkyrc" ]]; then
 						restore_home_cfg ".conkyrc"
 					elif [[ -f "$BU_DIR/conky/conky.conf" ]]; then
 						restore_config_cfg "conky" "conky.conf"
@@ -141,14 +135,10 @@ system_configs() {
 						printf "No conky configuration file found.\n"
 					fi
 					break ;;
-				11 )
-					restore_home_cfg ".xinitrc"; break ;;
-				12 )
-					restore_home_cfg "$lhost.info"; break ;;
-				13 )
-					break ;;
-				* )
-					printf "%sInvalid choice%s\n" "$lightred" "$normal" >&2
+				11 ) restore_home_cfg ".xinitrc"; break ;;
+				12 ) restore_home_cfg "$lhost.info"; break ;;
+				13 ) break ;;
+				* ) printf "%sInvalid choice%s\n" "$lightred" "$normal" >&2
 			esac
 		done
 		main
@@ -164,24 +154,19 @@ editor_configs() {
 		printf "\nEditor Configurations\n"
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
-				1 )
-					restore_misc_cfg ".bluefish" "rcfile-2.0"
+				1 ) restore_misc_cfg ".bluefish" "rcfile-2.0"
 					break ;;
-				2 )
-					restore_geany
+				2 ) restore_geany
 					restore_config_cfg "geany" "geany.conf"
 					estore_config_cfg "geany" "keybindings.conf"
 					break ;;
-				3 )
-					restore_marktext
+				3 ) restore_marktext
 					restore_config_cfg "marktext" "preferences.json"
 					break ;;
-				4 )
-					restore_config_cfg "micro" "settings.json"
+				4 ) restore_config_cfg "micro" "settings.json"
 					restore_config_cfg "micro" "bindings.json"
 					break ;;
-				5 )
-					if [[ -f "$BU_DIR/nano/nanorc" ]]; then
+				5 ) if [[ -f "$BU_DIR/nano/nanorc" ]]; then
 						restore_config_cfg "nano" "nanorc"
 					elif [[ -f "$BU_DIR/.nanorc" ]]; then
 						restore_home_cfg ".nanorc"
@@ -189,13 +174,10 @@ editor_configs() {
 						printf "No nano configuration file found.\n"
 					fi
 					break ;;
-				6 )
-					restore_config_cfg "VSCodium/User" "settings.json"
+				6 ) restore_config_cfg "VSCodium/User" "settings.json"
 					break ;;
-				7 )
-					break ;;
-				* )
-					printf "%sInvalid choice%s\n" "$lightred" "$normal" >&2
+				7 ) break ;;
+				* ) printf "%sInvalid choice%s\n" "$lightred" "$normal" >&2
 			esac
 		done
 		main
@@ -205,17 +187,17 @@ editor_configs() {
 i3_configs() {
 	local _opt options
 	while true; do
-		local options=("i3 config" "sxhkdrc" "bindings.list" "i3status.conf" "polybar" "bar.conf" "rules.conf" "workspaces.conf" "autostart.sh" "backgrounds.sh" "logout" "rofi config" "rofi themes" "dunstrc" "Main Menu")
+		local options=("i3 config" "sxhkdrc" "bindings.list" "i3status.conf" "polybar" "bar.conf" \
+		"rules.conf" "workspaces.conf" "autostart.sh" "backgrounds.sh" "logout" "rofi config" \
+		"rofi themes" "dunstrc" "Main Menu")
 		clear
 		COLUMNS=40
 		printf "\ni3 Configurations\n"
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
-				1 )
-					restore_config_cfg "i3" "config"
+				1 ) restore_config_cfg "i3" "config"
 					break ;;
-				2 )
-					if [[ -f "$BU_DIR/i3/sxhkdrc" ]]; then
+				2 ) if [[ -f "$BU_DIR/i3/sxhkdrc" ]]; then
 						restore_config_cfg "i3" "sxhkdrc"
 					elif [[ -f "$BU_DIR/i3/sxhkd/sxhkdrc" ]]; then
 						restore_config_cfg "i3/sxhkd" "sxhkdrc"
@@ -223,11 +205,9 @@ i3_configs() {
 						printf "No sxhkdrc file found.\n"
 					fi
 					break ;;
-				3 )
-					restore_config_cfg "i3" "bindings.list"
+				3 ) restore_config_cfg "i3" "bindings.list"
 					break ;;
-				4 )
-					if [[ -f "$BU_DIR/polybar/config" ]]; then
+				4 ) if [[ -f "$BU_DIR/polybar/config" ]]; then
 						restore_config_cfg "polybar" "config"
 					elif [[ -f "$BU_DIR/polybar/config.ini" ]]; then
 						restore_config_cfg "polybar" "config.ini"
@@ -237,42 +217,30 @@ i3_configs() {
 						printf "No polybar configuration file found.\n"
 					fi
 					break ;;
-				5 )
-					restore_config_cfg "i3" "i3status.conf"
+				5 ) restore_config_cfg "i3" "i3status.conf"
 					break ;;
-				6 )
-					restore_config_cfg "i3" "bar.conf"
+				6 ) restore_config_cfg "i3" "bar.conf"
 					break ;;
-				7 )
-					restore_config_cfg "i3" "rules.conf"
+				7 ) restore_config_cfg "i3" "rules.conf"
 					break ;;
-				8 )
-					restore_config_cfg "i3" "workspaces.conf"
+				8 ) restore_config_cfg "i3" "workspaces.conf"
 					break ;;
-				9 )
-					restore_config_cfg "i3" "autostart.sh"
+				9 ) restore_config_cfg "i3" "autostart.sh"
 					break ;;
-				10 )
-					restore_config_cfg "i3" "backgrounds.sh"
+				10 ) restore_config_cfg "i3" "backgrounds.sh"
 					break ;;
-				11 )
-					restore_config_cfg "i3" "logout"
+				11 ) restore_config_cfg "i3" "logout"
 					break ;;
-				12 )
-					restore_config_cfg "rofi" "config.rasi"
+				12 ) restore_config_cfg "rofi" "config.rasi"
 					break ;;
-				13 )
-					restore_rofi_theme;
+				13 ) restore_rofi_theme;
 					restore_config_cfg "rofi" "arc_dark_colors.rasi"
 					restore_config_cfg "rofi" "arc_dark_transparent_colors.rasi"
 					break ;;
-				14 )
-					restore_config_cfg "dunst" "dunstrc"
+				14 ) restore_config_cfg "dunst" "dunstrc"
 					break ;;
-				15 )
-					break ;;
-				* )
-					printf "%sInvalid choice%s\n" "$lightred" "$normal" >&2
+				15 ) break ;;
+				* ) printf "%sInvalid choice%s\n" "$lightred" "$normal" >&2
 			esac
 		done
 		main
@@ -282,17 +250,16 @@ i3_configs() {
 misc_configs() {
 	local _opt options
 	while true; do
-		options=("Bat" "gitconfig" "git-credentials" "KeepassXC" "Kitty" "Monitor Config" "Terminator" "imwheelrc" "Redshift" "Main Menu")
+		options=("Bat" "gitconfig" "git-credentials" "KeepassXC" "Kitty" "Monitor Config" \
+		"Terminator" "imwheelrc" "Redshift" "Main Menu")
 		clear
 		COLUMNS=20
 		printf "\nMiscellaneous Configurations\n"
 		select _opt in "${options[@]}"; do
 			case "$REPLY" in
-				1 )
-					restore_config_cfg "bat" "config"
+				1 ) restore_config_cfg "bat" "config"
 					break ;;
-				2 )
-					if [[ -f "$BU_DIR/.gitconfig" ]];then
+				2 ) if [[ -f "$BU_DIR/.gitconfig" ]];then
 						restore_home_cfg ".gitconfig"
 					elif [[ -f "$BU_DIR/git/config" ]]; then
 						restore_config_cfg "git" "config"
@@ -300,8 +267,7 @@ misc_configs() {
 						printf "No git configuration file found.\n"
 					fi
 					break ;;
-				3 )
-					if [[ -f "$BU_DIR/git-credentials" ]];then
+				3 ) if [[ -f "$BU_DIR/git-credentials" ]];then
 						restore_home_cfg ".git-credentials"
 					elif [[ -f "$BU_DIR/git/credentials" ]]; then
 						restore_config_cfg "git" "credentials"
@@ -309,15 +275,12 @@ misc_configs() {
 						printf "No git credentials file found.\n"
 					fi
 					break ;;
-				4 )
-					restore_config_cfg "keepassxc" "keepassxc.ini"
+				4 ) restore_config_cfg "keepassxc" "keepassxc.ini"
 					break ;;
-				5 )
-					restore_config_cfg "kitty" "kitty.conf"
+				5 ) restore_config_cfg "kitty" "kitty.conf"
 					restore_config_cfg "kitty" "bindings.list"
 					break ;;
-				6 )
-					if [[ -f "$BU_DIR/10-monitor.conf" ]]; then
+				6 ) if [[ -f "$BU_DIR/10-monitor.conf" ]]; then
 						sudo_login 2
 						sudo cp pv "$BU_DIR/10-monitor.conf" /etc/X11/xorg.conf.d/
 						(( COUNT++ ))
@@ -325,19 +288,14 @@ misc_configs() {
 						printf "10-monitor.conf not found.\n"
 					fi
 					break ;;
-				7 )
-					restore_config_cfg "terminator" "config"
+				7 ) restore_config_cfg "terminator" "config"
 					break ;;
-				8 )
-					restore_home_cfg ".imwheelrc"
+				8 ) restore_home_cfg ".imwheelrc"
 					break ;;
-				9 )
-					restore_misc_cfg "config" "redshift.conf"
+				9 ) restore_misc_cfg "config" "redshift.conf"
 					break ;;
-				10 )
-					break ;;
-				* )
-					printf "%sInvalid choice%s\n" "$lightred" "$normal" >&2
+				10 ) break ;;
+				* ) printf "%sInvalid choice%s\n" "$lightred" "$normal" >&2
 			esac
 		done
 		main
@@ -346,7 +304,7 @@ misc_configs() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.5.26300"
+	local -r version="6.6.26321"
 	local _opt options
 	options=("System Configs" "Editor Configs" "i3 Configs" "Misc Configs" "Quit")
 	clear
