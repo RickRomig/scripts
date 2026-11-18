@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jan 2025
-# Updated      : 27 Oct 2026
-# Version      : 2.3.26300
+# Updated      : 18 Nov 2026
+# Version      : 2.4.26322
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,6 @@
 source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 disable_swap_device() {
-	local swap_dev="$1"
 	printf "Current swap is %s\n" "$swap_dev"
 	if yes_or_no "Do you want to disable ${swap_dev}?"; then
 		sudo sed -i.bak '/swap/s/^UUID=/# UUID=/' /etc/fstab
@@ -43,19 +42,19 @@ disable_swap_device() {
 check_swap_device() {
 	local swap_dev
 	swap_dev=$(awk '/file/ || /partition/ {print $1}' /proc/swaps)
-	[[ "$swap_dev" ]] || { printf "No swap device detected.\n"; return 0; }
-	case "$swap_dev" in
-		"/dev/zram0" )
-			printf "zram-tools installed and active swap.\nNo changes made.\n" ;;
-		* )
-			disable_swap_device "$swap_dev"
-	esac
+	if [[ -z "$swap_dev" ]]; then
+		printf "No swap file/partition detected.\n"
+	elif [[ "$swap_dev" == "/dev/zram0" ]]; then
+		printf "zram-tools installed and active swap.\nNo changes made.\n"
+	else
+		disable_swap_device
+	fi
 	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.3.26300"
+	local -r version="2.4.26322"
 	check_swap_device
 	over_line "$script $version"
 	exit
