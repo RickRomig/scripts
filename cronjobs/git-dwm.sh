@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Jan 2024
-# Last updated : 21 Sep 2026
-# Version      : 2.4.26264
+# Last updated : 18 Nov 2026
+# Version      : 2.5.26322
 # Comments     : Includes both Gitea and GitHub repositories.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -37,12 +37,12 @@ create_snapshot() {
 		weekly|monthly )
 			cp "$archive_dir/daily/$archive" "$archive_dir/$interval/"
 	esac
-	remove_old_snapshots "$interval" "$archive_dir"
+	remove_old_snapshots #"$interval" "$archive_dir"
 }
 
 remove_old_snapshots() {
-	local -r interval="$1"
-	local -r archive_dir="$2"
+	# local -r interval="$1"
+	# local -r archive_dir="$2"
 	case "$interval" in
 		daily )
 			find "$archive_dir/$interval" -daystart -mtime +6 -delete 2> ~/.local/share/logs/git-daily.log ;;
