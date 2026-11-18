@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jan 2020
-# Updated      : 14 Dec 2025
-# Version      : 4.4.25348
+# Updated      : 18 Nov 2026
+# Version      : 4.5.26322
 # Comments     : Includes all subdirectories in ~/bin
 #              : Schedule with user's crontab from ~/.local/bin
 # TODO (Rick)  :
@@ -27,9 +27,9 @@
 ##########################################################################
 
 archive_scripts() {
-	local -r arc_dir="$1"
-	local -r log_dir="$2"
-	local -r log_file="$3"
+	# local -r arc_dir="$1"
+	# local -r log_dir="$2"
+	# local -r log_file="$3"
 	local -r err_log="error.log"
 	local archive
 	archive="$(date +%y%m%d)-scripts.tar.gz"
@@ -52,9 +52,9 @@ archive_scripts() {
 }
 
 cleanup() {
-	local -r arc_dir="$1"
-	local -r log_dir="$2"
-	local -r log_file="$3"
+	# local -r arc_dir="$1"
+	# local -r log_dir="$2"
+	# local -r log_file="$3"
 	local -i log_len
 	# Remove oldest log entries if more than 30 entries
 	log_len=$(wc -l < "$log_dir/$log_file")
@@ -70,8 +70,8 @@ main() {
 	local -r arc_dir="$HOME/Downloads/archives/scripts"
 	local -r log_dir="$HOME/.local/share/logs"
 	local -r log_file="script-archive.log"
-	archive_scripts "$arc_dir" "$log_dir" "$log_file"
-	cleanup "$arc_dir" "$log_dir" "$log_file"
+	archive_scripts #"$arc_dir" "$log_dir" "$log_file"
+	cleanup #"$arc_dir" "$log_dir" "$log_file"
 	exit
 }
 
