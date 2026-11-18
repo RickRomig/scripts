@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 11 Mar 2024
-# Last updated : 21 Sep 2026
-# Version      : 2.5.26264
+# Updated      : 18 Nov 2026
+# Version      : 2.6.26322
 # Comments     : Run as a local cron job.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,8 +25,8 @@
 ###############################################################################
 
 monday_actions() {
-	local -r arc_dir="$1"
-	local -r snar="$2"
+	# local -r arc_dir="$1"
+	# local -r snar="$2"
 	[[ -e "$arc_dir/$snar" ]] && mv "$arc_dir/$snar" "$arc_dir/$snar.$(date --date '7 days ago' +%y%m%d)"
 	find "$arc_dir" -mtime +364 -delete  2> ~/.local/share/logs/journals-bu.log
 }
@@ -38,7 +38,7 @@ incremental_backup() {
 	archive="journals.$(date +'%y%m%d-%u').tar.gz"
 	day=$(date +%a)
 	[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
-	[[ "$day" == "Mon" ]] && monday_actions "$arc_dir" "$snar"
+	[[ "$day" == "Mon" ]] && monday_actions #"$arc_dir" "$snar"
 	tar -cpzg "$arc_dir/$snar" -f "$arc_dir/$archive" --exclude='.~lock*' -C ~/Documents Journals
 	rsync -aq --delete ~/Downloads/archives/journals/ rick@192.168.0.11:/data/archives/journals/
 }
