@@ -6,8 +6,8 @@
 # Arguments    : none
 # Author       : Copyright (C) 2020, Richard B. Romig, 21 January 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Last updated : 21 Sep 2026
-# Version      : 5.3.26264
+# Updated      : 18 Nov 2026
+# Version      : 5.4.26322
 # Comments     : Run from user's crontab to run on the 1st of the month
 #              : to archive 2nd month previous. (1 May archives March files)
 # License      : GNU General Public License, version 2.0
@@ -25,8 +25,8 @@
 
 # If log files contains more than 12 entries, trim top entry.
 trim_log() {
-	local -r log_dir="$1"
-	local -r log_file="$2"
+	# local -r log_dir="$1"
+	# local -r log_file="$2"
 	local log_len
 	log_len=$(wc -l < "$log_dir/$log_file")
 	[[ "$log_len" -gt 12 ]] && sed -i '1d' "$log_dir/$log_file"
@@ -34,7 +34,7 @@ trim_log() {
 
 # Delete archive files older than 3 years.
 del_old_archives() {
-	local -r arc_dir="$1"
+	# local -r arc_dir="$1"
 	find "$arc_dir" -daystart -mtime +1095 -delete 2> ~/.local/share/logs/hb-delete.log
 }
 
@@ -64,8 +64,8 @@ archive_bak() {
 			printf "%(%F)T - HomeBank Archive had errors. (%s)" -1 "$status" >> "$arc_dir/$err_log"
 		fi
 	} >> "$log_dir/$log_file"
-	trim_log "$log_dir" "$log_file"
-	del_old_archives "$arc_dir"
+	trim_log #"$log_dir" "$log_file"
+	del_old_archives #"$arc_dir"
 }
 
 main() {
