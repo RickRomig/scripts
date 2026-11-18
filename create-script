@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 01 Jan 2023
-# Last updated : 27 Oct 2026
-# Version      : 4.11.26300
+# Updated      : 17 Nov 2026
+# Version      : 4.12.26321
 # Comments     : Creates script in the current working directory
 #              : Templates include GNU GPL v2 license
 # TODO (rick)  :
@@ -26,15 +26,16 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+source ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
+	exit 1
+}
 
 VERBOSE="$FALSE"
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="27 Oct 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="17 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Creates a shell script with header comments (getopts optional)
@@ -59,9 +60,8 @@ show_message() {
 }
 
 script_exists() {
-	local -r scriptname="$1"
-	if [[ -f "$scriptname" ]]; then
-		printf "%s %s already exists.\n" "$RED_ERROR" "$scriptname" >&2
+	if [[ -f "$script_name" ]]; then
+		printf "%s %s already exists.\n" "$RED_ERROR" "$script_name" >&2
 		return "$TRUE"
 	fi
 	return "$FALSE"
@@ -69,13 +69,12 @@ script_exists() {
 
 import_metadata() {
 	local cur_yr init_ver today script_dir
-	local -r script_name="$1"
-	local -r template_file="$2"
 	script_dir=$(dirname "$(readlink -f "${0}")")
 	local -r template_dir="$script_dir/Templates"
 	today=$(date +"%d %b %Y")
 	cur_yr=$(printf "\UA9 %(%Y)T")
 	init_ver="1.0.$(date +%y%j)"
+
 	show_message "Creating the $script_name script:"
 	show_message "Entering metadata..."
 	sed -e '1d' \
@@ -91,44 +90,38 @@ import_metadata() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.11.26300"
+	local -r version="4.12.26321"
 	local -i noOpt=1
 	local -r optstr=":b:hg:v"
 	local opt script_name template_file OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			b )
-				script_name="$OPTARG"
-				script_exists "$script_name" && help "$script" "$version" "$E_FILE_EXISTS"
+			b ) script_name="$OPTARG"
+				script_exists && help "$E_FILE_EXISTS"
 				show_message "Script name: $script_name"
 				template_file="bash-template.txt"
 				show_message "Template: ${template_file##*/}" ;;
-			h )
-				help "$script" "$version" 0 ;;
-			g )
-				script_name="$OPTARG"
-				script_exists "$script_name" && help "$script" "$version" "$E_FILE_EXISTS"
+			h ) help 0 ;;
+			g ) script_name="$OPTARG"
+				script_exists && help "$E_FILE_EXISTS"
 				show_message "Script name: $script_name"
 				template_file="bash-getopts.txt"
 				show_message "Template: ${template_file##*/}" ;;
-			v )
-				VERBOSE="$TRUE"
+			v ) VERBOSE="$TRUE"
 				show_message "Verbose mode enabled." ;;
-			: )
-				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_MISSING_ARG" ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
+			: ) printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$E_MISSING_ARG" ;;
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
+		help "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
-	import_metadata "$script_name" "$template_file"
+	import_metadata
 	edit_view_quit "$script_name"
 	over_line "$script $version"
 	printf "MOTD: "; leave ""
