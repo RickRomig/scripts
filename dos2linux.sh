@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2019
-# Updated      : 18 Nov 2026
+# Updated      : 27 Oct 2026
 # Version      : 2.5.26300
 # TODO (Rick)  :
 # Comment      : removes DOS carriage return ('\r') characters
@@ -26,12 +26,10 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-source ~/bin/files/functionlib.bash || {
-	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
-	exit 1
-}
+source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 convert_file() {
+	local -r filename="$1"
 	printf "Removing the carriage return characters from %s\n" "$filename"
 	printf "and creating a backup (%s.bak) of the orginal file."  "$filename"
 	sed -i.bak 's/\r//g' "$filename"
@@ -40,13 +38,13 @@ convert_file() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.6.26322"
+	local -r version="2.5.26300"
 	local filename="$1"
 	local -i exit_code=0
 	printf "Converts a DOS text file to Linux format by removing carriage return characters.\n"
 	[[ "$#" -eq 0 ]] && read -rp "Enter a DOS text file to process: " filename
 	if [[ -f "$filename" ]]; then
-		convert_file
+		convert_file "$filename"
 		exit_code="$?"
 	else
 		printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
