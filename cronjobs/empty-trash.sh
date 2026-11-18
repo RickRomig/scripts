@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 28 Sep 2026
-# Version      : 6.1.26271
+# Updated      : 18 Nov 2026
+# Version      : 6.2.26322
 # Comments     : Run as a user cron job. '~/.local/bin/empty-trash.sh'
 #              : Trash directory does not exist until a file has been moved to the trash.
 #              : trash-empty older that version 23 may not support verbosity.
@@ -32,7 +32,6 @@ trash_empty() {
 }
 
 empty_trash() {
-	local -r trash_dir="$1"
 	local -i old_trash_count
 	local last_week
 	last_week=$(date -d "$(date) - 6 days" +%F)
@@ -60,7 +59,7 @@ empty_trash() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.1.26271"
+	local -r version="6.2.26322"
 	local -r lhost="${HOSTNAME:-$(hostname)}"
 	local -r trash_dir=~/.local/share/Trash
 	local -r log_dir=~/.local/share/logs
@@ -72,7 +71,7 @@ main() {
 		if [[ ! -d "$trash_dir" ]]; then
 			printf "\nTrash directory does not exist.\nIt will be created when a file is moved to the trash.\n"
 		elif grep -q '^ii' < <(dpkg -l trash-cli 2>/dev/null); then
-			empty_trash "$trash_dir"
+			empty_trash
 		else
 			printf "trash-cli package is not installed.\n"
 		fi
