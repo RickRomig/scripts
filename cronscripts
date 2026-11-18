@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 17 Feb 2022
-# Updated      : 27 Oct 2026
-# Version      : 11.1.26300
+# Updated      : 18 Nov 2026
+# Version      : 12.0.26322
 # Comments     : Checks if the script in ~/bin/cronjobs is newer than the
 #              : script being run by anacron/cron
 # TODO (Rick)  :
@@ -26,19 +26,14 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
-
-LOCALIP="$(local_ip)"; readonly LOCALIP
-SCRIPT_DIR=$(dirname "$(readlink -f "${0}")"); readonly SCRIPT_DIR
-readonly USER_CRON_PATH=~/.local/bin/
-readonly SYSTEM_CRON_PATH=/opt/bin/
-readonly SED_PATH=/usr/share/misc/
+source ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
+	exit 1
+}
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="27 Oct 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="18 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: $updated
 	Copies cronjob scripts to the appropriate directories.
@@ -65,7 +60,7 @@ help() {
 is_older() {
 	local -r cron_script="$1"
 	local -r cron_path="$2"
-	[[ "$cron_path/$cron_script" -ot "$SCRIPT_DIR/cronjobs/$cron_script" ]] && return "$TRUE" || return "$FALSE"
+	[[ "$cron_path/$cron_script" -ot "$cron_src/$cron_script" ]] && return "$TRUE" || return "$FALSE"
 }
 
 no_copy() {
@@ -75,20 +70,20 @@ no_copy() {
 }
 
 cp_clone_update() {
-	case "$LOCALIP" in
+	case "$localip" in
 		10|16|22 )
 			no_copy "Cloned repository updates are" ;;
 		* )
-			is_older "clone-update.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/clone-update.sh" "$USER_CRON_PATH")
+			is_older "clone-update.sh" "$user_cron_path" && cpv_base "$cron_src/clone-update.sh" "$user_cron_path"
 	esac
 	return 0
 }
 
 cp_git_bu() {
-	case "$LOCALIP" in
+	case "$localip" in
 		10|16 )
-			is_older "git-dwm.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/git-dwm.sh" "$USER_CRON_PATH")
-			is_older "git-bu.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/git-bu.sh" "$USER_CRON_PATH") ;;
+			is_older "git-dwm.sh" "$user_cron_path" && cpv_base "$cron_src/git-dwm.sh" "$user_cron_path"
+			is_older "git-bu.sh" "$user_cron_path" && cpv_base "$cron_src/git-bu.sh" "$user_cron_path" ;;
 		* )
 			no_copy "Repository archives are"
 	esac
@@ -98,10 +93,10 @@ cp_git_bu() {
 cp_main_bu() {
 	local -r buScripts=(sync-nas.sh sync6005.sh journal-bu.sh passwdsync.sh repo-backup.sh)
 	local buScript
-	case "$LOCALIP" in
+	case "$localip" in
 		10 )
 			for buScript in "${buScripts[@]}"; do
-				is_older "$buScript" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/$buScript" "$USER_CRON_PATH")
+				is_older "$buScript" "$user_cron_path" && cpv_base "$cron_src/$buScript" "$user_cron_path"
 			done ;;
 		* )
 			no_copy "Main system sync scripts are"
@@ -110,10 +105,10 @@ cp_main_bu() {
 }
 
 cp_finance_bu() {
-	case "$LOCALIP" in
+	case "$localip" in
 		10 )
-			is_older "fin-bu.sh" "$USER_CRON_PATH" &&  awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/fin-bu.sh" "$USER_CRON_PATH")
-			is_older "hb-archive.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/hb-archive.sh" "$USER_CRON_PATH") ;;
+			is_older "fin-bu.sh" "$user_cron_path" && cpv_base "$cron_src/fin-bu.sh" "$user_cron_path"
+			is_older "hb-archive.sh" "$user_cron_path" && cpv_base "$cron_src/hb-archive.sh" "$user_cron_path" ;;
 		* )
 			no_copy "Finance archives are"
 	esac
@@ -121,43 +116,43 @@ cp_finance_bu() {
 }
 
 cp_scriptarchive() {
-	case "$LOCALIP" in
+	case "$localip" in
 		17|21|22|24 )
 			no_copy "scriptarchive.sh is" ;;
 		* )
-			is_older "scriptarchive.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/scriptarchive.sh" "$USER_CRON_PATH")
+			is_older "scriptarchive.sh" "$user_cron_path" && cpv_base "$cron_src/scriptarchive.sh" "$user_cron_path"
 	esac
 	return 0
 }
 
 cp_empty_trash() {
-	is_older "empty-trash.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/empty-trash.sh" "$USER_CRON_PATH")
+	is_older "empty-trash.sh" "$user_cron_path" && cpv_base "$cron_src/empty-trash.sh" "$user_cron_path"
 	return 0
 }
 
 cp_redshift_notify() {
-	case "$LOCALIP" in
+	case "$localip" in
 		10|11|14|15|17|19|20|21 )
 			no_copy "redshift-notify.sh is" ;;
 		* )
-			is_older "redshift-notify.sh" "$USER_CRON_PATH" && awk '{print "==> "$NF}' < <(cp -pv "$SCRIPT_DIR/cronjobs/redshift-notify.sh" "$USER_CRON_PATH/")
+			is_older "redshift-notify.sh" "$user_cron_path" && cpv_base "$cron_src/redshift-notify.sh" "$user_cron_path"
 	esac
 	return 0
 }
 
 cp_zdefrag() {
 	local -r anacron_path="/etc/cron.monthly/"
-	case "$LOCALIP" in
+	case "$localip" in
 		11|16 )
-			[[ -d "$SYSTEM_CRON_PATH" ]] || { sudo_login 1; sudo mkdir -p "$SYSTEM_CRON_PATH"; }
-			if is_older "z-defrag" "$SYSTEM_CRON_PATH"; then
+			[[ -d "$system_cron_path" ]] || { sudo_login 1; sudo mkdir -p "$system_cron_path"; }
+			if is_older "z-defrag" "$system_cron_path"; then
 				sudo_login 1
-				awk '{print "==> "$NF}' < <(sudo cp -v "$SCRIPT_DIR/cronjobs/z-defrag" "$SYSTEM_CRON_PATH")
+				cpvs_base "$cron_src/z-defrag" "$system_cron_path"
 			fi ;;
 		* )
 			if is_older "z-defrag" "$anacron_path"; then
 				sudo_login 1
-				awk '{print "==> "$NF}' < <(sudo cp -v "$SCRIPT_DIR/cronjobs/z-defrag" "$anacron_path")
+				cpvs_base "$cron_src/z-defrag" "$anacron_path"
 			fi ;;
 	esac
 	return 0
@@ -166,32 +161,32 @@ cp_zdefrag() {
 cp_zupdate() {
 	local -r sed_file="update-cleanup.sed"
 	local -r anacron_path="/etc/cron.weekly/"
-	case "$LOCALIP" in
+	case "$localip" in
 		11|16 )
-			if is_older "z-update" "$SYSTEM_CRON_PATH"; then
+			if is_older "z-update" "$system_cron_path"; then
 				sudo_login 1
-				awk '{print "==> "$NF}' < <(sudo cp -v "$SCRIPT_DIR/cronjobs/z-update" "$SYSTEM_CRON_PATH")
+				cpvs_base "$cron_src/z-update" "$system_cron_path"
 			fi ;;
 		* )
 			if is_older "z-update" "$anacron_path"; then
 				sudo_login 1
-				awk '{print "==> "$NF}' < <(sudo cp -v "$SCRIPT_DIR/cronjobs/z-update" "$anacron_path")
+				cpvs_base "$cron_src/z-update" "$anacron_path"
 			fi
 	esac
-	if [[ "$SED_PATH/$sed_file" -ot "$SCRIPT_DIR/files/$sed_file" ]]; then
+	if [[ "$sed_path/$sed_file" -ot "$sed_src/$sed_file" ]]; then
 		sudo_login 1
-		awk '{print "==> "$NF}' < <(sudo cp -v "$SCRIPT_DIR/files/$sed_file" "$SED_PATH")
+		cpvs_base "$sed_src/$sed_file" "$sed_path"
 	fi
 	return 0
 }
 
 cp_zytdlpupdate() {
 	local -r anacron_path="/etc/cron.daily/"
-	case "$LOCALIP" in
+	case "$localip" in
 		10|15|17 )
 			if is_older "z-ytdlp-update" "$anacron_path"; then
 				sudo_login 1
-				awk '{print "==> "$NF}' < <(sudo cp -v "$SCRIPT_DIR/cronjobs/z-ytdlp-update" "$anacron_path")
+				cpvs_base "$cron_src/z-ytdlp-update" "$anacron_path"
 			fi ;;
 		* )
 			no_copy "z-ytdlp-update is"
@@ -201,17 +196,27 @@ cp_zytdlpupdate() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="11.1.26300"
+	local -r version="12.0.26322"
 	local -i exit_code=0
+	localip="$(local_ip)"
+
+	# Path variables
+	script_dir=$(dirname "$(readlink -f "${0}")")
+	local -r user_cron_path=~/.local/bin/
+	local -r system_cron_path=/opt/bin/
+	local -r sed_path=/usr/share/misc/
+	local -r cron_src="$script_dir/cronjobs"
+	local -r sed_src="$script_dir/files"
+
+	# getopts variables
 	local -i noOpt=1
 	local -r optstr=":acdfghmrstuy"
 	local opt OPTARG OPTIND
-	[[ -d "$USER_CRON_PATH" ]] || mkdir -p "$USER_CRON_PATH"
+	[[ -d "$user_cron_path" ]] || mkdir -p "$user_cron_path"
 	printf "Copying updated cron scripts...\n"
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			a )
-				cp_main_bu
+			a ) cp_main_bu
 				cp_finance_bu
 				cp_git_bu
 				cp_scriptarchive
@@ -225,23 +230,22 @@ main() {
 			d ) cp_zdefrag ;;
 			f ) cp_finance_bu ;;
 			g ) cp_git_bu ;;
-			h ) help "$script" "$version" 0 ;;
+			h ) help 0 ;;
 			m ) cp_main_bu ;;
 			r ) cp_redshift_notify ;;
 			s ) cp_scriptarchive ;;
 			t ) cp_empty_trash ;;
 			u ) cp_zupdate ;;
 			y ) cp_zytdlpupdate ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
 	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
+		help "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
