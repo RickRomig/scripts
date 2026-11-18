@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, 02 Nov 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Nov 2019
-# Updated      : 06 Nov 2026
-# Version      : 3.0.26310
+# Updated      : 18 Nov 2026
+# Version      : 3.1.26322
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,10 +28,8 @@
 . ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-  local -r script="$1"
-  local -r version="$2"
-  local -ri errcode="${3:-1}"
-  local -r updated="29 Oct 2026"
+  local -ri errcode="${1:-1}"
+  local -r updated="18 Nov 2026"
   cat <<- _HELP_
 	${orange}$script${normal} $version, Updated: $updated
 	Downloads a web page to the current directory.
@@ -45,7 +43,7 @@ help() {
 }
 
 print_download_status() {
-	local -ri code="$1"
+	# Return codes from man wget > EXIT STATUS
 	local -rA return_code=(
 		[0]="No problems occurred. Download successful."
 		[1]="Generic error."
@@ -62,7 +60,6 @@ print_download_status() {
 }
 
 download_page() {
-	local -r url="$1"
 	local -i code=0
 	local domain
 	domain=$(sed 's|^[^/]*//||; s|^www\.||; s|/.*$||' <<< "$url")
@@ -70,7 +67,7 @@ download_page() {
 	wget --quiet --recursive --page-requisites --html-extension --convert-links \
 	--restrict-file-names=windows --domains "$domain" --no-parent "$url"
 	code="$?"
-	print_download_status "$code"
+	print_download_status
 	return "$code"
 }
 
@@ -85,7 +82,7 @@ check_arguments() {
 	elif [[ $1 =~ $re ]]; then
 		url="$*"
 		check_package wget
-		download_page "$url"
+		download_page
 	else
 		printf "%s Invalid argument: %s\n" "$RED_ERROR" "$1" >&2
 		help "$script" "$version" "$E_INVALID_ARG"
@@ -95,7 +92,7 @@ check_arguments() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.0.26310"
+	local -r version="3.1.26322"
 	local -i exit_code=0
 	check_arguments "$@"
 	exit_code="$?"
