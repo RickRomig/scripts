@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Oct 2023
-# Last updated : 21 Sep 2026
-# Version      : 3.1.26264
+# Last updated : 18 Nov 2026
+# Version      : 3.2.26322
 # Comments     : Run as a local daily cron job
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,8 +25,8 @@
 ###############################################################################
 
 monday_actions() {
-	local -r arc_dir="$1"
-	local -r snar="$2"
+	# local -r arc_dir="$1"
+	# local -r snar="$2"
 	[[ -e "$arc_dir/$snar" ]] && mv "$arc_dir/$snar" "$arc_dir/$snar.$(date --date '7 days ago' +%y%m%d)"
 	find "$arc_dir" -mtime +91 -delete 2> ~/.local/share/logs/fin-bu.log
 }
@@ -38,7 +38,7 @@ incremental_backup() {
 	archive="finance.$(date +'%y%m%d-%u').tar.gz"
 	day=$(date +%a)
 	[[ -d "$arc_dir" ]] || mkdir -p "$arc_dir"
-	[[ "$day" == "Mon" ]] && monday_actions "$arc_dir" "$snar"
+	[[ "$day" == "Mon" ]] && monday_actions #"$arc_dir" "$snar"
 	tar -cpzf "$arc_dir/$archive" -g "$arc_dir/$snar" ~/Documents/Finance ~/Documents/HomeBank
 }
 
