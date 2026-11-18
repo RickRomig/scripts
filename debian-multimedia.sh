@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 28 Oct 2025
-# Updated      : 27 Oct 2026
-# Version      : 3.1.26300
+# Updated      : 18 Nov 2026
+# Version      : 3.2.26322
 # Comments     : Tested with Debian 12 (bookworm) & Debian 13 (trixie)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -26,7 +26,10 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+source ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
+	exit 1
+}
 
 install_keyring() {
 	local -r keyring_url="https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring"
@@ -38,7 +41,6 @@ install_keyring() {
 }
 
 set_sources() {
-	local -r distro="$1"
 	local -r sources_file=/etc/apt/sources.list.d/dmo.sources
 	local -r dmo_key=/usr/share/keyrings/deb-multimedia-keyring.gpg
 	local -r sources_uri="https://www.deb-multimedia.org"
@@ -69,7 +71,7 @@ install_multimedia() {
 		bookworm|trixie )
 			sudo_login 2
 			check_package wget
-			install_keyring && set_sources "$distro" ;;
+			install_keyring && set_sources ;;
 		* )
 			printf "%s is not supported by this script.\n" "${distro^}"
 			return "$E_UNSUPPORTED"
@@ -79,7 +81,7 @@ install_multimedia() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.1.26300"
+	local -r version="3.2.26322"
 	local -i exit_code=0
 	create_tmp "dir"
 	install_multimedia
