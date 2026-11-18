@@ -8,8 +8,8 @@
 # Author       : Copyright (C) 2020, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 07 Jun 2020
-# Updated      : 05 Sep 2026
-# Version      : 3.1.26248
+# Updated      : 18 Nov 2026
+# Version      : 3.2.26322
 # Comment      : Automatically limits log size to 30 entries.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,8 +27,8 @@
 #####################################################################
 
 trim_log() {
-	local -r log_dir="$1"
-	local -r log_file="$2"
+	# local -r log_dir="$1"
+	# local -r log_file="$2"
 	local -i log_len
 	log_len=$(wc -l < "$log_dir/$log_file")
 	while [[ "$log_len" -gt 30 ]]; do
@@ -64,7 +64,7 @@ local_backup() {
 		fi
 		sync
 	} >> "$log_dir/$log_file"
-	trim_log "$log_dir" "$log_file"
+	trim_log #"$log_dir" "$log_file"
 }
 
 main() {
