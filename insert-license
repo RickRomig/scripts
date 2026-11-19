@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Moafanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Jun 2019
-# Updated      : 28 Oct 2026
-# Version      : 5.3.26301
+# Updated      : 19 Nov 2026
+# Version      : 5.4.26323
 # Comments     : Inserts the license immediately after the file's header.
 #              : Assumes the standard script or C/C++ header is present.
 # TODO (rick)  :
@@ -25,13 +25,14 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+. ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
+	exit 1
+}
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="28 Oct 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="19 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Inserts an Open Source license into a shell script or a C/C++ source code file.
@@ -50,13 +51,13 @@ help() {
 }
 
 check_code_file() {
-	local -r codefile="$1"
-	if [[ -f "$codefile" ]]; then
+	if [[ -f "$code_file" ]]; then
 		printf "File: %s\n" "$code_file"
 		return "$TRUE"
+	else
+		printf "%s %s not found\n" "$RED_ERROR" "$code_file" >&2
+		return "$FALSE"
 	fi
-	printf "%s %s not found\n" "$RED_ERROR" "$codefile" >&2
-	return "$FALSE"
 }
 
 set_license_type() {
@@ -80,7 +81,6 @@ set_license_type() {
 }
 
 set_license_file() {
-	local -r lic_type="$1"
 	declare -rA lic_files=(
 		[GPL v1]="gpl_v1.txt"
 		[GPL v2]="gpl_v2.txt"
@@ -92,8 +92,6 @@ set_license_file() {
 }
 
 insert_license() {
-	local -r code_type="$1"
-	local -r code_file="$2"
 	local -r template_dir=~/bin/Templates
 	local cur_yr license_type license_file
 	cur_yr=$(printf "\UA9 %(%Y)T")
@@ -103,7 +101,7 @@ insert_license() {
 		printf "No license inserted into %s.\n" "$code_file" >&2
 		return "$E_MISSING_ARG"
 	fi
-	license_file="$(set_license_file "$license_type")"
+	license_file="$(set_license_file)"
 	case $code_type in
 		"C" )
 			sed -e '1d' \
@@ -130,7 +128,7 @@ insert_license() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="5.3.26301"
+	local -r version="5.4.26323"
 	local -i exit_code=0
 	local opt code_file code_type OPTARG OPTIND
 	local -i noOpt=1
@@ -139,37 +137,37 @@ main() {
 		case "$opt" in
 			c )
 				code_file="$OPTARG"
-				check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
+				check_code_file || help "$E_FILENOTFOUND"
 				code_type="C"
 				printf "Code type: %s source code\n" "$code_type" ;;
 			h )
 				help "$script" "$version" 0 ;;
 			p )
 				code_file="$OPTARG"
-				check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
+				check_code_file "$code_file" || help "$E_FILENOTFOUND"
 				code_type="C++"
 				printf "Code type: %s source code\n" "$code_type" ;;
 			s )
 				code_file="$OPTARG"
-				check_code_file "$code_file" || help "$script" "$version" "$E_FILENOTFOUND"
+				check_code_file "$code_file" || help "$E_FILENOTFOUND"
 				code_type="Shell"
 				printf "Code type: %s source code\n" "$code_type" ;;
 			: )
 				printf "%s Must supply an argument to -%s.\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_MISSING_ARG" ;;
+				help "$E_MISSING_ARG" ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
+				help "$E_INVALID_ARG"
 		esac
 		noOpt=0
 	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
+		help "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
 	create_tmp "file"
-	insert_license "$code_type" "$code_file"
+	insert_license
 	exit_code="$?"
 	over_line "$script $version"
 	exit "$exit_code"
