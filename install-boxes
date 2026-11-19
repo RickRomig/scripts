@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Feb 2020
-# Updated      : 13 Nov 2026
-# Version      : 4.8.26317
+# Updated      : 19 Nov 2026
+# Version      : 4.9.26323
 # Comments     : Based on instructions from Joe Collins.
 # TODO (Rick)  : check entry in flatpak list, does Flatpak include all dependencies?
 # License      : GNU General Public License, version 2.0
@@ -27,10 +27,8 @@
 . ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="13 Nov 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="19 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Install Gnome Boxes from either distribution repositories or flatpak from Flathub.
@@ -184,7 +182,7 @@ install_from_flatpak() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.8.26317"
+	local -r version="4.9.26323"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":dfh"
@@ -193,16 +191,16 @@ main() {
 		case "$opt" in
 			d ) check_bios && install_from_deb ;;
 			f ) check_bios && install_from_flatpak ;;
-			h ) help "$script" "$version" 0 ;;
+			h ) help 0 ;;
 			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
+				help "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
 	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
+		help "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
