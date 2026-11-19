@@ -7,8 +7,8 @@
 # Author       : Copyright © 2026, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 14 Feb 2026
-# Updated      : 28 Oct 2026
-# Version      : 2.4.26300
+# Updated      : 19 Nov 2026
+# Version      : 2.5.26323
 # Comments     : Thanks to Joe Collins and Matt Hartley for the fix to the permissions problem.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,13 +25,14 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+. ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
+	exit 1
+}
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="28 Oct 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="19 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Installs Brasero CD/DVD writeer
@@ -117,7 +118,7 @@ remove_brasero() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.4.26300"
+	local -r version="2.5.26323"
 	local -i exit_code=0
 	local -i reboot_flag=1
 	local -i noOpt=1
@@ -125,19 +126,19 @@ main() {
 	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			h ) help "$script" "$version" 0 ;;
+			h ) help 0 ;;
 			i ) install_brasero && reboot_flag=0 ;;
 			r ) remove_brasero ;;
 			? )
 				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
+				help "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
 	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
+		help "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
