@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Updated      : 28 Oct 2026
-# Version      : 4.8.26301
+# Updated      : 18 Nov 2026
+# Version      : 4.9.26322
 # Comments     : Must be run from the main directory of a git repo.
 #              : For files in subdirectories, include the path from the repo directory.
 #              : If file has been changed, commit the change before retiring.
@@ -27,13 +27,14 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+source ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
+	exit 1
+}
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local updated="28 Oct 2026"
+	local -ri errcode="${1:-1}"
+	local updated="18 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Retires a script in a Git repo by moving it to a zipped archive.
@@ -59,7 +60,6 @@ is_git_repo() {
 }
 
 retire_script() {
-	local -r filename="$1"
 	local -r archive=~/Downloads/archives/retired-scripts.zip
 	printf "Archiving %s..." "$filename"
 	zip -u "$archive" "$filename"
@@ -69,26 +69,25 @@ retire_script() {
 	return "$?"
 }
 
-check_args() {
-	local filename="$1"
+check_filename() {
 	[[ "$filename" ]] || read -rp "Enter the name of the script to be retired: " filename
 	if [[ ! -f "$filename" ]]; then
 		printf "%s not found in this git repository.\n" "$filename" >&2
 		return "$E_FILENOTFOUND"
 	fi
-	retire_script "$filename"
+	retire_script
 	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.8.26301"
+	local -r version="4.9.26322"
 	local -i exit_code=0
-	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
+	[[ "$1" == "-h" || "$1" == "--help" ]] && help 0
 	local filename="$1"
 	if is_git_repo; then
 		check_dependencies
-		check_args "$filename"
+		check_filename
 		exit_code="$?"
 	else
 		printf "%s This is not a git repositiory.\n" "$RED_WARNING" >&2
