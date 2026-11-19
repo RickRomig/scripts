@@ -7,8 +7,8 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 16 Apr 2023
-# Updated      : 15 Nov 2026
-# Version      : 1.14.26319
+# Updated      : 18 Nov 2026
+# Version      : 2.0.26322
 # Comments     : Install with keybindings.conf in ~/.config/i3/
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,22 +25,23 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-source ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+source ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
+	exit 1
+}
 
 copy_bindings() {
-	local -r i3_dir="$1"
-	local -r bindings="$2"
 	local repository
 	repository=$(assign_cfg_repo)
 	printf "Copying i3 keyboard bindings...\n"
-	cpv_base "$repository/$bindings" "$i3_dir/$bindings"
+	cpv_base "$repository/i3/$bindings" "$i3_dir/$bindings"
 	return 0
 }
 
 show_bindings() {
 	local -r i3_dir=~/.config/i3
-	local -r i3_bindings=keybindings.conf
-	[[ -f "$i3_dir/$bindings" ]] || copy_bindings "$i3_dir" "$bindings"
+	local -r bindings=keybindings.conf
+	[[ -f "$i3_dir/$bindings" ]] || copy_bindings
 	printf "%s%si3wm keybindings:%s\n" "$bold" "$green" "$normal"
 	column -t -s "|" -N Binding,Action,Binding,Action "$i3_dir/$bindings"
 	return 0
@@ -48,12 +49,12 @@ show_bindings() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.14.26319"
+	local -r version="2.0.26322"
 	local -i exit_code=0
-	if [[ "$DESKTOP_SESSION" == "i3" ]]; then
+	if pgrep -f i3 &>/dev/null; then
 		clearscreen
 		check_package git
-		show_bindings "$i3_dir" "$i3_bindings"
+		show_bindings
 	else
 		printf "i3wm is not the current desktop session.\n" >&2
 		exit_code="$E_UNSUPPORTED"
