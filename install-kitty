@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 26 Sep 2022
-# Updated      : 29 Oct 2026
-# Version      : 2.10.26302
+# Updated      : 20 Nov 2026
+# Version      : 2.11.26324
 # Comments     : Configures as a login terminal for Debian-based distros.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -27,10 +27,8 @@
 . ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="29 Octp 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="20 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs/Removes/Configures Kitty terminal emulator
@@ -40,7 +38,7 @@ help() {
 	-h	Show this help message and exit
 	-i	Install Kitty from distro repositories
 	-r	Remove Kitty from system
-_HELP_
+	_HELP_
 	exit "$errcode"
 }
 
@@ -90,33 +88,33 @@ kitty_config() {
 	fi
 	[[ -d ~/.config/kitty ]] || mkdir -p ~/.config/kitty
 	printf "Applying configuration files ...\n"
-	cp -v "$repository"/*.conf ~/.config/kitty/
-	[[ "$DESKTOP_SESSION" != "i3" ]] && sed -i.bak '/hide_window_decorations/s/yes/no/' ~/.config/kitty/kitty.conf
+	cpa_base "$repository"/. ~/.config/kitty/
+	pgrep -f i3 &>/dev/null || sed -i.bak '/hide_window_decorations/s/yes/no/' ~/.config/kitty/kitty.conf
 	printf "kitty configuration files applied.\n"
 	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.10.26302"
+	local -r version="2.11.26324"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":hir"
 	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			h ) help "$script" "$version" 0 ;;
+			h ) help 0 ;;
 			i ) install_kitty && kitty_config ;;
 			r ) remove_kitty;;
 			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
+				help "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
 	done
 	if (( noOpt == 1 )); then
 		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
+		help "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
