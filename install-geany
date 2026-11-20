@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig,Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 25 Dec 2022
-# Updated      : 16 Nov 2026
-# Version      : 4.5.26320
+# Updated      : 19 Nov 2026
+# Version      : 4.6.26322
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,10 +30,8 @@
 VERBOSE="$FALSE"
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="16 Nov 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="19 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs/Removes Geany text editor and themes
@@ -134,7 +132,7 @@ show_message() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.5.26320"
+	local -r version="4.6.26322"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":chirtv"
@@ -143,21 +141,21 @@ main() {
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			c ) geany_config ;;
-			h ) help "$script" "$version" 0 ;;
+			h ) help 0 ;;
 			i ) install_geany ;;
 			r ) remove_geany ;;
 			t ) clone_themes ;;
 			v ) VERBOSE="$TRUE"
 				show_message "Verbose mode enabled." ;;
 			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
+				help "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
 	done
 	if (( noOpt == 1 )); then
-		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
+		printf "%s No argument passed\n" "$RED_ERROR" >&2
+		help "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
