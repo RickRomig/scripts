@@ -7,12 +7,12 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 29 Nov 2018
-# Updated      : 29 Oct 2026
-# Version      : 7.2.26302
+# Updated      : 20 Nov 2026
+# Version      : 7.3.26324
 # Comments     : Available as a flatpak (preferred method)
 #              : https://flathub.org/apps/details/fr.free.Homebank
 #              : Linux Mint Sofware Manager
-#              : Ubuntu PPA not supported by this script.
+#              : Script does not support Ubuntu PPA.
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -28,13 +28,14 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+. ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
+	exit 1
+}
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="29 Oct 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="20 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs/Removes HomeBank Personal Finance Software.
@@ -112,16 +113,18 @@ remove_homebank() {
 }
 
 apply_preferences() {
+	local config_dir=~/.config
+	flatpak_homebank_installed && config_dir=~/.var/app/fr.free.Homebank/config
+	[[ -d "$config_dir" ]] || mkdir -p "$config_dir"
+
 	local repository=~/Downloads/configs/homebank
 	[[ -d ~/gitea/configs/homebank ]] && repository=~/gitea/configs/homebank
 	if [[ ! -d "$repository" ]]; then
 		printf "%s Configs repository not found!\n" "$RED_WARNING" >&2
 		return "$E_FILENOTFOUND"
 	fi
-	local config_dir=~/.config
-	flatpak_homebank_installed && config_dir=~/.var/app/fr.free.Homebank/config
-	[[ -d "$config_dir" ]] || mkdir -p "$config_dir"
-	cp -v "$repository"/homebank/preferences "$config_dir"/homebank/
+
+	cpv_base "$repository/homebank/preferences" "$config_dir"
 	printf "HomeBank preferences applied.\n"
 	return 0
 }
@@ -142,7 +145,7 @@ remove_homebank_configs() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.2.26302"
+	local -r version="7.3.26324"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":fhir"
@@ -150,18 +153,18 @@ main() {
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			f ) install_flatpak_homebank && apply_preferences ;;
-			h ) help "$script" "$version" 0 ;;
+			h ) help 0 ;;
 			i ) install_deb_homebank && apply_preferences ;;
 			r ) remove_homebank ;;
 			? ) printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
+				help "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
 	done
 	if (( noOpt == 1 )); then
-		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
+		printf "%s No argument passed\n" "$RED_ERROR" >&2
+		help "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
