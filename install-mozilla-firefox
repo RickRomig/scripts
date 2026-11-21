@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Updated      : 29 Oct 2026
-# Version      : 7.4.26275
+# Updated      : 21 Nov 2026
+# Version      : 7.5.26325
 # Comments     : Remove Distro, Flatpak, or Snap version before installing.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,10 +30,8 @@
 VERBOSE="FALSE"
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated=" 29 Oct 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated=" 21 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Upated: $updated
 	Installs/Removes Mozilla repository version of Firefox.
@@ -90,7 +88,6 @@ Pin-Priority: 1000"
 }
 
 set_gpg_key() {
-	local -r key_file="$1"
 	local -r key_url="https://packages.mozilla.org/apt/repo-signing-key.gpg"
 	show_message "Installing keyrings directory..."
 	[[ -d /etc/apt/keyrings ]] || sudo install -d -m 0755 /etc/apt/keyrings
@@ -101,7 +98,6 @@ set_gpg_key() {
 }
 
 set_sources() {
-	local -r key_file="$1"
 	local -r sources_list=/etc/apt/sources.list.d/mozilla.list
 	local -r sources_file=/etc/apt/sources.list.d/mozilla.sources
 	local -r sources_uri="https://packages.mozilla.org/apt"
@@ -130,8 +126,8 @@ install_mozilla_firefox() {
 	fi
 	local -r key_file="/etc/apt/keyrings/packages.mozilla.org.asc"
 	printf "Installing the Mozilla Firefox DEB package...\n"
-	set_gpg_key "$key_file"
-	set_sources "$key_file"
+	set_gpg_key
+	set_sources
 	create_preference_file
 	show_message "Updating apt cache..."
 	sudo apt-get update
@@ -139,7 +135,7 @@ install_mozilla_firefox() {
 	sudo apt-get install -y firefox
 	if ! installed firefox; then
 		printf "%s Firefox installation failed.\n" "$RED_ERROR" >&2
-    return "$E_INSTALLATION"
+		return "$E_INSTALLATION"
 	fi
 	printf "%s installed.\n" "$(firefox_version)"
 	return 0
@@ -162,7 +158,7 @@ remove_mozilla_firefox() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.4.26302"
+	local -r version="7.5.26325"
 	local -i exit_code=0
 	local opt OPTARG OPTIND
 	local -i noOpt=1
@@ -172,12 +168,9 @@ main() {
 			h ) help "$script" "$version" 0 ;;
 			i ) install_mozilla_firefox ;;
 			r ) remove_mozilla_firefox ;;
-			v )
-
-			VERBOSE="$TRUE"
+			v ) VERBOSE="$TRUE"
 				show_message "Verbose mode enabled." ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help "$script" "$version" "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
