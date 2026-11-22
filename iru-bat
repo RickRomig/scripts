@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 30 Oct 2026
-# Version      : 7.11.26303
+# Updated      : 22 Nov 2026
+# Version      : 7.12.26326
 # Comments     : Use install-batcat if distro version has same base version number as latest GitHub release.
 #              : Mint 22 installs version 0.24.0 with the Ubuntu version appended.
 #              : Debian 13 installs version 0.25.0 with the Debian version appended.
@@ -32,10 +32,8 @@
 . ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="30 Oct 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="22 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs, updates, or removes the Bat utililty.
@@ -60,7 +58,6 @@ bat_version() {
 }
 
 newest_version() {
-	local -r gh_url="$1"
 	local new_ver
 	wget -qO "$TMP_FILE" "$gh_url"
 	new_ver=$(sed 's/^v//' < <(awk -F'/' '/download/ && /amd64.deb/ {print $6;exit}' "$TMP_FILE"))
@@ -69,27 +66,24 @@ newest_version() {
 }
 
 compare_versions() {
-	local -r new_ver="$1"
-	local -r gh_url="$2"
 	local cur_ver
-	cur_ver="$(bat_version)"; declare -r cur_ver
+	local -i return_status=0
+	cur_ver="$(bat_version)"
 	printf "Comparing current and newest versions...\n"
 	if [[ -z "$new_ver" ]]; then
 		printf "%s No download available. Try again later." "$RED_ERROR" >&2
-		return "$E_DOWNLOAD"
+		return_status="$E_DOWNLOAD"
 	elif newer_version "$new_ver" "$cur_ver"; then
-			printf "%sInstalled version of Bat is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-	install_bat "$new_ver" "$gh_url"
-	return "$?"
+		printf "%sInstalled version of Bat is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
+		install_bat
+		return_status="$?"
 	else
 		printf "%sBat %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
 	fi
-	return 0
+	return "$return_status"
 }
 
 install_bat() {
-	local -r new_ver="$1"
-	local -r gh_url="$2"
 	local -r new_pkg="bat_${new_ver}_amd64.deb"
 	if [[ -z "$new_ver" ]]; then
 		printf "%s No download available. Try again later." "$RED_ERROR" >&2
@@ -116,7 +110,7 @@ install_bat() {
 remove_bat() {
 	if ! installed bat; then
 		printf "Bat (Batcat) is not installed.\n"
-		return "$E_NOT_DETECTED"
+		return "$E_NOT_INSTALLED"
 	fi
 	sudo_login 2
 	printf "Removing Bat %s...\n" "$(bat_version)"
@@ -146,8 +140,8 @@ bat_config() {
 }
 
 main() {
-	local -r  script="${0##*/}"
-	local -r version="7.11.26303"
+	local -r script="${0##*/}"
+	local -r version="7.12.26326"
 	local -i exit_code=0
 	local -r gh_url="https://github.com/sharkdp/bat/releases"
 	local -i noOpt=1
@@ -155,39 +149,34 @@ main() {
 	local opt OPTARG OPTIND new_ver
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			h )
-				help "$script" "$version" 0 ;;
-			i )
-				if installed bat; then
+			h ) help 0 ;;
+			i ) if installed bat; then
 					printf "Bat %s is already installed.\n" "$(bat_version)"
 				else
 					check_package wget
 					create_tmp "dirfile"
-					new_ver="$(newest_version "$gh_url")"
+					new_ver="$(newest_version)"
 					printf "%sInstalling Bat version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
-					install_bat "$new_ver" "$gh_url" && bat_config
+					install_bat && bat_config
 				fi ;;
-			r )
-				remove_bat ;;
-			u )
-				if installed bat; then
+			r ) remove_bat ;;
+			u ) if installed bat; then
 					check_package wget
 					create_tmp "dirfile"
-					new_ver="$(newest_version "$gh_url")"
-					compare_versions "$new_ver" "$gh_url"
+					new_ver="$(newest_version)"
+					compare_versions
 				else
 					printf "Bat is not installed.\n"
 				fi ;;
-				? )
-					printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-					help "$script" "$version" "$E_INVALID_ARG"
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
 	done
 	if (( noOpt == 1 )); then
-		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
+		printf "%s No argument passed\n" "$RED_ERROR" >&2
+		help "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
