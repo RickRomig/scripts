@@ -7,8 +7,8 @@
 # Author       : Copyright (C) Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 05 Oct 2022
-# Updated      : 29 Oct 2026
-# Version      : 2.6.26302
+# Updated      : 22 Nov 2026
+# Version      : 2.7.26326
 # Comments     : Install & remove for Debian-based systems (Debian, antiX, MX, BunsenLabs).
 #              : UFW should already be installed on Linux Mint & LMDE.
 # TODO (Rick)  :
@@ -30,10 +30,8 @@
 . ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -i errcode="${3:-1}"
-	local -r updated="29 Oct 2026"
+	local -i errcode="${1:-1}"
+	local -r updated="22 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs UFW on Debian, BunsenLabs, and MX Linux systems.
@@ -188,7 +186,7 @@ toggle_ufw() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="2.6.26302"
+	local -r version="2.7.26326"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r optstr=":adhinrst"
@@ -197,21 +195,21 @@ main() {
 		case "$opt" in
 			a ) add_default_rules ;;
 			d ) delete_rules;;
-			h ) help "$script" "$version" 0 ;;
+			h ) help 0 ;;
 			i ) install_ufw ;;
 			n ) add_new_rules ;;
 			r ) remove_ufw ;;
 			s ) ufw_status ;;
 			t ) toggle_ufw ;;
 			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
+				help "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
 	done
 	if (( noOpt == 1 )); then
-		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
+		printf "%s No argument passed\n" "$RED_ERROR" >&2
+		help "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
