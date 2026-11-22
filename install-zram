@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jan 2025
-# Updated      : 16 Nov 2026
-# Version      : 4.12.26320
+# Updated      : 22 Nov 2026
+# Version      : 4.13.26326
 # Comments     : Option to disable current swap && install ZRam.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -25,17 +25,18 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+. ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
+	exit 1
+}
 
 find_current_swap() {
-	local swap_dev
-	swap_dev=$(awk '/file/ || /partition/ {print $1}' /proc/swaps); declare -r swap_dev
+	swap_dev=$(awk '/file/ || /partition/ {print $1}' /proc/swaps)
 	printf "%s" "$swap_dev"
 	return 0
 }
 
 disable_swap() {
-	local -r swap_dev="$1"
 	sudo_login 2
 	sudo sed -i.bak '/swap/s/^UUID=/# UUID=/' /etc/fstab
 	sudo /usr/sbin/swapoff "$swap_dev"
@@ -65,7 +66,7 @@ install_zram() {
 
 check_for_swap() {
 	local swap_dev
-	swap_dev=$(find_current_swap); declare -r swap_dev
+	swap_dev=$(find_current_swap)
 	if [[ -z "$swap_dev" ]]; then
 		printf "No swap device detected. Installing zram-tools...\n"
 		install_zram
@@ -90,7 +91,7 @@ check_for_swap() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.12.26320"
+	local -r version="4.13.26326"
 	exit_code=0
 	check_for_swap
 	exit_code="$?"
