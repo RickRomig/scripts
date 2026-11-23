@@ -7,11 +7,11 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 30 Oct 2026
-# Version      : 8.7.26303
+# Updated      : 22 Nov 2026
+# Version      : 8.8.26327
 # Comments     : Debian 13 & LMDE 7 installs version 2.0.14 from Debian repository
-#              : Debian 12, Ubuntu 24.04 & Mint 22 nstalls version 2.0.13 from repositories
-#              : iru-micro -u remove remove repo version and install latest from GitHub repository
+#              : Debian 12, Ubuntu 24.04 & Mint 22 installs version 2.0.13 from repositories
+#              : iru-micro -u removes remove repo version and install latest from GitHub repository
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 # License URL  : https://github.com/RickRomig/scripts/blob/main/LICENSE
@@ -27,13 +27,14 @@
 ###############################################################################
 
 # shellcheck source=/home/rick/bin/files/functionlib.bash
-. ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
+. ~/bin/files/functionlib.bash || {
+	printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"
+	exit 1
+}
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="30 Oct 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="322 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs, configures, updates, or removes the Micro CLI text editor.
@@ -55,7 +56,6 @@ micro_version() {
 }
 
 newest_version() {
-	local -r gh_url="$1"
 	local new_ver
 	wget -qO "$TMP_FILE" "$gh_url"
 	new_ver=$(sed 's/^v//' < <(awk -F'/' '/download\/v/ {print $6;exit}' "$TMP_FILE"))
@@ -64,34 +64,31 @@ newest_version() {
 }
 
 compare_versions() {
-	local -r new_ver="$1"
-	local -r gh_url="$2"
 	local cur_ver
+	local -i return_status=0
 	cur_ver=$(micro_version)
 	printf "Comparing current and newest versions...\n"
 	if [[ -z "$new_ver" ]]; then
 		printf "%s No download available. Try again later." "$RED_ERROR" >&2
-		return "$E_DOWNLOAD"
+		return_status="$E_DOWNLOAD"
 	elif newer_version "$new_ver" "$cur_ver"; then
 		printf "%sInstalled version of Micro is %s, updating to %s...%s\n" "$lightyellow" "$cur_ver" "$new_ver" "$normal"
-		install_micro "$new_ver" "$gh_url"
-		return "$?"
+		install_micro
+		return_status="$?"
 	else
 		printf "%sMicro %s is the current version. No update required.%s\n" "$lightyellow" "$cur_ver" "$normal"
 	fi
-	return 0
+	return "$return_status"
 }
 
 install_micro() {
-	local -r new_ver="$1"
-	local -r gh_url="$2"
 	local new_pkg="micro-${new_ver}-linux64.tar.gz"
 	if [[ -z "$new_ver" ]]; then
 		printf "%s No download available. Try again later." "$RED_ERROR" >&2
 		return "$E_DOWNLOAD"
 	fi
 	sudo_login 2
-	# if the repo verssion is installed, remove it.
+	# if the repo version is installed, remove it.
 	installed micro && sudo apt-get remove -y micro
 	[[ -d /usr/share/micro/ ]] || sudo mkdir /usr/share/micro/
 	[[ -d /usr/share/doc/micro/ ]] || sudo mkdir /usr/share/doc/micro/
@@ -102,12 +99,12 @@ install_micro() {
 	kill_dots
 	printf "Installing Micro %s...\n" "$new_ver"
 	tar -xzvf "$TMP_DIR/$new_pkg" -C "$TMP_DIR/"
-	sudo cp -v "$TMP_DIR/micro-$new_ver"/micro /usr/bin/
-	sudo cp -v "$TMP_DIR/micro-$new_ver"/micro.1 /usr/share/man/man1/
-	sudo cp -v "$TMP_DIR/micro-$new_ver"/micro.desktop /usr/share/applications/
-	sudo cp -v "$TMP_DIR/micro-$new_ver"/micro.svg /usr/share/micro/
-	sudo cp -v "$TMP_DIR/micro-$new_ver"/README.md /usr/share/doc/micro/
-	sudo cp -v "$TMP_DIR/micro-$new_ver"/LICENSE* /usr/share/doc/micro/
+	cpvs_base "$TMP_DIR/micro-$new_ver"/micro /usr/bin/
+	cpvs_base "$TMP_DIR/micro-$new_ver"/micro.1 /usr/share/man/man1/
+	cpvs_base "$TMP_DIR/micro-$new_ver"/micro.desktop /usr/share/applications/
+	cpvs_base "$TMP_DIR/micro-$new_ver"/micro.svg /usr/share/micro/
+	cpvs_base "$TMP_DIR/micro-$new_ver"/README.md /usr/share/doc/micro/
+	cpvs_base "$TMP_DIR/micro-$new_ver"/LICENSE* /usr/share/doc/micro/
 	installed xclip || sudo apt-get install -y xclip
 	if [[ "$(micro_version)" != "$new_ver" ]]; then
 		printf "%s Micro installation failed.\n" "$RED_ERROR" >&2
@@ -145,12 +142,13 @@ micro_configs() {
 		printf "%s Cloned repository not found!\n" "$RED_WARNING" >&2
 		return "$E_FILENOTFOUND"
 	fi
-	[[ -f  ~/.config/micro/settings.json ]] && rm ~/.config/micro/settings.json
-	[[ -f ~/.config/micro/bindings.json ]] && rm  ~/.config/micro/bindings.json
-	if [[ -d ~/gitea/configs ]]; then
+	# [[ -f ~/.config/micro/settings.json ]] && rm ~/.config/micro/settings.json
+	# [[ -f ~/.config/micro/bindings.json ]] && rm ~/.config/micro/bindings.json
+	for file in ~/.config/micro/*.json; do rm -v "$file"; done
+	if [[ -d ~/gitea/configs/micro ]]; then
 		ln -sv ~/gitea/configs/micro/settings.json  ~/.config/micro/settings.json
 		ln -sv ~/gitea/configs/micro/bindings.json  ~/.config/micro/bindings.json
-	elif [[ -d ~/Downloads/configs ]]; then
+	elif [[ -d ~/Downloads/configs/micro ]]; then
 		ln -sv ~/Downloads/configs/micro/settings.json  ~/.config/micro/settings.json
 		ln -sv ~/Downloads/configs/micro/bindings.json  ~/.config/micro/bindings.json
 	fi
@@ -161,7 +159,7 @@ micro_configs() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="8.7.26303"
+	local -r version="8.8.26327"
 	local -i exit_code=0
 	local -r gh_url="https://github.com/micro-editor/micro/releases"
 	local -i noOpt=1
@@ -169,41 +167,35 @@ main() {
 	local opt OPTARG OPTIND new_ver
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			c )
-				micro_configs ;;
-			h )
-				help "$script" "$version" 0 ;;
-			i )
-				if exists micro; then
+			c ) micro_configs ;;
+			h ) help 0 ;;
+			i ) if exists micro; then
 					printf "Micro %s is already installed.\n" "$(micro_version)" >&2
 				else
 					check_package wget
 					create_tmp "dirfile"
-					new_ver="$(newest_version "$gh_url")"
+					new_ver="$(newest_version)"
 					printf "%sInstalling Micro version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
-					install_micro "$new_ver" "$gh_url" && micro_configs
+					install_micro && micro_configs
 				fi ;;
-			r )
-				remove_micro ;;
-			u )
-				if exists micro; then
+			r ) remove_micro ;;
+			u ) if exists micro; then
 					check_package wget
 					create_tmp "dirfile"
-					new_ver="$(newest_version "$gh_url")"
-					compare_versions "$new_ver" "$gh_url"
+					new_ver="$(newest_version)"
+					compare_versions
 				else
 					printf "Micro is not installed.\n" >&2
 				fi ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
 	done
 	if (( noOpt == 1 )); then
-		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
+		printf "%s No argument passed\n" "$RED_ERROR" >&2
+		help "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
