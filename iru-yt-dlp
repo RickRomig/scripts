@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 20 Jun 2023
-# Updated      : 30 Oct 2026
-# Version      : 3.2.26303
+# Updated      : 322 Nov 2026
+# Version      : 3.3.26327
 # Comments     : Removes distro repo version if installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,10 +28,8 @@
 . ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="230 Oct 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="22 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Installs, removes, updates YouTube-dlp.
@@ -177,7 +175,7 @@ remove_ytdlp_bin() {
 	return 0
 }
 
-install_intro() {
+installation_doc() {
   cat <<- _INTRO_
 	Installs yt-dlp from yt-dl.org to /usr/local/bin along with an updater script
 	that runs as a daily anacron job saving the results to a log file at:
@@ -189,10 +187,10 @@ install_intro() {
 	return 0
 }
 
-remove_intro() {
+removal_doc() {
   cat <<- _REMOVAL_
 	Removes yt-dlp and its configuration files, removing both the version installed
-	via the distribution's repositories and the version downloaded from the yt-dlp
+	from the distribution's repositories and the version downloaded from the yt-dlp
 	GitHub repository.
 	_REMOVAL_
 	return 0
@@ -200,52 +198,46 @@ remove_intro() {
 
 main() {
 	local -r  script="${0##*/}"
-	local -r  version="3.2.26303"
+	local -r  version="3.3.26327"
 	local -i exit_code=0
 	local -i noOpt=1
 	local -r  optstr=":hirux"
 	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			h )
-				help "$script" "$version" 0 ;;
-			i )
-				if ytdlp_bin; then
+			h ) help 0 ;;
+			i ) if ytdlp_bin; then
 					printf "yt-dlp %s is already installed from yt-dl.org.\n" "$(bin_version)"
 				else
-					install_intro
+					installation_doc
 					check_dependencies
 					ytdlp_deb && remove_ytdlp_deb
 					install_ytdlp_bin && install_updater
 				fi ;;
-			r )
-				remove_intro
+			r ) removal_doc
 				ytdlp_deb && remove_ytdlp_deb
 				if ytdlp_bin; then
 					remove_ytdlp_bin
 				else
 					printf "yt-dlp is not installed.\n"
 				fi ;;
-			u )
-				update_ytdlp
+			u ) update_ytdlp
 				printf "Return Code = %s\n" "$?" ;;
-			x )
-				if ytdlp_deb; then
+			x ) if ytdlp_deb; then
 					printf "Removing yt-dlp %s installed via apt.\n" "$(deb_version)"
 					remove_ytdlp_deb
 				else
 					printf "The distribution's version of yt-dlp is not installed.\n"
 				fi ;;
-			? )
-				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-				help "$script" "$version" "$E_INVALID_ARG"
+			? ) printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help "$E_INVALID_ARG"
 		esac
 		exit_code="$?"
 		noOpt=0
 	done
 	if (( noOpt == 1 )); then
-		printf "%s No argument passed.\n" "$RED_ERROR" >&2
-		help "$script" "$version" "$E_MISSING_ARG"
+		printf "%s No argument passed\n" "$RED_ERROR" >&2
+		help "$E_MISSING_ARG"
 	fi
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script $version"
