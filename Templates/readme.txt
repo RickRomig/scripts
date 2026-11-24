@@ -19,11 +19,11 @@ Brief description of the project, program, etc.
 ### Feedback
 Feel free to contact me with comments and suggestions.
  * [GitHub](https://github.com/RickRomig)
- * [Ricks Tech Stuff](https://ricktech.wordpress.com)
  * [Gitea](http://192.168.0.16:3000/Nullifidian/)
- * Email: [rick.romig@gmail.com](mailto:rick.romig@gmail.com) or [rick.romig@mymetronet.net](mailto:rick.romig@mymetronet.net)
+ * [Ricks Tech Stuff](https://ricktech.wordpress.com)
+ * Email: [rick.romig@gmail.com](mailto:rick.romig@gmail.com)
 
-Richard B. Romig
+Richard (Rick) Romig
 <DATE>
 
 ### DISCLAIMER
