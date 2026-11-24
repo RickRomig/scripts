@@ -7,8 +7,8 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 27 Jan 2025
-# Updated      : 30 Oct 2026
-# Version      : 2.5.26303
+# Updated      : 24 Nov 2026
+# Version      : 2.6.26328
 # Comments     : creates a swap file if no other swap exists.
 #              : Disable old swap and comment out in /etc/fstab
 #              : User is prompted to provide size of swap file in GB (integer value)
@@ -36,7 +36,7 @@ swap_exists() {
 }
 
 dd_swapfile() {
-	local -ri size=$(($1 * 1048576))
+	size=$((size * 1048576))
 	printf "Creating swap file in the root directory...\n"
 	sudo_login 2
 	sudo dd if=/dev/zero of=/swapfile bs=1024 count="$size"
@@ -44,7 +44,6 @@ dd_swapfile() {
 }
 
 fallocate_swapfile() {
-	local -ri size="$1"
 	printf "Creating swap file in the root directory...\n"
 	sudo_login 2
 	sudo fallocate -l "$size"G /swapfile
@@ -75,12 +74,9 @@ create_swapfile() {
 	PS3="Choose creation method: "
 	select _opt in "${options[@]}"; do
 		case "$REPLY" in
-			1 ) dd_swapfile "$size" && process_swapfile
-				break ;;
-			2 ) fallocate_swapfile "$size" && process_swapfile
-				break ;;
-			3 ) printf "Swap file creation canceled.\n"
-				break ;;
+			1 ) dd_swapfile && process_swapfile; break ;;
+			2 ) fallocate_swapfile && process_swapfile; break ;;
+			3 ) printf "Swap file creation canceled.\n"; break ;;
 			* ) printf "%sInvalid choice. Try again.%s\n" "$orange" "$normal" >&2
 		esac
 	done
@@ -89,7 +85,7 @@ create_swapfile() {
 
 main() {
 	local script="${0##*/}"
-	local version="2.5.26303"
+	local version="2.6.26328"
 	local -i exit_code=0
 	sudo_login 2
 	if swap_exists; then
