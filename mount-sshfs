@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2020 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 May 2020
-# Updated      : 30 Oct 2026
-# Version      : 6.2.26303
+# Updated      : 25 Nov 2026
+# Version      : 6.3.26329
 # Comments     : Mount points are at ~/mnt/ (HOME directory)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,9 +28,7 @@
 . ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -r updated="17 Oct 2026"
+	local -r updated="25 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version, Updated $updated
 	Mounts/Unmounts an SSHFS share.
@@ -44,75 +42,67 @@ help() {
 }
 
 cd_fail() {
-	local share="$1"
 	printf "%s The cd shell builtin failed.\n" "$RED_ERROR" >&2
 	printf "The SSHFS share has not been unmounted.\n" >&2
 	return 0
 }
 
 fail_msg() {
-	local -r share="$1"
 	local -r mount_point="$HOME/mnt"
 	printf "Make sure you are not in the mountpoint and run the following command:\n" >&2
-	printf "\t%sfusermount -u %s/%s/%s\n" "$orange" "$mount_point" "$share" "$normal"  >&2
+	printf "\t%sfusermount -u %s/%s/%s\n" "$orange" "$mount_point" "$share_name" "$normal"  >&2
 	return 0
 }
 
 mount_share() {
-	local -r octet="$1"
-	local -r share="$2"
-	ping -c3 "$LOCALNET.$octet" > /dev/null 2>&1 || die "$share at $LOCALNET.$octet is not online." "$E_NETWORK"
-	[[ -d "$HOME/mnt/$share/" ]] || mkdir -p "$HOME/mnt/$share"
-	printf "Mounting %s...\n" "$share"
-	if [[ "$share" == "NASD97167" ]]; then
-		sshfs -o follow_symlinks rick@"$LOCALNET.$octet:" "$HOME/mnt/$share/"
+	ping -c3 "$LOCALNET.$share_ip" > /dev/null 2>&1 || die "$share_name at $LOCALNET.$octet is not online." "$E_NETWORK"
+	[[ -d "$HOME/mnt/$share_name/" ]] || mkdir -p "$HOME/mnt/$share_name"
+	printf "Mounting %s...\n" "$share_name"
+	if [[ "$share_name" == "NASD97167" ]]; then
+		sshfs -o follow_symlinks rick@"$LOCALNET.$share_ip:" "$HOME/mnt/$share_name/"
 	else
-		sshfs -o follow_symlinks rick@"$LOCALNET.$octet:$HOME" "$HOME/mnt/$share/"
+		sshfs -o follow_symlinks rick@"$LOCALNET.$share_ip:$HOME" "$HOME/mnt/$share_name/"
 	fi
-	printf "Home directory at %s:\n" "$share"
-	ls "$HOME/mnt/$share/"
-	printf "%s at %s.%s has been mounted.\n" "$share" "$LOCALNET" "$octet"
+	printf "Home directory at %s:\n" "$share_name"
+	ls "$HOME/mnt/$share_name/"
+	printf "%s at %s.%s has been mounted.\n" "$share_name" "$LOCALNET" "$share_ip"
 	return 0
 }
 
 unmount_share() {
-	local -r share="$1"
 	if ! cd "$HOME"; then
-		cd_fail "$share"
-		fail_msg "$share"
+		cd_fail
+		fail_msg
 		return "$E_DRIVE_ERROR"
 	fi
-	if fusermount -u "$HOME/mnt/$share/"; then
-		printf "%s has been unmounted.\n" "$share"
+	if fusermount -u "$HOME/mnt/$share_name/"; then
+		printf "%s has been unmounted.\n" "$share_name"
 		return 0
 	fi
-	printf "%s %s has not been unmounted." "$RED_ERROR" "$share" >&2
-	fail_msg "$share"
+	printf "%s %s has not been unmounted." "$RED_ERROR" "$share_name" >&2
+	fail_msg
 	return "$E_DRIVE_ERROR"
 }
 
 mounted() {
-	local -r share="$1"
-	grep -q "$share" < <(mount) && return "$TRUE" || return "$FALSE"
+	grep -q "$share_name" < <(mount) && return "$TRUE" || return "$FALSE"
 }
 
 handle_mount() {
-	local -ir octet="$1"
-	local -r share="$2"
 	local -i code=0
 	local -i ip
 	ip=$(local_ip)
-	if (( ip == octet )); then
+	if (( ip == share_ip )); then
 		printf "%s Cannot mount/unmount local system.\n" "$RED_ERROR" >&2
 		code="$E_DRIVE_ERROR"
-	elif ! mounted "$share"; then
-		mount_share "$octet" "$share"
+	elif ! mounted "$share_name"; then
+		mount_share "$share_ip" "$share_name"
 		code="$?"
-	elif default_yes "Unmount $share?"; then
-		unmount_share "$share"
+	elif default_yes "Unmount $share_name?"; then
+		unmount_share "$share_name"
 		code="$?"
 	else
-		printf "%s left mounted.\n" "$share"
+		printf "%s left mounted.\n" "$share_name"
 		code="$?"
 	fi
 	return "$code"
@@ -156,16 +146,16 @@ select_share() {
 	share_name=$(cut -d' ' -f2 <<< "${share_list[index]}")
 	printf "Share IP = %d\n" "$share_ip"
 	printf "Share name: %s\n" "$share_name"
-	handle_mount "$share_ip" "$share_name"
+	handle_mount
 	return "$?"
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="6.2.26303"
+	local -r version="6.3.26329"
 	local -i exit_code=0
 	local share_name share_ip
-	[[ "$1" == '-h' || "$1" == --help ]] && help "$script" "$version"
+	[[ "$1" == '-h' || "$1" == --help ]] && help
 	check_package sshfs
 	printf "Mount or unmount an SSHFS share.\n"
 	select_share
