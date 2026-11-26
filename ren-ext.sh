@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2017, Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 2017
-# Updated      : 326 Nov 2026
+# Updated      : 26 Nov 2026
 # Version      : 4.4.26330
 # Comments     : File extensions are not case sensitive, but will change to lowercase.
 # TODO (Rick)  :
