@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 Jun 2019
-# Updated      : 30 Oct 2026
-# Versions     : 6.5.26303
+# Updated      : 26 Nov 2026
+# Versions     : 6.6.26330
 # Comments     :
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,7 +28,6 @@
 . ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 select_dest_dir() {
-	local -r script="$1"
 	local fmenu="fzf --header=$script \
 		--layout=reverse \
 		--exact \
@@ -51,8 +50,7 @@ select_dest_dir() {
 	return 0
 }
 
-valid_folder() {
-	local -r sel_dir="$1"
+valid_directory() {
 	local directory=
 	local invalid_dirs=(
 		"album-art"
@@ -73,8 +71,7 @@ valid_folder() {
 }
 
 valid_image() {
-	local -r filename="$1"
-	local ext="${filename##*.}"
+	local ext="${pic_file##*.}"
 	ext="${ext,,}"
 	case $ext in
 		bmp|gif|jpeg|jpg|png|tiff ) return "$TRUE" ;;
@@ -83,15 +80,13 @@ valid_image() {
 }
 
 select_images() {
-	local -r pic_hold_d="$1"
 	local pic_dir pic_file pic_pid options _opt random_file sel_dir
-
 	clear
 	while true; do
 		# Randomly select an image folder from ~/Pictures/
 		pic_dir=$(shuf -n1 < <(find ~/Pictures -maxdepth 1 -type d))
 		sel_dir="${pic_dir##*/}"
-		valid_folder "$sel_dir" || continue
+		valid_directory "$sel_dir" || continue
 
 		# Choose a random image file from the selected folder
 		random_file=$(shuf -n1 < <(find "$pic_dir" -maxdepth 1 -type f | shuf -n1))
@@ -101,10 +96,10 @@ select_images() {
 		clearscreen
 		box "Random Image Selector"
 		printf "\n%sSelected image: %s%s/%s%s\n" "$blue" "$orange" "$sel_dir" "$pic_file" "$normal"
-		cp -p "$pic_dir/$pic_file" "$pic_hold_d"
-		# /usr/bin/display -geometry +600+20 "$pic_hold_d/$pic_file" &
-		/usr/bin/display -geometry +1000+20 -resize 800x600 "$pic_hold_d/$pic_file" &
-		# kitten icat --clear --place 60x30@80x1 --scale-up "$pic_hold_d/$pic_file"
+		cp -p "$pic_dir/$pic_file" "$dest_dir"
+		# /usr/bin/display -geometry +600+20 "$dest_dir/$pic_file" &
+		/usr/bin/display -geometry +1000+20 -resize 800x600 "$dest_dir/$pic_file" &
+		# kitten icat --clear --place 60x30@80x1 --scale-up "$dest_dir/$pic_file"
 		pic_pid="$!"
 		printf "\n%sOptions:%s\n" "$blue" "$normal"
 		COLUMNS=12
@@ -130,38 +125,45 @@ select_images() {
 				3 ) printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
 					printf "\nSelecting another random image...\n"
 					kill $pic_pid
-					rm "$pic_hold_d/$pic_file"
+					rm "$dest_dir/$pic_file"
 					sleep 2
 					break ;;
 				4 ) printf "\n%sRejected image:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
 					printf "\nFinished selecting images.\n"
 					kill $pic_pid
-					rm "$pic_hold_d/$pic_file"
+					rm "$dest_dir/$pic_file"
 					break 2 ;;
 				5 ) printf "\n%sImage deleted:%s %s/%s\n" "$blue" "$normal" "$sel_dir" "$pic_file"
 					printf "\nSelecting another random image...\n"
 					kill $pic_pid
-					rm "$pic_hold_d/$pic_file" "$pic_dir/$pic_file"
+					rm "$dest_dir/$pic_file" "$pic_dir/$pic_file"
 					sleep 2
 					break ;;
 				* ) printf "\n%sInvalid option. Try again.%s\n" "$lightred" "$normal"
 			esac
 		done
 	done
-	return 0
+	return "$?"
 }
 
 main () {
 	local -r script="${0##*/}"
-	local -r version="6.5.26303"
+	local -r version="6.6.26330"
+	local -i exit_code=0
 	local dest_dir
 	check_package imagemagick
-	dest_dir=$(select_dest_dir "$script")
-	[[ "$dest_dir" ]] || die "No destination directory selected." "$E_MISSING_ARG"
-	check_package imagemagick
-	select_images "$dest_dir"
+	dest_dir=$(select_dest_dir)
+	if [[ "$dest_dir" ]];then
+		check_package imagemagick
+		select_images
+		exit_code="$?"
+	else
+		printf "%s No destination directory selected.\n" "$RED_ERROR" >&2
+		exit_code="$E_MISSING_ARG"
+	fi
 	over_line "$script $version"
-	leave ""
+	printf "\"%s\"\n" "$(shuf -n 1 ~/.local/share/doc/leave.txt)"
+	exit "$exit_code"
 }
 
 main "$@"
