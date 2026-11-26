@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2017, Richard Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 2017
-# Updated      : 30 Oct 2026
-# Version      : 4.3.26303
+# Updated      : 326 Nov 2026
+# Version      : 4.4.26330
 # Comments     : File extensions are not case sensitive, but will change to lowercase.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -28,10 +28,8 @@
 . functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="09 Sep 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="26 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Bulk renames file extensions in the current diectory.
@@ -46,10 +44,9 @@ help() {
 }
 
 rename_extension() {
-	local -l ext="$1"
 	# Rename file extensions based on the passed argument
-	printf "Renaming .%s file extensions\n" "$ext"
-	case "$ext" in
+	printf "Renaming .%s file extensions\n" "$extension"
+	case "$extension" in
 		htm|html )
 			rename -v 's/\.HTML?$/\.html/i' ./* ;;
 		jpg|jpeg )
@@ -64,11 +61,11 @@ rename_extension() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="4.3.26303"
+	local -r version="4.4.26330"
 	local -r extension="$1"
 	check_package rename
-	[[ "$extension" == "-h" || "$extension" == "--help" ]] && help "$script" "$version" 0
-	rename_extension "$extension"
+	[[ "$extension" == "-h" || "$extension" == "--help" ]] && help 0
+	rename_extension
 	over_line "$script $version"
 	exit
 }
