@@ -104,7 +104,7 @@ main() {
 	local opt OPTARG OPTIND
 	while getopts "$optstr" opt; do
 		case "$opt" in
-			d ) flatpak_installed && disable_flatpak ;;
+			d ) disable_flatpak ;;
 			e ) flatpak_installed && enable_flatpak ;;
 			h ) help 0 ;;
 			s ) flatpak_status ;;
