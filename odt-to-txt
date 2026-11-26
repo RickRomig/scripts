@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 May 2019
-# Updated      : 30 Oct 2026
-# Version      : 3.4.26303
+# Updated      : 26 Nov 2026
+# Version      : 3.5.26330
 # Comments     : Run from a directory containing .odt files to be converted.
 #              : Leaves original .odt files intact.
 # TODO (rick)  :
@@ -35,7 +35,6 @@ check_dependencies() {
 }
 
 convert_2_txt() {
-	local -r odt_file=$1
 	local -r txt_file="${odt_file%%.*}.txt"
 	/usr/bin/odt2txt "$odt_file" > "$txt_file"
 	echo "$odt_file -> $txt_file"
@@ -43,7 +42,6 @@ convert_2_txt() {
 }
 
 convert_2_md() {
-	local -r odt_file=$1
 	local -r md_file="${odt_file%%.*}.md"
 	/usr/bin/odt2txt "$odt_file" > "$md_file"
 	echo "$odt_file -> $md_file"
@@ -71,8 +69,8 @@ select_odt_file() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.4.26303"
-	local options _opt ofile
+	local -r version="3.5.26330"
+	local options _opt odt_file
 	check_dependencies
 	while true; do
 		clear
@@ -90,43 +88,37 @@ main() {
 		PS3="Choose an option: "
 		select _opt in "${options[@]}"; do
 			case $REPLY in
-				1 )
-					ofile=$(select_odt_file)
-					printf "Converting %s to text.\n" "$ofile"
-					convert_2_txt "$ofile"
+				1 ) odt_file=$(select_odt_file)
+					printf "Converting %s to text.\n" "$odt_file"
+					convert_2_txt
 					anykey
 					break ;;
-				2 )
-					ofile=$(select_odt_file)
-					printf "Converting %s to markdown.\n" "$ofile"
-					convert_2_md "$ofile"
+				2 ) odt_file=$(select_odt_file)
+					printf "Converting %s to markdown.\n" "$odt_file"
+					convert_2_md
 					anykey
 					break ;;
-				3 )
-					if odt_files_found; then
+				3 ) if odt_files_found; then
 						list_odt_files
 						printf "Converting .odt files in %s to text...\n\n" "$PWD"
-						for ofile in *.odt; do convert_2_txt "$ofile"; done
+						for odt_file in *.odt; do convert_2_txt "$odt_file"; done
 					else
 						printf "No .odt files found.\n"
 					fi
 					anykey
 					break ;;
-				4 )
-					if odt_files_found; then
+				4 ) if odt_files_found; then
 						list_odt_files
 						printf "Converting .odt files in %s to markdown...\n\n" "$PWD"
-						for ofile in *.odt; do convert_2_md "$ofile"; done
+						for odt_file in *.odt; do convert_2_md "$odt_file"; done
 					else
 						printf "No .odt files found.\n"
 					fi
 					anykey
 					break ;;
-				5 )
-					printf "All done! Exiting the script.\n"
-					break ;;
-				* )
-					echo "${lightred}Invalid Option!${normal} Choose 1 - 5" >&2
+				5 ) printf "All done! Exiting the script.\n"
+					break 2 ;;
+				* ) echo "${lightred}Invalid Option!${normal} Choose 1 - 5" >&2
 			esac
 		done
 	done
