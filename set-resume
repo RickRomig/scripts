@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Nov 2019
-# Updated      : 30 Oct 2026
-# Version      : 7.8.26303
+# Updated      : 27 Nov 2026
+# Version      : 7.9.26331
 # Comments     : Extracts swap partition UUID from output of /usr/sbin/blkid
 #              : Debian requires sudo for blkid, in Mint, blkid gives more info with sudo
 #              : Run script only if you get an update-initramfs error message.
@@ -61,7 +61,7 @@ set_resume() {
 		return "$E_NOT_DETECTED"
 	fi
 	if default_no "Set RESUME environment variable?"; then
-		local -r resume_path="/etc/initramfs-tools/conf.d/resume"
+		local -r resume_path=/etc/initramfs-tools/conf.d/resume
 		printf "Setting the RESUME environment variable in %s...\n" "$resume_path"
 		sudo tee "$resume_path" &>/dev/null <<< "RESUME=UUID=$swap_uuid"
 		printf "Updating initramfs ...\n"
@@ -69,13 +69,13 @@ set_resume() {
 		return "$?"
 	else
 		printf "Operation canceled. RESUME environment variable not set.\n" >&2
-		return 1
+		return 0
 	fi
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="7.8.26303"
+	local -r version="7.9.26331"
 	local -i exit_code=0
 	print_message
 	set_resume
