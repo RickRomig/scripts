@@ -7,8 +7,8 @@
 # Author       : Copyright © 2024 Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Jul 2024
-# Last updated : 30 Oct 2026
-# Version      : 3.6.26303
+# Last updated : 27 Nov 2026
+# Version      : 3.7.26331
 # Comments     : Do not use with scripts or files inside git repos. Use gretire.sh instead.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,10 +29,8 @@
 . ~/bin/files/functionlib.bash || { printf "\e[91mERROR:\e[0m Unable to source functionlib.bash\n"; exit 1; }
 
 help() {
-	local -r script="$1"
-	local -r version="$2"
-	local -ri errcode="${3:-1}"
-	local -r updated="30 Oct 2026"
+	local -ri errcode="${1:-1}"
+	local -r updated="27 Nov 2026"
 	cat <<- _HELP_
 	${orange}$script${normal} $version ($updated)
 	Retires a script by moving it to a zipped archive.
@@ -59,37 +57,35 @@ check_git_repo() {
 }
 
 chack_args() {
-	local -r filename="$1"
 	if [[ ! -f "$filename" ]]; then
 		printf "%s was not found in this directory.\n" "$filename" >&2
 		return "$E_FILENOTFOUND"
 	fi
-	retire_script "$filename"
+	retire_script
 	return 0
 }
 
 retire_script() {
-	local -r filename="$1"
 	local -r archive_dir=~/Downloads/archives
 	local -r ret_archive="retired-scripts.zip"
 	local ret_name
 	ret_name="${filename}.$(date +'%y%j')"
 	mv -v "$filename" "$ret_name"
-	zip -um "$archive_dir/$ret_archive$" "$ret_name"
+	zip -um "$archive_dir/$ret_archive" "$ret_name"
 	printf "%s has been retired and archived.\n" "$filename"
 	return 0
 }
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="3.6.26252"
+	local -r version="3.7.26331"
 	local -i exit_code=0
-	[[ "$1" == "-h" || "$1" == "--help" ]] && help "$script" "$version" 0
-	check_git_repo && die "This is a git repository. Use 'gretire.sh' to retire a script inside a git repository." 1
+	[[ "$1" == "-h" || "$1" == "--help" ]] && help 0
+	check_git_repo && die "This is a git repository. Use 'gretire.sh' to retire a script inside a git repository." "$E_UNSUPPORTED"
 	local filename="$1"
 	[[ "$filename" ]] || read -rp "Enter a script to be retired: " filename
 	check_dependencies
-	chack_args "$filename"
+	chack_args
 	exit_code="$?"
 	over_line "$script $version"
 	exit "$exit_code"
