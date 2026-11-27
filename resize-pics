@@ -7,8 +7,8 @@
 # Author       : Copyright (c) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Jun 2022
-# Updated      : 30 Oct 2026
-# Version      : 1.9.26303
+# Updated      : 26 Nov 2026
+# Version      : 1.10.26330
 # Comments     : Must be run from the current working directory.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -40,7 +40,6 @@ find_images() {
 }
 
 resize_pics() {
-	local -ri size="$1"
 	local image
 	[[ -d ./resized ]] || mkdir -p ./resized
 	printf "Creating resized images in ./resized...\n"
@@ -59,12 +58,12 @@ rename_extensions() {
 
 main() {
 	local -r script="${0##*/}"
-	local -r version="1.9.26303"
+	local -r version="1.10.26330"
 	local -ri size="${1:-800}"
 	if find_images; then
 		check_dependencies
 		rename_extensions
-		resize_pics "$size"
+		resize_pics
 	else
 		printf "No JPEG images in current directory to process.\n"
 	fi
