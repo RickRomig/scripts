@@ -6,7 +6,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Updated      : 16 Nov 2026
+# Updated      : 27 Nov 2026
 # Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/files/functionlib.bash.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -292,7 +292,8 @@ valid_ip() {
 	local -i localip
 	localip="$(local_ip)"
 	if [[ -z "$octet" ]]; then
-		printf "%s No argument passed. No host IP.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" >&2
+		printf "%s No argument passed. No host IP.\n" "$RED_ERROR" >&2
+		printf "Enter the last octet of the target IP address (1 - 254).\n" >&2
 		return "$E_MISSING_ARG"
 	elif (( localip == octet )); then
 		printf "%s %s.%s is the local client.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
@@ -302,11 +303,13 @@ valid_ip() {
 			printf "%s.%s is a valid and reachable IP address.\n" "$LOCALNET" "$octet"
 			return 0
 		else
-			printf "%s %s.%s is valid IP address but is unreachable.\nCheck to see if it is on the network.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+			printf "%s %s.%s is valid IP address but is unreachable.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+			printf "Check to see if it is on the network.\n" >&2
 			return "$E_NETWORK"
 		fi
 	else
-		printf "%s Invalid argument: %s.%s is not a valid IP address.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+		printf "%s Invalid argument: %s.%s is not a valid IP address.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
+		printf "Enter the last octet of the target IP address (1 - 254).\n" >&2
 		return "$E_INVALID_ARG"
 	fi
 }
